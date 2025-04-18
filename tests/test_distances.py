@@ -65,16 +65,16 @@ def test_dist_5():
 def test_dist_7():
     t1=np.random.rand(2,2)
     t2=np.random.rand(1,2)
-    print(dist_7_rev({'a':t1}, {'b':t2})) # should be 0
+    assert dist_7_rev({'a':t1}, {'b':t2}) == 0, f"Rule 7 was not satisfied for args with shape {t1.shape} and {t2.shape}" # should be 0
     t1=np.random.rand(3,2)
     t2=np.random.rand(2,2)
-    print(dist_7_rev({'a':t1}, {'b':t2})) # should be higher than 0
+    assert dist_7_rev({'a':t1}, {'b':t2}) > 0, f"Rule 7 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t1=np.random.rand(2,100)
     t2=np.random.rand(50,2)
-    print(dist_7_rev({'a':t1}, {'b':t2})) # should be 0
+    assert dist_7_rev({'a':t1}, {'b':t2}) == 0, f"Rule 7 was not satisfied for args with shape {t1.shape} and {t2.shape}" # should be 0
     t1=np.random.rand(3,100)
     t2=np.random.rand(100,2)
-    print(dist_7_rev({'a':t1}, {'b':t2})) # should be higher than 0
+    assert dist_7_rev({'a':t1}, {'b':t2}) > 0, f"Rule 7 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
 
 @pytest.mark.unit
 def test_dist_8():
