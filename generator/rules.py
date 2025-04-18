@@ -1,5 +1,6 @@
 import numpy as np
 import logging
+from itertools import combinations
 
 from .definitions import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 
@@ -212,6 +213,8 @@ rule_to_distance = {
     'rule_8': dist_8_rev,
 }
 
+order_agnostic_rules = ['rule_1', 'rule_3', 'rule_4', 'rule_8']
+
 '''
     Utility function. Returns distance to a range.
 
@@ -230,3 +233,40 @@ def distance_to_range(pos, lo, hi, total):
     else: # must be in a position above hi.
         dis = abs(pos - hi) / (total - 1)    
     return dis
+'''
+    Utility function, given an input, checks which rules it satisfies
+'''
+def check_rules(input_dict, print_rules=False):
+    # TODO: Add support for rules that take more than 2 arguments
+    set_of_rules_passed = set()
+    
+    if len(input_dict.keys()) < 2:
+        print("Not enough arguments to check rules")
+        return set_of_rules_passed
+    
+    # Generate unique pairs of keys
+    for arg_1, arg_2 in combinations(input_dict.keys(), 2):
+        for rule_name, distance_function in rule_to_distance.items():
+            # Check if the rule is satisfied for the current pair of arguments
+            # i.e. distance function returns zero
+            try:
+                if distance_function({arg_1: input_dict[arg_1]}, {arg_2: input_dict[arg_2]}) == 0:
+                    # If the rule is satisfied, add it to the set of passed rules
+                    set_of_rules_passed.add((rule_name, arg_1, arg_2))
+            except:
+                pass    # The rule is not applicable
+
+            # Change order of arguments to check the rule in the opposite direction unless the rule is order-agnostic
+            if rule_name not in order_agnostic_rules:
+                try:
+                    if rule({arg_2: input_dict[arg_2]}, {arg_1: input_dict[arg_1]}):
+                    # If the rule is satisfied, add it to the set of passed rules
+                        set_of_rules_passed.add((rule_name, arg_2, arg_1))
+                except:
+                    pass    # The rule is not applicable
+    # Optionally print the rules that have been passed
+    if print_rules:
+        for rule in set_of_rules_passed:
+            print(f"Rule {rule[0]} passed between {rule[1]} and {rule[2]}")
+    # Return the set of rules that have been passed
+    return set_of_rules_passed
