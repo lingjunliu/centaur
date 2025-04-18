@@ -23,7 +23,9 @@ The code is organized as follow:
 
 <h2> 1. Learn invariants </h2>
 
- @Abid, can you please complete this. You can do this through tests  
+ The `infer_invariants` function in the file `learner/invariant_inference.py` can take a list of inputs, check which of them are valid and for each valid input, check which rules are satisfied by them. It returns a set of tuples `(rule_name, arg1, arg2)` where `arg1` and `arg2` are the arguments in the input that are relevant for a rule (each rule in our rule set is applicable for pair of arguments).
+
+ The tests written under `tests/test_invariants.py` demonstrates usage of this function.
 
 <h2> 2. Generate tests </h2>
 
