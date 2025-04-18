@@ -85,7 +85,9 @@ def run_api_with_duration(api, duration, print_details=False):
                 print(f"\nThe input might be invalid. Faced exception:\n{e.__class__}: {str(e)}")
                 traceback.print_exc()
         execution_time = execution_time + time.time() - start_execution
-    print(f"\nOptimized {api} in {round(time.time()-start, 4)}s | API Execution took {execution_time} seconds")
+    
+    total_time = time.time() - start
+    print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
     print(f"Valid: {valid} | Invalid: {invalid} | Total {valid+invalid} | Validity Rate: {round(valid*100/(valid+invalid),2) if valid+invalid > 0 else 0}%")
 
 if __name__ == "__main__":
