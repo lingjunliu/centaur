@@ -1,8 +1,9 @@
 import numpy as np
 import logging
 import pytest
+import torch
 
-from generator.rules import dist_1_rev, dist_7_rev, dist_8_rev
+from generator.rules import dist_1_rev, dist_7_rev, dist_8_rev, dist_5_rev
 
 ## Abid, please add assertions with corresponding expectations here --Marcelo
 
@@ -49,6 +50,16 @@ def test_dist_1():
     print(dist_1_rev({'a':t1}, {'b':t2}))
     t2=np.random.rand(4,2,5) ## perfect. 
     print(dist_1_rev({'a':t1}, {'b':t2}))
+
+@pytest.mark.unit
+def test_dist_5():
+    input = np.random.rand(3, 5)
+    index = np.array([[0, 1, 2, 0]])
+    assert dist_5_rev({'input': input}, {'index': index}) == 0, f"Rule 5 was not satisfied for input with shape {input.shape} and index with values within [{np.min(index)}, {np.max(index)}]"
+    
+    input = torch.full((2, 4), 2., dtype=int).numpy()
+    index = torch.tensor([[2], [3]]).numpy()
+    assert dist_5_rev({'input': input}, {'index': index}) != 0, f"Rule 5 was satisfied for input with shape {input.shape} and index with values within [{np.min(index)}, {np.max(index)}], but it should not have"
 
 @pytest.mark.unit
 def test_dist_7():

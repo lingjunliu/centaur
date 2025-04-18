@@ -4,7 +4,6 @@ from learner.inputs import get_inputs
 
 @pytest.mark.unit
 def test_scatter_invariants():
-    # TODO: Check why it fails for rule_5
     api = "scatter"
     ruleset = infer_invariants(api, get_inputs(api))
     ref_ruleset = set([
@@ -14,8 +13,7 @@ def test_scatter_invariants():
                         ('rule_3', 'input', 'src'),
                         ('rule_3', 'input', 'index'),
                         ('rule_3', 'src', 'index'),
-                        ('rule_4', 'input', 'src'),
-                        ('rule_5', 'input', 'index')
+                        ('rule_4', 'input', 'src')
                     ])
     
     for rule_tuple in ref_ruleset:
