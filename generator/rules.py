@@ -2,7 +2,7 @@ import numpy as np
 import logging
 from itertools import combinations
 
-from .definitions import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 
 # hack to circumvent missing definition in import
 np.float128 = np.float64

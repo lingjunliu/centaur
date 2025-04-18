@@ -1,22 +1,7 @@
 import numpy as np
-from generator import scatter, atan2, matmul, argmin, conv_transpose2d
-############### limit definitions ################
-
-MAX_N_DIM=32
-MAX_SZ_DIM=100
-MAX_SZ_NUM=10000
-
-list_of_available_dtypes = [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128]
-
-domain_limits = {
-    'tensor': [0, MAX_SZ_DIM, 0, MAX_N_DIM],
-    'tensor_dtype': [0, len(list_of_available_dtypes)-1, 1, 1],
-    'tensor_value_range': [-MAX_SZ_NUM, MAX_SZ_NUM, 2, 2],
-    'integer': [-MAX_SZ_NUM, MAX_SZ_NUM, 1, 1],
-    'integer_dtype': [1, 5, 1, 1], # only integer dtypes
-    'integer_value_range': [-MAX_SZ_NUM, MAX_SZ_NUM, 2, 2], # the range should be equal to the range of the "integer" limits. we only need this for tensors actually
-}
-
+from learner.invariant_inference import infer_invariants
+from learner.inputs import get_inputs
+from utils.defaults import *
 # TODO: Move the definitions to JSON
 
 ############### api definitions ################
@@ -30,16 +15,19 @@ scatter_definition = {
                         "index": "tensor",
                         "src": "tensor"
                     },
-    "ruleset":  set([
-                        ('rule_2', 'input', 'dim'),
-                        ('rule_2', 'index', 'dim'),
-                        ('rule_2', 'src', 'dim'),
-                        ('rule_3', 'input', 'src'),
-                        ('rule_3', 'input', 'index'),
-                        ('rule_3', 'src', 'index'),
-                        ('rule_4', 'input', 'src'),
-                        ('rule_5', 'input', 'index')
-                    ]),
+    # Set manually
+    # "ruleset":  set([
+    #                     ('rule_2', 'input', 'dim'),
+    #                     ('rule_2', 'index', 'dim'),
+    #                     ('rule_2', 'src', 'dim'),
+    #                     ('rule_3', 'input', 'src'),
+    #                     ('rule_3', 'input', 'index'),
+    #                     ('rule_3', 'src', 'index'),
+    #                     ('rule_4', 'input', 'src'),
+    #                     ('rule_5', 'input', 'index')
+    #                 ]),
+    # Using invariant inference
+    "ruleset":  infer_invariants("scatter", get_inputs("scatter")),
     # Easy
     # "random_candidate": {
     #                         "input": np.random.rand(2,4).astype(np.float32),
@@ -172,11 +160,14 @@ conv_transpose2d_definition = {
                         "stride": "integer",
                         "padding": "integer"
                     },
-    "ruleset":  set([
-                        ('rule_3', 'input', 'weight'),
-                        ('rule_4', 'input', 'weight'),
-                        ('rule_7', 'weight', 'input')
-                    ]),
+    # Set manually
+    # "ruleset":  set([
+    #                     ('rule_3', 'input', 'weight'),
+    #                     ('rule_4', 'input', 'weight'),
+    #                     ('rule_7', 'weight', 'input')
+    #                 ]),
+    # Using invariant inference
+    "ruleset":  infer_invariants("conv_transpose2d", get_inputs("conv_transpose2d")),
     "random_candidate": {
                             "input": np.random.rand(2,4,343,10,1).astype(np.float32),
                             "weight": np.random.rand(2,343,1).astype(np.float32),
@@ -384,14 +375,4 @@ map_defs = {
     "matmul": matmul_definition,
     "argmin": argmin_definition,
     "conv_transpose2d": conv_transpose2d_definition
-}
-
-############### map apis to drivers ################
-
-api_defs = {
-    "scatter": scatter,
-    "atan2": atan2,
-    "matmul": matmul,
-    "argmin": argmin,
-    "conv_transpose2d": conv_transpose2d
 }

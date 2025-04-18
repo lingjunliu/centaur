@@ -2,6 +2,7 @@ import numpy as np
 import copy
 
 from generator.rules import rule_to_distance
+from utils.defaults import *
 from .definitions import *
 
 fresh_dim_len = 5 # constant define length of a new dimension to a tensor

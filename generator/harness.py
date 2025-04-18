@@ -3,7 +3,8 @@ import numpy as np
 import traceback
 
 from .ea import Configuration, Mutator, optimize
-from .definitions import map_defs, api_defs
+from .definitions import map_defs
+from utils.api_utils import get_driver
 
 def main():
     # Rules
@@ -42,7 +43,7 @@ def main():
     
     # verify if the input is valid
     try:
-        scatter_cpu = api_defs["scatter"].torch_version(config.translate_to_input_dict(best_input), cpu=True)
+        scatter_cpu = get_driver("scatter")(config.translate_to_input_dict(best_input), cpu=True)
         print("\nThe input for scatter was valid! Yayyy!!!")
     except Exception as e:
         print(f"\nThe input might be invalid. Faced exception:\n{e.__class__}: {str(e)}\n\n")
@@ -51,9 +52,7 @@ def main():
         traceback.print_exc()
     
 def run_api_with_duration(api, duration, print_details=False):
-    if api not in api_defs:
-        print(f"{api} not supported yet")
-        return
+    driver = get_driver(api)
 
     print(f"Optimizing for {api} with a {duration} second budget")
     execution_time = 0
@@ -75,7 +74,7 @@ def run_api_with_duration(api, duration, print_details=False):
         # verify if the input is valid
         start_execution = time.time()
         try:
-            out_cpu = api_defs[api].torch_version(config.translate_to_input_dict(best_input), cpu=True)
+            out_cpu = driver(config.translate_to_input_dict(best_input), cpu=True)
             print(f"valid: {valid}", end='\r', flush=True)
             valid += 1
         except Exception as e:

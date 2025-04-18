@@ -1,6 +1,6 @@
-from generator.rules import *
-from generator.definitions import *
+from generator.rules import check_rules
 from .inputs import get_inputs
+from utils.api_utils import get_driver
 
 def infer_invariants(api, list_of_inputs, print_details=False):
     initialized = False
@@ -8,7 +8,7 @@ def infer_invariants(api, list_of_inputs, print_details=False):
     print(f"Inferring invariants for {api} with {len(list_of_inputs)} inputs\n")
     for idx, input_dict in enumerate(list_of_inputs):
         try:
-            out_cpu = api_defs[api].torch_version(input_dict, cpu=True)
+            out_cpu = get_driver(api)(input_dict, cpu=True)
             if print_details:
                 print(f"Input {idx} is valid")
             # Check rules for the input dictionary

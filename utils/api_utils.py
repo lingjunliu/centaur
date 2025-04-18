@@ -1,0 +1,21 @@
+import importlib
+
+# get the driver code for corresponding api using the name of the api
+def get_driver(api, lib="torch"):
+    # driver
+    api = importlib.import_module(f"drivers.{api}")
+    functions = dir(api)
+    for function_name in functions:
+        if lib.lower() == "torch":
+            if function_name.startswith("torch_") or function_name.startswith("pytorch_") or function_name.startswith("pt_"):
+                lib_version = getattr(api, function_name)
+                break
+        elif lib.lower() == "tensorflow":    
+            if function_name.startswith("tensorflow_") or function_name.startswith("tf_"):
+                lib_version = getattr(api, function_name)
+                break
+            
+    if lib_version is None:
+        raise NotImplementedError(f"{api} not supported yet for {lib}")
+    
+    return lib_version
