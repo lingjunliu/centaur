@@ -21,6 +21,14 @@ def infer_invariants(api, list_of_inputs, print_details=False):
             if print_details:
                 print(f"Input {idx} is invalid")   
     
+    if print_details:
+        if len(ruleset) > 0:
+            print(f"Rules passed for {api}:")
+            for rule, arg1, arg2 in ruleset:
+                print(f"- {rule} between {arg1} and {arg2}")
+        else:
+            print(f"No rules passed for {api}.")
+    
     return ruleset
 
 def save_invariants_as_csv(api, ruleset):
@@ -30,24 +38,20 @@ def save_invariants_as_csv(api, ruleset):
         # If there are rules that have been passed, print them
         with open(invariant_file, "w") as fi:
             fi.write("api,rule,arg1,arg2\n")
-            print(f"Rules passed for {api}:")
             for rule, arg1, arg2 in ruleset:
-                print(f"- {rule} between {arg1} and {arg2}")
                 fi.write(f"{api},{rule},{arg1},{arg2}\n")
-    else:
-        print(f"No rules passed for {api}.")
 
 def main():
     # scatter
     api = "scatter"
-    ruleset = infer_invariants(api, get_inputs(api))
+    ruleset = infer_invariants(api, get_inputs(api), print_details=True)
     save_invariants_as_csv(api, ruleset)
     
     print("\n-----\n")
     
     # conv_transpose2d
     api = "conv_transpose2d"
-    ruleset = infer_invariants(api, get_inputs(api))
+    ruleset = infer_invariants(api, get_inputs(api), print_details=True)
     save_invariants_as_csv(api, ruleset)
 
 if __name__ == "__main__":

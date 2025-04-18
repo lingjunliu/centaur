@@ -258,8 +258,8 @@ def check_rules(input_dict, print_rules=False):
 
             # Change order of arguments to check the rule in the opposite direction unless the rule is order-agnostic
             if rule_name not in order_agnostic_rules:
-                try:
-                    if rule({arg_2: input_dict[arg_2]}, {arg_1: input_dict[arg_1]}):
+                try:                    
+                    if distance_function({arg_2: input_dict[arg_2]}, {arg_1: input_dict[arg_1]}) == 0:
                     # If the rule is satisfied, add it to the set of passed rules
                         set_of_rules_passed.add((rule_name, arg_2, arg_1))
                 except:
