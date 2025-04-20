@@ -1,32 +1,30 @@
 import torch
 import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
+
+# Assuming the set_seed function is defined in src.setseed
+from src.setseed import set_seed  
 
 def torch_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
-
+    
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
     other_tensor = torch.tensor(input["other"])
 
+    # Compute element-wise maximum
+    result_tensor = torch.maximum(input_tensor, other_tensor)
+
     if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        result_tensor = result_tensor.cpu()
+
+    return {"maximum_tensor": result_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
-
+    
     if cpu:
         device_string = "/cpu:0"
     else:
@@ -37,28 +35,28 @@ def tensorflow_version(input, cpu=True):
         input_tensor = tf.constant(input["input"])
         other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Compute element-wise maximum
+        result_tensor = tf.math.maximum(input_tensor, other_tensor)
 
-        return {"matmul": result.numpy()}
+        return {"maximum_tensor": result_tensor.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[1, 2, -1], [3, 0, 4]], dtype=np.float32),
+        "other": np.array([[3, 0, 4], [1, 5, -3]], dtype=np.float32)
     }
 
     # Torch example
-    torch_result = torch_version(input_data)
+    torch_result = torch_version(input_data, cpu=True)
     print("Torch result:", torch_result)
 
     # TensorFlow example
-    tf_result = tensorflow_version(input_data)
+    tf_result = tensorflow_version(input_data, cpu=True)
     print("TensorFlow result:", tf_result)
 
     # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    np.testing.assert_array_equal(torch_result["maximum_tensor"], tf_result["maximum_tensor"])
     print("equal")
 
 if __name__ == "__main__":

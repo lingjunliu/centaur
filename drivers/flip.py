@@ -9,19 +9,18 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
+    dims = input["dims"]
 
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
+
+    # Apply torch.flip
+    result = torch.flip(input_tensor, dims)
     
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"flipped_tensor": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,30 +34,34 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        dims = input["dims"]
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply TensorFlow equivalent
+        result = tf.reverse(input_tensor, axis=dims)
 
-        return {"matmul": result.numpy()}
+        return {"flipped_tensor": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.arange(8).reshape(2, 2, 2).astype(np.float32),
+        "dims": [0, 1]
     }
 
     # Torch example
-    torch_result = torch_version(input_data)
+    torch_result = torch_version(input_data, cpu=True)
     print("Torch result:", torch_result)
 
     # TensorFlow example
-    tf_result = tensorflow_version(input_data)
+    tf_result = tensorflow_version(input_data, cpu=True)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    # Convert results to compare
+    torch_output_np = np.array(torch_result["flipped_tensor"])
+    tf_output_np = np.array(tf_result["flipped_tensor"])
+
+    assert np.allclose(torch_output_np, tf_output_np), "Torch and TensorFlow results do not match."
+
     print("equal")
 
 if __name__ == "__main__":

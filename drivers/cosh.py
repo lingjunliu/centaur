@@ -9,19 +9,14 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
+
+    # Compute hyperbolic cosine using PyTorch
+    result_tensor = torch.cosh(input_tensor)
 
     if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        result_tensor = result_tensor.cpu()
+
+    return {"cosh_result": result_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +30,16 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Compute hyperbolic cosine using TensorFlow
+        result_tensor = tf.math.cosh(input_tensor)
 
-        return {"matmul": result.numpy()}
+        return {"cosh_result": result_tensor.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([0.5, 1.0, -0.5, -1.0], dtype=np.float32)
     }
 
     # Torch example
@@ -58,7 +51,7 @@ def main():
     print("TensorFlow result:", tf_result)
 
     # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    assert np.allclose(torch_result["cosh_result"], tf_result["cosh_result"]), "Results are not equal"
     print("equal")
 
 if __name__ == "__main__":

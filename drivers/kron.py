@@ -10,18 +10,18 @@ def torch_version(input, cpu=True):
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
     other_tensor = torch.tensor(input["other"])
-
+    
     if not cpu:
         input_tensor = input_tensor.cuda()
         other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
+
+    # Apply torch.kron
+    result = torch.kron(input_tensor, other_tensor)
+
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"kron_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -37,16 +37,19 @@ def tensorflow_version(input, cpu=True):
         input_tensor = tf.constant(input["input"])
         other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply TensorFlow equivalent of Kron (using tf.tensordot and reshaping)
+        input_shape = tf.shape(input_tensor)
+        other_shape = tf.shape(other_tensor)
+        result = tf.einsum('ab,cd->acbd', input_tensor, other_tensor)
+        result = tf.reshape(result, [input_shape[0] * other_shape[0], input_shape[1] * other_shape[1]])
 
-        return {"matmul": result.numpy()}
+        return {"kron_result": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
+        "other": np.array([[0.0, 5.0], [6.0, 7.0]], dtype=np.float32)
     }
 
     # Torch example
@@ -57,9 +60,13 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    torch_kron_result = torch_result["kron_result"]
+    tf_kron_result = tf_result["kron_result"]
+
+    if np.allclose(torch_kron_result, tf_kron_result):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

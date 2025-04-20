@@ -3,25 +3,27 @@ import tensorflow as tf
 import numpy as np
 from src.setseed import set_seed
 
+
 def torch_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
 
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
+
+    n = input["n"]
+
+    # Apply torch.matrix_power
+    result = torch.matrix_power(input_tensor, n)
+
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"matrix_power_result": result.numpy()}
+
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +37,21 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        n = input["n"]
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply TensorFlow equivalent using tf.linalg.matmul in a loop
+        result = tf.eye(tf.shape(input_tensor)[0])
+        for _ in range(n):
+            result = tf.linalg.matmul(result, input_tensor)
 
-        return {"matmul": result.numpy()}
+        return {"matrix_power_result": result.numpy()}
+
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[0.5, 0.3], [0.2, 0.6]], dtype=np.float32),
+        "n": 3
     }
 
     # Torch example
@@ -57,9 +62,10 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    # Ensure results are compared in a common format
+    assert np.allclose(torch_result["matrix_power_result"], tf_result["matrix_power_result"]), "Results differ"
     print("equal")
+
 
 if __name__ == "__main__":
     main()

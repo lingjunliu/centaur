@@ -3,26 +3,23 @@ import tensorflow as tf
 import numpy as np
 from src.setseed import set_seed
 
+# Define the PyTorch version
 def torch_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
 
-    # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
-
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
+
+    neg_tensor = torch.neg(input_tensor)
     
     if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        neg_tensor = neg_tensor.cpu()
 
+    return {"neg": neg_tensor.numpy()}
+
+# Define the TensorFlow version
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
@@ -33,20 +30,15 @@ def tensorflow_version(input, cpu=True):
         device_string = "/gpu:0"
 
     with tf.device(device_string):
-        # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        neg_tensor = tf.negative(input_tensor)
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
-
-        return {"matmul": result.numpy()}
+    return {"neg": neg_tensor.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([0.5, -0.3, 0.8, -0.2, 1.0], dtype=np.float32),
     }
 
     # Torch example
@@ -57,9 +49,11 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Ensure comparison is done on numpy arrays
+    if np.allclose(torch_result["neg"], tf_result["neg"]):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

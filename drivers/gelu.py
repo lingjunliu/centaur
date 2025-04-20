@@ -9,19 +9,14 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
+
+    # Apply GELU with approximation as 'none'
+    gelu_output = torch.nn.functional.gelu(input_tensor, approximate='none')
 
     if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        gelu_output = gelu_output.cpu()
+
+    return {"gelu_output": gelu_output.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +30,16 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply GELU equivalent
+        gelu_output = input_tensor * 0.5 * (1.0 + tf.math.erf(input_tensor / tf.sqrt(2.0)))
 
-        return {"matmul": result.numpy()}
+        return {"gelu_output": gelu_output.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[0.5, -0.3, 0.8], [0.2, -0.6, 0.9]], dtype=np.float32)
     }
 
     # Torch example
@@ -57,9 +50,11 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Compare results using numpy arrays
+    if np.allclose(torch_result["gelu_output"], tf_result["gelu_output"], rtol=1e-05, atol=1e-08):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

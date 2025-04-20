@@ -8,20 +8,18 @@ def torch_version(input, cpu=True):
     set_seed()
 
     # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
-
+    input_tensor = torch.tensor(input["A"])
+    
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
+
+    # Apply torch.matrix_exp
+    loss = torch.matrix_exp(input_tensor)
     
     if not cpu:
-        result = result.cpu()
+        loss = loss.cpu()
     
-    return {"matmul": result.numpy()}
+    return {"matrix_exp_result": loss.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -34,19 +32,17 @@ def tensorflow_version(input, cpu=True):
 
     with tf.device(device_string):
         # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        input_tensor = tf.constant(input["A"])
+        
+        # Apply TensorFlow equivalent
+        loss = tf.linalg.expm(input_tensor)
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
-
-        return {"matmul": result.numpy()}
+        return {"matrix_exp_result": loss.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "A": np.array([[[0.0, 1.0], [-1.0, 0.0]], [[1.0, 0.0], [0.0, 1.0]]], dtype=np.float32)
     }
 
     # Torch example
@@ -57,9 +53,15 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Convert results to numpy arrays for comparison
+    torch_matrix_exp_result = torch_result["matrix_exp_result"]
+    tf_matrix_exp_result = tf_result["matrix_exp_result"]
+
+    # Compare the results
+    if np.allclose(torch_matrix_exp_result, tf_matrix_exp_result):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

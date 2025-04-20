@@ -9,19 +9,18 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
-
+    lambd = input.get("lambd", 0.5)
+    
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
+
+    # Apply to torch.nn.functional.hardshrink
+    result = torch.nn.functional.hardshrink(input_tensor, lambd=lambd)
+
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"hardshrink_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +34,21 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        lambd = input.get("lambd", 0.5)
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Implement hard shrink function for TensorFlow
+        def hardshrink(x, lambd):
+            return tf.where(tf.abs(x) > lambd, x, tf.zeros_like(x))
 
-        return {"matmul": result.numpy()}
+        result = hardshrink(input_tensor, lambd)
+
+        return {"hardshrink_result": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[-0.7, -0.3, 0.2, 0.8], [0.4, -1.0, 0, 1.5]], dtype=np.float32),
+        "lambd": 0.5
     }
 
     # Torch example
@@ -57,9 +59,9 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Assertion to compare results
+    assert np.array_equal(torch_result["hardshrink_result"], tf_result["hardshrink_result"]), "Results do not match"
+    print("Results are equal")
 
 if __name__ == "__main__":
     main()

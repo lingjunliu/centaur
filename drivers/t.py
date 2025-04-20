@@ -8,20 +8,14 @@ def torch_version(input, cpu=True):
     set_seed()
 
     # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
+    input_tensor = input["input"]
+    if cpu:
+        input_tensor = torch.tensor(input_tensor, device='cpu')
 
-    if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+    # Apply torch.t
+    result = torch.t(input_tensor)
+
+    return {"t_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +29,18 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        if tf.rank(input_tensor) == 2:
+            result = tf.transpose(input_tensor)
+        else:
+            result = input_tensor
 
-        return {"matmul": result.numpy()}
+        return {"t_result": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
     }
 
     # Torch example
@@ -57,8 +51,8 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    # Assert the outputs are equal
+    np.testing.assert_allclose(torch_result["t_result"], tf_result["t_result"], rtol=1e-5)
     print("equal")
 
 if __name__ == "__main__":

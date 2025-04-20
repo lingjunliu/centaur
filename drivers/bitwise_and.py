@@ -14,14 +14,14 @@ def torch_version(input, cpu=True):
     if not cpu:
         input_tensor = input_tensor.cuda()
         other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
+
+    # Apply torch.bitwise_and
+    result = torch.bitwise_and(input_tensor, other_tensor)
     
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"bitwise_and_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -36,17 +36,18 @@ def tensorflow_version(input, cpu=True):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
         other_tensor = tf.constant(input["other"])
+        
+        # TensorFlow does not have a direct bitwise_and function, using logical_and with integer casting as an alternative
+        result = tf.bitwise.bitwise_and(input_tensor, other_tensor)
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        return {"bitwise_and_result": result.numpy()}
 
-        return {"matmul": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([1, 5, 7], dtype=np.int32),
+        "other": np.array([1, 2, 3], dtype=np.int32)
     }
 
     # Torch example
@@ -58,8 +59,10 @@ def main():
     print("TensorFlow result:", tf_result)
 
     # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    if np.array_equal(torch_result["bitwise_and_result"], tf_result["bitwise_and_result"]):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

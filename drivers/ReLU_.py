@@ -1,7 +1,7 @@
+from src.setseed import set_seed
 import torch
 import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
     # Set seed for reproducibility
@@ -9,19 +9,20 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
+    inplace = input.get("inplace", False)
 
+    # Move tensor to device if not CPU
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
+
+    # Apply torch.nn.ReLU
+    relu = torch.nn.ReLU(inplace=inplace)
+    output_tensor = relu(input_tensor)
+
     if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        output_tensor = output_tensor.cpu()
+
+    return {"relu_output": output_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +36,17 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
-
-        return {"matmul": result.numpy()}
+        # Apply tf.nn.relu (TensorFlow does not support inplace operation)
+        output_tensor = tf.nn.relu(input_tensor)
+        
+        return {"relu_output": output_tensor.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.random.randn(4, 4).astype(np.float32),  # Random 4x4 matrix
+        "inplace": False
     }
 
     # Torch example
@@ -58,8 +58,12 @@ def main():
     print("TensorFlow result:", tf_result)
 
     # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    torch_output = torch_result["relu_output"]
+    tf_output = tf_result["relu_output"]
+    if np.allclose(torch_output, tf_output, rtol=1e-05, atol=1e-08):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

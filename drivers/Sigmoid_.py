@@ -7,21 +7,20 @@ def torch_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
 
-    # Unpack input dictionary
+    # Apply Sigmoid activation using torch
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
-
+    sigmoid = torch.nn.Sigmoid()
+    
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
+        sigmoid = sigmoid.cuda()
     
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
+    output_tensor = sigmoid(input_tensor)
     
     if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        output_tensor = output_tensor.cpu()
+
+    return {"sigmoid_output": output_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -33,20 +32,16 @@ def tensorflow_version(input, cpu=True):
         device_string = "/gpu:0"
 
     with tf.device(device_string):
-        # Unpack input dictionary
+        # Apply Sigmoid activation using TensorFlow
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        output_tensor = tf.nn.sigmoid(input_tensor)
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
-
-        return {"matmul": result.numpy()}
+        return {"sigmoid_output": output_tensor.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.random.randn(2, 3).astype(np.float32)  # Generate random sample input
     }
 
     # Torch example
@@ -57,9 +52,11 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Check if outputs are close enough (with a small tolerance for floating-point differences)
+    if np.allclose(torch_result["sigmoid_output"], tf_result["sigmoid_output"], atol=1e-6):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

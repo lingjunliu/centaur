@@ -6,27 +6,22 @@ from src.setseed import set_seed
 def torch_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
-
+    
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
 
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    # Apply to torch.numel
+    num_elements = torch.numel(input_tensor)
+
+    return {"num_elements": int(num_elements)}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
-
+    
     if cpu:
         device_string = "/cpu:0"
     else:
@@ -34,19 +29,17 @@ def tensorflow_version(input, cpu=True):
 
     with tf.device(device_string):
         # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        input_tensor = tf.convert_to_tensor(input["input"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply to TensorFlow equivalent
+        num_elements = tf.size(input_tensor)
 
-        return {"matmul": result.numpy()}
+        return {"num_elements": int(num_elements.numpy())}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.random.rand(4, 4).astype(np.float32)
     }
 
     # Torch example
@@ -57,9 +50,11 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Compare the results
+    if torch_result["num_elements"] == tf_result["num_elements"]:
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

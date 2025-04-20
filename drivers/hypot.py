@@ -11,17 +11,13 @@ def torch_version(input, cpu=True):
     input_tensor = torch.tensor(input["input"])
     other_tensor = torch.tensor(input["other"])
 
+    # Apply torch.hypot
+    hypotenuse = torch.hypot(input_tensor, other_tensor)
+
     if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        hypotenuse = hypotenuse.cpu()
+
+    return {"hypot_result": hypotenuse.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -37,16 +33,16 @@ def tensorflow_version(input, cpu=True):
         input_tensor = tf.constant(input["input"])
         other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply TensorFlow equivalent of torch.hypot
+        hypotenuse = tf.math.sqrt(tf.math.square(input_tensor) + tf.math.square(other_tensor))
 
-        return {"matmul": result.numpy()}
+        return {"hypot_result": hypotenuse.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([4.0, 3.0, 5.0], dtype=np.float32),
+        "other": np.array([3.0, 4.0, 6.0], dtype=np.float32)
     }
 
     # Torch example
@@ -57,9 +53,14 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Assert and print result
+    torch_hypot = torch_result["hypot_result"]
+    tf_hypot = tf_result["hypot_result"]
+
+    if np.allclose(torch_hypot, tf_hypot):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

@@ -1,7 +1,14 @@
+from src.setseed import set_seed
 import torch
 import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
+
+def set_seed(seed=42):
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 def torch_version(input, cpu=True):
     # Set seed for reproducibility
@@ -9,19 +16,14 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
 
-    if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+    device = torch.device('cpu' if cpu else 'cuda')
+    input_tensor = input_tensor.to(device)
+
+    # Apply torch.tan
+    result_tensor = torch.tan(input_tensor)
+
+    return {"result": result_tensor.cpu().numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +37,16 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply TensorFlow equivalent
+        result_tensor = tf.math.tan(input_tensor)
 
-        return {"matmul": result.numpy()}
+        return {"result": result_tensor.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([-1.2027, -1.7687, 0.4412, -1.3856], dtype=np.float32),
     }
 
     # Torch example
@@ -57,8 +57,8 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    # Assert equality
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=1e-5), "Results are not equal"
     print("equal")
 
 if __name__ == "__main__":

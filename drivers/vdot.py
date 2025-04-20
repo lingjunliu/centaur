@@ -10,18 +10,18 @@ def torch_version(input, cpu=True):
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
     other_tensor = torch.tensor(input["other"])
-
+  
     if not cpu:
         input_tensor = input_tensor.cuda()
         other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
+
+    # Apply to torch.vdot
+    result = torch.vdot(input_tensor, other_tensor)
+
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"vdot_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -37,16 +37,16 @@ def tensorflow_version(input, cpu=True):
         input_tensor = tf.constant(input["input"])
         other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply to TensorFlow equivalent
+        result = tf.tensordot(input_tensor, other_tensor, axes=1)
 
-        return {"matmul": result.numpy()}
+        return {"vdot_result": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([2.0, 3.0], dtype=np.float32),
+        "other": np.array([2.0, 1.0], dtype=np.float32)
     }
 
     # Torch example
@@ -57,9 +57,13 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Compare the results
+    torch_val = torch_result["vdot_result"]
+    tf_val = tf_result["vdot_result"]
+    if np.isclose(torch_val, tf_val):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

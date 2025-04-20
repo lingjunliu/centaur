@@ -7,21 +7,19 @@ def torch_version(input, cpu=True):
     # Set seed for reproducibility
     set_seed()
 
-    # Unpack input dictionary
+    # Convert input to torch tensor
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
 
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
+
+    # Apply torch.floor function
+    result_tensor = torch.floor(input_tensor)
     
     if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        result_tensor = result_tensor.cpu()
+
+    return {"floor_result": result_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -33,20 +31,18 @@ def tensorflow_version(input, cpu=True):
         device_string = "/gpu:0"
 
     with tf.device(device_string):
-        # Unpack input dictionary
+        # Convert input to tensorflow tensor
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        
+        # Apply tf.math.floor function
+        result_tensor = tf.math.floor(input_tensor)
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
-
-        return {"matmul": result.numpy()}
+        return {"floor_result": result_tensor.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.random.randn(4).astype(np.float32)
     }
 
     # Torch example
@@ -57,8 +53,8 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    # Compare the results ensuring reproducibility
+    np.testing.assert_allclose(torch_result["floor_result"], tf_result["floor_result"], rtol=1e-5, atol=1e-8)
     print("equal")
 
 if __name__ == "__main__":

@@ -9,19 +9,17 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
-
+    
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
     
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
+    # Apply torch.log2
+    result = torch.log2(input_tensor)
     
-    if not cpu:
+    if cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"log2_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -31,35 +29,41 @@ def tensorflow_version(input, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
+        
+        # Apply TensorFlow equivalent of log2
+        result = tf.math.log(input_tensor) / tf.math.log(2.0)
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        if cpu:
+            result = result.numpy()
 
-        return {"matmul": result.numpy()}
+        return {"log2_result": result}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([0.8419, 0.8003, 0.9971, 0.5287, 0.0490], dtype=np.float32)
     }
 
     # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
+    print("PyTorch result:", torch_result)
 
     # TensorFlow example
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    torch_result_np = np.array(torch_result["log2_result"])
+    tf_result_np = np.array(tf_result["log2_result"])
+
+    assert np.allclose(torch_result_np, tf_result_np, atol=1e-5), "Results are not equal"
+    if np.allclose(torch_result_np, tf_result_np, atol=1e-5):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

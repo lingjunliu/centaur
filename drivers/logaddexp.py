@@ -11,17 +11,13 @@ def torch_version(input, cpu=True):
     input_tensor = torch.tensor(input["input"])
     other_tensor = torch.tensor(input["other"])
 
-    if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
+    # Apply to torch.logaddexp
+    if cpu:
+        result = torch.logaddexp(input_tensor, other_tensor).cpu().numpy()
+    else:
+        result = torch.logaddexp(input_tensor.cuda(), other_tensor.cuda()).cpu().numpy()
     
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+    return {"logaddexp_result": result}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -37,16 +33,20 @@ def tensorflow_version(input, cpu=True):
         input_tensor = tf.constant(input["input"])
         other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply to TensorFlow equivalent
+        logaddexp_result = tf.math.reduce_logsumexp(
+            tf.stack([input_tensor, other_tensor], axis=-1), axis=-1
+        )
 
-        return {"matmul": result.numpy()}
+        result = logaddexp_result.numpy()
+        
+    return {"logaddexp_result": result}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([-1.0, -200.0, 30000.0], dtype=np.float32),
+        "other": np.array([-1.0, -2.0, -3.0], dtype=np.float32)
     }
 
     # Torch example
@@ -57,9 +57,14 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Assert equality
+    torch_result_array = np.array(torch_result["logaddexp_result"])
+    tf_result_array = np.array(tf_result["logaddexp_result"])
+
+    if np.allclose(torch_result_array, tf_result_array):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

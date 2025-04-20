@@ -9,19 +9,21 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
+    inplace = input.get("inplace", False)
 
+    # Apply torch.nn.Hardswish
+    activation = torch.nn.Hardswish(inplace=inplace)
+    
     if not cpu:
         input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
+        activation = activation.cuda()
+
+    result = activation(input_tensor)
+
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"hardswish": result.detach().numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +37,20 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # TensorFlow equivalent of Hardswish
+        def tf_hardswish(x):
+            return x * tf.nn.relu6(x + 3) / 6
 
-        return {"matmul": result.numpy()}
+        result = tf_hardswish(input_tensor)
+
+        return {"hardswish": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[0.5, -0.3, 3.8], [-2.2, 2.6, 0.9]], dtype=np.float32),
+        "inplace": False
     }
 
     # Torch example
@@ -58,8 +62,10 @@ def main():
     print("TensorFlow result:", tf_result)
 
     # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    if np.allclose(torch_result["hardswish"], tf_result["hardswish"], atol=1e-6):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

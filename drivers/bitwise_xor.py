@@ -14,14 +14,14 @@ def torch_version(input, cpu=True):
     if not cpu:
         input_tensor = input_tensor.cuda()
         other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
+
+    # Apply to torch.bitwise_xor
+    result = torch.bitwise_xor(input_tensor, other_tensor)
+
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"bitwise_xor_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -37,16 +37,16 @@ def tensorflow_version(input, cpu=True):
         input_tensor = tf.constant(input["input"])
         other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply to TensorFlow equivalent
+        result = tf.bitwise.bitwise_xor(input_tensor, other_tensor)
 
-        return {"matmul": result.numpy()}
+        return {"bitwise_xor_result": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([5, 3, 10], dtype=np.int32),
+        "other": np.array([2, 5, 8], dtype=np.int32)
     }
 
     # Torch example
@@ -57,8 +57,8 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    # Assert and print the result
+    np.testing.assert_equal(torch_result["bitwise_xor_result"], tf_result["bitwise_xor_result"])
     print("equal")
 
 if __name__ == "__main__":

@@ -9,19 +9,17 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
+
+    dim0 = input["dim0"]
+    dim1 = input["dim1"]
+
+    # Apply the torch.swapdims function
+    result_tensor = torch.swapdims(input_tensor, dim0, dim1)
 
     if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        result_tensor = result_tensor.cpu()
+
+    return {"result": result_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +33,21 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        dim0 = input["dim0"]
+        dim1 = input["dim1"]
 
-        return {"matmul": result.numpy()}
+        # Apply the TensorFlow equivalent function (swapaxes is used here as replacement)
+        result_tensor = tf.transpose(input_tensor, perm=[dim1 if i == dim0 else dim0 if i == dim1 else i for i in range(len(input_tensor.shape))])
+
+        return {"result": result_tensor.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]], dtype=np.float32),
+        "dim0": 0,
+        "dim1": 1
     }
 
     # Torch example
@@ -58,8 +59,10 @@ def main():
     print("TensorFlow result:", tf_result)
 
     # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    if np.array_equal(torch_result["result"], tf_result["result"]):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

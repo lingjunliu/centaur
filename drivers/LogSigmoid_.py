@@ -9,19 +9,15 @@ def torch_version(input, cpu=True):
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
+    
+    # Apply torch.nn.LogSigmoid
+    m = torch.nn.LogSigmoid()
+    output_tensor = m(input_tensor)
 
     if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
-    if not cpu:
-        result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+        output_tensor = output_tensor.cpu()
+
+    return {"log_sigmoid_output": output_tensor.numpy().tolist()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -35,18 +31,16 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Unpack input dictionary
         input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply TensorFlow equivalent
+        output_tensor = tf.math.log(1 / (1 + tf.exp(-input_tensor)))
 
-        return {"matmul": result.numpy()}
+        return {"log_sigmoid_output": output_tensor.numpy().tolist()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[0.5, -0.3, 0.8], [-0.2, 0.6, -0.9]], dtype=np.float32)
     }
 
     # Torch example
@@ -57,9 +51,11 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
-    print("equal")
+    # Compare outputs
+    if np.allclose(torch_result["log_sigmoid_output"], tf_result["log_sigmoid_output"], atol=1e-6):
+        print("equal")
+    else:
+        print("not equal")
 
 if __name__ == "__main__":
     main()

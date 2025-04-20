@@ -11,17 +11,13 @@ def torch_version(input, cpu=True):
     input_tensor = torch.tensor(input["input"])
     other_tensor = torch.tensor(input["other"])
 
-    if not cpu:
-        input_tensor = input_tensor.cuda()
-        other_tensor = other_tensor.cuda()
-    
-    # Apply torch.matmul
-    result = torch.matmul(input_tensor, other_tensor)
-    
+    # Apply to torch.ne
+    result = torch.ne(input_tensor, other_tensor)
+
     if not cpu:
         result = result.cpu()
-    
-    return {"matmul": result.numpy()}
+
+    return {"ne_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
     # Set seed for reproducibility
@@ -37,16 +33,16 @@ def tensorflow_version(input, cpu=True):
         input_tensor = tf.constant(input["input"])
         other_tensor = tf.constant(input["other"])
 
-        # Apply tf.matmul
-        result = tf.matmul(input_tensor, other_tensor)
+        # Apply to tf.not_equal
+        result = tf.not_equal(input_tensor, other_tensor)
 
-        return {"matmul": result.numpy()}
+    return {"ne_result": result.numpy()}
 
 def main():
-    # Example input for matrix-matrix multiplication
+    # Example input
     input_data = {
-        "input": np.random.randn(3, 4).astype(np.float32),
-        "other": np.random.randn(4, 5).astype(np.float32)
+        "input": np.array([[1, 2], [3, 4]], dtype=np.float32),
+        "other": np.array([[1, 1], [4, 4]], dtype=np.float32)
     }
 
     # Torch example
@@ -57,8 +53,8 @@ def main():
     tf_result = tensorflow_version(input_data)
     print("TensorFlow result:", tf_result)
 
-    # Compare results
-    assert np.allclose(torch_result, tf_result, atol=1e-6), "Results are not equal"
+    # Assert and print whether results are equal
+    assert np.array_equal(torch_result["ne_result"], tf_result["ne_result"]), "Results are not equal"
     print("equal")
 
 if __name__ == "__main__":

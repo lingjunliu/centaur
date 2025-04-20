@@ -1,0 +1,72 @@
+import torch
+import tensorflow as tf
+import numpy as np
+from src.setseed import set_seed
+
+def torch_version(input, cpu=True):
+    # Set seed for reproducibility
+    set_seed()
+
+    # Unpack input dictionary
+    input_tensor = torch.tensor(input["input"])
+    target_tensor = torch.tensor(input["target"])
+    reduction = input.get("reduction", 'mean')
+    
+    if not cpu:
+        input_tensor = input_tensor.cuda()
+        target_tensor = target_tensor.cuda()
+
+    # Apply torch.nn.functional.l1_loss
+    loss = torch.nn.functional.l1_loss(input_tensor, target_tensor, reduction=reduction)
+
+    if not cpu:
+        loss = loss.cpu()
+
+    return {"l1_loss": float(loss.item())}
+
+def tensorflow_version(input, cpu=True):
+    # Set seed for reproducibility
+    set_seed()
+
+    if cpu:
+        device_string = "/cpu:0"
+    else:
+        device_string = "/gpu:0"
+
+    with tf.device(device_string):
+        # Unpack input dictionary
+        input_tensor = tf.constant(input["input"])
+        target_tensor = tf.constant(input["target"])
+
+        # Apply TensorFlow equivalent
+        loss = tf.reduce_mean(tf.abs(target_tensor - input_tensor))
+
+        return {"l1_loss": float(loss.numpy())}
+
+def main():
+    # Example input
+    input_data = {
+        "input": np.array([[0.5, 0.3, 0.8], [0.2, 0.6, 0.9]], dtype=np.float32),
+        "target": np.array([[1.0, 0.0, 1.0], [0.0, 1.0, 1.0]], dtype=np.float32),  # Ensure target is float type
+        "reduction": 'mean'
+    }
+
+    # Torch example
+    torch_result = torch_version(input_data)
+    print("Torch result:", torch_result)
+
+    # TensorFlow example
+    tf_result = tensorflow_version(input_data)
+    print("TensorFlow result:", tf_result)
+
+    # Compare results
+    torch_loss = np.array([torch_result["l1_loss"]])
+    tf_loss = np.array([tf_result["l1_loss"]])
+
+    if np.allclose(torch_loss, tf_loss):
+        print("equal")
+    else:
+        print("not equal")
+
+if __name__ == "__main__":
+    main()
