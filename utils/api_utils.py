@@ -1,4 +1,4 @@
-import importlib
+import importlib, os, json
 
 # get the driver code for corresponding api using the name of the api
 def get_driver(api, lib="torch"):
@@ -19,3 +19,12 @@ def get_driver(api, lib="torch"):
         raise NotImplementedError(f"{api} not supported yet for {lib}")
     
     return lib_version
+
+def get_signatures():
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    signature_file = os.path.join(cur_dir, "../signatures.json")
+    signatures = {}
+    with open(signature_file, "r") as f:
+        signatures = json.load(f)
+    
+    return signatures

@@ -1,11 +1,12 @@
 import numpy as np
 ############### default values ################
 
-MAX_N_DIM=32
+MAX_N_DIM=6
 MAX_SZ_DIM=100
 MAX_SZ_NUM=10000
 MAX_SZ_FLT=10000000.0
 MAX_SZ_LST=10
+MAX_SZ_TENSOR=256 # MB
 
 list_of_available_dtypes = [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
 
