@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
     
     tensor_input = torch.tensor(input["input"])
     dim = input["dim"]
@@ -21,8 +17,7 @@ def torch_version(input, cpu=True):
     return { 'output': result.numpy() }
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

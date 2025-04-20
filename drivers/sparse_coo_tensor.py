@@ -1,12 +1,8 @@
-from src.setseed import set_seed
 from src.type_mapping_torch import np_to_torch
 import numpy as np
-import torch
-import tensorflow as tf
 
 def torch_sparse_coo_tensor_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     indices = torch.tensor(input["indices"], dtype=torch.long)
@@ -51,8 +47,7 @@ def torch_sparse_coo_tensor_version(input, cpu=True):
     return {"sparse_tensor": sparse_tensor.to_dense().numpy()}
 
 def tensorflow_sparse_coo_tensor_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

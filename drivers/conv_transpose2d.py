@@ -1,9 +1,7 @@
 
 def torch_version(input, cpu=True):
     import torch
-    # Set seed for reproducibility
-    torch.manual_seed(42)
-
+    
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
     weight_tensor = torch.tensor(input["weight"])
@@ -37,9 +35,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
-    # Set seed for reproducibility
-    tf.random.set_seed(42)
-
+    
     if cpu:
         device_string = "/cpu:0"
     else:

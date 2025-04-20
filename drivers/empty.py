@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_empty_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     size = input["size"]
     dtype = input.get("dtype", torch.float32)
@@ -23,8 +19,7 @@ def torch_empty_version(input, cpu=True):
 
 
 def tensorflow_empty_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     size = input["size"]
     dtype = input.get("dtype", tf.float32)

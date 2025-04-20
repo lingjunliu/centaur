@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -21,8 +18,7 @@ def torch_version(input, cpu=True):
     return {"ones_like_tensor": ones_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"
@@ -37,11 +33,6 @@ def tensorflow_version(input, cpu=True):
         ones_tensor = tf.ones_like(input_tensor)
 
         return {"ones_like_tensor": ones_tensor.numpy()}
-
-def set_seed(seed=42):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
 
 def main():
     # Example input

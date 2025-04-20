@@ -1,7 +1,4 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 # Mapping from PyTorch dtypes to TensorFlow dtypes
 TF_DTYPE_MAP = {
@@ -15,8 +12,7 @@ TF_DTYPE_MAP = {
 }
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
     from_dtype = input["from"]
     to_dtype = input["to"]
     
@@ -26,8 +22,7 @@ def torch_version(input, cpu=True):
     return {"can_cast": result}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
     from_dtype = input["from"]
     to_dtype = input["to"]
     

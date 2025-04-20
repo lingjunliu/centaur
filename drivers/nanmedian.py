@@ -1,19 +1,9 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 import random
 
 # Function to set seed for reproducibility
-def set_seed(seed=42):
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-
-# PyTorch: torch.nanmedian(input)
 def torch_nanmedian_variant1(input, cpu=True):
-    set_seed()
+    import torch
 
     input_tensor = torch.tensor(input["input"])
     if not cpu:
@@ -29,7 +19,7 @@ def torch_nanmedian_variant1(input, cpu=True):
 
 # TensorFlow: Equivalent for torch.nanmedian(input)
 def tf_nanmedian_variant1(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"
@@ -48,7 +38,7 @@ def tf_nanmedian_variant1(input, cpu=True):
 
 # PyTorch: torch.nanmedian(input, dim=-1, keepdim=False, *, out=None)
 def torch_nanmedian_variant2(input, cpu=True):
-    set_seed()
+    import torch
 
     input_tensor = torch.tensor(input["input"])
     dim = input.get("dim", -1)
@@ -67,7 +57,7 @@ def torch_nanmedian_variant2(input, cpu=True):
 
 # TensorFlow: Equivalent for torch.nanmedian(input, dim=-1, keepdim=False, *, out=None)
 def tf_nanmedian_variant2(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

@@ -1,22 +1,8 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 # Function to set seed for reproducibility
-def set_seed(seed=42):
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    if torch.backends.cudnn.is_available():
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = False
-
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Use deterministic algorithms in PyTorch
     torch.use_deterministic_algorithms(input["mode"])
@@ -35,8 +21,7 @@ def torch_version(input, cpu=True):
     return {"result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

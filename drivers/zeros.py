@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     shape = tuple(input["size"])
     dtype = torch.float32 if input.get("dtype", None) is None else input["dtype"]
@@ -16,8 +12,7 @@ def torch_version(input, cpu=True):
     return {"tensor": tensor.cpu().numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     shape = tuple(input["size"])
     dtype = tf.float32 if input.get("dtype", None) is None else input["dtype"]

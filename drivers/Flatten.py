@@ -1,18 +1,8 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
-def set_seed(seed=42):
-    """Set seed for reproducibility."""
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-    np.random.seed(seed)
-
 def torch_flatten(input, cpu=True):
+    import torch
     """Flatten a tensor using PyTorch."""
-    # Set seed for reproducibility
-    set_seed()
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -29,9 +19,8 @@ def torch_flatten(input, cpu=True):
     return {"output": output_tensor.numpy()}
 
 def tensorflow_flatten(input, cpu=True):
+    import tensorflow as tf
     """Flatten a tensor using TensorFlow."""
-    # Set seed for reproducibility
-    set_seed()
 
     # Set device string based on `cpu` flag
     device_string = "/cpu:0" if cpu else "/gpu:0"

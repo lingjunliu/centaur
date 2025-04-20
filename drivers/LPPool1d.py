@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -29,8 +25,7 @@ def torch_version(input, cpu=True):
     return {"lppool1d_output": output.detach().numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     # TensorFlow doesn't have a direct equivalent, so we need to use custom implementation
     def lppool1d(tensor, norm_type, kernel_size, stride, ceil_mode):

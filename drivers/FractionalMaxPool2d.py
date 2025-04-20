@@ -1,11 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
+    import torch
     """ PyTorch implementation of FractionalMaxPooling function """
-    set_seed()
 
     # Extract parameters from the input dictionary
     kernel_size = input['kernel_size']
@@ -33,8 +30,8 @@ def torch_version(input, cpu=True):
     return {"output": output.cpu().detach().numpy()} if not return_indices else {"output": output[0].cpu().detach().numpy(), "indices": output[1].cpu().detach().numpy()}
 
 def tensorflow_version(input, cpu=True):
+    import tensorflow as tf
     """ TensorFlow approximation of FractionalMaxPooling function """
-    set_seed()
 
     if cpu:
         device_string = "/cpu:0"

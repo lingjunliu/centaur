@@ -1,10 +1,9 @@
 # TODO: Fix
 
-import torch
-import tensorflow as tf
 
 
 def torch_version(input, cpu=True):
+    import torch
     # input
     x1 = input["embed_dim"]
     x2 = input["num_heads"]
@@ -35,6 +34,7 @@ def torch_version(input, cpu=True):
 
 
 def tensorflow_version(input, cpu=True):
+    import tensorflow as tf
     if cpu:
         device_string = "/cpu"
     else:

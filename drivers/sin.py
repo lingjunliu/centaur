@@ -1,17 +1,8 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 # Example seed setting function
-def set_seed(seed=0):
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-    np.random.seed(seed)
-
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Convert inputs to tensor
     input_tensor = torch.tensor(input["input"])
@@ -28,8 +19,7 @@ def torch_version(input, cpu=True):
     return {"sin_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

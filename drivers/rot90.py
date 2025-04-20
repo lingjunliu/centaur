@@ -1,11 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -24,6 +20,7 @@ def torch_version(input, cpu=True):
     return {"rot90_result": rotated.numpy()}
 
 def tensorflow_rotate_90(input_tensor, k, dims):
+    import tensorflow as tf
     # Correct the rotation logic to ensure it matches the tensor's rank
     k = k % 4  # Only 4 unique rotations (0°, 90°, 180°, 270°)
 
@@ -34,8 +31,7 @@ def tensorflow_rotate_90(input_tensor, k, dims):
     return input_tensor
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

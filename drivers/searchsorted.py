@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     sorted_sequence = torch.tensor(input["sorted_sequence"])
     values = torch.tensor(input["values"])
@@ -28,8 +24,7 @@ def torch_version(input, cpu=True):
     return {"searchsorted_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

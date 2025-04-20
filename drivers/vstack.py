@@ -1,19 +1,8 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 # Mockup of set_seed function; replace with actual implementation from src.setseed
-def set_seed(seed=42):
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
-        
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     tensors = input["tensors"]
@@ -28,8 +17,7 @@ def torch_version(input, cpu=True):
     return {"vstack_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

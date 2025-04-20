@@ -1,17 +1,8 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 # Ensure to have set_seed function properly defined here
-def set_seed(seed=42):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-
 def torch_version(input_data, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input_data["input"])
@@ -27,8 +18,7 @@ def torch_version(input_data, cpu=True):
     return reshaped_tensor.numpy()
 
 def tensorflow_version(input_data, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

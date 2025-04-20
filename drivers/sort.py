@@ -1,19 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
-def set_seed(seed=42):
-    """
-    Set the random seed for reproducibility in PyTorch, TensorFlow, and numpy.
-    """
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -34,8 +22,7 @@ def torch_version(input, cpu=True):
     }
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

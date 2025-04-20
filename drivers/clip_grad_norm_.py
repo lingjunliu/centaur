@@ -1,7 +1,4 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 # Helper function to create TensorFlow equivalents for variables and gradients
 def create_tf_variables_and_gradients(input_tensors):
@@ -13,7 +10,7 @@ def create_tf_variables_and_gradients(input_tensors):
     return variables, gradients
 
 def torch_version(input, cpu=True):
-    set_seed()
+    import torch
 
     # Convert input to list of torch tensors
     if cpu:
@@ -44,7 +41,7 @@ def torch_version(input, cpu=True):
     return [t.grad.numpy() for t in input_tensors]
 
 def tensorflow_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

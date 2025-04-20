@@ -1,11 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 def torch_full_like_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -23,8 +19,7 @@ def torch_full_like_version(input, cpu=True):
     return {"full_like_result": result_tensor.numpy()}
 
 def tensorflow_full_like_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

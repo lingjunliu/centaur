@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_relu6(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     input_tensor = torch.tensor(input["input"])
     relu6 = torch.nn.ReLU6(inplace=False)
@@ -18,8 +14,7 @@ def torch_relu6(input, cpu=True):
     return {"torch_relu6": output_tensor.numpy()}
 
 def tensorflow_relu6(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

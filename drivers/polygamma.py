@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed  # Ensure you have this function defined elsewhere
 
 def torch_polygamma_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     n_val = input["n"]
@@ -20,8 +16,7 @@ def torch_polygamma_version(input, cpu=True):
     return {"polygamma_result": result_tensor.numpy()}
 
 def tensorflow_polygamma_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

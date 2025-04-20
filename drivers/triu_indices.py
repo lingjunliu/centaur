@@ -1,12 +1,8 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 from src.type_mapping_torch import np_to_torch
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     row = input["row"]
@@ -28,8 +24,7 @@ def torch_version(input, cpu=True):
     return {"triu_indices": indices.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     row = input["row"]
     col = input["col"]

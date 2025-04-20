@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_min_scalar_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -19,8 +15,7 @@ def torch_min_scalar_version(input, cpu=True):
     return {"min_value": float(min_value.item())}
 
 def tensorflow_min_scalar_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"
@@ -37,8 +32,7 @@ def tensorflow_min_scalar_version(input, cpu=True):
         return {"min_value": float(min_value.numpy())}
 
 def torch_min_dimensional_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -58,8 +52,7 @@ def torch_min_dimensional_version(input, cpu=True):
     }
 
 def tensorflow_min_dimensional_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"
@@ -82,8 +75,7 @@ def tensorflow_min_dimensional_version(input, cpu=True):
         }
 
 def torch_min_elementwise_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor1 = torch.tensor(input["input1"])
@@ -98,8 +90,7 @@ def torch_min_elementwise_version(input, cpu=True):
     return {"min_values": min_values.numpy().tolist()}
 
 def tensorflow_min_elementwise_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

@@ -1,7 +1,4 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 class CustomInstanceNorm2D(tf.keras.layers.Layer):
     def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=False, track_running_stats=False):
@@ -44,7 +41,7 @@ class CustomInstanceNorm2D(tf.keras.layers.Layer):
         return (inputs - mean) * inv * gamma + beta
 
 def torch_version(input, cpu=True):
-    set_seed()
+    import torch
     input_tensor = torch.tensor(input["input"])
     num_features = input["num_features"]
     eps = input.get("eps", 1e-5)
@@ -68,7 +65,7 @@ def torch_version(input, cpu=True):
     return {"instance_normed_output": output.detach().numpy()}
 
 def tensorflow_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
     if cpu:
         device_string = "/cpu:0"
     else:

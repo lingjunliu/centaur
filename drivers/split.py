@@ -1,11 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     tensor = torch.tensor(input["tensor"])
@@ -27,8 +23,7 @@ def torch_version(input, cpu=True):
     return {"split_result": [r.numpy().tolist() for r in result]}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

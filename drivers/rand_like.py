@@ -1,18 +1,8 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 import random
 
-def set_seed(seed=0):
-    # Set seed for reproducibility
-    np.random.seed(seed)
-    random.seed(seed)
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-
 def torch_version(input, cpu=True, seed=0):
-    # Set seed for reproducibility
+    import torch
     set_seed(seed)
 
     # Unpack input dictionary
@@ -38,7 +28,7 @@ def torch_version(input, cpu=True, seed=0):
     return {"rand_like": result.numpy()}
 
 def tensorflow_version(input, cpu=True, seed=0):
-    # Set seed for reproducibility
+    import tensorflow as tf
     set_seed(seed)
 
     if cpu:

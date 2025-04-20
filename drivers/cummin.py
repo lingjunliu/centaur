@@ -1,21 +1,9 @@
 # Import necessary libraries
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 # Function to set seed for reproducibility
-def set_seed(seed=42):
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-
-# Function implementing torch.cummin
 def torch_cummin(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Extract parameters from input data
     input_tensor = torch.tensor(input["input"])
@@ -35,8 +23,7 @@ def torch_cummin(input, cpu=True):
 
 # Function implementing TensorFlow equivalent of torch.cummin
 def tensorflow_cummin(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

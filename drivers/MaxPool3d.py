@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    set_seed()
+    import torch
 
     # Unpack inputs
     input_tensor = torch.tensor(input["input"])
@@ -28,7 +25,7 @@ def torch_version(input, cpu=True):
     return {"maxpool3d_output": output.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
 
     # Set device string
     device_string = "/cpu:0" if cpu else "/gpu:0"

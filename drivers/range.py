@@ -1,12 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 from src.type_mapping_torch import np_to_torch
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     start = input['start']
@@ -33,8 +29,7 @@ def torch_version(input, cpu=True):
     return {"range": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     # Unpack input dictionary
     start = input['start']

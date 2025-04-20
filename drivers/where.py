@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_where_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Extract parameters from input
     condition_tensor = torch.tensor(input["condition"], dtype=torch.bool)
@@ -34,8 +30,7 @@ def torch_where_version(input, cpu=True):
     return {"result": result.numpy() if isinstance(result, torch.Tensor) else [elem.numpy() for elem in result]}
 
 def tensorflow_where_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

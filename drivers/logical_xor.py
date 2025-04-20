@@ -1,11 +1,7 @@
 import numpy as np
-import torch
-import tensorflow as tf
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
     
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"], dtype=torch.bool)
@@ -20,8 +16,7 @@ def torch_version(input, cpu=True):
     return {"logical_xor_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
     
     device_string = "/cpu:0" if cpu else "/gpu:0"
     with tf.device(device_string):

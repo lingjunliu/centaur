@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    set_seed()
+    import torch
     # input
     x1 = torch.tensor(input["input"])
     x2 = input["dim"]
@@ -23,7 +20,7 @@ def torch_version(input, cpu=True):
 
 
 def tensorflow_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
     if cpu:
         device_string = "/cpu"
     else:

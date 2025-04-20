@@ -1,12 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
 
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input1_tensor = torch.tensor(input["input1"], dtype=torch.float32, requires_grad=True)
@@ -26,8 +22,7 @@ def torch_version(input, cpu=True):
     return {"margin_ranking_loss": float(loss.item())}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -19,8 +16,7 @@ def torch_version(input, cpu=True):
     return {"fmax_result": result_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     device_string = "/cpu:0" if cpu else "/gpu:0"
 
@@ -33,11 +29,6 @@ def tensorflow_version(input, cpu=True):
         result_tensor = tf.maximum(input_tensor, other_tensor)
 
         return {"fmax_result": result_tensor.numpy()}
-
-def set_seed(seed=42):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
 
 def main():
     # Example input

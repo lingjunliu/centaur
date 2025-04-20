@@ -1,10 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 def torch_version(input, cpu=True):
-    set_seed()
+    import torch
 
     input_tensor = torch.tensor(input["input"])
     
@@ -19,7 +16,7 @@ def torch_version(input, cpu=True):
     return {"atanh_result": result_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

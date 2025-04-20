@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_var_dim(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -29,8 +25,7 @@ def torch_var_dim(input, cpu=True):
     return {"var_result": var_result.numpy()}
 
 def tensorflow_var_dim(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"
@@ -58,8 +53,7 @@ def tensorflow_var_dim(input, cpu=True):
 #### 2. Torch and TensorFlow Functions for `torch.var(input, unbiased)`
 
 def torch_var_unbiased(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -74,8 +68,7 @@ def torch_var_unbiased(input, cpu=True):
     return {"var_result": var_result.numpy()}
 
 def tensorflow_var_unbiased(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def pytorch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     num_features = input["num_features"]
     eps = input.get("eps", 1e-05)
@@ -32,8 +28,7 @@ def pytorch_version(input, cpu=True):
     return {"instance_norm_output": output.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     num_features = input["num_features"]
     eps = input.get("eps", 1e-05)

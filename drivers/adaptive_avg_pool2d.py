@@ -1,19 +1,9 @@
-from src.setseed import set_seed  # Assuming this exists and works correctly
-import torch
-import tensorflow as tf
 import numpy as np
 import random
 
 # Mock set_seed function for reproducibility if src.setseed is not available
-def set_seed(seed_value=42):
-    torch.manual_seed(seed_value)
-    tf.random.set_seed(seed_value)
-    np.random.seed(seed_value)
-    random.seed(seed_value)
-
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -31,8 +21,7 @@ def torch_version(input, cpu=True):
     return {"adaptive_avg_pool2d_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

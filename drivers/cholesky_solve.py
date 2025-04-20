@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_cholesky_solve_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     A = torch.tensor(input["A"])
@@ -22,8 +18,7 @@ def torch_cholesky_solve_version(input, cpu=True):
     return {"cholesky_solve_result": X.numpy()}
 
 def tensorflow_cholesky_solve_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

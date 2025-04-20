@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_isreal(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Convert input to torch tensor
     input_tensor = torch.tensor(input["input"], dtype=torch.complex64)
@@ -19,8 +15,7 @@ def torch_isreal(input, cpu=True):
     return {"isreal": result.numpy()}
 
 def tensorflow_isreal(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     # Specify device: CPU or GPU
     if cpu:

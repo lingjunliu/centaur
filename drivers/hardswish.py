@@ -1,8 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
 
 def torch_version(input, cpu=True):
+    import torch
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
     inplace = input.get("inplace", False)
@@ -19,6 +18,7 @@ def torch_version(input, cpu=True):
     return {"output": output_tensor.numpy()}
 
 def tensorflow_version(input, cpu=True):
+    import tensorflow as tf
     if cpu:
         device_string = "/cpu"
     else:

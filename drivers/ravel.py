@@ -1,7 +1,6 @@
-import torch
-import tensorflow as tf
 
 def torch_version(input, cpu=True):
+    import torch
     # input
     x = torch.tensor(input["input"])
     
@@ -18,6 +17,7 @@ def torch_version(input, cpu=True):
 
 
 def tensorflow_version(input, cpu=True):
+    import tensorflow as tf
     if cpu:
         device_string = "/cpu"
     else:

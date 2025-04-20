@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    set_seed()
+    import torch
 
     vec1 = torch.tensor(input["vec1"])
     vec2 = torch.tensor(input["vec2"])
@@ -21,7 +18,7 @@ def torch_version(input, cpu=True):
     return {"outer_product": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

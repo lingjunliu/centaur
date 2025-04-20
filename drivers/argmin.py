@@ -1,8 +1,6 @@
 def torch_version(input_dict, cpu=True):
     import torch
-    # Set seed for reproducibility
-    torch.manual_seed(42)
-
+    
     # Unpack input dictionary
     input_tensor = torch.tensor(input_dict["input"])
     dim = input_dict.get("dim", None)

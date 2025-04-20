@@ -1,17 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
-def set_seed(seed=0):
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-    np.random.seed(seed)
-
-# Function to generate random tensors using PyTorch
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     size = input['size']
     device = 'cpu' if cpu else 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -23,8 +13,7 @@ def torch_version(input, cpu=True):
 
 # Function to generate random tensors using TensorFlow
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     size = tf.constant(input['size'], dtype=tf.int32)
     device_string = "/cpu:0" if cpu else "/gpu:0"

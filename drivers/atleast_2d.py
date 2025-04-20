@@ -1,12 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
+    import torch
     """Function to apply torch.atleast_2d on the input tensors."""
-    # Set seed for reproducibility
-    set_seed()
 
     # Unpack input dictionary
     tensors = input["tensors"]
@@ -26,9 +22,8 @@ def torch_version(input, cpu=True):
     return {"atleast_2d_result": [tensor.numpy() for tensor in result_tensors]}
 
 def tensorflow_version(input, cpu=True):
+    import tensorflow as tf
     """Function to apply the TensorFlow equivalent of torch.atleast_2d on the input tensors."""
-    # Set seed for reproducibility
-    set_seed()
 
     if cpu:
         device_string = "/cpu:0"

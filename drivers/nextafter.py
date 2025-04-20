@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_nextafter_version(input, cpu=True):
-    set_seed()
+    import torch
     
     input_tensor = torch.tensor(input["input"])
     other_tensor = torch.tensor(input["other"])
@@ -17,7 +14,7 @@ def torch_nextafter_version(input, cpu=True):
     return {"nextafter": result.numpy()}
 
 def tensorflow_nextafter_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
     
     if cpu:
         device_string = "/cpu:0"

@@ -1,13 +1,10 @@
-from src.setseed import set_seed
 import numpy as np
-import tensorflow as tf
-import torch
 import pickle
 import os
 from io import BytesIO, BufferedReader
 
 def torch_save_version(input, cpu=True):
-    set_seed()
+    import torch
 
     obj = torch.tensor(input['obj'])
     f = input['f']
@@ -26,7 +23,7 @@ def torch_save_version(input, cpu=True):
     return {"torch_save_success": True, "data": saved_data}
 
 def tensorflow_save_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
 
     obj = input['obj'].numpy() if isinstance(input['obj'], torch.Tensor) else input['obj']
     f = input['f']
@@ -49,7 +46,6 @@ def load_saved_tensor(file_path, framework="torch"):
             return pickle.load(file)
 
 def main():
-    set_seed()
 
     # Example input
     obj = torch.tensor([0, 1, 2, 3, 4])

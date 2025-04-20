@@ -1,17 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 # Function to ensure reproducibility
-def set_seed(seed=42):
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    torch.manual_seed(seed)
-
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     input_tensor = torch.tensor(input["input"])
     repeats = input["repeats"]
@@ -25,8 +16,7 @@ def torch_version(input, cpu=True):
     return {"repeat_interleave_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
     
     device_string = "/cpu:0" if cpu else "/gpu:0"
     

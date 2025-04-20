@@ -1,16 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
-def set_seed(seed=42):
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-    np.random.seed(seed)
-
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     a = torch.tensor(input["a"])
@@ -31,8 +22,7 @@ def torch_version(input, cpu=True):
     return {"tensordot_result": result.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
     
     device_string = "/cpu:0" if cpu else "/gpu:0"
     

@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    set_seed()
+    import torch
     # input
     x1 = input["input_size"]
     x2 = input["hidden_size"]
@@ -28,7 +25,7 @@ def torch_version(input, cpu=True):
 
 
 def tensorflow_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
     if cpu:
         device_string = "/cpu"
     else:

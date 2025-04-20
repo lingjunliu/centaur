@@ -1,9 +1,8 @@
-import torch
-import tensorflow as tf
 from collections.abc import Iterable
 
 
 def torch_version(input, cpu=True):
+    import torch
     # input
     x1 = torch.tensor(input["input"])
     if "dim" in input:
@@ -35,6 +34,7 @@ def torch_version(input, cpu=True):
 
 
 def tensorflow_version(input, cpu=True):
+    import tensorflow as tf
     if cpu:
         device_string = "/cpu"
     else:

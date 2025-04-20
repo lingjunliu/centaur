@@ -1,18 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
-# Set seed for reproducibility
-def set_seed(seed=42):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    tf.random.set_seed(seed)
-
-# PyTorch version
 def torch_bucketize_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input tensor
     input_tensor = torch.tensor(input["input"])
@@ -30,8 +19,7 @@ def torch_bucketize_version(input, cpu=True):
 
 # TensorFlow version
 def tf_bucketize_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_logical_not(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Convert the input to a PyTorch Tensor
     input_tensor = torch.tensor(input["input"], dtype=torch.bool)
@@ -19,8 +15,7 @@ def torch_logical_not(input, cpu=True):
     return {"logical_not_result": result_tensor.numpy()}
 
 def tensorflow_logical_not(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

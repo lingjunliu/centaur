@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_add(input_dict, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack inputs from dictionary
     input_tensor = torch.tensor(input_dict["input"])
@@ -26,8 +22,7 @@ def torch_add(input_dict, cpu=True):
     return {"result": result.numpy()}
 
 def tensorflow_add(input_dict, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

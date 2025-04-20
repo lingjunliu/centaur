@@ -1,19 +1,7 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
-def set_seed(seed=42):
-    # Function to set seed for reproducibility
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Convert input to torch tensor
     input_tensor = torch.tensor(input["input"])
@@ -35,8 +23,7 @@ def torch_version(input, cpu=True):
     return {"nonzero_indices": nonzero_indices.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

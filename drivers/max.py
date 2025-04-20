@@ -1,17 +1,14 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 # Define equivalent for tensorflow max along specified dimensions
 def tf_max(input, axis):
+    import tensorflow as tf
     values = tf.reduce_max(input, axis=axis)
     indices = tf.argmax(input, axis=axis)
     return values, indices
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -39,8 +36,7 @@ def torch_version(input, cpu=True):
         return {"values": values.numpy(), "indices": indices.numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

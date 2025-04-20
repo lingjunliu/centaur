@@ -1,7 +1,4 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 # Function to create the same initial weights for both PyTorch and TensorFlow
 def get_initial_weights(num_embeddings, embedding_dim):
@@ -11,8 +8,7 @@ def get_initial_weights(num_embeddings, embedding_dim):
 
 # PyTorch version of the Embedding function
 def torch_embedding(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     num_embeddings = input['num_embeddings']
     embedding_dim = input['embedding_dim']
@@ -35,8 +31,7 @@ def torch_embedding(input, cpu=True):
 
 # TensorFlow version of the Embedding function
 def tensorflow_embedding(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

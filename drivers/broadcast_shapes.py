@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     shapes = tuple(torch.Size(shape) for shape in input["shapes"])
@@ -16,8 +12,7 @@ def torch_version(input, cpu=True):
     return {"broadcasted_shape": [int(dim) for dim in broadcasted_shape]}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     # Unpack input dictionary
     shapes = input["shapes"]

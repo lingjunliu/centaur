@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_stack_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     if cpu:
         device = torch.device("cpu")
@@ -25,8 +21,7 @@ def torch_stack_version(input, cpu=True):
     return {"stacked_tensor": stacked_tensor.numpy()}
 
 def tensorflow_stack_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     device_string = "/cpu:0" if cpu else "/gpu:0"
 

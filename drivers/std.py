@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version_std(input, cpu=True):
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -23,7 +20,7 @@ def torch_version_std(input, cpu=True):
     return std.numpy()
 
 def tensorflow_version_std(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
     
     if cpu:
         device_string = "/cpu:0"
@@ -50,7 +47,6 @@ def tensorflow_version_std(input, cpu=True):
         return std.numpy()
 
 def main():
-    set_seed()
 
     input_data_1 = {
         "input": np.random.rand(4, 4).astype(np.float32),

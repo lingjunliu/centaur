@@ -1,12 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 # PyTorch GroupNorm implementation
 def torch_version_groupnorm(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
     
     num_groups = input["num_groups"]
     num_channels = input["num_channels"]
@@ -33,8 +29,7 @@ def torch_version_groupnorm(input, cpu=True):
 
 # TensorFlow GroupNormalization equivalent implementation
 def tensorflow_version_groupnorm(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
     
     if cpu:
         device_string = "/cpu:0"

@@ -1,19 +1,8 @@
-from src.setseed import set_seed
-import torch
-import tensorflow as tf
 import numpy as np
 
 # Placeholder for set_seed function. Implement this function according to your need.
-def set_seed(seed=42):
-    np.random.seed(seed)
-    tf.random.set_seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
-
 def torch_version(input_dict, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     input_tensor = torch.tensor(input_dict["input"])
     axis0 = input_dict["axis0"]
@@ -27,8 +16,7 @@ def torch_version(input_dict, cpu=True):
     return {"swapped_tensor": result.numpy()}
 
 def tensorflow_version(input_dict, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

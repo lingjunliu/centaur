@@ -1,9 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
 
 
 def torch_version(input, cpu=True):
+    import torch
     # input
     if "A" in input:
         x = torch.tensor(input["A"])
@@ -28,6 +27,7 @@ def torch_version(input, cpu=True):
 
 
 def tensorflow_version(input, cpu=True):
+    import tensorflow as tf
     if cpu:
         device_string = "/cpu"
     else:

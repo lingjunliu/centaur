@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_multinomial_version(input, cpu=True):
-    set_seed()
+    import torch
 
     input_tensor = torch.tensor(input["input"])
     num_samples = input["num_samples"]
@@ -24,7 +21,7 @@ def torch_multinomial_version(input, cpu=True):
     return {"sampled_indices": sampled_indices.numpy()}
 
 def tensorflow_multinomial_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
     
     if cpu:
         device_string = "/cpu:0"

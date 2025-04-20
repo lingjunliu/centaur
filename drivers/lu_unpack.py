@@ -1,12 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 # torch.lu_unpack(LU_data, LU_pivots, unpack_data=True, unpack_pivots=True, *, out=None)
 def torch_version(input_dict, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack inputs from dictionary
     LU_data = torch.tensor(input_dict["LU_data"])

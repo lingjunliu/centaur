@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_logspace(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
     
     # Set the device
     device = torch.device('cpu' if cpu else 'cuda')
@@ -34,8 +30,7 @@ def torch_logspace(input, cpu=True):
     return {"logspace_result": result.cpu().numpy()}
 
 def tensorflow_logspace(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     # Set the device
     if cpu:

@@ -1,10 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_version(input, cpu=True):
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     num_features = input["num_features"]
@@ -30,7 +27,7 @@ def torch_version(input, cpu=True):
     return {"BatchNorm3d_output": output_tensor.detach().numpy()}
 
 def tensorflow_version(input, cpu=True):
-    set_seed()
+    import tensorflow as tf
 
     num_features = input["num_features"]
     eps = input.get("eps", 1e-5)

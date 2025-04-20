@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_set_flush_denormal_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     mode = input["mode"]
@@ -19,8 +15,7 @@ def torch_set_flush_denormal_version(input, cpu=True):
     return {"flush_denormal_mode": flush_denormal_mode_set}
 
 def tensorflow_set_flush_denormal_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     # Note: TensorFlow does not have a direct equivalent for `torch.set_flush_denormal`.
     # We simulate by setting some environment variable or TF logic that captures similar

@@ -1,11 +1,7 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def torch_batch_norm_2d(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     if cpu:
         device = torch.device('cpu')
@@ -30,8 +26,7 @@ def torch_batch_norm_2d(input, cpu=True):
     return {"batch_norm_2d_output": output.detach().numpy()}
 
 def tensorflow_batch_norm_2d(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

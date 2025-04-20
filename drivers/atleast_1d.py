@@ -1,12 +1,8 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 # PyTorch version of torch.atleast_1d
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     tensors = input["tensors"]
@@ -31,8 +27,7 @@ def torch_version(input, cpu=True):
 
 # TensorFlow version of tf.atleast_1d
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"

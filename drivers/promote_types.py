@@ -1,12 +1,10 @@
-import torch
-import tensorflow as tf
 import numpy as np
 
-from src.setseed import set_seed
 from src.type_mapping_torch import np_to_torch
 
 # Custom function to promote types in TensorFlow
 def tf_promote_types(type1, type2):
+    import tensorflow as tf
     tf_types = {
         tf.float16: 0,
         tf.float32: 1,
@@ -29,6 +27,7 @@ def tf_promote_types(type1, type2):
 
 # Function to convert TensorFlow dtype to string equivalent in Torch format
 def tf_dtype_to_torch_dtype_string(dtype):
+    import tensorflow as tf
     mapping = {
         tf.float16: "torch.float16",
         tf.float32: "torch.float32",
@@ -45,8 +44,7 @@ def tf_dtype_to_torch_dtype_string(dtype):
     return mapping[dtype]
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
     
     # Unpack input dictionary
     type1 = np_to_torch(input["type1"])
@@ -58,8 +56,7 @@ def torch_version(input, cpu=True):
     return {"promote_types_result": str(result_type)}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
     
     # Unpack input dictionary
     type1 = tf.as_dtype(input["type1"])

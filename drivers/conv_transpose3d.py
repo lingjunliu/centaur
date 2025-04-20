@@ -1,7 +1,4 @@
-import torch
-import tensorflow as tf
 import numpy as np
-from src.setseed import set_seed
 
 def calculate_output_shape(input_shape, weight_shape, stride, padding, output_padding, dilation):
     N, C_in, D_in, H_in, W_in = input_shape
@@ -15,8 +12,7 @@ def calculate_output_shape(input_shape, weight_shape, stride, padding, output_pa
     return (N, C_out, D_out, H_out, W_out)
 
 def torch_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import torch
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -44,8 +40,7 @@ def torch_version(input, cpu=True):
     return {"conv_transpose3d_output": output.detach().numpy()}
 
 def tensorflow_version(input, cpu=True):
-    # Set seed for reproducibility
-    set_seed()
+    import tensorflow as tf
 
     if cpu:
         device_string = "/cpu:0"
