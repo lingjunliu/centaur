@@ -14,6 +14,8 @@ The code is organized as follow:
 - 📁 learner           # invariant learner
 - 📄 pytest.ini        # pytest configuration file
 - 📄 requirements.txt  # dependencies of this project
+- 📄 apis.txt          # list of supported APIs
+- 📄 signatures.json   # signatures for the supported APIs
 - 📁 scripts           # scripts (e.g., run test, demo generator, etc.)
 - 📁 tests             # tests
 - 📁 utils             # utility functions
