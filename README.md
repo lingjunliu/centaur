@@ -10,7 +10,7 @@ The code is organized as follow:
 ```markdown
 - 📁 drivers           # driver to call an API in various libraries
 - 📁 generator         # invariant-based input generator
-- 📁 invariants        # invariants learned from APIs
+- 📁 invariants        # mined invariants from APIs
 - 📁 learner           # invariant learner
 - 📄 pytest.ini        # pytest configuration file
 - 📄 requirements.txt  # dependencies of this project
