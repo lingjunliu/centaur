@@ -1,6 +1,6 @@
 import sys, time, os
 import numpy as np
-from .input_generators import gen_ran_ll, gen_concrete_input
+from .input_generators import get_random_input
 from utils.api_utils import get_driver, get_signatures
 from utils.misc import get_tmp_dir, create_subdir
 
@@ -14,14 +14,7 @@ def random_fuzz(api, seed, duration, lib="torch"):
     
     start_time = time.time()
     while time.time() - start_time < duration:
-        input_dict = {}
-        for arg, domain in api_signature.items():
-            # TODO: Add support for tensor_list
-            if domain == "tensor_list":
-                domain = "tensor"   # hack until tensor_list is supported
-            
-            ll = gen_ran_ll(domain, rng)    # get abstract form            
-            input_dict[arg] = gen_concrete_input(domain, ll, rng) # concretize
+        input_dict = get_random_input(api_signature, rng)
         try:            
             out_cpu = api_driver(input_dict, cpu=True)
         except:

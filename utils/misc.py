@@ -1,8 +1,9 @@
 import numpy as np
 import os
+from utils.defaults import list_of_available_dtypes
 
 def get_tensor_size(ll):
-    sz = np.dtype(ll[1][0]).itemsize
+    sz = np.dtype(list_of_available_dtypes[ll[1][0]]).itemsize
     for dim in ll[0]:
         sz = sz * dim
     

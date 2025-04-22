@@ -26,7 +26,7 @@ list_of_string_values = [
 ]
 
 domain_limits = {
-    'tensor': [0, MAX_SZ_DIM, 0, MAX_N_DIM],
+    'tensor': [0, MAX_SZ_DIM, 1, MAX_N_DIM],
     'tensor_dtype': [0, len(list_of_available_dtypes)-3, 1, 1], # except str
     'tensor_value_range': [-MAX_SZ_NUM, MAX_SZ_NUM, 2, 2],
     'integer': [-MAX_SZ_NUM, MAX_SZ_NUM, 1, 1],
@@ -41,10 +41,10 @@ domain_limits = {
     'string': [0, len(list_of_string_values)-2, 1, 1],
     'string_dtype': [len(list_of_available_dtypes)-2, len(list_of_available_dtypes)-2, 1, 1], # only string
     'string_value_range': [0, len(list_of_string_values)-1, 2, 2],
-    'tuple': [-MAX_SZ_DIM, MAX_SZ_DIM-1, 0, MAX_N_DIM],
+    'tuple': [-MAX_SZ_DIM, MAX_SZ_DIM-1, 1, MAX_N_DIM],
     'tuple_dtype': [1, 5, 1, 1], # only integer dtypes
     'tuple_value_range': [-MAX_SZ_DIM, MAX_SZ_DIM-1, 2, 2],
-    'list': [-MAX_SZ_NUM, MAX_SZ_NUM, 0, MAX_SZ_LST],
+    'list': [-MAX_SZ_NUM, MAX_SZ_NUM, 1, MAX_SZ_LST],
     'list_dtype': [1, 5, 1, 1], # only integer dtypes
     'list_value_range': [-MAX_SZ_NUM, MAX_SZ_NUM, 2, 2],
     'dtype': [0, len(list_of_available_dtypes)-2, 1, 1],

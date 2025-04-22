@@ -163,7 +163,7 @@ def dist_7_rev(arg1, arg2):
     arg1_value = next(iter(arg1.values()))
     arg2_value = next(iter(arg2.values()))
     # components of the objective function
-    if arg1_value.ndim==0 or arg2_value.ndim==0:
+    if arg1_value.ndim < 1 or arg2_value.ndim < 2:
         return 1.0
     l1 = arg1_value.shape
     l2 = arg2_value.shape

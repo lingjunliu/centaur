@@ -1,5 +1,9 @@
 import torch
 import copy
+import time
+from utils.api_utils import get_signatures, get_driver
+from generator.input_generators import get_random_input
+import numpy as np
 
 def scatter_inputs():
     list_of_inputs = []
@@ -23,7 +27,8 @@ def scatter_inputs():
     index_2 = torch.tensor([[0, 1, 2], [0, 1, 4]])
     input_dict["index"] = index_2.numpy()
     
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Skipping invalid inputs
+    # list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3, valid
     input_dict["dim"] = 1
@@ -38,7 +43,8 @@ def scatter_inputs():
         "index": torch.tensor([[2], [3]]).numpy(),         
     }
     
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Skipping invalid inputs
+    # list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5, valid
     input_dict = {
@@ -141,12 +147,37 @@ def conv_transpose2d_inputs():
     
     return list_of_inputs
 
+# Add human defined inputs for APIs that are
+# difficult to generate inputs for
 inputs_per_api = {
     "scatter": scatter_inputs,
     "conv_transpose2d": conv_transpose2d_inputs
 }
 
-def get_inputs(api):
-    if api not in inputs_per_api:
-        raise NotImplementedError(f"No inputs added for {api}")
-    return inputs_per_api[api]()
+def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
+    # Return human written inputs if available
+    if api in inputs_per_api:
+        return inputs_per_api[api]()
+    
+    # Generate valid inputs through random generation otherwise
+    api_signature = get_signatures()[api]
+    api_driver = get_driver(api, lib=lib)
+    rng = np.random.default_rng(seed)
+    
+    valid = 0
+    invalid = 0
+    list_of_inputs = []
+    
+    start_time = time.time()
+    while (time.time() - start_time < time_budget) and (valid < min_val_inp):
+        input_dict = get_random_input(api_signature, rng)        
+        try:
+            out_cpu = api_driver(input_dict, cpu=True)
+        except:
+            invalid += 1
+        else:
+            valid += 1
+            # Only adding valid inputs
+            list_of_inputs.append(input_dict)
+            
+    return list_of_inputs

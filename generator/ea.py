@@ -3,7 +3,9 @@ import copy
 
 from generator.rules import rule_to_distance
 from utils.defaults import *
+from utils.misc import get_tensor_size
 from .definitions import *
+from .input_generators import gen_concrete_input, get_ll
 
 fresh_dim_len = 5 # constant define length of a new dimension to a tensor
 max_num_generations = 100
@@ -37,46 +39,32 @@ class Configuration:
     def translate(self, arg_dict):
         ll = []
         for arg in self.arg_order:
-            if self.signature[arg] == "integer": # integer
-                list_val = [arg_dict[arg]]
-                dtype_val = [list_of_available_dtypes.index(np.dtype(type(arg_dict[arg])))]
-                range_val = [arg_dict[arg], arg_dict[arg]]  # for cohesion, not really needed
-                # the extra np.dtype call is needed because python primitive data types are not on the list
-                # and putting them on the list confuses the distance function
-            elif self.signature[arg] == "tensor": # tensors
-                list_val = list(arg_dict[arg].shape)
-                dtype_val = [list_of_available_dtypes.index(arg_dict[arg].dtype)]
-                range_val = [np.min(arg_dict[arg]), np.max(arg_dict[arg])]
-            else:
-                raise NotImplementedError(f"Not implemented for the domain of {arg} yet")                      
-            
-            ll.append(list_val)
-            ll.append(dtype_val)
-            ll.append(range_val)
+            ll += get_ll(self.signature[arg], arg_dict[arg])
         return ll
     
     def translate_back(self, args, input, abstract=False):
         translated_list = []
         for arg in args:
             value_ind, dtype_ind, range_ind = self.arg_order.index(arg)*3, self.arg_order.index(arg)*3 + 1, self.arg_order.index(arg)*3 + 2
-            # ranges are not guaranteed to be ordered, it could be either [lo, hi] or [hi, lo]
-            # sort the ranges here to reflect that
-            if input[range_ind][0] > input[range_ind][1]:
-                input[range_ind] = [input[range_ind][1], input[range_ind][0]]
-            if self.signature[arg] == "integer": # integer
-                if abstract:
-                    translated_list.append({arg: f"value: {input[value_ind][0]}, dtype: {list_of_available_dtypes[input[dtype_ind][0]]}"})
-                else:
-                    translated_list.append({arg: list_of_available_dtypes[input[dtype_ind][0]](input[value_ind][0])})
-            elif self.signature[arg] == "tensor": # tensors                
-                if abstract:
+            ll = [input[value_ind], input[dtype_ind], input[range_ind]]
+            if abstract:
+                if self.signature[arg] == "tensor": # tensors                
                     translated_list.append({arg: f"shape: {tuple(input[value_ind])}, dtype: {list_of_available_dtypes[input[dtype_ind][0]]}, range: {tuple(input[range_ind])}"})
                 else:
-                    translated_list.append({arg: self.rng.uniform(low=input[range_ind][0], high=input[range_ind][1], size=input[value_ind]).astype(list_of_available_dtypes[input[dtype_ind][0]])})
+                    translated_list.append({arg: f"value: {input[value_ind][0]}, dtype: {list_of_available_dtypes[input[dtype_ind][0]]}"})
             else:
-                raise NotImplementedError(f"Not implemented for the domain of {arg} yet")
-            
+                translated_list.append({arg: gen_concrete_input(self.signature[arg], ll, self.rng)})
+
         return translated_list
+    
+    # Check if the abstrations will generate oversized tensors
+    def oversized(self, args, input):
+        for arg in args:
+            value_ind, dtype_ind, range_ind = self.arg_order.index(arg)*3, self.arg_order.index(arg)*3 + 1, self.arg_order.index(arg)*3 + 2
+            ll = [input[value_ind], input[dtype_ind], input[range_ind]]
+            if get_tensor_size(ll) > MAX_SZ_TENSOR:
+                return True
+        return False
     
     def translate_to_input_dict(self, input, abstract=False):
         input_dict = {}
@@ -92,7 +80,9 @@ class Configuration:
         dist = 0
         for rule, arg1, arg2 in self.ruleset:
             # add the distance
-            dist += rule_to_distance[rule](*self.translate_back([arg1, arg2], input))
+            # if input contains oversized tensor, add max distance to
+            # discourage oversized tensors
+            dist += rule_to_distance[rule](*self.translate_back([arg1, arg2], input)) if not self.oversized([arg1, arg2], input) else 1
         
         # return arithmatic mean of the distances
         return dist/len(self.ruleset)
@@ -118,6 +108,9 @@ class Mutator:
         limits = self.limits[random_choice]
         # index into ll
         alist = newl[random_choice]
+        # don't mutate empty lists
+        if len(alist) == 0:
+            return newl
         random_choice = self.rng.integers(len(alist))
         if self.rng.choice([True, False]):
             if alist[random_choice] == limits[self.max_number]:
@@ -149,7 +142,7 @@ class Mutator:
             # Select one of the dimensions
             if len(alist) == limits[self.max_size]:
                 return newl
-            random_choice = self.rng.integers(len(alist))
+            random_choice = self.rng.integers(len(alist)) if len(alist) > 0 else 0
             alist.insert(random_choice, self.rng.integers(fresh_dim_len))
         return newl    
     

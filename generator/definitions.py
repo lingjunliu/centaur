@@ -2,6 +2,7 @@ import numpy as np
 from learner.invariant_inference import infer_invariants
 from learner.inputs import get_inputs
 from utils.defaults import *
+from utils.api_utils import get_signatures
 # TODO: Move the definitions to JSON
 
 ############### api definitions ################
@@ -128,14 +129,15 @@ matmul_definition = {
 argmin_definition = {
     "signature":    {
                         "input": "tensor",
-                        "dim": "integer"
+                        "dim": "integer",
                     },
     "ruleset":  set([
                         ('rule_2', 'input', 'dim')                        
                     ]),
     "random_candidate": {
                             "input": np.random.rand(2,4,343,10,1).astype(np.float32),
-                            "dim": 10
+                            "dim": 10,
+                            "keepdim": True
                         },
     "arg_order": ['input', 'dim'],
     # set limits based on index of argument in the order
@@ -376,3 +378,31 @@ map_defs = {
     "argmin": argmin_definition,
     "conv_transpose2d": conv_transpose2d_definition
 }
+
+############### get definitions per api ################
+
+'''
+    Get definition per API with an empty random candidate
+'''
+def get_definition(api):
+    signature = get_signatures()[api]
+    definition = {
+        "signature": signature,
+        "ruleset":  infer_invariants(api, get_inputs(api)),
+        "random_candidate": {},
+        "arg_order": list(signature.keys()),
+        "limits":   []
+    }
+    
+    definition["random_candidate"] = {}
+    
+    for arg, domain in signature.items():
+        if domain == "tensor_list":
+            domain = "tensor"   # hack until tensor_list is supported
+        
+        # Limits
+        definition["limits"].append(domain_limits[domain])
+        definition["limits"].append(domain_limits[f'{domain}_dtype'])
+        definition["limits"].append(domain_limits[f'{domain}_value_range'])
+    
+    return definition

@@ -3,7 +3,8 @@ import numpy as np
 import traceback
 
 from .ea import Configuration, Mutator, optimize
-from .definitions import map_defs
+from .definitions import map_defs, get_definition
+from .input_generators import get_random_input
 from utils.api_utils import get_driver
 
 def main():
@@ -60,9 +61,16 @@ def run_api_with_duration(api, duration, print_details=False):
     valid = 0
     invalid = 0
     seed = 200
+    definition = get_definition(api)
+    if len(definition["ruleset"]) == 0:
+        print(f"No invariants learned for {api}")
+        return
     while time.time() - start < duration:
         seed += 1
-        config = Configuration(map_defs[api], seed) # api definition
+        config = Configuration(definition, seed)
+        # TODO: Initialize random candidate
+        # config.random_candidate = get_random_input(definition["signature"], config.rng)
+        config.set_random_candidate(map_defs[api]["random_candidate"])
         mutator = Mutator(config)
         (best_distance, best_input) = optimize(config, mutator)
         if print_details:
@@ -75,7 +83,6 @@ def run_api_with_duration(api, duration, print_details=False):
         start_execution = time.time()
         try:
             out_cpu = driver(config.translate_to_input_dict(best_input), cpu=True)
-            print(f"valid: {valid}", end='\r', flush=True)
             valid += 1
         except Exception as e:
             invalid += 1
@@ -84,6 +91,7 @@ def run_api_with_duration(api, duration, print_details=False):
                 print(f"\nThe input might be invalid. Faced exception:\n{e.__class__}: {str(e)}")
                 traceback.print_exc()
         execution_time = execution_time + time.time() - start_execution
+        print(f"Valid: {valid} | Invalid: {invalid}", end='\r', flush=True)
     
     total_time = time.time() - start
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
