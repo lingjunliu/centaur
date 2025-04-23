@@ -55,3 +55,12 @@ while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) 
     sleep 10
     (( elapsed = elapsed + 10 ))
 done
+
+# Aggregating and saving results
+tmp_results=$PROJECT_DIR/.tmp/fuzz_results
+result=$PROJECT_DIR/.tmp/fuzz_result.csv
+echo "api,valid,invalid,valid_prcnt" > ${result}
+for filename in ${tmp_results}/*.csv
+do
+    cat ${filename} >> ${result}
+done
