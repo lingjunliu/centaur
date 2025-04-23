@@ -42,7 +42,9 @@ class Configuration:
             ll += get_ll(self.signature[arg], arg_dict[arg])
         return ll
     
-    def translate_back(self, args, input, abstract=False):
+    def translate_back(self, args, input, abstract=False, rng=None):
+        if rng is None:
+            rng = self.rng
         translated_list = []
         for arg in args:
             value_ind, dtype_ind, range_ind = self.arg_order.index(arg)*3, self.arg_order.index(arg)*3 + 1, self.arg_order.index(arg)*3 + 2
@@ -53,7 +55,7 @@ class Configuration:
                 else:
                     translated_list.append({arg: f"value: {input[value_ind][0]}, dtype: {list_of_available_dtypes[input[dtype_ind][0]]}"})
             else:
-                translated_list.append({arg: gen_concrete_input(self.signature[arg], ll, self.rng)})
+                translated_list.append({arg: gen_concrete_input(self.signature[arg], ll, rng)})
 
         return translated_list
     
@@ -66,9 +68,15 @@ class Configuration:
                 return True
         return False
     
-    def translate_to_input_dict(self, input, abstract=False):
+    def translate_to_input_dict(self, input, seed=None, abstract=False):
+        # Allow seed to be passed for concretization
+        if seed is None:
+            rng = self.rng
+        else:
+            rng = np.random.default_rng(seed)
+
         input_dict = {}
-        input_list = self.translate_back(self.arg_order, input, abstract=abstract)
+        input_list = self.translate_back(self.arg_order, input, abstract=abstract, rng=rng)
         for entry in input_list:
             for key, value in entry.items():
                 input_dict[key] = value

@@ -1,11 +1,14 @@
 import time
 import numpy as np
 import traceback
+import os
+import pickle
 
 from .ea import Configuration, Mutator, optimize
 from .definitions import map_defs, get_definition
 from .input_generators import get_random_input
 from utils.api_utils import get_driver
+from utils.misc import create_subdir, get_tmp_dir
 
 def main():
     # Rules
@@ -61,6 +64,7 @@ def run_api_with_duration(api, duration, print_details=False):
     valid = 0
     invalid = 0
     seed = 200
+    generated_inputs = []
     definition = get_definition(api)
     if len(definition["ruleset"]) == 0:
         print(f"No invariants learned for {api}")
@@ -73,6 +77,8 @@ def run_api_with_duration(api, duration, print_details=False):
         config.set_random_candidate(map_defs[api]["random_candidate"])
         mutator = Mutator(config)
         (best_distance, best_input) = optimize(config, mutator)
+        # Save abstract versions of the inputs with seed for reproduction
+        generated_inputs.append((best_distance, best_input, seed))
         if print_details:
             print(f"\n{api}:\nBest Distance: {best_distance}\nBest Input:")
             best_input_abstracted = config.translate_to_input_dict(best_input, abstract=True)
@@ -82,7 +88,7 @@ def run_api_with_duration(api, duration, print_details=False):
         # verify if the input is valid
         start_execution = time.time()
         try:
-            out_cpu = driver(config.translate_to_input_dict(best_input), cpu=True)
+            out_cpu = driver(config.translate_to_input_dict(best_input, seed=seed), cpu=True)
             valid += 1
         except Exception as e:
             invalid += 1
@@ -94,11 +100,21 @@ def run_api_with_duration(api, duration, print_details=False):
         print(f"Valid: {valid} | Invalid: {invalid}", end='\r', flush=True)
     
     total_time = time.time() - start
+    valid_prcnt = round(valid*100/(valid+invalid),2) if valid+invalid > 0 else 0
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
-    print(f"Valid: {valid} | Invalid: {invalid} | Total {valid+invalid} | Validity Rate: {round(valid*100/(valid+invalid),2) if valid+invalid > 0 else 0}%")
+    print(f"Valid: {valid} | Invalid: {invalid} | Total {valid+invalid} | Validity Rate: {valid_prcnt}%")
+    
+    # Save outputs
+    tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
+    csv_file = os.path.join(tmp_results, f"{api}_{duration}.csv")
+    with open(csv_file, "w") as f:
+        f.write(f"{api},{valid},{invalid},{valid_prcnt}\n")
+    input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
+    with open(os.path.join(input_dir, f"{api}_inputs.pkl"), "wb") as f_in:
+        pickle.dump(generated_inputs, f_in)
 
 if __name__ == "__main__":
-    # main()    
+    # main()
     # Run scatter for 30 minutes
     duration = 30 # seconds
     run_api_with_duration("scatter", duration)
