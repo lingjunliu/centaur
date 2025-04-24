@@ -72,9 +72,9 @@ def run_api_with_duration(api, duration, print_details=False):
     while time.time() - start < duration:
         seed += 1
         config = Configuration(definition, seed)
-        # TODO: Initialize random candidate
-        # config.random_candidate = get_random_input(definition["signature"], config.rng)
-        config.set_random_candidate(map_defs[api]["random_candidate"])
+        # TODO: Debug why initializing random candidate makes optimizer slow
+        config.random_candidate = get_random_input(definition["signature"], config.rng)
+        # config.set_random_candidate(map_defs[api]["random_candidate"])
         mutator = Mutator(config)
         (best_distance, best_input) = optimize(config, mutator)
         # Save abstract versions of the inputs with seed for reproduction

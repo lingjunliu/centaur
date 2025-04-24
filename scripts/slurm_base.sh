@@ -1,6 +1,15 @@
 #!/bin/bash
 
-duration=${1:-300}  # seconds
+# This script can be called to run any python script
+# on all apis in apis.txt. The condition is the first
+# argument of the python function has to be the api
+# and the rest of the arguments has to be fixed for
+# each execution
+
+max_parallel=16     # Fix number of slurm jobs to run at a time
+
+cmd=$1              # commmand to run parallelly
+job_name=$2         # slurm job name
 
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 export PYTHONPATH=$PROJECT_DIR:$PYTHONPATH
@@ -20,15 +29,13 @@ apis=(`cat apis.txt`)
 n_apis=${#apis[@]}
 i=0
 elapsed=0
-max_parallel=16
 mkdir -p logs
-job_name=infer
 
 for api in "${apis[@]}"; do
     sbatch -c 1 \
         --job-name=${job_name}-${i} \
-        --output="logs/${api}_inv.out" \
-        --wrap="srun --cpu-bind=cores python -m learner.invariant_inference ${api} ${duration}"
+        --output="logs/${api}_${job_name}.out" \
+        --wrap="srun --cpu-bind=cores ${cmd} ${api} ${@:3}"
     ((i++))
 
     # limit number of running jobs

@@ -28,9 +28,9 @@ def random_fuzz(api, seed, duration, lib="torch"):
 
 def main():
     api = sys.argv[1] if len(sys.argv) > 1 else "argmin" # default api
+    duration = int(sys.argv[2]) if len(sys.argv) > 2 else 30   # seconds
     seed = 42   # seed for reproduction
-    duration = 30   # seconds
-    tmp_results = create_subdir(get_tmp_dir(), "results")
+    tmp_results = create_subdir(get_tmp_dir(), "rand_results")
     csv_file = os.path.join(tmp_results, f"{api}_{duration}_{seed}.csv")
     
     print(f"Started fuzzing {api} for {duration} seconds...")
