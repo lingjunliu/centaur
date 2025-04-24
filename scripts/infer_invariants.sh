@@ -20,13 +20,13 @@ i=0
 elapsed=0
 max_parallel=60
 mkdir -p logs
-job_name=fuzz_api
+job_name=infer
 
 for api in $(cat apis.txt); do
     sbatch -c 1 \
-        --job-name=${job_name} \
-        --output="logs/${api}.out" \
-        --wrap="srun --cpu-bind=cores python -m generator.fuzz ${api} ${duration}"
+        --job-name=${job_name}-${i} \
+        --output="logs/${api}_inv.out" \
+        --wrap="srun --cpu-bind=cores python -m learner.invariant_inference ${api} ${duration}"
     ((i++))
 
     # limit number of running jobs
@@ -42,13 +42,4 @@ while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) 
     print_progress ${job_name} ${elapsed}
     sleep 10
     (( elapsed = elapsed + 10 ))
-done
-
-# Aggregating and saving results
-tmp_results=$PROJECT_DIR/.tmp/fuzz_results
-result=$PROJECT_DIR/.tmp/fuzz_result.csv
-echo "api,valid,invalid,valid_prcnt" > ${result}
-for filename in ${tmp_results}/*.csv
-do
-    cat ${filename} >> ${result}
 done

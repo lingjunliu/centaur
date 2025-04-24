@@ -11,13 +11,16 @@ def get_tensor_size(ll):
     sz = sz * .001 * .001 # MB
     return sz
 
-def get_tmp_dir():
+def get_dir_in_root(subdir):
     cur_dir = os.path.dirname(os.path.abspath(__file__))
-    tmp_dir = os.path.join(cur_dir, "../.tmp")
-    if not os.path.isdir(tmp_dir):
-        os.mkdir(tmp_dir)
+    dir = os.path.join(cur_dir, f"../{subdir}")
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
     
-    return tmp_dir
+    return dir
+
+def get_tmp_dir():
+    return get_dir_in_root(".tmp")
 
 def create_subdir(dir, subfolder):
     subdir = os.path.join(dir, subfolder)
