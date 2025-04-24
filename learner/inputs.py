@@ -2,7 +2,7 @@ import torch
 import copy
 import time
 from utils.api_utils import get_signatures, get_driver
-from utils.misc import get_dir_in_root
+from utils.misc import get_dir_in_root, get_tmp_dir
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 import numpy as np
 import pickle, os
@@ -202,4 +202,8 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
         with open(input_file, "wb") as f:
             pickle.dump(abstract_inputs, f)
             
+        # Save some stats
+        csv_file = os.path.join(get_tmp_dir(), "infer_results", f"{api}_{time_budget}.csv")
+        with open(csv_file, "w") as f:
+            f.write(f"{api},{valid},{invalid},{round(valid*100/(valid+invalid), 4) if (valid+invalid) > 0 else 0}")    
     return list_of_inputs
