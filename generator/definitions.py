@@ -28,7 +28,7 @@ scatter_definition = {
     #                     ('rule_5', 'input', 'index')
     #                 ]),
     # Using invariant inference
-    "ruleset":  infer_invariants("scatter", get_inputs("scatter")),
+    "ruleset":  infer_invariants("scatter"),
     # Easy
     # "random_candidate": {
     #                         "input": np.random.rand(2,4).astype(np.float32),
@@ -169,7 +169,7 @@ conv_transpose2d_definition = {
     #                     ('rule_7', 'weight', 'input')
     #                 ]),
     # Using invariant inference
-    "ruleset":  infer_invariants("conv_transpose2d", get_inputs("conv_transpose2d")),
+    "ruleset":  infer_invariants("conv_transpose2d"),
     "random_candidate": {
                             "input": np.random.rand(2,4,343,10,1).astype(np.float32),
                             "weight": np.random.rand(2,343,1).astype(np.float32),
@@ -388,7 +388,7 @@ def get_definition(api):
     signature = get_signatures()[api]
     definition = {
         "signature": signature,
-        "ruleset":  infer_invariants(api, get_inputs(api)),
+        "ruleset":  infer_invariants(api),
         "random_candidate": {},
         "arg_order": list(signature.keys()),
         "limits":   []

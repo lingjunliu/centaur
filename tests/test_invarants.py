@@ -5,7 +5,7 @@ from learner.inputs import get_inputs
 @pytest.mark.unit
 def test_scatter_invariants():
     api = "scatter"
-    ruleset = infer_invariants(api, get_inputs(api))
+    ruleset = infer_invariants(api)
     ref_ruleset = set([
                         ('rule_2', 'input', 'dim'),
                         ('rule_2', 'index', 'dim'),
@@ -22,7 +22,7 @@ def test_scatter_invariants():
 @pytest.mark.unit
 def test_conv_transpose2d_invariants():
     api = "conv_transpose2d"
-    ruleset = infer_invariants(api, get_inputs(api))
+    ruleset = infer_invariants(api)
     ref_ruleset = set([
                         ('rule_3', 'input', 'weight'),
                         ('rule_4', 'input', 'weight'),
