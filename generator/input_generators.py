@@ -2,16 +2,16 @@ import numpy as np
 from utils.defaults import domain_limits, list_of_available_dtypes, MAX_SZ_TENSOR
 from utils.misc import get_tensor_size
 
-'''
-    Generate a random list of lists for a domain with a random generator
-    passed as an argument. For tensors, this list of list will be an
-    abstact input. For other types, it will contain concrete inputs but
-    still needs to be translated back.
-    
-    For tensors, if the generated tensor is larger than MAX_SZ_TENSOR,
-    try again.
-'''
 def gen_ran_ll(domain, rng=np.random.default_rng(42)):
+    '''
+        Generate a random list of lists for a domain with a random generator
+        passed as an argument. For tensors, this list of list will be an
+        abstact input. For other types, it will contain concrete inputs but
+        still needs to be translated back.
+        
+        For tensors, if the generated tensor is larger than MAX_SZ_TENSOR,
+        try again.
+    '''
     if domain not in domain_limits or f'{domain}_dtype' not in domain_limits or f'{domain}_value_range' not in domain_limits:
         raise NotImplementedError(f"Limits not implemented for {domain}")
     
@@ -34,10 +34,10 @@ def gen_ran_ll(domain, rng=np.random.default_rng(42)):
     
     return ll
 
-'''
-    Get a list of lists from a concrete input
-'''
 def get_ll(domain, value):
+    '''
+        Get a list of lists from a concrete input
+    '''
     if domain == "tensor_list":
         domain = "tensor"   # hack until tensor_list is supported
     
@@ -64,11 +64,22 @@ def get_ll(domain, value):
     ll.append(range_val)
     return ll
 
-'''
-    Generate a concrete input given a list of lists. If the domain is tensor,
-    the provided rng will be used to generate the concrete input.
-'''
+def get_abstract_input(concrete, signature):
+    '''
+        Given a concrete input and the signature, return a dictionary that
+        contains the abstract input instead of concrete inputs
+    '''
+    abstract = {}
+    for arg, domain in signature.items():
+        abstract[arg] = get_ll(domain, concrete[arg])
+    
+    return abstract
+
 def gen_concrete_input(domain, ll, rng=np.random.default_rng(42)):
+    '''
+        Generate a concrete input given a list of lists. If the domain is tensor,
+        the provided rng will be used to generate the concrete input.
+    '''
     if ll[2][0] > ll[2][1]:
         ll[2] = [ll[2][1], ll[2][0]]
     if domain in ["integer", "float", "string", "boolean", "dtype"]: # primitives and dtype
@@ -81,11 +92,23 @@ def gen_concrete_input(domain, ll, rng=np.random.default_rng(42)):
         return [list_of_available_dtypes[ll[1][0]](x) for x in ll[0]]
     else:
         raise NotImplementedError(f"Not implemented for {domain} yet")
+    
+def concretize_input(abstract, signature, rng=np.random.default_rng(42)):
+    '''
+        Given an abstract input dictionary, the signature and the random
+        generator to generate the original inputs, recreate the concrete
+        input.
+    '''
+    concrete = {}
+    for arg, domain in signature.items():
+        concrete[arg] = gen_concrete_input(domain, abstract[arg], rng)
+        
+    return concrete
 
-'''
-    Generate random input according to signature and concretize it
-'''    
 def get_random_input(signature, rng=np.random.default_rng(42)):
+    '''
+        Generate random input according to signature and concretize it
+    '''
     input_dict = {}
     for arg, domain in signature.items():
         # TODO: Add support for tensor_list

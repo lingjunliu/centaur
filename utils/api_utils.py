@@ -21,6 +21,15 @@ def get_driver(api, lib="torch"):
     return lib_version
 
 def get_signatures():
+    """
+        Returns a dictionary containing signatures for each supported API.
+        Format: { "API": { 
+                            "arg": "domain",
+                            ...
+                         } 
+                  ...
+                }
+    """
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     signature_file = os.path.join(cur_dir, "../signatures.json")
     signatures = {}

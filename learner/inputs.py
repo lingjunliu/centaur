@@ -2,8 +2,10 @@ import torch
 import copy
 import time
 from utils.api_utils import get_signatures, get_driver
-from generator.input_generators import get_random_input
+from utils.misc import get_dir_in_root
+from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 import numpy as np
+import pickle, os
 
 def scatter_inputs():
     list_of_inputs = []
@@ -161,23 +163,43 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
     
     # Generate valid inputs through random generation otherwise
     api_signature = get_signatures()[api]
-    api_driver = get_driver(api, lib=lib)
-    rng = np.random.default_rng(seed)
+    input_file = os.path.join(get_dir_in_root("valid_inputs"), f"{api}.pkl")
     
-    valid = 0
-    invalid = 0
     list_of_inputs = []
     
-    start_time = time.time()
-    while (time.time() - start_time < time_budget) and (valid < min_val_inp):
-        input_dict = get_random_input(api_signature, rng)        
-        try:
-            out_cpu = api_driver(input_dict, cpu=True)
-        except:
-            invalid += 1
-        else:
-            valid += 1
-            # Only adding valid inputs
-            list_of_inputs.append(input_dict)
+    # If there already is a saved file, read from that and concretize
+    if os.path.isfile(input_file):
+        with open(input_file, "rb") as f:
+            abstract_inputs = pickle.load(f)
+            for abs_inp, saved_seed in abstract_inputs:
+                rng = np.random.default_rng(saved_seed)
+                list_of_inputs.append(concretize_input(abs_inp, api_signature, rng))
+    else:   # Generate and save otherwise
+        api_driver = get_driver(api, lib=lib)
+        valid = 0
+        invalid = 0
+        abstract_inputs = []
+        
+        start_time = time.time()
+        while (time.time() - start_time < time_budget) and (valid < min_val_inp):
+            rng = np.random.default_rng(seed)
+            input_dict = get_random_input(api_signature, rng)        
+            try:
+                out_cpu = api_driver(input_dict, cpu=True)
+            except:
+                invalid += 1
+            else:
+                valid += 1
+                # Only adding valid inputs
+                list_of_inputs.append(input_dict)
+                abs_inp = get_abstract_input(input_dict, api_signature)
+                # Save the abstract input along with the seed
+                abstract_inputs.append((abs_inp, seed))
+            
+            seed += 1
+        
+        # Save abstract inputs to file
+        with open(input_file, "wb") as f:
+            pickle.dump(abstract_inputs, f)
             
     return list_of_inputs

@@ -16,22 +16,24 @@ pip install -r $PROJECT_DIR/requirements.txt
 # Running random generation
 cd $PROJECT_DIR
 
+apis=(`cat apis.txt`)
+n_apis=${#apis[@]}
 i=0
 elapsed=0
 max_parallel=60
 mkdir -p logs
-job_name=fuzz_api
+job_name=dllf
 
-for api in $(cat apis.txt); do
+for api in "${apis[@]}"; do
     sbatch -c 1 \
-        --job-name=${job_name} \
+        --job-name=${job_name}-${i} \
         --output="logs/${api}.out" \
         --wrap="srun --cpu-bind=cores python -m generator.fuzz ${api} ${duration}"
     ((i++))
 
     # limit number of running jobs
     while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) >= max_parallel )); do
-        print_progress ${job_name} ${elapsed}
+        print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
         sleep 10
         (( elapsed = elapsed + 10 ))
     done
@@ -39,7 +41,7 @@ done
 
 # wait for everything to finish
 while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) > 0 )); do
-    print_progress ${job_name} ${elapsed}
+    print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
     sleep 10
     (( elapsed = elapsed + 10 ))
 done

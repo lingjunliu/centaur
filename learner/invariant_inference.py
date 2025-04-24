@@ -8,7 +8,7 @@ def save_invariants(api, ruleset, invariant_file):
     if len(ruleset) > 0:
         # If there are rules that have been passed, write them
         with open(invariant_file, "w") as fi:
-            for rule in ruleset:
+            for rule in sorted(list(ruleset)):
                 fi.write(f"{api},{','.join(list(rule))}\n")
 
 def read_invariants(invariant_file):
