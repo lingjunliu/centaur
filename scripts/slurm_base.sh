@@ -32,10 +32,11 @@ elapsed=0
 mkdir -p logs
 
 for api in "${apis[@]}"; do
+    wrap_cmd="srun --cpu-bind=cores ${cmd} ${api} ${@:3}"
     sbatch -c 1 \
         --job-name=${job_name}-${i} \
         --output="logs/${api}_${job_name}.out" \
-        --wrap="srun --cpu-bind=cores ${cmd} ${api} ${@:3}"
+        --wrap="${wrap_cmd}"
     ((i++))
 
     # limit number of running jobs
