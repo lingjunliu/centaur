@@ -1,11 +1,12 @@
 #!/bin/bash
 
 duration=${1:-300}  # seconds
+n_max=${2:-0}   # define maximum number of inputs to generate, 0 means no max
 
 job_name=rand
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
-bash $slurm_sh "python -m generator.random_generation" ${job_name} ${duration}
+bash $slurm_sh "python -m generator.random_generation" ${job_name} ${duration} ${n_max}
 
 # Aggregating and saving results
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..

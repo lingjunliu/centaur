@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import sys
+import pickle
 from utils.defaults import list_of_available_dtypes
 
 def get_tensor_size(ll):
@@ -28,6 +29,11 @@ def create_subdir(dir, subfolder):
         os.mkdir(subdir)
     
     return subdir
+
+def save_to_new_pkl(filepath, obj):
+    if not os.path.isfile(filepath):
+        with open(filepath, "wb") as f:
+            pickle.dump(obj, f)
 
 def merge_csvs(csv_1, csv_2, csv_3):
     with open(csv_1, "r") as f_1:
