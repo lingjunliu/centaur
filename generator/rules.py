@@ -254,8 +254,8 @@ def dist_11_rev(arg1, arg2, arg3):
         arg2 = 0    # dim
         arg3 = {"index": np.array([0, 2])} # Invalid index for dim size 2
     """
-    w1 = 0.4
-    w2 = 0.6
+    w1 = 0.3
+    w2 = 0.7
     arg1_value = next(iter(arg1.values()))
     arg2_value = next(iter(arg2.values()))
     arg3_value = next(iter(arg3.values()))
@@ -267,8 +267,10 @@ def dist_11_rev(arg1, arg2, arg3):
     # calculating how smaller the min index is than 0
     # using MAX_SZ_NUM since the mutator/generator might not know proper limits for index like they know for tensor shapes since index is just another tensor
     component_1 = abs(0 - min(0, min_val_arg3))/MAX_SZ_NUM
+    # check if dim is valid with dist 2
+    d2_score = dist_2_rev(arg1, arg2)
     # calculating the distance between the dim size and the index value
-    component_2 = abs(shape_1[arg2_value]-max(shape_1[arg2_value], max_val_arg3+1))/MAX_SZ_NUM
+    component_2 = abs(shape_1[arg2_value]-max(shape_1[arg2_value], max_val_arg3+1))/MAX_SZ_NUM if d2_score == 0 else 1
     return w1*component_1 + w2*component_2
 
 ############### mapping ################
