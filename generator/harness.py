@@ -55,7 +55,7 @@ def main():
         ## Traceback for debugging
         traceback.print_exc()
     
-def run_api_with_duration(api, duration, print_details=False):
+def run_api_with_duration(api, duration, n_max=0, print_details=False):
     driver = get_driver(api)
 
     print(f"Optimizing for {api} with a {duration} second budget")
@@ -98,6 +98,10 @@ def run_api_with_duration(api, duration, print_details=False):
                 traceback.print_exc()
         execution_time = execution_time + time.time() - start_execution
         print(f"Valid: {valid} | Invalid: {invalid}", end='\r', flush=True)
+        
+        # If n_max is defined and n_max inputs have been generated, exit
+        if n_max > 0 and (valid+invalid) == n_max:
+            break
     
     total_time = time.time() - start
     valid_prcnt = round(valid*100/(valid+invalid),2) if valid+invalid > 0 else 0
