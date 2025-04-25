@@ -11,7 +11,7 @@ def main():
             with open(file_path, "r") as f:
                 for line in f.readlines():
                     tokens = line.strip().split(",")
-                    api, rule = tokens[0], tokens[1]
+                    api, rule = tokens[0], tokens[2]
                     
                     # rule to api mapping
                     if rule not in rule_to_api:
