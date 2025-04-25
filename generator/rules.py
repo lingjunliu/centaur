@@ -121,7 +121,7 @@ def dist_5_rev(arg1, arg2):
     component_2 = 0
     for d in range(0, arg1_value.ndim):
         # calculating how bigger the max value is than the size of each dim
-        component_2 += abs(shape_1[d]-max(shape_1[d], max_val_arg2))/MAX_SZ_NUM
+        component_2 += abs(shape_1[d]-max(shape_1[d], max_val_arg2+1))/MAX_SZ_NUM
     return w1*component_1 + w2*component_2
 
 '''
@@ -237,6 +237,40 @@ def dist_10_rev(arg1, arg2, arg3, arg4):
         return 0.0
     except:
         return 1.0
+    
+def dist_11_rev(arg1, arg2, arg3):
+    """
+        Corresponds to a rule that ensures the index tensor (arg3) is within
+        the constraint of the dimension size of the input tensor (arg1) along
+        the specified dim (arg2).
+        
+        Positive Example:
+        arg1 = {"input_tensor": np.array([[1, 2, 3], [3, 4, 5]])} # Shape: (2, 3)
+        arg2 = 1    # dim
+        arg3 = {"index": np.array([0, 2])} # Valid index for dim size 3
+        
+        Negative Example:
+        arg1 = {"input_tensor": np.array([[1, 2, 3], [3, 4, 5]])} # Shape: (2, 3)
+        arg2 = 0    # dim
+        arg3 = {"index": np.array([0, 2])} # Invalid index for dim size 2
+    """
+    w1 = 0.4
+    w2 = 0.6
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))
+    arg3_value = next(iter(arg3.values()))
+    if arg3_value.size == 0:
+        min_val_arg3, max_val_arg3 = 0, 0 # empty index
+    else:
+        min_val_arg3, max_val_arg3 = np.min(arg3_value), np.max(arg3_value)
+    shape_1 = list(arg1_value.shape)
+    # calculating how smaller the min index is than 0
+    # using MAX_SZ_NUM since the mutator/generator might not know proper limits for index like they know for tensor shapes since index is just another tensor
+    component_1 = abs(0 - min(0, min_val_arg3))/MAX_SZ_NUM
+    # calculating the distance between the dim size and the index value
+    component_2 = abs(shape_1[arg2_value]-max(shape_1[arg2_value], max_val_arg3+1))/MAX_SZ_NUM
+    return w1*component_1 + w2*component_2
+
 ############### mapping ################
 
 rule_to_distance = {
@@ -252,6 +286,9 @@ rule_to_distance = {
         'rule_6': dist_6_rev,
         'rule_7': dist_7_rev,
         'rule_8': dist_8_rev,
+    },
+    3: {
+        'rule_11': dist_11_rev
     },
     4: {
         'rule_10': dist_10_rev

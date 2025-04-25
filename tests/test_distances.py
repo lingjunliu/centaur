@@ -3,7 +3,7 @@ import logging
 import pytest
 import torch
 
-from generator.rules import dist_1_rev, dist_7_rev, dist_8_rev, dist_5_rev
+from generator.rules import dist_1_rev, dist_7_rev, dist_8_rev, dist_5_rev, dist_11_rev
 
 ## Abid, please add assertions with corresponding expectations here --Marcelo
 
@@ -60,6 +60,16 @@ def test_dist_5():
     input = torch.full((2, 4), 2., dtype=int).numpy()
     index = torch.tensor([[2], [3]]).numpy()
     assert dist_5_rev({'input': input}, {'index': index}) != 0, f"Rule 5 was satisfied for input with shape {input.shape} and index with values within [{np.min(index)}, {np.max(index)}], but it should not have"
+    
+    # Positive Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # Shape: (2, 2)
+    arg2 = {"index": np.array([0, 1])} # Valid index
+    assert dist_5_rev(arg1, arg2) == 0, f"Rule 5 was not satisfied for input with shape {arg1['input_tensor'].shape} and index with values within [{np.min(arg2['index'])}, {np.max(arg2['index'])}]"
+    
+    # Negative Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # Shape: (2, 2)
+    arg2 = {"index": np.array([2])} # Invalid index, out of range
+    assert dist_5_rev(arg1, arg2) > 0, f"Rule 5 was satisfied for input with shape {arg1['input_tensor'].shape} and index with values within [{np.min(arg2['index'])}, {np.max(arg2['index'])}], but it should not have been"
 
 @pytest.mark.unit
 def test_dist_7():
@@ -101,6 +111,20 @@ def test_dist_8():
     arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=bool)} # float, not int
     arg2 = {"other_tensor": np.array([[5, 6], [7, 8]], dtype=np.int8)} # int32        
     print(dist_8_rev(arg1, arg2)) # should be 0
+
+@pytest.mark.unit
+def test_dist_11():
+    # Positive Example:
+    arg1 = {"input_tensor": np.array([[1, 2, 3], [3, 4, 5]])} # Shape: (2, 3)
+    arg2 = {"dim": 1}    # dim
+    arg3 = {"index": np.array([0, 2])} # Valid index for dim size 3
+    assert dist_11_rev(arg1, arg2, arg3) == 0, f"Rule 11 was not satisfied for input with shape {arg1['input_tensor'].shape} and index with values within [{np.min(arg3['index'])}, {np.max(arg3['index'])}] for dim {arg2['dim']}"
+    
+    # Negative Example:
+    arg1 = {"input_tensor": np.array([[1, 2, 3], [3, 4, 5]])} # Shape: (2, 3)
+    arg2 = {"dim": 0}     # dim
+    arg3 = {"index": np.array([0, 2])} # Invalid index for dim size 2
+    assert dist_11_rev(arg1, arg2, arg3) > 0, f"Rule 11 was satisfied for input with shape {arg1['input_tensor'].shape} and index with values within [{np.min(arg3['index'])}, {np.max(arg3['index'])}] for dim {arg2['dim']}, but it should not have been"
 
 if __name__ == "__main__":
     test_dist_8()
