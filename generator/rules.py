@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from itertools import combinations
+from itertools import combinations,permutations
 
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 
@@ -46,7 +46,9 @@ def dist_1_rev(arg1, arg2):
     arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # Shape: (2, 2)
     arg2 = {"dim": 3}   # Invalid dim
 '''
-def dist_2_rev(arg1, arg2):
+def dist_2_rev(arg1, arg2): 
+    if next(iter(arg2.keys())) != "dim":
+        return 1.0
     arg1_value = next(iter(arg1.values()))
     arg2_value = next(iter(arg2.values()))
     max_allowed_dim = arg1_value.ndim - 1
@@ -200,20 +202,66 @@ def dist_8_rev(arg1, arg2):
     hi = list_of_available_dtypes.index(np.int64)
     return (dist_4_rev(arg1, arg2) + distance_to_range(ind_1, lo, hi, total) + distance_to_range(ind_2, lo, hi, total))/3
 
+"""
+Corresponds to rule asserting that arg is in 4D shape and all of its dimension sizes are positive.
+"""
+def dist_9_rev(arg):
+    value = next(iter(arg.values()))
+    if value.ndim != 4:
+        return 1.0
+    non_positive_dims = [dim for dim in value.shape if dim <= 0]
+    if non_positive_dims:
+        return 1.0
+        # return sum(abs(dim) for dim in non_positive_dims) / (len(non_positive_dims) * MAX_SZ_DIM)
+    return 0.0
+
+"""
+[conv_transpose2d] Corresponds to rule asserting that (stride * (input - 1) + weight - 2 * padding + output_padding) should be greater than zero for both height and width
+"""
+def dist_10_rev(arg1, arg2, arg3, arg4):
+    expected_keys = ['input', 'weight', 'stride', 'padding']
+    actual_keys = [list(arg.keys())[0] for arg in [arg1, arg2, arg3, arg4]]
+    if actual_keys != expected_keys:
+        return 1.0
+    input_val = arg1['input']
+    weight_val = arg2['weight']
+    stride_val = arg3['stride']
+    padding_val = arg4['padding']
+    try:
+        h_expr = stride_val * (input_val.shape[-2] - 1) + weight_val.shape[-2] - 2 * padding_val
+        w_expr = stride_val * (input_val.shape[-1] - 1) + weight_val.shape[-1] - 2 * padding_val
+        non_positive_exprs = [expr for expr in [h_expr, w_expr] if expr <= 0]
+        if non_positive_exprs:
+            return 1.0
+            # return sum(abs(expr) for expr in non_positive_exprs) / (len(non_positive_exprs) * MAX_SZ_DIM)
+        return 0.0
+    except:
+        return 1.0
 ############### mapping ################
 
 rule_to_distance = {
-    'rule_1': dist_1_rev,
-    'rule_2': dist_2_rev,
-    'rule_3': dist_3_rev,
-    'rule_4': dist_4_rev,
-    'rule_5': dist_5_rev,
-    'rule_6': dist_6_rev,
-    'rule_7': dist_7_rev,
-    'rule_8': dist_8_rev,
+    1: {
+        'rule_9': dist_9_rev,
+    },
+    2: {
+        'rule_1': dist_1_rev,
+        'rule_2': dist_2_rev,
+        'rule_3': dist_3_rev,
+        'rule_4': dist_4_rev,
+        'rule_5': dist_5_rev,
+        'rule_6': dist_6_rev,
+        'rule_7': dist_7_rev,
+        'rule_8': dist_8_rev,
+    },
+    4: {
+        'rule_10': dist_10_rev
+    }
 }
 
-order_agnostic_rules = ['rule_1', 'rule_3', 'rule_4', 'rule_8']
+order_agnostic_rules = {
+    1: ['rule_9'],  # arity 1 rules do not need to be added, but for completeness
+    2: ['rule_1', 'rule_3', 'rule_4', 'rule_8']
+}
 
 '''
     Utility function. Returns distance to a range.
@@ -237,36 +285,43 @@ def distance_to_range(pos, lo, hi, total):
     Utility function, given an input, checks which rules it satisfies
 '''
 def check_rules(input_dict, print_rules=False):
-    # TODO: Add support for rules that take more than 2 arguments
     set_of_rules_passed = set()
     
-    if len(input_dict.keys()) < 2:
+    if len(input_dict.keys()) < 1:
         print("Not enough arguments to check rules")
         return set_of_rules_passed
     
-    # Generate unique pairs of keys
-    for arg_1, arg_2 in combinations(input_dict.keys(), 2):
-        for rule_name, distance_function in rule_to_distance.items():
-            # Check if the rule is satisfied for the current pair of arguments
-            # i.e. distance function returns zero
-            try:
-                if distance_function({arg_1: input_dict[arg_1]}, {arg_2: input_dict[arg_2]}) == 0:
-                    # If the rule is satisfied, add it to the set of passed rules
-                    set_of_rules_passed.add((rule_name, arg_1, arg_2))
-            except:
-                pass    # The rule is not applicable
-
-            # Change order of arguments to check the rule in the opposite direction unless the rule is order-agnostic
-            if rule_name not in order_agnostic_rules:
-                try:                    
-                    if distance_function({arg_2: input_dict[arg_2]}, {arg_1: input_dict[arg_1]}) == 0:
-                    # If the rule is satisfied, add it to the set of passed rules
-                        set_of_rules_passed.add((rule_name, arg_2, arg_1))
+    # Generate unique combinations of keys
+    for arity in rule_to_distance:
+        if len(input_dict.keys()) < arity:
+            continue
+        for args in combinations(input_dict.keys(), arity):
+            for rule_name, distance_function in rule_to_distance[arity].items():
+                # Check if the rule is satisfied for the current combination of arguments
+                # i.e. distance function returns zero
+                try:
+                    arg_dicts = tuple({k: input_dict[k]} for k in args)
+                    if distance_function(*arg_dicts) == 0:
+                        # If the rule is satisfied, add it to the set of passed rules
+                        set_of_rules_passed.add((arity, rule_name, *args))
                 except:
                     pass    # The rule is not applicable
+
+                # Change order of arguments to check the rule unless the rule is order-agnostic
+                if rule_name not in order_agnostic_rules.get(arity, []):
+                    for permuted_args in permutations(args):
+                        if permuted_args == args:
+                            continue
+                        try: 
+                            arg_dicts = tuple({k: input_dict[k]} for k in permuted_args)
+                            if distance_function(*arg_dicts) == 0:
+                                # If the rule is satisfied, add it to the set of passed rules
+                                set_of_rules_passed.add((arity, rule_name, *permuted_args))
+                        except:
+                            pass    # The rule is not applicable
     # Optionally print the rules that have been passed
     if print_rules:
-        for rule in set_of_rules_passed:
-            print(f"Rule {rule[0]} passed between {rule[1]} and {rule[2]}")
+        for arity, rule_name, *args in set_of_rules_passed:
+            print(f"Arity {arity} Rule {rule_name} passed between {args}")
     # Return the set of rules that have been passed
     return set_of_rules_passed

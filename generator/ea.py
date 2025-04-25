@@ -86,11 +86,11 @@ class Configuration:
     # measuring distance
     def distance(self, input):
         dist = 0
-        for rule, arg1, arg2 in self.ruleset:
+        for arity, rule_name, *args in self.ruleset:
             # add the distance
             # if input contains oversized tensor, add max distance to
             # discourage oversized tensors
-            dist += rule_to_distance[rule](*self.translate_back([arg1, arg2], input)) if not self.oversized([arg1, arg2], input) else 1
+            dist += rule_to_distance[arity][rule_name](*self.translate_back(args, input)) if not self.oversized(args, input) else 1
         
         # return arithmatic mean of the distances
         return dist/len(self.ruleset)

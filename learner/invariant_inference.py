@@ -9,20 +9,21 @@ def save_invariants(api, ruleset, invariant_file):
         # If there are rules that have been passed, write them
         with open(invariant_file, "w") as fi:
             for rule in sorted(list(ruleset)):
-                fi.write(f"{api},{','.join(list(rule))}\n")
+                fi.write(f"{api},{rule[0]},{','.join(list(rule[1:]))}\n")
 
 def read_invariants(invariant_file):
     ruleset = set()
     with open(invariant_file, "r") as f:
         for line in f.readlines():
-            ruleset.add(tuple(line.strip().split(',')[1:]))
+            parts = line.strip().split(',')[1:]
+            ruleset.add(tuple([int(parts[0])] + parts[1:]))
     return ruleset
 
 def print_rules(api, ruleset):
     if len(ruleset) > 0:
         print(f"Rules passed for {api}:")
-        for rule, arg1, arg2 in ruleset:
-            print(f"- {rule} between {arg1} and {arg2}")
+        for arity, rule_name, *args in ruleset:
+            print(f"- {rule_name} with arity {arity} on args {args}")
     else:
         print(f"No rules passed for {api}.")
 
