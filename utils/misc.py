@@ -35,6 +35,11 @@ def save_to_new_pkl(filepath, obj):
         with open(filepath, "wb") as f:
             pickle.dump(obj, f)
 
+def read_pkl(filepath):
+    with open(filepath, "rb") as f:
+        obj = pickle.load(f)
+    return obj
+
 def merge_csvs(csv_1, csv_2, csv_3):
     with open(csv_1, "r") as f_1:
         lines_1 = f_1.readlines()

@@ -2,10 +2,10 @@ import torch
 import copy
 import time
 from utils.api_utils import get_signatures, get_driver
-from utils.misc import get_dir_in_root, get_tmp_dir
+from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir, save_to_new_pkl, read_pkl
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 import numpy as np
-import pickle, os
+import os
 
 def scatter_inputs():
     list_of_inputs = []
@@ -169,11 +169,10 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
     
     # If there already is a saved file, read from that and concretize
     if os.path.isfile(input_file):
-        with open(input_file, "rb") as f:
-            abstract_inputs = pickle.load(f)
-            for abs_inp, saved_seed in abstract_inputs:
-                rng = np.random.default_rng(saved_seed)
-                list_of_inputs.append(concretize_input(abs_inp, api_signature, rng))
+        abstract_inputs = read_pkl(input_file)
+        for abs_inp, saved_seed in abstract_inputs:
+            rng = np.random.default_rng(saved_seed)
+            list_of_inputs.append(concretize_input(abs_inp, api_signature, rng))
     else:   # Generate and save otherwise
         api_driver = get_driver(api, lib=lib)
         valid = 0
@@ -199,11 +198,11 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
             seed += 1
         
         # Save abstract inputs to file
-        with open(input_file, "wb") as f:
-            pickle.dump(abstract_inputs, f)
+        save_to_new_pkl(input_file, abstract_inputs)
             
         # Save some stats
-        csv_file = os.path.join(get_tmp_dir(), "infer_results", f"{api}_{time_budget}.csv")
+        infer_dir = create_subdir(get_tmp_dir(), "infer_results")
+        csv_file = os.path.join(infer_dir, f"{api}_{time_budget}.csv")
         with open(csv_file, "w") as f:
             f.write(f"{api},{valid},{invalid},{round(valid*100/(valid+invalid), 4) if (valid+invalid) > 0 else 0}\n")    
     return list_of_inputs
