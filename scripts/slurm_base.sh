@@ -6,7 +6,7 @@
 # and the rest of the arguments has to be fixed for
 # each execution
 
-max_parallel=16     # Fix number of slurm jobs to run at a time
+max_parallel=349    # Fix number of slurm jobs to run at a time
 
 cmd=$1              # commmand to run parallelly
 job_name=$2         # slurm job name
@@ -27,11 +27,12 @@ cd $PROJECT_DIR
 
 apis=(`cat apis.txt`)
 n_apis=${#apis[@]}
-i=1
+i=0
 elapsed=0
 mkdir -p logs
 
 for api in "${apis[@]}"; do
+    ((i++))
     wrap_cmd="srun --cpu-bind=cores ${cmd} ${api} ${@:3}"
     # Run sbatch with a timeout of 2 hour
     sbatch -c 1 \
@@ -39,7 +40,6 @@ for api in "${apis[@]}"; do
         --output="logs/${api}_${job_name}.out" \
         --time=2:00:00 \
         --wrap="${wrap_cmd}"
-    ((i++))
 
     # limit number of running jobs
     while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) >= max_parallel )); do
