@@ -8,6 +8,6 @@ pip install -r $PROJECT_DIR/requirements.txt
 
 (cd $PROJECT_DIR;
 
-  PYTHONWARNINGS="ignore" python -m generator.harness
+  PYTHONWARNINGS="ignore" python -m generator.harness ${1:-0}
 
 )

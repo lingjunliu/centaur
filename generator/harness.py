@@ -3,6 +3,7 @@ import numpy as np
 import traceback
 import os
 import pickle
+import sys
 
 from .ea import Configuration, Mutator, optimize
 from .definitions import map_defs, get_definition
@@ -121,13 +122,15 @@ if __name__ == "__main__":
     # main()
     # Run scatter for 30 minutes
     duration = 30 # seconds
-    run_api_with_duration("scatter", duration)
+    print_details = int(sys.argv[1]) == 1 if len(sys.argv) > 1 else False
+    
+    run_api_with_duration("scatter", duration, print_details=print_details)
     
     # Run atan2 for 30 seconds
-    run_api_with_duration("atan2", duration)
+    run_api_with_duration("atan2", duration, print_details=print_details)
     
     # Run argmin for 30 seconds
-    run_api_with_duration("argmin", duration)
+    run_api_with_duration("argmin", duration, print_details=print_details)
     
     # Run conv_transpose2d for 30 seconds
-    run_api_with_duration("conv_transpose2d", duration)
+    run_api_with_duration("conv_transpose2d", duration, print_details=print_details)
