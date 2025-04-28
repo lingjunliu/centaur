@@ -173,34 +173,20 @@ def dist_7_rev(arg1, arg2):
     pos_le = 2 ## second
     return abs(l1[0]-l2[1])/MAX_SZ_DIM
 
-"""
-Corresponds to rule asserting that arg1 and arg2 have the **same** integer data types, i.e., np.int8, np.int16, np.int32, np.int64.
+def dist_8_rev(arg1):
+    """
+        Corresponds to rule asserting that arg1 has an integer data type, i.e., np.int8, np.int16, np.int32, np.int64.
 
-Positive Example:
-arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.int32)} # int32
-arg2 = {"other_tensor": np.array([[5, 6], [7, 8]], dtype=np.int32)} # int32
+        Positive Example:
+        arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.int32)} # int32
 
-Negative Example:
-arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.float32)} # float32, not int
-arg2 = {"other_tensor": np.array([[5, 6], [7, 8]], dtype=np.int32)} # int32
+        Negative Example:
+        arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.float32)} # float32, not int
 
-Parameters:
-arg1 (any): A dictionary containing the name of the first argument as key and the argument itself as value.
-arg2 (any): A dictionary containing the name of the second argument as key and the argument itself as value.
-"""
-def dist_8_rev(arg1, arg2):
-    # types are the same. pick one and report distance to integer types  
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
-    # dtypes of the two arguments
-    total = len(list_of_available_dtypes)
-    dtype_1 = arg1_value.dtype
-    dtype_2 = arg2_value.dtype        
-    ind_1 = list_of_available_dtypes.index(dtype_1)
-    ind_2 = list_of_available_dtypes.index(dtype_2)
-    lo = list_of_available_dtypes.index(np.int8)
-    hi = list_of_available_dtypes.index(np.int64)
-    return (dist_4_rev(arg1, arg2) + distance_to_range(ind_1, lo, hi, total) + distance_to_range(ind_2, lo, hi, total))/3
+        Parameters:
+        arg1 (any): A dictionary containing the name of the first argument as key and the argument itself as value.
+    """
+    return dist_type(arg1, np.int8, np.uint8)
 
 """
 Corresponds to rule asserting that arg is in 4D shape and all of its dimension sizes are positive.
@@ -293,11 +279,28 @@ def dist_12_rev(arg1, arg2):
     
     return min(1, (arg1_value - arg2_value) / MAX_SZ_NUM) if arg1_value > arg2_value else 0.0
 
+def dist_13_rev(arg1):
+    """
+        Corresponds to rule asserting that arg1 has an float data type.
+
+        Positive Example:
+        arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.float16)} # float16
+
+        Negative Example:
+        arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.complex128)} # comlex128, not float
+
+        Parameters:
+        arg1 (any): A dictionary containing the name of the first argument as key and the argument itself as value.
+    """
+    return dist_type(arg1, np.float16, np.float64)
+
 ############### mapping ################
 
 rule_to_distance = {
     1: {
         'rule_9': dist_9_rev,
+        'rule_8': dist_8_rev,
+        'rule_13': dist_13_rev
     },
     2: {
         'rule_1': dist_1_rev,
@@ -307,7 +310,6 @@ rule_to_distance = {
         'rule_5': dist_5_rev,
         'rule_6': dist_6_rev,
         'rule_7': dist_7_rev,
-        'rule_8': dist_8_rev,
         'rule_12': dist_12_rev
     },
     3: {
@@ -321,9 +323,10 @@ rule_to_distance = {
 # Add rules where the order of arguments does not matter
 # i.e. the nature of the arguments are the same
 # e.g. two tensors having the same shape: does not matter if the first tensor is arg1 or arg2
+# implication: do not check these rules for all permutations of the arguments
 order_agnostic_rules = {
-    1: ['rule_9'],  # arity 1 rules do not need to be added, but for completeness
-    2: ['rule_1', 'rule_3', 'rule_4', 'rule_8', 'rule_12']
+    1: ['rule_9', 'rule_8', 'rule_13'],  # arity 1 rules do not need to be added, but for completeness
+    2: ['rule_1', 'rule_3', 'rule_4', 'rule_12']
 }
 
 '''
@@ -344,6 +347,29 @@ def distance_to_range(pos, lo, hi, total):
     else: # must be in a position above hi.
         dis = abs(pos - hi) / (total - 1)    
     return dis
+def dist_type(arg, low, high):
+    """
+        Corresponds to a rule that ensures the argument is of a specific type (e.g., int, float).
+        
+        Positive Example:
+        arg = {"value": 5} # int
+        lo = np.int8
+        high = np.int64
+        
+        Negative Example:
+        arg = {"value": 5.0} # float
+        lo = np.int8
+        high = np.int64
+    """
+    # report distance to integer types  
+    arg_value = next(iter(arg.values()))
+    # dtypes of the two arguments
+    total = len(list_of_available_dtypes)
+    dtype = arg_value.dtype if isinstance(arg_value, np.ndarray) else np.dtype(type(arg_value))
+    ind = list_of_available_dtypes.index(dtype)
+    lo = list_of_available_dtypes.index(low)
+    hi = list_of_available_dtypes.index(high)
+    return distance_to_range(ind, lo, hi, total)
 '''
     Utility function, given an input, checks which rules it satisfies
 '''
