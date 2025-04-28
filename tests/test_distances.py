@@ -3,7 +3,7 @@ import logging
 import pytest
 import torch
 
-from generator.rules import dist_1_rev, dist_7_rev, dist_8_rev, dist_5_rev, dist_11_rev
+from generator.rules import dist_1_rev, dist_7_rev, dist_8_rev, dist_5_rev, dist_11_rev, rule_to_distance
 
 ## Abid, please add assertions with corresponding expectations here --Marcelo
 
@@ -125,6 +125,23 @@ def test_dist_11():
     arg2 = {"dim": 0}     # dim
     arg3 = {"index": np.array([0, 2])} # Invalid index for dim size 2
     assert dist_11_rev(arg1, arg2, arg3) > 0, f"Rule 11 was satisfied for input with shape {arg1['input_tensor'].shape} and index with values within [{np.min(arg3['index'])}, {np.max(arg3['index'])}] for dim {arg2['dim']}, but it should not have been"
+
+@pytest.mark.unit
+def test_dist_12():
+    # Positive Example
+    arg1 = {"low": 2}
+    arg2 = {"high": 5} # Valid range
+    assert rule_to_distance[2]["rule_12"](arg1, arg2) == 0, f"Rule 12 was not satisfied for low {arg1['low']} and high {arg2['high']}"
+    
+    # Negative Example:
+    arg1 = {"low": 5}
+    arg2 = {"high": 2} # Invalid range
+    assert rule_to_distance[2]["rule_12"](arg1, arg2) > 0, f"Rule 12 was satisfied for low {arg1['low']} and high {arg2['high']}, but it should not have been"
+    
+    # Negative Example:
+    arg1 = {"low": 2}
+    arg2 = {"high": [2, 2]}
+    assert rule_to_distance[2]["rule_12"](arg1, arg2) > 0, f"Rule 12 was satisfied for low {arg1['low']} and high {arg2['high']}, but it should not have been"
 
 if __name__ == "__main__":
     test_dist_8()

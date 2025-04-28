@@ -273,6 +273,26 @@ def dist_11_rev(arg1, arg2, arg3):
     component_2 = abs(shape_1[arg2_value]-max(shape_1[arg2_value], max_val_arg3+1))/MAX_SZ_NUM if d2_score == 0 else 1
     return w1*component_1 + w2*component_2
 
+def dist_12_rev(arg1, arg2):
+    """
+        Corresponds to a rule that ensures arg1 (low) is less than or equal to arg2 (high) only for primitive types (excludes tensors, list).
+        
+        Positive Example:
+        arg1 = {"low": 2}
+        arg2 = {"high": 5} # Valid range
+        
+        Negative Example:
+        arg1 = {"low": 5}
+        arg2 = {"high": 2} # Invalid range
+    """
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))
+    # Don't allow tensors or lists or tuples
+    if isinstance(arg1_value, (np.ndarray, list, tuple)) or isinstance(arg2_value, (np.ndarray, list, tuple)):
+        return 1.0
+    
+    return min(1, (arg1_value - arg2_value) / MAX_SZ_NUM) if arg1_value > arg2_value else 0.0
+
 ############### mapping ################
 
 rule_to_distance = {
@@ -288,6 +308,7 @@ rule_to_distance = {
         'rule_6': dist_6_rev,
         'rule_7': dist_7_rev,
         'rule_8': dist_8_rev,
+        'rule_12': dist_12_rev
     },
     3: {
         'rule_11': dist_11_rev
@@ -297,9 +318,12 @@ rule_to_distance = {
     }
 }
 
+# Add rules where the order of arguments does not matter
+# i.e. the nature of the arguments are the same
+# e.g. two tensors having the same shape: does not matter if the first tensor is arg1 or arg2
 order_agnostic_rules = {
     1: ['rule_9'],  # arity 1 rules do not need to be added, but for completeness
-    2: ['rule_1', 'rule_3', 'rule_4', 'rule_8']
+    2: ['rule_1', 'rule_3', 'rule_4', 'rule_8', 'rule_12']
 }
 
 '''
