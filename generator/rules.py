@@ -349,23 +349,27 @@ def distance_to_range(pos, lo, hi, total):
     return dis
 def dist_type(arg, low, high):
     """
-        Corresponds to a rule that ensures the argument is of a specific type (e.g., int, float).
+        Corresponds to a rule that ensures the tensor argument is of a specific type (e.g., int, float).
         
         Positive Example:
-        arg = {"value": 5} # int
+        arg = {"value": np.array([1,2]).astype(np.int32)} # int
         lo = np.int8
         high = np.int64
         
         Negative Example:
-        arg = {"value": 5.0} # float
+        arg = {"value": np.array([1,2]).astype(np.float32)} # float
         lo = np.int8
         high = np.int64
     """
     # report distance to integer types  
     arg_value = next(iter(arg.values()))
+    # only check for tensors
+    if not isinstance(arg_value, np.ndarray):
+        return 1.0
+    
     # dtypes of the two arguments
     total = len(list_of_available_dtypes)
-    dtype = arg_value.dtype if isinstance(arg_value, np.ndarray) else np.dtype(type(arg_value))
+    dtype = arg_value.dtype
     ind = list_of_available_dtypes.index(dtype)
     lo = list_of_available_dtypes.index(low)
     hi = list_of_available_dtypes.index(high)

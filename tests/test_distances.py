@@ -101,9 +101,9 @@ def test_dist_8():
     # Negative
     assert dist_8_rev(arg2) > 0, f"Rule 8 was satisfied for input with shape {arg2['input_tensor'].shape} and dtype {arg2['input_tensor'].dtype}, but it should not have been"
     
-    # Positive Example
+    # Negative Example, non-tensor
     arg1 = {"dim": 2} # dim
-    assert dist_8_rev(arg1) == 0, f"Rule 8 was not satisfied for dim {arg1['dim']}"
+    assert dist_8_rev(arg1) > 0, f"Rule 8 was satisfied for dim {arg1['dim']}, but it should not have been"
     # Negative Example
     arg1 = {"dim": 3.2}
     assert dist_8_rev(arg1) > 0, f"Rule 8 was satisfied for dim {arg1['dim']}, but it should not have been"
@@ -149,9 +149,9 @@ def test_dist_13():
     arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.complex128)} # comlex128, not float
     assert rule_to_distance[1]["rule_13"](arg1) > 0, f"Rule 13 was satisfied for input with shape {arg1['input_tensor'].shape} and dtype {arg1['input_tensor'].dtype}, but it should not have been"
     
-    # Positive Example:
+    # Negative Example, non-tensor
     arg1 = {"padding": 2.1}
-    assert rule_to_distance[1]["rule_13"](arg1) == 0, f"Rule 13 was not satisfied for padding {arg1['padding']}"
+    assert rule_to_distance[1]["rule_13"](arg1) > 0, f"Rule 13 was satisfied for padding {arg1['padding']}, but it should not have been"
     # Negative Example:
     arg1 = {"padding": 2}
     assert rule_to_distance[1]["rule_13"](arg1) > 0, f"Rule 13 was satisfied for padding {arg1['padding']}, but it should not have been"
