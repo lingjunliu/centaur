@@ -147,6 +147,36 @@ def conv_transpose2d_inputs():
     
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 6, invalid
+    input = torch.randn(2, 8, 10, 10, dtype=torch.complex64).numpy()        # [N, C_in, H_in, W_in]
+    weight = torch.randn(8, 16, 4, 4).numpy()       # [C_in, C_out, kH, kW]
+    stride = 2
+    padding = 1
+    
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "stride": stride,
+        "padding": padding
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7, invalid
+    input = torch.randn(2, 8, 10, 10).numpy()        # [N, C_in, H_in, W_in]
+    weight = torch.randint(low=0, high=100, size=(8, 16, 4, 4), dtype=torch.int64).numpy()       # [C_in, C_out, kH, kW]
+    stride = 2
+    padding = 1
+    
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "stride": stride,
+        "padding": padding
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 # Add human defined inputs for APIs that are
