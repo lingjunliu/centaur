@@ -62,6 +62,7 @@ def run_api_with_duration(api, duration, n_max=0, print_details=False):
     print(f"Optimizing for {api} with a {duration} second budget")
     execution_time = 0
     start = time.time()
+    elapsed = 0
     valid = 0
     invalid = 0
     seed = 200
@@ -70,14 +71,14 @@ def run_api_with_duration(api, duration, n_max=0, print_details=False):
     if len(definition["ruleset"]) == 0:
         print(f"No invariants learned for {api}")
         return
-    while time.time() - start < duration:
+    while elapsed < duration:
         seed += 1
         config = Configuration(definition, seed)
         # TODO: Debug why initializing random candidate makes optimizer slow
         config.random_candidate = get_random_input(definition["signature"], config.rng)
         # config.set_random_candidate(map_defs[api]["random_candidate"])
         mutator = Mutator(config)
-        (best_distance, best_input) = optimize(config, mutator)
+        (best_distance, best_input) = optimize(config, mutator, duration=duration-elapsed)
         # Save abstract versions of the inputs with seed for reproduction
         generated_inputs.append((best_distance, best_input, seed))
         if print_details:
@@ -103,6 +104,8 @@ def run_api_with_duration(api, duration, n_max=0, print_details=False):
         # If n_max is defined and n_max inputs have been generated, exit
         if n_max > 0 and (valid+invalid) == n_max:
             break
+        
+        elapsed = time.time() - start
     
     total_time = time.time() - start
     valid_prcnt = round(valid*100/(valid+invalid),2) if valid+invalid > 0 else 0

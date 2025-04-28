@@ -1,9 +1,10 @@
 import numpy as np
 import copy
+import time
 
 from generator.rules import rule_to_distance
 from utils.defaults import *
-from utils.misc import get_tensor_size
+from utils.misc import get_tensor_size, has_time
 from .definitions import *
 from .input_generators import gen_concrete_input, get_ll
 
@@ -164,7 +165,7 @@ class Mutator:
 
 ############### optimization ################
 
-def optimize(config, mutator):
+def optimize(config, mutator, duration=0):
     input = config.translate(config.get_random_candidate())
     best_input = input
     best_distance = config.distance(input)
@@ -174,6 +175,7 @@ def optimize(config, mutator):
         mutator.mutate_sizes: num_offspring_size
     }
     iteration_limit = sum(mutation_limit.values())
+    start = time.time()
     for x in range(max_num_generations):
         # Counters to keep track of each mutator
         mutation_counter = {
@@ -181,7 +183,7 @@ def optimize(config, mutator):
             mutator.mutate_sizes: 0
         }
         # Round robin
-        while sum(mutation_counter.values()) < iteration_limit:
+        while sum(mutation_counter.values()) < iteration_limit and has_time(start, duration):
             for f_mutator, counter in mutation_counter.items():
                 if counter < mutation_limit[f_mutator]:
                     mutation_counter[f_mutator] += 1

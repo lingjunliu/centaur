@@ -2,6 +2,7 @@ import numpy as np
 import os
 import sys
 import pickle
+import time
 from utils.defaults import list_of_available_dtypes
 
 def get_tensor_size(ll):
@@ -39,6 +40,13 @@ def read_pkl(filepath):
     with open(filepath, "rb") as f:
         obj = pickle.load(f)
     return obj
+
+def has_time(start, duration):
+    if duration > 0:
+        elapsed = time.time() - start
+        if elapsed >= duration:
+            return False
+    return True
 
 def merge_csvs(csv_1, csv_2, csv_3):
     with open(csv_1, "r") as f_1:
