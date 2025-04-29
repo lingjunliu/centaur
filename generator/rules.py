@@ -56,6 +56,51 @@ def dist_2_rev(arg1, arg2):
     return abs(arg2_value - max_allowed_dim)/MAX_N_DIM if arg2_value > max_allowed_dim else abs(min_allowed_dim - min(arg2_value, min_allowed_dim))/MAX_N_DIM
 
 '''
+def rule_2_validate(arg1, arg2):
+    if next(iter(arg2.keys())) != "dim":
+        return 1.0
+        # should be changed to 'return False' eventually
+    
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))
+        
+    solver = Solver()
+    ndim, dim = Ints('ndim dim')
+
+    solver.add(ndim == int(arg1_value.ndim))
+    solver.add(dim == int(arg2_value)) 
+
+    solver.add(And(dim >= -1 * ndim, dim <= ndim - 1))
+
+    if solver.check() == sat:
+        return 0.0
+        # should be changed to 'return True' eventually
+    else:
+        return 1.0
+        # should be changed to 'return False' eventually
+
+def rule_2_generate(param1, param2):
+    solver = Solver()
+    ndim, dim = Ints('ndim dim')
+
+    solver.add(And(ndim >= 0, ndim <= MAX_N_DIM, dim >= 0, dim <= MAX_N_DIM))
+    solver.add(And(dim >= -1 * ndim, dim <= ndim - 1))
+
+    if solver.check() == sat:
+        model = solver.model()
+
+        ndim_val = model[ndim].as_long()
+        dim_val = model[dim].as_long()
+
+        shape = [random.randint(0, MAX_SZ_DIM) for _ in range(ndim_val)]
+        arr = np.random.uniform(-MAX_SZ_NUM, MAX_SZ_NUM, size=shape)
+
+        return {param1: arr}, {param2: dim_val}
+    else:
+        return None, None
+'''
+
+'''
     Corresponds to rule that asserts that arg1 and arg2 has the same number of dimensions. (Rule 3)
     
     Positive Example:
