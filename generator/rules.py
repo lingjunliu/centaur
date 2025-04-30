@@ -3,12 +3,32 @@ import logging
 from itertools import combinations,permutations
 
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from z3 import *
 
 # hack to circumvent missing definition in import
 np.float128 = np.float64
 
 # Log to a file
 logging.basicConfig(filename='hacking.log', level=logging.DEBUG)
+
+# Add rule-specific constraints 
+_ = lambda s,r,v: {
+    "rule_1": lambda s,v: (
+        s.add(v["arg1_ndim"] == v["arg2_ndim"]),
+        [s.add(Implies(i < v["arg1_ndim"], Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i))) for i in range(MAX_N_DIM)]
+    ),
+    "rule_2": lambda s,v: (
+        s.add(v["arg2"] >= -1 * v["arg1_ndim"]),
+        s.add(v["arg2"] <= v["arg1_ndim"] - 1)
+    ),
+    "rule_4": lambda s,v: (
+        s.add(v["arg1_dtype"] == v["arg2_dtype"])
+    ),
+    "rule_11": lambda s,v: (
+        s.add(v["arg3_range"][0] >= 0),
+        s.add(v["arg3_range"][1] <= Select(v["arg1_shape"], v["arg2"]) - 1)
+    )
+}[r](s,v)
 
 '''
     Corresponds to rule that asserts that shapes of tensors are identical (Rule 1)
@@ -20,12 +40,12 @@ logging.basicConfig(filename='hacking.log', level=logging.DEBUG)
     Negative Example:
     arg1 = {'a': np.random.rand(3,2,5)}
     arg2 = {'b': np.random.rand(3,2)}
-'''
+
 def dist_1_rev(arg1, arg2):
     w1 = 0.7
     w2 = 0.3
     arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))    
+    arg2_value = next(iter(arg2.values()))
     # components of the objective function
     component_MAX_N_DIM = w1*abs(arg1_value.ndim-arg2_value.ndim)/MAX_N_DIM
     l1 = arg1_value.shape
@@ -34,6 +54,36 @@ def dist_1_rev(arg1, arg2):
     elementwise_distance = [ abs(l1[i]-l2[i]) for i in range(common_part) ]
     component_elements = w2*np.sum(elementwise_distance)/(common_part*MAX_SZ_DIM)
     return component_MAX_N_DIM + component_elements
+'''
+def dist_1_rev(arg1, arg2, solver=None):    # Need to rename the function
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))    
+
+    # Invariant learning phase
+    if not solver: 
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim, arg2_ndim = Ints('arg1_ndim arg2_ndim')
+        arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
+
+        # Value assignments
+        solver.add(arg1_ndim == arg1_value.ndim)
+        solver.add(arg2_ndim == arg2_value.ndim)
+        for i in range(arg1_value.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
+        for i in range(arg2_value.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2_value.shape[i])
+
+        # Constraints for rule 1
+        _(solver, 'rule_1', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
+                             'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        return 0.0 if solver.check() == sat else 1.0    # return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 1
+        _(solver, 'rule_1', {'arg1_ndim': arg1_value.ndim, 'arg1_shape': arg1_value.shape, 
+                             'arg2_ndim': arg2_value.ndim, 'arg2_shape': arg2_value.shape})
 
 '''
     Corresponds to rule that the value in arg2 (dim) is within the range of dimensions of arg1 (input_tensor). (Rule 2)
@@ -45,7 +95,7 @@ def dist_1_rev(arg1, arg2):
     Negative Example:
     arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # Shape: (2, 2)
     arg2 = {"dim": 3}   # Invalid dim
-'''
+
 def dist_2_rev(arg1, arg2): 
     if next(iter(arg2.keys())) != "dim":
         return 1.0
@@ -54,51 +104,32 @@ def dist_2_rev(arg1, arg2):
     max_allowed_dim = arg1_value.ndim - 1
     min_allowed_dim = -1 * arg1_value.ndim
     return abs(arg2_value - max_allowed_dim)/MAX_N_DIM if arg2_value > max_allowed_dim else abs(min_allowed_dim - min(arg2_value, min_allowed_dim))/MAX_N_DIM
-
 '''
-def rule_2_validate(arg1, arg2):
+def dist_2_rev(arg1, arg2, solver=None):    # Need to rename the function
     if next(iter(arg2.keys())) != "dim":
-        return 1.0
-        # should be changed to 'return False' eventually
+        return 1.0    # return False
     
     arg1_value = next(iter(arg1.values()))
     arg2_value = next(iter(arg2.values()))
-        
-    solver = Solver()
-    ndim, dim = Ints('ndim dim')
+    
+    # Invariant learning phase
+    if not solver: 
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim, arg2 = Ints('arg1_ndim arg2')
+    
+        # Value assignments
+        solver.add(arg1_ndim == arg1_value.ndim)
+        solver.add(arg2 == int(arg2_value)) 
 
-    solver.add(ndim == int(arg1_value.ndim))
-    solver.add(dim == int(arg2_value)) 
+        # Constraints for rule 2
+        _(solver, 'rule_2', {'arg1_ndim': arg1_ndim, 'arg2': arg2})
+        return 0.0 if solver.check() == sat else 1.0    # return solver.check() == sat
 
-    solver.add(And(dim >= -1 * ndim, dim <= ndim - 1))
-
-    if solver.check() == sat:
-        return 0.0
-        # should be changed to 'return True' eventually
+    # Fuzz input generation phase
     else:
-        return 1.0
-        # should be changed to 'return False' eventually
-
-def rule_2_generate(param1, param2):
-    solver = Solver()
-    ndim, dim = Ints('ndim dim')
-
-    solver.add(And(ndim >= 0, ndim <= MAX_N_DIM, dim >= 0, dim <= MAX_N_DIM))
-    solver.add(And(dim >= -1 * ndim, dim <= ndim - 1))
-
-    if solver.check() == sat:
-        model = solver.model()
-
-        ndim_val = model[ndim].as_long()
-        dim_val = model[dim].as_long()
-
-        shape = [random.randint(0, MAX_SZ_DIM) for _ in range(ndim_val)]
-        arr = np.random.uniform(-MAX_SZ_NUM, MAX_SZ_NUM, size=shape)
-
-        return {param1: arr}, {param2: dim_val}
-    else:
-        return None, None
-'''
+        # Constraints for rule 2
+        _(solver, 'rule_2', {'arg1_ndim': arg1_value.ndim, 'arg2': arg2_value})
 
 '''
     Corresponds to rule that asserts that arg1 and arg2 has the same number of dimensions. (Rule 3)
@@ -127,7 +158,7 @@ def dist_3_rev(arg1, arg2):
     Negative Example:
     arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.float32)} # float32
     arg2 = {"other_tensor": np.array([[5, 6], [7, 8]], dtype=np.int32)} # int32, not the same as arg1
-'''
+
 def dist_4_rev(arg1, arg2):
     arg1_value = next(iter(arg1.values()))
     arg2_value = next(iter(arg2.values()))
@@ -138,6 +169,29 @@ def dist_4_rev(arg1, arg2):
     ind_2 = list_of_available_dtypes.index(dtype_2)
     total = len(list_of_available_dtypes)
     return abs(ind_1 - ind_2) / (total - 1)
+'''
+def dist_4_rev(arg1, arg2, solver=None):    # Need to rename the function
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))
+    
+    # Invariant learning phase
+    if not solver: 
+        # Variable declarations
+        solver = Solver()
+        arg1_dtype, arg2_dtype = Ints('arg1_dtype arg2_dtype')
+    
+        # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1_value.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2_value.dtype))
+
+        # Constraints for rule 4
+        _(solver, 'rule_4', {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        return 0.0 if solver.check() == sat else 1.0    # return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 4
+        _(solver, 'rule_4', {'arg1_dtype': arg1_value.dtype, 'arg2_dtype': arg2_value.dtype})
 
 '''
     Corresponds to rule that arg2 (index) is within the range of dimensions of arg1 (input tensor). (Rule 5)
@@ -268,7 +322,7 @@ def dist_10_rev(arg1, arg2, arg3, arg4):
         return 0.0
     except:
         return 1.0
-    
+'''    
 def dist_11_rev(arg1, arg2, arg3):
     """
         Corresponds to a rule that ensures the index tensor (arg3) is within
@@ -303,6 +357,38 @@ def dist_11_rev(arg1, arg2, arg3):
     # calculating the distance between the dim size and the index value
     component_2 = abs(shape_1[arg2_value]-max(shape_1[arg2_value], max_val_arg3+1))/MAX_SZ_NUM if d2_score == 0 else 1
     return w1*component_1 + w2*component_2
+'''
+def dist_11_rev(arg1, arg2, arg3, solver=None):    # Need to rename the function
+    if next(iter(arg2.keys())) != "dim" or next(iter(arg3.keys())) != "index":
+        return 1.0    # return False
+
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))
+    arg3_value = next(iter(arg3.values()))
+    
+    # Invariant learning phase
+    if not solver: 
+        # Variable declarations
+        solver = Solver()
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2 = Int('arg2')
+        arg3_range = Array('arg3_range', IntSort(), IntSort())
+    
+        # Value assignments
+        for i in range(arg1_value.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
+        solver.add(arg2 == int(arg2_value))
+        arg3_range = Store(arg3_range, 0, int(np.min(arg3_value)))
+        arg3_range = Store(arg3_range, 1, int(np.max(arg3_value)))
+
+        # Constraints for rule 11
+        _(solver, 'rule_11', {'arg1_shape': arg1_shape, 'arg2': arg2, 'arg3_range': arg3_range})
+        return 0.0 if solver.check() == sat else 1.0    # return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 11
+        _(solver, 'rule_11', {'arg1_shape': arg1_value.shape, 'arg2': arg2_value, 'arg3_range': arg3_value.range})
 
 def dist_12_rev(arg1, arg2):
     """
@@ -310,7 +396,7 @@ def dist_12_rev(arg1, arg2):
         
         Positive Example:
         arg1 = {"low": 2}
-        arg2 = {"high": 5} # Valid range
+   `     arg2 = {"high": 5} # Valid range
         
         Negative Example:
         arg1 = {"low": 5}
