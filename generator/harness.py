@@ -56,7 +56,7 @@ def main():
         ## Traceback for debugging
         traceback.print_exc()
     
-def run_api_with_duration(api, duration, n_max=0, print_details=False):
+def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False):
     driver = get_driver(api)
 
     print(f"Optimizing for {api} with a {duration} second budget")
@@ -78,7 +78,7 @@ def run_api_with_duration(api, duration, n_max=0, print_details=False):
         config.random_candidate = get_random_input(definition["signature"], config.rng)
         # config.set_random_candidate(map_defs[api]["random_candidate"])
         mutator = Mutator(config)
-        (best_distance, best_input) = optimize(config, mutator, duration=duration-elapsed)
+        (best_distance, best_input) = optimize(config, mutator, duration=limit)
         # Save abstract versions of the inputs with seed for reproduction
         generated_inputs.append((best_distance, best_input, seed))
         if print_details:
@@ -125,15 +125,16 @@ if __name__ == "__main__":
     # main()
     # Run scatter for 30 minutes
     duration = 30 # seconds
+    limit = 10  # random restart after <limit> seconds
     print_details = int(sys.argv[1]) == 1 if len(sys.argv) > 1 else False
     
-    run_api_with_duration("scatter", duration, print_details=print_details)
+    run_api_with_duration("scatter", duration, print_details=print_details, limit=limit)
     
     # Run atan2 for 30 seconds
-    run_api_with_duration("atan2", duration, print_details=print_details)
+    run_api_with_duration("atan2", duration, print_details=print_details, limit=limit)
     
     # Run argmin for 30 seconds
-    run_api_with_duration("argmin", duration, print_details=print_details)
+    run_api_with_duration("argmin", duration, print_details=print_details, limit=limit)
     
     # Run conv_transpose2d for 30 seconds
-    run_api_with_duration("conv_transpose2d", duration, print_details=print_details)
+    run_api_with_duration("conv_transpose2d", duration, print_details=print_details, limit=limit)
