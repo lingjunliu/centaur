@@ -18,38 +18,73 @@ def test_dist_1():
     t2=np.random.rand(4,2)
     # res=rule_1({'a':t1}, {'b':t2})
     # print(res) ## this is 
-    print(dist_1_rev({'a':t1}, {'b':t2}))
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     # simulate -1@1 on t1
     t1=np.random.rand(2,2,5) # from 3 to 2
-    print(dist_1_rev({'a':t1}, {'b':t2}))
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     ## got worse. let us try the other direction
     t1=np.random.rand(4,2,5) # from 3 to 4
     print(dist_1_rev({'a':t1}, {'b':t2})) ## this is the new best <~~~
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     ## keep going the same direction
     t1=np.random.rand(5,2,5) # from 4 to 5
     print(dist_1_rev({'a':t1}, {'b':t2})) ## this is worse. get back to the previous best
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t1=np.random.rand(4,2,5) # recovering the best candidate
     ## try mutating the other input. remove one axis
     t2=np.random.rand(4)
     print(dist_1_rev({'a':t1}, {'b':t2})) ## this is much worse (bigger distance). go the other way
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t2=np.random.rand(4,2,1)
     print(dist_1_rev({'a':t1}, {'b':t2})) ## awesome. this is the new best <~~~
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t2=np.random.rand(3,2,1)
     print(dist_1_rev({'a':t1}, {'b':t2})) ## worse
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t2=np.random.rand(5,2,1)
     print(dist_1_rev({'a':t1}, {'b':t2})) ## worse
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t2=np.random.rand(4,2,1) ## recovering
     t2=np.random.rand(4,1,1)
     print(dist_1_rev({'a':t1}, {'b':t2})) ## worse
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t2=np.random.rand(4,3,1)
     print(dist_1_rev({'a':t1}, {'b':t2})) ## worse
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t2=np.random.rand(4,2,1) ## recovering
     t2=np.random.rand(4,2,0) ## worse
     print(dist_1_rev({'a':t1}, {'b':t2})) 
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t2=np.random.rand(4,2,2) ## better. this is the new best <~~~
     print(dist_1_rev({'a':t1}, {'b':t2}))
+    assert dist_1_rev({'a':t1}, {'b':t2}) > 0, f"Rule 1 was satisfied for args with shape {t1.shape} and {t2.shape}, but it should not have" # should be higher than 0
     t2=np.random.rand(4,2,5) ## perfect. 
     print(dist_1_rev({'a':t1}, {'b':t2}))
+    assert dist_1_rev({'a':t1}, {'b':t2}) == 0, f"Rule 1 was mot satisfied for args with shape {t1.shape} and {t2.shape}" # should be 0
+
+@pytest.mark.unit
+def test_dist_2():
+    # Positive Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # Shape: (2, 2)
+    arg2 = {"dim": 1}
+    assert rule_to_distance[2]['rule_2'](arg1, arg2) == 0, f"Rule 2 was not satisfied for input with shape {arg1['input_tensor'].shape} and dim {arg2['dim']}"
+
+    # Negative Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # Shape: (2, 2)
+    arg2 = {"dim": 3}   # Invalid dim
+    assert rule_to_distance[2]['rule_2'](arg1, arg2) > 0, f"Rule 2 was satisfied for input with shape {arg1['input_tensor'].shape} and dim {arg2['dim']}, but it should not have been"
+
+@pytest.mark.unit
+def test_dist_4():
+    # Positive Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.float32)} # float32
+    arg2 = {"other_tensor": np.array([[5, 6], [7, 8]], dtype=np.float32)} # float32
+    assert rule_to_distance[2]['rule_4'](arg1, arg2) == 0, f"Rule 4 was not satisfied for input with shape {arg1['input_tensor'].shape} and dtype {arg1['input_tensor'].dtype} and other_tensor with shape {arg2['other_tensor'].shape} and dtype {arg2['other_tensor'].dtype}"
+    
+    # Negative Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]], dtype=np.float32)} # float32
+    arg2 = {"other_tensor": np.array([[5, 6], [7, 8]], dtype=np.int32)} # int32, not the same as arg1
+    assert rule_to_distance[2]['rule_4'](arg1, arg2) > 0, f"Rule 4 was satisfied for input with shape {arg1['input_tensor'].shape} and dtype {arg1['input_tensor'].dtype} and other_tensor with shape {arg2['other_tensor'].shape} and dtype {arg2['other_tensor'].dtype}, but it should not have been"
 
 @pytest.mark.unit
 def test_dist_5():
