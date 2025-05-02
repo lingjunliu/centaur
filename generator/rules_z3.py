@@ -21,6 +21,9 @@ _ = lambda s,r,v: {
         s.add(v["arg2"] >= -1 * v["arg1_ndim"]),
         s.add(v["arg2"] <= v["arg1_ndim"] - 1)
     ),
+    "rule_3": lambda s,v: (
+        s.add(v["arg1_ndim"] == v["arg2_ndim"])
+    ),
     "rule_4": lambda s,v: (
         s.add(v["arg1_dtype"] == v["arg2_dtype"])
     ),
@@ -64,7 +67,6 @@ def rule_1_func(arg1, arg2, solver=None):
         # Constraints for rule 1
         _(solver, 'rule_1', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
                              'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
-
         return solver.check() == sat
 
     # Fuzz input generation phase
@@ -104,13 +106,47 @@ def rule_2_func(arg1, arg2, solver=None):
 
         # Constraints for rule 2
         _(solver, 'rule_2', {'arg1_ndim': arg1_ndim, 'arg2': arg2})
-
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 2
         _(solver, 'rule_2', {'arg1_ndim': arg1_value['ndim'], 'arg2': arg2_value})
+
+'''
+    Corresponds to rule that asserts that arg1 and arg2 has the same number of dimensions. (Rule 3)
+    
+    Positive Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # 2d
+    arg2 = {"other_tensor": np.array([[5, 6], [7, 8]])} # 2d
+    
+    Negative Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # 2d
+    arg2 = {"other_tensor": np.array([5])} # 1d, not the same as arg1
+'''
+
+def rule_3_func(arg1, arg2, solver=None):
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))    
+
+    # Invariant learning phase
+    if not solver: 
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim, arg2_ndim = Ints('arg1_ndim arg2_ndim')
+        
+        # Value assignments
+        solver.add(arg1_ndim == arg1_value.ndim)
+        solver.add(arg2_ndim == arg2_value.ndim)
+
+        # Constraints for rule 3
+        _(solver, 'rule_3', {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 3
+        _(solver, 'rule_3', {'arg1_ndim': arg1_value['ndim'], 'arg2_ndim': arg2_value['ndim']})
 
 '''
     Corresponds to rule that asserts that arg1 and arg2 have the same data type. (Rule 4)
@@ -140,13 +176,53 @@ def rule_4_func(arg1, arg2, solver=None):
 
         # Constraints for rule 4
         _(solver, 'rule_4', {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
-
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 4
         _(solver, 'rule_4', {'arg1_dtype': arg1_value['dtype'], 'arg2_dtype': arg2_value['dtype']})
+
+'''
+    Corresponds to rule that arg2 (index) is within the range of dimensions of arg1 (input tensor). (Rule 5)
+    
+    Positive Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # Shape: (2, 2)
+    arg2 = {"index": np.array([0, 1])} # Valid index
+    
+    Negative Example:
+    arg1 = {"input_tensor": np.array([[1, 2], [3, 4]])} # Shape: (2, 2)
+    arg2 = {"index": np.array([2])} # Invalid index, out of range
+'''
+
+def rule_5_func(arg1, arg2, solver=None):
+    if next(iter(arg2.keys())) != "index":
+        return False
+
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))
+
+    # Invariant learning phase
+    if not solver: 
+        # Variable declarations
+        solver = Solver()
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
+    
+        # Value assignments
+        for i in range(arg1_value.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2_value)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2_value)))
+
+        # Constraints for rule 5
+        _(solver, 'rule_5', {'arg1_shape': arg1_shape, 'arg2_range': arg2_range})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 5
+        _(solver, 'rule_5', {'arg1_shape': arg1_value['shape'], 'arg2_range': arg2_value['range']})
 
 '''
     Corresponds to a rule that ensures the index tensor (arg3) is within
@@ -189,7 +265,6 @@ def rule_11_func(arg1, arg2, arg3, solver=None):
 
         # Constraints for rule 11
         _(solver, 'rule_11', {'arg1_shape': arg1_shape, 'arg2': arg2, 'arg3_range': arg3_range})
-
         return solver.check() == sat
 
     # Fuzz input generation phase
@@ -204,7 +279,9 @@ rule_func_map = {
     2: {
         'rule_1': rule_1_func,
         'rule_2': rule_2_func,
+        'rule_3': rule_3_func,
         'rule_4': rule_4_func,
+        'rule_5': rule_5_func
     },
     3: {
         'rule_11': rule_11_func
@@ -216,7 +293,7 @@ rule_func_map = {
 # e.g. two tensors having the same shape: does not matter if the first tensor is arg1 or arg2
 # implication: do not check these rules for all permutations of the arguments
 order_agnostic_rules = {
-    2: ['rule_1', 'rule_4']
+    2: ['rule_1', 'rule_3', 'rule_4']
 }
 
 def check_rules_z3(input_dict, print_rules=False):
