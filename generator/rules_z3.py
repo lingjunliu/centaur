@@ -15,7 +15,7 @@ logging.basicConfig(filename='hacking.log', level=logging.DEBUG)
 _ = lambda s,r,v: {
     "rule_1": lambda s,v: (
         s.add(v["arg1_ndim"] == v["arg2_ndim"]),
-        [s.add(Implies(i < v["arg1_ndim"], Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i))) for i in range(MAX_N_DIM)]
+        s.add(And(*[Implies(i < v["arg1_ndim"], Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(MAX_N_DIM)]))
     ),
     "rule_2": lambda s,v: (
         s.add(v["arg2"] >= -1 * v["arg1_ndim"]),
@@ -27,9 +27,13 @@ _ = lambda s,r,v: {
     "rule_4": lambda s,v: (
         s.add(v["arg1_dtype"] == v["arg2_dtype"])
     ),
+    "rule_5": lambda s,v: (
+        s.add(Select(v["arg2_range"], 0) >= 0),
+        s.add(And(*[Implies(i < v["arg1_ndim"], Select(v["arg2_range"], 1) <= Select(v["arg1_shape"], i) - 1) for i in range(MAX_N_DIM)]))
+    ),
     "rule_11": lambda s,v: (
-        s.add(v["arg3_range"][0] >= 0),
-        s.add(v["arg3_range"][1] <= Select(v["arg1_shape"], v["arg2"]) - 1)
+        s.add(Select(v["arg3_range"], 0) >= 0),
+        s.add(Select(v["arg3_range"], 1) <= Select(v["arg1_shape"], v["arg2"]) - 1)
     )
 }[r](s,v)
 
@@ -207,22 +211,25 @@ def rule_5_func(arg1, arg2, solver=None):
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
         arg2_range = Array('arg2_range', IntSort(), IntSort())
     
         # Value assignments
         for i in range(arg1_value.ndim):
             arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
+        solver.add(arg1_ndim == arg1_value.ndim)
         arg2_range = Store(arg2_range, 0, int(np.min(arg2_value)))
         arg2_range = Store(arg2_range, 1, int(np.max(arg2_value)))
 
         # Constraints for rule 5
-        _(solver, 'rule_5', {'arg1_shape': arg1_shape, 'arg2_range': arg2_range})
+        _(solver, 'rule_5', {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 5
-        _(solver, 'rule_5', {'arg1_shape': arg1_value['shape'], 'arg2_range': arg2_value['range']})
+        _(solver, 'rule_5', {'arg1_shape': arg1_value['shape'], 'arg1_ndim': arg1_value['ndim'], 
+                             'arg2_range': arg2_value['range']})
 
 '''
     Corresponds to a rule that ensures the index tensor (arg3) is within
@@ -270,8 +277,8 @@ def rule_11_func(arg1, arg2, arg3, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 11
-        _(solver, 'rule_11', {'arg1_shape': arg1_value['shape'], 'arg2': arg2_value, 'arg3_range': arg3_value['range']})
-
+        _(solver, 'rule_11', {'arg1_shape': arg1_value['shape'], 'arg2': arg2_value, 
+                              'arg3_range': arg3_value['range']})
 
 ############### mapping ################
 
