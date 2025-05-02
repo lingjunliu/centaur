@@ -1,4 +1,5 @@
 from generator.rules import check_rules
+from generator.rules_z3 import check_rules_z3
 from .inputs import get_inputs
 from utils.api_utils import get_driver
 from utils.misc import get_dir_in_root
@@ -27,7 +28,7 @@ def print_rules(api, ruleset):
     else:
         print(f"No rules passed for {api}.")
 
-def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=5, seed=42):
+def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=5, seed=42, z3=False):
     '''
         Takes an API and
         
@@ -56,10 +57,10 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     print(f"Input {idx} is valid")
                 # Check rules for the input dictionary
                 if not initialized:  # If ruleset is not initialized
-                    ruleset = check_rules(input_dict)
+                    ruleset = check_rules_z3(input_dict) if z3 else check_rules(input_dict)
                     initialized = True
                 else:
-                    ruleset = ruleset.intersection(check_rules(input_dict))
+                    ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
             except:
                 if print_details:
                     print(f"Input {idx} is invalid")   
