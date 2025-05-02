@@ -5,23 +5,129 @@ import os
 import pickle
 import sys
 
+from z3 import *
 from .ea import Configuration, Mutator, optimize
 from .definitions import map_defs, get_definition
 from .input_generators import get_random_input
+from .rules_z3 import rule_func_map
 from utils.api_utils import get_driver
 from utils.misc import create_subdir, get_tmp_dir
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes
+from eval.oracle import oracle_crash
+from functools import reduce
 
-# [To-do] 
-# def create_z3_args(..):
-#     ..
+def create_z3_args(signature):
+    z3_args = {}
+    for param, typ in signature.items():
+        if typ == "integer":
+            z3_args[param] = Int(param)
+        elif typ == "float":
+            z3_args[param] = Real(param)
+        elif typ == "boolean":
+            z3_args[param] = Bool(param)
+        elif typ == "string":
+            z3_args[param] = String(param)
+        elif typ in ("tuple", "list"):
+            z3_args[param] = {
+                "length": Int(f"{param}_length"),
+                "values": Array(f"{param}_values", IntSort(), IntSort())
+            }
+        elif typ == "tensor":
+            z3_args[param] = {
+                "ndim": Int(f"{param}_ndim"),
+                "shape": Array(f"{param}_shape", IntSort(), IntSort()),
+                "dtype": Int(f"{param}_dtype"),
+                "range": Array(f"{param}_range", IntSort(), IntSort())
+            }
+        else:
+            raise ValueError(f"Unsupported type: {typ}")
+    return z3_args
 
-# [To-do] 
-# def collect_constraints(..):
-#     ..
+def initial_constraints(solver, signature, z3_args):
+    for param_name, z3_var in z3_args.items():
+        param_type = signature[param_name]
 
-# [To-do] 
-# def solve_constraints(..):
-#     ..
+        if param_type == "tensor":
+            ndim, shape, dtype, range_ = z3_var['ndim'], z3_var['shape'], z3_var['dtype'], z3_var['range']
+            solver.add(And(ndim >= 1, ndim <= MAX_N_DIM))
+            solver.add(And(*[
+                Implies(i < ndim, And(Select(shape, i) >= 0, Select(shape, i) <= MAX_SZ_NUM))
+                for i in range(MAX_N_DIM)
+            ]))
+            solver.add(And(dtype >= 0, dtype <= len(list_of_available_dtypes) - 3))
+        
+            solver.add(And(*[
+                Select(range_, 0) >= -MAX_SZ_NUM, Select(range_, 0) <= MAX_SZ_NUM,
+                Select(range_, 1) >= -MAX_SZ_NUM, Select(range_, 1) <= MAX_SZ_NUM,
+                Select(range_, 0) < Select(range_, 1)
+            ])) 
+            size = reduce(lambda acc, i: acc * If(i < ndim, Select(shape, i), 1), range(MAX_N_DIM), 1)
+            solver.add(size * 0.001 * 0.001 < MAX_SZ_TENSOR)
+
+        elif param_type == "list" or param_type == "tuple":
+            length, values = z3_var['length'], z3_var['values']
+
+            solver.add(And(length >= 1, length <= MAX_N_DIM))
+            solver.add(And(*[
+                Implies(i < length, And(Select(values, i) >= -MAX_SZ_NUM, Select(values, i) <= MAX_SZ_NUM))
+                for i in range(MAX_N_DIM)
+            ]))
+
+def collect_constraints(solver, ruleset, z3_args):
+    for rule in ruleset:
+        arity, rule_name, *args = rule
+        rule_func = rule_func_map[arity][rule_name]
+        
+        arg_dicts = []
+        for param_name in args:
+            arg_dicts.append({param_name: z3_args[param_name]})
+       
+        rule_func(*arg_dicts, solver)
+
+def solve_constraints(solver, signature, z3_args):
+    if solver.check() != sat:
+        raise ValueError("No solution found for the constraints.")
+
+    model = solver.model()
+    concrete_args = {}
+
+    for param_name, z3_var in z3_args.items():
+        param_type = signature[param_name]
+
+        if param_type == "tensor":
+            ndim = model.eval(z3_var['ndim']).as_long()
+            shape = [model.eval(Select(z3_var['shape'], i)).as_long() for i in range(ndim)]
+            dtype = model.eval(z3_var['dtype']).as_long()
+            low = model.eval(Select(z3_var['range'], 0)).as_long()
+            high = model.eval(Select(z3_var['range'], 1)).as_long()
+           
+            np_array = np.random.uniform(low, high, size=shape).astype(list_of_available_dtypes[dtype])
+            concrete_args[param_name] = np_array
+            
+        elif param_type == "list":
+            length = model.eval(z3_var['length']).as_long()
+            values = z3_var['values']
+
+            concrete_args[param_name] = [model.eval(Select(values, i)).as_long() for i in range(length)]
+
+        elif param_type == "tuple":
+            length = model.eval(z3_var['length']).as_long()
+            values = z3_var['values']
+
+            concrete_args[param_name] = tuple([model.eval(Select(values, i)).as_long() for i in range(length)])
+
+        else:
+            value = model.eval(z3_var)
+            if isinstance(value, IntNumRef):
+                concrete_args[param_name] = value.as_long()
+            elif isinstance(value, BoolRef):
+                concrete_args[param_name] = is_true(value)
+            elif isinstance(value, SeqRef):
+                concrete_args[param_name] = value.as_string()
+            else:
+                concrete_args[param_name] = value
+
+    return concrete_args
 
 def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False):
     driver = get_driver(api)
@@ -32,6 +138,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
     elapsed = 0
     valid = 0
     invalid = 0
+    crash = 0
     seed = 200
     generated_inputs = []
     definition = get_definition(api, z3=True)
@@ -39,7 +146,54 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
         print(f"No invariants learned for {api}")
         return
 
-    # [To-do]
+    while elapsed < duration:
+        solver = Solver()
+
+        z3_args = create_z3_args(definition["signature"])
+        initial_constraints(solver, definition["signature"], z3_args)
+        collect_constraints(solver, definition["ruleset"], z3_args)                
+        inputs = solve_constraints(solver, definition["signature"], z3_args)
+
+        start_execution = time.time()
+        status, exception_message = oracle_crash(driver, inputs, cpu=True)
+        if status == "nominal":
+            valid += 1
+        elif status == "invalid":
+            invalid += 1
+            ## Traceback for debugging
+            if print_details:
+                print(f"\nThe input might be invalid. Faced exception:\n{exception_message}")
+        elif status == "cpu_crash":
+            crash += 1
+            if print_details:
+                print(f"\nThe input crashed. Faced exception:\n{exception_message}")
+        else:
+            if print_details:
+                print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
+        execution_time = execution_time + time.time() - start_execution
+        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash}", end='\r', flush=True)
+
+        # If n_max is defined and n_max inputs have been generated, exit
+        if n_max > 0 and (valid+invalid) == n_max:
+            break
+
+        elapsed = time.time() - start
+
+    total_time = time.time() - start
+    total = valid + invalid + crash
+    valid_prcnt = round((valid+crash)*100/total,2) if total > 0 else 0
+    print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
+    print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Total {total} | Validity Rate: {valid_prcnt}%")
+    
+    # Save outputs
+    tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
+    csv_file = os.path.join(tmp_results, f"{api}_{duration}.csv")
+    with open(csv_file, "w") as f:
+        # api, valid, invalid, crash, total, valid_prcnt
+        f.write(f"{api},{valid},{invalid},{crash},{total},{valid_prcnt}\n")
+    input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
+    with open(os.path.join(input_dir, f"{api}_inputs.pkl"), "wb") as f_in:
+        pickle.dump(generated_inputs, f_in)
 
 if __name__ == "__main__":
     # Run scatter for 30 minutes

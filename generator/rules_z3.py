@@ -70,8 +70,8 @@ def rule_1_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 1
-        _(solver, 'rule_1', {'arg1_ndim': arg1_value.ndim, 'arg1_shape': arg1_value.shape, 
-                             'arg2_ndim': arg2_value.ndim, 'arg2_shape': arg2_value.shape})
+        _(solver, 'rule_1', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
+                             'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
 
 '''
     Corresponds to rule that the value in arg2 (dim) is within the range of dimensions of arg1 (input_tensor). (Rule 2)
@@ -110,7 +110,7 @@ def rule_2_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 2
-        _(solver, 'rule_2', {'arg1_ndim': arg1_value.ndim, 'arg2': arg2_value})
+        _(solver, 'rule_2', {'arg1_ndim': arg1_value['ndim'], 'arg2': arg2_value})
 
 '''
     Corresponds to rule that asserts that arg1 and arg2 have the same data type. (Rule 4)
@@ -146,7 +146,7 @@ def rule_4_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 4
-        _(solver, 'rule_4', {'arg1_dtype': arg1_value.dtype, 'arg2_dtype': arg2_value.dtype})
+        _(solver, 'rule_4', {'arg1_dtype': arg1_value['dtype'], 'arg2_dtype': arg2_value['dtype']})
 
 '''
     Corresponds to a rule that ensures the index tensor (arg3) is within
@@ -195,7 +195,7 @@ def rule_11_func(arg1, arg2, arg3, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 11
-        _(solver, 'rule_11', {'arg1_shape': arg1_value.shape, 'arg2': arg2_value, 'arg3_range': arg3_value.range})
+        _(solver, 'rule_11', {'arg1_shape': arg1_value['shape'], 'arg2': arg2_value, 'arg3_range': arg3_value['range']})
 
 
 ############### mapping ################
