@@ -25,8 +25,7 @@ while [[ "$1" != "" ]]; do
   esac
 done
 
-harness="generator.harness"
-[ "$z3_flag" == "true" ] && harness="generator.harness_z3"
+harness="generator.harness$( [ "$z3_flag" == "true" ] && echo "_z3" )"
 
 (cd $PROJECT_DIR;
   PYTHONWARNINGS="ignore" python -m $harness $print_arg
