@@ -1,6 +1,4 @@
 import time
-import numpy as np
-import traceback
 import os
 import pickle
 import sys
@@ -10,6 +8,7 @@ from .definitions import map_defs, get_definition
 from .input_generators import get_random_input
 from utils.api_utils import get_driver
 from utils.misc import create_subdir, get_tmp_dir
+from eval.oracle import oracle_crash
 
 def main():
     # Rules
@@ -65,6 +64,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
     elapsed = 0
     valid = 0
     invalid = 0
+    crash = 0
     seed = 200
     generated_inputs = []
     definition = get_definition(api)
@@ -89,17 +89,23 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
         
         # verify if the input is valid
         start_execution = time.time()
-        try:
-            out_cpu = driver(config.translate_to_input_dict(best_input, seed=seed), cpu=True)
+        status, exception_message = oracle_crash(driver, config.translate_to_input_dict(best_input, seed=seed), cpu=True)
+        if status == "nominal":
             valid += 1
-        except Exception as e:
+        elif status == "invalid":
             invalid += 1
             ## Traceback for debugging
             if print_details:
-                print(f"\nThe input might be invalid. Faced exception:\n{e.__class__}: {str(e)}")
-                traceback.print_exc()
+                print(f"\nThe input might be invalid. Faced exception:\n{exception_message}")
+        elif status == "cpu_crash":
+            crash += 1
+            if print_details:
+                print(f"\nThe input crashed. Faced exception:\n{exception_message}")
+        else:
+            if print_details:
+                print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         execution_time = execution_time + time.time() - start_execution
-        print(f"Valid: {valid} | Invalid: {invalid}", end='\r', flush=True)
+        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash}", end='\r', flush=True)
         
         # If n_max is defined and n_max inputs have been generated, exit
         if n_max > 0 and (valid+invalid) == n_max:
@@ -108,15 +114,17 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
         elapsed = time.time() - start
     
     total_time = time.time() - start
-    valid_prcnt = round(valid*100/(valid+invalid),2) if valid+invalid > 0 else 0
+    total = valid + invalid + crash
+    valid_prcnt = round((valid+crash)*100/total,2) if total > 0 else 0
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
-    print(f"Valid: {valid} | Invalid: {invalid} | Total {valid+invalid} | Validity Rate: {valid_prcnt}%")
+    print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Total {total} | Validity Rate: {valid_prcnt}%")
     
     # Save outputs
     tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
     csv_file = os.path.join(tmp_results, f"{api}_{duration}.csv")
     with open(csv_file, "w") as f:
-        f.write(f"{api},{valid},{invalid},{valid_prcnt}\n")
+        # api, valid, invalid, crash, total, valid_prcnt
+        f.write(f"{api},{valid},{invalid},{crash},{total},{valid_prcnt}\n")
     input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
     with open(os.path.join(input_dir, f"{api}_inputs.pkl"), "wb") as f_in:
         pickle.dump(generated_inputs, f_in)

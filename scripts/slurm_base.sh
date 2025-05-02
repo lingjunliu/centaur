@@ -6,7 +6,9 @@
 # and the rest of the arguments has to be fixed for
 # each execution
 
-max_parallel=349    # Fix number of slurm jobs to run at a time
+if [ -z "${max_parallel}" ]; then
+    max_parallel=349    # Fix number of slurm jobs to run at a time if not set
+fi
 
 cmd=$1              # commmand to run parallelly
 job_name=$2         # slurm job name

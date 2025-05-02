@@ -12,7 +12,7 @@ bash $slurm_sh "python -m generator.random_generation" ${job_name} ${duration} $
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 tmp_results=$PROJECT_DIR/.tmp/rand_results
 result=$PROJECT_DIR/.tmp/rand_result.csv
-echo "api,valid,invalid,valid_prcnt" > ${result}
+echo "api,valid,invalid,crash,total,valid_prcnt" > ${result}
 for filename in ${tmp_results}/*.csv
 do
     cat ${filename} >> ${result}

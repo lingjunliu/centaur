@@ -100,8 +100,14 @@ def concretize_input(abstract, signature, rng=np.random.default_rng(42)):
         input.
     '''
     concrete = {}
+    i = 0
     for arg, domain in signature.items():
-        concrete[arg] = gen_concrete_input(domain, abstract[arg], rng)
+        if isinstance(abstract, dict):
+            ll = abstract[arg]
+        else:   # if abstract is a list
+            ll = [abstract[i], abstract[i+1], abstract[i+2]]
+            i += 3
+        concrete[arg] = gen_concrete_input(domain, ll, rng)
         
     return concrete
 
