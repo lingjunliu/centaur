@@ -207,7 +207,7 @@ r1_definition = {
                         "other": "tensor"
                     },
     "ruleset":  set([
-                    ('rule_1', 'input', 'other')
+                    (2, 'rule_1', 'input', 'other')
                 ]),
     "random_candidate": {
                             "input": np.random.rand(3,2,5,9,343,2),
@@ -234,7 +234,7 @@ r2_definition = {
                         "dim": "integer"
                     },
     "ruleset":  set([
-                    ('rule_2', 'input', 'dim')
+                    (2, 'rule_2', 'input', 'dim')
                 ]),
     "random_candidate": {
                             "input": np.random.rand(3,2,5,9,343,2),
@@ -261,7 +261,7 @@ r3_definition = {
                         "other": "tensor"
                     },
     "ruleset":  set([
-                    ('rule_3', 'input', 'other')
+                    (2, 'rule_3', 'input', 'other')
                 ]),
     "random_candidate": {
                             "input": np.random.rand(3,2,5,9,343,2),
@@ -288,7 +288,7 @@ r4_definition = {
                         "other": "tensor"
                     },
     "ruleset":  set([
-                    ('rule_4', 'input', 'other')
+                    (2, 'rule_4', 'input', 'other')
                 ]),
     "random_candidate": {
                             "input": np.random.rand(3,2,5,9,343,2).astype(np.int32),
@@ -315,7 +315,7 @@ r5_definition = {
                         "index": "tensor"
                     },
     "ruleset":  set([
-                    ('rule_5', 'input', 'index')
+                    (2, 'rule_5', 'input', 'index')
                 ]),
     "random_candidate": {
                             "input": np.random.rand(3,2,5,9,343,2),
@@ -343,7 +343,7 @@ r6_definition = {
                         "other": "tensor"
                     },
     "ruleset":  set([
-                    ('rule_6', 'input', 'other')
+                    (2, 'rule_6', 'input', 'other')
                 ]),
     "random_candidate": {
                             "input": np.random.rand(3,2,5,9,343,2),
@@ -363,6 +363,38 @@ r6_definition = {
                 ]
 }
 
+# define rule 11
+r11_definition = {
+    "signature":    {
+                        "input": "tensor",
+                        "dim": "integer",
+                        "index": "tensor"
+                    },
+    "ruleset":  set([
+                    (3, 'rule_11', 'input', 'dim', 'index')
+                ]),
+    "random_candidate": {
+                            "input": np.random.rand(3,2,5,9,343,2),
+                            "dim": 10,
+                            "index": np.random.rand(4, 2)
+                        },
+    "arg_order": ['input', 'dim', 'index'],
+    # set limits based on index of argument in the order
+    # three lists per argument: value list, dtype list, range list
+    # min_num, max_num, min_size, max_size
+    "limits":   [            
+                    domain_limits['tensor'], # input value
+                    domain_limits['tensor_dtype'],  # input dtype
+                    domain_limits['tensor_value_range'], # input value range
+                    domain_limits['integer'], # dim value
+                    domain_limits['integer_dtype'],  # dim dtype, integer only
+                    domain_limits['integer_value_range'],    # dim value range, we don't use it for integers, it is here just for cohesion
+                    domain_limits['tensor'], # index value
+                    domain_limits['tensor_dtype'],  # index dtype
+                    domain_limits['tensor_value_range'] # index value range
+                ]
+}
+
 ############### map definitions to rules/apis ################
 
 map_defs = {
@@ -372,6 +404,7 @@ map_defs = {
     "rule_4": r4_definition,
     "rule_5": r5_definition,
     "rule_6": r6_definition,
+    "rule_11": r11_definition,
     "scatter": scatter_definition,
     "atan2": atan2_definition,
     "matmul": matmul_definition,
