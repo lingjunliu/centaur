@@ -180,6 +180,8 @@ def main():
         "inconsistent": 0
     }
     
+    total = len(generated_inputs)
+    
     for best_distance, abs_input, seed in generated_inputs:
         rng = np.random.default_rng(seed)
         # Get the input dictionary
@@ -189,6 +191,7 @@ def main():
         result_tuple = oracle_diff(driver, signature, input_dict, timeout=TIMEOUT, atol=A_TOL)
         oracle_results.append(result_tuple)
         result_summary[result_tuple[0]] += 1
+        print(f"Checked {sum(result_summary.values())}/{total} inputs", end="\r", flush=True)
 
     # Print the summary
     print(f"Oracle results for {api}:")
