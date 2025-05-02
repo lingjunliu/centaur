@@ -111,6 +111,27 @@ def concretize_input(abstract, signature, rng=np.random.default_rng(42)):
         
     return concrete
 
+def abstract_print(abstract, signature):
+    '''
+        Given an abstract input dictionary and the signature and get the
+        abstract input in a human readable format.
+    '''
+    printable = ""
+    i = 0
+    for arg, domain in signature.items():
+        if isinstance(abstract, dict):
+            ll = abstract[arg]
+        else:   # if abstract is a list
+            ll = [abstract[i], abstract[i+1], abstract[i+2]]
+            i += 3
+        
+        if domain == "tensor": # tensors                
+            printable += f"\n{arg}: \n\tshape: {tuple(ll[0])}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n\trange: {tuple(ll[2])}"
+        else:
+            printable += f"\n{arg}: \n\tvalue: {ll[0][0]}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}"
+        
+    return printable
+
 def get_random_input(signature, rng=np.random.default_rng(42)):
     '''
         Generate random input according to signature and concretize it
