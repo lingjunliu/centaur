@@ -16,8 +16,6 @@ from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, lis
 from eval.oracle import oracle_crash
 from functools import reduce
 
-seen_inputs = []
-
 def create_z3_args(signature):
     z3_args = {}
     for param, typ in signature.items():
