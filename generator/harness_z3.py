@@ -16,6 +16,8 @@ from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, lis
 from eval.oracle import oracle_crash
 from functools import reduce
 
+seen_inputs = []
+
 def create_z3_args(signature):
     z3_args = {}
     for param, typ in signature.items():
@@ -127,7 +129,7 @@ def solve_constraints(solver, signature, z3_args):
             else:
                 concrete_args[param_name] = value
 
-    return concrete_args
+    return model, concrete_args
 
 def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False):
     driver = get_driver(api)
@@ -146,13 +148,31 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
         print(f"No invariants learned for {api}")
         return
 
+    all_solver = Solver()
     while elapsed < duration:
-        solver = Solver()
+        one_solver = all_solver.translate(all_solver.ctx)
 
         z3_args = create_z3_args(definition["signature"])
-        initial_constraints(solver, definition["signature"], z3_args)
-        collect_constraints(solver, definition["ruleset"], z3_args)                
-        inputs = solve_constraints(solver, definition["signature"], z3_args)
+        initial_constraints(one_solver, definition["signature"], z3_args)
+        collect_constraints(one_solver, definition["ruleset"], z3_args)               
+        model, inputs = solve_constraints(one_solver, definition["signature"], z3_args)
+
+        block = []
+        for decl in model.decls():
+            var, val = decl(), model[decl]
+            if val.sort().kind() == Z3_ARRAY_SORT:
+                prefix = str(decl.name()).rsplit("_", 1)[0] 
+                ndim = None
+                for other_decl in model.decls():
+                    if str(other_decl.name()) in [f"{prefix}_ndim", f"{prefix}_height"]:
+                        ndim = model.eval(other_decl()).as_long()
+                if ndim is None:
+                    ndim = MAX_N_DIM
+                for i in range(ndim):
+                    block.append(Select(var, i) != model.eval(Select(var, i)))
+            else:
+                block.append(var != val)
+        all_solver.add(Or(block))
 
         start_execution = time.time()
         status, exception_message = oracle_crash(driver, inputs, cpu=True)
@@ -194,6 +214,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
     input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
     with open(os.path.join(input_dir, f"{api}_inputs.pkl"), "wb") as f_in:
         pickle.dump(generated_inputs, f_in)
+        
 
 if __name__ == "__main__":
     # Run scatter for 30 minutes
@@ -202,12 +223,12 @@ if __name__ == "__main__":
     print_details = sys.argv[1].lower() == 'true' if len(sys.argv) > 1 else False
     
     run_api_with_duration("scatter", duration, print_details=print_details, limit=limit)
-    
+     
     # Run atan2 for 30 seconds
-    # run_api_with_duration("atan2", duration, print_details=print_details, limit=limit)
+    run_api_with_duration("atan2", duration, print_details=print_details, limit=limit)
     
     # Run argmin for 30 seconds
-    # run_api_with_duration("argmin", duration, print_details=print_details, limit=limit)
+    run_api_with_duration("argmin", duration, print_details=print_details, limit=limit)
     
     # Run conv_transpose2d for 30 seconds
-    # run_api_with_duration("conv_transpose2d", duration, print_details=print_details, limit=limit)
+    run_api_with_duration("conv_transpose2d", duration, print_details=print_details, limit=limit)
