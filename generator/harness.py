@@ -134,7 +134,7 @@ if __name__ == "__main__":
     # Run scatter for 30 minutes
     duration = 30 # seconds
     limit = 10  # random restart after <limit> seconds
-    print_details = int(sys.argv[1]) == 1 if len(sys.argv) > 1 else False
+    print_details = str(sys.argv[1]).lower() == "true" if len(sys.argv) > 1 else False
     
     run_api_with_duration("scatter", duration, print_details=print_details, limit=limit)
     

@@ -8,7 +8,7 @@ import sys
 from z3 import *
 from .ea import Configuration, Mutator, optimize
 from .definitions import map_defs, get_definition
-from .input_generators import get_random_input
+from .input_generators import get_ll
 from .rules_z3 import rule_func_map
 from utils.api_utils import get_driver
 from utils.misc import create_subdir, get_tmp_dir
@@ -84,12 +84,14 @@ def collect_constraints(solver, ruleset, z3_args):
        
         rule_func(*arg_dicts, solver)
 
-def solve_constraints(solver, signature, z3_args):
+def solve_constraints(solver, signature, z3_args, seed=42):
     if solver.check() != sat:
         raise ValueError("No solution found for the constraints.")
 
     model = solver.model()
     concrete_args = {}
+    abstract_args = {}
+    rng = np.random.default_rng(seed)
 
     for param_name, z3_var in z3_args.items():
         param_type = signature[param_name]
@@ -100,8 +102,8 @@ def solve_constraints(solver, signature, z3_args):
             dtype = model.eval(z3_var['dtype']).as_long()
             low = model.eval(Select(z3_var['range'], 0)).as_long()
             high = model.eval(Select(z3_var['range'], 1)).as_long()
-           
-            np_array = np.random.uniform(low, high, size=shape).astype(list_of_available_dtypes[dtype])
+        
+            np_array = rng.uniform(low, high, size=shape).astype(list_of_available_dtypes[dtype])
             concrete_args[param_name] = np_array
             
         elif param_type == "list":
@@ -127,7 +129,10 @@ def solve_constraints(solver, signature, z3_args):
             else:
                 concrete_args[param_name] = value
 
-    return model, concrete_args
+        # abstract
+        abstract_args[param_name] = get_ll(param_type, concrete_args[param_name])
+
+    return model, concrete_args, abstract_args
 
 def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False):
     driver = get_driver(api)
@@ -148,12 +153,14 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
 
     all_solver = Solver()
     while elapsed < duration:
+        seed += 1
         one_solver = all_solver.translate(all_solver.ctx)
 
         z3_args = create_z3_args(definition["signature"])
         initial_constraints(one_solver, definition["signature"], z3_args)
         collect_constraints(one_solver, definition["ruleset"], z3_args)               
-        model, inputs = solve_constraints(one_solver, definition["signature"], z3_args)
+        model, concrete_input, abstract_input = solve_constraints(one_solver, definition["signature"], z3_args, seed=seed)
+        generated_inputs.append((0, abstract_input, seed))  # distance set to 0, kept for uniformity
 
         block = []
         for decl in model.decls():
@@ -173,7 +180,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
         all_solver.add(Or(block))
 
         start_execution = time.time()
-        status, exception_message = oracle_crash(driver, inputs, cpu=True)
+        status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
         if status == "nominal":
             valid += 1
         elif status == "invalid":
