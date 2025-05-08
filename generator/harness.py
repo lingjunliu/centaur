@@ -99,8 +99,9 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
                 print(f"\nThe input might be invalid. Faced exception:\n{exception_message}")
         elif status == "cpu_crash":
             crash += 1
-            if print_details:
-                print(f"\nThe input crashed. Faced exception:\n{exception_message}")
+            # Always log crashes
+            print(f"\n[CRASH]\n{exception_message}")
+            print(f"\nAbstract input: {best_input}")
         else:
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
