@@ -11,7 +11,7 @@ from .definitions import map_defs, get_definition
 from .input_generators import get_ll
 from .rules_z3 import rule_func_map
 from utils.api_utils import get_driver
-from utils.misc import create_subdir, get_tmp_dir
+from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, read_pkl, save_to_new_pkl
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes
 from eval.oracle import oracle_crash
 from functools import reduce
@@ -176,7 +176,7 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0):
     print(f"\nModel generation completed with {num_model} models")
     return models
 
-def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_max=0, print_details=False):
+def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_max=0, print_details=False, model_regen=False):
     driver = get_driver(api)
 
     print(f"Optimizing for {api} with {model_gen_duration} (max_model) and {fuzz_duration} (fuzz) second budgets")
@@ -193,7 +193,15 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         return
 
     z3_args = create_z3_args(definition["signature"])
-    models = gen_models(definition, driver, z3_args, model_gen_duration, max_model)
+    
+    models_file = os.path.join(get_dir_in_root("models"), f"{api}.pkl")
+    if not os.path.exists(models_file) or model_regen:
+        models = gen_models(definition, driver, z3_args, model_gen_duration, max_model)
+        # save models to a file
+        save_to_new_pkl(models_file, models)
+    else:
+        # read from saved models
+        models = read_pkl(models_file)
     
     rng_model = np.random.default_rng(seed) # random generator for models
 
