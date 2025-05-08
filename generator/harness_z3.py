@@ -84,11 +84,7 @@ def collect_constraints(solver, ruleset, z3_args):
        
         rule_func(*arg_dicts, solver)
 
-def solve_constraints(solver, signature, z3_args, seed=42):
-    if solver.check() != sat:
-        raise ValueError("No solution found for the constraints.")
-
-    model = solver.model()
+def instantiate_args(model, signature, z3_args, seed=42):
     concrete_args = {}
     abstract_args = {}
     rng = np.random.default_rng(seed)
@@ -128,40 +124,28 @@ def solve_constraints(solver, signature, z3_args, seed=42):
                 concrete_args[param_name] = value.as_string()
             else:
                 concrete_args[param_name] = value
-
-        # abstract
+                
         abstract_args[param_name] = get_ll(param_type, concrete_args[param_name])
 
-    return model, concrete_args, abstract_args
-
-def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False):
-    driver = get_driver(api)
-
-    print(f"Optimizing for {api} with a {duration} second budget")
-    execution_time = 0
-    start = time.time()
+    return concrete_args, abstract_args
+    
+def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0):
     elapsed = 0
-    valid = 0
-    invalid = 0
-    crash = 0
-    seed = 200
-    generated_inputs = []
-    definition = get_definition(api, z3=True)
-    if len(definition["ruleset"]) == 0:
-        print(f"No invariants learned for {api}")
-        return
+    start = time.time()
 
     all_solver = Solver()
-    while elapsed < duration:
-        seed += 1
-        one_solver = all_solver.translate(all_solver.ctx)
+    models, num_model = [], 0
 
-        z3_args = create_z3_args(definition["signature"])
+    while elapsed < model_gen_duration and (max_model == 0 or num_model < max_model):
+        one_solver = all_solver.translate(all_solver.ctx)
         initial_constraints(one_solver, definition["signature"], z3_args)
         collect_constraints(one_solver, definition["ruleset"], z3_args)               
-        model, concrete_input, abstract_input = solve_constraints(one_solver, definition["signature"], z3_args, seed=seed)
-        generated_inputs.append((0, abstract_input, seed))  # distance set to 0, kept for uniformity
+        
+        if one_solver.check() != sat:
+            elapsed = time.time() - start
+            continue
 
+        model = one_solver.model()
         block = []
         for decl in model.decls():
             var, val = decl(), model[decl]
@@ -178,6 +162,47 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
             else:
                 block.append(var != val)
         all_solver.add(Or(block))
+
+        concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args)
+        status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
+
+        if status != "invalid":
+            models.append(model)
+            num_model += 1
+            print(f"Valid models: {num_model}", end='\r', flush=True)
+        
+        elapsed = time.time() - start
+
+    print(f"\nModel generation completed with {num_model} models")
+    return models
+
+def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_max=0, print_details=False):
+    driver = get_driver(api)
+
+    print(f"Optimizing for {api} with {model_gen_duration} (max_model) and {fuzz_duration} (fuzz) second budgets")
+    execution_time = 0
+    elapsed = 0
+    valid = 0
+    invalid = 0
+    crash = 0
+    seed = 200
+    generated_inputs = []
+    definition = get_definition(api, z3=True)
+    if len(definition["ruleset"]) == 0:
+        print(f"No invariants learned for {api}")
+        return
+
+    z3_args = create_z3_args(definition["signature"])
+    models = gen_models(definition, driver, z3_args, model_gen_duration, max_model)
+    
+    rng_model = np.random.default_rng(seed) # random generator for models
+
+    start = time.time()
+    while elapsed < fuzz_duration:
+        seed += 1
+        model = models[rng_model.integers(len(models))]
+        concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args, seed=seed)
+        generated_inputs.append((0, abstract_input, seed))  # first element is distance, set as 0 for consistency
 
         start_execution = time.time()
         status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
@@ -212,7 +237,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
     
     # Save outputs
     tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
-    csv_file = os.path.join(tmp_results, f"{api}_{duration}.csv")
+    csv_file = os.path.join(tmp_results, f"{api}_{model_gen_duration}_{fuzz_duration}.csv")
     with open(csv_file, "w") as f:
         # api, valid, invalid, crash, total, valid_prcnt
         f.write(f"{api},{valid},{invalid},{crash},{total},{valid_prcnt}\n")
@@ -223,17 +248,18 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False)
 
 if __name__ == "__main__":
     # Run scatter for 30 minutes
-    duration = 30 # seconds
-    limit = 10  # random restart after <limit> seconds
+    model_gen_duration = 60 # seconds
+    fuzz_duration = 30 # seconds
+    max_model = 100
     print_details = sys.argv[1].lower() == 'true' if len(sys.argv) > 1 else False
     
-    run_api_with_duration("scatter", duration, print_details=print_details, limit=limit)
+    run_api_with_duration("scatter", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
      
     # Run atan2 for 30 seconds
-    run_api_with_duration("atan2", duration, print_details=print_details, limit=limit)
+    run_api_with_duration("atan2", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
     
     # Run argmin for 30 seconds
-    run_api_with_duration("argmin", duration, print_details=print_details, limit=limit)
+    run_api_with_duration("argmin", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
     
     # Run conv_transpose2d for 30 seconds
-    run_api_with_duration("conv_transpose2d", duration, print_details=print_details, limit=limit)
+    run_api_with_duration("conv_transpose2d", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
