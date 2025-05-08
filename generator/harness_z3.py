@@ -197,6 +197,9 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     models_file = os.path.join(get_dir_in_root("models"), f"{api}.pkl")
     if not os.path.exists(models_file) or model_regen:
         models = gen_models(definition, driver, z3_args, model_gen_duration, max_model)
+        if len(models) == 0:
+            print(f"No models generated for {api} within the {model_gen_duration} time budget")
+            return
         # save models to a file
         save_to_new_pkl(models_file, models)
     else:
