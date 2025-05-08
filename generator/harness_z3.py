@@ -185,6 +185,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     valid = 0
     invalid = 0
     crash = 0
+    excp = 0
     seed = 200
     generated_inputs = []
     definition = get_definition(api, z3=True)
@@ -224,16 +225,21 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
             ## Traceback for debugging
             if print_details:
                 print(f"\nThe input might be invalid. Faced exception:\n{exception_message}")
-        elif status == "cpu_crash":
+        elif status.endswith("_excp"):
+            excp += 1
+            # Always log crashes
+            print(f"\n[{status}]\n{exception_message}")
+            print(f"\nAbstract input: {abstract_input}")
+        elif status.endswith("_crash"):
             crash += 1
             # Always log crashes
-            print(f"\n[CRASH]\n{exception_message}")
+            print(f"\n[{status}]\n{exception_message}")
             print(f"\nAbstract input: {abstract_input}")
         else:
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         execution_time = execution_time + time.time() - start_execution
-        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash}", end='\r', flush=True)
+        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp}", end='\r', flush=True)
 
         # If n_max is defined and n_max inputs have been generated, exit
         if n_max > 0 and (valid+invalid) == n_max:
@@ -242,17 +248,17 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         elapsed = time.time() - start
 
     total_time = time.time() - start
-    total = valid + invalid + crash
-    valid_prcnt = round((valid+crash)*100/total,2) if total > 0 else 0
+    total = valid + invalid + crash + excp
+    valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
-    print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Total {total} | Validity Rate: {valid_prcnt}%")
+    print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
     
     # Save outputs
     tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
     csv_file = os.path.join(tmp_results, f"{api}_{model_gen_duration}_{fuzz_duration}.csv")
     with open(csv_file, "w") as f:
-        # api, valid, invalid, crash, total, valid_prcnt
-        f.write(f"{api},{valid},{invalid},{crash},{total},{valid_prcnt}\n")
+        # api, valid, invalid, crash, excp, total, valid_prcnt
+        f.write(f"{api},{valid},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
     input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
     with open(os.path.join(input_dir, f"{api}_inputs.pkl"), "wb") as f_in:
         pickle.dump(generated_inputs, f_in)

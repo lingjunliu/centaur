@@ -93,13 +93,18 @@ def oracle_crash(driver, input_dict, timeout=10, cpu=True):
             tuple: (status, exception_message)
             - ("nominal", "") if the input is valid and nominal.
             - ("invalid", exception_message) if the input is invalid.
-            - ("crash", exception_message) if the API crashes.
+            - ("cpu_crash", exception_message) if the API crashes raising a signal on CPU.
+            - ("gpu_crash", exception_message) if the API crashes raising a signal on GPU.
+            - ("cpu_excp", exception_message) if the API throws an exception on CPU.
+            - ("gpu_excp", exception_message) if the API throws an exception on GPU.
     """
     return_code, output, exception_message = run_with_timeout(driver, timeout, input_dict, cpu=cpu)
     
-    if check_crash(return_code, exception_message):
+    if return_code < 0: # signal raised
         return ("cpu_crash", exception_message) if cpu else ("gpu_crash", exception_message)
-    elif return_code != 0:
+    elif check_crash(return_code, exception_message): # non-signal error
+        return ("cpu_excp", exception_message) if cpu else ("gpu_excp", exception_message)
+    elif return_code > 0:
         return ("invalid", exception_message)
     else:
         return ("nominal", "")
