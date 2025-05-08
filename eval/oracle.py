@@ -47,37 +47,39 @@ def check_crash(return_code, exception_message):
 
 def compare_two(elem1, elem2, rtol=1e-05, atol=1e-08):
     if type(elem1) != type(elem2):
-        return False
+        return False, None
     
     if isinstance(elem1, list):
         elem1 = np.array(elem1).flatten()
         elem2 = np.array(elem2).flatten()
+    
+    max_diff = np.max(np.abs(elem1 - elem2)) if isinstance(elem1, np.ndarray) else None
         
     if isinstance(elem1, np.ndarray):
         if len(elem1) != len(elem2):
-            return False
+            return False, max_diff
     
     try:
         matched = np.allclose(elem1, elem2, rtol=rtol, atol=atol, equal_nan=True)
     except: # most likely not numeric
         matched = elem1 == elem2
 
-    return matched
+    return matched, max_diff
 
 def consistent(output1, output2, rtol=1e-05, atol=1e-08):
     matched = True
 
     if type(output1) != type(output2):
         print(f"Expected two dicts, got {type(output1)} and {type(output2)}")
-        return False
+        return False, None
 
     for name in output1.keys():
-        matched = compare_two(output1[name], output2[name], rtol=rtol, atol=atol)
+        matched, max_diff = compare_two(output1[name], output2[name], rtol=rtol, atol=atol)
 
         if matched == False:
-            return False
+            return False, max_diff
 
-    return matched
+    return matched, max_diff
 
 def oracle_crash(driver, input_dict, timeout=10, cpu=True):
     """
@@ -125,7 +127,7 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08):
     Exceptions:
         - If the API execution crashes on cpu, returns ("cpu_crash", exception_message_cpu).
         - If the API execution crashes on gpu, returns ("gpu_crash", exception_message_gpu).
-        - If the outputs are inconsistent, returns ("inconsistent", abstract_input).
+        - If the outputs are inconsistent, returns ("inconsistent", max_diff).
         - If the execution faced exception on both cpu and gpu, returns ("invalid", exception_message_cpu, exception_message_gpu).
         - If the execution is nominal, returns ("nominal", "").
     """
@@ -149,8 +151,9 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08):
     else:
         if return_code_cpu != 0:
             return ("invalid", exception_message_cpu, exception_message_gpu)
-        elif not consistent(output_cpu, output_gpu, atol=atol):
-            return ("inconsistent", get_abstract_input(input_dict, signature))
+        const, max_diff = consistent(output_cpu, output_gpu, atol=atol)
+        if not const:
+            return ("inconsistent", max_diff)
     
     return ("nominal", "")
 
@@ -182,7 +185,10 @@ def main():
         "invalid": 0,
         "cpu_crash": 0,
         "gpu_crash": 0,
-        "inconsistent": 0
+        "cpu_excp": 0,
+        "gpu_excp": 0,
+        "inconsistent": 0,
+        "max_diff": 0
     }
     
     total = len(generated_inputs)
@@ -196,7 +202,9 @@ def main():
         result_tuple = oracle_diff(driver, signature, input_dict, timeout=TIMEOUT, atol=A_TOL)
         oracle_results.append(result_tuple)
         result_summary[result_tuple[0]] += 1
-        print(f"Checked {sum(result_summary.values())}/{total} inputs", end="\r", flush=True)
+        if result_tuple[0] == "inconsistent":
+            result_summary["max_diff"] = max(result_summary["max_diff"], result_tuple[1])
+        print(f"Checked {sum(list(result_summary.values())[:-1])}/{total} inputs", end="\r", flush=True)
 
     # Print the summary
     print(f"Oracle results for {api}:")
