@@ -1,7 +1,7 @@
 from utils.proc import run_with_timeout
 from utils.api_utils import get_driver, get_signatures
 from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_new_pkl, get_input_size
-from generator.input_generators import get_abstract_input, concretize_input
+from generator.input_generators import abstract_print, concretize_input
 from copy import deepcopy
 import numpy as np
 import sys, os
@@ -178,6 +178,7 @@ def main():
     
     A_TOL = 1e-02   # Tolerance: 0.01 (from FreeFuzz)
     TIMEOUT = 10    # seconds
+    print_details = True
     
     api = sys.argv[1]
     # Optional: low and high values for input generation [low, high)
@@ -239,6 +240,10 @@ def main():
         if result_tuple[0] == "inconsistent":
             result_summary["max_diff"] = max(result_summary["max_diff"], result_tuple[1])
         print(f"Checked {i}/{total} inputs | Took {duration} s | Avg: {round(total_time/i, 2)} s | Size: {round(get_input_size(abs_input, signature), 2)} MB           ", end="\r", flush=True)
+        
+        if result_tuple[0] not in ["nominal", "invalid"] and print_details:
+            print(' | '.join([str(x) for x in result_tuple]))
+            print(abstract_print(abs_input, signature))
 
     # Print the summary
     print(f"Oracle results for {api}:")
