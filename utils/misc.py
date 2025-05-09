@@ -13,6 +13,18 @@ def get_tensor_size(ll):
     sz = sz * .001 * .001 # MB
     return sz
 
+def get_input_size(input, signature):
+    total_size = 0
+    for arg, domain in signature.items():
+        if domain == "tensor":
+            total_size += get_tensor_size(input[arg])
+        else:
+            try:
+                total_size += (np.dtype(list_of_available_dtypes[input[arg][0]]).itemsize * .001 * .001) # MB
+            except:
+                continue
+    return total_size
+
 def get_dir_in_root(subdir):
     cur_dir = os.path.dirname(os.path.abspath(__file__))
     dir = os.path.join(cur_dir, f"../{subdir}")

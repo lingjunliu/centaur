@@ -1,10 +1,11 @@
 from utils.proc import run_with_timeout
 from utils.api_utils import get_driver, get_signatures
-from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_new_pkl
+from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_new_pkl, get_input_size
 from generator.input_generators import get_abstract_input, concretize_input
 from copy import deepcopy
 import numpy as np
 import sys, os
+import time
 
 def check_crash(return_code, exception_message):
     """
@@ -29,8 +30,7 @@ def check_crash(return_code, exception_message):
         "INTERNAL ASSERT ERROR",
         "please report a bug",
         "CUDA out of memory",
-        "CUDA error",
-        "Timeout"
+        "CUDA error"
         # Add more crash-related strings as needed
     ]
     
@@ -53,7 +53,13 @@ def compare_two(elem1, elem2, rtol=1e-05, atol=1e-08):
         elem1 = np.array(elem1).flatten()
         elem2 = np.array(elem2).flatten()
     
-    max_diff = np.max(np.abs(elem1 - elem2)) if isinstance(elem1, np.ndarray) else None
+    if elem1.size > 0 and elem2.size > 0:
+        try:
+            max_diff = np.max(np.abs(elem1 - elem2)) if isinstance(elem1, np.ndarray) else None
+        except:
+            max_diff = np.max(np.abs(elem1 ^ elem2)) if isinstance(elem1, np.ndarray) else None
+    else:
+        max_diff = None
         
     if isinstance(elem1, np.ndarray):
         if len(elem1) != len(elem2):
@@ -127,27 +133,35 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08):
     Exceptions:
         - If the API execution crashes on cpu, returns ("cpu_crash", exception_message_cpu).
         - If the API execution crashes on gpu, returns ("gpu_crash", exception_message_gpu).
+        - If the API execution raises an exception on cpu, returns ("cpu_excp", exception_message_cpu).
+        - If the API execution raises an exception on gpu, returns ("gpu_excp", exception_message_gpu).
         - If the outputs are inconsistent, returns ("inconsistent", max_diff).
         - If the execution faced exception on both cpu and gpu, returns ("invalid", exception_message_cpu, exception_message_gpu).
+        - If the execution is invalid on cpu, returns ("cpu_only_excp", exception_message_cpu).
+        - If the execution is invalid on gpu, returns ("gpu_only_excp", exception_message_gpu).
         - If the execution is nominal, returns ("nominal", "").
     """
     # cpu
     return_code_cpu, output_cpu, exception_message_cpu = run_with_timeout(driver, timeout, deepcopy(input_dict), cpu=True)
     
     # check if the CPU execution crashed
-    if check_crash(return_code_cpu, exception_message_cpu):
+    if return_code_cpu < 0: # signal raised
         return ("cpu_crash", exception_message_cpu)
+    elif check_crash(return_code_cpu, exception_message_cpu):
+        return ("cpu_excp", exception_message_cpu)
     
     # gpu
     return_code_gpu, output_gpu, exception_message_gpu = run_with_timeout(driver, timeout, deepcopy(input_dict), cpu=False)
     
     # check if the GPU execution crashed
-    if check_crash(return_code_gpu, exception_message_gpu):
+    if return_code_gpu < 0: # signal raised
         return ("gpu_crash", exception_message_gpu)
+    elif check_crash(return_code_gpu, exception_message_gpu):
+        return ("gpu_excp", exception_message_gpu)
     
     # check if the outputs are the same
     if return_code_cpu != return_code_gpu:
-        return ("cpu_crash", exception_message_cpu) if return_code_cpu != 0 else ("gpu_crash", exception_message_gpu)
+        return ("cpu_only_excp", exception_message_cpu) if return_code_cpu != 0 else ("gpu_only_excp", exception_message_gpu)
     else:
         if return_code_cpu != 0:
             return ("invalid", exception_message_cpu, exception_message_gpu)
@@ -166,6 +180,9 @@ def main():
     TIMEOUT = 10    # seconds
     
     api = sys.argv[1]
+    # Optional: low and high values for input generation [low, high)
+    low = int(sys.argv[2]) if len(sys.argv) > 2 else -1
+    high = int(sys.argv[3]) if len(sys.argv) > 3 else -1
     # Directory containing the input files
     tmp = get_tmp_dir()
     input_dir = os.path.join(tmp, "fuzz_inputs")
@@ -179,6 +196,15 @@ def main():
     signature = get_signatures()[api]
     driver = get_driver(api)
     
+    if low != -1 and high != -1:
+        print(f"Filtering generated inputs from {low} to {high}")
+        # Filter the generated inputs based on the low and high values
+        if low < len(generated_inputs):
+            generated_inputs = generated_inputs[low:min(high, len(generated_inputs))]
+        else:
+            print(f"Low value {low} is out of range for the generated inputs.")
+            return
+    
     oracle_results = []
     result_summary = {
         "nominal": 0,
@@ -187,24 +213,32 @@ def main():
         "gpu_crash": 0,
         "cpu_excp": 0,
         "gpu_excp": 0,
+        "cpu_only_excp": 0,
+        "gpu_only_excp": 0,
         "inconsistent": 0,
         "max_diff": 0
     }
     
     total = len(generated_inputs)
+    total_time = 0
+    i = 0
     
     for best_distance, abs_input, seed in generated_inputs:
+        i += 1
         rng = np.random.default_rng(seed)
         # Get the input dictionary
         input_dict = concretize_input(abs_input, signature, rng)
         
         # Run the oracle
+        start_time = time.time()
         result_tuple = oracle_diff(driver, signature, input_dict, timeout=TIMEOUT, atol=A_TOL)
+        duration = round(time.time() - start_time, 2)
+        total_time += duration
         oracle_results.append(result_tuple)
         result_summary[result_tuple[0]] += 1
         if result_tuple[0] == "inconsistent":
             result_summary["max_diff"] = max(result_summary["max_diff"], result_tuple[1])
-        print(f"Checked {sum(list(result_summary.values())[:-1])}/{total} inputs", end="\r", flush=True)
+        print(f"Checked {i}/{total} inputs | Took {duration} s | Avg: {round(total_time/i, 2)} s | Size: {round(get_input_size(abs_input, signature), 2)} MB           ", end="\r", flush=True)
 
     # Print the summary
     print(f"Oracle results for {api}:")
@@ -216,7 +250,7 @@ def main():
     save_to_new_pkl(os.path.join(results_dir, f"{api}.pkl"), oracle_results)
     csv_file = os.path.join(results_dir, f"{api}.csv")
     with open(csv_file, "w") as f:
-        # api,nominal,invalid,cpu_crash,gpu_crash,inconsistent
+        # api,nominal,invalid,cpu_crash,gpu_crash,cpu_excp,gpu_excp,cpu_only_excp,gpu_only_excp,inconsistent,max_diff
         f.write(f"{api}," + ",".join([str(x) for x in result_summary.values()]) + "\n")
 
 if __name__ == "__main__":
