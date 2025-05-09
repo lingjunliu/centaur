@@ -78,7 +78,7 @@ def main():
     budget = int(sys.argv[2]) if len(sys.argv) > 2 else 30  # seconds
     regen = int(sys.argv[3]) == 1 if len(sys.argv) > 3 else False
         
-    ruleset = infer_invariants(api, print_details=True, regen=regen, time_budget=budget)
+    ruleset = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True)
     
 if __name__ == "__main__":
     main()
