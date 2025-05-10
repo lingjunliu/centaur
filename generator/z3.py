@@ -84,29 +84,29 @@ def instantiate_args(model, signature, z3_args, seed=42):
         param_type = signature[param_name]
 
         if param_type == "tensor":
-            ndim = model.eval(z3_var['ndim']).as_long()
-            shape = [model.eval(Select(z3_var['shape'], i)).as_long() for i in range(ndim)]
-            dtype = model.eval(z3_var['dtype']).as_long()
-            low = model.eval(Select(z3_var['range'], 0)).as_long()
-            high = model.eval(Select(z3_var['range'], 1)).as_long()
+            ndim = model.eval(z3_var['ndim'], model_completion=True).as_long()
+            shape = [model.eval(Select(z3_var['shape'], i), model_completion=True).as_long() for i in range(ndim)]
+            dtype = model.eval(z3_var['dtype'], model_completion=True).as_long()
+            low = model.eval(Select(z3_var['range'], 0), model_completion=True).as_long()
+            high = model.eval(Select(z3_var['range'], 1), model_completion=True).as_long()
            
             np_array = np.random.uniform(low, high, size=shape).astype(list_of_available_dtypes[dtype])
             concrete_args[param_name] = np_array
             
         elif param_type == "list":
-            length = model.eval(z3_var['length']).as_long()
+            length = model.eval(z3_var['length'], model_completion=True).as_long()
             values = z3_var['values']
 
-            concrete_args[param_name] = [model.eval(Select(values, i)).as_long() for i in range(length)]
+            concrete_args[param_name] = [model.eval(Select(values, i), model_completion=True).as_long() for i in range(length)]
 
         elif param_type == "tuple":
-            length = model.eval(z3_var['length']).as_long()
+            length = model.eval(z3_var['length'], model_completion=True).as_long()
             values = z3_var['values']
 
-            concrete_args[param_name] = tuple([model.eval(Select(values, i)).as_long() for i in range(length)])
+            concrete_args[param_name] = tuple([model.eval(Select(values, i), model_completion=True).as_long() for i in range(length)])
 
         else:
-            value = model.eval(z3_var)
+            value = model.eval(z3_var, model_completion=True)
             if isinstance(value, IntNumRef):
                 concrete_args[param_name] = value.as_long()
             elif isinstance(value, BoolRef):
@@ -145,11 +145,11 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0):
                 ndim = None
                 for other_decl in model.decls():
                     if str(other_decl.name()) in [f"{prefix}_ndim", f"{prefix}_height"]:
-                        ndim = model.eval(other_decl()).as_long()
+                        ndim = model.eval(other_decl(), model_completion=True).as_long()
                 if ndim is None:
                     ndim = MAX_N_DIM
                 for i in range(ndim):
-                    block.append(Select(var, i) != model.eval(Select(var, i)))
+                    block.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
             else:
                 block.append(var != val)
         all_solver.add(Or(block))
