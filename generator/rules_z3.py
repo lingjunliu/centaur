@@ -63,6 +63,9 @@ _ = lambda s,r,v: {
     ),
     "rule_13": lambda s,v: (
         s.add(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8))  # check for float types (6: np.float16, 8: np.float64)
+    ),
+    "rule_14": lambda s,v: (
+        s.add(Or(*[And(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0) for i in range(MAX_N_DIM)]))
     )
 }[r](s,v)
 
@@ -602,13 +605,43 @@ def rule_13_func(arg1, solver=None):
         # Constraints for rule 13
         _(solver, 'rule_13', {'arg1_dtype': arg1_value['dtype']})
 
+"""
+    Corresponds to rule asserting that arg1 (input_tensor) should not be empty. (Rule 14)
+"""
+
+def rule_14_func(arg1, solver=None):
+    arg1_value = next(iter(arg1.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not isinstance(arg1_value, np.ndarray):
+            return False 
+
+        # Variable declarations
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+    
+        # Value assignments
+        solver.add(arg1_ndim == arg1_value.ndim)
+        for i in range(arg1_value.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
+
+        # Constraints for rule 14
+        _(solver, 'rule_14', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 14
+        _(solver, 'rule_14', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape']})
+
 ############### mapping ################
 
 rule_func_map = { 
     1: {
         'rule_8': rule_8_func,
         'rule_9': rule_9_func,
-        'rule_13': rule_13_func
+        'rule_13': rule_13_func,
+        'rule_14': rule_14_func
     },
     2: {
         'rule_1': rule_1_func,
@@ -633,7 +666,7 @@ rule_func_map = {
 # e.g. two tensors having the same shape: does not matter if the first tensor is arg1 or arg2
 # implication: do not check these rules for all permutations of the arguments
 order_agnostic_rules = {
-    1: ['rule_8', 'rule_9', 'rule_13'],
+    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14'],  # not necessary actually
     2: ['rule_1', 'rule_3', 'rule_4', 'rule_12']
 }
 
