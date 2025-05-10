@@ -618,6 +618,7 @@ def rule_14_func(arg1, solver=None):
             return False 
 
         # Variable declarations
+        solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
     
