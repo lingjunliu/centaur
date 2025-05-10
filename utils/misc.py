@@ -44,9 +44,21 @@ def create_subdir(dir, subfolder):
     return subdir
 
 def save_to_new_pkl(filepath, obj):
+    '''
+    Save the object to a pickle file. If the file already exists,
+    it will not be overwritten.
+    '''
     if not os.path.isfile(filepath):
         with open(filepath, "wb") as f:
             pickle.dump(obj, f)
+
+def save_to_pkl(filepath, obj):
+    '''
+    Save the object to a pickle file. If the file already exists,
+    it will be overwritten.
+    '''
+    with open(filepath, "wb") as f:
+        pickle.dump(obj, f)
 
 def read_pkl(filepath):
     with open(filepath, "rb") as f:

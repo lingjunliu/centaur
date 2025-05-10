@@ -1,6 +1,6 @@
 from utils.proc import run_with_timeout
 from utils.api_utils import get_driver, get_signatures
-from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_new_pkl, get_input_size
+from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_pkl, get_input_size
 from generator.input_generators import abstract_print, concretize_input
 from copy import deepcopy
 import numpy as np
@@ -252,7 +252,7 @@ def main():
         
     # Save the results
     results_dir = create_subdir(get_tmp_dir(), "oracle_results")
-    save_to_new_pkl(os.path.join(results_dir, f"{api}.pkl"), oracle_results)
+    save_to_pkl(os.path.join(results_dir, f"{api}.pkl"), oracle_results)
     csv_file = os.path.join(results_dir, f"{api}.csv")
     with open(csv_file, "w") as f:
         # api,nominal,invalid,cpu_crash,gpu_crash,cpu_excp,gpu_excp,cpu_only_excp,gpu_only_excp,inconsistent,max_diff
