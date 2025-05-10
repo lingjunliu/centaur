@@ -116,13 +116,13 @@ if __name__ == "__main__":
     max_model = 100
     print_details = sys.argv[1].lower() == 'true' if len(sys.argv) > 1 else False
     
-    run_api_with_duration("scatter", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
+    run_api_with_duration("kthvalue", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
      
     # # Run atan2 for 30 seconds
-    run_api_with_duration("atan2", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
+    # run_api_with_duration("atan2", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
     
     # # Run argmin for 30 seconds
-    run_api_with_duration("argmin", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
+    # run_api_with_duration("argmin", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
     
     # # Run conv_transpose2d for 30 seconds
-    run_api_with_duration("conv_transpose2d", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
+    # run_api_with_duration("conv_transpose2d", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
