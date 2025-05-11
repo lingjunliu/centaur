@@ -66,6 +66,14 @@ _ = lambda s,r,v: {
     ),
     "rule_14": lambda s,v: (
         s.add(Or(*[And(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0) for i in range(MAX_N_DIM)]))
+    ),
+    "rule_15": lambda s,v: (
+        s.add(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)),
+        s.add(And(*[Or(v["arg1_ndim"] - i < 0, v["arg2_ndim"] - i < 0, 
+                       And(v["arg1_ndim"] - i >= 0, v["arg2_ndim"] - i >= 0, 
+                           Or(Select(v["arg1_shape"], v["arg1_ndim"] - i) == 1, Select(v["arg2_shape"], v["arg2_ndim"] - i) == 1, 
+                              Select(v["arg1_shape"], v["arg1_ndim"] - i) == Select(v["arg2_shape"], v["arg2_ndim"] - i))))
+                    for i in range(MAX_N_DIM)]))
     )
 }[r](s,v)
 
@@ -636,6 +644,43 @@ def rule_14_func(arg1, solver=None):
         # Constraints for rule 14
         _(solver, 'rule_14', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape']})
 
+"""
+    Corresponds to rule for the broadcasting semantics. (Rule 15)
+"""
+
+def rule_15_func(arg1, arg2, solver=None):
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))    
+
+    # Invariant learning phase
+    if not solver: 
+        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+            return False 
+
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim, arg2_ndim = Ints('arg1_ndim arg2_ndim')
+        arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
+
+        # Value assignments
+        solver.add(arg1_ndim == arg1_value.ndim)
+        solver.add(arg2_ndim == arg2_value.ndim)
+        for i in range(arg1_value.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
+        for i in range(arg2_value.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2_value.shape[i])
+
+        # Constraints for rule 15
+        _(solver, 'rule_15', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
+                              'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 15
+        _(solver, 'rule_15', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
+                              'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
+
 ############### mapping ################
 
 rule_func_map = { 
@@ -653,7 +698,8 @@ rule_func_map = {
         'rule_5': rule_5_func,
         'rule_6': rule_6_func,
         'rule_7': rule_7_func,
-        'rule_12': rule_12_func
+        'rule_12': rule_12_func,
+        'rule_15': rule_15_func 
     },
     3: {
         'rule_11': rule_11_func
@@ -669,7 +715,7 @@ rule_func_map = {
 # implication: do not check these rules for all permutations of the arguments
 order_agnostic_rules = {
     1: ['rule_8', 'rule_9', 'rule_13', 'rule_14'],  # not necessary actually
-    2: ['rule_1', 'rule_3', 'rule_4', 'rule_12']
+    2: ['rule_1', 'rule_3', 'rule_4', 'rule_12', 'rule_15']
 }
 
 def check_rules_z3(input_dict, print_rules=False):
