@@ -53,7 +53,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     rng_model = np.random.default_rng(seed) # random generator for models
 
     start = time.time()
-    while elapsed < fuzz_duration:
+    while len(models) > 0 and elapsed < fuzz_duration:
         seed += 1
         model = models[rng_model.integers(len(models))]
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args, seed=seed)

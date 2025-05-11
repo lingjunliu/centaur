@@ -629,6 +629,7 @@ def rule_14_func(arg1, solver=None):
 
         # Constraints for rule 14
         _(solver, 'rule_14', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        return solver.check() == sat
 
     # Fuzz input generation phase
     else:
