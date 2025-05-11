@@ -74,6 +74,12 @@ _ = lambda s,r,v: {
                            Or(Select(v["arg1_shape"], v["arg1_ndim"] - i) == 1, Select(v["arg2_shape"], v["arg2_ndim"] - i) == 1, 
                               Select(v["arg1_shape"], v["arg1_ndim"] - i) == Select(v["arg2_shape"], v["arg2_ndim"] - i))))
                     for i in range(MAX_N_DIM)]))
+    ),
+    "rule_16": lambda s,v: (
+        s.add(Or(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 2, 
+                     Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 2)),
+                 And(v["arg1_ndim"] >= 2, v["arg2_ndim"] == 1,
+                     Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], 0))))
     )
 }[r](s,v)
 
@@ -681,6 +687,43 @@ def rule_15_func(arg1, arg2, solver=None):
         _(solver, 'rule_15', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
                               'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
 
+"""
+    Corresponds to rule for shape alignment for matrix multiplication. (Rule 16)
+"""
+
+def rule_16_func(arg1, arg2, solver=None):
+    arg1_value = next(iter(arg1.values()))
+    arg2_value = next(iter(arg2.values()))
+
+    # Invariant learning phase
+    if not solver: 
+        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim, arg2_ndim = Ints('arg1_ndim arg2_ndim')
+        arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
+    
+        # Value assignments
+        solver.add(arg1_ndim == arg1_value.ndim)
+        solver.add(arg2_ndim == arg2_value.ndim)
+        arg1_shape = Store(arg1_shape, arg1_value.ndim - 1, arg1_value.shape[-1])
+        arg2_shape = Store(arg2_shape, arg2_value.ndim - 1, arg2_value.shape[-1])
+        if arg2_value.ndim >= 2:
+            arg2_shape = Store(arg2_shape, arg2_value.ndim - 2, arg2_value.shape[-2])
+        
+        # Constraints for rule 16
+        _(solver, 'rule_16', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
+                              'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 16
+        _(solver, 'rule_16', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
+                              'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
+
 ############### mapping ################
 
 rule_func_map = { 
@@ -699,7 +742,8 @@ rule_func_map = {
         'rule_6': rule_6_func,
         'rule_7': rule_7_func,
         'rule_12': rule_12_func,
-        'rule_15': rule_15_func 
+        'rule_15': rule_15_func,
+        'rule_16': rule_16_func
     },
     3: {
         'rule_11': rule_11_func

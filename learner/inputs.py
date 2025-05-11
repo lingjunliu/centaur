@@ -179,11 +179,38 @@ def conv_transpose2d_inputs():
     
     return list_of_inputs
 
+def matmul_inputs():
+    list_of_inputs = []
+    # Input 1, valid
+    input = torch.randn(3, 5).numpy()
+    other = torch.randn(5, 2).numpy() 
+
+    input_dict = {
+        "input": input,
+        "other": other
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 2, valid
+    input = torch.randn(3, 5).numpy()
+    other = torch.randn(5).numpy()
+
+    input_dict = {
+        "input": input,
+        "other": other
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
 # Add human defined inputs for APIs that are
 # difficult to generate inputs for
 inputs_per_api = {
     "scatter": scatter_inputs,
-    "conv_transpose2d": conv_transpose2d_inputs
+    "conv_transpose2d": conv_transpose2d_inputs,
+    "matmul": matmul_inputs
 }
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
