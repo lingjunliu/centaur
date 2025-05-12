@@ -94,7 +94,8 @@ def main():
                 print(f"  Error message: {err_msg}")
                 print(f"  Indices: {indices}" if PRINT_INDICES else f"  Count: {len(indices)}")
         
-        print("\nInconsistencies:")
+        if len(inconsistencies) > 0 :
+            print("\nInconsistencies:")
         for inconsistency, indices in inconsistencies.items():
             print(f"  Inconsistency: {inconsistency}")
             print(f"  Indices: {indices}" if PRINT_INDICES else f"  Count: {len(indices)}")

@@ -205,6 +205,14 @@ def main():
         else:
             print(f"Low value {low} is out of range for the generated inputs.")
             return
+    elif low != -1:
+        print(f"Filtering generated inputs from {low} to the end")
+        # Filter the generated inputs based on the low value
+        if low < len(generated_inputs):
+            generated_inputs = generated_inputs[low:]
+        else:
+            print(f"Low value {low} is out of range for the generated inputs.")
+            return
     
     oracle_results = []
     result_summary = {

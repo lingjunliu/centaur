@@ -3,6 +3,7 @@ from generator.rules_z3 import check_rules_z3
 from .inputs import get_inputs
 from utils.api_utils import get_driver
 from utils.misc import get_dir_in_root
+from generator.input_generators import abstract_print, get_abstract_input
 import os, sys
 
 def save_invariants(api, ruleset, invariant_file):
@@ -54,6 +55,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             try:
                 out_cpu = get_driver(api)(input_dict, cpu=True)
                 if print_details:
+                    print(abstract_print(get_abstract_input(input_dict)))
                     print(f"Input {idx} is valid")
                 # Check rules for the input dictionary
                 if not initialized:  # If ruleset is not initialized
