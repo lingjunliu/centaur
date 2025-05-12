@@ -106,8 +106,8 @@ def generate_driver(api, max_attempts=5):
     while error > "" and not output.endswith("Success"):
         print(f"Attempt {attempt + 1}: Error occurred.\n\n{error}")
         to_return[attempt] = 1
-        print("Retrying code generation after 30 seconds...")
-        time.sleep(30)
+        print("Retrying code generation after 6 seconds...")
+        time.sleep(6)
         response = chat.send_message(retry_prompt(error))
         print("Got response from Gemini API.")
         code = extract_code_from_response(response.text)
