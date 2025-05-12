@@ -1,0 +1,69 @@
+import numpy as np
+
+def torch_version(input_dict, cpu=True):
+    import torch
+
+    input_matrix = torch.tensor(input_dict["input_matrix"])
+    other_matrix = torch.tensor(input_dict["other_matrix"])
+
+    if not cpu:
+        input_matrix = input_matrix.cuda()
+        other_matrix = other_matrix.cuda()
+
+    try:
+        torch.linalg.solve(input_matrix, other_matrix)
+        return {'result': np.array([False])} 
+    except torch.linalg.LinAlgError:
+        return {'result': np.array([True])}
+    finally:
+        if not cpu:
+            input_matrix = input_matrix.cpu()
+            other_matrix = other_matrix.cpu()
+
+def tensorflow_version(input_dict, cpu=True):
+    import tensorflow as tf
+
+    if cpu:
+        device_string = "/cpu:0"
+    else:
+        device_string = "/gpu:0"
+    
+    with tf.device(device_string):
+        input_matrix = tf.constant(input_dict["input_matrix"])
+        other_matrix = tf.constant(input_dict["other_matrix"])
+
+        try:
+            tf.linalg.solve(input_matrix, other_matrix)
+            return {'result': np.array([False])}
+        except tf.errors.InvalidArgumentError:
+            return {'result': np.array([True])}
+        except tf.errors.OpError:
+            return {'result': np.array([True])}
+        
+def main():
+    A_TOL = 0.01
+
+    input_data = {
+        "input_matrix": np.array([[1.0, 2.0], [3.0, 6.0]], dtype=np.float32),
+        "other_matrix": np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+
+    input_data = {
+        "input_matrix": np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
+        "other_matrix": np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+
+    print("Success")
+
+if __name__ == "__main__":
+    main()
