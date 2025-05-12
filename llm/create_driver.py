@@ -130,6 +130,7 @@ def main():
         apis = [line.strip() for line in f.readlines()]
     
     for api in apis:
+        print(f"\n\nGenerating driver for {api}...\n\n")
         result = generate_driver(api)
         with open("drivers.csv", "a") as f:
             f.write(",".join(map(str, result)) + "\n")
