@@ -4,9 +4,12 @@ from generator.input_generators import concretize_input, abstract_print
 from eval.oracle import oracle_diff
 import sys, os
 import numpy as np
+from rapidfuzz import fuzz
 
 def main():
     A_TOL = 1e-02
+    PRINT_INDICES = True
+    THRESHOLD = 80  # Thrshold for similarity for exception messages
     
     if len(sys.argv) < 2:
         print("Usage: python analyze_inputs.py <api>")
@@ -54,6 +57,9 @@ def main():
         print(f"\nOracle result: {diff_oracle_result}")
         print(f"\nAbstract input (seed {seed}): {abstract_print(abs_input, signature)}")
     else:
+        err_count = {}
+        groups = {}
+        inconsistencies = {}
         print(f"Total inputs: {len(generated_inputs)}")
         print(f"Total oracles: {len(oracle_results)}")
         for i, oracle_result in enumerate(oracle_results):
@@ -61,8 +67,36 @@ def main():
                 continue
             elif oracle_result[0] == "invalid":
                 continue
+            elif oracle_result[0] == "inconsistent":
+                if oracle_result[1] not in inconsistencies:
+                    inconsistencies[oracle_result[1]] = []
+                inconsistencies[oracle_result[1]].append(i)
             else:
-                print(f"{i}: {'\n'.join([str(x) for x in oracle_result])}\n")
+                if oracle_result[0] not in err_count:
+                    err_count[oracle_result[0]] = {}
+                    groups[oracle_result[0]] = {}
+                
+                found_group = False
+                for group_rep in groups[oracle_result[0]].keys():
+                    if fuzz.ratio(oracle_result[1], group_rep) > THRESHOLD:
+                        groups[oracle_result[0]][group_rep].append(oracle_result[1])
+                        err_count[oracle_result[0]][group_rep].append(i)
+                        found_group = True
+                        break
+                
+                if not found_group:
+                    err_count[oracle_result[0]][oracle_result[1]] = [i]
+                    groups[oracle_result[0]][oracle_result[1]] = [oracle_result[1]]
 
+        for err_type, err_dict in err_count.items():
+            print(f"\nError type: {err_type}")
+            for err_msg, indices in err_dict.items():
+                print(f"  Error message: {err_msg}")
+                print(f"  Indices: {indices}" if PRINT_INDICES else f"  Count: {len(indices)}")
+        
+        print("\nInconsistencies:")
+        for inconsistency, indices in inconsistencies.items():
+            print(f"  Inconsistency: {inconsistency}")
+            print(f"  Indices: {indices}" if PRINT_INDICES else f"  Count: {len(indices)}")
 if __name__ == "__main__":
     main()
