@@ -8,6 +8,7 @@ Give me a python file that consists of pytorch and tensorflow drivers for the ap
     - For optional arguments, use the default value explicitly mentioned in the documentation in case the dictionary does not contain the argument's value (e.g. alpha = input_dict.get("alpha", 1.0))
     - Do not apply any additional correction on the arguments (e.g. Do not force "index" arguments to be IntTensor, leave them as tensors)
     - If cpu is set to false (which means it needs to be run on cuda), convert cpu objects to cuda object (e.g. if not cpu: input_tensor = input_tensor.cuda())
+    - The input dict will never have "out" or "device", so do not expect these to be in the dict. If the API takes both or one of these as parameters, ignore them
     - Run the api and get the output
     - If cpu is set to false, convert the output to its cpu version (e.g. if not cpu: result = result.cpu())
     - Return a dictionary containing the results in numpy version (e.g. return { 'result': result.numpy() })

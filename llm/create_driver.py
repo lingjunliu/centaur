@@ -103,7 +103,7 @@ def generate_driver(api, max_attempts=5):
     output, error = save_and_run_code(api_basename, code)
     attempt = 0
     
-    while error > "" or not output.endswith("Success"):
+    while error > "" and not output.endswith("Success"):
         print(f"Attempt {attempt + 1}: Error occurred.\n\n{error}")
         to_return[attempt] = 1
         print("Retrying code generation after 30 seconds...")
@@ -126,7 +126,9 @@ def generate_driver(api, max_attempts=5):
     return [api_basename, api] + to_return
 
 def main():
-    apis = ["torch.acosh_"]
+    with open("needs_driver.txt", "r") as f:
+        apis = [line.strip() for line in f.readlines()]
+    
     for api in apis:
         result = generate_driver(api)
         with open("drivers.csv", "a") as f:

@@ -86,6 +86,7 @@ def update_apis():
         supported_apis = set(line.strip() for line in f)
 
     output_file = 'needs_driver.txt'
+    needs = 0
     with open(output_file, 'w') as f:
         for api in sorted(backend_apis):
             basename = api.split('.')[-1]
@@ -94,8 +95,9 @@ def update_apis():
             if os.path.exists(f"drivers/{basename}.py"):
                 continue
             f.write(f"{api}\n")
+            needs += 1
 
-    print(f"Saved PyTorch APIs for which we need to create drivers to {output_file}")
+    print(f"Saved {needs} PyTorch APIs for which we need to create drivers to {output_file}")
     
 if __name__ == "__main__":
     update_apis()

@@ -1,6 +1,6 @@
 import numpy as np
 
-def torch_add(input_dict, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
 
     # Unpack inputs from dictionary
@@ -21,7 +21,7 @@ def torch_add(input_dict, cpu=True):
     
     return {"result": result.numpy()}
 
-def tensorflow_add(input_dict, cpu=True):
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
 
     if cpu:
@@ -58,11 +58,11 @@ def main():
     }
 
     # Torch example for case 1
-    torch_result_case1 = torch_add(input_data_case1)
+    torch_result_case1 = torch_version(input_data_case1)
     print("Torch result case 1:", torch_result_case1)
 
     # TensorFlow example for case 1
-    tf_result_case1 = tensorflow_add(input_data_case1)
+    tf_result_case1 = tensorflow_version(input_data_case1)
     print("TensorFlow result case 1:", tf_result_case1)
 
     # Assert for case 1
@@ -70,11 +70,11 @@ def main():
     print("Results equal for case 1") if np.allclose(torch_result_case1["result"], tf_result_case1["result"]) else print("Results not equal for case 1")
 
     # Torch example for case 2
-    torch_result_case2 = torch_add(input_data_case2)
+    torch_result_case2 = torch_version(input_data_case2)
     print("Torch result case 2:", torch_result_case2)
 
     # TensorFlow example for case 2
-    tf_result_case2 = tensorflow_add(input_data_case2)
+    tf_result_case2 = tensorflow_version(input_data_case2)
     print("TensorFlow result case 2:", tf_result_case2)
 
     # Assert for case 2
