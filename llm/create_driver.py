@@ -95,6 +95,8 @@ def generate_driver(api, max_attempts=5):
     model = "gemini-2.0-flash"
     gemini_key = os.getenv("gemini_key")
 
+    print("Running code generation after 6 seconds...")
+    time.sleep(6)
     client = genai.Client(api_key=gemini_key)
     chat = client.chats.create(model=model)
     response = chat.send_message(get_prompt(api))
