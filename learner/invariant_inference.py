@@ -4,6 +4,7 @@ from .inputs import get_inputs
 from utils.api_utils import get_driver
 from utils.misc import get_dir_in_root
 from generator.input_generators import abstract_print, get_abstract_input
+from eval.oracle import oracle_crash
 import os, sys
 
 def save_invariants(api, ruleset, invariant_file):
@@ -52,8 +53,11 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         initialized = False
         print(f"Inferring invariants for {api} with {len(list_of_inputs)} inputs\n")
         for idx, input_dict in enumerate(list_of_inputs):
-            try:
-                out_cpu = get_driver(api)(input_dict, cpu=True)
+            status, exception_message = oracle_crash(api, input_dict, cpu=True)
+            if status == "invalid":
+                if print_details:
+                    print(f"Input {idx} is invalid")
+            else:
                 if print_details:
                     print(abstract_print(get_abstract_input(input_dict)))
                     print(f"Input {idx} is valid")
@@ -62,10 +66,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     ruleset = check_rules_z3(input_dict) if z3 else check_rules(input_dict)
                     initialized = True
                 else:
-                    ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
-            except:
-                if print_details:
-                    print(f"Input {idx} is invalid")   
+                    ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))             
         
         save_invariants(api, ruleset, invariant_file)
     
