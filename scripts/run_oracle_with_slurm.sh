@@ -23,4 +23,5 @@ done
 
 echo "Results saved in ${result}"
 
+source venv/bin/activate
 python -m utils.aggregate_oracle_result ${result}
