@@ -2,50 +2,49 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    from torch.nn.intrinsic.qat.modules import ConvBn1d
-    from torch.quantization import QConfig
     import torch.nn as nn
 
-    input_tensor = torch.tensor(input_dict["input"], dtype=torch.float32)
-    weight = torch.tensor(input_dict["weight"], dtype=torch.float32)
-    bias = torch.tensor(input_dict["bias"], dtype=torch.float32)
+    input_tensor = torch.tensor(input_dict["input"], dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+    weight = torch.tensor(input_dict["weight"], dtype=torch.float32).unsqueeze(0).unsqueeze(0)
+    bias = torch.tensor(input_dict["bias"], dtype=torch.float32) if "bias" in input_dict else None
     running_mean = torch.tensor(input_dict["running_mean"], dtype=torch.float32)
     running_var = torch.tensor(input_dict["running_var"], dtype=torch.float32)
     eps = input_dict.get("eps", 1e-05)
     momentum = input_dict.get("momentum", 0.1)
-    stride = input_dict.get("stride", 1)
-    padding = input_dict.get("padding", 0)
-    dilation = input_dict.get("dilation", 1)
-    groups = input_dict.get("groups", 1)
-    padding_mode = input_dict.get("padding_mode", 'zeros')
-    qconfig = input_dict.get("qconfig", QConfig(activation=torch.quantization.default_observer, weight=torch.quantization.default_observer))
-
+    training = input_dict.get("training", False)
+    
     if not cpu:
         input_tensor = input_tensor.cuda()
         weight = weight.cuda()
-        bias = bias.cuda()
+        bias = bias.cuda() if bias is not None else None
         running_mean = running_mean.cuda()
         running_var = running_var.cuda()
-
-    conv_bn = ConvBn1d(input_dict["in_channels"], input_dict["out_channels"], input_dict["kernel_size"],
-                       stride=stride, padding=padding, dilation=dilation, groups=groups,
-                       padding_mode=padding_mode, qconfig=qconfig)
     
-    conv_bn.weight.data = weight.unsqueeze(0)
-    if conv_bn.bias is not None:
-        conv_bn.bias.data = bias
+    conv = torch.nn.functional.conv2d(input_tensor, weight, bias=bias, stride=(1,1), padding=(0,0))
     
-    conv_bn.bn.running_mean.data = running_mean
-    conv_bn.bn.running_var.data = running_var
-    conv_bn.bn.eps = eps
-    conv_bn.bn.momentum = momentum
-
-    result = conv_bn(input_tensor.unsqueeze(0).unsqueeze(0))
+    if training:
+        bn = torch.nn.functional.batch_norm(
+            conv,
+            running_mean,
+            running_var,
+            weight=None,
+            bias=None,
+            training=True,
+            momentum=momentum,
+            eps=eps
+        )
+    else:
+        normalized_input = (conv - running_mean.view(1, -1, 1, 1)) / torch.sqrt(running_var.view(1, -1, 1, 1) + eps)
+        if weight is not None:
+            bn = normalized_input * weight.view(1, -1, 1, 1)
+        else:
+             bn = normalized_input
+    
 
     if not cpu:
-        result = result.cpu()
-
-    return {"result": result.squeeze(0).squeeze(0).detach().numpy()}
+        bn = bn.cpu()
+    
+    return {"result": bn.squeeze().numpy()}
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
@@ -54,67 +53,56 @@ def tensorflow_version(input_dict, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
         input_tensor = tf.constant(input_dict["input"], dtype=tf.float32)
         weight = tf.constant(input_dict["weight"], dtype=tf.float32)
-        bias = tf.constant(input_dict["bias"], dtype=tf.float32)
+        bias = tf.constant(input_dict["bias"], dtype=tf.float32) if "bias" in input_dict else None
         running_mean = tf.constant(input_dict["running_mean"], dtype=tf.float32)
         running_var = tf.constant(input_dict["running_var"], dtype=tf.float32)
         eps = input_dict.get("eps", 1e-05)
         momentum = input_dict.get("momentum", 0.1)
-        stride = input_dict.get("stride", 1)
-        padding = input_dict.get("padding", 0)
-        dilation = input_dict.get("dilation", 1)
-        groups = input_dict.get("groups", 1)
-        padding_mode = input_dict.get("padding_mode", 'zeros')
-
-        input_tensor = tf.expand_dims(input_tensor, axis=0)
-        input_tensor = tf.expand_dims(input_tensor, axis=2)
-        weight = tf.expand_dims(weight, axis=0)
-        weight = tf.expand_dims(weight, axis=2)
-
-        if padding_mode == 'zeros':
-            padding_tf = 'VALID' if padding == 0 else 'SAME'
-        else:
-            raise ValueError("TensorFlow does not support padding modes other than 'zeros'")
+        training = input_dict.get("training", False)
         
-        result = tf.nn.conv1d(input_tensor, weight, stride=stride, padding=padding_tf, data_format='NWC', dilations=dilation)
-
+        input_tensor_expanded = tf.expand_dims(tf.expand_dims(input_tensor, axis=0), axis=0)
+        weight_expanded = tf.expand_dims(tf.expand_dims(weight, axis=0), axis=0)
+        
+        conv = tf.nn.conv2d(input_tensor_expanded, weight_expanded, strides=[1, 1, 1, 1], padding='VALID')
+        
         if bias is not None:
-            result = tf.nn.bias_add(result, bias, data_format='NWC')
-        
-        scale = tf.math.rsqrt(running_var + eps)
-        
-        mean = running_mean
-        variance = running_var
+            conv = tf.nn.bias_add(conv, bias)
 
-        result = (result - mean) * scale
-        
-        result = result * weight + bias
-        
-        result = result.numpy()
+        if training:
+            mean, variance = tf.nn.moments(conv, axes=[0, 1, 2])
+            
+            def update_mean_var():
+                new_running_mean = momentum * mean + (1 - momentum) * running_mean
+                new_running_var = momentum * variance + (1 - momentum) * running_var
+                return new_running_mean, new_running_var
+            
+            running_mean, running_var = update_mean_var()
 
-    return {"result": result.squeeze(0).squeeze(1)}
+            scale = tf.cast(tf.math.rsqrt(variance + eps), tf.float32)
+            normalized_input = (conv - mean) * scale
+        else:
+            scale = tf.cast(tf.math.rsqrt(running_var + eps), tf.float32)
+            normalized_input = (conv - running_mean) * scale
+
+        result = tf.reshape(normalized_input, [-1]).numpy()
+    
+    return {"result": result}
 
 def main():
     A_TOL = 0.01
     input_data = {
-        "input": np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32),
+        "input": np.array([1.0, 2.0, 3.0], dtype=np.float32),
         "weight": np.array([0.5], dtype=np.float32),
         "bias": np.array([0.1], dtype=np.float32),
-        "running_mean": np.array([0.2], dtype=np.float32),
-        "running_var": np.array([0.3], dtype=np.float32),
-        "in_channels": 1,
-        "out_channels": 1,
-        "kernel_size": 1,
-        "stride": 1,
-        "padding": 0,
-        "dilation": 1,
-        "groups": 1,
-        "padding_mode": 'zeros',
+        "running_mean": np.array([0.0], dtype=np.float32),
+        "running_var": np.array([1.0], dtype=np.float32),
         "eps": 1e-05,
         "momentum": 0.1,
+        "training": True
     }
 
     torch_result = torch_version(input_data)

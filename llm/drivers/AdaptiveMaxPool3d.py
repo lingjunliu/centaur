@@ -28,54 +28,28 @@ def tensorflow_version(input_dict, cpu=True):
         device_string = "/gpu:0"
 
     with tf.device(device_string):
-        input_shape = tf.shape(input_tensor)
-        batch_size = input_shape[0]
-        depth = input_shape[1]
-        height = input_shape[2]
-        width = input_shape[3]
-        channels = input_shape[4]
+        input_shape = input_tensor.shape
 
-        result = tf.transpose(input_tensor, perm=[0, 2, 3, 1, 4])
-        result = tf.reshape(result, [batch_size * height, width, depth, channels])
+        def get_divisible_shape(original_shape, target_shape):
+            new_shape = []
+            for i in range(len(original_shape)):
+                new_shape.append(original_shape[i] // target_shape[i] * target_shape[i])
+            return tuple(new_shape)
 
-        pooled = tf.nn.max_pool(
-            result,
-            ksize=[1,
-                   int(width / output_size[2]) if width > output_size[2] else width,
-                   int(depth / output_size[0]) if depth > output_size[0] else depth,
-                   1],
-            strides=[1,
-                     int(width / output_size[2]) if width > output_size[2] else 1,
-                     int(depth / output_size[0]) if depth > output_size[0] else 1,
-                     1],
-            padding='VALID'
-        )
-
-        result = tf.image.resize(pooled, size=[output_size[2], output_size[0]], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-        result = tf.reshape(result, [batch_size, height, output_size[2], output_size[0], channels])
-        result = tf.transpose(result, perm=[0, 3, 1, 2, 4])
-
-        s = tf.shape(result)
-
-        result = tf.nn.max_pool3d(
-            tf.cast(tf.reshape(result, [1, s[1], s[2], s[3], s[4] * s[0]]), dtype = tf.float32),
-            ksize=[1, int(input_shape[2] / output_size[1]) if input_shape[2] > output_size[1] else input_shape[2], 1, 1, 1],
-            strides=[1, int(input_shape[2] / output_size[1]) if input_shape[2] > output_size[1] else 1, 1, 1, 1],
-            padding="VALID")
-        result = tf.reshape(result, [output_size[0], output_size[1], output_size[2], input_shape[4]])
-        result = tf.transpose(result, perm=[1, 0, 2, 3])
-        result = tf.expand_dims(result, axis = 0)
-
+        input_shape_divisible = get_divisible_shape(input_shape[:3], output_size)
+        input_tensor_resized = tf.image.resize(input_tensor, input_shape_divisible[:2])
+        input_tensor_resized = tf.reshape(input_tensor_resized, (input_shape_divisible[0], input_shape_divisible[1], input_shape_divisible[2], input_shape[3], input_shape[4]))
+        result = tf.keras.layers.MaxPool3D(pool_size=(input_shape_divisible[0] // output_size[0], input_shape_divisible[1] // output_size[1], input_shape_divisible[2] // output_size[2]), strides=(input_shape_divisible[0] // output_size[0], input_shape_divisible[1] // output_size[1], input_shape_divisible[2] // output_size[2]))(tf.expand_dims(input_tensor_resized, axis=0))
+        result = tf.squeeze(result, axis=0)
         result = result.numpy()
-
     return {"result": result}
 
 def main():
-    A_TOL = 0.2
+    A_TOL = 0.01
 
     input_data = {
-        "input": np.random.rand(2, 10, 12, 14, 3).astype(np.float32),
-        "output_size": (5, 6, 7)
+        "input": np.random.rand(8, 9, 10, 5, 6).astype(np.float32),
+        "output_size": (2, 3, 2)
     }
 
     torch_result = torch_version(input_data)

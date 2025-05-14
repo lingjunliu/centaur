@@ -8,7 +8,7 @@ def torch_version(input_dict, cpu=True):
     weight = torch.tensor(input_dict["weight"])
     bias = input_dict.get("bias", None)
     if bias is not None:
-      bias = torch.tensor(bias)
+        bias = torch.tensor(bias)
 
     if not cpu:
         input1 = input1.cuda()
@@ -17,12 +17,13 @@ def torch_version(input_dict, cpu=True):
         if bias is not None:
             bias = bias.cuda()
 
-    result = torch.nn.functional.bilinear(input1, input2, weight, bias)
+    result = torch.nn.functional.bilinear(input1, input2, weight, bias=bias)
 
     if not cpu:
         result = result.cpu()
 
     return {"result": result.numpy()}
+
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
@@ -40,26 +41,30 @@ def tensorflow_version(input_dict, cpu=True):
         if bias is not None:
             bias = tf.constant(bias)
 
-        input1_shape = tf.shape(input1)
-        input2_shape = tf.shape(input2)
-        weight_shape = tf.shape(weight)
+        input1_shape = input1.shape
+        input2_shape = input2.shape
+        weight_shape = weight.shape
 
-        input1_reshaped = tf.reshape(input1, [-1, input1_shape[-1]])
-        input2_reshaped = tf.reshape(input2, [-1, input2_shape[-1]])
+        batch_size = input1_shape[0]
+        hidden_dim = weight_shape[0]
 
-        w_reshaped = tf.reshape(weight, [weight_shape[0], weight_shape[1] * weight_shape[2]])
-        result = tf.matmul(input1_reshaped, tf.transpose(tf.slice(w_reshaped, [0, 0], [weight_shape[0], input_dict["weight"].shape[1]*input_dict["weight"].shape[2]])))
-
-        result = tf.matmul(result, input2_reshaped, transpose_b=True)
-
-        result = tf.reshape(result, tf.concat([tf.shape(input1)[:-1], tf.shape(input2)[:-1], [weight_shape[0]]], axis=0))
+        input1_reshaped = tf.reshape(input1, [batch_size * input1_shape[1], input1_shape[2]])
+        input2_reshaped = tf.reshape(input2, [batch_size * input2_shape[1], input2_shape[2]])
+        
+        w_reshaped = tf.transpose(weight, perm=[1, 2, 0])
+        
+        output = tf.matmul(input1_reshaped, w_reshaped[:,:,0])
+        
+        output = tf.matmul(output, tf.transpose(input2_reshaped))
+        
+        output = tf.reshape(tf.linalg.diag_part(output), (batch_size, input1_shape[1]))
 
         if bias is not None:
-            result = tf.add(result, bias)
+            output = tf.add(output, bias)
 
-        result = result.numpy()
-
+        result = output.numpy()
     return {"result": result}
+
 
 def main():
     A_TOL = 0.01
@@ -77,6 +82,7 @@ def main():
     assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
     print("Success")
+
 
 if __name__ == "__main__":
     main()
