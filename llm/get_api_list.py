@@ -84,6 +84,13 @@ def update_apis():
     supported_file = 'supported_apis.txt'
     with open(supported_file, 'r') as f:
         supported_apis = set(line.strip() for line in f)
+    
+    supported_torch_apis = set()    
+    with open("supported.csv", "r") as f:
+        for line in f.readlines():
+            tokens = line.strip().split(",")
+            if tokens[0] in supported_apis:
+                supported_torch_apis.add(tokens[1])
 
     failed_generation = set()
     with open("drivers.csv", "r") as f:
@@ -91,27 +98,22 @@ def update_apis():
             tokens = line.strip().split(",")
             if tokens[-1] == "1":
                 # API generation failed
-                failed_generation.add(tokens[0])
+                failed_generation.add(tokens[1])
             else:
                 # API generation succeeded
-                failed_generation = failed_generation - set([tokens[0]])
+                failed_generation = failed_generation - set([tokens[1]])
     
     output_file = 'needs_driver.txt'
     needs = 0
     with open(output_file, 'w') as f:
         for api in sorted(backend_apis):
             basename = api.split('.')[-1]
-            if basename in supported_apis:
+            if api in supported_torch_apis:
                 continue
-            if os.path.exists(f"drivers/{basename}.py"):
+            if os.path.exists(f"drivers/{basename}.py") and api not in failed_generation:
                 continue
             f.write(f"{api}\n")
-            needs += 1
-            
-        for api in sorted(failed_generation):
-            f.write(f"{api}\n")
-            needs += 1
-
+            needs += 1        
 
     print(f"Saved {needs} PyTorch APIs for which we need to create drivers to {output_file}")
     
