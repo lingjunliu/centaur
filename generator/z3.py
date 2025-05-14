@@ -127,7 +127,7 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0):
     all_solver = Solver()
     models, num_model = [], 0
 
-    while elapsed < model_gen_duration and num_model < max_model:
+    while elapsed < model_gen_duration and (num_model < max_model or max_model == 0):
         one_solver = all_solver.translate(all_solver.ctx)
         initial_constraints(one_solver, definition["signature"], z3_args)
         collect_constraints(one_solver, definition["ruleset"], z3_args)               
