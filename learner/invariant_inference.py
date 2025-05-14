@@ -1,7 +1,7 @@
 from generator.rules import check_rules
 from generator.rules_z3 import check_rules_z3
 from .inputs import get_inputs
-from utils.api_utils import get_driver
+from utils.api_utils import get_driver, get_signatures
 from utils.misc import get_dir_in_root
 from generator.input_generators import abstract_print, get_abstract_input
 from eval.oracle import oracle_crash
@@ -52,14 +52,16 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         ruleset = set()
         initialized = False
         print(f"Inferring invariants for {api} with {len(list_of_inputs)} inputs\n")
+        api_driver = get_driver(api, lib=lib)
+        api_signature = get_signatures()[api]
         for idx, input_dict in enumerate(list_of_inputs):
-            status, exception_message = oracle_crash(api, input_dict, cpu=True)
+            status, exception_message = oracle_crash(api_driver, input_dict, cpu=True)
             if status == "invalid":
                 if print_details:
                     print(f"Input {idx} is invalid")
             else:
                 if print_details:
-                    print(abstract_print(get_abstract_input(input_dict)))
+                    print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
                     print(f"Input {idx} is valid")
                 # Check rules for the input dictionary
                 if not initialized:  # If ruleset is not initialized

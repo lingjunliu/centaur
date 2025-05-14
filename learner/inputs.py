@@ -4,6 +4,7 @@ import time
 from utils.api_utils import get_signatures, get_driver
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir, save_to_new_pkl, read_pkl
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
+from eval.oracle import oracle_crash
 import numpy as np
 import os
 
@@ -239,10 +240,9 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
         start_time = time.time()
         while (time.time() - start_time < time_budget) and (valid < min_val_inp):
             rng = np.random.default_rng(seed)
-            input_dict = get_random_input(api_signature, rng)        
-            try:
-                out_cpu = api_driver(input_dict, cpu=True)
-            except:
+            input_dict = get_random_input(api_signature, rng)
+            status, exception_message = oracle_crash(api_driver, input_dict, cpu=True)
+            if status == "invalid":
                 invalid += 1
             else:
                 valid += 1
