@@ -12,7 +12,7 @@ def torch_version(input, cpu=True):
     # Apply torch.log2
     result = torch.log2(input_tensor)
     
-    if cpu:
+    if not cpu:
         result = result.cpu()
 
     return {"log2_result": result.numpy()}

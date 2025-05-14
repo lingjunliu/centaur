@@ -13,7 +13,7 @@ def torch_version(input, cpu=True):
     # Compute the sine
     result = torch.sin(input_tensor)
 
-    if cpu:
+    if not cpu:
         result = result.cpu()
 
     return {"sin_result": result.numpy()}

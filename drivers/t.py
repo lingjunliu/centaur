@@ -4,9 +4,9 @@ def torch_version(input, cpu=True):
     import torch
 
     # Unpack input dictionary
-    input_tensor = input["input"]
-    if cpu:
-        input_tensor = torch.tensor(input_tensor, device='cpu')
+    input_tensor = torch.tensor(input["input"])
+    if not cpu:
+        input_tensor = input_tensor.cuda()
 
     # Apply torch.t
     result = torch.t(input_tensor)

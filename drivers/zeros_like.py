@@ -21,7 +21,7 @@ def torch_version(input, cpu=True):
     result = torch.zeros_like(input_tensor, dtype=dtype, layout=layout, device=device_tensor, 
                               requires_grad=requires_grad, memory_format=memory_format)
 
-    if cpu and device_tensor.type == 'cuda':
+    if not cpu:
         result = result.cpu()
 
     return {"result": result.numpy()}
