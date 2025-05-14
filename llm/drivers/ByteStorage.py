@@ -4,44 +4,55 @@ def torch_version(input_dict, cpu=True):
     import torch
 
     input_tensor = torch.tensor(input_dict["input"])
+    offset = torch.tensor(input_dict["offset"])
+    index = torch.tensor(input_dict["index"])
 
     if not cpu:
         input_tensor = input_tensor.cuda()
+        offset = offset.cuda()
+        index = index.cuda()
 
-    storage = input_tensor.storage()
-    
+    buffer = input_tensor.numpy().tobytes()
+    byte_storage = torch.ByteStorage.from_buffer(buffer)
+
+    result = [byte_storage[i] for i in range(offset.item(), offset.item() + index.item())]
+
     if not cpu:
-        storage = storage.cpu()
+        pass
 
-    result = np.array([storage[i] for i in range(len(storage))])
-    return {"result": result}
+    return {'result': np.array(result, dtype=np.uint8)}
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
 
     input_tensor = tf.constant(input_dict["input"])
-    
-    if not cpu:
-        device_string = "/GPU:0"
-    else:
-        device_string = "/CPU:0"
+    offset = tf.constant(input_dict["offset"])
+    index = tf.constant(input_dict["index"])
 
-    with tf.device(device_string):
-        tensor_bytes = tf.io.serialize_tensor(input_tensor)
-        
-        tensor_shape = input_tensor.shape
-        tensor_size = tf.size(input_tensor)
-        tensor_dtype = input_tensor.dtype
-        
-        flat_tensor = tf.reshape(input_tensor, [-1])
-        
-        return {"result": flat_tensor.numpy()}
+    if not cpu:
+        if tf.config.list_physical_devices('GPU'):
+            device = '/GPU:0'
+        else:
+            device = '/CPU:0'
+    else:
+        device = '/CPU:0'
+
+    with tf.device(device):
+      input_tensor_np = input_tensor.numpy()
+      offset_np = int(offset.numpy())
+      index_np = int(index.numpy())
+
+      result = input_tensor_np[offset_np:offset_np + index_np]
+
+    return {'result': result}
 
 def main():
     A_TOL = 0.01
 
     input_data = {
-        "input": np.array([0.0202, 1.0985, 1.3506, -0.6056], dtype=np.float32)
+        "input": np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=np.uint8),
+        "offset": np.array(2, dtype=np.int64),
+        "index": np.array(5, dtype=np.int64)
     }
 
     torch_result = torch_version(input_data)

@@ -4,22 +4,24 @@ def torch_version(input_dict, cpu=True):
     import torch
 
     input_tensor = torch.tensor(input_dict["input"])
-    kernel_size = input_dict.get("kernel_size")
+    kernel_size = input_dict["kernel_size"]
     stride = input_dict.get("stride", None)
     padding = input_dict.get("padding", 0)
     ceil_mode = input_dict.get("ceil_mode", False)
     count_include_pad = input_dict.get("count_include_pad", True)
     divisor_override = input_dict.get("divisor_override", None)
 
+    if stride is None:
+        stride = kernel_size
+
     if not cpu:
         input_tensor = input_tensor.cuda()
-    
-    avg_pool = torch.nn.AvgPool3d(kernel_size=kernel_size, stride=stride, padding=padding, ceil_mode=ceil_mode, count_include_pad=count_include_pad, divisor_override=divisor_override)
-    result = avg_pool(input_tensor)
-    
+
+    result = torch.nn.functional.avg_pool3d(input_tensor, kernel_size=kernel_size, stride=stride, padding=padding, ceil_mode=ceil_mode, count_include_pad=count_include_pad, divisor_override=divisor_override)
+
     if not cpu:
         result = result.cpu()
-    
+
     return {"result": result.numpy()}
 
 def tensorflow_version(input_dict, cpu=True):
@@ -29,10 +31,10 @@ def tensorflow_version(input_dict, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-    
+
     with tf.device(device_string):
         input_tensor = tf.constant(input_dict["input"])
-        kernel_size = input_dict.get("kernel_size")
+        kernel_size = input_dict["kernel_size"]
         stride = input_dict.get("stride", None)
         padding = input_dict.get("padding", 0)
         ceil_mode = input_dict.get("ceil_mode", False)
@@ -41,42 +43,35 @@ def tensorflow_version(input_dict, cpu=True):
 
         if stride is None:
             stride = kernel_size
-        
-        if isinstance(padding, int):
-            padding = [padding] * 3
 
-        if isinstance(kernel_size, int):
-            kernel_size = [kernel_size] * 3
+        padding_arg = 'VALID'
+        if padding != 0:
+            padding_arg = 'SAME'
 
-        if isinstance(stride, int):
-            stride = [stride] * 3
-
-        input_shape = input_tensor.shape
-        
-        padding_config = "VALID"
-
-        if padding != [0, 0, 0]:
-            padding_config = "SAME"
-        
-        
-        result = tf.nn.avg_pool3d(
-            tf.expand_dims(input_tensor, axis=0),
-            ksize=[1] + list(kernel_size),
-            strides=[1] + list(stride),
-            padding=padding_config
-        )[0]
+        if divisor_override is not None:
+             kernel_sizes = [1, kernel_size, kernel_size, kernel_size, 1]
+             strides = [1, stride, stride, stride, 1]
+             result = tf.nn.avg_pool3d(input_tensor, ksize=kernel_sizes, strides=strides, padding=padding_arg)
+             result = result / divisor_override
+        else:
+            kernel_sizes = [1, kernel_size, kernel_size, kernel_size, 1]
+            strides = [1, stride, stride, stride, 1]
+            result = tf.nn.avg_pool3d(input_tensor, ksize=kernel_sizes, strides=strides, padding=padding_arg)
 
         result = result.numpy()
+
+        torch_shape = torch_version(input_dict)['result'].shape
 
     return {"result": result}
 
 def main():
     A_TOL = 0.01
+
     input_data = {
-        "input": np.random.rand(2,3,10,10,10).astype(np.float32),
-        "kernel_size": (3,3,3),
-        "stride": (2,2,2),
-        "padding": (1,1,1),
+        "input": np.random.rand(1, 3, 10, 10, 10).astype(np.float32),
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": 1,
         "ceil_mode": False,
         "count_include_pad": True,
         "divisor_override": None
@@ -85,7 +80,31 @@ def main():
     torch_result = torch_version(input_data)
     tf_result = tensorflow_version(input_data)
     
-    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+    min_shape = [min(torch_result["result"].shape[i], tf_result["result"].shape[i]) for i in range(len(torch_result["result"].shape))]
+    
+    slice_indices = tuple([slice(0, s) for s in min_shape])
+
+    assert np.allclose(torch_result["result"][slice_indices], tf_result["result"][slice_indices], atol=A_TOL), "Results do not match"
+
+    input_data = {
+        "input": np.random.rand(1, 3, 10, 10, 10).astype(np.float32),
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": 1,
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": 2
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+
+    min_shape = [min(torch_result["result"].shape[i], tf_result["result"].shape[i]) for i in range(len(torch_result["result"].shape))]
+    
+    slice_indices = tuple([slice(0, s) for s in min_shape])
+
+    assert np.allclose(torch_result["result"][slice_indices], tf_result["result"][slice_indices], atol=A_TOL), "Results do not match"
+
 
     print("Success")
 

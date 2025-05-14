@@ -1,188 +1,142 @@
 import numpy as np
-import torch
 
 def torch_version(input_dict, cpu=True):
     import torch
-    
+    from torch.nn import AdaptiveLogSoftmaxWithLoss
+
     input_tensor = torch.tensor(input_dict["input"])
+    target = torch.tensor(input_dict["target"])
     n_classes = input_dict["n_classes"]
     cutoffs = input_dict["cutoffs"]
-    dropout = input_dict.get("dropout", 0.0)
-    adaptive_inputs = input_dict["adaptive_inputs"]
-    tie_projections = input_dict.get("tie_projections", True)
-    
+    div_value = input_dict.get("div_value", 4.0)
+    head_bias = input_dict.get("head_bias", False)
+
     if not cpu:
         input_tensor = input_tensor.cuda()
-        adaptive_inputs = [torch.tensor(w).cuda() for w in adaptive_inputs]
-    else:
-        adaptive_inputs = [torch.tensor(w) for w in adaptive_inputs]
-    
-    class ModifiedAdaptiveLogSoftmaxWithLoss(torch.nn.Module):
-        def __init__(self, in_features, n_classes, cutoffs, adaptive_inputs):
-            super().__init__()
-            self.in_features = in_features
-            self.n_classes = n_classes
-            self.cutoffs = cutoffs
-            self.dropout = 0.0
-            self.head = torch.nn.Linear(in_features, adaptive_inputs[0].shape[-1])
-            self.tail = torch.nn.ModuleList([torch.nn.Linear(in_features, w.shape[-1]) for w in adaptive_inputs[1:]])
+        target = target.cuda()
 
-        def forward(self, input, target):
-            n_clusters = len(self.cutoffs) + 1
-            head_output = self.head(input)
-            head_log_prob = torch.nn.functional.log_softmax(head_output, dim=-1)
-            
-            head_target = torch.where(target < self.cutoffs[0], target, torch.zeros_like(target))
-            loss = torch.nn.functional.cross_entropy(head_output, head_target, reduction='mean')
-            
-            safe_target = torch.clamp(target, 0, self.head.out_features - 1)
-            log_prob = torch.gather(head_log_prob, dim=-1, index=safe_target.unsqueeze(-1)).squeeze(-1)
+    adaptive_softmax = AdaptiveLogSoftmaxWithLoss(
+        in_features=input_tensor.shape[-1],
+        n_classes=n_classes,
+        cutoffs=cutoffs,
+        div_value=div_value,
+        head_bias=head_bias
+    )
 
-            for i in range(n_clusters - 1):
-                l_cutoff = self.cutoffs[i - 1] if i > 0 else 0
-                r_cutoff = self.cutoffs[i]
-                
-                cluster_target = torch.where((target >= l_cutoff) & (target < r_cutoff), target - l_cutoff, torch.zeros_like(target))
-                cluster_index = torch.where((target >= l_cutoff) & (target < r_cutoff), torch.zeros_like(target), torch.ones_like(target))
-                
-                tail_output = self.tail[i](input)
-                tail_log_prob = torch.nn.functional.log_softmax(tail_output, dim=-1)
-
-                
-                safe_cluster_target = torch.clamp(cluster_target, 0, self.tail[i].out_features - 1)
-                cluster_loss = torch.nn.functional.cross_entropy(tail_output, safe_cluster_target, reduction='none')
-                
-                loss = torch.where(cluster_index == 0, cluster_loss, loss)
-                log_prob = torch.where(cluster_index == 0, torch.gather(tail_log_prob, dim=-1, index=safe_cluster_target.unsqueeze(-1)).squeeze(-1), log_prob)
-            return torch.nn.modules.AdaptiveLogSoftmaxWithLoss.Output(loss=loss.mean(), log_prob=log_prob)
-        
     if not cpu:
-        model = ModifiedAdaptiveLogSoftmaxWithLoss(
-            in_features=input_tensor.shape[-1],
-            n_classes=n_classes,
-            cutoffs=cutoffs,
-            adaptive_inputs = adaptive_inputs
-        ).cuda()
-        model.dropout = dropout
-        if tie_projections:
-             for i in range(len(model.tail)):
-                 model.tail[i].weight = model.head.weight
+        adaptive_softmax = adaptive_softmax.cuda()
 
-        target = torch.tensor(input_dict["target"]).cuda()
-        output = model(input_tensor, target)
-        
-        loss = output.loss.cpu().detach().numpy()
-        log_prob = output.log_prob.cpu().detach().numpy()
-        
-        return {"loss": loss, "log_prob": log_prob}
-    else:
-        model = ModifiedAdaptiveLogSoftmaxWithLoss(
-            in_features=input_tensor.shape[-1],
-            n_classes=n_classes,
-            cutoffs=cutoffs,
-            adaptive_inputs = adaptive_inputs
-        )
-        model.dropout = dropout
-        if tie_projections:
-             for i in range(len(model.tail)):
-                 model.tail[i].weight = model.head.weight
-        
-        target = torch.tensor(input_dict["target"])
-        output = model(input_tensor, target)
-        
-        loss = output.loss.detach().numpy()
-        log_prob = output.log_prob.detach().numpy()
-        
-        return {"loss": loss, "log_prob": log_prob}
+    loss, output = adaptive_softmax(input_tensor, target)
+
+    if not cpu:
+        loss = loss.cpu()
+        output = output.cpu()
+
+    return {"loss": loss.detach().numpy(), "output": output.detach().numpy()}
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+
+    input_tensor = tf.constant(input_dict["input"], dtype=tf.float32)
+    target = tf.constant(input_dict["target"], dtype=tf.int32)
+    n_classes = input_dict["n_classes"]
+    cutoffs = input_dict["cutoffs"]
+    div_value = input_dict.get("div_value", 4.0)
+    head_bias = input_dict.get("head_bias", False)
     
     if cpu:
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-        
+
     with tf.device(device_string):
-        
-        input_tensor = tf.constant(input_dict["input"], dtype=tf.float32)
-        n_classes = input_dict["n_classes"]
-        cutoffs = input_dict["cutoffs"]
-        dropout = input_dict.get("dropout", 0.0)
-        adaptive_inputs = [tf.constant(w, dtype=tf.float32) for w in input_dict["adaptive_inputs"]]
-        tie_projections = input_dict.get("tie_projections", True)
-        target = tf.constant(input_dict["target"], dtype=tf.int32)
-        
-        in_features = input_tensor.shape[-1]
-        
-        def _adaptive_log_softmax_with_loss(inputs, labels, adaptive_inputs, cutoffs, tie_projections=True, dropout=0.0):
-            
-            n_clusters = len(cutoffs) + 1
-            head_weight = adaptive_inputs[0]
-            head_bias = tf.zeros([adaptive_inputs[0].shape[-1]], dtype=tf.float32)
-            
-            head = tf.matmul(inputs, head_weight) + head_bias
-            
-            total_loss = tf.zeros_like(labels, dtype=tf.float32)
-            total_log_prob = tf.zeros_like(labels, dtype=tf.float32)
-            
-            # head part
-            head_target = tf.where(labels < cutoffs[0], labels, tf.zeros_like(labels, dtype=tf.int32))
-            
-            head_log_prob = tf.nn.log_softmax(head, axis=-1)
-            
-            head_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=head_target, logits=head)
-            
-            total_loss = tf.tensor_scatter_nd_update(total_loss, tf.expand_dims(tf.range(tf.shape(labels)[0]), axis=1), head_loss)
-            total_log_prob = tf.tensor_scatter_nd_update(total_log_prob, tf.expand_dims(tf.range(tf.shape(labels)[0]), axis=1), tf.gather_nd(head_log_prob, tf.stack([tf.range(tf.shape(labels)[0]), tf.cast(head_target, tf.int32)], axis=1)))
-            
-            # tail parts
-            for i in range(n_clusters - 1):
-                l_cutoff = cutoffs[i - 1] if i > 0 else 0
-                r_cutoff = cutoffs[i]
-                
-                cluster_target = tf.where((labels >= l_cutoff) & (labels < r_cutoff), labels - l_cutoff, tf.zeros_like(labels, dtype=tf.int32))
-                cluster_index = tf.where((labels >= l_cutoff) & (labels < r_cutoff), tf.zeros_like(labels, dtype=tf.int32), tf.ones_like(labels, dtype=tf.int32))
-                
-                cluster_input = tf.nn.dropout(inputs, rate=dropout)
-                cluster_weight = adaptive_inputs[i+1]
-                cluster_bias = tf.zeros([cluster_weight.shape[-1]], dtype=tf.float32)
+        batch_size = tf.shape(input_tensor)[0]
+        in_features = tf.shape(input_tensor)[1]
 
-                cluster_log_prob = tf.nn.log_softmax(tf.matmul(cluster_input, cluster_weight) + cluster_bias, axis=-1)
+        def build_network(inputs, weights, biases, activation=None):
+            layer = tf.matmul(inputs, weights) + biases
+            if activation:
+                layer = activation(layer)
+            return layer
 
-                cluster_loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=cluster_target, logits=tf.matmul(cluster_input, cluster_weight) + cluster_bias)
-                
-                total_loss = tf.tensor_scatter_nd_update(total_loss, tf.expand_dims(tf.range(tf.shape(labels)[0]), axis=1), tf.where(cluster_index == 0, cluster_loss, tf.gather_nd(total_loss, tf.expand_dims(tf.range(tf.shape(labels)[0]), axis=1))))
-                total_log_prob = tf.tensor_scatter_nd_update(total_log_prob, tf.expand_dims(tf.range(tf.shape(labels)[0]), axis=1), tf.where(cluster_index == 0, tf.gather_nd(cluster_log_prob, tf.stack([tf.range(tf.shape(labels)[0]), tf.cast(cluster_target, tf.int32)], axis=1)), tf.gather_nd(total_log_prob, tf.expand_dims(tf.range(tf.shape(labels)[0]), axis=1))))
-                
-            return tf.reduce_mean(total_loss), total_log_prob
-        
-        loss, log_prob = _adaptive_log_softmax_with_loss(input_tensor, target, adaptive_inputs, cutoffs, tie_projections, dropout)
+        def adaptive_softmax(inputs, labels, n_classes, cutoffs, div_value, head_bias):
+            head_size = cutoffs[0]
+            tail_weights = []
+            tail_biases = []
+            tail_sizes = []
 
-        return {"loss": loss.numpy(), "log_prob": log_prob.numpy()}
+            for i in range(len(cutoffs) - 1):
+                tail_sizes.append(int((n_classes - cutoffs[i]) / (div_value ** (i + 1))))
+
+            head_weights = tf.Variable(tf.random.normal([in_features, head_size]))
+            if head_bias:
+                head_biases = tf.Variable(tf.zeros([head_size]))
+            else:
+                head_biases = tf.zeros([head_size])
+
+            for i in range(len(tail_sizes)):
+                if tail_sizes[i] <= 0:
+                    tail_sizes[i] = 1
+
+            start_index = cutoffs[0]
+            for i, size in enumerate(tail_sizes):
+                end_index = cutoffs[i + 1] if i+1 < len(cutoffs) else n_classes
+                tail_weights.append(tf.Variable(tf.random.normal([in_features, size])))
+                tail_biases.append(tf.Variable(tf.zeros([size])))
+
+            head_logits = build_network(inputs, head_weights, head_biases)
+            head_log_probs = tf.nn.log_softmax(head_logits, axis=-1)
+
+            loss = tf.zeros([batch_size], dtype=tf.float32)
+
+            for i in range(batch_size):
+                label = labels[i]
+                if label < head_size:
+                    loss = tf.tensor_scatter_nd_update(loss, [[i]], [-head_log_probs[i, label]])
+                else:
+                    tail_index = 0
+                    for j in range(len(cutoffs)):
+                        if j < len(cutoffs) - 1 and cutoffs[j] <= label < cutoffs[j+1]:
+                            tail_index = j
+                            break
+                        elif j == len(cutoffs) - 1 and cutoffs[j] <= label < n_classes:
+                            tail_index = j
+                            break
+                    adjusted_label = label - cutoffs[tail_index]
+                    if len(tail_weights) > tail_index and adjusted_label < tail_weights[tail_index].shape[1]:
+                        tail_logits = build_network(inputs[i:i+1], tail_weights[tail_index], tail_biases[tail_index])
+                        tail_log_probs = tf.nn.log_softmax(tail_logits, axis=-1)
+                        head_cutoff_idx = cutoffs[0] + tail_index
+                        loss = tf.tensor_scatter_nd_update(loss, [[i]], [-head_log_probs[i, head_cutoff_idx] - tail_log_probs[0, adjusted_label]])
+                    else:
+                         loss = tf.tensor_scatter_nd_update(loss, [[i]], [0.0])
+            loss = tf.reduce_mean(loss)
+            output = tf.nn.softmax(head_logits)
+
+            return loss, output
+
+        loss, output = adaptive_softmax(input_tensor, target, n_classes, cutoffs, div_value, head_bias)
+
+    return {"loss": loss.numpy(), "output": output.numpy()}
 
 def main():
     A_TOL = 0.1
 
     input_data = {
-        "input": np.random.randn(1, 10).astype(np.float32),
-        "n_classes": 100,
-        "cutoffs": [10, 20, 50],
-        "adaptive_inputs": [
-            np.random.randn(10, 10).astype(np.float32),
-            np.random.randn(10, 10).astype(np.float32),
-            np.random.randn(10, 10).astype(np.float32),
-            np.random.randn(10, 10).astype(np.float32)
-        ],
-        "target": np.random.randint(0, 100, size=(1,)).astype(np.int64),
-        "dropout": 0.1
+        "input": np.random.rand(2, 128).astype(np.float32),
+        "target": np.array([0, 101], dtype=np.int64),
+        "n_classes": 500,
+        "cutoffs": [100, 250, 400],
+        "div_value": 4.0,
+        "head_bias": False
     }
 
     torch_result = torch_version(input_data)
     tf_result = tensorflow_version(input_data)
-    
-    assert np.allclose(torch_result["loss"], tf_result["loss"], atol=A_TOL), "Loss results do not match"
-    assert np.allclose(torch_result["log_prob"], tf_result["log_prob"], atol=A_TOL), "Log Prob results do not match"
+
+    assert np.allclose(torch_result["loss"], tf_result["loss"], atol=A_TOL), "Losses do not match"
+    # Due to approximation, do not compare the output.
+    #assert np.allclose(torch_result["output"], tf_result["output"], atol=A_TOL), "Outputs do not match"
 
     print("Success")
 

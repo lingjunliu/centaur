@@ -3,32 +3,40 @@ import numpy as np
 def torch_version(input_dict, cpu=True):
     import torch
     import torch.nn as nn
-    import torch.nn.intrinsic.quantized as nniq
 
     input_tensor = torch.tensor(input_dict["input"])
-    num_features = input_dict["num_features"]
-    eps = input_dict.get("eps", 1e-05)
+    bn_weight = torch.tensor(input_dict["bn_weight"])
+    bn_bias = torch.tensor(input_dict["bn_bias"])
+    bn_running_mean = torch.tensor(input_dict["bn_running_mean"])
+    bn_running_var = torch.tensor(input_dict["bn_running_var"])
+    training = input_dict.get("training", False)
     momentum = input_dict.get("momentum", 0.1)
-    affine = input_dict.get("affine", True)
-    
+    eps = input_dict.get("eps", 1e-05)
+
     if not cpu:
         input_tensor = input_tensor.cuda()
-    
-    bn_relu = nn.BatchNorm2d(num_features, eps, momentum, affine).float()
-    bn_relu.weight = torch.nn.Parameter(torch.tensor(input_dict["weight"]).float(), requires_grad=False)
-    bn_relu.bias = torch.nn.Parameter(torch.tensor(input_dict["bias"]).float(), requires_grad=False)
-    bn_relu.running_mean = torch.tensor(input_dict["running_mean"]).float()
-    bn_relu.running_var = torch.tensor(input_dict["running_var"]).float()
-    bn_relu.eval()
+        bn_weight = bn_weight.cuda()
+        bn_bias = bn_bias.cuda()
+        bn_running_mean = bn_running_mean.cuda()
+        bn_running_var = bn_running_var.cuda()
+        
+    bn = nn.BatchNorm2d(input_tensor.shape[1])
+    bn.weight = torch.nn.Parameter(bn_weight)
+    bn.bias = torch.nn.Parameter(bn_bias)
+    bn.running_mean = bn_running_mean
+    bn.running_var = bn_running_var
+    bn.momentum = momentum
+    bn.eps = eps
+    bn.eval()
 
-    relu = nn.ReLU()
+    with torch.no_grad():
+        input_tensor = bn(input_tensor)
+        result = torch.relu(input_tensor)
     
-    result = relu(bn_relu(input_tensor.float()))
-
     if not cpu:
         result = result.cpu()
-
-    return {"result": result.detach().numpy()}
+    
+    return {"result": result.numpy()}
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
@@ -37,45 +45,52 @@ def tensorflow_version(input_dict, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
-        input_tensor = tf.constant(input_dict["input"], dtype=tf.float32)
-        num_features = input_dict["num_features"]
-        eps = input_dict.get("eps", 1e-05)
+        input_tensor = tf.constant(input_dict["input"])
+        bn_weight = tf.constant(input_dict["bn_weight"])
+        bn_bias = tf.constant(input_dict["bn_bias"])
+        bn_running_mean = tf.constant(input_dict["bn_running_mean"])
+        bn_running_var = tf.constant(input_dict["bn_running_var"])
+        training = input_dict.get("training", False)
         momentum = input_dict.get("momentum", 0.1)
-        affine = input_dict.get("affine", True)
+        eps = input_dict.get("eps", 1e-05)
 
-        weight = tf.constant(input_dict["weight"], dtype=tf.float32)
-        bias = tf.constant(input_dict["bias"], dtype=tf.float32)
-        running_mean = tf.constant(input_dict["running_mean"], dtype=tf.float32)
-        running_var = tf.constant(input_dict["running_var"], dtype=tf.float32)
+        input_shape = input_tensor.shape
+        
+        scale = tf.reshape(bn_weight, (1, bn_weight.shape[0], 1, 1))
+        offset = tf.reshape(bn_bias, (1, bn_bias.shape[0], 1, 1))
+        
+        if training:
+          mean, variance = tf.nn.moments(input_tensor, axes=[0, 2, 3], keepdims=True)
+          inv = tf.math.rsqrt(variance + eps)
+          normalized = (input_tensor - mean) * inv
+          output = scale * normalized + offset
+          result = tf.nn.relu(output)
+        else:
+          mean = tf.reshape(bn_running_mean, (1, bn_running_mean.shape[0], 1, 1))
+          variance = tf.reshape(bn_running_var, (1, bn_running_var.shape[0], 1, 1))
+          inv = tf.math.rsqrt(variance + eps)
+          normalized = (input_tensor - mean) * inv
+          output = scale * normalized + offset
+          result = tf.nn.relu(output)
 
-        gamma = tf.reshape(weight, [1, 1, 1, num_features])
-        beta = tf.reshape(bias, [1, 1, 1, num_features])
-        mean = tf.reshape(running_mean, [1, 1, 1, num_features])
-        variance = tf.reshape(running_var, [1, 1, 1, num_features])
-
-        x = input_tensor
-        x_normed = (x - mean) / tf.sqrt(variance + eps)
-        x_scaled = gamma * x_normed + beta
-        relu = tf.nn.relu(x_scaled)
-
-        result = relu.numpy()
+        result = result.numpy()
+        
     return {"result": result}
 
 def main():
     A_TOL = 0.01
-
+    
     input_data = {
-        "input": np.random.rand(1, 1, 4, 4).astype(np.float32),
-        "num_features": 1,
-        "weight": np.random.rand(1).astype(np.float32),
-        "bias": np.random.rand(1).astype(np.float32),
-        "running_mean": np.random.rand(1).astype(np.float32),
-        "running_var": np.random.rand(1).astype(np.float32),
-        "eps": 1e-05,
+        "input": np.random.randn(2, 3, 4, 5).astype(np.float32),
+        "bn_weight": np.random.randn(3).astype(np.float32),
+        "bn_bias": np.random.randn(3).astype(np.float32),
+        "bn_running_mean": np.random.randn(3).astype(np.float32),
+        "bn_running_var": np.random.randn(3).astype(np.float32),
+        "training": False,
         "momentum": 0.1,
-        "affine": True,
+        "eps": 1e-05
     }
 
     torch_result = torch_version(input_data)

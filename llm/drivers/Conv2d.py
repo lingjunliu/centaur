@@ -2,38 +2,26 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    import torch.nn.quantized as nnq
 
     input_tensor = torch.tensor(input_dict["input"])
     weight = torch.tensor(input_dict["weight"])
-    bias = torch.tensor(input_dict["bias"]) if "bias" in input_dict else None
+    bias = torch.tensor(input_dict.get("bias", np.zeros(input_dict["weight"].shape[0]))) if "bias" in input_dict else None
     stride = input_dict.get("stride", 1)
     padding = input_dict.get("padding", 0)
     dilation = input_dict.get("dilation", 1)
     groups = input_dict.get("groups", 1)
-    
-    in_channels = input_dict["in_channels"]
-    out_channels = input_dict["out_channels"]
-    kernel_size = input_dict["kernel_size"]
     
     if not cpu:
         input_tensor = input_tensor.cuda()
         weight = weight.cuda()
         if bias is not None:
             bias = bias.cuda()
-
-    qconv = nnq.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, dilation=dilation, groups=groups)
     
-    with torch.no_grad():
-        qconv.weight[:] = weight
-        if bias is not None:
-            qconv.bias[:] = bias
-
-    result = qconv(input_tensor)
-
+    result = torch.nn.functional.conv2d(input_tensor, weight, bias, stride, padding, dilation, groups)
+    
     if not cpu:
         result = result.cpu()
-
+    
     return {"result": result.numpy()}
 
 def tensorflow_version(input_dict, cpu=True):
@@ -43,63 +31,60 @@ def tensorflow_version(input_dict, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
-        input_tensor = tf.constant(input_dict["input"])
-        weight = tf.constant(input_dict["weight"])
-        bias = tf.constant(input_dict["bias"]) if "bias" in input_dict else None
+        input_tensor = tf.constant(input_dict["input"], dtype=tf.float32)
+        weight = tf.constant(input_dict["weight"], dtype=tf.float32)
+        bias = tf.constant(input_dict.get("bias", np.zeros(input_dict["weight"].shape[0])), dtype=tf.float32) if "bias" in input_dict else None
         stride = input_dict.get("stride", 1)
         padding = input_dict.get("padding", 0)
         dilation = input_dict.get("dilation", 1)
         groups = input_dict.get("groups", 1)
-        
-        strides = [1, stride, stride, 1]
-        dilations = [1, dilation, dilation, 1]
-        padding_method = 'VALID'
-        if padding > 0:
-            padding_method = 'SAME'
 
-        if groups == 1:
-            weight = tf.transpose(weight, perm=[2, 3, 1, 0])
-            result = tf.nn.conv2d(input_tensor, weight, strides=strides, padding=padding_method, dilations=dilations)
+        if isinstance(stride, int):
+            strides = [1, stride, stride, 1]
         else:
-            input_channels = input_dict["in_channels"]
-            output_channels = input_dict["out_channels"]
-            kernel_size = input_dict["kernel_size"]
+            strides = [1, stride[0], stride[1], 1]
 
-            if isinstance(kernel_size, int):
-                kernel_size = (kernel_size, kernel_size)
+        if isinstance(dilation, int):
+            dilations = [1, dilation, dilation, 1]
+        else:
+            dilations = [1, dilation[0], dilation[1], 1]
 
-            weight_shape = (kernel_size[0], kernel_size[1], input_channels // groups, output_channels)
-            weight = tf.reshape(weight, weight_shape)
-            weight = tf.transpose(weight, perm=[2, 3, 0, 1])
+        if padding == 0:
+            padding_mode = 'VALID'
+        elif isinstance(padding, int):
+            padding_mode = 'SAME'
+        else:
+            padding_mode = 'VALID'
 
-            splits = tf.split(input_tensor, num_or_size_splits=groups, axis=3)
-            weight_splits = tf.split(weight, num_or_size_splits=groups, axis=3)
+        input_shape = input_tensor.shape.as_list()
+        weight_shape = weight.shape.as_list()
 
-            convs = []
-            for i in range(groups):
-                conv = tf.nn.conv2d(splits[i], weight_splits[i], strides=strides, padding=padding_method, dilations=dilations)
-                convs.append(conv)
-            result = tf.concat(convs, axis=3)
+        if groups > 1:
+            if input_shape[1] % groups != 0:
+                raise ValueError("Number of groups must divide the number of input channels.")
+            channels = input_shape[1] // groups
+            weight = tf.reshape(weight, [weight_shape[0], weight_shape[1], channels, groups, weight_shape[3]])
+            weight = tf.transpose(weight, [3, 0, 1, 2, 4])
+            weight = tf.reshape(weight, [weight_shape[0] * groups, weight_shape[1], channels, weight_shape[3]])
+
+        result = tf.nn.conv2d(input_tensor, weight, strides=strides, padding=padding_mode, dilations=dilations, data_format='NCHW')
 
         if bias is not None:
-            result = tf.nn.bias_add(result, bias)
+            result = tf.nn.bias_add(tf.transpose(result, perm=[0, 2, 3, 1]), bias, data_format='NHWC')
+            result = tf.transpose(result, perm=[0, 3, 1, 2])
 
         result = result.numpy()
-
+    
     return {"result": result}
 
 def main():
     A_TOL = 0.01
-
     input_data = {
-        "in_channels": 3,
-        "out_channels": 2,
-        "kernel_size": 3,
-        "input": np.random.rand(1, 3, 28, 28).astype(np.float32),
-        "weight": np.random.rand(2, 3, 3, 3).astype(np.float32),
-        "bias": np.random.rand(2).astype(np.float32),
+        "input": np.random.rand(1, 3, 32, 32).astype(np.float32),
+        "weight": np.random.rand(8, 3, 3, 3).astype(np.float32),
+        "bias": np.random.rand(8).astype(np.float32),
         "stride": 1,
         "padding": 0,
         "dilation": 1,
@@ -107,11 +92,8 @@ def main():
     }
 
     torch_result = torch_version(input_data)
-
-    input_data["input"] = np.transpose(input_data["input"], (0, 2, 3, 1))
-
     tf_result = tensorflow_version(input_data)
-
+    
     assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
     print("Success")
