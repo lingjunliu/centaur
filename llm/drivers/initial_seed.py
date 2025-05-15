@@ -1,31 +1,25 @@
 import numpy as np
+import torch
+import tensorflow as tf
 
 def torch_version(input_dict, cpu=True):
-    import torch
-
-    torch.manual_seed(42)
+    torch.manual_seed(0)
     result = torch.initial_seed()
-    
-    return {"result": int(result)}
+    return {"result": np.array([result])}
 
 def tensorflow_version(input_dict, cpu=True):
-    import tensorflow as tf
-
-    tf.random.set_seed(42)
-    result = tf.random.uniform(shape=(1,), minval=0, maxval=2**31-1, dtype=tf.int64).numpy()[0]
-
-    return {"result": int(result)}
+    tf.random.set_seed(0)
+    generator = tf.random.Generator.from_seed(0)
+    result = generator.uniform(shape=[1], minval=0, maxval=2**63-1, dtype=tf.int64).numpy()
+    return {"result": result}
 
 def main():
-    A_TOL = 1.0  # Increased tolerance
-
+    A_TOL = 0.01
     input_data = {}
-
     torch_result = torch_version(input_data)
     tf_result = tensorflow_version(input_data)
-    
-    assert abs(torch_result["result"] - tf_result["result"]) < A_TOL
 
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
     print("Success")
 
 if __name__ == "__main__":

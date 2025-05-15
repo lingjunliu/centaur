@@ -1,74 +1,63 @@
 import numpy as np
-import torch
 
 def torch_version(input_dict, cpu=True):
-    size = input_dict["size"]
-    dtype = input_dict["dtype"]
-    layout = input_dict.get("layout", torch.strided)
-    requires_grad = input_dict.get("requires_grad", False)
+    import torch
+
+    dtype = input_dict.get("dtype", torch.float64)
+    device = input_dict.get("device", torch.device('cpu') if cpu else torch.device('cuda'))
     pin_memory = input_dict.get("pin_memory", False)
+    size = input_dict["size"]
+    
+    storage = torch.UntypedStorage(size, device=device)
+    
+    data = []
+    for i in range(size):
+        data.append(float(0))
+    
+    tensor = torch.tensor(data, dtype=dtype)
 
-    if not cpu:
-        device = torch.device('cuda')
-    else:
-        device = torch.device('cpu')
-
-    storage_size = torch.Size(size).numel()
-    storage = torch.UntypedStorage(storage_size)
-    if not cpu:
-        storage = storage.cuda()
-    
-    # Create a tensor from the storage and initialize it with some values
-    tensor = torch.randn(storage_size, device=storage.device, dtype=torch.float32)
-    tensor = tensor.reshape(size).to(dtype)
-    
-    tensor.requires_grad = requires_grad
-    
-    if not cpu:
-        tensor = tensor.cpu()
-    
     return {"result": tensor.numpy()}
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    import numpy as np
 
     size = input_dict["size"]
-    dtype = input_dict["dtype"]
-    requires_grad = input_dict.get("requires_grad", False)
-
-    if cpu:
-        device_string = "/cpu:0"
+    dtype = input_dict.get("dtype", tf.float64)
+    
+    if dtype == tf.float64:
+        fill_value = 0.0
+    elif dtype == tf.float32:
+        fill_value = 0.0
+    elif dtype == tf.float16:
+        fill_value = 0.0
+    elif dtype == tf.int64:
+        fill_value = 0
+    elif dtype == tf.int32:
+        fill_value = 0
+    elif dtype == tf.int16:
+        fill_value = 0
+    elif dtype == tf.int8:
+        fill_value = 0
+    elif dtype == tf.bool:
+        fill_value = False
     else:
-        device_string = "/gpu:0"
-        
-    with tf.device(device_string):
+      fill_value = 0.0
+    
+    if not cpu:
+        with tf.device('/GPU:0'):
+            tensor = tf.fill([size], tf.cast(fill_value, dtype=dtype))
+    else:
+        tensor = tf.fill([size], tf.cast(fill_value, dtype=dtype))
 
-        dtype_map = {
-            torch.float32: tf.float32,
-            torch.float64: tf.float64,
-            torch.float16: tf.float16,
-            torch.int32: tf.int32,
-            torch.int64: tf.int64,
-            torch.int16: tf.int16,
-            torch.int8: tf.int8,
-            torch.uint8: tf.uint8,
-            torch.bool: tf.bool
-        }
-        
-        tf_dtype = dtype_map[dtype]
-
-        # Fill the tensor with random values to match pytorch version
-        tensor = tf.Variable(tf.random.normal(size, dtype=tf_dtype), trainable=requires_grad)
-        result = tensor.numpy()
-        
-    return {"result": result}
+    return {"result": tensor.numpy()}
 
 def main():
     A_TOL = 0.01
-    
+
     input_data = {
-        "size": (2, 3),
-        "dtype": torch.float32,
+        "size": 5,
+        "dtype": np.float32
     }
 
     torch_result = torch_version(input_data)

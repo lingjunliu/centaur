@@ -7,7 +7,7 @@ def torch_version(input_dict, cpu=True):
     n = input_dict.get("n", None)
     dim = input_dict.get("dim", -1)
     norm = input_dict.get("norm", "backward")
-    
+
     if not cpu:
         input_tensor = input_tensor.cuda()
     
@@ -21,53 +21,71 @@ def torch_version(input_dict, cpu=True):
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
 
-    if cpu:
-        device_string = "/cpu:0"
-    else:
-        device_string = "/gpu:0"
+    input_tensor = tf.constant(input_dict["input"])
+    n = input_dict.get("n", None)
+    dim = input_dict.get("dim", -1)
+    norm = input_dict.get("norm", "backward")
+    
+    input_tensor_rank = len(input_tensor.shape)
+    dim_tf = dim
+    if dim < 0:
+        dim_tf = input_tensor_rank + dim
 
-    with tf.device(device_string):
-        input_tensor = tf.constant(input_dict["input"])
-        n = input_dict.get("n", None)
-        dim = input_dict.get("dim", -1)
-        norm = input_dict.get("norm", "backward")
+    if n is not None:
+        input_shape = input_tensor.shape
+        pad_shape = list(input_shape)
+        pad_shape[dim_tf] = max(0, n - input_shape[dim_tf])
+        if pad_shape[dim_tf] > 0:
+            padding = [[0, 0] for _ in range(input_tensor_rank)]
+            padding[dim_tf] = [0, pad_shape[dim_tf]]
+            input_tensor = tf.pad(input_tensor, padding)
+        elif n < input_shape[dim_tf]:
+            slices = [slice(None) for _ in range(input_tensor_rank)]
+            slices[dim_tf] = slice(0, n)
+            input_tensor = input_tensor[tuple(slices)]
+    
+    input_tensor = tf.cast(input_tensor, tf.complex128)
+    result = tf.signal.ifft(input_tensor)
+    
+    if norm == "forward":
+        pass
+    elif norm == "backward":
+        if n is None:
+            n = tf.cast(tf.shape(input_tensor)[dim_tf], tf.float64)
+        else:
+            n = tf.cast(n, tf.float64)
+        result = result / tf.cast(n, tf.complex128)
+    elif norm == "ortho":
+        if n is None:
+            n = tf.cast(tf.shape(input_tensor)[dim_tf], tf.float64)
+        else:
+            n = tf.cast(n, tf.float64)
+        result = result / tf.cast(tf.sqrt(n), tf.complex128)
 
-        input_tensor = tf.cast(input_tensor, tf.complex128)
-
-        if n is not None:
-            input_shape = tf.shape(input_tensor)[dim if dim != -1 else -1]
-            if n > input_shape:
-                padding = n - input_shape
-                pad_width = [(0, 0)] * len(input_tensor.shape)
-                pad_width[dim] = (0, padding)
-                input_tensor = tf.pad(input_tensor, pad_width)
-            elif n < input_shape:
-                slices = [slice(None)] * len(input_tensor.shape)
-                slices[dim] = slice(0, n)
-                input_tensor = input_tensor[tuple(slices)]
-
-        result = tf.signal.ifft(input_tensor)
-
-        if norm == "forward":
-            pass
-        elif norm == "backward":
-            result = result / tf.cast(tf.shape(input_tensor)[dim if dim != -1 else -1], tf.complex128)
-        elif norm == "ortho":
-            result = result / tf.cast(tf.math.sqrt(tf.cast(tf.shape(input_tensor)[dim if dim != -1 else -1], tf.float64)), tf.complex128)
-
-        result = result.numpy()
+    result = result.numpy()
     
     return {"result": result}
 
 def main():
     A_TOL = 0.01
     input_data = {
-        "input": np.array([6.+0.j, -2.+2.j, -2.+0.j, -2.-2.j], dtype=np.complex128)
+        "input": np.array([6.+0.j, -2.+2.j, -2.+0.j, -2.-2.j], dtype=np.complex64)
     }
 
     torch_result = torch_version(input_data)
     tf_result = tensorflow_version(input_data)
+    
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
+    input_data = {
+        "input": np.array([1.+0.j, 1.+0.j, 1.+0.j, 1.+0.j, 1.+0.j, 1.+0.j, 0.+0.j, 0.+0.j], dtype=np.complex64),
+        "n": 16,
+        "norm": 'ortho'
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+    
     assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
     print("Success")
