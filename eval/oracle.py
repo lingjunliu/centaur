@@ -251,6 +251,7 @@ def main():
         
         if result_tuple[0] not in ["nominal", "invalid"] and print_details:
             print(' | '.join([str(x) for x in result_tuple]))
+            print('Seed:', seed)
             print(abstract_print(abs_input, signature))
 
     # Print the summary

@@ -11,12 +11,13 @@ def main():
     PRINT_INDICES = True
     THRESHOLD = 80  # Thrshold for similarity for exception messages
     
-    if len(sys.argv) < 2:
-        print("Usage: python analyze_inputs.py <api>")
+    if len(sys.argv) < 3:
+        print("Usage: python analyze_inputs.py <api> <low> <index>")
         return
     
     api = sys.argv[1]
-    ind = int(sys.argv[2]) if len(sys.argv) > 2 else None
+    low = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    ind = int(sys.argv[3]) if len(sys.argv) > 3 else None
     # Directory containing the input files
     tmp = get_tmp_dir()
     input_file = os.path.join(tmp, "fuzz_inputs", f"{api}_inputs.pkl")
@@ -37,8 +38,8 @@ def main():
             return
         best_distance, abs_input, seed = generated_inputs[ind]
         
-        if ind < len(oracle_results):
-            oracle_result = oracle_results[ind]
+        if ind < len(oracle_results) + low:
+            oracle_result = oracle_results[ind-low]
             
             if oracle_result[0] == "nominal":
                 print(f"Input {ind} is nominal.")
@@ -70,7 +71,7 @@ def main():
             elif oracle_result[0] == "inconsistent":
                 if oracle_result[1] not in inconsistencies:
                     inconsistencies[oracle_result[1]] = []
-                inconsistencies[oracle_result[1]].append(i)
+                inconsistencies[oracle_result[1]].append(low+i)
             else:
                 if oracle_result[0] not in err_count:
                     err_count[oracle_result[0]] = {}
@@ -80,12 +81,12 @@ def main():
                 for group_rep in groups[oracle_result[0]].keys():
                     if fuzz.ratio(oracle_result[1], group_rep) > THRESHOLD:
                         groups[oracle_result[0]][group_rep].append(oracle_result[1])
-                        err_count[oracle_result[0]][group_rep].append(i)
+                        err_count[oracle_result[0]][group_rep].append(low+i)
                         found_group = True
                         break
                 
                 if not found_group:
-                    err_count[oracle_result[0]][oracle_result[1]] = [i]
+                    err_count[oracle_result[0]][oracle_result[1]] = [low+i]
                     groups[oracle_result[0]][oracle_result[1]] = [oracle_result[1]]
 
         for err_type, err_dict in err_count.items():
