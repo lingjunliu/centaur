@@ -88,8 +88,31 @@ Please fix the error and retry the code generation. Only provide the code, skip 
     """
     return prompt
 
+def driver_to_api(driver):
+    """
+        Takes a driver name and returns the corresponding torch API name.
+    """
+    with open("driver_to_api.csv", "r") as f:
+        for line in f.readlines():
+            tokens = line.strip().split(",")
+            if tokens[0] == driver:
+                return tokens[1]
+    return None
+
 def generate_driver(api, max_attempts=5):
     api_basename = api.split(".")[-1]
+    existing_api = driver_to_api(api_basename)
+    counter = 1
+    while existing_api is not None and api != existing_api:
+        # There is already a drriver with the same name for a different API
+        tokens = api.split(".")
+        if len(tokens) > 2:
+            api_basename = tokens[-2] + "_" + api_basename
+        else:
+            api_basename = api_basename + f"_{counter}"
+            counter += 1
+        existing_api = driver_to_api(api_basename)
+
     to_return = [0] * max_attempts
     
     model = "gemini-2.0-flash"
