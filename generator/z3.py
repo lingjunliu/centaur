@@ -23,7 +23,7 @@ def create_z3_args(signature):
                 "length": Int(f"{param}_length"),
                 "values": Array(f"{param}_values", IntSort(), IntSort())
             }
-        elif typ == "tensor":
+        elif typ == "tensor" or typ == "tensor_list":
             z3_args[param] = {
                 "ndim": Int(f"{param}_ndim"),
                 "shape": Array(f"{param}_shape", IntSort(), IntSort()),

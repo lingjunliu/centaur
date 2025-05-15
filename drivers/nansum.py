@@ -1,5 +1,4 @@
 import numpy as np
-from src.type_mapping_torch import np_to_torch
 
 def torch_version(input, cpu=True):
     import torch
@@ -8,7 +7,8 @@ def torch_version(input, cpu=True):
     x2 = input.get("dim", None)
     keepdim = input.get("keepdim", False)
     dtype = input.get("dtype", None)
-    dtype = np_to_torch(dtype)
+    if dtype:
+        dtype = torch.tensor(np.array([], dtype=input["dtype"])).dtype
     
     if not cpu:
         x1 = x1.cuda()

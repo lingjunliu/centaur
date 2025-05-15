@@ -1,5 +1,4 @@
 import numpy as np
-from src.type_mapping_torch import np_to_torch
 
 def torch_version(input, cpu=True):
     import torch
@@ -8,7 +7,7 @@ def torch_version(input, cpu=True):
     row = input["row"]
     col = input["col"]
     offset = input.get("offset", 0)
-    dtype = np_to_torch(input.get("dtype", np.int64))
+    dtype = torch.tensor(np.array([], dtype=input.get("dtype", np.int64))).dtype
 
     if cpu:
         device = torch.device('cpu')

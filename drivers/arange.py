@@ -1,5 +1,4 @@
 import numpy as np
-from src.type_mapping_torch import np_to_torch
 
 def torch_version(input, cpu=True):
     import torch
@@ -7,7 +6,7 @@ def torch_version(input, cpu=True):
     start = input.get("start", 0)
     end = input["end"]
     step = input.get("step", 1)
-    dtype = np_to_torch(input["dtype"])
+    dtype = torch.tensor(np.array([], dtype=input["dtype"])).dtype
     
     device = torch.device('cpu' if cpu else 'cuda')
     

@@ -1,4 +1,3 @@
-from src.type_mapping_torch import np_to_torch
 import numpy as np
 
 def torch_sparse_coo_tensor_version(input, cpu=True):
@@ -8,7 +7,7 @@ def torch_sparse_coo_tensor_version(input, cpu=True):
     indices = torch.tensor(input["indices"], dtype=torch.long)
     values = torch.tensor(input["values"])
     if "dtype" in input.keys():
-        dtype = np_to_torch(input["dtype"])
+        dtype = torch.tensor(np.array([], dtype=input["dtype"])).dtype
 
     size = input.get("size", None)
     

@@ -19,6 +19,7 @@ class CustomInstanceNorm2D(tf.keras.layers.Layer):
             self.running_var = self.add_weight(shape=(num_features,), initializer='ones', trainable=False)
 
     def call(self, inputs, training=False):
+        import tensorflow as tf
         mean, variance = tf.nn.moments(inputs, axes=[2, 3], keepdims=True)  # (N, C, 1, 1)
         if self.track_running_stats:
             if training:

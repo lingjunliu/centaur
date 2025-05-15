@@ -1,7 +1,5 @@
 import numpy as np
 
-from src.type_mapping_torch import np_to_torch
-
 # Custom function to promote types in TensorFlow
 def tf_promote_types(type1, type2):
     import tensorflow as tf
@@ -47,8 +45,8 @@ def torch_version(input, cpu=True):
     import torch
     
     # Unpack input dictionary
-    type1 = np_to_torch(input["type1"])
-    type2 = np_to_torch(input["type2"])
+    type1 = torch.tensor(np.array([], dtype=input["type1"])).dtype
+    type2 = torch.tensor(np.array([], dtype=input["type2"])).dtype
 
     # Apply torch.promote_types
     result_type = torch.promote_types(type1, type2)

@@ -1,5 +1,4 @@
 import numpy as np
-from src.type_mapping_torch import np_to_torch
 
 def torch_version(input, cpu=True):
     import torch
@@ -17,7 +16,7 @@ def torch_version(input, cpu=True):
 
     # Apply to torch.range
     if 'dtype' in input.keys():
-        dtype = np_to_torch(input['dtype'])
+        dtype = torch.tensor(np.array([], dtype=input["dtype"])).dtype
         result = torch.range(start=start, end=end, step=step, device=device, dtype=dtype, requires_grad=requires_grad)
     
     else:

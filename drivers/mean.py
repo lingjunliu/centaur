@@ -1,5 +1,4 @@
 import numpy as np
-from src.type_mapping_torch import np_to_torch
 
 def torch_mean(input, cpu=True):
     import torch
@@ -10,7 +9,7 @@ def torch_mean(input, cpu=True):
     keepdim = input.get("keepdim", False)
 
     if "dtype" in input.keys():
-        dtype = np_to_torch(input["dtype"])
+        dtype = torch.tensor(np.array([], dtype=input["dtype"])).dtype
     else:
         dtype = None
 

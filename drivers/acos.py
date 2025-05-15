@@ -1,5 +1,4 @@
 import numpy as np
-import jax
 
 def torch_version(input, cpu=True):
     import torch
@@ -36,6 +35,7 @@ def tensorflow_version(input, cpu=True):
         return {"acos_result": output_tensor.numpy()}
     
 def jax_version(input, cpu=True):
+    import jax
     def acos_function(x): 
         return jax.numpy.acos(x)
     
