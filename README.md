@@ -25,7 +25,17 @@ The code is organized as follow:
 
 <h2> 1. Learn invariants </h2>
 
- The `infer_invariants` function in the file `learner/invariant_inference.py` can generate a list of inputs randomly, check which of them are valid and for each valid input, check which rules are satisfied by them. It returns a set of tuples `(rule_name, arg1, arg2, ...)` where `arg1`, `arg2`, ... are the arguments in the input that are relevant for a rule (each rule in our rule set is applicable for pair of arguments).
+ The `infer_invariants` function in the file `learner/invariant_inference.py` can generate a list of inputs randomly, check which of them are valid and for each valid input, check which rules are satisfied by them. It returns a set of tuples `(arity, rule_name, arg1, arg2, ...)` where `arg1`, `arg2`, ... are the arguments in the input that are relevant for a rule and `arity` is the number of arguments this rule accepts.
+
+ To run invariant inference for a single api, run the following (under the venv):
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference <api> <time budget> <1 to regenerate invariants 0 otherwise>
+ ```
+ Example:
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference combinations 300 1
+ ```
+ This will generate (regenerate if already exists since `1` is passed as `regen`) the invariants for the api `combinations` and it will use a time budget of `300` seconds to do so.
 
  The tests written under `tests/test_invariants.py` demonstrates usage of this function.
 
