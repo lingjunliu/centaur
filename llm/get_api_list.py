@@ -167,7 +167,7 @@ def update_apis():
 
     print(f"\nStats:\nDriver generation attempted,{len(attempted)}\nSucceeded,{len(succeeded)}\nFailed,{len(failed_generation)}\nOverridden,{len(overridden)}\nInconsistent,{len(inconsistent)}\nPreviously existed,{len(supported_torch_apis)}\nNot attempted,{len(not_attempted)}\nRetried generation despite existing,{len(extra)}\nTotal,{len(backend_apis)}")
 
-    print(f"Saved {needs} PyTorch APIs for which we need to create drivers to {output_file}\n")
+    print(f"\nSaved {needs} PyTorch APIs for which we need to create drivers to {output_file}\n")
     
     with open("other_bugs.txt", "r") as f:
         for line in f.readlines():
@@ -185,5 +185,18 @@ def update_apis():
             else:
                 print(f"{api},Unsupported")
     
+    with open("drivers_to_api.csv", "w") as f:
+        f.write("Driver,API\n")
+        for file in os.listdir("drivers"):
+            if not file.endswith(".py"):
+                continue
+            driver_file = os.path.join("drivers", file)
+            driver_name = file.split(".")[0]
+            for api in backend_apis:
+                if api_in_file(api, driver_file):
+                    f.write(f"{driver_name},{api}\n")
+                    break
+
+
 if __name__ == "__main__":
     update_apis()
