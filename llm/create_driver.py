@@ -92,7 +92,7 @@ def driver_to_api(driver):
     """
         Takes a driver name and returns the corresponding torch API name.
     """
-    with open("driver_to_api.csv", "r") as f:
+    with open("drivers_to_api.csv", "r") as f:
         for line in f.readlines():
             tokens = line.strip().split(",")
             if tokens[0] == driver:

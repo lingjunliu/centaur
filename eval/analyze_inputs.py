@@ -98,7 +98,6 @@ def main():
         if len(inconsistencies) > 0 :
             print("\nInconsistencies:")
         for inconsistency, indices in inconsistencies.items():
-            print(f"  Inconsistency: {inconsistency}")
-            print(f"  Indices: {indices}" if PRINT_INDICES else f"  Count: {len(indices)}")
+            print(f"  Inconsistency: {inconsistency} | Indices: {indices}" if PRINT_INDICES else f"  Count: {len(indices)}\n")            
 if __name__ == "__main__":
     main()

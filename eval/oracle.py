@@ -7,6 +7,43 @@ import numpy as np
 import sys, os
 import time
 
+def max_diff_with_indices(a, b, rtol=1e-7, atol=0.01, equal_nan=True, equal_inf=True):
+    """
+        Returns the max diff, the indices of the max diff, and the values of a and b at those indices.
+    """
+    a = np.asarray(a)
+    b = np.asarray(b)
+
+    # If input is boolean, cast to int for safe arithmetic
+    if a.dtype == bool:
+        a = a.astype(int)
+    if b.dtype == bool:
+        b = b.astype(int)
+
+    # Base isclose comparison (only valid on float/int)
+    is_close = np.isclose(a, b, rtol=rtol, atol=atol, equal_nan=False)
+
+    if equal_nan:
+        is_close |= (np.isnan(a) & np.isnan(b))
+    if equal_inf:
+        is_close |= ((a == np.inf) & (b == np.inf)) | ((a == -np.inf) & (b == -np.inf))
+
+    mismatch_mask = ~is_close
+
+    if not np.any(mismatch_mask):
+        return 0.0, (), None, None
+
+    diffs = np.abs(a[mismatch_mask] - b[mismatch_mask])
+    max_diff = np.nanmax(diffs)
+
+    mismatch_diffs = np.abs(a - b)
+    max_locs = np.argwhere(mismatch_mask & (mismatch_diffs == max_diff))
+    indices = [tuple(idx) for idx in max_locs]
+    a_vals = [a[idx] for idx in indices]
+    b_vals = [b[idx] for idx in indices]
+
+    return max_diff, indices, a_vals, b_vals
+
 def check_crash(return_code, exception_message):
     """
     Check if the exception message indicates a crash.
@@ -45,47 +82,48 @@ def check_crash(return_code, exception_message):
     
     return False
 
-def compare_two(elem1, elem2, rtol=1e-05, atol=1e-08):
+def compare_two(elem1, elem2, rtol=1e-07, atol=0.01):
+    indices = None
     if type(elem1) != type(elem2):
-        return False, None
+        return False, None, indices
     
     if isinstance(elem1, list):
         elem1 = np.array(elem1).flatten()
         elem2 = np.array(elem2).flatten()
     
     if elem1.size > 0 and elem2.size > 0:
-        try:
-            max_diff = np.max(np.abs(elem1 - elem2)) if isinstance(elem1, np.ndarray) else None
-        except:
-            max_diff = np.max(np.abs(elem1 ^ elem2)) if isinstance(elem1, np.ndarray) else None
+        max_diff, indices, elem1_val, elem2_val = max_diff_with_indices(elem1, elem2, rtol=rtol, atol=atol, equal_nan=True, equal_inf=True)
+    elif elem1.size == 0 and elem2.size == 0:
+        max_diff = 0.0
     else:
         max_diff = None
         
     if isinstance(elem1, np.ndarray):
         if len(elem1) != len(elem2):
-            return False, max_diff
+            return False, max_diff, indices
     
     try:
         matched = np.allclose(elem1, elem2, rtol=rtol, atol=atol, equal_nan=True)
     except: # most likely not numeric
         matched = elem1 == elem2
 
-    return matched, max_diff
+    return matched, max_diff, indices
 
-def consistent(output1, output2, rtol=1e-05, atol=1e-08):
+def consistent(output1, output2, rtol=1e-07, atol=1e-08):
     matched = True
+    indices = None
 
     if type(output1) != type(output2):
         print(f"Expected two dicts, got {type(output1)} and {type(output2)}")
-        return False, None
+        return False, None, indices
 
     for name in output1.keys():
-        matched, max_diff = compare_two(output1[name], output2[name], rtol=rtol, atol=atol)
+        matched, max_diff, indices = compare_two(output1[name], output2[name], rtol=rtol, atol=atol)
 
         if matched == False:
-            return False, max_diff
+            return False, max_diff, indices
 
-    return matched, max_diff
+    return matched, max_diff, indices
 
 def oracle_crash(driver, input_dict, timeout=10, cpu=True):
     """
@@ -165,9 +203,9 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08):
     else:
         if return_code_cpu != 0:
             return ("invalid", exception_message_cpu, exception_message_gpu)
-        const, max_diff = consistent(output_cpu, output_gpu, atol=atol)
+        const, max_diff, indices = consistent(output_cpu, output_gpu, atol=atol)
         if not const:
-            return ("inconsistent", max_diff)
+            return ("inconsistent", max_diff, indices)
     
     return ("nominal", "")
 
