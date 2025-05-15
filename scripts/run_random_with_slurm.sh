@@ -3,6 +3,15 @@
 duration=${1:-300}  # seconds
 n_max=${2:-0}   # define maximum number of inputs to generate, 0 means no max
 
+# Add 2 minutes (120 seconds)
+total_seconds=$((duration + 120))
+
+# Convert to HH:MM:SS
+hours=$((total_seconds / 3600))
+minutes=$(((total_seconds % 3600) / 60))
+seconds=$((total_seconds % 60))
+export slurm_time=$(printf "%02d:%02d:%02d" $hours $minutes $seconds)
+
 job_name=rand
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
