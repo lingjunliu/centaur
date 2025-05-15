@@ -1,0 +1,67 @@
+import numpy as np
+
+def torch_version(input_dict, cpu=True):
+    import torch
+
+    input_tensor = torch.tensor(input_dict["input"])
+    
+    if not cpu:
+        input_tensor = input_tensor.cuda()
+    
+    try:
+        torch.jit.trace(lambda x: x + 1, input_tensor)
+        result = "No exception"
+    except UserWarning as e:
+        result = str(e)
+    except Exception as e:
+        result = str(e)
+    else:
+        result = "No exception"
+    
+    if not cpu:
+        pass
+    
+    return {"result": result}
+
+def tensorflow_version(input_dict, cpu=True):
+    import tensorflow as tf
+
+    if cpu:
+        device_string = "/cpu:0"
+    else:
+        device_string = "/gpu:0"
+    
+    with tf.device(device_string):
+        try:
+            # There isn't a direct equivalent for torch.jit.TracerWarning in TensorFlow.
+            # We simulate the warning behavior.
+            
+            @tf.function
+            def traced_function(x):
+                return x + 1
+
+            concrete_function = traced_function.get_concrete_function(tf.convert_to_tensor(input_dict["input"], dtype=tf.float32))
+            
+            result = "No exception"  # If tf.function tracing succeeds without raising a warning
+        except Exception as e:
+            result = str(e) # if tracing fails with an error
+        except UserWarning as e:
+             result = str(e)
+
+    return {"result": result}
+
+def main():
+    A_TOL = 0.01
+    input_data = {
+        "input": np.array([0.0202, 1.0985, 1.3506, -0.6056], dtype=np.float32)
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+    
+    assert torch_result["result"] == tf_result["result"], "Results do not match"
+
+    print("Success")
+
+if __name__ == "__main__":
+    main()

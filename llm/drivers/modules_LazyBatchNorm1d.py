@@ -1,0 +1,63 @@
+import numpy as np
+
+def torch_version(input_dict, cpu=True):
+    import torch
+    
+    input_tensor = torch.tensor(input_dict["input"])
+    
+    if not cpu:
+        input_tensor = input_tensor.cuda()
+    
+    lazy_batchnorm = torch.nn.LazyBatchNorm1d()
+    if not cpu:
+        lazy_batchnorm = lazy_batchnorm.cuda()
+
+    result = lazy_batchnorm(input_tensor)
+    
+    if not cpu:
+        result = result.cpu()
+    
+    return {"result": result.detach().numpy()}
+
+def tensorflow_version(input_dict, cpu=True):
+    import tensorflow as tf
+
+    if cpu:
+        device_string = "/cpu:0"
+    else:
+        device_string = "/gpu:0"
+
+    with tf.device(device_string):
+        input_tensor = tf.constant(input_dict["input"])
+
+        mean = tf.reduce_mean(input_tensor, axis=0)
+        variance = tf.math.reduce_variance(input_tensor, axis=0)
+
+        epsilon = 1e-5 
+        normalized_tensor = (input_tensor - mean) / tf.math.sqrt(variance + epsilon)
+        
+        gamma = tf.Variable(tf.ones(input_tensor.shape[-1:]))
+        beta = tf.Variable(tf.zeros(input_tensor.shape[-1:]))
+
+        result = gamma * normalized_tensor + beta
+        
+        result = result.numpy()
+
+    return {"result": result}
+
+def main():
+    A_TOL = 0.01
+    
+    input_data = {
+        "input": np.array([[1.0, 2.0, 3.0, 4.0, 5.0], [6.0, 7.0, 8.0, 9.0, 10.0]], dtype=np.float32)
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+    
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+
+    print("Success")
+
+if __name__ == "__main__":
+    main()
