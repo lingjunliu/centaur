@@ -2,7 +2,7 @@ import sys, time, os
 import numpy as np
 from .input_generators import get_random_input, get_abstract_input
 from utils.api_utils import get_driver, get_signatures
-from utils.misc import get_tmp_dir, create_subdir, get_dir_in_root, save_to_new_pkl
+from utils.misc import get_tmp_dir, create_subdir, get_dir_in_root, save_to_pkl, save_to_new_pkl
 from eval.oracle import oracle_crash
 
 def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch"):
@@ -50,6 +50,7 @@ def main():
     duration = int(sys.argv[2]) if len(sys.argv) > 2 else 30   # seconds
     n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0    # maximum numberof inputs
     
+    override_valid = True # setting to True will override the saved valid inputs
     n_valid = 5 # number of inputs to save to infer invariants with
     seed = 42   # seed for reproduction
     tmp_results = create_subdir(get_tmp_dir(), "rand_results")
@@ -67,7 +68,10 @@ def main():
         
     # Save valid inputs for invariant inference
     pkl_file = os.path.join(get_dir_in_root("valid_inputs"), f"{api}.pkl")
-    save_to_new_pkl(pkl_file, abstract_inputs)
+    if override_valid:
+        save_to_pkl(pkl_file, abstract_inputs)
+    else:
+        save_to_new_pkl(pkl_file, abstract_inputs)
 
 if __name__ == "__main__":
     main()
