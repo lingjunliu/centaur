@@ -96,12 +96,12 @@ _ = lambda s,r,v: {
 '''
 
 def rule_1_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))    
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))    
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray):
             return False 
 
         # Variable declarations
@@ -110,12 +110,12 @@ def rule_1_func(arg1, arg2, solver=None):
         arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        solver.add(arg2_ndim == arg2_value.ndim)
-        for i in range(arg1_value.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
-        for i in range(arg2_value.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2_value.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 1
         _(solver, 'rule_1', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
@@ -125,8 +125,8 @@ def rule_1_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 1
-        _(solver, 'rule_1', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
-                             'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
+        _(solver, 'rule_1', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 
+                             'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']})
 
 '''
     Corresponds to rule that the value in arg2 (dim) is within the range of dimensions of arg1 (input_tensor). (Rule 2)
@@ -141,30 +141,31 @@ def rule_1_func(arg1, arg2, solver=None):
 '''
 
 def rule_2_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
+    param2 = next(iter(arg2.keys()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
     
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or next(iter(arg2.keys())) != "dim":
+        if param2 != "dim" or not isinstance(arg1, np.ndarray):
             return False 
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim, arg2 = Ints('arg1_ndim arg2_value')
+        arg1_ndim, arg2_value = Ints('arg1_ndim arg2_value')
     
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        solver.add(arg2 == int(arg2_value)) 
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2)) 
 
         # Constraints for rule 2
-        _(solver, 'rule_2', {'arg1_ndim': arg1_ndim, 'arg2_value': arg2})
+        _(solver, 'rule_2', {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 2
-        _(solver, 'rule_2', {'arg1_ndim': arg1_value['ndim'], 'arg2': arg2_value['value']})
+        _(solver, 'rule_2', {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})
 
 '''
     Corresponds to rule that asserts that arg1 and arg2 has the same number of dimensions. (Rule 3)
@@ -179,12 +180,12 @@ def rule_2_func(arg1, arg2, solver=None):
 '''
 
 def rule_3_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))    
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))    
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray):
             return False 
 
         # Variable declarations
@@ -192,8 +193,8 @@ def rule_3_func(arg1, arg2, solver=None):
         arg1_ndim, arg2_ndim = Ints('arg1_ndim arg2_ndim')
         
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        solver.add(arg2_ndim == arg2_value.ndim)
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 3
         _(solver, 'rule_3', {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
@@ -202,7 +203,7 @@ def rule_3_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 3
-        _(solver, 'rule_3', {'arg1_ndim': arg1_value['ndim'], 'arg2_ndim': arg2_value['ndim']})
+        _(solver, 'rule_3', {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']})
 
 '''
     Corresponds to rule that asserts that arg1 and arg2 have the same data type. (Rule 4)
@@ -217,12 +218,12 @@ def rule_3_func(arg1, arg2, solver=None):
 '''
 
 def rule_4_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
     
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray):
             return False 
 
         # Variable declarations
@@ -230,8 +231,8 @@ def rule_4_func(arg1, arg2, solver=None):
         arg1_dtype, arg2_dtype = Ints('arg1_dtype arg2_dtype')
     
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1_value.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2_value.dtype))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 4
         _(solver, 'rule_4', {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
@@ -240,7 +241,7 @@ def rule_4_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 4
-        _(solver, 'rule_4', {'arg1_dtype': arg1_value['dtype'], 'arg2_dtype': arg2_value['dtype']})
+        _(solver, 'rule_4', {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']})
 
 '''
     Corresponds to rule that arg2 (index) is within the range of dimensions of arg1 (input tensor). (Rule 5)
@@ -255,12 +256,13 @@ def rule_4_func(arg1, arg2, solver=None):
 '''
 
 def rule_5_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
+    param2 = next(iter(arg2.keys()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or next(iter(arg2.keys())) != "index" or not isinstance(arg2_value, np.ndarray):
+        if param2 != "index" or not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray):
             return False 
 
         # Variable declarations
@@ -270,11 +272,11 @@ def rule_5_func(arg1, arg2, solver=None):
         arg2_range = Array('arg2_range', IntSort(), IntSort())
     
         # Value assignments
-        for i in range(arg1_value.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
-        solver.add(arg1_ndim == arg1_value.ndim)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2_value)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2_value)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 5
         _(solver, 'rule_5', {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range})
@@ -283,8 +285,8 @@ def rule_5_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 5
-        _(solver, 'rule_5', {'arg1_shape': arg1_value['shape'], 'arg1_ndim': arg1_value['ndim'], 
-                             'arg2_range': arg2_value['range']})
+        _(solver, 'rule_5', {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 
+                             'arg2_range': arg2['range']})
 
 '''
     Corresponds to rule that asserts that the last dimension of arg1 is equal to the first dimension of arg2. (Rule 6)
@@ -299,12 +301,12 @@ def rule_5_func(arg1, arg2, solver=None):
 '''
 
 def rule_6_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray):
             return False 
 
         # Variable declarations
@@ -313,10 +315,10 @@ def rule_6_func(arg1, arg2, solver=None):
         arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
     
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        solver.add(arg2_ndim == arg2_value.ndim)
-        arg1_shape = Store(arg1_shape, arg1_value.ndim-1, arg1_value.shape[arg1_value.ndim-1])
-        arg2_shape = Store(arg2_shape, 0, arg2_value.shape[0])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        arg1_shape = Store(arg1_shape, arg1.ndim-1, arg1.shape[arg1.ndim-1])
+        arg2_shape = Store(arg2_shape, 0, arg2.shape[0])
         
         # Constraints for rule 6
         _(solver, 'rule_6', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
@@ -326,8 +328,8 @@ def rule_6_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 6
-        _(solver, 'rule_6', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
-                             'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
+        _(solver, 'rule_6', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 
+                             'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']})
 
 """
     Corresponds to rule that asserts that the size of the second dimenson of arg2 is equal 
@@ -347,12 +349,12 @@ def rule_6_func(arg1, arg2, solver=None):
 """
 
 def rule_7_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
@@ -361,10 +363,10 @@ def rule_7_func(arg1, arg2, solver=None):
         arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
     
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        solver.add(arg2_ndim == arg2_value.ndim)
-        arg1_shape = Store(arg1_shape, 0, arg1_value.shape[0])
-        arg2_shape = Store(arg2_shape, 1, arg2_value.shape[1])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        arg1_shape = Store(arg1_shape, 0, arg1.shape[0])
+        arg2_shape = Store(arg2_shape, 1, arg2.shape[1])
         
         # Constraints for rule 7
         _(solver, 'rule_7', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
@@ -374,8 +376,8 @@ def rule_7_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 7
-        _(solver, 'rule_7', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
-                             'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
+        _(solver, 'rule_7', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 
+                             'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']})
 
 """
     Corresponds to rule asserting that arg1 has an integer data type, i.e., np.int8, np.int16, np.int32, np.int64. (Rule 8)
@@ -391,11 +393,11 @@ def rule_7_func(arg1, arg2, solver=None):
 """
 
 def rule_8_func(arg1, solver=None):
-    arg1_value = next(iter(arg1.values()))
+    arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False 
         
         # Variable declarations
@@ -403,7 +405,7 @@ def rule_8_func(arg1, solver=None):
         arg1_dtype = Int('arg1_dtype')
         
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1_value.dtype))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 8
         _(solver, 'rule_8', {'arg1_dtype': arg1_dtype}) 
@@ -412,18 +414,18 @@ def rule_8_func(arg1, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 8
-        _(solver, 'rule_8', {'arg1_dtype': arg1_value['dtype']})
+        _(solver, 'rule_8', {'arg1_dtype': arg1['dtype']})
 
 """
     Corresponds to rule asserting that arg1 is in 4D shape and all of its dimension sizes are positive. (Rule 9)
 """
 
 def rule_9_func(arg1, solver=None):
-    arg1_value = next(iter(arg1.values()))
+    arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
@@ -432,9 +434,9 @@ def rule_9_func(arg1, solver=None):
         arg1_shape = Array('arg1_shape', IntSort(), IntSort()) 
 
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        for i in range(arg1_value.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 9
         _(solver, 'rule_9', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
@@ -443,7 +445,7 @@ def rule_9_func(arg1, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 9
-        _(solver, 'rule_9', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape']}) 
+        _(solver, 'rule_9', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}) 
 
 """
     [conv_transpose2d] Corresponds to rule asserting that (stride * (input - 1) + weight - 2 * padding + output_padding) 
@@ -452,17 +454,21 @@ def rule_9_func(arg1, solver=None):
 """
 
 def rule_10_func(arg1, arg2, arg3, arg4, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
-    arg3_value = next(iter(arg3.values()))
-    arg4_value = next(iter(arg4.values()))
+    param1 = next(iter(arg1.keys()))
+    param2 = next(iter(arg2.keys()))
+    param3 = next(iter(arg3.keys()))
+    param4 = next(iter(arg4.keys()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver: 
         if (
-            next(iter(arg1.keys())) != "input" or not isinstance(arg1_value, np.ndarray) or 
-            next(iter(arg2.keys())) != "weight" or not isinstance(arg2_value, np.ndarray) or
-            next(iter(arg3.keys())) != "stride" or next(iter(arg4.keys())) != "padding"
+            param1 != "input" or param2 != "weight" or 
+            param3 != "stride" or param4 != "padding" or 
+            not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray)
         ):
             return False
 
@@ -470,30 +476,30 @@ def rule_10_func(arg1, arg2, arg3, arg4, solver=None):
         solver = Solver()
         arg1_ndim, arg2_ndim = Ints('arg1_ndim arg2_ndim')
         arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
-        arg3, arg4 = Ints('arg3_value, arg4_value')
+        arg3_value, arg4_value = Ints('arg3_value, arg4_value')
         
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        solver.add(arg2_ndim == arg2_value.ndim)
-        arg1_shape = Store(arg1_shape, arg1_value.ndim-1, arg1_value.shape[arg1_value.ndim-1])
-        arg1_shape = Store(arg1_shape, arg1_value.ndim-2, arg1_value.shape[arg1_value.ndim-2])
-        arg2_shape = Store(arg2_shape, arg2_value.ndim-1, arg2_value.shape[arg2_value.ndim-1])
-        arg2_shape = Store(arg2_shape, arg2_value.ndim-2, arg2_value.shape[arg2_value.ndim-2])
-        solver.add(arg3 == int(arg3_value)) 
-        solver.add(arg4 == int(arg4_value)) 
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        arg1_shape = Store(arg1_shape, arg1.ndim-1, arg1.shape[arg1.ndim-1])
+        arg1_shape = Store(arg1_shape, arg1.ndim-2, arg1.shape[arg1.ndim-2])
+        arg2_shape = Store(arg2_shape, arg2.ndim-1, arg2.shape[arg2.ndim-1])
+        arg2_shape = Store(arg2_shape, arg2.ndim-2, arg2.shape[arg2.ndim-2])
+        solver.add(arg3_value == int(arg3)) 
+        solver.add(arg4_value == int(arg4)) 
         
         # Constraints for rule 10
         _(solver, 'rule_10', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
                               'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape,
-                              'arg3_value': arg3, 'arg4_value': arg4})
+                              'arg3_value': arg3_value, 'arg4_value': arg4_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 10
-        _(solver, 'rule_10', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
-                              'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape'],
-                              'arg3_value': arg3_value['value'], 'arg4_value': arg4_value['value']})
+        _(solver, 'rule_10', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 
+                              'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'],
+                              'arg3_value': arg3['value'], 'arg4_value': arg4['value']})
 
 '''
     Corresponds to a rule that ensures the index tensor (arg3) is within
@@ -512,37 +518,38 @@ def rule_10_func(arg1, arg2, arg3, arg4, solver=None):
 '''
 
 def rule_11_func(arg1, arg2, arg3, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
-    arg3_value = next(iter(arg3.values()))
+    param2 = next(iter(arg2.keys()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
     
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or next(iter(arg2.keys())) != "dim" or not isinstance(arg3_value, np.ndarray):
+        if param2 != "dim" or not isinstance(arg1, np.ndarray) or not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2 = Int('arg2_value')
+        arg2_value = Int('arg2_value')
         arg3_range = Array('arg3_range', IntSort(), IntSort())
     
         # Value assignments
-        for i in range(arg1_value.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
-        solver.add(arg2 == int(arg2_value))
-        arg3_range = Store(arg3_range, 0, int(np.min(arg3_value)))
-        arg3_range = Store(arg3_range, 1, int(np.max(arg3_value)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == int(arg2))
+        arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
+        arg3_range = Store(arg3_range, 1, int(np.max(arg3)))
 
         # Constraints for rule 11
-        _(solver, 'rule_11', {'arg1_shape': arg1_shape, 'arg2_value': arg2, 'arg3_range': arg3_range})
+        _(solver, 'rule_11', {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 11
-        _(solver, 'rule_11', {'arg1_shape': arg1_value['shape'], 'arg2_value': arg2_value['value'], 
-                              'arg3_range': arg3_value['range']})
+        _(solver, 'rule_11', {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 
+                              'arg3_range': arg3['range']})
 
 """
     Corresponds to a rule that ensures arg1 (low) is less than or equal to arg2 (high) 
@@ -558,30 +565,30 @@ def rule_11_func(arg1, arg2, arg3, solver=None):
 """
 
 def rule_12_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, (int, float)) or not isinstance(arg2_value, (int, float)):
+        if not isinstance(arg1, (int, float)) or not isinstance(arg2, (int, float)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1, arg2 = Reals('arg1_value arg2_value')
+        arg1_value, arg2_value = Reals('arg1_value arg2_value')
     
         # Value assignments
-        solver.add(arg1 == arg1_value)
-        solver.add(arg2 == arg2_value)
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
         
         # Constraints for rule 12
-        _(solver, 'rule_12', {'arg1_value': arg1, 'arg2_value': arg2}) 
+        _(solver, 'rule_12', {'arg1_value': arg1_value, 'arg2_value': arg2_value}) 
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 12
-        _(solver, 'rule_12', {'arg1_value': ToReal(arg1_value['value']), 'arg2_value': ToReal(arg2_value['value'])}) 
+        _(solver, 'rule_12', {'arg1_value': ToReal(arg1['value']), 'arg2_value': ToReal(arg2['value'])}) 
 
 """
     Corresponds to rule asserting that arg1 has an float data type. (Rule 13)
@@ -597,11 +604,11 @@ def rule_12_func(arg1, arg2, solver=None):
 """
 
 def rule_13_func(arg1, solver=None):
-    arg1_value = next(iter(arg1.values()))
+    arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False 
 
         # Variable declarations
@@ -609,7 +616,7 @@ def rule_13_func(arg1, solver=None):
         arg1_dtype = Int('arg1_dtype')
         
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1_value.dtype))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 13
         _(solver, 'rule_13', {'arg1_dtype': arg1_dtype}) 
@@ -618,18 +625,18 @@ def rule_13_func(arg1, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 13
-        _(solver, 'rule_13', {'arg1_dtype': arg1_value['dtype']})
+        _(solver, 'rule_13', {'arg1_dtype': arg1['dtype']})
 
 """
     Corresponds to rule asserting that arg1 (input_tensor) should not be empty. (Rule 14)
 """
 
 def rule_14_func(arg1, solver=None):
-    arg1_value = next(iter(arg1.values()))
+    arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray):
             return False 
 
         # Variable declarations
@@ -638,9 +645,9 @@ def rule_14_func(arg1, solver=None):
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
     
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        for i in range(arg1_value.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 14
         _(solver, 'rule_14', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
@@ -649,19 +656,19 @@ def rule_14_func(arg1, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 14
-        _(solver, 'rule_14', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape']})
+        _(solver, 'rule_14', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']})
 
 """
     Corresponds to rule for the broadcasting semantics. (Rule 15)
 """
 
 def rule_15_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))    
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))    
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray):
             return False 
 
         # Variable declarations
@@ -670,12 +677,12 @@ def rule_15_func(arg1, arg2, solver=None):
         arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        solver.add(arg2_ndim == arg2_value.ndim)
-        for i in range(arg1_value.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1_value.shape[i])
-        for i in range(arg2_value.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2_value.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 15
         _(solver, 'rule_15', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
@@ -685,20 +692,20 @@ def rule_15_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 15
-        _(solver, 'rule_15', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
-                              'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
+        _(solver, 'rule_15', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 
+                              'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']})
 
 """
     Corresponds to rule for shape alignment for matrix multiplication. (Rule 16)
 """
 
 def rule_16_func(arg1, arg2, solver=None):
-    arg1_value = next(iter(arg1.values()))
-    arg2_value = next(iter(arg2.values()))
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1_value, np.ndarray) or not isinstance(arg2_value, np.ndarray):
+        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
@@ -707,12 +714,12 @@ def rule_16_func(arg1, arg2, solver=None):
         arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
     
         # Value assignments
-        solver.add(arg1_ndim == arg1_value.ndim)
-        solver.add(arg2_ndim == arg2_value.ndim)
-        arg1_shape = Store(arg1_shape, arg1_value.ndim - 1, arg1_value.shape[-1])
-        arg2_shape = Store(arg2_shape, arg2_value.ndim - 1, arg2_value.shape[-1])
-        if arg2_value.ndim >= 2:
-            arg2_shape = Store(arg2_shape, arg2_value.ndim - 2, arg2_value.shape[-2])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
+        arg1_shape = Store(arg1_shape, arg1.ndim - 1, arg1.shape[-1])
+        arg2_shape = Store(arg2_shape, arg2.ndim - 1, arg2.shape[-1])
+        if arg2.ndim >= 2:
+            arg2_shape = Store(arg2_shape, arg2.ndim - 2, arg2.shape[-2])
         
         # Constraints for rule 16
         _(solver, 'rule_16', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
@@ -722,8 +729,8 @@ def rule_16_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 16
-        _(solver, 'rule_16', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
-                              'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape']})
+        _(solver, 'rule_16', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 
+                              'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']})
 
 ############### mapping ################
 
