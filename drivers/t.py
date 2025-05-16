@@ -10,6 +10,8 @@ def torch_version(input, cpu=True):
 
     # Apply torch.t
     result = torch.t(input_tensor)
+    if not cpu:
+        result = result.cpu()
 
     return {"t_result": result.numpy()}
 
