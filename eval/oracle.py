@@ -99,7 +99,7 @@ def compare_two(elem1, elem2, rtol=1e-07, atol=0.01):
         max_diff = None
         
     if isinstance(elem1, np.ndarray):
-        if len(elem1) != len(elem2):
+        if elem1.size != elem2.size:
             return False, max_diff, indices
     
     try:
