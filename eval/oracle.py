@@ -68,6 +68,7 @@ def check_crash(return_code, exception_message):
         "please report a bug",
         "CUDA out of memory",
         "CUDA error"
+        "Timeout"
         # Add more crash-related strings as needed
     ]
     

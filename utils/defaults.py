@@ -3,8 +3,10 @@ import numpy as np
 
 MAX_N_DIM=6
 MAX_SZ_DIM=100
-MAX_SZ_NUM=10000
-MAX_SZ_FLT=10000000.0
+# MAX_SZ_NUM=10000 # old
+MAX_SZ_NUM=np.iinfo(np.int64).max # new, experimental
+# MAX_SZ_FLT=10000000.0 # old
+MAX_SZ_FLT=np.finfo(np.float64).max # new, experimental
 MAX_SZ_LST=10
 MAX_SZ_TENSOR=256 # MB
 

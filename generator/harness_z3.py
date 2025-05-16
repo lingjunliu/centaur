@@ -7,15 +7,15 @@ import sys
 import json
 
 from z3 import *
-from .ea import Configuration, Mutator, optimize
 from .definitions import map_defs, get_definition
 from .serialize import load_model, save_model 
 from .z3 import create_z3_args, gen_models, instantiate_args 
 from utils.api_utils import get_driver
-from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, read_pkl, save_to_new_pkl
+from utils.misc import create_subdir, get_tmp_dir
+from generator.input_generators import abstract_print
 from eval.oracle import oracle_crash
 
-def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_max=0, print_details=False, model_regen=False):
+def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_max=0, print_details=False, model_regen=False, seed=42):
     driver = get_driver(api)
 
     print(f"Optimizing for {api} with {model_gen_duration} (max_model) and {fuzz_duration} (fuzz) second budgets")
@@ -25,7 +25,6 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     invalid = 0
     crash = 0
     excp = 0
-    seed = 200
     generated_inputs = []
     definition = get_definition(api, z3=True)
     if len(definition["ruleset"]) == 0:
@@ -33,7 +32,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         return
 
     z3_args = create_z3_args(definition["signature"])
-    if os.path.isdir(f"corpus/{api}"):
+    if os.path.exists(f"corpus/{api}") and not model_regen:
         models = []
         for model_file in sorted(os.listdir(f"corpus/{api}")):
             model_path = os.path.join(f"corpus/{api}", model_file)
@@ -43,7 +42,8 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
             models.append(model)
         print(f"Loaded {len(models)} existing models for {api}")
     else:
-        models = gen_models(definition, driver, z3_args, model_gen_duration, max_model)
+        models = gen_models(definition, driver, z3_args, model_gen_duration, max_model, seed=seed, print_details=print_details)
+        os.makedirs(f"corpus", exist_ok=True)
         os.makedirs(f"corpus/{api}", exist_ok=True)
         for idx, model in enumerate(models):
             path = os.path.join(f"corpus/{api}", f"model-{idx}.json")
@@ -63,21 +63,24 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
         if status == "nominal":
             valid += 1
+            if print_details:
+                print(f"\nNominal input:\n{abstract_print(abstract_input, definition["signature"])}")
         elif status == "invalid":
             invalid += 1
             ## Traceback for debugging
             if print_details:
                 print(f"\nThe input might be invalid. Faced exception:\n{exception_message}")
+                print(f"\Invalid input:\n{abstract_print(abstract_input, definition["signature"])}")
         elif status.endswith("_excp"):
             excp += 1
             # Always log crashes
             print(f"\n[{status}]\n{exception_message}")
-            print(f"\nAbstract input: {abstract_input}")
+            print(f"\nAbstract input:\n{abstract_print(abstract_input, definition["signature"])}")
         elif status.endswith("_crash"):
             crash += 1
             # Always log crashes
             print(f"\n[{status}]\n{exception_message}")
-            print(f"\nAbstract input: {abstract_input}")
+            print(f"\nAbstract input:\n{abstract_print(abstract_input, definition["signature"])}")
         else:
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
@@ -94,7 +97,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     total = valid + invalid + crash + excp
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
-    print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
+    print(f"Models: {len(models)} | Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
     
     # Save outputs
     tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
@@ -108,21 +111,11 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         
 
 if __name__ == "__main__":
-    os.makedirs(f"corpus", exist_ok=True)
-
-    # Run scatter for 30 minutes
+    seed = 200
     model_gen_duration = 60 # seconds
     fuzz_duration = 30 # seconds
     max_model = 100
     print_details = sys.argv[1].lower() == 'true' if len(sys.argv) > 1 else False
     
-    run_api_with_duration("matmul", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
-     
-    # # Run atan2 for 30 seconds
-    # run_api_with_duration("atan2", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
-    
-    # # Run argmin for 30 seconds
-    # run_api_with_duration("argmin", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
-    
-    # # Run conv_transpose2d for 30 seconds
-    # run_api_with_duration("conv_transpose2d", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
+    run_api_with_duration("add", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
+    run_api_with_duration("combinations", model_gen_duration, fuzz_duration, max_model, print_details=print_details)

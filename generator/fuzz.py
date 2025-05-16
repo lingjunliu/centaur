@@ -12,6 +12,7 @@ def main():
     mode = sys.argv[3] if len(sys.argv) > 3 else "z3"
     n_max = int(sys.argv[4]) if len(sys.argv) > 4 else 0
     limit = int(sys.argv[5]) if len(sys.argv) > 5 else 30
+    seed = int(sys.argv[6]) if len(sys.argv) > 6 else 200
     
     if mode.strip().lower() == "z3":
         # split duration between model generation and fuzzing
@@ -19,7 +20,7 @@ def main():
         model_gen_duration = int(duration*limit/100)
         fuzz_duration = duration - model_gen_duration
         max_model = n_max
-        fuzz_with_z3(api, model_gen_duration, fuzz_duration, max_model, n_max=n_max)
+        fuzz_with_z3(api, model_gen_duration, fuzz_duration, max_model, n_max=n_max, seed=seed)
     else:
         fuzz_with_optimizer(api, duration, n_max, limit)
 

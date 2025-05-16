@@ -57,7 +57,7 @@ The code is organized as follow:
 
  To run fuzzing campaings, use the `scripts/fuzz_with_slurm.sh`. **Be sure to install and configure slurm before running this.**. This runs the fuzzing campaign on apis from the file `apis.txt` parallelly.
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh <duration> <mode> <n_max> <limit>
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh <duration> <mode> <n_max> <limit> <seed>
  ```
  - `Duration`: Duration to fuzz each api in seconds.
  - `Mode`: `z3` for Z3 based generator, `ea` for evolutionary algorithm based optimizer
@@ -65,9 +65,10 @@ The code is organized as follow:
  - `limit`: Deafult `30`
     - For `z3`, this limit represents the percentage of the total `duration` spent on initial model generation
     - For `ea`, this limit represents the duration after which a random restart will take place.
+ - `seed`: Seed for the generator, default `200`
 
  Example:
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh 3600 z3 0 50
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh 3600 z3 0 50 42
  ```
- This will run the `z3` based generator parallelly on all apis in `apis.txt`, each with a time budget of 1 hour with no limits on the number of inputs or models generated. 50% of this 1 hour i.e. 30 minutes will be spent on model generation, the rest of the time will be spent on input generation (sampling from the valid models and concretizing the inputs).
+ This will run the `z3` based generator parallelly on all apis in `apis.txt` with `seed=42`, each with a time budget of 1 hour with no limits on the number of inputs or models generated. 50% of this 1 hour i.e. 30 minutes will be spent on model generation, the rest of the time will be spent on input generation (sampling from the valid models and concretizing the inputs).

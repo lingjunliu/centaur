@@ -126,9 +126,9 @@ def abstract_print(abstract, signature):
             i += 3
         
         if domain == "tensor": # tensors                
-            printable += f"\n{arg}: \n\tshape: {tuple(ll[0])}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n\trange: {tuple(ll[2])}"
+            printable += f"{arg}: \n\tshape: {tuple(ll[0])}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n\trange: {tuple(ll[2])}\n"
         else:
-            printable += f"\n{arg}: \n\tvalue: {ll[0][0]}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}"
+            printable += f"{arg}: \n\tvalue: {ll[0][0]}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n"
         
     return printable
 
