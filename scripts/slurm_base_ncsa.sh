@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# This script can be called to run any python script
+# on all apis in apis.txt. The condition is the first
+# argument of the python function has to be the api
+# and the rest of the arguments has to be fixed for
+# each execution
+
+source /projects/bdfv/spack/share/spack/setup-env.sh && spack load python@3.10.14 
+
+if [ -z "${max_parallel}" ]; then
+    max_parallel=16    # Fix number of slurm jobs to run at a time if not set
+fi
+
+echo "Using a slurm timeout of $slurm_time"
+
+cmd=$1              # commmand to run parallelly
+job_name=$2         # slurm job name
+
+PROJECT_DIR=`dirname "$(realpath "$0")"`/..
+export PYTHONPATH=$PROJECT_DIR:$PYTHONPATH
+export PYTHONWARNINGS="ignore"
+
+source ${PROJECT_DIR}/scripts/utils.sh
+
+# Creating virtual environment
+python -m venv venv
+source venv/bin/activate
+python -m pip install -r $PROJECT_DIR/requirements.txt
+
+# Running random generation
+cd $PROJECT_DIR
+
+apis=(`cat apis.txt`)
+n_apis=${#apis[@]}
+i=0
+elapsed=0
+mkdir -p logs
+
+for api in "${apis[@]}"; do
+    ((i++))
+    wrap_cmd="source /projects/bdfv/spack/share/spack/setup-env.sh && spack load python@3.10.14  && ${cmd} ${api} ${@:3}"
+    # Run sbatch with a timeout of 2 hour
+    sbatch --mem=64g \
+        --nodes=1 \
+        --ntasks-per-node=16 \
+        --partition=gpuA40x4 \
+        --account=bdfv-delta-gpu \
+        --gpus-per-node=1 \
+        --job-name=${job_name}-${i} \
+        --output="logs/${api}_${job_name}.out" \
+        --wrap="${wrap_cmd}"
+
+    # limit number of running jobs
+    while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) >= max_parallel )); do
+        print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
+        sleep 10
+        (( elapsed = elapsed + 10 ))
+    done
+done
+
+# wait for everything to finish
+while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) > 0 )); do
+    print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
+    sleep 10
+    (( elapsed = elapsed + 10 ))
+done
