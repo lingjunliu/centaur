@@ -18,8 +18,8 @@ _ = lambda s,r,v: {
         s.add(And(*[Implies(i < v["arg1_ndim"], Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(MAX_N_DIM)]))
     ),
     "rule_2": lambda s,v: (
-        s.add(v["arg2"] >= -1 * v["arg1_ndim"]),
-        s.add(v["arg2"] <= v["arg1_ndim"] - 1)
+        s.add(v["arg2_value"] >= -1 * v["arg1_ndim"]),
+        s.add(v["arg2_value"] <= v["arg1_ndim"] - 1)
     ),
     "rule_3": lambda s,v: (
         s.add(v["arg1_ndim"] == v["arg2_ndim"])
@@ -48,18 +48,18 @@ _ = lambda s,r,v: {
     ),
     "rule_10": lambda s,v: (
         s.add(And(v["arg1_ndim"] == 4, v["arg2_ndim"] == 4)),
-        s.add(And(v["arg3"] >= 1, v["arg4"] >= 0)),
-        s.add(v["arg3"] * (Select(v["arg1_shape"], v["arg1_ndim"] - 2) - 1) 
-                        + Select(v["arg2_shape"], v["arg2_ndim"] - 2) - 2 * v["arg4"] > 0),
-        s.add(v["arg3"] * (Select(v["arg1_shape"], v["arg1_ndim"] - 1) - 1) 
-                        + Select(v["arg2_shape"], v["arg2_ndim"] - 1) - 2 * v["arg4"] > 0)
+        s.add(And(v["arg3_value"] >= 1, v["arg4_value"] >= 0)),
+        s.add(v["arg3_value"] * (Select(v["arg1_shape"], v["arg1_ndim"] - 2) - 1) 
+                        + Select(v["arg2_shape"], v["arg2_ndim"] - 2) - 2 * v["arg4_value"] > 0),
+        s.add(v["arg3_value"] * (Select(v["arg1_shape"], v["arg1_ndim"] - 1) - 1) 
+                        + Select(v["arg2_shape"], v["arg2_ndim"] - 1) - 2 * v["arg4_value"] > 0)
     ),
     "rule_11": lambda s,v: (
         s.add(Select(v["arg3_range"], 0) >= 0),
-        s.add(Select(v["arg3_range"], 1) <= Select(v["arg1_shape"], v["arg2"]) - 1)
+        s.add(Select(v["arg3_range"], 1) <= Select(v["arg1_shape"], v["arg2_value"]) - 1)
     ),
     "rule_12": lambda s,v: (
-        s.add(v["arg1"] <= v["arg2"])
+        s.add(v["arg1_value"] <= v["arg2_value"])
     ),
     "rule_13": lambda s,v: (
         s.add(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8))  # check for float types (6: np.float16, 8: np.float64)
@@ -151,14 +151,14 @@ def rule_2_func(arg1, arg2, solver=None):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim, arg2 = Ints('arg1_ndim arg2')
+        arg1_ndim, arg2 = Ints('arg1_ndim arg2_value')
     
         # Value assignments
         solver.add(arg1_ndim == arg1_value.ndim)
         solver.add(arg2 == int(arg2_value)) 
 
         # Constraints for rule 2
-        _(solver, 'rule_2', {'arg1_ndim': arg1_ndim, 'arg2': arg2})
+        _(solver, 'rule_2', {'arg1_ndim': arg1_ndim, 'arg2_value': arg2})
         return solver.check() == sat
 
     # Fuzz input generation phase
@@ -447,7 +447,8 @@ def rule_9_func(arg1, solver=None):
 
 """
     [conv_transpose2d] Corresponds to rule asserting that (stride * (input - 1) + weight - 2 * padding + output_padding) 
-                       should be greater than zero for both height and width. (Rule 10)
+                       should be greater than zero for both height and width. (Rule 10).
+                       arg1 = input, arg2 = weight, arg3 = stride, arg4 = padding
 """
 
 def rule_10_func(arg1, arg2, arg3, arg4, solver=None):
@@ -469,7 +470,7 @@ def rule_10_func(arg1, arg2, arg3, arg4, solver=None):
         solver = Solver()
         arg1_ndim, arg2_ndim = Ints('arg1_ndim arg2_ndim')
         arg1_shape, arg2_shape = Array('arg1_shape', IntSort(), IntSort()), Array('arg2_shape', IntSort(), IntSort())
-        arg3, arg4 = Ints('arg3, arg4')
+        arg3, arg4 = Ints('arg3_value, arg4_value')
         
         # Value assignments
         solver.add(arg1_ndim == arg1_value.ndim)
@@ -484,7 +485,7 @@ def rule_10_func(arg1, arg2, arg3, arg4, solver=None):
         # Constraints for rule 10
         _(solver, 'rule_10', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 
                               'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape,
-                              'arg3': arg3, 'arg4': arg4})
+                              'arg3_value': arg3, 'arg4_value': arg4})
         return solver.check() == sat
 
     # Fuzz input generation phase
@@ -492,7 +493,7 @@ def rule_10_func(arg1, arg2, arg3, arg4, solver=None):
         # Constraints for rule 10
         _(solver, 'rule_10', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
                               'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape'],
-                              'arg3': arg3_value, 'arg4': arg4_value})
+                              'arg3_value': arg3_value, 'arg4_value': arg4_value})
 
 '''
     Corresponds to a rule that ensures the index tensor (arg3) is within
@@ -523,7 +524,7 @@ def rule_11_func(arg1, arg2, arg3, solver=None):
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2 = Int('arg2')
+        arg2 = Int('arg2_value')
         arg3_range = Array('arg3_range', IntSort(), IntSort())
     
         # Value assignments
@@ -534,13 +535,13 @@ def rule_11_func(arg1, arg2, arg3, solver=None):
         arg3_range = Store(arg3_range, 1, int(np.max(arg3_value)))
 
         # Constraints for rule 11
-        _(solver, 'rule_11', {'arg1_shape': arg1_shape, 'arg2': arg2, 'arg3_range': arg3_range})
+        _(solver, 'rule_11', {'arg1_shape': arg1_shape, 'arg2_value': arg2, 'arg3_range': arg3_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 11
-        _(solver, 'rule_11', {'arg1_shape': arg1_value['shape'], 'arg2': arg2_value, 
+        _(solver, 'rule_11', {'arg1_shape': arg1_value['shape'], 'arg2_value': arg2_value, 
                               'arg3_range': arg3_value['range']})
 
 """
@@ -567,20 +568,20 @@ def rule_12_func(arg1, arg2, solver=None):
 
         # Variable declarations
         solver = Solver()
-        arg1, arg2 = Reals('arg1 arg2')
+        arg1, arg2 = Reals('arg1_value arg2_value')
     
         # Value assignments
         solver.add(arg1 == arg1_value)
         solver.add(arg2 == arg2_value)
         
         # Constraints for rule 12
-        _(solver, 'rule_12', {'arg1': arg1, 'arg2': arg2}) 
+        _(solver, 'rule_12', {'arg1_value': arg1, 'arg2_value': arg2}) 
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 12
-        _(solver, 'rule_12', {'arg1': ToReal(arg1_value), 'arg2': ToReal(arg2_value)}) 
+        _(solver, 'rule_12', {'arg1_value': ToReal(arg1_value), 'arg2_value': ToReal(arg2_value)}) 
 
 """
     Corresponds to rule asserting that arg1 has an float data type. (Rule 13)
