@@ -1,5 +1,7 @@
 import numpy as np
 import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
 def torch_version(input_dict, cpu=True):
     size = input_dict["size"]
@@ -33,6 +35,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     size = input_dict["size"]
     qscheme_torch = input_dict.get("qscheme", torch.per_tensor_affine)

@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_empty_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     size = input["size"]
     dtype = input.get("dtype", torch.float32)
@@ -20,6 +22,7 @@ def torch_empty_version(input, cpu=True):
 
 def tensorflow_empty_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     size = input["size"]
     dtype = input.get("dtype", tf.float32)

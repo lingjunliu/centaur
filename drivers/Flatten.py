@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_flatten(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     """Flatten a tensor using PyTorch."""
 
     # Unpack input dictionary
@@ -20,6 +22,7 @@ def torch_flatten(input, cpu=True):
 
 def tensorflow_flatten(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     """Flatten a tensor using TensorFlow."""
 
     # Set device string based on `cpu` flag

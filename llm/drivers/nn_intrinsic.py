@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input_dict["input"])
     
@@ -21,6 +23,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     
     if cpu:
         device_string = "/cpu:0"
@@ -46,6 +49,8 @@ def main():
     A_TOL = 0.01
     
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     
     conv = torch.nn.Conv2d(in_channels=3, out_channels=4, kernel_size=3, stride=1, padding=0)
     relu = torch.nn.ReLU()

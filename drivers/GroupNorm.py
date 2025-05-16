@@ -3,6 +3,8 @@ import numpy as np
 # PyTorch GroupNorm implementation
 def torch_version_groupnorm(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     
     num_groups = input["num_groups"]
     num_channels = input["num_channels"]
@@ -30,6 +32,7 @@ def torch_version_groupnorm(input, cpu=True):
 # TensorFlow GroupNormalization equivalent implementation
 def tensorflow_version_groupnorm(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     
     if cpu:
         device_string = "/cpu:0"

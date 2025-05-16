@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -26,6 +28,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     # TensorFlow doesn't have a direct equivalent, so we need to use custom implementation
     def lppool1d(tensor, norm_type, kernel_size, stride, ceil_mode):

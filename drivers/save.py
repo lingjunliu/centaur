@@ -5,6 +5,8 @@ from io import BytesIO, BufferedReader
 
 def torch_save_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     obj = torch.tensor(input['obj'])
     f = input['f']
@@ -24,6 +26,7 @@ def torch_save_version(input, cpu=True):
 
 def tensorflow_save_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     obj = input['obj'].numpy() if isinstance(input['obj'], torch.Tensor) else input['obj']
     f = input['f']

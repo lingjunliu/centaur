@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     from torch.nn import LazyConv3d
 
     input_tensor = torch.tensor(input_dict["input"])
@@ -39,6 +41,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     input_tensor = tf.constant(input_dict["input"])
     in_channels = input_dict.get("in_channels", 0)

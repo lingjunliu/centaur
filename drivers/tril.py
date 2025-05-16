@@ -3,6 +3,8 @@ import numpy as np
 # Assume set_seed is defined in src.setseed
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input['input'])
     diagonal = input.get('diagonal', 0)
@@ -20,6 +22,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

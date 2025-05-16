@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Convert input to tensor
     input_tensor = torch.tensor(input["input"])
@@ -20,6 +22,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     # Choose the correct device
     device_string = "/cpu:0" if cpu else "/gpu:0"

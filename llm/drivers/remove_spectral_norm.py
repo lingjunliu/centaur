@@ -2,8 +2,14 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    import torch.nn as nn
-    import torch.nn.utils as utils
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn.utils as utils
 
     module = input_dict["module"]
     
@@ -19,6 +25,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     class DummyLayer(tf.keras.layers.Layer):
         def __init__(self):
@@ -43,8 +50,13 @@ def main():
     A_TOL = 0.01
     # Example input
     import torch
-    import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     class DummyModule(nn.Module):
         def __init__(self):

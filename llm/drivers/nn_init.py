@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input_dict["input"])
     if not cpu:
@@ -28,6 +30,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if "gain" in input_dict:
         gain = input_dict["gain"]
@@ -62,6 +65,8 @@ def tensorflow_version(input_dict, cpu=True):
 
 def torch_version_uniform(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     tensor = torch.tensor(input_dict["tensor"])
 
@@ -87,6 +92,7 @@ def torch_version_uniform(input_dict, cpu=True):
 
 def tensorflow_version_uniform(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     tensor = tf.constant(input_dict["tensor"])
     

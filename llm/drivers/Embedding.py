@@ -2,7 +2,11 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 
     embedding_dim = input_dict["embedding_dim"]
     num_embeddings = input_dict["num_embeddings"]
@@ -34,6 +38,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     embedding_dim = input_dict["embedding_dim"]
     num_embeddings = input_dict["num_embeddings"]

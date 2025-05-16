@@ -1,8 +1,13 @@
 import numpy as np
 import torch
-import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 from torch.nn.intrinsic.quantized import LinearReLU
 import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
 def torch_version(input_dict, cpu=True):
 

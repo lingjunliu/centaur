@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     from torch.nn.utils import fuse_conv_bn_eval
 
     conv = input_dict["conv"]
@@ -27,6 +29,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import numpy as np
 
     conv = input_dict["conv"]
@@ -76,7 +79,11 @@ def tensorflow_version(input_dict, cpu=True):
 def main():
     A_TOL = 0.01
     import torch
-    import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 
     # Example input
     conv = nn.Conv2d(3, 16, kernel_size=3)

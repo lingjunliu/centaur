@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     modules = input_dict["modules"]
 
@@ -11,6 +13,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     modules = input_dict["modules"]
 
@@ -19,7 +22,9 @@ def tensorflow_version(input_dict, cpu=True):
 def main():
     A_TOL = 0.01
 
-    import torch.nn as nn
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 
     input_data = {
         "modules": [nn.Linear(10, 20), nn.ReLU(), nn.Linear(20, 5)]

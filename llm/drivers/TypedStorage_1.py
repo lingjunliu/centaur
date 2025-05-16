@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack inputs from dictionary
     data_ptr = input_dict["data_ptr"]
@@ -26,6 +28,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import numpy as np
 
     size = input_dict["size"]
@@ -73,6 +76,8 @@ def tensorflow_version(input_dict, cpu=True):
 
 def main():
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     A_TOL = 0.01
 
     # Example input

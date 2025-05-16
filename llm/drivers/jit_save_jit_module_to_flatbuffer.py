@@ -5,6 +5,8 @@ import tempfile
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack inputs from dictionary
     input_module = torch.jit.script(torch.nn.Linear(10, 5)) if "input_module" not in input_dict else torch.jit.script(torch.nn.Linear(10, 5)) # Minimal example
@@ -21,6 +23,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

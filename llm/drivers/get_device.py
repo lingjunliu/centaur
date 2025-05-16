@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input_dict["input"])
 
@@ -17,6 +19,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     
     if cpu:
         device_string = "/cpu:0"
@@ -51,6 +54,8 @@ def main():
     assert torch_result_cpu["result"] == tf_result_cpu["result"], "Results do not match"
 
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     if torch.cuda.is_available():
         input_data = {
             "input": np.array([0.0202, 1.0985, 1.3506, -0.6056], dtype=np.float32)

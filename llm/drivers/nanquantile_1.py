@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input_dict["input"])
     q = torch.tensor(input_dict["q"]) if isinstance(input_dict["q"], np.ndarray) else input_dict["q"]
@@ -24,6 +26,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"
@@ -78,6 +81,7 @@ def tensorflow_version(input_dict, cpu=True):
 
 def quantile(valid_values, q, interpolation):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     valid_values = tf.sort(valid_values)
     n = tf.cast(tf.size(valid_values), dtype=tf.float32)
@@ -130,6 +134,8 @@ def quantile(valid_values, q, interpolation):
 
 def main():
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     A_TOL = 0.01
 
     input_data = {

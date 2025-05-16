@@ -3,6 +3,7 @@ import numpy as np
 # Custom function to promote types in TensorFlow
 def tf_promote_types(type1, type2):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     tf_types = {
         tf.float16: 0,
         tf.float32: 1,
@@ -26,6 +27,7 @@ def tf_promote_types(type1, type2):
 # Function to convert TensorFlow dtype to string equivalent in Torch format
 def tf_dtype_to_torch_dtype_string(dtype):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     mapping = {
         tf.float16: "torch.float16",
         tf.float32: "torch.float32",
@@ -43,6 +45,8 @@ def tf_dtype_to_torch_dtype_string(dtype):
 
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     
     # Unpack input dictionary
     type1 = torch.tensor(np.array([], dtype=input["type1"])).dtype
@@ -55,6 +59,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     
     # Unpack input dictionary
     type1 = tf.as_dtype(input["type1"])

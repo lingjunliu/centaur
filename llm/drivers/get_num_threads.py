@@ -3,6 +3,8 @@ import os
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     result = torch.get_num_threads()
     
@@ -10,6 +12,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     result = tf.config.threading.get_intra_op_parallelism_threads()
     

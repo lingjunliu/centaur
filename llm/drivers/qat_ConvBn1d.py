@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     from torch.nn.intrinsic.qat import ConvBn1d
     from torch.quantization import QConfig, default_qconfig
 
@@ -46,6 +48,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"
@@ -99,6 +102,8 @@ def tensorflow_version(input_dict, cpu=True):
 def main():
     A_TOL = 0.01
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     from torch.quantization import QConfig, default_qconfig
 
     input_channels = 3

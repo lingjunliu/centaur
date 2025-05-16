@@ -3,6 +3,8 @@ import numpy as np
 # Function to set seed for reproducibility
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Use deterministic algorithms in PyTorch
     torch.use_deterministic_algorithms(input["mode"])
@@ -22,6 +24,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

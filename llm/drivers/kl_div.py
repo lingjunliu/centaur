@@ -1,10 +1,11 @@
 import numpy as np
-import torch.nn.functional as F
-import torch
-from torch import nn
+
 
 def torch_version(input_dict, cpu=True):
-
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    from torch import nn
     input_tensor = torch.tensor(input_dict["input"])
     target = torch.tensor(input_dict["target"])
     log_target = input_dict.get("log_target", False)
@@ -23,7 +24,7 @@ def torch_version(input_dict, cpu=True):
         input_tensor = input_tensor.cuda()
         target = target.cuda()
 
-    result = F.kl_div(input_tensor.log_softmax(dim=-1), target, log_target=log_target, reduction=reduction_enum)
+    result = torch.nn.functional.kl_div(input_tensor.log_softmax(dim=-1), target, log_target=log_target, reduction=reduction_enum)
 
     if not cpu:
         result = result.cpu()
@@ -32,6 +33,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import tensorflow.keras.backend as K
 
     if cpu:

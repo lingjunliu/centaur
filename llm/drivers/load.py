@@ -3,6 +3,8 @@ import io
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     f = input_dict["f"]
     map_location = input_dict.get("map_location", None)
@@ -32,7 +34,10 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     import pickle
 
     f = input_dict["f"]
@@ -74,6 +79,8 @@ def main():
     A_TOL = 0.01
 
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     # Create a simple ScriptModule for testing
     class MyModule(torch.nn.Module):
         def __init__(self):

@@ -4,6 +4,8 @@ import glob as glob_builtin
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     pathname = input_dict["pathname"]
     recursive = input_dict.get("recursive", False)
@@ -19,6 +21,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import os
     import glob as glob_builtin
 

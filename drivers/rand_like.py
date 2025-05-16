@@ -3,6 +3,8 @@ import random
 
 def torch_version(input, cpu=True, seed=0):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     set_seed(seed)
 
     # Unpack input dictionary
@@ -29,6 +31,7 @@ def torch_version(input, cpu=True, seed=0):
 
 def tensorflow_version(input, cpu=True, seed=0):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     set_seed(seed)
 
     if cpu:

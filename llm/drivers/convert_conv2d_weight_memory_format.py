@@ -1,5 +1,7 @@
 import numpy as np
 import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
 def torch_version(input_dict, cpu=True):
     input_tensor = torch.tensor(input_dict["input_tensor"])
@@ -24,7 +26,10 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor_np = input_dict["input_tensor"]
     memory_format = input_dict["memory_format"]

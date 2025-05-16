@@ -3,6 +3,8 @@ import os
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     if not cpu:
         torch.backends.cuda.matmul.allow_tf32 = False
@@ -24,6 +26,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if 'warn_only' in input_dict:
         warn_only = input_dict['warn_only']

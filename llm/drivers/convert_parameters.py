@@ -1,8 +1,15 @@
 import numpy as np
 import torch
-import torch.nn as nn
-import torch.nn.utils as utils
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
+import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn.utils as utils
 import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
 def torch_version(input_dict, cpu=True):
     parameters = input_dict["parameters"]

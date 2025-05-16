@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input_dict["input"])
     model_path = input_dict["model_path"]
@@ -24,6 +26,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     input_tensor = tf.constant(input_dict["input"], dtype=tf.float32)
     model_path = input_dict["model_path"]
@@ -43,7 +46,10 @@ def tensorflow_version(input_dict, cpu=True):
 
 def main():
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     A_TOL = 0.01
 
     class MyModule(torch.nn.Module):

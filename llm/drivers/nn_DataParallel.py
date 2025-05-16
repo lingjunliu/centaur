@@ -2,7 +2,11 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 
     module = input_dict["module"]
     device_ids = input_dict.get("device_ids", None)
@@ -30,6 +34,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     class TFModule(tf.keras.Model):
         def __init__(self, original_module):
@@ -70,7 +75,11 @@ def main():
     A_TOL = 0.01
     
     import torch
-    import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 
     class SimpleModule(nn.Module):
         def __init__(self):

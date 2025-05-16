@@ -2,7 +2,11 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    import torch.distributed as dist
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.distributed as dist
 
     if not dist.is_initialized():
         dist.init_process_group(backend='gloo', init_method='file:///tmp/some_file', rank=0, world_size=1)
@@ -23,6 +27,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

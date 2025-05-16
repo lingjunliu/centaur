@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     precision = input_dict.get("precision", 4)
     threshold = input_dict.get("threshold", 1000.0)
@@ -20,6 +22,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     precision = input_dict.get("precision", 4)
     threshold = input_dict.get("threshold", 1000.0)

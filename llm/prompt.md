@@ -3,6 +3,9 @@ Give me a python file that consists of pytorch and tensorflow drivers for the ap
 - Assume the pytorch version is the reference
 - Write a driver function named "torch_version". This function will take two parameters: input (dict), cpu (boolean, default True). The function will perform the following tasks:
     - import torch
+    - Add these two calls to add determinism:
+        - torch.use_deterministic_algorithms(True)
+        - torch.utils.deterministic.fill_uninitialized_memory = True
     - Assume the input dictionary contains the parameter values for the api (e.g. input_tensor = input['input'])
     - Assume the input dictionary contains values in numpy format and convert them to torch format (e.g. input_tensor = torch.tensor(input['input]))
     - For optional arguments, use the default value explicitly mentioned in the documentation in case the dictionary does not contain the argument's value (e.g. alpha = input_dict.get("alpha", 1.0))
@@ -12,7 +15,7 @@ Give me a python file that consists of pytorch and tensorflow drivers for the ap
     - Run the api and get the output
     - If cpu is set to false, convert the output to its cpu version (e.g. if not cpu: result = result.cpu())
     - Return a dictionary containing the results in numpy version (e.g. return { 'result': result.numpy() })
-- Write a driver function named "tensorflow_version". This function will perform the same things as "torch_version" but using tensorflow equivalents. If no direct equivalent exists for the torch version of the api, make additional calculations to mimic the results of the torch version using tensorflow. Do not typecast any inputs, keep dtypes of passed parameters intact. Convert the output to its numpy version before returning the dictionary, do not use numpy or scipy apis to reproduce results of pytorch.
+- Write a driver function named "tensorflow_version", inside which you will add `import tensorflow as tf` and `tf.config.experimental.enable_op_determinism()` to ensure determinism. This function will perform the same things as "torch_version" but using tensorflow equivalents. If no direct equivalent exists for the torch version of the api, make additional calculations to mimic the results of the torch version using tensorflow. Do not typecast any inputs, keep dtypes of passed parameters intact. Convert the output to its numpy version before returning the dictionary, do not use numpy or scipy apis to reproduce results of pytorch.
 - Write a main function that will create one example input dictionary, pass it to the two driver functions and assert that the outputs are equal with an atol = 0.01. Print "Success" at the end of the main function.
 
 Here is an example:

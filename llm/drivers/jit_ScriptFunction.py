@@ -3,6 +3,8 @@ import os
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     filename = input_dict["filename"]
     _extra_files = input_dict.get("_extra_files", {})
@@ -24,6 +26,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import os
 
     filename = input_dict["filename"]

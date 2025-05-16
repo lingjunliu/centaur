@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     shape = tuple(input["size"])
     dtype = torch.float32 if input.get("dtype", None) is None else input["dtype"]
@@ -13,6 +15,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     shape = tuple(input["size"])
     dtype = tf.float32 if input.get("dtype", None) is None else input["dtype"]

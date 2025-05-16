@@ -1,8 +1,15 @@
 import numpy as np
 import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 import tensorflow as tf
-import torch.nn as nn
-import torch.nn.functional as F
+    tf.config.experimental.enable_op_determinism()
+import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
+import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn.functional as F
 
 def torch_version(input_dict, cpu=True):
     anchor = torch.tensor(input_dict["anchor"])

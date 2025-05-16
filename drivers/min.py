@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_min_scalar_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -16,6 +18,7 @@ def torch_min_scalar_version(input, cpu=True):
 
 def tensorflow_min_scalar_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"
@@ -33,6 +36,8 @@ def tensorflow_min_scalar_version(input, cpu=True):
 
 def torch_min_dimensional_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -53,6 +58,7 @@ def torch_min_dimensional_version(input, cpu=True):
 
 def tensorflow_min_dimensional_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"
@@ -76,6 +82,8 @@ def tensorflow_min_dimensional_version(input, cpu=True):
 
 def torch_min_elementwise_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     input_tensor1 = torch.tensor(input["input1"])
@@ -91,6 +99,7 @@ def torch_min_elementwise_version(input, cpu=True):
 
 def tensorflow_min_elementwise_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     parameters = input_dict["parameters"]
     vector = torch.tensor(input_dict["vector"])
@@ -25,6 +27,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     parameters = input_dict["parameters"]
     vector = tf.constant(input_dict["vector"])
@@ -62,11 +65,14 @@ def main():
     }
 
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     parameters_torch = [torch.tensor(p, requires_grad=True) for p in example_input["parameters"]]
     input_torch = {"parameters": parameters_torch, "vector": example_input["vector"]}
     torch_result = torch_version(input_torch)
 
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     parameters_tf = [tf.Variable(p) for p in example_input["parameters"]]
     input_tf = {"parameters": parameters_tf, "vector": example_input["vector"]}
     tf_result = tensorflow_version(input_tf)

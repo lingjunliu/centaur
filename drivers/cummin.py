@@ -4,6 +4,8 @@ import numpy as np
 # Function to set seed for reproducibility
 def torch_cummin(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Extract parameters from input data
     input_tensor = torch.tensor(input["input"])
@@ -24,6 +26,7 @@ def torch_cummin(input, cpu=True):
 # Function implementing TensorFlow equivalent of torch.cummin
 def tensorflow_cummin(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

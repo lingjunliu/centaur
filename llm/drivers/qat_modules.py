@@ -2,9 +2,13 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     from torch.nn.intrinsic.qat.modules import ConvBn1d, ConvBn2d, ConvBn3d, ConvBnReLU1d, ConvBnReLU2d, ConvBnReLU3d
     from torch.quantization import QConfig, get_default_qconfig
-    import torch.nn as nn
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 
     for key in input_dict:
         if isinstance(input_dict[key], np.ndarray):
@@ -55,6 +59,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     from tensorflow.keras.layers import Conv1D, Conv2D, Conv3D, Dense, BatchNormalization, ReLU
     from tensorflow.keras.models import Sequential
 

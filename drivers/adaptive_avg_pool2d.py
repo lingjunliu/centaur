@@ -4,6 +4,8 @@ import random
 # Mock set_seed function for reproducibility if src.setseed is not available
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -22,6 +24,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

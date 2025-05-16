@@ -9,6 +9,8 @@ def get_initial_weights(num_embeddings, embedding_dim):
 # PyTorch version of the Embedding function
 def torch_embedding(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     num_embeddings = input['num_embeddings']
     embedding_dim = input['embedding_dim']
@@ -32,6 +34,7 @@ def torch_embedding(input, cpu=True):
 # TensorFlow version of the Embedding function
 def tensorflow_embedding(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

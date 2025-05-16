@@ -2,7 +2,11 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 
     encoder_layer = input_dict["encoder_layer"]
     num_layers = input_dict["num_layers"]
@@ -39,6 +43,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     
     encoder_layer = input_dict["encoder_layer"]
     num_layers = input_dict["num_layers"]
@@ -108,6 +113,8 @@ def tensorflow_version(input_dict, cpu=True):
 
 def main():
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     A_TOL = 0.01
     
     encoder_layer_config = {'d_model': 512, 'nhead': 8}

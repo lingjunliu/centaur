@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     A = torch.tensor(input_dict["A"])
     B = torch.tensor(np.eye(A.shape[0]), dtype=A.dtype) if "B" not in input_dict or input_dict["B"] is None else torch.tensor(input_dict["B"])
@@ -37,6 +39,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import numpy as np
 
     if cpu:

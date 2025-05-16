@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input_dict["input"])
     src_mask = torch.tensor(input_dict.get("src_mask", False)) if isinstance(input_dict.get("src_mask", False), np.ndarray) else None if input_dict.get("src_mask", False) == False else input_dict.get("src_mask", False)
@@ -47,6 +49,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

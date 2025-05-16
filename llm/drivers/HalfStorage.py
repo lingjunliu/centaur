@@ -3,6 +3,8 @@ import ctypes
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     data = input_dict["data_ptr"].astype(np.float16)
     data_ptr = torch.tensor(data)
@@ -21,6 +23,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     data = input_dict["data_ptr"].astype(np.float16)
     data_ptr = tf.convert_to_tensor(data, dtype=tf.float16)

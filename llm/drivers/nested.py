@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_nested_tensor = input_dict["input"]
     
@@ -17,6 +19,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import numpy as np
 
     input_nested_tensor = input_dict["input"]
@@ -30,6 +33,8 @@ def tensorflow_version(input_dict, cpu=True):
 
 def main():
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     A_TOL = 0.01
 
     nested_list = [torch.randn(3), torch.randn(4), torch.randn(2)]

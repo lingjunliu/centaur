@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_set_flush_denormal_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     mode = input["mode"]
@@ -16,6 +18,7 @@ def torch_set_flush_denormal_version(input, cpu=True):
 
 def tensorflow_set_flush_denormal_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     # Note: TensorFlow does not have a direct equivalent for `torch.set_flush_denormal`.
     # We simulate by setting some environment variable or TF logic that captures similar

@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     grad_output = torch.tensor(input_dict["grad_output"])
     input_tensor = torch.tensor(input_dict["input"])
@@ -43,6 +45,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     grad_output = tf.constant(input_dict["grad_output"])
     input_tensor = tf.constant(input_dict["input"])

@@ -2,7 +2,11 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
 
     decoder_layer = nn.TransformerDecoderLayer(d_model=512, nhead=8)
     transformer_decoder = nn.TransformerDecoder(decoder_layer, num_layers=6, norm=None)
@@ -45,6 +49,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import numpy as np
 
     d_model = 512

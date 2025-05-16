@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     model = input_dict["model"]
     fullgraph = input_dict.get("fullgraph", False)
@@ -28,7 +30,10 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     model = input_dict["model"]
 
@@ -51,6 +56,8 @@ def main():
 
     def example_model(x):
         import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
         return torch.sin(x) + torch.cos(x)
     
     input_data = {
@@ -67,6 +74,8 @@ def main():
 
     try:
         import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
         compiled_torch_model = torch_result["result"]
         torch_output = compiled_torch_model(torch.tensor(test_input)).numpy()
         tf_output = tf_result["result"](test_input)

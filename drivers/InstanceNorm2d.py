@@ -20,6 +20,7 @@ class CustomInstanceNorm2D(tf.keras.layers.Layer):
 
     def call(self, inputs, training=False):
         import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
         mean, variance = tf.nn.moments(inputs, axes=[2, 3], keepdims=True)  # (N, C, 1, 1)
         if self.track_running_stats:
             if training:
@@ -43,6 +44,8 @@ class CustomInstanceNorm2D(tf.keras.layers.Layer):
 
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     input_tensor = torch.tensor(input["input"])
     num_features = input["num_features"]
     eps = input.get("eps", 1e-5)
@@ -67,6 +70,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     if cpu:
         device_string = "/cpu:0"
     else:

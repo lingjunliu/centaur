@@ -1,9 +1,15 @@
 import numpy as np
-import torch.nn as nn
 import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
+import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_list = [torch.nn.Parameter(torch.tensor(item)) for item in input_dict["in_list"]]
 
@@ -19,6 +25,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     in_list = [tf.convert_to_tensor(item) for item in input_dict["in_list"]]
 

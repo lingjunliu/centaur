@@ -2,7 +2,11 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
-    import torch.nn.parallel
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn.parallel
 
     input_var = torch.tensor(input_dict["input"])
     module = input_dict["module"]
@@ -31,6 +35,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"
@@ -51,7 +56,11 @@ def tensorflow_version(input_dict, cpu=True):
 def main():
     A_TOL = 0.01
     import torch
-    import torch.nn as nn
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True.nn as nn
     
     class DummyModule(nn.Module):
         def __init__(self):
@@ -76,6 +85,7 @@ def main():
     torch_result = torch_version(input_data, cpu=False)
     
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     class TFDummyModule(tf.keras.Model):
         def __init__(self):
             super(TFDummyModule, self).__init__()

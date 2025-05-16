@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     src = torch.tensor(input_dict["src"])
     encoder_layer = input_dict["encoder_layer"]
@@ -25,6 +27,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     src = tf.constant(input_dict["src"])
     encoder_layer = input_dict["encoder_layer"]
@@ -111,6 +114,8 @@ def main():
     }
 
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     class DummyEncoderLayer(torch.nn.Module):
         def __init__(self, d_model, nhead):
             super().__init__()

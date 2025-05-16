@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     import io
 
     buffer = input_dict["buffer"]
@@ -19,6 +21,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     buffer = input_dict["buffer"]
     modules = input_dict.get("modules", None)
@@ -33,6 +36,8 @@ def main():
     input_data = {
         "buffer": """
 import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 def add(x, y):
   return x + y
         """,

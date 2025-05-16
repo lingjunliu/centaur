@@ -3,6 +3,8 @@ import numpy as np
 # torch.lu_unpack(LU_data, LU_pivots, unpack_data=True, unpack_pivots=True, *, out=None)
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack inputs from dictionary
     LU_data = torch.tensor(input_dict["LU_data"])

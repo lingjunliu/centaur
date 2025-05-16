@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_isreal(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Convert input to torch tensor
     input_tensor = torch.tensor(input["input"], dtype=torch.complex64)
@@ -16,6 +18,7 @@ def torch_isreal(input, cpu=True):
 
 def tensorflow_isreal(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     # Specify device: CPU or GPU
     if cpu:

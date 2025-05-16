@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_adaptive_max_pool1d(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])
@@ -21,6 +23,7 @@ def torch_adaptive_max_pool1d(input, cpu=True):
 
 def tensorflow_adaptive_max_pool1d(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

@@ -4,6 +4,8 @@ import random
 # Function to set seed for reproducibility
 def torch_nanmedian_variant1(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input["input"])
     if not cpu:
@@ -20,6 +22,7 @@ def torch_nanmedian_variant1(input, cpu=True):
 # TensorFlow: Equivalent for torch.nanmedian(input)
 def tf_nanmedian_variant1(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"
@@ -39,6 +42,8 @@ def tf_nanmedian_variant1(input, cpu=True):
 # PyTorch: torch.nanmedian(input, dim=-1, keepdim=False, *, out=None)
 def torch_nanmedian_variant2(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_tensor = torch.tensor(input["input"])
     dim = input.get("dim", -1)
@@ -58,6 +63,7 @@ def torch_nanmedian_variant2(input, cpu=True):
 # TensorFlow: Equivalent for torch.nanmedian(input, dim=-1, keepdim=False, *, out=None)
 def tf_nanmedian_variant2(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

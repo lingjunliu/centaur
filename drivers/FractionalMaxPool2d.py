@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     """ PyTorch implementation of FractionalMaxPooling function """
 
     # Extract parameters from the input dictionary
@@ -31,6 +33,7 @@ def torch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     """ TensorFlow approximation of FractionalMaxPooling function """
 
     if cpu:

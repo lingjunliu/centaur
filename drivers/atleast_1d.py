@@ -3,6 +3,8 @@ import numpy as np
 # PyTorch version of torch.atleast_1d
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     tensors = input["tensors"]
@@ -28,6 +30,7 @@ def torch_version(input, cpu=True):
 # TensorFlow version of tf.atleast_1d
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

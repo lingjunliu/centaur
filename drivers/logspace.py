@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_logspace(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     
     # Set the device
     device = torch.device('cpu' if cpu else 'cuda')
@@ -31,6 +33,7 @@ def torch_logspace(input, cpu=True):
 
 def tensorflow_logspace(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     # Set the device
     if cpu:

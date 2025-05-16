@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     
     input_tensor = torch.tensor(input_dict["input"])
     conv = torch.nn.Conv1d(input_dict["in_channels"], input_dict["out_channels"], input_dict["kernel_size"], stride=input_dict.get("stride", 1), padding=input_dict.get("padding", 0), dilation=input_dict.get("dilation", 1), groups=input_dict.get("groups", 1), bias=input_dict.get("bias", True), padding_mode=input_dict.get("padding_mode", 'zeros'))
@@ -42,6 +44,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

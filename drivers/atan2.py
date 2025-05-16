@@ -1,5 +1,7 @@
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     
     # Unpack input dictionary
     input_tensor = torch.tensor(input["input"])

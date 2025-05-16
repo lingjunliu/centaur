@@ -3,6 +3,8 @@ import io
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input_ir_np = input_dict["input_ir"]
     input_size = input_ir_np.shape[1] if len(input_ir_np.shape) > 1 else 1
@@ -41,6 +43,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     class TFModule(tf.Module):
         def __init__(self, input_size):

@@ -2,6 +2,8 @@ import numpy as np
 
 def pytorch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     num_features = input["num_features"]
     eps = input.get("eps", 1e-05)
@@ -29,6 +31,7 @@ def pytorch_version(input, cpu=True):
 
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     num_features = input["num_features"]
     eps = input.get("eps", 1e-05)

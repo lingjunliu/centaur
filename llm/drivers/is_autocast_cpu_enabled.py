@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     if not hasattr(torch, 'is_autocast_cpu_enabled'):
         return {'result': False}
@@ -15,6 +17,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     
     if not hasattr(tf.keras.mixed_precision, 'get_global_policy'):
         return {'result': False}

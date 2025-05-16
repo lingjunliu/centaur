@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     from torch.nn.attention import SDPParams
 
     input_tensor = torch.tensor(input_dict["embed_dim"])
@@ -29,6 +31,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     embed_dim = input_dict["embed_dim"]
     dropout = input_dict.get("dropout", 0.0)

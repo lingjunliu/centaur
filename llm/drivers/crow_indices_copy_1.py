@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     input = torch.tensor(input_dict['input'])
     row_indices = torch.tensor(input_dict['row_indices'])
@@ -22,6 +24,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     input_np = input_dict['input']
     row_indices_np = input_dict['row_indices']

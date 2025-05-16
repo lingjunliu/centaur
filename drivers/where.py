@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_where_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Extract parameters from input
     condition_tensor = torch.tensor(input["condition"], dtype=torch.bool)
@@ -31,6 +33,7 @@ def torch_where_version(input, cpu=True):
 
 def tensorflow_where_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

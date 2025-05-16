@@ -3,6 +3,8 @@ import numpy as np
 # Ensure to have set_seed function properly defined here
 def torch_version(input_data, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
     input_tensor = torch.tensor(input_data["input"])
@@ -19,6 +21,7 @@ def torch_version(input_data, cpu=True):
 
 def tensorflow_version(input_data, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     if cpu:
         device_string = "/cpu:0"

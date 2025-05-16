@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     mat1 = torch.tensor(input_dict["mat1"]).to_sparse_coo()
     mat2 = torch.tensor(input_dict["mat2"])
@@ -19,6 +21,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
     import scipy.sparse as sparse
 
     mat1_np = input_dict["mat1"]

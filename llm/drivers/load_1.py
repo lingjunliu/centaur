@@ -4,6 +4,8 @@ import pickle
 
 def torch_version(input_dict, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     f = input_dict["f"]
     map_location = input_dict.get("map_location", None)
@@ -54,6 +56,7 @@ def torch_version(input_dict, cpu=True):
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     f = input_dict["f"]
     map_location = input_dict.get("map_location", None)
@@ -95,6 +98,8 @@ def main():
 
     # Create a sample tensor to save
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
     sample_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0])
 
     # Save the tensor to a BytesIO buffer

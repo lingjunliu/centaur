@@ -2,6 +2,8 @@ import numpy as np
 
 def torch_version(input, cpu=True):
     import torch
+    torch.use_deterministic_algorithms(True)
+    torch.utils.deterministic.fill_uninitialized_memory = True
 
     size = input['size']
     device = 'cpu' if cpu else 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -14,6 +16,7 @@ def torch_version(input, cpu=True):
 # Function to generate random tensors using TensorFlow
 def tensorflow_version(input, cpu=True):
     import tensorflow as tf
+    tf.config.experimental.enable_op_determinism()
 
     size = tf.constant(input['size'], dtype=tf.int32)
     device_string = "/cpu:0" if cpu else "/gpu:0"
