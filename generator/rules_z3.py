@@ -86,6 +86,15 @@ _ = lambda s,r,v: {
     ),
     "rule_18": lambda s,v: (
         s.add(Select(v["arg1_range"], 0) >= 0)
+    ),
+    "rule_19": lambda s, v: (
+        s.add(If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5),
+                 And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 5),
+                 If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8),
+                    And(v["arg2_dtype"] >= 1, v["arg2_dtype"] <= 8), True)))
+    ),
+    "rule_20": lambda s,v: (
+        s.add(v["arg1_ndim"] == 1)
     )
 }[r](s,v)
 
@@ -576,7 +585,10 @@ def rule_12_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1, (int, float)) or not isinstance(arg2, (int, float)):
+        if (
+            not isinstance(arg1, (int, float)) or isinstance(arg1, bool) or 
+            not isinstance(arg2, (int, float)) or isinstance(arg2, bool)
+        ):
             return False
 
         # Variable declarations
@@ -747,7 +759,7 @@ def rule_17_func(arg1, solver=None):
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1, (int, float)):
+        if not isinstance(arg1, (int, float)) or isinstance(arg1, bool):
             return False
 
         # Variable declarations
@@ -794,6 +806,69 @@ def rule_18_func(arg1, solver=None):
         # Constraints for rule 18
         _(solver, 'rule_18', {'arg1_range': arg1['range']})
 
+"""
+    Corresponds to rule asserting that
+    if a tensor (arg1) is integer, another non tensor (arg2) must be integer, and
+    if a tensor (arg1) is float, another non tensor (arg2) must be either integer or float. (Rule 19)
+"""
+
+def rule_19_func(arg1, arg2, solver=None):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    
+    # Invariant learning phase
+    if not solver: 
+        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, (int, float)) or isinstance(arg2, bool):
+            return False 
+
+        # Variable declarations
+        solver = Solver()
+        arg1_dtype, arg2_dtype = Ints('arg1_dtype arg2_dtype')
+    
+        # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        if isinstance(arg2, int):
+            solver.add(arg2_dtype == 4)  # index of np.int64
+        else: 
+            solver.add(arg2_dtype == 8)  # index of np.float64
+
+        # Constraints for rule 19
+        _(solver, 'rule_19', {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 19
+        _(solver, 'rule_19', {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']})
+
+"""
+    Corresponds to rule asserting that arg1 (input_tensor) needs to be 1 dimenstional. (Rule 20)
+"""
+
+def rule_20_func(arg1, solver=None):
+    arg1 = next(iter(arg1.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not isinstance(arg1, np.ndarray):
+            return False 
+
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        
+        # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+
+        # Constraints for rule 20
+        _(solver, 'rule_20', {'arg1_ndim': arg1_ndim}) 
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 20
+        _(solver, 'rule_20', {'arg1_ndim': arg1['ndim']})
+
 ############### mapping ################
 
 rule_func_map = { 
@@ -803,7 +878,8 @@ rule_func_map = {
         'rule_13': rule_13_func,
         'rule_14': rule_14_func,
         'rule_17': rule_17_func,
-        'rule_18': rule_18_func
+        'rule_18': rule_18_func,
+        'rule_20': rule_20_func
     },
     2: {
         'rule_1': rule_1_func,
@@ -815,7 +891,8 @@ rule_func_map = {
         'rule_7': rule_7_func,
         'rule_12': rule_12_func,
         'rule_15': rule_15_func,
-        'rule_16': rule_16_func
+        'rule_16': rule_16_func,
+        'rule_19': rule_19_func
     },
     3: {
         'rule_11': rule_11_func
@@ -830,7 +907,7 @@ rule_func_map = {
 # e.g. two tensors having the same shape: does not matter if the first tensor is arg1 or arg2
 # implication: do not check these rules for all permutations of the arguments
 order_agnostic_rules = {
-    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14', 'rule_17', 'rule_18'],  # not necessary actually
+    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14', 'rule_17', 'rule_18', 'rule_20'],  # not necessary actually
     2: ['rule_1', 'rule_3', 'rule_4', 'rule_12', 'rule_15']
 }
 

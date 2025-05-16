@@ -206,12 +206,74 @@ def matmul_inputs():
     
     return list_of_inputs
 
+def add_inputs():
+    list_of_inputs = []
+    # Input 1, valid
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    other = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    alpha = 10.0
+
+    input_dict = {
+        "input": input,
+        "other": other,
+        "alpha": alpha
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 2, valid
+    input = torch.tensor([1, 2, 3], dtype=torch.int32).numpy() 
+    other = torch.tensor([4, 5, 6], dtype=torch.int32).numpy()
+    alpha = 2
+
+    input_dict = {
+        "input": input,
+        "other": other,
+        "alpha": alpha
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+def combinations_inputs():
+    list_of_inputs = []
+    # Input 1, valid
+    input = torch.tensor([10, 20, 30, 40]).numpy()
+    r = 3
+    with_replacement = False
+
+    input_dict = {
+        "input": input,
+        "r": r,
+        "with_replacement": with_replacement
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 2, valid
+    input = torch.tensor([1.5, 2.5]).numpy()
+    r = 2
+    with_replacement = True
+
+    input_dict = {
+        "input": input,
+        "r": r,
+        "with_replacement": with_replacement
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
 # Add human defined inputs for APIs that are
 # difficult to generate inputs for
 inputs_per_api = {
     "scatter": scatter_inputs,
     "conv_transpose2d": conv_transpose2d_inputs,
-    "matmul": matmul_inputs
+    "matmul": matmul_inputs,
+    "add": add_inputs,
+    "combinations": combinations_inputs
 }
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
