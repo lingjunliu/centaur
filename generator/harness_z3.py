@@ -85,28 +85,28 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         if status == "nominal":
             valid += 1
             if print_details:
-                print(f"\nNominal input:\n{abstract_print(abstract_input, definition["signature"])}")
+                print(f"\nNominal input:\n{abstract_print(abstract_input, definition['signature'])}")
         elif status == "invalid":
             invalid += 1
             ## Traceback for debugging
             if print_details:
                 print(f"\nThe input might be invalid. Faced exception:\n{exception_message}")
-                print(f"\Invalid input:\n{abstract_print(abstract_input, definition["signature"])}")
+                print(f"\Invalid input:\n{abstract_print(abstract_input, definition['signature'])}")
         elif status.endswith("_excp"):
             excp += 1
             # Always log crashes
             print(f"\n[{status}]\n{exception_message}")
-            print(f"\nAbstract input:\n{abstract_print(abstract_input, definition["signature"])}")
+            print(f"\nAbstract input:\n{abstract_print(abstract_input, definition['signature'])}")
         elif status.endswith("_crash"):
             crash += 1
             # Always log crashes
             print(f"\n[{status}]\n{exception_message}")
-            print(f"\nAbstract input:\n{abstract_print(abstract_input, definition["signature"])}")
+            print(f"\nAbstract input:\n{abstract_print(abstract_input, definition['signature'])}")
         else:
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         execution_time = execution_time + time.time() - start_execution
-        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {elapsed-last_saved}s ago", end='\r', flush=True)
+        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {round(elapsed-last_saved, 2)}s ago", end='\r', flush=True)
 
         # If n_max is defined and n_max inputs have been generated, exit
         if n_max > 0 and (valid+invalid) == n_max:
