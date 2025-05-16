@@ -15,12 +15,29 @@ from utils.misc import create_subdir, get_tmp_dir
 from generator.input_generators import abstract_print
 from eval.oracle import oracle_crash
 
+def save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir):
+    total = valid + invalid + crash + excp
+    valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
+    # Save outputs
+    csv_file = os.path.join(tmp_results, f"{api}.csv")
+    with open(csv_file, "w") as f:
+        # api, valid, invalid, crash, excp, total, valid_prcnt
+        f.write(f"{api},{valid},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
+    # Save generated inputs
+    with open(os.path.join(input_dir, f"{api}_inputs.pkl"), "wb") as f_in:
+        pickle.dump(generated_inputs, f_in)
+
 def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_max=0, print_details=False, model_regen=False, seed=42):
+    # Initialize directories
+    input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
+    tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
     driver = get_driver(api)
 
     print(f"Optimizing for {api} with {model_gen_duration} (max_model) and {fuzz_duration} (fuzz) second budgets")
     execution_time = 0
     elapsed = 0
+    last_saved = 0
+    save_interval = 600 # seconds, 10 minutes
     valid = 0
     invalid = 0
     crash = 0
@@ -54,6 +71,10 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
 
     start = time.time()
     while len(models) > 0 and elapsed < fuzz_duration:
+        if elapsed - last_saved > save_interval:
+            save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir)
+            last_saved = elapsed
+
         seed += 1
         model = models[rng_model.integers(len(models))]
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args, seed=seed)
@@ -85,7 +106,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         execution_time = execution_time + time.time() - start_execution
-        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp}", end='\r', flush=True)
+        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {elapsed-last_saved}s ago", end='\r', flush=True)
 
         # If n_max is defined and n_max inputs have been generated, exit
         if n_max > 0 and (valid+invalid) == n_max:
@@ -99,15 +120,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
     print(f"Models: {len(models)} | Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
     
-    # Save outputs
-    tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
-    csv_file = os.path.join(tmp_results, f"{api}_{model_gen_duration}_{fuzz_duration}.csv")
-    with open(csv_file, "w") as f:
-        # api, valid, invalid, crash, excp, total, valid_prcnt
-        f.write(f"{api},{valid},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
-    input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
-    with open(os.path.join(input_dir, f"{api}_inputs.pkl"), "wb") as f_in:
-        pickle.dump(generated_inputs, f_in)
+    save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir)
         
 
 if __name__ == "__main__":
