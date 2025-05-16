@@ -12,12 +12,13 @@ def main():
     THRESHOLD = 80  # Thrshold for similarity for exception messages
     
     if len(sys.argv) < 3:
-        print("Usage: python analyze_inputs.py <api> <low> <index>")
+        print("Usage: python analyze_inputs.py <api> <low> <index> <detailed, default: False>")
         return
     
     api = sys.argv[1]
     low = int(sys.argv[2]) if len(sys.argv) > 2 else 0
     ind = int(sys.argv[3]) if len(sys.argv) > 3 else None
+    detailed = True if len(sys.argv) > 4 and sys.argv[4] == "detailed" else False # for detailed output with all indices with max_diff
     # Directory containing the input files
     tmp = get_tmp_dir()
     input_file = os.path.join(tmp, "fuzz_inputs", f"{api}_inputs.pkl")
@@ -53,7 +54,7 @@ def main():
         signature = get_signatures()[api]
         rng = np.random.default_rng(seed)
         input_dict = concretize_input(abs_input, signature, rng)
-        diff_oracle_result = oracle_diff(driver, signature, input_dict, atol=A_TOL)
+        diff_oracle_result = oracle_diff(driver, signature, input_dict, atol=A_TOL, detailed=detailed)
         
         print(f"\nOracle result: {diff_oracle_result}")
         print(f"\nAbstract input (seed {seed}): {abstract_print(abs_input, signature)}")

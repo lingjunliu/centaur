@@ -84,8 +84,10 @@ def check_crash(return_code, exception_message):
 
 def compare_two(elem1, elem2, rtol=1e-07, atol=0.01):
     indices = None
+    elem1_val = None
+    elem2_val = None
     if type(elem1) != type(elem2):
-        return False, None, indices
+        return False, None, indices, elem1_val, elem2_val
     
     if isinstance(elem1, list):
         elem1 = np.array(elem1).flatten()
@@ -100,30 +102,32 @@ def compare_two(elem1, elem2, rtol=1e-07, atol=0.01):
         
     if isinstance(elem1, np.ndarray):
         if elem1.size != elem2.size:
-            return False, max_diff, indices
+            return False, max_diff, indices, elem1_val, elem2_val
     
     try:
         matched = np.allclose(elem1, elem2, rtol=rtol, atol=atol, equal_nan=True)
     except: # most likely not numeric
         matched = elem1 == elem2
 
-    return matched, max_diff, indices
+    return matched, max_diff, indices, elem1_val, elem2_val
 
 def consistent(output1, output2, rtol=1e-07, atol=1e-08):
     matched = True
     indices = None
+    elem1_val = None
+    elem2_val = None
 
     if type(output1) != type(output2):
         print(f"Expected two dicts, got {type(output1)} and {type(output2)}")
-        return False, None, indices
+        return False, None, indices, elem1_val, elem2_val
 
     for name in output1.keys():
-        matched, max_diff, indices = compare_two(output1[name], output2[name], rtol=rtol, atol=atol)
+        matched, max_diff, indices, elem1_val, elem2_val = compare_two(output1[name], output2[name], rtol=rtol, atol=atol)
 
         if matched == False:
-            return False, max_diff, indices
+            return False, max_diff, indices, elem1_val, elem2_val
 
-    return matched, max_diff, indices
+    return matched, max_diff, indices, elem1_val, elem2_val
 
 def oracle_crash(driver, input_dict, timeout=10, cpu=True):
     """
@@ -155,7 +159,7 @@ def oracle_crash(driver, input_dict, timeout=10, cpu=True):
     else:
         return ("nominal", "")
 
-def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08):
+def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08, detailed=True):
     """
     Run the API with a timeout on cpu and gpu, and compare the outputs.
     
@@ -164,6 +168,7 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08):
         signature (dict): The API signature to use.
         input_dict (dict): The input dictionary to pass to the API.
         timeout (int): The timeout in seconds.
+        detailed (bool): Whether to return detailed information about the differences (i.e. all indices where we get max diff).
     
     Returns:
         tuple: A tuple containing the oracle result and the exception message (if any).
@@ -203,9 +208,12 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08):
     else:
         if return_code_cpu != 0:
             return ("invalid", exception_message_cpu, exception_message_gpu)
-        const, max_diff, indices = consistent(output_cpu, output_gpu, atol=atol)
+        const, max_diff, indices, elem1_val, elem2_val = consistent(output_cpu, output_gpu, atol=atol)
         if not const:
-            return ("inconsistent", max_diff, indices)
+            try:
+                return ("inconsistent", max_diff, indices[0], elem1_val[0], elem2_val[0]) if not detailed else ("inconsistent", max_diff, indices, elem1_val, elem2_val)
+            except:
+                return ("inconsistent", max_diff, indices, elem1_val, elem2_val)
     
     return ("nominal", "")
 
