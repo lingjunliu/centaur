@@ -164,7 +164,7 @@ def rule_2_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 2
-        _(solver, 'rule_2', {'arg1_ndim': arg1_value['ndim'], 'arg2': arg2_value})
+        _(solver, 'rule_2', {'arg1_ndim': arg1_value['ndim'], 'arg2': arg2_value['value']})
 
 '''
     Corresponds to rule that asserts that arg1 and arg2 has the same number of dimensions. (Rule 3)
@@ -493,7 +493,7 @@ def rule_10_func(arg1, arg2, arg3, arg4, solver=None):
         # Constraints for rule 10
         _(solver, 'rule_10', {'arg1_ndim': arg1_value['ndim'], 'arg1_shape': arg1_value['shape'], 
                               'arg2_ndim': arg2_value['ndim'], 'arg2_shape': arg2_value['shape'],
-                              'arg3_value': arg3_value, 'arg4_value': arg4_value})
+                              'arg3_value': arg3_value['value'], 'arg4_value': arg4_value['value']})
 
 '''
     Corresponds to a rule that ensures the index tensor (arg3) is within
@@ -541,7 +541,7 @@ def rule_11_func(arg1, arg2, arg3, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 11
-        _(solver, 'rule_11', {'arg1_shape': arg1_value['shape'], 'arg2_value': arg2_value, 
+        _(solver, 'rule_11', {'arg1_shape': arg1_value['shape'], 'arg2_value': arg2_value['value'], 
                               'arg3_range': arg3_value['range']})
 
 """
@@ -581,7 +581,7 @@ def rule_12_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 12
-        _(solver, 'rule_12', {'arg1_value': ToReal(arg1_value), 'arg2_value': ToReal(arg2_value)}) 
+        _(solver, 'rule_12', {'arg1_value': ToReal(arg1_value['value']), 'arg2_value': ToReal(arg2_value['value'])}) 
 
 """
     Corresponds to rule asserting that arg1 has an float data type. (Rule 13)
