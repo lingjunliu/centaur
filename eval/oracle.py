@@ -218,6 +218,15 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08, detailed=
     
     return ("nominal", "")
 
+def save_state_oracle(api, result_summary, oracle_results):
+    # Save the results
+    results_dir = create_subdir(get_tmp_dir(), "oracle_results")
+    save_to_pkl(os.path.join(results_dir, f"{api}.pkl"), oracle_results)
+    csv_file = os.path.join(results_dir, f"{api}.csv")
+    with open(csv_file, "w") as f:
+        # api,nominal,invalid,cpu_crash,gpu_crash,cpu_excp,gpu_excp,cpu_only_excp,gpu_only_excp,inconsistent,max_diff
+        f.write(f"{api}," + ",".join([str(x) for x in result_summary.values()]) + "\n")
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python oracle.py <api_name>")
@@ -226,6 +235,7 @@ def main():
     A_TOL = 1e-02   # Tolerance: 0.01 (from FreeFuzz)
     TIMEOUT = 10    # seconds
     print_details = True
+    saving_interval = 100 # inputs
     
     api = sys.argv[1]
     # Optional: low and high values for input generation [low, high)
@@ -281,6 +291,9 @@ def main():
     
     for best_distance, abs_input, seed in generated_inputs:
         i += 1
+        if i % saving_interval == 0:
+            save_state_oracle(api, result_summary, oracle_results)
+
         rng = np.random.default_rng(seed)
         # Get the input dictionary
         input_dict = concretize_input(abs_input, signature, rng)
@@ -306,13 +319,7 @@ def main():
     for result, count in result_summary.items():
         print(f"{result}: {count}")
         
-    # Save the results
-    results_dir = create_subdir(get_tmp_dir(), "oracle_results")
-    save_to_pkl(os.path.join(results_dir, f"{api}.pkl"), oracle_results)
-    csv_file = os.path.join(results_dir, f"{api}.csv")
-    with open(csv_file, "w") as f:
-        # api,nominal,invalid,cpu_crash,gpu_crash,cpu_excp,gpu_excp,cpu_only_excp,gpu_only_excp,inconsistent,max_diff
-        f.write(f"{api}," + ",".join([str(x) for x in result_summary.values()]) + "\n")
+    save_state_oracle(api, result_summary, oracle_results)
 
 if __name__ == "__main__":
     main()
