@@ -80,6 +80,12 @@ _ = lambda s,r,v: {
                      Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 2)),
                  And(v["arg1_ndim"] >= 2, v["arg2_ndim"] == 1,
                      Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], 0))))
+    ),
+    "rule_17": lambda s,v: (
+        s.add(v["arg1_value"] >= 0)
+    ),
+    "rule_18": lambda s,v: (
+        s.add(Select(v["arg1_range"], 0) >= 0)
     )
 }[r](s,v)
 
@@ -732,6 +738,62 @@ def rule_16_func(arg1, arg2, solver=None):
         _(solver, 'rule_16', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 
                               'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']})
 
+"""
+    Corresponds to rule asserting that variable (primitive) has to be non-negative. (Rule 17)
+"""
+
+def rule_17_func(arg1, solver=None):
+    arg1 = next(iter(arg1.values()))
+
+    # Invariant learning phase
+    if not solver: 
+        if not isinstance(arg1, (int, float)):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_value = Real('arg1_value')
+    
+        # Value assignments
+        solver.add(arg1_value == arg1)
+        
+        # Constraints for rule 17
+        _(solver, 'rule_17', {'arg1_value': arg1_value}) 
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 17
+        _(solver, 'rule_17', {'arg1_value': arg1['value']}) 
+
+"""
+    Corresponds to rule asserting that arg1 (input_tensor) only contains non negative values. (Rule 18)
+"""
+
+def rule_18_func(arg1, solver=None):
+    arg1 = next(iter(arg1.values()))
+
+    # Invariant learning phase
+    if not solver: 
+        if not isinstance(arg1, np.ndarray):
+            return False 
+
+        # Variable declarations
+        solver = Solver()
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+    
+        # Value assignments
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+
+        # Constraints for rule 18
+        _(solver, 'rule_18', {'arg1_range': arg1_range})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 18
+        _(solver, 'rule_18', {'arg1_range': arg1['range']})
+
 ############### mapping ################
 
 rule_func_map = { 
@@ -739,7 +801,9 @@ rule_func_map = {
         'rule_8': rule_8_func,
         'rule_9': rule_9_func,
         'rule_13': rule_13_func,
-        'rule_14': rule_14_func
+        'rule_14': rule_14_func,
+        'rule_17': rule_17_func,
+        'rule_18': rule_18_func
     },
     2: {
         'rule_1': rule_1_func,
@@ -766,7 +830,7 @@ rule_func_map = {
 # e.g. two tensors having the same shape: does not matter if the first tensor is arg1 or arg2
 # implication: do not check these rules for all permutations of the arguments
 order_agnostic_rules = {
-    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14'],  # not necessary actually
+    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14', 'rule_17', 'rule_18'],  # not necessary actually
     2: ['rule_1', 'rule_3', 'rule_4', 'rule_12', 'rule_15']
 }
 
