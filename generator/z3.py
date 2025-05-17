@@ -61,7 +61,7 @@ def initial_constraints(solver, signature, z3_args):
             solver.add(And(*[
                 Select(range_, 0) >= -MAX_SZ_NUM, Select(range_, 0) <= MAX_SZ_NUM,
                 Select(range_, 1) >= -MAX_SZ_NUM, Select(range_, 1) <= MAX_SZ_NUM,
-                Select(range_, 0) < Select(range_, 1)
+                Select(range_, 0) <= Select(range_, 1)
             ])) 
             size = reduce(lambda acc, i: acc * If(i < ndim, Select(shape, i), 1), range(MAX_N_DIM), 1)
             solver.add(size * 0.001 * 0.001 < MAX_SZ_TENSOR)
