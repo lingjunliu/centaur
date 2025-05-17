@@ -104,6 +104,10 @@ _ = lambda s,r,v: {
                  v["arg2_value"] <= v["arg3_value"],
                  If(v["arg1_value"] < 0,
                     v["arg2_value"] >= v["arg3_value"], True)))  
+    ),
+    "rule_23": lambda s,v: (
+        s.add(v["arg1_ndim"] == 3),
+        s.add(And(*[Implies(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0) for i in range(MAX_N_DIM)]))
     )
 }[r](s,v)
 
@@ -956,6 +960,37 @@ def rule_22_func(arg1, arg2, arg3, solver=None):
             'arg2_value': ToReal(arg2['value']) if is_int_value(arg2['value']) else arg2['value'],
             'arg3_value': ToReal(arg3['value']) if is_int_value(arg3['value']) else arg3['value']})
 
+"""
+    Corresponds to rule asserting that arg1 is in 3D shape and all of its dimension sizes are positive. (Rule 23)
+"""
+
+def rule_23_func(arg1, solver=None):
+    arg1 = next(iter(arg1.values()))
+
+    # Invariant learning phase
+    if not solver: 
+        if not isinstance(arg1, np.ndarray):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort()) 
+
+        # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+
+        # Constraints for rule 23
+        _(solver, 'rule_23', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 23
+        _(solver, 'rule_23', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}) 
+
 ############### mapping ################
 
 rule_func_map = { 
@@ -967,7 +1002,8 @@ rule_func_map = {
         'rule_17': rule_17_func,
         'rule_18': rule_18_func,
         'rule_20': rule_20_func,
-        'rule_21': rule_21_func
+        'rule_21': rule_21_func,
+        'rule_23': rule_23_func
     },
     2: {
         'rule_1': rule_1_func,
@@ -996,7 +1032,8 @@ rule_func_map = {
 # e.g. two tensors having the same shape: does not matter if the first tensor is arg1 or arg2
 # implication: do not check these rules for all permutations of the arguments
 order_agnostic_rules = {
-    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14', 'rule_17', 'rule_18', 'rule_20', 'rule_21'],  # not necessary actually
+    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14', 'rule_17', 
+        'rule_18', 'rule_20', 'rule_21', 'rule_23'],  # not necessary actually
     2: ['rule_1', 'rule_3', 'rule_4', 'rule_12', 'rule_15']
 }
 

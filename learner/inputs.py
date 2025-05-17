@@ -302,6 +302,44 @@ def addcmul_inputs():
     
     return list_of_inputs
 
+def lp_pool1d_inputs():
+    list_of_inputs = []
+    # Input 1, valid
+    input = torch.tensor([[[1.0, 2.0, 3.0, 4.0, 5.0]]]).numpy()
+    norm_type = 2.0
+    kernel_size = 2
+    stride = 2
+    ceil_mode = True
+    
+    input_dict = {
+        "input": input,
+        "norm_type": norm_type,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "ceil_mode": ceil_mode
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2, valid
+    input = torch.tensor([[[1.0, 4.0, 2.0, 5.0, 3.0, 6.0]]]).numpy()
+    norm_type = 1.0
+    kernel_size = 3
+    stride = 2
+    ceil_mode = True
+    
+    input_dict = {
+        "input": input,
+        "norm_type": norm_type,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "ceil_mode": ceil_mode
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
 # Add human defined inputs for APIs that are
 # difficult to generate inputs for
 inputs_per_api = {
@@ -310,7 +348,8 @@ inputs_per_api = {
     "matmul": matmul_inputs,
     "add": add_inputs,
     "combinations": combinations_inputs,
-    "addcmul": addcmul_inputs
+    "addcmul": addcmul_inputs,
+    "lp_pool1d_": lp_pool1d_inputs
 }
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
