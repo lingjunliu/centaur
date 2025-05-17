@@ -65,7 +65,7 @@ _ = lambda s,r,v: {
         s.add(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8))  # check for float types (6: np.float16, 8: np.float64)
     ),
     "rule_14": lambda s,v: (
-        s.add(Or(*[And(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0) for i in range(MAX_N_DIM)]))
+        s.add(Or(*[And(i < v["arg1_ndim"], Select(v["arg1_shape"], i) == 0) for i in range(MAX_N_DIM)]))
     ),
     "rule_15": lambda s,v: (
         s.add(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)),
@@ -85,7 +85,8 @@ _ = lambda s,r,v: {
         s.add(v["arg1_value"] >= 0)
     ),
     "rule_18": lambda s,v: (
-        s.add(Select(v["arg1_range"], 0) >= 0)
+        s.add(Or(Or(*[And(i < v["arg1_ndim"], Select(v["arg1_shape"], i) == 0) for i in range(MAX_N_DIM)]),
+                 Select(v["arg1_range"], 0) >= 0))
     ),
     "rule_19": lambda s, v: (
         s.add(If(And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5),
@@ -807,19 +808,25 @@ def rule_18_func(arg1, solver=None):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_range = Array('arg1_range', IntSort(), IntSort())
     
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        if arg1.size > 0:
+            arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
 
         # Constraints for rule 18
-        _(solver, 'rule_18', {'arg1_range': arg1_range})
+        _(solver, 'rule_18', {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
         # Constraints for rule 18
-        _(solver, 'rule_18', {'arg1_range': arg1['range']})
+        _(solver, 'rule_18', {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg1_range': arg1['range']})
 
 """
     Corresponds to rule asserting that
