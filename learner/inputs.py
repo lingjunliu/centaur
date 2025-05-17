@@ -266,6 +266,42 @@ def combinations_inputs():
     
     return list_of_inputs
 
+def addcmul_inputs():
+    list_of_inputs = []
+    # Input 1, valid
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    tensor1 = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    tensor2 = torch.tensor([10.0, 20.0, 30.0]).numpy()
+    value = 2.0  
+
+    input_dict = {
+        "input": input,
+        "tensor1": tensor1,
+        "tensor2": tensor2,
+        "value": value
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 2, valid
+    input = torch.ones((2, 3)).numpy()
+    tensor1 = torch.tensor([[1.0, 2.0, 3.0],
+                            [4.0, 5.0, 6.0]]).numpy()
+    tensor2 = torch.tensor([[0.1, 0.2, 0.3],
+                            [0.4, 0.5, 0.6]]).numpy()
+    value = 0.5
+
+    input_dict = {
+        "input": input,
+        "tensor1": tensor1,
+        "tensor2": tensor2,
+        "value": value
+    }
+    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
 # Add human defined inputs for APIs that are
 # difficult to generate inputs for
 inputs_per_api = {
@@ -273,7 +309,8 @@ inputs_per_api = {
     "conv_transpose2d": conv_transpose2d_inputs,
     "matmul": matmul_inputs,
     "add": add_inputs,
-    "combinations": combinations_inputs
+    "combinations": combinations_inputs,
+    "addcmul": addcmul_inputs
 }
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):

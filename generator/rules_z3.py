@@ -95,6 +95,15 @@ _ = lambda s,r,v: {
     ),
     "rule_20": lambda s,v: (
         s.add(v["arg1_ndim"] == 1)
+    ),
+    "rule_21": lambda s,v: (
+        s.add(v["arg1_value"] != 0)
+    ),
+    "rule_22": lambda s, v: (
+        s.add(If(v["arg1_value"] > 0,
+                 v["arg2_value"] <= v["arg3_value"],
+                 If(v["arg1_value"] < 0,
+                    v["arg2_value"] >= v["arg3_value"], True)))  
     )
 }[r](s,v)
 
@@ -586,8 +595,8 @@ def rule_12_func(arg1, arg2, solver=None):
     # Invariant learning phase
     if not solver: 
         if (
-            not isinstance(arg1, (int, float)) or isinstance(arg1, bool) or 
-            not isinstance(arg2, (int, float)) or isinstance(arg2, bool)
+            not isinstance(arg1, (int, float, np.integer, np.floating)) or isinstance(arg1, bool) or 
+            not isinstance(arg2, (int, float, np.integer, np.floating)) or isinstance(arg2, bool)
         ):
             return False
 
@@ -759,7 +768,7 @@ def rule_17_func(arg1, solver=None):
 
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1, (int, float)) or isinstance(arg1, bool):
+        if not isinstance(arg1, (int, float, np.integer, np.floating)) or isinstance(arg1, bool):
             return False
 
         # Variable declarations
@@ -818,7 +827,10 @@ def rule_19_func(arg1, arg2, solver=None):
     
     # Invariant learning phase
     if not solver: 
-        if not isinstance(arg1, np.ndarray) or not isinstance(arg2, (int, float)) or isinstance(arg2, bool):
+        if (
+            not isinstance(arg1, np.ndarray) or 
+            not isinstance(arg2, (int, float, np.integer, np.floating)) or isinstance(arg2, bool)
+        ):
             return False 
 
         # Variable declarations
@@ -869,6 +881,77 @@ def rule_20_func(arg1, solver=None):
         # Constraints for rule 20
         _(solver, 'rule_20', {'arg1_ndim': arg1['ndim']})
 
+"""
+    Corresponds to rule asserting that variable (primitive) should not be zero. (Rule 21)
+"""
+
+def rule_21_func(arg1, solver=None):
+    arg1 = next(iter(arg1.values()))
+
+    # Invariant learning phase
+    if not solver: 
+        if not isinstance(arg1, (int, float, np.integer, np.floating)) or isinstance(arg1, bool):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_value = Real('arg1_value')
+    
+        # Value assignments
+        solver.add(arg1_value == arg1)
+        
+        # Constraints for rule 21
+        _(solver, 'rule_21', {'arg1_value': arg1_value}) 
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 21
+        _(solver, 'rule_21', {'arg1_value': arg1['value']}) 
+
+"""
+    Corresponds to rule asserting that for primitive type variables (arg1, arg2, arg3),
+    if arg1 is greater than zero, arg2 should be smaller than or equal to arg3, and
+    if arg1 is smaller than zero, arg2 should be greater than or equal to arg3. (Rule 22)
+"""
+
+def rule_22_func(arg1, arg2, arg3, solver=None):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if (
+            not isinstance(arg1, (int, float, np.integer, np.floating)) or isinstance(arg1, bool) or
+            not isinstance(arg2, (int, float, np.integer, np.floating)) or isinstance(arg2, bool) or
+            not isinstance(arg3, (int, float, np.integer, np.floating)) or isinstance(arg3, bool)
+        ):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_value, arg2_value, arg3_value = Reals('arg1_value arg2_value arg3_value')
+    
+        # Value assignments
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == arg2)
+        solver.add(arg3_value == arg3)
+        
+        # Constraints for rule 22
+        _(solver, 'rule_22', {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        # Constraints for rule 22
+        _(solver, 'rule212', {'arg1_value': arg1['value'], 
+                              'arg2_value': ToReal(arg2['value']), 'arg3_value': ToReal(arg3['value'])}) 
+
+"""
+    Corresponds to rule asserting that variable (primitive) is not equal to zero. (Rule 21)
+"""
+
 ############### mapping ################
 
 rule_func_map = { 
@@ -879,7 +962,8 @@ rule_func_map = {
         'rule_14': rule_14_func,
         'rule_17': rule_17_func,
         'rule_18': rule_18_func,
-        'rule_20': rule_20_func
+        'rule_20': rule_20_func,
+        'rule_21': rule_21_func
     },
     2: {
         'rule_1': rule_1_func,
@@ -895,7 +979,8 @@ rule_func_map = {
         'rule_19': rule_19_func
     },
     3: {
-        'rule_11': rule_11_func
+        'rule_11': rule_11_func,
+        'rule_22': rule_22_func
     },
     4: {
         'rule_10': rule_10_func
@@ -907,7 +992,7 @@ rule_func_map = {
 # e.g. two tensors having the same shape: does not matter if the first tensor is arg1 or arg2
 # implication: do not check these rules for all permutations of the arguments
 order_agnostic_rules = {
-    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14', 'rule_17', 'rule_18', 'rule_20'],  # not necessary actually
+    1: ['rule_8', 'rule_9', 'rule_13', 'rule_14', 'rule_17', 'rule_18', 'rule_20', 'rule_21'],  # not necessary actually
     2: ['rule_1', 'rule_3', 'rule_4', 'rule_12', 'rule_15']
 }
 

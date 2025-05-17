@@ -39,6 +39,8 @@ def create_z3_args(signature):
                 "dtype": Int(f"{param}_dtype"),
                 "range": Array(f"{param}_range", IntSort(), IntSort())
             }
+        elif typ == "dtype":
+            z3_args[param] = Int(param)
         else:
             raise ValueError(f"Unsupported type: {typ}")
     return z3_args
@@ -78,8 +80,9 @@ def initial_constraints(solver, signature, z3_args):
             solver.add(And(value >= domain_limits[f'{param_type}_value_range'][0], value <= domain_limits[f'{param_type}_value_range'][1]))
             solver.add(And(dtype >= domain_limits[f'{param_type}_dtype'][0], dtype <= domain_limits[f'{param_type}_dtype'][1]))
         elif param_type == "boolean":
-            solver.add(Or(z3_var == domain_limits[f'{param_type}_value_range'][0], z3_var == domain_limits[f'{param_type}_value_range'][1]))    # Two possible values, True or False
-
+            solver.add(Or(z3_var == domain_limits[f'{param_type}_value_range'][0], z3_var == domain_limits[f'{param_type}_value_range'][1]))            # Two possible values, True or False
+        elif param_type == "dtype":
+            solver.add(And(z3_var >= 0, z3_var <= len(list_of_available_dtypes) - 3)) 
 
 def collect_constraints(solver, ruleset, z3_args):
     for rule in ruleset:
@@ -133,6 +136,9 @@ def instantiate_args(model, signature, z3_args, seed=42):
             value = model.eval(z3_var['value'], model_completion=True).as_long()
             dtype = model.eval(z3_var['dtype'], model_completion=True).as_long()
             concrete_args[param_name] = list_of_available_dtypes[dtype](list_of_string_values[value])
+        elif param_type == "dtype":
+            dtype = model.eval(z3_var, model_completion=True).as_long()
+            concrete_args[param_name] = list_of_available_dtypes[dtype]
         else:
             value = model.eval(z3_var, model_completion=True)
             if isinstance(value, BoolRef):
@@ -180,7 +186,13 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
         model = solver.model()
         for decl in model.decls():
             var, val = decl(), model[decl]
-            prefix, suffix = str(decl.name()).rsplit("_", 1)
+            name_parts = str(decl.name()).rsplit("_", 1)
+
+            if len(name_parts) == 2:
+                prefix, suffix = name_parts
+            else:
+                prefix, suffix = name_parts[0], None
+
             if val.sort().kind() == Z3_ARRAY_SORT:                
                 array_len = None
                 if suffix == "shape" or suffix == "values":
@@ -196,7 +208,7 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
                     potential_valid_blocks.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
             else:
                 block.append(var != val)
-                if suffix not in ["ndim", "dtype"]: # potentially can add length too, TODO: asess
+                if not suffix and suffix not in ["ndim", "dtype"]: # potentially can add length too, TODO: asess
                     potential_valid_blocks.append(var != val)
         
         # Randomly block one of the constraints
@@ -207,7 +219,7 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
 
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args)
         status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
-
+ 
         if status != "invalid":
             models.append(model)
             num_model += 1
