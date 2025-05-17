@@ -615,7 +615,9 @@ def rule_12_func(arg1, arg2, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 12
-        _(solver, 'rule_12', {'arg1_value': ToReal(arg1['value']), 'arg2_value': ToReal(arg2['value'])}) 
+        _(solver, 'rule_12', {
+            'arg1_value': ToReal(arg1['value']) if is_int_value(arg1['value']) else arg1['value'],
+            'arg2_value': ToReal(arg2['value']) if is_int_value(arg2['value']) else arg2['value']})
 
 """
     Corresponds to rule asserting that arg1 has an float data type. (Rule 13)
@@ -910,12 +912,15 @@ def rule_21_func(arg1, solver=None):
         _(solver, 'rule_21', {'arg1_value': arg1['value']}) 
 
 """
-    Corresponds to rule asserting that for primitive type variables (arg1, arg2, arg3),
-    if arg1 is greater than zero, arg2 should be smaller than or equal to arg3, and
-    if arg1 is smaller than zero, arg2 should be greater than or equal to arg3. (Rule 22)
+    [arange] Corresponds to rule asserting that for primitive type variables (arg1, arg2, arg3),
+             if arg1 is greater than zero, arg2 should be smaller than or equal to arg3, and
+             if arg1 is smaller than zero, arg2 should be greater than or equal to arg3. (Rule 22)
 """
 
 def rule_22_func(arg1, arg2, arg3, solver=None):
+    param1 = next(iter(arg1.keys()))
+    param2 = next(iter(arg2.keys()))
+    param3 = next(iter(arg3.keys()))
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
     arg3 = next(iter(arg3.values()))
@@ -923,6 +928,7 @@ def rule_22_func(arg1, arg2, arg3, solver=None):
     # Invariant learning phase
     if not solver:
         if (
+            param1 != "step" or param2 != "start" or param3 != "end" or 
             not isinstance(arg1, (int, float, np.integer, np.floating)) or isinstance(arg1, bool) or
             not isinstance(arg2, (int, float, np.integer, np.floating)) or isinstance(arg2, bool) or
             not isinstance(arg3, (int, float, np.integer, np.floating)) or isinstance(arg3, bool)
@@ -945,12 +951,10 @@ def rule_22_func(arg1, arg2, arg3, solver=None):
     # Fuzz input generation phase
     else:
         # Constraints for rule 22
-        _(solver, 'rule212', {'arg1_value': arg1['value'], 
-                              'arg2_value': ToReal(arg2['value']), 'arg3_value': ToReal(arg3['value'])}) 
-
-"""
-    Corresponds to rule asserting that variable (primitive) is not equal to zero. (Rule 21)
-"""
+        _(solver, 'rule_22', {
+            'arg1_value': ToReal(arg1['value']) if is_int_value(arg1['value']) else arg1['value'],
+            'arg2_value': ToReal(arg2['value']) if is_int_value(arg2['value']) else arg2['value'],
+            'arg3_value': ToReal(arg3['value']) if is_int_value(arg3['value']) else arg3['value']})
 
 ############### mapping ################
 
