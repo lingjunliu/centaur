@@ -12,6 +12,10 @@ if [ -z "${max_parallel}" ]; then
     max_parallel=16    # Fix number of slurm jobs to run at a time if not set
 fi
 
+if [ -z "${slurm_time}" ]; then
+    slurm_time="8:00:00"    # Default slurm timeout
+fi
+
 echo "Using a slurm timeout of $slurm_time"
 
 cmd=$1              # commmand to run parallelly
@@ -49,6 +53,7 @@ for api in "${apis[@]}"; do
         --gpus-per-node=1 \
         --job-name=${job_name}-${i} \
         --output="logs/${api}_${job_name}.out" \
+        --time=$slurm_time \
         --wrap="${wrap_cmd}"
 
     # limit number of running jobs
