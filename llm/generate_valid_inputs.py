@@ -87,7 +87,7 @@ def generate_inputs(api, max_attempts=5):
     to_return = [0] * max_attempts
     
     while not output.endswith("Valid"):
-        print(f"Attempt {attempt + 1}: \n{output}")
+        print(f"Attempt {attempt + 1}: \n{output}\n{error}")
         to_return[attempt] = 1
         print("Retrying code generation after 6 seconds...")
         time.sleep(6)
@@ -115,7 +115,7 @@ def main():
         apis = [line.strip() for line in f.readlines()]
     
     for api in apis:
-        print(f"\n\nGenerating driver for {api}...\n\n")
+        print(f"\nGenerating valid inputs for {api}...\n")
         result = generate_inputs(api)
         with open(f"{CUR_DIR}/inputs.csv", "a") as f:
             f.write(",".join(map(str, result)) + "\n")
