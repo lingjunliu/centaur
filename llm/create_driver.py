@@ -1,12 +1,14 @@
 from google import genai
 import os, re, subprocess, requests, time
 from bs4 import BeautifulSoup
-from get_api_list import update_apis
+from llm.get_api_list import update_apis
+
+CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def get_prompt(api):
     doc = extract_function_info(fetch_documentation(api), api)
     prefix = f'This is the documentation for the function {api}:\n\n"{doc.encode('ascii', errors='ignore').decode()}"\n\n' if doc else ""
-    with open("prompt.md", "r", encoding="utf-8") as file:
+    with open(f"{CUR_DIR}/prompt.md", "r", encoding="utf-8") as file:
         prompt = file.read()
         prompt = prompt.replace("{api}", api)
     return prefix + prompt
@@ -21,13 +23,13 @@ def extract_code_from_response(response):
 def save_and_run_code(filename, code):
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     
-    filepath = f"drivers/{filename}.py"
+    filepath = f"{CUR_DIR}/drivers/{filename}.py"
     with open(filepath, 'w') as f:
         f.write(code)
     
     try:
         # Run the generated file with a timeout of 30 sec just in case
-        result = subprocess.run(['python', '-m', f'drivers.{filename}'], capture_output=True, text=True, timeout=30)
+        result = subprocess.run(['python', '-m', f'llm.drivers.{filename}'], capture_output=True, text=True, timeout=30)
         # print(result.stdout)
         # print(result.stderr)
         error = result.stderr.strip()
@@ -92,7 +94,7 @@ def driver_to_api(driver):
     """
         Takes a driver name and returns the corresponding torch API name.
     """
-    with open("drivers_to_api.csv", "r") as f:
+    with open(f"{CUR_DIR}/drivers_to_api.csv", "r") as f:
         for line in f.readlines():
             tokens = line.strip().split(",")
             if tokens[0] == driver:
@@ -151,13 +153,13 @@ def generate_driver(api, max_attempts=5):
     return [api_basename, api] + to_return
 
 def main():
-    with open("needs_driver.txt", "r") as f:
+    with open(f"{CUR_DIR}/needs_driver.txt", "r") as f:
         apis = [line.strip() for line in f.readlines()]
     
     for api in apis:
         print(f"\n\nGenerating driver for {api}...\n\n")
         result = generate_driver(api)
-        with open("drivers.csv", "a") as f:
+        with open(f"{CUR_DIR}/drivers.csv", "a") as f:
             f.write(",".join(map(str, result)) + "\n")
     
     update_apis()

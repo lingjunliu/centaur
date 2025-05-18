@@ -8,7 +8,7 @@ def torch_version(input, cpu=True):
     # Unpack input dictionary
     size = tuple(input["size"])
     fill_value = input["fill_value"]
-    dtype = torch.float32  # Only handling float32 for simplicity
+    dtype = torch.tensor(np.array([], dtype=input.get("dtype", np.float32))).dtype
     device = torch.device("cuda" if torch.cuda.is_available() and not cpu else "cpu")
 
     # Create tensor filled with fill_value
