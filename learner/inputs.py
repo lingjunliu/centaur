@@ -466,7 +466,8 @@ inputs_per_api = {
     'MultiLabelSoftMarginLoss': multilabel_soft_margin_loss_inputs,
     'NLLLoss': nllloss_inputs,
     'batch_norm': batch_norm_inputs,
-    'LSTMCell': lstm_cell_inputs    # llm end
+    'LSTMCell': lstm_cell_inputs,
+    'MarginRankingLoss': margin_ranking_loss_inputs# llm end
 }
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):

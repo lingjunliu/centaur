@@ -5703,3 +5703,91 @@ def lstm_cell_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
+def margin_ranking_loss_inputs():
+    list_of_inputs = []
+    input1 = torch.randn(5).numpy()
+    input2 = torch.randn(5).numpy()
+    target = torch.randint(0, 2, (5,)).float().numpy() * 2 - 1
+    margin = 0.0
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = torch.randn(10).numpy()
+    input2 = torch.randn(10).numpy()
+    target = torch.randint(0, 2, (10,)).float().numpy() * 2 - 1
+    margin = 1.0
+    size_average = False
+    reduce = False
+    reduction = 'sum'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = torch.randn(3, 4).numpy()
+    input2 = torch.randn(3, 4).numpy()
+    target = torch.randint(0, 2, (3, 4)).float().numpy() * 2 - 1
+    margin = 0.5
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = torch.randn(2, 2, 2).numpy()
+    input2 = torch.randn(2, 2, 2).numpy()
+    target = torch.randint(0, 2, (2, 2, 2)).float().numpy() * 2 - 1
+    margin = 0.2
+    size_average = False
+    reduce = True
+    reduction = 'sum'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = torch.randn(7).numpy()
+    input2 = torch.randn(7).numpy()
+    target = torch.randint(0, 2, (7,)).float().numpy() * 2 - 1
+    margin = 1.5
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    return list_of_inputs
