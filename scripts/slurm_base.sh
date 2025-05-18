@@ -41,12 +41,13 @@ mkdir -p logs
 
 for api in "${apis[@]}"; do
     ((i++))
-    wrap_cmd="srun --cpu-bind=cores ${cmd} ${api} ${@:3}"
+    wrap_cmd="${cmd} ${api} ${@:3}"
     # Run sbatch with a timeout of 2 hour
     sbatch -c 1 \
         --job-name=${job_name}-${i} \
         --output="logs/${api}_${job_name}.out" \
         --time=$slurm_time \
+        --cpu-bind=cores \
         --wrap="${wrap_cmd}"
 
     # limit number of running jobs
