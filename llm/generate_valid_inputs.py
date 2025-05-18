@@ -42,10 +42,7 @@ from eval.oracle import oracle_crash
 def check_valid(api, list_of_inputs, lib="torch"):
     api_driver = get_driver(api, lib=lib)
     for idx, input_dict in enumerate(list_of_inputs):
-        status, exception_message = oracle_crash(api_driver, input_dict, cpu=True)
-        if status == "invalid":
-            print('Input number' + str(idx+1) + ' got the following exception: ' + exception_message)
-            return
+        api_driver(input_dict, cpu=True)
     
     print("Valid")
 
@@ -66,7 +63,7 @@ check_valid('{api}', list_of_inputs)
         return "", "Timeout: Execution could not be completed in 30 seconds."
 
 def retry_prompt(error):
-    prompt = f"""Error faced during execution. {error}.
+    prompt = f"""Error faced during execution: {error}.
 Please fix the error and retry the input generation. Only provide the code, skip any other text. Do not include verbose comments inside code.
     """
     return prompt
@@ -87,11 +84,11 @@ def generate_inputs(api, max_attempts=5):
     to_return = [0] * max_attempts
     
     while not output.endswith("Valid"):
-        print(f"Attempt {attempt + 1}: \n{output}\n{error}")
+        print(f"Attempt {attempt + 1}: \n{error}")
         to_return[attempt] = 1
         print("Retrying code generation after 6 seconds...")
         time.sleep(6)
-        response = chat.send_message(retry_prompt(output))
+        response = chat.send_message(retry_prompt(error))
         print("Got response from Gemini API.")
         code = extract_code_from_response(response.text)
         output, error = save_and_run_code(api, code)
