@@ -80,7 +80,7 @@ def gen_concrete_input(domain, ll, rng=np.random.default_rng(42)):
         Generate a concrete input given a list of lists. If the domain is tensor,
         the provided rng will be used to generate the concrete input.
     '''
-    if ll[2][0] > ll[2][1]:
+    if domain != "dtype" and ll[2][0] > ll[2][1]:
         ll[2] = [ll[2][1], ll[2][0]]
     if domain in ["integer", "float", "string", "boolean", "dtype"]: # primitives and dtype
         return list_of_available_dtypes[ll[1][0]](ll[0][0])
@@ -107,6 +107,7 @@ def concretize_input(abstract, signature, rng=np.random.default_rng(42)):
         else:   # if abstract is a list
             ll = [abstract[i], abstract[i+1], abstract[i+2]]
             i += 3
+        print(ll)
         concrete[arg] = gen_concrete_input(domain, ll, rng)
         
     return concrete
