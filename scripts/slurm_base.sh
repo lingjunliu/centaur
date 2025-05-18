@@ -47,7 +47,6 @@ for api in "${apis[@]}"; do
         --job-name=${job_name}-${i} \
         --output="logs/${api}_${job_name}.out" \
         --time=$slurm_time \
-        --cpu-bind=cores \
         --wrap="${wrap_cmd}"
 
     # limit number of running jobs
