@@ -19,7 +19,7 @@ def get_prompt(api):
     torch_api = get_torch_api(api)    
     if not torch_api:
         return None
-    doc = extract_function_info(fetch_documentation(api), api)
+    doc = extract_function_info(fetch_documentation(torch_api), torch_api)
     signature = get_signatures()[api]
     prefix = f'This is the documentation for the function {torch_api}:\n\n"{doc.encode('ascii', errors='ignore').decode()}"\n\n' if doc else ""
     with open(f"{CUR_DIR}/prompt_input_gen.md", "r", encoding="utf-8") as file:
