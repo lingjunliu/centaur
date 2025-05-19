@@ -1716,7 +1716,7 @@ def flatten_inputs():
     input_dict = {"input": input_tensor, "start_dim": 0, "end_dim": -1}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-def flatten_inputs():
+def flatten_inputs_2():
     list_of_inputs = []
     # Input 1: 2D float tensor, default start_dim and end_dim
     input1 = np.random.randn(2, 3).astype(np.float32)

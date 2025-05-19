@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export max_parallel=16   # Fix number of slurm jobs to 16
+export max_parallel=24   # Fix number of slurm jobs to 16
 
 low=${1:--1}
 high=${2:--1}
