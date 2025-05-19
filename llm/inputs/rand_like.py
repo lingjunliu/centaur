@@ -6,14 +6,30 @@ import torch, copy
 import numpy as np
 
 def rand_like_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
-    # Input 1: Float tensor, 2D
     input1 = np.random.randn(3, 4).astype(np.float32)
-    input_dict1 = {"input": input1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    generated_inputs.append({"input": input1})
 
-    return list_of_inputs
+    input2 = np.random.randint(0, 10, size=(2, 2), dtype=np.int64)
+    generated_inputs.append({"input": input2})
+
+    input3 = np.random.rand(1, 5, 5).astype(np.float64)
+    generated_inputs.append({"input": input3})
+
+    input4 = np.array([-1, 0, 1]).astype(np.int32)
+    generated_inputs.append({"input": input4})
+
+    input5 = np.random.randn(2, 3, 4, 5).astype(np.float32)
+    generated_inputs.append({"input": input5})
+
+    input6 = np.array([1+1j, 2+2j, 3+3j]).astype(np.complex128)
+    generated_inputs.append({"input": input6})
+    
+    input7 = np.zeros((2,3)).astype(np.bool_)
+    generated_inputs.append({"input": input7})
+
+    return generated_inputs
 
 generated_inputs = rand_like_inputs()
 

@@ -9,44 +9,32 @@ import copy
 def repeat_interleave_inputs():
     list_of_inputs = []
 
-    # Test case 1: Basic 1D tensor and scalar repeats
+    # Test case 1: Basic 1D tensor with scalar repeats
     input_tensor = torch.tensor([1, 2, 3])
     repeats = 2
     input_dict = {"input": input_tensor, "repeats": repeats}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Test case 2: 2D tensor and scalar repeats
+    # Test case 2: 2D tensor with scalar repeats
     input_tensor = torch.tensor([[1, 2], [3, 4]])
     repeats = 3
     input_dict = {"input": input_tensor, "repeats": repeats}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Test case 3: 1D tensor and tensor repeats
+    # Test case 3: 1D tensor with tensor repeats
     input_tensor = torch.tensor([1, 2, 3])
     repeats = torch.tensor([1, 2, 3])
     input_dict = {"input": input_tensor, "repeats": repeats}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Test case 4: 2D tensor and tensor repeats along axis 0
-    input_tensor = torch.tensor([[1, 2], [3, 4], [5, 6]])
-    repeats = torch.tensor([1, 2, 1])
-    input_dict = {"input": input_tensor, "repeats": repeats}
+    # Test case 4: 2D tensor with tensor repeats and dim specified
+    input_tensor = torch.tensor([[1, 2], [3, 4]])
+    repeats = torch.tensor([2, 1])
+    input_dict = {"input": input_tensor, "repeats": repeats, "dim": 0}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Test case 5: Float tensor
-    input_tensor = torch.tensor([1.5, 2.5, 3.5])
-    repeats = 2
-    input_dict = {"input": input_tensor, "repeats": repeats}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Test case 6: scalar repeat with dimension
+    # Test case 5: 3D tensor with scalar repeats
     input_tensor = torch.randn(2, 3, 4)
-    repeats = 2
-    input_dict = {"input": input_tensor, "repeats": repeats}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Test case 7: Empty tensor
-    input_tensor = torch.tensor([])
     repeats = 2
     input_dict = {"input": input_tensor, "repeats": repeats}
     list_of_inputs.append(copy.deepcopy(input_dict))

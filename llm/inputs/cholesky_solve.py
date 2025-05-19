@@ -8,16 +8,46 @@ import numpy as np
 def cholesky_solve_inputs():
     list_of_inputs = []
 
-    # Example 1: Basic float tensor
-    A = np.array([[4.0, 12.0, -16.0],
-                  [12.0, 37.0, -43.0],
-                  [-16.0, -43.0, 98.0]], dtype=np.float32)
-    b = np.array([[1.0], [2.0], [3.0]], dtype=np.float32)
+    # Input 1: Basic float tensors
+    A = np.random.rand(3, 3)
+    A = A @ A.T  # Make A positive definite
+    B = np.random.rand(3, 2)
+    input_dict = {"A": A, "B": B}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_dict = {
-        "input": b,
-        "input2": A
-    }
+    # Input 2: Different shape, float type
+    A = np.random.rand(5, 5)
+    A = A @ A.T
+    B = np.random.rand(5, 1)
+    input_dict = {"A": A, "B": B}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Double type
+    A = np.random.rand(4, 4).astype(np.float64)
+    A = A @ A.T
+    B = np.random.rand(4, 3).astype(np.float64)
+    input_dict = {"A": A, "B": B}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different B shape and A is complex
+    A = np.random.rand(2, 2) + 1j*np.random.rand(2, 2)
+    A = A @ A.conj().T
+    B = np.random.rand(2, 4) + 1j*np.random.rand(2, 4)
+    input_dict = {"A": A, "B": B}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: A and B are complex with more dims
+    A = (np.random.rand(2, 3, 3) + 1j*np.random.rand(2, 3, 3))
+    A = np.einsum('aij,ajk->aik', A, A.conj().transpose(0, 2, 1))
+    B = (np.random.rand(2, 3, 4) + 1j*np.random.rand(2, 3, 4))
+    input_dict = {"A": A, "B": B}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Larger matrices
+    A = np.random.rand(10, 10)
+    A = A @ A.T
+    B = np.random.rand(10, 5)
+    input_dict = {"A": A, "B": B}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
