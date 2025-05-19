@@ -113,83 +113,8 @@ def update_apis():
 
     print(f"Saved {len(backend_apis)} PyTorch APIs to {output_file}")
 
-
-    attempted = set()
-    overridden = set()
-    inconsistent = set()
-    succeeded = set()
-    with open(f"{CUR_DIR}/drivers.csv", "r") as f:
-        for line in f.readlines():
-            tokens = line.strip().split(",")
-            if tokens[0] == "driver":
-                continue
-            if api_in_file(tokens[1], os.path.join(f"{CUR_DIR}/drivers", f"{tokens[0]}.py")):
-                attempted.add(tokens[1])
-                if tokens[-1] == "0":
-                    # API generation succeded
-                    succeeded.add(tokens[1])
-            elif api_in_file(tokens[0], os.path.join(f"{CUR_DIR}/drivers", f"{tokens[0]}.py")):
-                overridden.add(tokens[1])
-            else:
-                inconsistent.add(tokens[1])
-    
-    
-    failed_generation = attempted - succeeded
-    not_attempted = backend_apis - attempted    
-    not_attempted = not_attempted - overridden    
-    not_attempted = not_attempted - inconsistent
-    extra = supported_torch_apis - not_attempted
-    not_attempted = not_attempted - supported_torch_apis
- 
-    output_file = f'{CUR_DIR}/needs_driver.txt'
-    needs = 0
-    with open(output_file, 'w') as f:
-        for api in sorted(backend_apis):
-            if api in succeeded or api in supported_torch_apis:
-                continue
-            f.write(f"{api}\n")
-            needs += 1    
-    
-    to_write = "API,Status\n"
-    for api in sorted(backend_apis):
-        if api in supported_torch_apis:
-            to_write += f"{api},Driver generation successful\n"            
-        elif api in failed_generation:
-            to_write += f"{api},Driver generation tried but failed\n"            
-        elif api in succeeded:
-            to_write += f"{api},Driver generation successful\n"
-        elif api in overridden:
-            to_write += f"{api},Driver generation overridden\n"
-        elif api in inconsistent:
-            to_write += f"{api},Driver generation inconsistent\n"
-        elif api in not_attempted:
-            to_write += f"{api},Driver generation not attempted\n"            
-        else:
-            to_write += f"{api},Unknown\n"
-    
-    with open(f"{CUR_DIR}/driver_status.csv", "w") as f:
-        f.write(to_write)            
-
-    print(f"\nStats:\nDriver generation attempted,{len(attempted)}\nSucceeded,{len(succeeded)}\nFailed,{len(failed_generation)}\nOverridden,{len(overridden)}\nInconsistent,{len(inconsistent)}\nPreviously existed,{len(supported_torch_apis)}\nNot attempted,{len(not_attempted)}\nRetried generation despite existing,{len(extra)}\nTotal,{len(backend_apis)}")
-
-    print(f"\nSaved {needs} PyTorch APIs for which we need to create drivers to {output_file}\n")
-    
-    with open(f"{CUR_DIR}/other_bugs.txt", "r") as f:
-        for line in f.readlines():
-            api = line.strip()
-            if api in succeeded:
-                print(f"{api},Succeded")
-            elif api in failed_generation:
-                print(f"{api},Failed")
-            elif api in overridden:
-                print(f"{api},Overridden")
-            elif api in inconsistent:
-                print(f"{api},Inconsistent")
-            elif api in supported_torch_apis:
-                print(f"{api},Previously Supported")
-            else:
-                print(f"{api},Unsupported")
-    
+    driver_to_api_map = {}
+    api_to_driver_map = {}
     with open(f"{CUR_DIR}/drivers_to_api.csv", "w") as f:
         f.write("Driver,API\n")
         for file in os.listdir(f"{CUR_DIR}/drivers"):
@@ -197,10 +122,86 @@ def update_apis():
                 continue
             driver_file = os.path.join(f"{CUR_DIR}/drivers", file)
             driver_name = file.split(".")[0]
+            # check if the targeted driver is in the file
+            found = False
             for api in backend_apis:
-                if api_in_file(api, driver_file):
+                basename = api.split('.')[-1]
+                if basename.lower() == driver_name.lower() and api_in_file(api, driver_file):
                     f.write(f"{driver_name},{api}\n")
+                    found = True
+                    driver_to_api_map[driver_name] = api
+                    api_to_driver_map[api] = driver_name
                     break
+            # if not found, try all apis
+            if not found:
+                for api in backend_apis:
+                    if api_in_file(api, driver_file):
+                        f.write(f"{driver_name},{api}\n")
+                        driver_to_api_map[driver_name] = api
+                        api_to_driver_map[api] = driver_name
+                        break
+    
+    attempted = set()
+    succeeded = set()
+    with open(f"{CUR_DIR}/drivers.csv", "r") as f:
+        for line in f.readlines():
+            tokens = line.strip().split(",")
+            if tokens[0] == "driver":
+                continue
+            attempted.add(tokens[1])
+            if tokens[-1] == "0":
+                # API generation succeded
+                succeeded.add(tokens[1])
+            else:
+                succeeded = succeeded - set(tokens[1])
+    
+    status = {}
+    ex = 1
+    for driver, api in driver_to_api_map.items():
+        if api in supported_torch_apis:
+            status[api] = "Success"
+        elif api in succeeded:
+            basename = api.split(".")[-1]
+            if basename == driver:
+                status[api] = "Success"
+            else:
+                status[api] = "Inconsistent"
+        elif api in attempted:
+            status[api] = "Failed"
+        else:
+            status[api] = "Not Attempted"
+    
+    for api in supported_torch_apis:
+        status[api] = "Success"
+        ex += 1
+ 
+    output_file = f'{CUR_DIR}/needs_driver.txt'
+    needs = 0
+    with open(output_file, 'w') as f:
+        for api in sorted(backend_apis):
+            if api not in status:
+                status[api] = "Not Attempted"
+            if status[api] == "Success":
+                continue
+            f.write(f"{api}\n")
+            needs += 1    
+    
+    to_write = "API,Status\n"
+    stats = {}
+    for api, api_status in status.items():
+        to_write += f"{api},{api_status}\n"
+        if api_status not in stats:
+            stats[api_status] = 0
+        stats[api_status] += 1
+    
+    with open(f"{CUR_DIR}/driver_status.csv", "w") as f:
+        f.write(to_write)
+
+    print(f"\nStats:")
+    for k, v in stats.items():
+        print(f"Driver Generation: {k},{v}")
+
+    print(f"\nSaved {needs} PyTorch APIs for which we need to create drivers to {output_file}\nExisting: {ex}")
 
 
 if __name__ == "__main__":

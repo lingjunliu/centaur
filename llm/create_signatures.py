@@ -42,7 +42,7 @@ def generate_signatures(api):
     if sig is not None:
         save_sig(sig)
     else:
-        with open("needs_sig.txt", "a") as f:
+        with open(f"{CUR_DIR}/needs_sig.txt", "a") as f:
             f.write(f"{api}\n")
 
 def main():
