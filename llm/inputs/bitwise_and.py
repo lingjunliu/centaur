@@ -2,40 +2,51 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def bitwise_and_inputs():
     list_of_inputs = []
 
-    input1 = torch.tensor([1, 2, 3, 4], dtype=torch.int32).numpy()
-    input2 = torch.tensor([0, 2, 5, 8], dtype=torch.int32).numpy()
-    input_dict = {"input": input1, "other": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = np.array([1, 2, 3, 4], dtype=np.int32)
+    other1 = np.array([0, 1, 5, 7], dtype=np.int32)
+    input_dict1 = {"input": input1, "other": other1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input1 = torch.tensor([[1, 2], [3, 4]], dtype=torch.uint8).numpy()
-    input2 = torch.tensor([[0, 2], [5, 0]], dtype=torch.uint8).numpy()
-    input_dict = {"input": input1, "other": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input2 = np.array([[1, 2], [3, 4]], dtype=np.uint8)
+    other2 = np.array([[0, 1], [5, 7]], dtype=np.uint8)
+    input_dict2 = {"input": input2, "other": other2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input1 = torch.tensor([True, False, True], dtype=torch.bool).numpy()
-    input2 = torch.tensor([False, True, True], dtype=torch.bool).numpy()
-    input_dict = {"input": input1, "other": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input3 = np.array([[-1, -2], [-3, -4]], dtype=np.int64)
+    other3 = np.array([[0, 1], [5, -7]], dtype=np.int64)
+    input_dict3 = {"input": input3, "other": other3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input1 = torch.randint(0, 10, (2, 2), dtype=torch.int64).numpy()
-    input2 = torch.randint(0, 10, (2, 2), dtype=torch.int64).numpy()
-    input_dict = {"input": input1, "other": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input4 = np.array([1, 2, 3, 4], dtype=np.int16)
+    other4 = np.array([1], dtype=np.int16)
+    input_dict4 = {"input": input4, "other": other4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input1 = np.array([1,2,3], dtype=np.int16)
-    input2 = np.array([3,2,1], dtype=np.int16)
-    input_dict = {"input": input1, "other": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input5 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int8)
+    other5 = np.array([[[0, 1], [5, 7]], [[1, 0], [1, 1]]], dtype=np.int8)
+    input_dict5 = {"input": input5, "other": other5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    input6 = np.array([True, False, True], dtype=np.bool_)
+    other6 = np.array([False, True, True], dtype=np.bool_)
+    input_dict6 = {"input": input6, "other": other6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    input7 = np.array([1, 2, 3], dtype=np.int32)
+    other7 = 2
+    input_dict7 = {"input": input7, "other": np.array(other7, dtype=np.int32)}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
     return list_of_inputs
 
-list_of_inputs = bitwise_and_inputs()
+generated_inputs = bitwise_and_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -47,4 +58,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('bitwise_and', list_of_inputs)
+check_valid('bitwise_and', generated_inputs)

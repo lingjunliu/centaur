@@ -8,69 +8,63 @@ import numpy as np
 def var_inputs():
     list_of_inputs = []
 
-    input_tensor = torch.randn(2, 3, 4).numpy()
-    dim = 1
-    correction = 0
-    keepdim = False
+    input_np = np.array([1.0, 2.0, 3.0, 4.0]).astype(np.float32)
     input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "correction": correction,
-        "keepdim": keepdim
+        "input": input_np,
+        "dim": 0,
+        "correction": 1,
+        "keepdim": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_tensor = torch.randn(5, 5).numpy()
-    dim = 0
-    correction = 1
-    keepdim = True
+    input_np = np.array([[1.0, 2.0], [3.0, 4.0]]).astype(np.float64)
     input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "correction": correction,
-        "keepdim": keepdim
+        "input": input_np,
+        "dim": 1,
+        "correction": 1,
+        "keepdim": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_tensor = torch.randn(2, 2, 2).numpy()
-    dim = 2
-    correction = 0
-    keepdim = True
+    input_np = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).astype(np.float32)
     input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "correction": correction,
-        "keepdim": keepdim
+        "input": input_np,
+        "dim": 2,
+        "correction": 0,
+        "keepdim": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_tensor = torch.randn(10).numpy()
-    dim = 0
-    correction = 1
-    keepdim = False
+    input_np = np.array([[-1.0, 2.0], [3.0, -4.0]]).astype(np.float32)
     input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "correction": correction,
-        "keepdim": keepdim
+        "input": input_np,
+        "dim": 1,
+        "correction": 1,
+        "keepdim": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_tensor = torch.randn(3, 4, 5, 6).numpy()
-    dim = 2
-    correction = 0
-    keepdim = False
+    input_np = np.random.rand(2, 3, 4).astype(np.float32)
     input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "correction": correction,
-        "keepdim": keepdim
+        "input": input_np,
+        "dim": 1,
+        "correction": 1,
+        "keepdim": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_np = np.array([[1.0 + 1j, 2.0 - 2j], [3.0 + 3j, 4.0 - 4j]]).astype(np.complex64)
+    input_dict = {
+        "input": input_np,
+        "dim": 1,
+        "correction": 1,
+        "keepdim": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-list_of_inputs = var_inputs()
+generated_inputs = var_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -82,4 +76,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('var', list_of_inputs)
+check_valid('var', generated_inputs)

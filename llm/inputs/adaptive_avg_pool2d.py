@@ -2,54 +2,46 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
+import numpy as np
+import copy
 
 def adaptive_avg_pool2d_inputs():
     list_of_inputs = []
 
-    input = torch.randn(1, 3, 32, 32).numpy()
-    output_size = 7
-    input_dict = {
-        "input": input,
-        "output_size": output_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic float input with a single integer output size
+    input1 = torch.randn(1, 3, 32, 32).numpy()
+    output_size1 = 16
+    input_dict1 = {"input": input1, "output_size": output_size1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input = torch.randn(2, 4, 64, 64).numpy()
-    output_size = 14
-    input_dict = {
-        "input": input,
-        "output_size": output_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Different input size, tuple output size
+    input2 = torch.randn(2, 4, 64, 64).numpy()
+    output_size2 = (8, 8)
+    input_dict2 = {"input": input2, "output_size": output_size2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input = torch.randn(1, 1, 128, 128).numpy()
-    output_size = 28
-    input_dict = {
-        "input": input,
-        "output_size": output_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Single channel input
+    input3 = torch.randn(1, 1, 128, 128).numpy()
+    output_size3 = (32, 32)
+    input_dict3 = {"input": input3, "output_size": output_size3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input = torch.randn(4, 2, 256, 256).numpy()
-    output_size = 56
-    input_dict = {
-        "input": input,
-        "output_size": output_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Large input size, single int
+    input6 = torch.randn(4, 16, 256, 256).numpy()
+    output_size6 = 64
+    input_dict6 = {"input": input6, "output_size": output_size6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    input = torch.randn(2, 8, 512, 512).numpy()
-    output_size = 112
-    input_dict = {
-        "input": input,
-        "output_size": output_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: 3D input
+    input7 = torch.randn(3, 32, 32).numpy()
+    output_size7 = (16, 16)
+    input_dict7 = {"input": input7, "output_size": output_size7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
     return list_of_inputs
 
-list_of_inputs = adaptive_avg_pool2d_inputs()
+generated_inputs = adaptive_avg_pool2d_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -61,4 +53,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('adaptive_avg_pool2d', list_of_inputs)
+check_valid('adaptive_avg_pool2d', generated_inputs)

@@ -2,70 +2,76 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def triangular_solve_inputs():
     list_of_inputs = []
 
-    A = torch.randn(3, 3).numpy()
-    b = torch.randn(3, 1).numpy()
+    # Input 1: Basic float tensors
+    A = np.random.rand(3, 3).astype(np.float32)
+    b = np.random.rand(3, 1).astype(np.float32)
     input_dict = {
-        "b": b,
         "A": A,
-        "upper": True,
+        "b": b,
+        "upper": False,
         "transpose": False,
         "unitriangular": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    A = torch.randn(4, 4).numpy()
-    b = torch.randn(4, 2).numpy()
+    # Input 2: Upper triangular, transposed, unitriangular
+    A = np.triu(np.random.rand(5, 5)).astype(np.float64)
+    b = np.random.rand(5, 3).astype(np.float64)
     input_dict = {
-        "b": b,
         "A": A,
-        "upper": False,
+        "b": b,
+        "upper": True,
         "transpose": True,
         "unitriangular": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    A = torch.randn(5, 5).numpy()
-    b = torch.randn(5, 1).numpy()
+    # Input 3: Complex tensors
+    A = (np.random.rand(2, 2) + 1j * np.random.rand(2, 2)).astype(np.complex64)
+    b = (np.random.rand(2, 1) + 1j * np.random.rand(2, 1)).astype(np.complex64)
     input_dict = {
-        "b": b,
         "A": A,
-        "upper": True,
-        "transpose": True,
+        "b": b,
+        "upper": False,
+        "transpose": False,
         "unitriangular": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    A = torch.randn(2, 2).numpy()
-    b = torch.randn(2, 3).numpy()
+    # Input 4: Batched input, negative values
+    A = np.tril(np.random.randn(2, 3, 3)).astype(np.float32)
+    b = np.random.randn(2, 3, 2).astype(np.float32)
     input_dict = {
-        "b": b,
         "A": A,
+        "b": b,
         "upper": False,
         "transpose": False,
-        "unitriangular": True
+        "unitriangular": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Higher dimension b - Correcting dimension issue - Second attempt
+    A = np.random.rand(4, 4).astype(np.float32)
+    b = np.random.rand(4, 2).astype(np.float32) # Corrected dimensions to be compatible with A
+    input_dict = {
+        "A": A,
+        "b": b,
+        "upper": False,
+        "transpose": False,
+        "unitriangular": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    A = torch.randn(6, 6).numpy()
-    b = torch.randn(6, 4).numpy()
-    input_dict = {
-        "b": b,
-        "A": A,
-        "upper": True,
-        "transpose": False,
-        "unitriangular": True
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
-list_of_inputs = triangular_solve_inputs()
+generated_inputs = triangular_solve_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -77,4 +83,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('triangular_solve', list_of_inputs)
+check_valid('triangular_solve', generated_inputs)

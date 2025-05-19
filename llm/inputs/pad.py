@@ -2,75 +2,33 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def pad_inputs():
     list_of_inputs = []
 
-    input = torch.randn(2, 3, 4, 5).numpy()
-    pad = (1, 1, 2, 2, 0, 0, 0, 0)
-    mode = 'constant'
-    value = 0.0
-    input_dict = {
-        "input": input,
-        "pad": pad,
-        "mode": mode,
-        "value": value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: 2D float tensor, reflect padding
+    input1 = torch.randn(3, 4).numpy()
+    pad1 = (1, 1, 2, 2)  # left, right, top, bottom
+    mode1 = 'reflect'
+    value1 = 0.0
+    input_dict1 = {"input": input1, "pad": pad1, "mode": mode1, "value": value1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input = torch.randn(1, 2, 3).numpy()
-    pad = (2, 1, 0, 0, 0, 0)
-    mode = 'constant'
-    value = 0.0
-    input_dict = {
-        "input": input,
-        "pad": pad,
-        "mode": mode,
-        "value": value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 3D int tensor, replicate padding
+    input2 = torch.randint(0, 10, (2, 3, 5)).numpy()
+    pad2 = (0, 0, 1, 1, 2, 2)  # last dim, middle dim, first dim
+    mode2 = 'replicate'
+    value2 = 0.0
+    input_dict2 = {"input": input2, "pad": pad2, "mode": mode2, "value": value2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input = torch.randn(4, 5).numpy()
-    pad = (0, 1, 2, 0)
-    mode = 'constant'
-    value = 0.0
-    input_dict = {
-        "input": input,
-        "pad": pad,
-        "mode": mode,
-        "value": value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input = torch.randn(1, 3, 32, 32).numpy()
-    pad = (3, 3, 2, 2, 0, 0, 0, 0)
-    mode = 'constant'
-    value = 0.0
-    input_dict = {
-        "input": input,
-        "pad": pad,
-        "mode": mode,
-        "value": value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input = torch.randn(1, 1, 5, 5).numpy()
-    pad = (1, 2, 3, 4, 0, 0, 0, 0)
-    mode = 'constant'
-    value = 1.5
-    input_dict = {
-        "input": input,
-        "pad": pad,
-        "mode": mode,
-        "value": value
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-list_of_inputs = pad_inputs()
+generated_inputs = pad_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -82,4 +40,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('pad', list_of_inputs)
+check_valid('pad', generated_inputs)

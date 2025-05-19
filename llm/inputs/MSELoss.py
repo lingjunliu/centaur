@@ -2,70 +2,76 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def MSELoss_inputs():
     list_of_inputs = []
 
-    input_tensor = torch.randn(3, 5).numpy()
-    target_tensor = torch.randn(3, 5).numpy()
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
+    # Case 1: Basic float tensors, same shape
+    input1 = np.random.randn(3, 4).astype(np.float32)
+    target1 = np.random.randn(3, 4).astype(np.float32)
+    input_dict1 = {
+        "input": input1,
+        "target": target1,
         "size_average": True,
         "reduce": True,
         "reduction": 'mean'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input_tensor = torch.randn(2, 4, 3).numpy()
-    target_tensor = torch.randn(2, 4, 3).numpy()
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "size_average": False,
+    # Case 2: One dimensional tensor
+    input4 = np.random.randn(5).astype(np.float32)
+    target4 = np.random.randn(5).astype(np.float32)
+    input_dict4 = {
+        "input": input4,
+        "target": target4,
+        "size_average": True,
         "reduce": True,
-        "reduction": 'sum'
+        "reduction": 'mean'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input_tensor = torch.randn(1, 10).numpy()
-    target_tensor = torch.randn(1, 10).numpy()
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
+    # Case 3: Negative values
+    input6 = np.random.randn(2, 2).astype(np.float32) * -1
+    target6 = np.random.randn(2, 2).astype(np.float32) * -1
+    input_dict6 = {
+        "input": input6,
+        "target": target6,
         "size_average": None,
-        "reduce": None,
+        "reduce": True,
         "reduction": 'mean'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Case 4: Different type
+    input2 = np.random.randn(3, 4).astype(np.float64)
+    target2 = np.random.randn(3, 4).astype(np.float64)
+    input_dict2 = {
+        "input": input2,
+        "target": target2,
+        "size_average": True,
+        "reduce": True,
+        "reduction": 'mean'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
     
-    input_tensor = torch.randn(4, 4).numpy()
-    target_tensor = torch.randn(4, 4).numpy()
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "size_average": None,
-        "reduce": None,
+    # Case 5: Float tensors, same shape
+    input7 = np.random.randn(2, 3).astype(np.float32)
+    target7 = np.random.randn(2, 3).astype(np.float32)
+    input_dict7 = {
+        "input": input7,
+        "target": target7,
+        "size_average": True,
+        "reduce": True,
         "reduction": 'mean'
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input_tensor = torch.randn(2, 3, 2, 2).numpy()
-    target_tensor = torch.randn(2, 3, 2, 2).numpy()
-    input_dict = {
-        "input": input_tensor,
-        "target": target_tensor,
-        "size_average": None,
-        "reduce": None,
-        "reduction": 'mean'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
     return list_of_inputs
 
-list_of_inputs = MSELoss_inputs()
+generated_inputs = MSELoss_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -77,4 +83,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('MSELoss', list_of_inputs)
+check_valid('MSELoss', generated_inputs)

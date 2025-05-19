@@ -2,55 +2,46 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def bitwise_xor_inputs():
     list_of_inputs = []
 
-    input1 = torch.randint(0, 2, (2, 3), dtype=torch.int8).numpy()
-    input2 = torch.randint(0, 2, (2, 3), dtype=torch.int8).numpy()
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = np.array([1, 2, 3, 4], dtype=np.int32)
+    other1 = np.array([5, 6, 7, 8], dtype=np.int32)
+    input_dict1 = {"input": input1, "other": other1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input1 = torch.randint(0, 256, (4, 4), dtype=torch.int16).numpy()
-    input2 = torch.randint(0, 256, (4, 4), dtype=torch.int16).numpy()
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input2 = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    other2 = np.array([[5, 6], [7, 8]], dtype=np.int64)
+    input_dict2 = {"input": input2, "other": other2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input1 = torch.randint(0, 1024, (1, 5, 5), dtype=torch.int32).numpy()
-    input2 = torch.randint(0, 1024, (1, 5, 5), dtype=torch.int32).numpy()
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input3 = np.array([[-1, -2], [-3, -4]], dtype=np.int8)
+    other3 = np.array([[5, 6], [7, 8]], dtype=np.int8)
+    input_dict3 = {"input": input3, "other": other3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input1 = torch.randint(0, 65536, (2, 2, 2, 2), dtype=torch.int64).numpy()
-    input2 = torch.randint(0, 65536, (2, 2, 2, 2), dtype=torch.int64).numpy()
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input4 = np.array([1, 2, 3, 4], dtype=np.uint8)
+    other4 = np.array([5, 6, 7, 8], dtype=np.uint8)
+    input_dict4 = {"input": input4, "other": other4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input1 = torch.randint(0, 2, (3, 3), dtype=torch.uint8).numpy()
-    input2 = torch.randint(0, 2, (3, 3), dtype=torch.uint8).numpy()
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input5 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int16)
+    other5 = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int16)
+    input_dict5 = {"input": input5, "other": other5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    input6 = np.array([1, 0, 1, 0], dtype=bool)
+    other6 = np.array([0, 1, 0, 1], dtype=bool)
+    input_dict6 = {"input": input6, "other": other6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
     return list_of_inputs
 
-list_of_inputs = bitwise_xor_inputs()
+generated_inputs = bitwise_xor_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -62,4 +53,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('bitwise_xor', list_of_inputs)
+check_valid('bitwise_xor', generated_inputs)

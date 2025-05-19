@@ -2,40 +2,64 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def mv_inputs():
     list_of_inputs = []
 
-    input_matrix = torch.randn(3, 3).numpy()
-    vec = torch.randn(3).numpy()
-    input_dict = {"input": input_matrix, "vec": vec}
+    # Input 1: Basic float tensors
+    input_matrix = np.random.randn(5, 3).astype(np.float32)
+    input_vector = np.random.randn(3).astype(np.float32)
+    input_dict = {"input": input_matrix, "vec": input_vector}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_matrix = torch.randn(5, 5).numpy()
-    vec = torch.randn(5).numpy()
-    input_dict = {"input": input_matrix, "vec": vec}
+    # Input 2: Integer tensors
+    input_matrix = np.random.randint(1, 10, size=(4, 5)).astype(np.int32)
+    input_vector = np.random.randint(1, 10, size=(5)).astype(np.int32)
+    input_dict = {"input": input_matrix, "vec": input_vector}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_matrix = torch.randn(2, 4).numpy()
-    vec = torch.randn(4).numpy()
-    input_dict = {"input": input_matrix, "vec": vec}
+    # Input 3: Negative values
+    input_matrix = np.random.randn(6, 4).astype(np.float32) * -1
+    input_vector = np.random.randn(4).astype(np.float32) * -1
+    input_dict = {"input": input_matrix, "vec": input_vector}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_matrix = torch.randn(4, 2).numpy()
-    vec = torch.randn(2).numpy()
-    input_dict = {"input": input_matrix, "vec": vec}
+    # Input 4: Different shapes
+    input_matrix = np.random.randn(2, 7).astype(np.float32)
+    input_vector = np.random.randn(7).astype(np.float32)
+    input_dict = {"input": input_matrix, "vec": input_vector}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_matrix = torch.randn(1, 1).numpy()
-    vec = torch.randn(1).numpy()
-    input_dict = {"input": input_matrix, "vec": vec}
+    # Input 5: Double precision
+    input_matrix = np.random.randn(3, 2).astype(np.float64)
+    input_vector = np.random.randn(2).astype(np.float64)
+    input_dict = {"input": input_matrix, "vec": input_vector}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Complex tensors
+    input_matrix = (np.random.randn(4, 3) + 1j * np.random.randn(4, 3)).astype(np.complex64)
+    input_vector = (np.random.randn(3) + 1j * np.random.randn(3)).astype(np.complex64)
+    input_dict = {"input": input_matrix, "vec": input_vector}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Matrix with a single row
+    input_matrix = np.random.randn(1, 5).astype(np.float32)
+    input_vector = np.random.randn(5).astype(np.float32)
+    input_dict = {"input": input_matrix, "vec": input_vector}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Matrix with a single column
+    input_matrix = np.random.randn(5, 1).astype(np.float32)
+    input_vector = np.random.randn(1).astype(np.float32)
+    input_dict = {"input": input_matrix, "vec": input_vector}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-list_of_inputs = mv_inputs()
+generated_inputs = mv_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -47,4 +71,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('mv', list_of_inputs)
+check_valid('mv', generated_inputs)

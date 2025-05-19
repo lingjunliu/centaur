@@ -6,36 +6,36 @@ import torch, copy
 import numpy as np
 
 def zeros_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
-    input_dict = {
+    input1 = {
         "size": (5,)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    generated_inputs.append(copy.deepcopy(input1))
 
-    input_dict = {
+    input2 = {
         "size": (2, 3)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    generated_inputs.append(copy.deepcopy(input2))
 
-    input_dict = {
+    input3 = {
         "size": (2, 3, 4)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "size": (2, 3, 4, 5)
+    generated_inputs.append(copy.deepcopy(input3))
+    
+    input4 = {
+        "size": (1, 1, 1, 1)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    generated_inputs.append(copy.deepcopy(input4))
 
-    input_dict = {
-        "size": (2, 3, 4, 5, 6)
+    input5 = {
+        "size": (6, 7)
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    generated_inputs.append(copy.deepcopy(input5))
 
-    return list_of_inputs
+    return generated_inputs
 
-list_of_inputs = zeros_inputs()
+generated_inputs = zeros_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -47,4 +47,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('zeros', list_of_inputs)
+check_valid('zeros', generated_inputs)

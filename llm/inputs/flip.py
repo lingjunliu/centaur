@@ -2,40 +2,58 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def flip_inputs():
     list_of_inputs = []
 
-    input_tensor = torch.randn(2, 3, 4, 5).numpy()
-    dims = (2, 3)
-    input_dict = {"input": input_tensor, "dims": dims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: 1D float tensor
+    input1 = torch.randn(5).numpy()
+    dims1 = (0,)
+    input_dict1 = {"input": input1, "dims": dims1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input_tensor = torch.randn(1, 5, 5).numpy()
-    dims = (1,)
-    input_dict = {"input": input_tensor, "dims": dims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 2D int tensor
+    input2 = torch.randint(0, 10, (3, 4)).numpy()
+    dims2 = (0, 1)
+    input_dict2 = {"input": input2, "dims": dims2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input_tensor = torch.arange(24).reshape(2, 3, 4).numpy()
-    dims = (0, 2)
-    input_dict = {"input": input_tensor, "dims": dims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: 3D complex tensor
+    input3 = torch.randn(2, 3, 4, dtype=torch.complex64).numpy()
+    dims3 = (1, 2)
+    input_dict3 = {"input": input3, "dims": dims3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input_tensor = np.array([[1, 2], [3, 4]]).astype(np.float32)
-    dims = (0, 1)
-    input_dict = {"input": input_tensor, "dims": dims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: 4D tensor with negative dimension
+    input4 = torch.randn(1, 2, 3, 4).numpy()
+    dims4 = (-1,)
+    input_dict4 = {"input": input4, "dims": dims4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input_tensor = torch.randn(2, 2).numpy()
-    dims = (0,)
-    input_dict = {"input": input_tensor, "dims": dims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: 5D tensor
+    input5 = torch.randn(2, 2, 2, 2, 2).numpy()
+    dims5 = (0, 2, 4)
+    input_dict5 = {"input": input5, "dims": dims5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Empty tensor
+    input6 = torch.empty(0).numpy()
+    dims6 = (0,)
+    input_dict6 = {"input": input6, "dims": dims6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Boolean tensor
+    input7 = torch.randint(0, 2, (2, 3), dtype=torch.bool).numpy()
+    dims7 = (0, 1)
+    input_dict7 = {"input": input7, "dims": dims7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
     return list_of_inputs
 
-list_of_inputs = flip_inputs()
+generated_inputs = flip_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -47,4 +65,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('flip', list_of_inputs)
+check_valid('flip', generated_inputs)

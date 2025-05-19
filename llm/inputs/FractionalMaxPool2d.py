@@ -8,79 +8,64 @@ import numpy as np
 def fractional_max_pool2d_inputs():
     list_of_inputs = []
 
-    input = torch.randn(1, 3, 32, 32).numpy()
-    kernel_size = (3, 3)
-    output_size = (16, 16)
-    output_ratio = None
-    return_indices = True
-    input_dict = {
-        "input": input,
-        "kernel_size": kernel_size,
-        "output_size": output_size,
-        "output_ratio": output_ratio,
-        "return_indices": return_indices
+    # Input 1: Basic case with integer output_size
+    input1 = torch.randn(1, 1, 32, 32).numpy()
+    input_dict1 = {
+        "input": input1,
+        "kernel_size": (3, 3),
+        "output_size": (16, 16),
+        "output_ratio": None,
+        "return_indices": True
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input = torch.randn(1, 1, 64, 64).numpy()
-    kernel_size = (2, 2)
-    output_size = None
-    output_ratio = (0.5, 0.5)
-    return_indices = False
-    input_dict = {
-        "input": input,
-        "kernel_size": kernel_size,
-        "output_size": output_size,
-        "output_ratio": output_ratio,
-        "return_indices": return_indices
+    # Input 2: Basic case with float output_ratio
+    input2 = torch.randn(1, 3, 64, 64).numpy()
+    input_dict2 = {
+        "input": input2,
+        "kernel_size": (2, 2),
+        "output_size": None,
+        "output_ratio": (0.5, 0.5),
+        "return_indices": False
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input = torch.randn(2, 4, 128, 128).numpy()
-    kernel_size = (4, 4)
-    output_size = (32, 32)
-    output_ratio = None
-    return_indices = True
-    input_dict = {
-        "input": input,
-        "kernel_size": kernel_size,
-        "output_size": output_size,
-        "output_ratio": output_ratio,
-        "return_indices": return_indices
+    # Input 3: Different kernel size and input size
+    input3 = torch.randn(2, 1, 10, 10).numpy()
+    input_dict3 = {
+        "input": input3,
+        "kernel_size": (2, 2),
+        "output_size": (3,3),
+        "output_ratio": None,
+        "return_indices": True
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input = torch.randn(1, 3, 256, 256).numpy()
-    kernel_size = (5, 5)
-    output_size = None
-    output_ratio = (0.25, 0.25)
-    return_indices = False
-    input_dict = {
-        "input": input,
-        "kernel_size": kernel_size,
-        "output_size": output_size,
-        "output_ratio": output_ratio,
-        "return_indices": return_indices
+    # Input 4:  Non-square input
+    input4 = torch.randn(1, 1, 20, 30).numpy()
+    input_dict4 = {
+        "input": input4,
+        "kernel_size": (2, 2),
+        "output_size": (5, 7),
+        "output_ratio": None,
+        "return_indices": False
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input = torch.randn(4, 2, 10, 10).numpy()
-    kernel_size = (2, 2)
-    output_size = (3, 3)
-    output_ratio = None
-    return_indices = True
-    input_dict = {
-        "input": input,
-        "kernel_size": kernel_size,
-        "output_size": output_size,
-        "output_ratio": output_ratio,
-        "return_indices": return_indices
+    # Input 5: Non-square kernel
+    input5 = torch.randn(1, 3, 40, 40).numpy()
+    input_dict5 = {
+        "input": input5,
+        "kernel_size": (2, 3),
+        "output_size": None,
+        "output_ratio": (0.6, 0.6),
+        "return_indices": True
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
     return list_of_inputs
 
-list_of_inputs = fractional_max_pool2d_inputs()
+generated_inputs = fractional_max_pool2d_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -92,4 +77,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('FractionalMaxPool2d', list_of_inputs)
+check_valid('FractionalMaxPool2d', generated_inputs)

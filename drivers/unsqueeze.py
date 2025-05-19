@@ -6,7 +6,7 @@ def torch_version(input, cpu=True):
     torch.utils.deterministic.fill_uninitialized_memory = True
     
     # Unpack input dictionary
-    input_tensor = torch.tensor(input["tensor"])
+    input_tensor = torch.tensor(input["input"])
     dim = input["dim"]
 
     # Apply torch.unsqueeze
@@ -28,7 +28,7 @@ def tensorflow_version(input, cpu=True):
 
     with tf.device(device_string):
         # Unpack input dictionary
-        input_tensor = tf.constant(input["tensor"])
+        input_tensor = tf.constant(input["input"])
         dim = input["dim"]
 
         # Apply tf.expand_dims
@@ -39,7 +39,7 @@ def tensorflow_version(input, cpu=True):
 def main():
     # Example input
     input_data = {
-        "tensor": np.array([1, 2, 3, 4], dtype=np.float32),
+        "input": np.array([1, 2, 3, 4], dtype=np.float32),
         "dim": 0
     }
 

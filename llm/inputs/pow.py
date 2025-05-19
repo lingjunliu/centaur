@@ -8,34 +8,39 @@ import numpy as np
 def pow_inputs():
     list_of_inputs = []
 
-    input_tensor = torch.randn(2, 3).numpy()
-    exponent_tensor = torch.tensor(2.0)
-    input_dict = {"input": input_tensor, "exponent": exponent_tensor}
+    # Case 1: Float input and float exponent
+    input_tensor = np.random.rand(2, 3).astype(np.float32)
+    exponent_tensor = np.array(2.0).astype(np.float32)
+    input_dict = {"input": torch.from_numpy(input_tensor), "exponent": torch.from_numpy(exponent_tensor)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_tensor = torch.randn(4, 4).numpy()
-    exponent_tensor = torch.tensor(0.5)
-    input_dict = {"input": input_tensor, "exponent": exponent_tensor}
+    # Case 2: Int input and int exponent
+    input_tensor = np.random.randint(1, 5, size=(3, 4), dtype=np.int32)
+    exponent_tensor = np.array(3).astype(np.int32)
+    input_dict = {"input": torch.from_numpy(input_tensor), "exponent": torch.from_numpy(exponent_tensor)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_tensor = torch.randn(1, 5, 5).numpy()
-    exponent_tensor = torch.randn(1, 5, 5)
-    input_dict = {"input": input_tensor, "exponent": exponent_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_tensor = torch.randn(3, 2, 1).numpy()
-    exponent_tensor = torch.tensor(-1.0)
-    input_dict = {"input": input_tensor, "exponent": exponent_tensor}
+    # Case 3: Float input and float tensor exponent
+    input_tensor = np.random.rand(4, 2).astype(np.float64)
+    exponent_tensor = np.random.rand(4, 2).astype(np.float64)
+    input_dict = {"input": torch.from_numpy(input_tensor), "exponent": torch.from_numpy(exponent_tensor)}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    input_tensor = torch.randn(2, 2).numpy()
-    exponent_tensor = torch.tensor(2.0)
-    input_dict = {"input": input_tensor, "exponent": exponent_tensor}
+    # Case 4: Int input and float exponent
+    input_tensor = np.random.randint(-5, 5, size=(2, 2), dtype=np.int64)
+    exponent_tensor = np.array(0.5).astype(np.float64)
+    input_dict = {"input": torch.from_numpy(input_tensor), "exponent": torch.tensor(exponent_tensor)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 5: Negative input and float exponent
+    input_tensor = np.random.randn(3, 3).astype(np.float32) * -1
+    exponent_tensor = np.array(2.0).astype(np.float32)
+    input_dict = {"input": torch.from_numpy(input_tensor), "exponent": torch.from_numpy(exponent_tensor)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-list_of_inputs = pow_inputs()
+generated_inputs = pow_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -47,4 +52,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('pow', list_of_inputs)
+check_valid('pow', generated_inputs)

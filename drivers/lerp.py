@@ -6,7 +6,7 @@ def torch_version(input, cpu=True):
     torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
-    start_tensor = torch.tensor(input["start"])
+    start_tensor = torch.tensor(input["input"])
     end_tensor = torch.tensor(input["end"])
     weight_tensor = torch.tensor(input["weight"]) if isinstance(input["weight"], list) else input["weight"]
 
@@ -29,7 +29,7 @@ def tensorflow_version(input, cpu=True):
 
     with tf.device(device_string):
         # Unpack input dictionary
-        start_tensor = tf.constant(input["start"])
+        start_tensor = tf.constant(input["input"])
         end_tensor = tf.constant(input["end"])
         weight_tensor = tf.constant(input["weight"]) if isinstance(input["weight"], list) else input["weight"]
 
@@ -41,7 +41,7 @@ def tensorflow_version(input, cpu=True):
 def main():
     # Example input data
     input_data = {
-        "start": [1.0, 2.0, 3.0, 4.0],
+        "input": [1.0, 2.0, 3.0, 4.0],
         "end": [10.0, 10.0, 10.0, 10.0],
         "weight": 0.5  # Can also be a tensor of similar shape
     }

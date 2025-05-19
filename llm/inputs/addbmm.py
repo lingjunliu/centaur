@@ -8,79 +8,59 @@ import numpy as np
 def addbmm_inputs():
     list_of_inputs = []
 
-    input_np = np.random.randn(3, 10).astype(np.float32)
-    batch1_np = np.random.randn(3, 10, 5).astype(np.float32)
-    batch2_np = np.random.randn(3, 5, 10).astype(np.float32)
-    beta = 1.0
-    alpha = 2.0
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta,
-        "alpha": alpha
+    # Input 1: Basic float tensors
+    input1 = {
+        'input': torch.randn(3, 2).numpy(),
+        'batch1': torch.randn(3, 3, 4).numpy(),
+        'batch2': torch.randn(3, 4, 2).numpy(),
+        'beta': 1.0,
+        'alpha': 1.0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input1))
 
-    input_np = np.random.randn(3, 3).astype(np.float32)
-    batch1_np = np.random.randn(3, 3, 2).astype(np.float32)
-    batch2_np = np.random.randn(3, 2, 3).astype(np.float32)
-    beta = 0.5
-    alpha = 1.5
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta,
-        "alpha": alpha
+    # Input 2: Integer tensors
+    input2 = {
+        'input': torch.randint(0, 10, (2, 5), dtype=torch.int32).numpy(),
+        'batch1': torch.randint(0, 10, (2, 2, 2), dtype=torch.int32).numpy(),
+        'batch2': torch.randint(0, 10, (2, 2, 5), dtype=torch.int32).numpy(),
+        'beta': 0.5,
+        'alpha': 2.0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input2))
 
-    input_np = np.random.randn(1, 5).astype(np.float32)
-    batch1_np = np.random.randn(1, 5, 2).astype(np.float32)
-    batch2_np = np.random.randn(1, 2, 5).astype(np.float32)
-    beta = 0.0
-    alpha = 1.0
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta,
-        "alpha": alpha
+    # Input 3: Different shaped tensors, beta=0
+    input3 = {
+        'input': torch.randn(2, 4).numpy(),
+        'batch1': torch.randn(2, 3, 2).numpy(),
+        'batch2': torch.randn(2, 2, 4).numpy(),
+        'beta': 0.0,
+        'alpha': 0.5
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input3))
 
-    input_np = np.random.randn(4, 6).astype(np.float32)
-    batch1_np = np.random.randn(4, 6, 4).astype(np.float32)
-    batch2_np = np.random.randn(4, 4, 6).astype(np.float32)
-    beta = -1.0
-    alpha = 0.5
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta,
-        "alpha": alpha
+    # Input 4: Negative values, different alpha
+    input4 = {
+        'input': torch.randn(5, 2).numpy(),
+        'batch1': torch.randn(5, 4, 5).numpy(),
+        'batch2': torch.randn(5, 5, 2).numpy(),
+        'beta': 0.8,
+        'alpha': -1.0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input4))
 
-    input_np = np.random.randn(5, 4).astype(np.float32)
-    batch1_np = np.random.randn(5, 4, 5).astype(np.float32)
-    batch2_np = np.random.randn(5, 5, 4).astype(np.float32)
-    beta = 2.0
-    alpha = -1.0
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta,
-        "alpha": alpha
+    # Input 5: Larger tensors
+    input5 = {
+        'input': torch.randn(4, 3).numpy(),
+        'batch1': torch.randn(4, 4, 4).numpy(),
+        'batch2': torch.randn(4, 4, 3).numpy(),
+        'beta': 1.0,
+        'alpha': 1.0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    list_of_inputs.append(copy.deepcopy(input5))
+    
     return list_of_inputs
 
-list_of_inputs = addbmm_inputs()
+generated_inputs = addbmm_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -92,4 +72,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('addbmm', list_of_inputs)
+check_valid('addbmm', generated_inputs)

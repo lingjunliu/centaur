@@ -2,58 +2,56 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def eq_inputs():
     list_of_inputs = []
 
-    input1 = torch.randn(2, 3).numpy()
-    input2 = torch.randn(2, 3).numpy()
-
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input1 = torch.tensor([1, 2, 3]).numpy()
-    input2 = torch.tensor([1, 2, 4]).numpy()
-
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    # Case 1: Basic float tensors
     input1 = np.array([1.0, 2.0, 3.0])
-    input2 = np.array([1.0, 2.0, 3.0])
+    input2 = np.array([1.0, 2.0, 4.0])
+    list_of_inputs.append({"input": input1, "other": input2})
 
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 2: Integer tensors
+    input1 = np.array([1, 2, 3], dtype=np.int32)
+    input2 = np.array([1, 2, 3], dtype=np.int32)
+    list_of_inputs.append({"input": input1, "other": input2})
 
-    input1 = torch.randint(0, 10, (5, 5)).numpy()
-    input2 = torch.randint(0, 10, (5, 5)).numpy()
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 3: Different shapes (broadcastable)
+    input1 = np.array([[1, 2], [3, 4]])
+    input2 = np.array([1, 2])
+    list_of_inputs.append({"input": input1, "other": input2})
 
-    input1 = torch.randn(1, 10, 10).numpy()
-    input2 = torch.randn(1, 10, 10).numpy()
-    input_dict = {
-        "input": input1,
-        "other": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 4: Negative values and different dtypes
+    input1 = np.array([-1.0, 0.0, 1.0])
+    input2 = np.array([-1, 0, 1], dtype=np.int64)
+    list_of_inputs.append({"input": input1, "other": input2})
+    
+    # Case 5: Multi-dimensional array
+    input1 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    input2 = np.array([[[1, 2], [3, 4]], [[5, 7], [7, 8]]])
+    list_of_inputs.append({"input": input1, "other": input2})
+    
+    # Case 6: Zero-dimensional array
+    input1 = np.array(5)
+    input2 = np.array(5)
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    # Case 7: Complex numbers
+    input1 = np.array([1 + 1j, 2 + 2j])
+    input2 = np.array([1 + 1j, 3 + 3j])
+    list_of_inputs.append({"input": input1, "other": input2})
+
+    # Case 8: Boolean arrays
+    input1 = np.array([True, False, True])
+    input2 = np.array([True, True, False])
+    list_of_inputs.append({"input": input1, "other": input2})
 
     return list_of_inputs
 
-list_of_inputs = eq_inputs()
+generated_inputs = eq_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -65,4 +63,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('eq', list_of_inputs)
+check_valid('eq', generated_inputs)

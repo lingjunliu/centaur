@@ -2,49 +2,36 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
+import copy
+import numpy as np
 
 def interpolate_inputs():
     list_of_inputs = []
 
-    input = torch.randn(1, 3, 10, 10).numpy()
-    input_dict = {
-        "input": input,
-        "size": (12, 12)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = torch.randn(1, 3, 10, 10).numpy()
+    input_dict1 = {"input": input1, "size": (12, 12), "mode": "nearest"}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input = torch.randn(2, 4, 5, 5).numpy()
-    input_dict = {
-        "input": input,
-        "scale_factor": 2.0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input2 = torch.randn(2, 4, 5, 5, 5).numpy()
+    input_dict2 = {"input": input2, "scale_factor": 2, "mode": "trilinear"}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input = torch.randn(1, 1, 12, 12).numpy()
-    input_dict = {
-        "input": input,
-        "size": (6, 6)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input3 = torch.randn(1, 1, 15).numpy()
+    input_dict3 = {"input": input3, "size": (20,), "mode": "linear"}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input = torch.randn(4, 2, 8, 8).numpy()
-    input_dict = {
-        "input": input,
-        "scale_factor": 0.5
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input4 = torch.randn(1, 2, 8, 8).numpy()
+    input_dict4 = {"input": input4, "scale_factor": 0.5, "mode": "bilinear"}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
     
-    input = torch.randn(3, 5, 15, 15).numpy()
-    input_dict = {
-        "input": input,
-        "size": (20, 20)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input5 = torch.randn(1, 3, 7, 7).numpy()
+    input_dict5 = {"input": input5, "size": (9, 9), "mode": "bicubic"}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
     return list_of_inputs
 
-list_of_inputs = interpolate_inputs()
+generated_inputs = interpolate_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -56,4 +43,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('interpolate', list_of_inputs)
+check_valid('interpolate', generated_inputs)

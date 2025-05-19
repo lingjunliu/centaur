@@ -2,65 +2,51 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def flatten_inputs():
     list_of_inputs = []
 
-    input1 = torch.randn(2, 3, 4, 5).numpy()
-    start_dim1 = 1
-    end_dim1 = 2
-    input_dict1 = {
-        "input": input1,
-        "start_dim": start_dim1,
-        "end_dim": end_dim1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Case 1: Basic 2D float tensor, default start and end dim
+    input_tensor = np.random.randn(2, 3).astype(np.float32)
+    input_dict = {"input": input_tensor, "start_dim": 0, "end_dim": -1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input2 = torch.randn(1, 5, 7).numpy()
-    start_dim2 = 0
-    end_dim2 = 1
-    input_dict2 = {
-        "input": input2,
-        "start_dim": start_dim2,
-        "end_dim": end_dim2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Case 2: 3D int tensor, specified start and end dim
+    input_tensor = np.random.randint(0, 10, size=(2, 3, 4)).astype(np.int32)
+    input_dict = {"input": input_tensor, "start_dim": 1, "end_dim": 2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input3 = torch.randn(3, 2, 6).numpy()
-    start_dim3 = 0
-    end_dim3 = -1
-    input_dict3 = {
-        "input": input3,
-        "start_dim": start_dim3,
-        "end_dim": end_dim3
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Case 3: 4D complex tensor, negative start and end dim
+    input_tensor = (np.random.randn(2, 3, 2, 2) + 1j * np.random.randn(2, 3, 2, 2)).astype(np.complex64)
+    input_dict = {"input": input_tensor, "start_dim": -2, "end_dim": -1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 4: 1D tensor, start and end dim are the same
+    input_tensor = np.array([1, 2, 3, 4, 5]).astype(np.int64)
+    input_dict = {"input": input_tensor, "start_dim": 0, "end_dim": 0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 5: 5D tensor, covering most dimensions
+    input_tensor = np.random.randn(1, 2, 3, 4, 5).astype(np.float64)
+    input_dict = {"input": input_tensor, "start_dim": 2, "end_dim": 4}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 6: 3D tensor, negative indexing
+    input_tensor = np.random.randn(2, 4, 6).astype(np.float32)
+    input_dict = {"input": input_tensor, "start_dim": 0, "end_dim": -2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    input4 = torch.randn(4, 4, 4).numpy()
-    start_dim4 = 0
-    end_dim4 = 2
-    input_dict4 = {
-        "input": input4,
-        "start_dim": start_dim4,
-        "end_dim": end_dim4
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    input5 = torch.randn(2, 2, 2, 2).numpy()
-    start_dim5 = 1
-    end_dim5 = 3
-    input_dict5 = {
-        "input": input5,
-        "start_dim": start_dim5,
-        "end_dim": end_dim5
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Case 7: bool tensor
+    input_tensor = np.array([[True, False], [False, True]]).astype(bool)
+    input_dict = {"input": input_tensor, "start_dim": 0, "end_dim": -1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-list_of_inputs = flatten_inputs()
+generated_inputs = flatten_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -72,4 +58,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('flatten_', list_of_inputs)
+check_valid('flatten_', generated_inputs)

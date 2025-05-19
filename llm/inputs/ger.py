@@ -2,55 +2,58 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def ger_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
-    vec1 = torch.randn(5).numpy()
-    vec2 = torch.randn(3).numpy()
-    input_dict = {
-        "vec1": vec1,
-        "vec2": vec2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Test case 1: Basic float tensors
+    vec1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    vec2 = np.array([4.0, 5.0], dtype=np.float32)
+    generated_inputs.append({"vec1": vec1, "vec2": vec2})
 
-    vec1 = torch.randn(10).numpy()
-    vec2 = torch.randn(1).numpy()
-    input_dict = {
-        "vec1": vec1,
-        "vec2": vec2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Test case 2: Integer tensors
+    vec1 = np.array([1, 2, 3], dtype=np.int32)
+    vec2 = np.array([4, 5], dtype=np.int32)
+    generated_inputs.append({"vec1": vec1, "vec2": vec2})
 
-    vec1 = torch.randn(1).numpy()
-    vec2 = torch.randn(7).numpy()
-    input_dict = {
-        "vec1": vec1,
-        "vec2": vec2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Test case 3: Negative values
+    vec1 = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
+    vec2 = np.array([4.0, -5.0], dtype=np.float32)
+    generated_inputs.append({"vec1": vec1, "vec2": vec2})
 
-    vec1 = torch.randn(4).numpy()
-    vec2 = torch.randn(5).numpy()
-    input_dict = {
-        "vec1": vec1,
-        "vec2": vec2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    vec1 = torch.randn(4).numpy()
-    vec2 = torch.randn(4).numpy()
-    input_dict = {
-        "vec1": vec1,
-        "vec2": vec2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Test case 4: Different sizes
+    vec1 = np.array([1.0, 2.0], dtype=np.float32)
+    vec2 = np.array([4.0, 5.0, 6.0], dtype=np.float32)
+    generated_inputs.append({"vec1": vec1, "vec2": vec2})
     
-    return list_of_inputs
+    # Test case 5: Single element tensors
+    vec1 = np.array([1.0], dtype=np.float32)
+    vec2 = np.array([4.0], dtype=np.float32)
+    generated_inputs.append({"vec1": vec1, "vec2": vec2})
 
-list_of_inputs = ger_inputs()
+    return generated_inputs
+
+def check_valid(api_name, list_of_inputs):
+    for input_dict in list_of_inputs:
+        api_driver(input_dict, cpu=True)
+
+def api_driver(input, cpu=True):
+    vec1 = torch.tensor(input["vec1"])
+    vec2 = torch.tensor(input["vec2"])
+    
+    if cpu:
+        vec1 = vec1.cpu()
+        vec2 = vec2.cpu()
+    else:
+        vec1 = vec1.cuda()
+        vec2 = vec2.cuda()
+
+    torch.ger(vec1, vec2)
+
+generated_inputs = ger_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -62,4 +65,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('ger', list_of_inputs)
+check_valid('ger', generated_inputs)

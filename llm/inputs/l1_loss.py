@@ -2,71 +2,37 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
-import torch.nn.functional as F
+import copy
 
 def l1_loss_inputs():
     list_of_inputs = []
 
-    input_tensor = torch.randn(3, 5)
-    target_tensor = torch.randn(3, 5)
-    reduction_type = 'mean'
+    input1 = torch.randn(3, 5).numpy()
+    target1 = torch.randn(3, 5).numpy()
+    input_dict1 = {"input": input1, "target": target1, "reduction": 'mean'}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "target": target_tensor.numpy(),
-        "reduction": reduction_type
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input2 = torch.randn(2, 4, 6).numpy()
+    target2 = torch.randn(2, 4, 6).numpy()
+    input_dict2 = {"input": input2, "target": target2, "reduction": 'sum'}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input_tensor = torch.randn(2, 4, 6)
-    target_tensor = torch.randn(2, 4, 6)
-    reduction_type = 'sum'
+    input4 = torch.randn(10).numpy()
+    target4 = torch.randn(10).numpy()
+    input_dict4 = {"input": input4, "target": target4, "reduction": 'mean'}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "target": target_tensor.numpy(),
-        "reduction": reduction_type
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input5 = torch.randn(2, 2, 2, 2).numpy()
+    target5 = torch.randn(2, 2, 2, 2).numpy()
+    input_dict5 = {"input": input5, "target": target5, "reduction": 'sum'}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    input_tensor = torch.randn(1, 3, 2, 2)
-    target_tensor = torch.randn(1, 3, 2, 2)
-    reduction_type = 'none'
-
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "target": target_tensor.numpy(),
-        "reduction": reduction_type
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input_tensor = torch.randn(size=(4,))
-    target_tensor = torch.randn(size=(4,))
-    reduction_type = 'mean'
-
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "target": target_tensor.numpy(),
-        "reduction": reduction_type
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_tensor = torch.randn(2, 2)
-    target_tensor = torch.zeros(2, 2)
-    reduction_type = 'sum'
-
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "target": target_tensor.numpy(),
-        "reduction": reduction_type
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-list_of_inputs = l1_loss_inputs()
+generated_inputs = l1_loss_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -78,4 +44,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('l1_loss', list_of_inputs)
+check_valid('l1_loss', generated_inputs)

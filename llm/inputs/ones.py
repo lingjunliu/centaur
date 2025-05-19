@@ -2,40 +2,46 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def ones_inputs():
     list_of_inputs = []
 
-    input_dict = {
-        "size": (1,)
+    input1 = {
+        "size": [5]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input1))
 
-    input_dict = {
-        "size": (5,)
+    input2 = {
+        "size": [2, 3]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input2))
 
-    input_dict = {
-        "size": (10,)
+    input3 = {
+        "size": [4, 5, 6]
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input3))
+
+    input4 = {
+        "size": [7, 8]
+    }
+    list_of_inputs.append(copy.deepcopy(input4))
+
+    input5 = {
+        "size": [1, 2, 3, 4]
+    }
+    list_of_inputs.append(copy.deepcopy(input5))
+
+    input6 = {
+        "size": [1, 1]
+    }
+    list_of_inputs.append(copy.deepcopy(input6))
     
-    input_dict = {
-        "size": (100,)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input_dict = {
-        "size": (1000,)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
-list_of_inputs = ones_inputs()
+generated_inputs = ones_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -47,4 +53,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('ones', list_of_inputs)
+check_valid('ones', generated_inputs)

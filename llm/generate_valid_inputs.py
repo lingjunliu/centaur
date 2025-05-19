@@ -46,7 +46,7 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('{api}', list_of_inputs)
+check_valid('{api}', generated_inputs)
 """
     
     filepath = f"{CUR_DIR}/inputs/{api}.py"
@@ -64,7 +64,7 @@ check_valid('{api}', list_of_inputs)
 
 def retry_prompt(error):
     prompt = f"""Error faced during execution: {error}.
-Please fix the error and retry the input generation. Only provide the code, skip any other text. Do not include verbose comments inside code.
+Please fix the error and retry the input generation. Only provide the code, skip any other text. Do not include verbose comments inside code. If you feel like you have added too many inputs and some of them are causing validity errors, remove them. If you do not feel confident about the error, try to generate a new input and delete the old one.
     """
     return prompt
 

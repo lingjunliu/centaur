@@ -6,36 +6,51 @@ import torch, copy
 import numpy as np
 
 def bitwise_or_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
-    input1 = torch.tensor([1, 2, 3, 4], dtype=torch.int32).numpy()
-    other1 = torch.tensor([4, 3, 2, 1], dtype=torch.int32).numpy()
-    input_dict1 = {"input": input1, "other": other1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Test case 1: Basic integer tensors
+    input1 = np.array([1, 2, 3, 4], dtype=np.int32)
+    other1 = np.array([4, 3, 2, 1], dtype=np.int32)
+    generated_inputs.append({"input": input1, "other": other1})
 
-    input2 = torch.tensor([[1, 0], [0, 1]], dtype=torch.int8).numpy()
-    other2 = torch.tensor([[0, 1], [1, 0]], dtype=torch.int8).numpy()
-    input_dict2 = {"input": input2, "other": other2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Test case 2: Different shapes, but broadcastable
+    input2 = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    other2 = np.array([1, 0], dtype=np.int64)
+    generated_inputs.append({"input": input2, "other": other2})
 
-    input3 = torch.tensor([True, False, True, False]).numpy()
-    other3 = torch.tensor([False, True, False, True]).numpy()
-    input_dict3 = {"input": input3, "other": other3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Test case 3: Scalar value
+    input3 = np.array([5, 6, 7, 8], dtype=np.int8)
+    other3 = np.array(3, dtype=np.int8)
+    generated_inputs.append({"input": input3, "other": other3})
 
-    input4 = torch.randint(0, 10, (2, 2), dtype=torch.int64).numpy()
-    other4 = torch.randint(0, 10, (2, 2), dtype=torch.int64).numpy()
-    input_dict4 = {"input": input4, "other": other4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Test case 4: Multi-dimensional arrays
+    input4 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint8)
+    other4 = np.array([[[8, 7], [6, 5]], [[4, 3], [2, 1]]], dtype=np.uint8)
+    generated_inputs.append({"input": input4, "other": other4})
+    
+    # Test case 5: Boolean arrays, which should also work (implicitly cast to integers)
+    input5 = np.array([True, False, True, False], dtype=bool)
+    other5 = np.array([False, True, False, True], dtype=bool)
+    generated_inputs.append({"input": input5, "other": other5})
+    
+    # Test case 6: Negative integers
+    input6 = np.array([-1, -2, -3, -4], dtype=np.int32)
+    other6 = np.array([4, 3, 2, 1], dtype=np.int32)
+    generated_inputs.append({"input": input6, "other": other6})
 
-    input5 = torch.tensor([1, 2, 3, 4], dtype=torch.uint8).numpy()
-    other5 = torch.tensor([4, 3, 2, 1], dtype=torch.uint8).numpy()
-    input_dict5 = {"input": input5, "other": other5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Test case 7: Mixed positive and negative integers
+    input7 = np.array([-1, 2, -3, 4], dtype=np.int64)
+    other7 = np.array([1, -2, 3, -4], dtype=np.int64)
+    generated_inputs.append({"input": input7, "other": other7})
+    
+    # Test case 8: uint8 array
+    input8 = np.array([255, 128, 64, 32], dtype=np.uint8)
+    other8 = np.array([1, 2, 4, 8], dtype=np.uint8)
+    generated_inputs.append({"input": input8, "other": other8})
+    
+    return generated_inputs
 
-    return list_of_inputs
-
-list_of_inputs = bitwise_or_inputs()
+generated_inputs = bitwise_or_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -47,4 +62,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('bitwise_or', list_of_inputs)
+check_valid('bitwise_or', generated_inputs)

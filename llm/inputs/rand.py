@@ -6,41 +6,23 @@ import torch, copy
 import numpy as np
 
 def rand_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
-    input1 = (2,)
-    input_dict1 = {
-        "size": input1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
-    
-    input2 = (3, 4)
-    input_dict2 = {
-        "size": input2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    generated_inputs.append({"size": np.array([1]).item()})
+    generated_inputs.append({"size": np.array([2, 3]).tolist()})
+    generated_inputs.append({"size": np.array([4, 5, 6]).tolist()})
+    generated_inputs.append({"size": np.array([2, 3, 4, 5]).tolist()})
+    generated_inputs.append({"size": np.array([1, 1, 1, 1, 1]).tolist()})
+    generated_inputs.append({"size": np.array([10]).item()})
+    generated_inputs.append({"size": np.array([2, 7]).tolist()})
+    generated_inputs.append({"size": np.array([3, 1, 5]).tolist()})
+    generated_inputs.append({"size": np.array([6, 2, 8, 3]).tolist()})
+    generated_inputs.append({"size": np.array([1, 2, 3, 4, 5, 6]).tolist()})
+    generated_inputs.append({"size": np.array([2, 1, 4]).tolist()})
 
-    input3 = (2, 3, 5)
-    input_dict3 = {
-        "size": input3
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-    
-    input4 = (4, 2, 3, 2)
-    input_dict4 = {
-        "size": input4
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    return generated_inputs
 
-    input5 = (1, 2, 3, 4, 5)
-    input_dict5 = {
-        "size": input5
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-
-    return list_of_inputs
-
-list_of_inputs = rand_inputs()
+generated_inputs = rand_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -52,4 +34,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('rand', list_of_inputs)
+check_valid('rand', generated_inputs)

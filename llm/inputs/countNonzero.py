@@ -2,40 +2,42 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def count_nonzero_inputs():
     list_of_inputs = []
 
-    input_tensor = torch.tensor([0, 1, 2, 3, 4, 0, 5, 6])
-    dim = None
-    input_dict = {"input": input_tensor.numpy(), "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic 1D integer tensor with some zeros
+    input1 = np.array([0, 1, 2, 0, 3, 0], dtype=np.int64)
+    input_dict1 = {"input": input1, "dim": None}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input_tensor = torch.tensor([[0, 1, 2, 0], [3, 0, 5, 6]])
-    dim = None
-    input_dict = {"input": input_tensor.numpy(), "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 2D float tensor with negative values and zeros
+    input2 = np.array([[-1.0, 0.0, 2.5], [0.0, -3.2, 0.0]], dtype=np.float32)
+    input_dict2 = {"input": input2, "dim": None}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input_tensor = torch.tensor([[0, 1, 2, 0], [3, 0, 5, 6]])
-    dim = (0,)
-    input_dict = {"input": input_tensor.numpy(), "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: 3D boolean tensor
+    input3 = np.array([[[True, False, True], [False, True, False]],
+                       [[True, True, False], [False, False, True]]], dtype=np.bool_)
+    input_dict3 = {"input": input3, "dim": None}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input_tensor = torch.tensor([[0, 1, 2, 0], [3, 0, 5, 6]])
-    dim = (1,)
-    input_dict = {"input": input_tensor.numpy(), "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Tensor with complex numbers
+    input4 = np.array([1 + 1j, 0 + 0j, 2 - 1j, 0 + 2j], dtype=np.complex64)
+    input_dict4 = {"input": input4, "dim": None}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input_tensor = torch.tensor([[[0, 1, 0], [2, 0, 3]], [[4, 5, 0], [0, 6, 7]]])
-    dim = (1,)
-    input_dict = {"input": input_tensor.numpy(), "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    # Input 5: Empty tensor
+    input5 = np.array([], dtype=np.int64)
+    input_dict5 = {"input": input5, "dim": None}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
     return list_of_inputs
 
-list_of_inputs = count_nonzero_inputs()
+generated_inputs = count_nonzero_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -47,4 +49,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('countNonzero', list_of_inputs)
+check_valid('countNonzero', generated_inputs)

@@ -2,85 +2,93 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def pairwise_distance_inputs():
     list_of_inputs = []
 
-    x1 = torch.randn(10, 128).numpy()
-    x2 = torch.randn(10, 128).numpy()
-    p = 2.0
-    eps = 1e-6
-    keepdim = False
+    x1 = np.random.randn(10, 5).astype(np.float32)
+    x2 = np.random.randn(10, 5).astype(np.float32)
     input_dict = {
         "x1": x1,
         "x2": x2,
-        "p": p,
-        "eps": eps,
-        "keepdim": keepdim
+        "p": 2.0,
+        "eps": 1e-6,
+        "keepdim": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    x1 = torch.randn(5, 64).numpy()
-    x2 = torch.randn(5, 64).numpy()
-    p = 1.5
-    eps = 1e-8
-    keepdim = True
+    x1 = np.random.randn(5, 3, 2).astype(np.float64)
+    x2 = np.random.randn(5, 3, 2).astype(np.float64)
     input_dict = {
         "x1": x1,
         "x2": x2,
-        "p": p,
-        "eps": eps,
-        "keepdim": keepdim
+        "p": 1.5,
+        "eps": 1e-8,
+        "keepdim": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    x1 = torch.randn(20, 256).numpy()
-    x2 = torch.randn(20, 256).numpy()
-    p = 3.0
-    eps = 1e-4
-    keepdim = False
+    x1 = np.random.randn(20, 1).astype(np.float32)
+    x2 = np.random.randn(20, 1).astype(np.float32)
     input_dict = {
         "x1": x1,
         "x2": x2,
-        "p": p,
-        "eps": eps,
-        "keepdim": keepdim
+        "p": 0.0,
+        "eps": 1e-4,
+        "keepdim": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    x1 = torch.randn(2, 32).numpy()
-    x2 = torch.randn(2, 32).numpy()
-    p = 2.5
-    eps = 1e-5
-    keepdim = True
+    x1 = np.random.randn(3, 4, 5).astype(np.float32)
+    x2 = np.random.randn(3, 4, 5).astype(np.float32)
     input_dict = {
         "x1": x1,
         "x2": x2,
-        "p": p,
-        "eps": eps,
-        "keepdim": keepdim
+        "p": 3.0,
+        "eps": 0.0,
+        "keepdim": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    x1 = torch.randn(8, 512).numpy()
-    x2 = torch.randn(8, 512).numpy()
-    p = 1.0
-    eps = 1e-7
-    keepdim = False
+    x1 = np.random.randn(7, 2, 3, 4).astype(np.float32)
+    x2 = np.random.randn(7, 2, 3, 4).astype(np.float32)
     input_dict = {
         "x1": x1,
         "x2": x2,
-        "p": p,
-        "eps": eps,
-        "keepdim": keepdim
+        "p": 1.0,
+        "eps": 1e-12,
+        "keepdim": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    x1 = np.random.randn(4, 2).astype(np.float32)
+    x2 = np.random.randn(4, 2).astype(np.float32)
+    input_dict = {
+        "x1": x1,
+        "x2": x2,
+        "p": 2.0,
+        "eps": 1e-6,
+        "keepdim": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x1 = np.random.randn(8, 3).astype(np.float32)
+    x2 = np.random.randn(8, 3).astype(np.float32)
+    input_dict = {
+        "x1": x1,
+        "x2": x2,
+        "p": 2.5,
+        "eps": 1e-5,
+        "keepdim": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-list_of_inputs = pairwise_distance_inputs()
+generated_inputs = pairwise_distance_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -92,4 +100,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('PairwiseDistance', list_of_inputs)
+check_valid('PairwiseDistance', generated_inputs)

@@ -6,7 +6,7 @@ def torch_version(input, cpu=True):
     torch.utils.deterministic.fill_uninitialized_memory = True
 
     # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
+    input_tensor = torch.tensor(input["A"])
     tol = input.get("tol", None)
     hermitian = input.get("symmetric", False)
 
@@ -33,7 +33,7 @@ def tensorflow_version(input, cpu=True):
 
     with tf.device(device_string):
         # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
+        input_tensor = tf.constant(input["A"])
         tol = input.get("tol", None)
 
         # Apply to TensorFlow equivalent
@@ -50,7 +50,7 @@ def tensorflow_version(input, cpu=True):
 def main():
     # Example input
     input_data = {
-        "input": np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),  # Example matrix
+        "A": np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),  # Example matrix
         "tol": 1e-5,
         "symmetric": False
     }

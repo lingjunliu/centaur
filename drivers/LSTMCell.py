@@ -13,8 +13,9 @@ def torch_version(input, cpu=True):
     
     lstm_cell.weight_ih.data = torch.tensor(input['weight_ih'])
     lstm_cell.weight_hh.data = torch.tensor(input['weight_hh'])
-    lstm_cell.bias_ih.data = torch.tensor(input['bias_ih'])
-    lstm_cell.bias_hh.data = torch.tensor(input['bias_hh'])
+    if input['bias']:
+        lstm_cell.bias_ih.data = torch.tensor(input['bias_ih']) if 'bias_ih' in input and input['bias_ih'] is not None else None
+        lstm_cell.bias_hh.data = torch.tensor(input['bias_hh']) if 'bias_hh' in input and input['bias_hh'] is not None else None
 
     if not cpu:
         input_tensor = input_tensor.cuda()
@@ -23,8 +24,10 @@ def torch_version(input, cpu=True):
         lstm_cell = lstm_cell.cuda()
         lstm_cell.weight_ih.data = lstm_cell.weight_ih.data.cuda()
         lstm_cell.weight_hh.data = lstm_cell.weight_hh.data.cuda()
-        lstm_cell.bias_ih.data = lstm_cell.bias_ih.data.cuda()
-        lstm_cell.bias_hh.data = lstm_cell.bias_hh.data.cuda()
+        if lstm_cell.bias_ih is not None:
+            lstm_cell.bias_ih.data = lstm_cell.bias_ih.data.cuda()
+        if lstm_cell.bias_hh is not None:
+            lstm_cell.bias_hh.data = lstm_cell.bias_hh.data.cuda()
 
     hx, cx = lstm_cell(input_tensor, (hx, cx))
     
@@ -51,7 +54,7 @@ def tensorflow_version(input, cpu=True):
         lstm_cell.set_weights([
             tf.convert_to_tensor(weight_ih.T),
             tf.convert_to_tensor(weight_hh.T),
-            tf.convert_to_tensor(input['bias_ih']) + tf.convert_to_tensor(input['bias_hh'])
+            tf.convert_to_tensor(input['bias_ih']) + tf.convert_to_tensor(input['bias_hh']) if input['bias'] else None
         ])
 
         outputs, [hx, cx] = lstm_cell(input_tensor, [hx, cx])

@@ -9,54 +9,34 @@ import copy
 def mean_inputs():
     list_of_inputs = []
 
-    input1 = torch.randn(2, 3, 4).numpy()
-    input_dict1 = {
-        "input": input1,
-        "dim": 1,
-        "keepdim": False,
-        "dtype": np.float32
-    }
+    # Case 1: 1D float tensor, no dim specified
+    input1 = torch.randn(5).numpy()
+    input_dict1 = {"input": input1, "dim": None, "keepdim": False, "dtype": None}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input2 = torch.randn(5, 5).numpy()
-    input_dict2 = {
-        "input": input2,
-        "dim": 0,
-        "keepdim": True,
-        "dtype": np.float64
-    }
+    # Case 2: 2D int tensor, dim=0, keepdim=True
+    input2 = torch.randint(-10, 10, (3, 4)).numpy()
+    input_dict2 = {"input": input2, "dim": 0, "keepdim": True, "dtype": None}
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input3 = torch.randn(10).numpy()
-    input_dict3 = {
-        "input": input3,
-        "dim": 0,
-        "keepdim": False,
-        "dtype": np.float16
-    }
+    # Case 3: 3D float tensor, dim=2, keepdim=False
+    input3 = torch.randn(2, 3, 4).numpy()
+    input_dict3 = {"input": input3, "dim": 2, "keepdim": False, "dtype": None}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input4 = torch.randn(2, 2, 2, 2).numpy()
-    input_dict4 = {
-        "input": input4,
-        "dim": 2,
-        "keepdim": True,
-        "dtype": np.float32
-    }
+    # Case 4: 2D complex tensor, dim=1, keepdim=True
+    input4 = (torch.randn(2, 2) + 1j * torch.randn(2, 2)).numpy()
+    input_dict4 = {"input": input4, "dim": 1, "keepdim": True, "dtype": None}
     list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    input5 = torch.randn(3, 5).numpy()
-    input_dict5 = {
-        "input": input5,
-        "dim": 1,
-        "keepdim": True,
-        "dtype": np.float64
-    }
+    
+    # Case 5: 0D float tensor (scalar), no dim
+    input5 = torch.randn(1).numpy().item()
+    input_dict5 = {"input": np.array(input5), "dim": None, "keepdim": False, "dtype": None}
     list_of_inputs.append(copy.deepcopy(input_dict5))
 
     return list_of_inputs
 
-list_of_inputs = mean_inputs()
+generated_inputs = mean_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -68,4 +48,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('mean', list_of_inputs)
+check_valid('mean', generated_inputs)

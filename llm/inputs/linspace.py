@@ -2,95 +2,76 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def linspace_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
-    start = torch.tensor(0.0).item()
-    end = torch.tensor(1.0).item()
+    start = np.array(0.0, dtype=np.float32)
+    end = np.array(10.0, dtype=np.float32)
     steps = 5
-    dtype = torch.float32
-    requires_grad = False
-    
     input_dict = {
-        "start": start,
-        "end": end,
+        "start": torch.tensor(start),
+        "end": torch.tensor(end),
         "steps": steps,
-        "dtype": dtype,
-        "requires_grad": requires_grad
+        "dtype": torch.float32,
+        "requires_grad": False
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    generated_inputs.append(copy.deepcopy(input_dict))
 
-    start = torch.tensor(-1.0).item()
-    end = torch.tensor(1.0).item()
-    steps = 10
-    dtype = torch.float64
-    requires_grad = True
-    
+    start = np.array(-5, dtype=np.int32)
+    end = np.array(5, dtype=np.int32)
+    steps = 11
     input_dict = {
-        "start": start,
-        "end": end,
+        "start": torch.tensor(start),
+        "end": torch.tensor(end),
         "steps": steps,
-        "dtype": dtype,
-        "requires_grad": requires_grad
+        "dtype": torch.int32,
+        "requires_grad": False
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    generated_inputs.append(copy.deepcopy(input_dict))
 
-    start = torch.tensor(2.0).item()
-    end = torch.tensor(5.0).item()
-    steps = 7
-    dtype = torch.float32
-    requires_grad = False
-    
+    start = np.array(1+1j, dtype=np.complex64)
+    end = np.array(5+5j, dtype=np.complex64)
+    steps = 5
     input_dict = {
-        "start": start,
-        "end": end,
+        "start": torch.tensor(start),
+        "end": torch.tensor(end),
         "steps": steps,
-        "dtype": dtype,
-        "requires_grad": requires_grad
+        "dtype": torch.complex64,
+        "requires_grad": False
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    generated_inputs.append(copy.deepcopy(input_dict))
 
-    start = torch.tensor(-5.0).item()
-    end = torch.tensor(-2.0).item()
-    steps = 4
-    dtype = torch.float64
-    requires_grad = True
-    
+    start = 0.0
+    end = 10.0
+    steps = 5
     input_dict = {
-        "start": start,
-        "end": end,
+        "start": torch.tensor(start),
+        "end": torch.tensor(end),
         "steps": steps,
-        "dtype": dtype,
-        "requires_grad": requires_grad
+        "dtype": torch.float64,
+        "requires_grad": True
     }
+    generated_inputs.append(copy.deepcopy(input_dict))
     
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    start = torch.tensor(10.0).item()
-    end = torch.tensor(20.0).item()
-    steps = 12
-    dtype = torch.float32
-    requires_grad = False
-    
+    start = -5
+    end = 5
+    steps = 11
     input_dict = {
-        "start": start,
-        "end": end,
+        "start": torch.tensor(start),
+        "end": torch.tensor(end),
         "steps": steps,
-        "dtype": dtype,
-        "requires_grad": requires_grad
+        "dtype": torch.int64,
+        "requires_grad": False
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    return list_of_inputs
+    generated_inputs.append(copy.deepcopy(input_dict))
 
-list_of_inputs = linspace_inputs()
+    return generated_inputs
+
+generated_inputs = linspace_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -102,4 +83,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('linspace', list_of_inputs)
+check_valid('linspace', generated_inputs)

@@ -5,92 +5,73 @@ from eval.oracle import oracle_crash
 import torch, copy
 import numpy as np
 
-def nllloss_inputs():
+def NLLLoss_inputs():
     list_of_inputs = []
 
-    input = torch.randn(3, 5).log_softmax(dim=1).numpy()
-    target = torch.tensor([1, 0, 4]).numpy()
-    weight = torch.tensor([0.1, 0.2, 0.3, 0.4, 0.5]).float().numpy()
-    ignore_index = -100
-    reduction = 'mean'
-    
+    # Case 1: Basic case with 1D input and target
+    input = np.array([[-0.8, -0.2, -0.3]], dtype=np.float32)
+    target = np.array([0], dtype=np.int64)
     input_dict = {
         "input": input,
         "target": target,
-        "weight": weight,
-        "ignore_index": ignore_index,
-        "reduction": reduction
+        "weight": None,
+        "ignore_index": -100,
+        "reduction": 'mean'
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input = torch.randn(2, 3).log_softmax(dim=1).numpy()
-    target = torch.tensor([0, 2]).numpy()
-    weight = None
-    ignore_index = -1
-    reduction = 'sum'
-    
+    # Case 2: 2D input and 1D target, different reduction
+    input = np.array([[-0.8, -0.2, -0.3], [-0.1, -0.9, -0.5]], dtype=np.float32)
+    target = np.array([0, 1], dtype=np.int64)
     input_dict = {
         "input": input,
         "target": target,
-        "weight": weight,
-        "ignore_index": ignore_index,
-        "reduction": reduction
+        "weight": None,
+        "ignore_index": -100,
+        "reduction": 'sum'
     }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input = torch.randn(4, 4).log_softmax(dim=1).numpy()
-    target = torch.tensor([3, 1, 2, 0]).numpy()
-    weight = torch.tensor([0.25, 0.25, 0.25, 0.25]).float().numpy()
-    ignore_index = 5
-    reduction = 'mean'
-    
+    # Case 3: With weight
+    input = np.array([[-0.8, -0.2, -0.3], [-0.1, -0.9, -0.5]], dtype=np.float32)
+    target = np.array([0, 1], dtype=np.int64)
+    weight = np.array([0.2, 0.8, 0.5], dtype=np.float32)
     input_dict = {
         "input": input,
         "target": target,
         "weight": weight,
-        "ignore_index": ignore_index,
-        "reduction": reduction
+        "ignore_index": -100,
+        "reduction": 'mean'
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input = torch.randn(1, 10).log_softmax(dim=1).numpy()
-    target = torch.tensor([7]).numpy()
-    weight = None
-    ignore_index = 7
-    reduction = 'mean'
-    
-    input_dict = {
-        "input": input,
-        "target": target,
-        "weight": weight,
-        "ignore_index": ignore_index,
-        "reduction": reduction
-    }
-    
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    input = torch.randn(2, 2).log_softmax(dim=1).numpy()
-    target = torch.tensor([0, 1]).numpy()
-    weight = torch.tensor([0.7, 0.3]).float().numpy()
-    ignore_index = -100
-    reduction = 'mean'
-
+    # Case 4: With ignore_index
+    input = np.array([[-0.8, -0.2, -0.3], [-0.1, -0.9, -0.5]], dtype=np.float32)
+    target = np.array([0, -100], dtype=np.int64)
     input_dict = {
         "input": input,
         "target": target,
-        "weight": weight,
-        "ignore_index": ignore_index,
-        "reduction": reduction
+        "weight": None,
+        "ignore_index": -100,
+        "reduction": 'mean'
     }
-    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 5: Different input shape
+    input = np.array([[-0.8, -0.2], [-0.1, -0.9], [-0.5, -0.3]], dtype=np.float32)
+    target = np.array([0, 1, 0], dtype=np.int64)
+    input_dict = {
+        "input": input,
+        "target": target,
+        "weight": None,
+        "ignore_index": -100,
+        "reduction": 'mean'
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-list_of_inputs = nllloss_inputs()
+generated_inputs = NLLLoss_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -102,4 +83,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('NLLLoss', list_of_inputs)
+check_valid('NLLLoss', generated_inputs)

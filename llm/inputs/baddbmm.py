@@ -8,94 +8,75 @@ import numpy as np
 def baddbmm_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_np = torch.randn(3, 5).numpy()
-    batch1_np = torch.randn(3, 2, 3).numpy()
-    batch2_np = torch.randn(3, 3, 5).numpy()
-    beta_val = 1.0
-    alpha_val = 2.0
-    
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta_val,
-        "alpha": alpha_val
+    # Input 1: Basic float tensors - Corrected shape
+    input1 = np.random.randn(2, 5).astype(np.float32)
+    batch1_1 = np.random.randn(2, 2, 3).astype(np.float32)
+    batch2_1 = np.random.randn(2, 3, 5).astype(np.float32)
+    input_dict1 = {
+        "input": input1,
+        "batch1": batch1_1,
+        "batch2": batch2_1,
+        "beta": 1.0,
+        "alpha": 1.0
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2
-    input_np = torch.randn(2, 5).numpy()
-    batch1_np = torch.randn(2, 3, 2).numpy()
-    batch2_np = torch.randn(2, 2, 5).numpy()
-    beta_val = 0.5
-    alpha_val = 1.5
-    
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta_val,
-        "alpha": alpha_val
+    # Input 2: Different shapes, beta and alpha - Corrected shape
+    input2 = np.random.randn(3, 7).astype(np.float32)
+    batch1_2 = np.random.randn(3, 3, 4).astype(np.float32)
+    batch2_2 = np.random.randn(3, 4, 7).astype(np.float32)
+    input_dict2 = {
+        "input": input2,
+        "batch1": batch1_2,
+        "batch2": batch2_2,
+        "beta": 0.5,
+        "alpha": 2.0
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3
-    input_np = torch.randn(4, 6).numpy()
-    batch1_np = torch.randn(4, 5, 4).numpy()
-    batch2_np = torch.randn(4, 4, 6).numpy()
-    beta_val = 0.0
-    alpha_val = 1.0
-    
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta_val,
-        "alpha": alpha_val
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_np = torch.randn(1, 1).numpy()
-    batch1_np = torch.randn(1, 1, 1).numpy()
-    batch2_np = torch.randn(1, 1, 1).numpy()
-    beta_val = 2.0
-    alpha_val = 0.5
-    
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta_val,
-        "alpha": alpha_val
+    # Input 4: Negative values - Corrected Shape
+    input4 = np.random.randn(4, 6).astype(np.float32)
+    batch1_4 = np.random.randn(4, 4, 2).astype(np.float32)
+    batch2_4 = np.random.randn(4, 2, 6).astype(np.float32)
+    input_dict4 = {
+        "input": input4,
+        "batch1": batch1_4,
+        "batch2": batch2_4,
+        "beta": -1.0,
+        "alpha": -0.5
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5
-    input_np = torch.randn(5, 7).numpy()
-    batch1_np = torch.randn(5, 6, 5).numpy()
-    batch2_np = torch.randn(5, 5, 7).numpy()
-    beta_val = 1.2
-    alpha_val = 0.8
-    
-    input_dict = {
-        "input": input_np,
-        "batch1": batch1_np,
-        "batch2": batch2_np,
-        "beta": beta_val,
-        "alpha": alpha_val
+    # Input 5: Larger batch size - Corrected Shape
+    input5 = np.random.randn(6, 8).astype(np.float32)
+    batch1_5 = np.random.randn(6, 6, 5).astype(np.float32)
+    batch2_5 = np.random.randn(6, 5, 8).astype(np.float32)
+    input_dict5 = {
+        "input": input5,
+        "batch1": batch1_5,
+        "batch2": batch2_5,
+        "beta": 1.0,
+        "alpha": 1.0
     }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Different beta and alpha values - Corrected Shape
+    input6 = np.random.randn(5, 7).astype(np.float32)
+    batch1_6 = np.random.randn(5, 5, 3).astype(np.float32)
+    batch2_6 = np.random.randn(5, 3, 7).astype(np.float32)
+    input_dict6 = {
+        "input": input6,
+        "batch1": batch1_6,
+        "batch2": batch2_6,
+        "beta": 0.7,
+        "alpha": 1.3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
     return list_of_inputs
 
-list_of_inputs = baddbmm_inputs()
+generated_inputs = baddbmm_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -107,4 +88,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('baddbmm', list_of_inputs)
+check_valid('baddbmm', generated_inputs)
