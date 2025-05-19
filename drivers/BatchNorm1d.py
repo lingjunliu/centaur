@@ -1,40 +1,47 @@
 import numpy as np
 
-def torch_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    # Unpack input dictionary
-    num_features = input["num_features"]
-    eps = input.get("eps", 1e-05)
-    momentum = input.get("momentum", 0.1)
-    affine = input.get("affine", True)
-    track_running_stats = input.get("track_running_stats", True)
+    input_tensor = torch.tensor(input_dict["input"])
+    num_features = input_dict.get("num_features", input_tensor.shape[-1])
+    eps = input_dict.get("eps", 1e-05)
+    momentum = input_dict.get("momentum", 0.1)
+    affine = input_dict.get("affine", True)
+    track_running_stats = input_dict.get("track_running_stats", True)
 
-    # Create BatchNorm1d instance
-    batch_norm = torch.nn.BatchNorm1d(num_features=num_features,
-                                      eps=eps, momentum=momentum, affine=affine,
-                                      track_running_stats=track_running_stats)
-
-    # Get input tensor
-    input_tensor = torch.tensor(input["data"])
-    
-    # Move to GPU if not using CPU
     if not cpu:
         input_tensor = input_tensor.cuda()
-        batch_norm = batch_norm.cuda()
+    
+    bn = torch.nn.BatchNorm1d(num_features, eps, momentum, affine, track_running_stats)
 
-    # Apply the batch normalization layer
-    output = batch_norm(input_tensor)
-
+    if 'running_mean' in input_dict:
+      bn.running_mean = torch.tensor(input_dict['running_mean'])
+      if not cpu:
+          bn.running_mean = bn.running_mean.cuda()
+    if 'running_var' in input_dict:
+      bn.running_var = torch.tensor(input_dict['running_var'])
+      if not cpu:
+          bn.running_var = bn.running_var.cuda()
+    if 'weight' in input_dict and affine:
+      bn.weight = torch.nn.Parameter(torch.tensor(input_dict['weight']))
+      if not cpu:
+          bn.weight = torch.nn.Parameter(bn.weight.cuda())
+    if 'bias' in input_dict and affine:
+      bn.bias = torch.nn.Parameter(torch.tensor(input_dict['bias']))
+      if not cpu:
+          bn.bias = torch.nn.Parameter(bn.bias.cuda())
+        
+    result = bn(input_tensor)
+    
     if not cpu:
-        output = output.cpu()
+        result = result.cpu()
+    
+    return {"result": result.detach().numpy()}
 
-    return {"batch_norm_output": output.detach().numpy()}
-
-### TensorFlow Implementation
-def tensorflow_version(input, cpu=True):
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
@@ -42,60 +49,80 @@ def tensorflow_version(input, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
-        # Unpack input dictionary
-        num_features = input["num_features"]
-        eps = input.get("eps", 1e-05)
-        momentum = input.get("momentum", 0.1)
-        affine = input.get("affine", True)
-        trainable = affine
-        track_running_stats = input.get("track_running_stats", True)
+        input_tensor = tf.constant(input_dict["input"])
+        num_features = input_dict.get("num_features", input_tensor.shape[-1])
+        eps = input_dict.get("eps", 1e-05)
+        momentum = input_dict.get("momentum", 0.1)
+        affine = input_dict.get("affine", True)
+        track_running_stats = input_dict.get("track_running_stats", True)
         
-        # Create BatchNormalization instance
-        batch_norm = tf.keras.layers.BatchNormalization(
-            axis=1,  # Along the features dimension
-            momentum=momentum,
-            epsilon=eps,
-            center=affine,
-            scale=affine,
-            trainable=trainable
-        )
+        gamma = None
+        beta = None
+        moving_mean = None
+        moving_variance = None
+        
+        if 'weight' in input_dict and affine:
+            gamma = tf.constant(input_dict['weight'], dtype=input_tensor.dtype)
+        else:
+            gamma = tf.ones([num_features], dtype=input_tensor.dtype)
 
-        # Get input tensor
-        input_tensor = tf.constant(input["data"])
+        if 'bias' in input_dict and affine:
+            beta = tf.constant(input_dict['bias'], dtype=input_tensor.dtype)
+        else:
+            beta = tf.zeros([num_features], dtype=input_tensor.dtype)
+            
+        if 'running_mean' in input_dict:
+            moving_mean = tf.constant(input_dict['running_mean'], dtype=input_tensor.dtype)
+        else:
+            moving_mean = tf.zeros([num_features], dtype=input_tensor.dtype)
+            
+        if 'running_var' in input_dict:
+            moving_variance = tf.constant(input_dict['running_var'], dtype=input_tensor.dtype)
+        else:
+            moving_variance = tf.ones([num_features], dtype=input_tensor.dtype)
+            
 
-        # Apply the batch normalization layer
-        output = batch_norm(input_tensor, training=track_running_stats)
+        mean, variance = tf.nn.moments(input_tensor, axes=[0])
+            
+        if track_running_stats:            
+            def update_mean_var():
+              new_moving_mean = moving_mean * momentum + mean * (1 - momentum)
+              new_moving_variance = moving_variance * momentum + variance * (1 - momentum)
+              return new_moving_mean, new_moving_variance
+            
+            moving_mean, moving_variance = update_mean_var()
 
-        output_np = output.numpy() if cpu else output.cpu().numpy()
+        result = tf.nn.batch_normalization(input_tensor, mean, variance, beta, gamma, eps)
 
-        return {"batch_norm_output": output_np}
+        result = result.numpy()
+    
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "num_features": 3,
-        "data": np.array([[0.5, 0.3, 0.8], [0.2, 0.6, 0.9]], dtype=np.float32),
+        "input": np.array([[0.0202, 1.0985, 1.3506, -0.6056],
+                           [0.0202, 1.0985, 1.3506, -0.6056]], dtype=np.float32),
+        "num_features": 4,
         "eps": 1e-05,
         "momentum": 0.1,
         "affine": True,
-        "track_running_stats": True
+        "track_running_stats": True,
+        "running_mean": np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float32),
+        "running_var": np.array([0.5, 0.6, 0.7, 0.8], dtype=np.float32),
+        "weight": np.array([1.0, 1.0, 1.0, 1.0], dtype=np.float32),
+        "bias": np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
     }
 
-    # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
     tf_result = tensorflow_version(input_data)
-    print("TensorFlow result:", tf_result)
+    
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
-    # Assert to compare results
-    if np.allclose(torch_result["batch_norm_output"], tf_result["batch_norm_output"], atol=1e-06):
-        print("equal")
-    else:
-        print("not equal")
+    print("Success")
 
 if __name__ == "__main__":
     main()

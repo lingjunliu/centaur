@@ -1,27 +1,25 @@
 import numpy as np
 
-def torch_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
-    other_tensor = torch.tensor(input["other"])
-  
+    input_tensor = torch.tensor(input_dict["input"])
+    other_tensor = torch.tensor(input_dict["other"])
+    
     if not cpu:
         input_tensor = input_tensor.cuda()
         other_tensor = other_tensor.cuda()
-
-    # Apply to torch.vdot
+    
     result = torch.vdot(input_tensor, other_tensor)
-
+    
     if not cpu:
         result = result.cpu()
+    
+    return {"result": result.numpy()}
 
-    return {"vdot_result": result.numpy()}
-
-def tensorflow_version(input, cpu=True):
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
@@ -29,39 +27,42 @@ def tensorflow_version(input, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
-        # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
-        other_tensor = tf.constant(input["other"])
-
-        # Apply to TensorFlow equivalent
-        result = tf.tensordot(input_tensor, other_tensor, axes=1)
-
-        return {"vdot_result": result.numpy()}
+        input_tensor = tf.constant(input_dict["input"])
+        other_tensor = tf.constant(input_dict["other"])
+        
+        input_tensor_conj = tf.math.conj(input_tensor)
+        result = tf.reduce_sum(input_tensor_conj * other_tensor)
+        
+        result = result.numpy()
+    
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "input": np.array([2.0, 3.0], dtype=np.float32),
-        "other": np.array([2.0, 1.0], dtype=np.float32)
+        "input": np.array([2, 3], dtype=np.int32),
+        "other": np.array([2, 1], dtype=np.int32),
     }
 
-    # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
     tf_result = tensorflow_version(input_data)
-    print("TensorFlow result:", tf_result)
+    
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
-    # Compare the results
-    torch_val = torch_result["vdot_result"]
-    tf_val = tf_result["vdot_result"]
-    if np.isclose(torch_val, tf_val):
-        print("equal")
-    else:
-        print("not equal")
+    input_data = {
+        "input": np.array([1 + 2j, 3 - 1j], dtype=np.complex64),
+        "other": np.array([2 + 1j, 4 - 0j], dtype=np.complex64),
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+    
+    print("Success")
 
 if __name__ == "__main__":
     main()

@@ -1,29 +1,26 @@
 import numpy as np
 
-def torch_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
-    padding = input["padding"]
-    value = input["value"]
-
-    # Apply torch.nn.ConstantPad1d
-    pad = torch.nn.ConstantPad1d(padding, value)
+    input_tensor = torch.tensor(input_dict["input"])
+    padding = input_dict["padding"]
+    value = input_dict.get("value", 0.0)
+    
     if not cpu:
-        input_tensor = input_tensor.to('cuda')
-        pad = pad.to('cuda')
-
-    output_tensor = pad(input_tensor)
-
+        input_tensor = input_tensor.cuda()
+    
+    pad1d = torch.nn.ConstantPad1d(padding, value)
+    result = pad1d(input_tensor)
+    
     if not cpu:
-        output_tensor = output_tensor.cpu()
+        result = result.cpu()
+    
+    return {"result": result.numpy()}
 
-    return {"output": output_tensor.numpy()}
-
-def tensorflow_version(input, cpu=True):
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
@@ -31,43 +28,58 @@ def tensorflow_version(input, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
-        # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
-        padding = input["padding"]
-        value = input["value"]
+        input_tensor = tf.constant(input_dict["input"])
+        padding = input_dict["padding"]
+        value = input_dict.get("value", 0.0)
 
-        # Compute padding
-        if isinstance(padding, int):
-            padding = (padding, padding)
+        input_shape = tf.shape(input_tensor)
+        input_rank = tf.rank(input_tensor)
         
-        paddings = [[0, 0], [0, 0], [padding[0], padding[1]]]
-        output_tensor = tf.pad(input_tensor, paddings, "CONSTANT", constant_values=value)
+        if isinstance(padding, int):
+            pad_left = padding
+            pad_right = padding
+        else:
+            pad_left = padding[0]
+            pad_right = padding[1]
+            
+        paddings = [[0, 0] for _ in range(input_rank - 1)]
+        paddings.append([pad_left, pad_right])
+        paddings = tf.constant(paddings, dtype=tf.int32)
+            
+        constant_values = tf.constant(value, dtype=input_tensor.dtype)
+        result = tf.pad(input_tensor, paddings, "CONSTANT", constant_values=constant_values)
 
-    return {"output": output_tensor.numpy()}
+        result = result.numpy()
+    
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "input": np.random.randn(1, 2, 4).astype(np.float32),
-        "padding": 2,
-        "value": 3.5
+        "input": np.array([1, 2, 3], dtype=np.float32),
+        "padding": (2, 3),
+        "value": 1.5
     }
 
-    # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
     tf_result = tensorflow_version(input_data)
-    print("TensorFlow result:", tf_result)
 
-    torch_output = np.array(torch_result["output"])
-    tf_output = np.array(tf_result["output"])
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
-    assert np.allclose(torch_output, tf_output), "Output mismatch!"
-    print("equal")
+    input_data = {
+        "input": np.array([1, 2, 3], dtype=np.float32),
+        "padding": 2
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+
+    print("Success")
 
 if __name__ == "__main__":
     main()

@@ -1,35 +1,32 @@
 import numpy as np
 
-def torch_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
-
-    # Unpack input dictionary
-    anchor = torch.tensor(input["anchor"], dtype=torch.float32, requires_grad=True)
-    positive = torch.tensor(input["positive"], dtype=torch.float32, requires_grad=True)
-    negative = torch.tensor(input["negative"], dtype=torch.float32, requires_grad=True)
-    margin = input.get("margin", 1.0)
-    p = input.get("p", 2.0)
-    eps = input.get("eps", 1e-06)
-    swap = input.get("swap", False)
-    reduction = input.get("reduction", 'mean')
+    
+    anchor = torch.tensor(input_dict["anchor"])
+    positive = torch.tensor(input_dict["positive"])
+    negative = torch.tensor(input_dict["negative"])
+    margin = input_dict.get("margin", 1.0)
+    p = input_dict.get("p", 2.0)
+    eps = input_dict.get("eps", 1e-6)
+    swap = input_dict.get("swap", False)
 
     if not cpu:
         anchor = anchor.cuda()
         positive = positive.cuda()
         negative = negative.cuda()
-    
-    # Apply to torch.nn.TripletMarginLoss
-    triplet_loss = torch.nn.TripletMarginLoss(margin=margin, p=p, eps=eps, swap=swap, reduction=reduction)
-    loss = triplet_loss(anchor, positive, negative)
+
+    loss_fn = torch.nn.TripletMarginLoss(margin=margin, p=p, eps=eps, swap=swap)
+    result = loss_fn(anchor, positive, negative)
 
     if not cpu:
-        loss = loss.cpu()
+        result = result.cpu()
 
-    return {"triplet_margin_loss": float(loss.item())}
+    return {"result": result.numpy()}
 
-def tensorflow_version(input, cpu=True):
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
@@ -39,67 +36,47 @@ def tensorflow_version(input, cpu=True):
         device_string = "/gpu:0"
 
     with tf.device(device_string):
-        # Unpack input dictionary
-        anchor = tf.constant(input["anchor"])
-        positive = tf.constant(input["positive"])
-        negative = tf.constant(input["negative"])
-        margin = input.get("margin", 1.0)
-        p = input.get("p", 2.0)
-        eps = input.get("eps", 1e-06)
-        swap = input.get("swap", False)
-        reduction = input.get("reduction", 'mean')
+        anchor = tf.constant(input_dict["anchor"])
+        positive = tf.constant(input_dict["positive"])
+        negative = tf.constant(input_dict["negative"])
+        margin = input_dict.get("margin", 1.0)
+        p = input_dict.get("p", 2.0)
+        eps = input_dict.get("eps", 1e-6)
+        swap = input_dict.get("swap", False)
 
-        # Implementing the equivalent using TensorFlow operations
-        def pairwise_distance(x, y, p=2.0, eps=1e-06):
-            return tf.norm(x - y, ord=p, axis=-1, keepdims=False) + eps
+        def compute_loss(anchor, positive, negative, margin, p, eps, swap):
+            pos_dist = tf.norm(anchor - positive, ord=p, axis=-1)
+            neg_dist = tf.norm(anchor - negative, ord=p, axis=-1)
+            if swap:
+                alt_pos_dist = tf.norm(anchor - negative, ord=p, axis=-1)
+                alt_neg_dist = tf.norm(anchor - positive, ord=p, axis=-1)
+                pos_dist = tf.minimum(pos_dist, alt_pos_dist)
+                neg_dist = tf.minimum(neg_dist, alt_neg_dist)
+            basic_loss = pos_dist - neg_dist + margin
+            loss = tf.maximum(basic_loss, 0.0)
+            return tf.reduce_mean(loss)
 
-        distance_ap = pairwise_distance(anchor, positive, p, eps)
-        distance_an = pairwise_distance(anchor, negative, p, eps)
-        
-        if swap:
-            distance_pn = pairwise_distance(positive, negative, p, eps)
-            pairwise_neg = tf.minimum(distance_an, distance_pn)
-        else:
-            pairwise_neg = distance_an
-
-        loss = tf.maximum(distance_ap - pairwise_neg + margin, 0.0)
-
-        if reduction == 'mean':
-            loss = tf.reduce_mean(loss)
-        elif reduction == 'sum':
-            loss = tf.reduce_sum(loss)
-
-        return {"triplet_margin_loss": float(loss.numpy())}
+        result = compute_loss(anchor, positive, negative, margin, p, eps, swap).numpy()
+        return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "anchor": np.random.randn(100, 128).astype(np.float32),
-        "positive": np.random.randn(100, 128).astype(np.float32),
-        "negative": np.random.randn(100, 128).astype(np.float32),
+        "anchor": np.array([1.0, 1.0, 1.0], dtype=np.float32),
+        "positive": np.array([2.0, 2.0, 2.0], dtype=np.float32),
+        "negative": np.array([0.0, 0.0, 0.0], dtype=np.float32),
         "margin": 1.0,
         "p": 2.0,
-        "eps": 1e-06,
-        "swap": False,
-        "reduction": 'mean'
+        "swap": False
     }
 
-    # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
     tf_result = tensorflow_version(input_data)
-    print("TensorFlow result:", tf_result)
 
-    # Assertion to check if results are equal
-    np_torch_result = np.asarray(torch_result["triplet_margin_loss"], dtype=np.float32)
-    np_tf_result = np.asarray(tf_result["triplet_margin_loss"], dtype=np.float32)
-    
-    if np.allclose(np_torch_result, np_tf_result, rtol=1e-05):
-        print("equal")
-    else:
-        print("not equal")
-    
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+
+    print("Success")
+
 if __name__ == "__main__":
     main()

@@ -1,62 +1,51 @@
 import numpy as np
 
-def torch_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
-    
-    # Ensure the operation runs on CPU if specified
-    if cpu:
-        device = torch.device("cpu")
-    else:
-        device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-        
-    # Unpack input dictionary and create tensor
-    input_tensor = torch.tensor(input["input"])
-    input_tensor = input_tensor.to(device)
-    
-    # Apply the Tanh function
-    m = torch.nn.Tanh()
-    output_tensor = m(input_tensor)
-    output_tensor = output_tensor.cpu()  # Ensure the output is on the CPU
-    
-    return {"tanh_output": output_tensor.numpy()}
 
-def tensorflow_version(input, cpu=True):
+    input_tensor = torch.tensor(input_dict["input"])
+    
+    if not cpu:
+        input_tensor = input_tensor.cuda()
+    
+    tanh = torch.nn.Tanh()
+    result = tanh(input_tensor)
+    
+    if not cpu:
+        result = result.cpu()
+    
+    return {"result": result.numpy()}
+
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
-    device_string = "/cpu:0" if cpu else "/gpu:0"
+    if cpu:
+        device_string = "/cpu:0"
+    else:
+        device_string = "/gpu:0"
     
     with tf.device(device_string):
-        # Unpack input dictionary and create tensor
-        input_tensor = tf.constant(input["input"])
-        
-        # Apply the Tanh function
-        output_tensor = tf.math.tanh(input_tensor)
-        
-        # Note: In TensorFlow, there's no need to manually transfer to CPU, but we will get the numpy array for comparison
-        return {"tanh_output": output_tensor.numpy()}
+        input_tensor = tf.constant(input_dict["input"])
+        result = tf.nn.tanh(input_tensor)
+        result = result.numpy()
+    
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
     input_data = {
-        "input": np.array([[0.5, 0.3, 0.8], [0.2, 0.6, 0.9]], dtype=np.float32)
+        "input": np.array([0.0202, 1.0985, 1.3506, -0.6056], dtype=np.float32)
     }
 
-    # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
     tf_result = tensorflow_version(input_data)
-    print("TensorFlow result:", tf_result)
+    
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
-    # Compare results using allclose because floating point operations might have minor differences
-    if np.allclose(torch_result["tanh_output"], tf_result["tanh_output"]):
-        print("equal")
-    else:
-        print("not equal")
+    print("Success")
 
 if __name__ == "__main__":
     main()

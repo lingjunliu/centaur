@@ -135,6 +135,8 @@ def update_apis():
             # if not found, try all apis
             if not found:
                 for api in backend_apis:
+                    if api == "torch.use_deterministic_algorithms":
+                        continue
                     if api_in_file(api, driver_file):
                         f.write(f"{driver_name},{api}\n")
                         driver_to_api_map[driver_name] = api
@@ -155,15 +157,15 @@ def update_apis():
             else:
                 succeeded = succeeded - set(tokens[1])
     
+    new_drivers = ""
     status = {}
     ex = 1
     for driver, api in driver_to_api_map.items():
-        if api in supported_torch_apis:
-            status[api] = "Success"
-        elif api in succeeded:
+        if api in succeeded:
             basename = api.split(".")[-1]
             if basename == driver:
                 status[api] = "Success"
+                new_drivers += f"{driver}\n"
             else:
                 status[api] = "Inconsistent"
         elif api in attempted:
@@ -202,6 +204,9 @@ def update_apis():
         print(f"Driver Generation: {k},{v}")
 
     print(f"\nSaved {needs} PyTorch APIs for which we need to create drivers to {output_file}\nExisting: {ex}")
+    
+    with open(f"{CUR_DIR}/new_drivers.txt", "w") as f:
+        f.write(new_drivers)
 
 
 if __name__ == "__main__":

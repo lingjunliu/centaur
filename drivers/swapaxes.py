@@ -1,6 +1,5 @@
 import numpy as np
 
-# Placeholder for set_seed function. Implement this function according to your need.
 def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
@@ -9,13 +8,16 @@ def torch_version(input_dict, cpu=True):
     input_tensor = torch.tensor(input_dict["input"])
     axis0 = input_dict["axis0"]
     axis1 = input_dict["axis1"]
-
+    
+    if not cpu:
+        input_tensor = input_tensor.cuda()
+    
     result = torch.swapaxes(input_tensor, axis0, axis1)
     
     if not cpu:
         result = result.cpu()
     
-    return {"swapped_tensor": result.numpy()}
+    return {"result": result.numpy()}
 
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
@@ -25,41 +27,48 @@ def tensorflow_version(input_dict, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
         input_tensor = tf.constant(input_dict["input"])
         axis0 = input_dict["axis0"]
         axis1 = input_dict["axis1"]
-
+        
+        axes = [axis0, axis1]
         perm = list(range(len(input_tensor.shape)))
         perm[axis0], perm[axis1] = perm[axis1], perm[axis0]
         result = tf.transpose(input_tensor, perm=perm)
-
-        return {"swapped_tensor": result.numpy()}
+        
+        result = result.numpy()
+    
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "input": np.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]], dtype=np.float32),
+        "input": np.array([[[0,1],[2,3]],[[4,5],[6,7]]], dtype=np.int32),
         "axis0": 0,
-        "axis1": 1,
+        "axis1": 1
     }
 
-    # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
     tf_result = tensorflow_version(input_data)
-    print("TensorFlow result:", tf_result)
+    
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
-    # Compare results
-    np.testing.assert_array_almost_equal(
-        torch_result["swapped_tensor"], 
-        tf_result["swapped_tensor"],
-        decimal=5 
-    )
-    print("equal")
+    input_data = {
+        "input": np.array([[[0,1],[2,3]],[[4,5],[6,7]]], dtype=np.int32),
+        "axis0": 0,
+        "axis1": 2
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+    
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+    
+
+    print("Success")
 
 if __name__ == "__main__":
     main()

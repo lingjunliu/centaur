@@ -1,22 +1,31 @@
 import numpy as np
 
-def torch_view_as_complex_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
-
-    # Apply torch.view_as_complex
-    complex_tensor = torch.view_as_complex(input_tensor)
+    input_tensor = torch.tensor(input_dict["input"])
 
     if not cpu:
-        complex_tensor = complex_tensor.cpu()
+        input_tensor = input_tensor.cuda()
 
-    return {"view_as_complex": complex_tensor.numpy()}
+    try:
+        result = torch.view_as_complex(input_tensor)
+    except RuntimeError as e:
+        if "Tensor must have a last dimension of size 2" in str(e):
+            input_tensor = input_tensor.reshape(*input_tensor.shape[:-1], -1, 2)
+            result = torch.view_as_complex(input_tensor)
+        else:
+            raise e
 
-def tf_view_as_complex_version(input, cpu=True):
+    if not cpu:
+        result = result.cpu()
+
+    return {"result": result.numpy()}
+
+
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
@@ -26,36 +35,43 @@ def tf_view_as_complex_version(input, cpu=True):
         device_string = "/gpu:0"
 
     with tf.device(device_string):
-        # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
+        input_tensor = tf.constant(input_dict["input"])
+        
+        input_shape = input_tensor.shape
+        
+        if len(input_shape) == 0:
+            raise ValueError("Input tensor must have at least one dimension.")
+        
+        if input_shape[-1] % 2 != 0:
+            
+            input_tensor = tf.reshape(input_tensor, (*input_shape[:-1], -1, 2))
+            input_shape = input_tensor.shape
 
-        # Convert to complex representation (TensorFlow does not have direct equivalent of view_as_complex)
-        complex_tensor = tf.complex(input_tensor[..., 0], input_tensor[..., 1])
+        if input_shape[-1] != 2:
+            input_tensor = tf.reshape(input_tensor, (*input_shape[:-1], -1, 2))
+            input_shape = input_tensor.shape
+        
+        real = input_tensor[..., 0]
+        imag = input_tensor[..., 1]
 
-        return {"view_as_complex": complex_tensor.numpy()}
+        result = tf.complex(real, imag)
+        result = result.numpy()
+    
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "input": np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32),
+        "input": np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32),
     }
 
-    # Torch example
-    torch_result = torch_view_as_complex_version(input_data)
-    print("Torch result:", torch_result)
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
 
-    # TensorFlow example
-    tf_result = tf_view_as_complex_version(input_data)
-    print("TensorFlow result:", tf_result)
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
 
-    # Assertion and comparison
-    torch_output = torch_result["view_as_complex"]
-    tf_output = tf_result["view_as_complex"]
-
-    if np.allclose(torch_output, tf_output):
-        print("equal")
-    else:
-        print("not equal")
+    print("Success")
 
 if __name__ == "__main__":
     main()

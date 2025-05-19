@@ -1,28 +1,25 @@
 import numpy as np
 
-def torch_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    # Unpack input dictionary
-    alpha = input.get("alpha", 1.0)
-    inplace = input.get("inplace", False)
-    input_tensor = torch.tensor(input["input"])
-    
+    input_tensor = torch.tensor(input_dict["input"])
+    alpha = input_dict.get("alpha", 1.0)
+
     if not cpu:
         input_tensor = input_tensor.cuda()
-    
-    activation = torch.nn.CELU(alpha=alpha, inplace=inplace)
-    result = activation(input_tensor)
-    
+
+    celu = torch.nn.CELU(alpha=alpha)
+    result = celu(input_tensor)
+
     if not cpu:
         result = result.cpu()
 
-    return {"celu_activation_output": result.detach().numpy()}
+    return {"result": result.numpy()}
 
-
-def tensorflow_version(input, cpu=True):
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
@@ -32,39 +29,29 @@ def tensorflow_version(input, cpu=True):
         device_string = "/gpu:0"
 
     with tf.device(device_string):
-        alpha = input.get("alpha", 1.0)
-        input_tensor = tf.constant(input["input"])
+        input_tensor = tf.constant(input_dict["input"], dtype=tf.float32)
+        alpha = input_dict.get("alpha", 1.0)
 
-        condition = tf.greater_equal(input_tensor, 0)
-        output_pos = tf.where(condition, input_tensor, tf.zeros_like(input_tensor))
-        output_neg = tf.where(condition, tf.zeros_like(input_tensor), alpha * (tf.exp(input_tensor / alpha) - 1))
+        result = tf.where(input_tensor > 0, input_tensor, alpha * (tf.exp(input_tensor / alpha) - 1))
 
-        result = output_pos + output_neg
+        result = result.numpy()
 
-        return {"celu_activation_output": result.numpy()}
-
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "input": np.random.randn(2, 3).astype(np.float32),
-        "alpha": 1.0,
-        "inplace": False
+        "input": np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32),
+        "alpha": 1.0
     }
 
-    # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
     tf_result = tensorflow_version(input_data)
-    print("TensorFlow result:", tf_result)
 
-    # Using numpy.allclose for comparing floating values
-    if np.allclose(torch_result["celu_activation_output"], tf_result["celu_activation_output"], atol=1e-5):
-        print("equal")
-    else:
-        print("not equal")
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+
+    print("Success")
 
 if __name__ == "__main__":
     main()

@@ -1,23 +1,25 @@
 import numpy as np
 
-def torch_take_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
-    index_tensor = torch.tensor(input["index"], dtype=torch.int64)
-
-    # Apply torch.take
-    result = torch.take(input_tensor, index_tensor)
-
+    input_tensor = torch.tensor(input_dict["input"])
+    index = torch.tensor(input_dict["index"], dtype=torch.long)
+    
+    if not cpu:
+        input_tensor = input_tensor.cuda()
+        index = index.cuda()
+    
+    result = torch.take(input_tensor, index)
+    
     if not cpu:
         result = result.cpu()
+    
+    return {"result": result.numpy()}
 
-    return {"take_result": result.numpy()}
-
-def tensorflow_take_version(input, cpu=True):
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
@@ -25,40 +27,32 @@ def tensorflow_take_version(input, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
-        # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
-        index_tensor = tf.constant(input["index"], dtype=tf.int64)
-
-        # Flatten input tensor (since torch.take flattens the input tensor)
-        input_tensor_flat = tf.reshape(input_tensor, [-1])
-
-        # Apply tf.gather (equivalent to torch.take)
-        result = tf.gather(input_tensor_flat, index_tensor)
-
-        return {"take_result": result.numpy()}
+        input_tensor = tf.constant(input_dict["input"])
+        index = tf.constant(input_dict["index"])
+        
+        input_flat = tf.reshape(input_tensor, [-1])
+        indices = tf.cast(index, tf.int32)
+        result = tf.gather(input_flat, indices)
+        
+        result = result.numpy()
+    
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
     input_data = {
-        "input": np.array([[4, 3, 5], [6, 7, 8]], dtype=np.float32),
+        "input": np.array([[4, 3, 5], [6, 7, 8]], dtype=np.int32),
         "index": np.array([0, 2, 5], dtype=np.int64)
     }
 
-    # Torch example
-    torch_result = torch_take_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
-    tf_result = tensorflow_take_version(input_data)
-    print("TensorFlow result:", tf_result)
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
     
-    # Assert and compare results
-    if np.array_equal(torch_result["take_result"], tf_result["take_result"]):
-        print("equal")
-    else:
-        print("not equal")
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+
+    print("Success")
 
 if __name__ == "__main__":
     main()

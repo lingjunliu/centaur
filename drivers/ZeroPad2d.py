@@ -1,70 +1,103 @@
 import numpy as np
 
-def torch_version_zero_pad_2d(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
-    padding = input["padding"]
-
-    # Apply ZeroPad2d
-    pad = torch.nn.ZeroPad2d(padding)
-    padded_tensor = pad(input_tensor)
+    padding = input_dict["padding"]
+    input_tensor = torch.tensor(input_dict["input"])
 
     if not cpu:
-        padded_tensor = padded_tensor.cpu()
+        input_tensor = input_tensor.cuda()
 
-    return padded_tensor.numpy()
+    layer = torch.nn.ZeroPad2d(padding)
 
-def tensorflow_version_zero_pad_2d(input, cpu=True):
+    if not cpu:
+        layer = layer.cuda()
+    
+    result = layer(input_tensor)
+
+    if not cpu:
+        result = result.cpu()
+    
+    return {"result": result.numpy()}
+
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
-    if cpu:
-        device_string = "/cpu:0"
-    else:
-        device_string = "/gpu:0"
+    padding = input_dict["padding"]
+    input_tensor = tf.constant(input_dict["input"])
 
-    with tf.device(device_string):
-        # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
-        padding = input["padding"]
-        
-        # Convert padding to the form needed by tf.pad
-        if isinstance(padding, int):
-            tf_padding = [[0, 0], [0, 0], [padding, padding], [padding, padding]]
+    if isinstance(padding, int):
+        padding_config = [[0, 0], [0, 0], [padding, padding], [padding, padding]]
+    elif isinstance(padding, tuple):
+        if len(padding) == 2:
+            padding_config = [[0, 0], [0, 0], [padding[0], padding[0]], [padding[1], padding[1]]]
         elif len(padding) == 4:
-            tf_padding = [[0, 0], [0, 0], [padding[2], padding[3]], [padding[0], padding[1]]]
+            padding_config = [[0, 0], [0, 0], [padding[0], padding[1]], [padding[2], padding[3]]]
         else:
-            raise ValueError("Padding must be an int or a 4-tuple")
+            raise ValueError("Padding must be an int, a tuple of length 2, or a tuple of length 4.")
+    else:
+        raise TypeError("Padding must be an int or tuple.")
 
-        # Apply padding
-        padded_tensor = tf.pad(input_tensor, tf_padding, mode='CONSTANT', constant_values=0.0)
-
-        return padded_tensor.numpy()
+    result = tf.pad(input_tensor, padding_config, "CONSTANT")
+    
+    return {"result": result.numpy()}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "input": np.random.randn(1, 1, 3, 3).astype(np.float32),
-        "padding": (2, 2, 2, 2),  # Padding values
+        "input": np.array([[[
+                [1, 2, 3],
+                [4, 5, 6]
+            ]]], dtype=np.float32),
+        "padding": (1, 2)
     }
 
-    # Torch example
-    torch_result = torch_version_zero_pad_2d(input_data)
-    print("Torch result:", torch_result)
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
 
-    # TensorFlow example
-    tf_result = tensorflow_version_zero_pad_2d(input_data)
-    print("TensorFlow result:", tf_result)
+    torch_result_np = torch_result["result"]
+    tf_result_np = tf_result["result"]
 
-    # Compare results
-    if np.array_equal(torch_result, tf_result):
-        print("equal")
-    else:
-        print("not equal")
+    assert np.allclose(torch_result_np, tf_result_np, atol=A_TOL), "Results do not match"
+
+    input_data = {
+        "input": np.array([[[
+                [1, 2, 3],
+                [4, 5, 6]
+            ]]], dtype=np.float32),
+        "padding": 1
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+
+    torch_result_np = torch_result["result"]
+    tf_result_np = tf_result["result"]
+
+    assert np.allclose(torch_result_np, tf_result_np, atol=A_TOL), "Results do not match"
+
+    input_data = {
+        "input": np.array([[[
+                [1, 2, 3],
+                [4, 5, 6]
+            ]]], dtype=np.float32),
+        "padding": (1, 2, 1, 2)
+    }
+
+    torch_result = torch_version(input_data)
+    tf_result = tensorflow_version(input_data)
+
+    torch_result_np = torch_result["result"]
+    tf_result_np = tf_result["result"]
+
+    assert np.allclose(torch_result_np, tf_result_np, atol=A_TOL), "Results do not match"
+
+    print("Success")
 
 if __name__ == "__main__":
     main()

@@ -1,26 +1,27 @@
 import numpy as np
 
-def torch_version(input, cpu=True):
+def torch_version(input_dict, cpu=True):
     import torch
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    # Unpack input dictionary
-    input_tensor = torch.tensor(input["input"])
-    threshold = input["threshold"]
-    value = input["value"]
-    inplace = input["inplace"]
-
-    # Apply the threshold
-    threshold_layer = torch.nn.Threshold(threshold, value, inplace=inplace)
-    output_tensor = threshold_layer(input_tensor)
-
+    input_tensor = torch.tensor(input_dict["input"])
+    threshold = input_dict["threshold"]
+    value = input_dict.get("value", 0.0)
+    inplace = input_dict.get("inplace", False)
+    
     if not cpu:
-        output_tensor = output_tensor.cpu()
+        input_tensor = input_tensor.cuda()
 
-    return {"threshold_output": output_tensor.numpy()}
+    threshold_module = torch.nn.Threshold(threshold, value, inplace=inplace)
+    result = threshold_module(input_tensor)
+    
+    if not cpu:
+        result = result.cpu()
+    
+    return {"result": result.numpy()}
 
-def tensorflow_version(input, cpu=True):
+def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
 
@@ -28,40 +29,35 @@ def tensorflow_version(input, cpu=True):
         device_string = "/cpu:0"
     else:
         device_string = "/gpu:0"
-
+    
     with tf.device(device_string):
-        # Unpack input dictionary
-        input_tensor = tf.constant(input["input"])
-        threshold = input["threshold"]
-        value = input["value"]
+        input_tensor = tf.constant(input_dict["input"], dtype=tf.float32)
+        threshold = input_dict["threshold"]
+        value = input_dict.get("value", 0.0)
+        inplace = input_dict.get("inplace", False)
 
-        # Apply the threshold
-        output_tensor = tf.where(input_tensor > threshold, input_tensor, value)
+        mask = tf.cast(input_tensor > threshold, dtype=tf.float32)
+        result = input_tensor * mask + value * (1 - mask)
         
-        return {"threshold_output": output_tensor.numpy()}
+        result = result.numpy()
+    
+    return {"result": result}
 
 def main():
-    # Example input
+    A_TOL = 0.01
+
     input_data = {
-        "input": np.array([[0.5, 0.05, 0.8], [0.2, 0.6, 0.09]], dtype=np.float32),
-        "threshold": 0.1,
-        "value": 20,
-        "inplace": False
+        "input": np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32),
+        "threshold": 0.0,
+        "value": 2.0
     }
 
-    # Torch example
     torch_result = torch_version(input_data)
-    print("Torch result:", torch_result)
-
-    # TensorFlow example
     tf_result = tensorflow_version(input_data)
-    print("TensorFlow result:", tf_result)
 
-    # Comparison
-    if np.allclose(torch_result["threshold_output"], tf_result["threshold_output"]):
-        print("equal")
-    else:
-        print("not equal")
+    assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
+
+    print("Success")
 
 if __name__ == "__main__":
     main()
