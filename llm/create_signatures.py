@@ -23,12 +23,12 @@ def get_prompt(api):
         prompt = prompt.replace("{api}", api)
     return prefix + prompt
 
-def save_sig(api, sig):
+def save_sig(sig):
     filepath = f"{CUR_DIR}/signatures.py"
     with open(filepath, 'a') as f:
         f.write(sig + '\n')
 
-def generate_inputs(api, max_attempts=5):
+def generate_signatures(api):
     model = "gemini-2.0-flash"
     gemini_key = os.getenv("gemini_key")
 
@@ -39,7 +39,11 @@ def generate_inputs(api, max_attempts=5):
     response = chat.send_message(get_prompt(api))
     sig = extract_code_from_response(response.text)
     print(f"Got response from Gemini API:\n{sig}")
-    save_sig(api, sig)
+    if sig is not None:
+        save_sig(sig)
+    else:
+        with open("needs_sig.txt", "a") as f:
+            f.write(f"{api}\n")
 
 def main():
     with open(f"{CUR_DIR}/api_full.txt", "r") as f:
@@ -62,7 +66,7 @@ def main():
     
     for torch_api in apis:
         print(f"\nGenerating valid signatures for {torch_api}...\n")
-        generate_inputs(torch_api)
+        generate_signatures(torch_api)
         
 if __name__ == "__main__":
     main()
