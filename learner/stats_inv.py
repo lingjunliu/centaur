@@ -1,5 +1,5 @@
 import os
-from utils.misc import get_dir_in_root, get_tmp_dir
+from utils.misc import get_dir_in_root, get_tmp_dir, read_file_in_root
 
 def main():
     rule_to_api = {}
@@ -34,6 +34,12 @@ def main():
     with open(api_to_rule_csv, "w") as f:
         for api, rules in api_to_rule.items():
             f.write(f"{api},{len(rules)}\n")
+            
+    supported_apis = read_file_in_root("apis.txt")
+    print("The following apis do not have invariants yet:")
+    for api in supported_apis:
+        if api.strip() not in api_to_rule:
+            print(api.strip())
 
 if __name__ == "__main__":
     main()

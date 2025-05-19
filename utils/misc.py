@@ -33,6 +33,15 @@ def get_dir_in_root(subdir):
     
     return dir
 
+def read_file_in_root(filename):
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    filepath = os.path.join(cur_dir, f"../{filename}")
+    if os.path.exists(filepath):
+        with open(filepath, "r") as f:
+            return f.readlines()
+    
+    return []
+
 def get_tmp_dir():
     return get_dir_in_root(".tmp")
 
