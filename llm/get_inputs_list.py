@@ -14,7 +14,7 @@ def main():
                 apis_successful = apis_successful - set(tokens[0])
     
     for api in apis_successful:
-        dict_str += f"    '{api}': {api}_inputs,\n"
+        dict_str += f"    '{api}': valid_inputs.{api}_inputs(),\n"
 
     needs_inputs = []
     with open(f"{CUR_DIR}/needs_inputs.txt", "r") as f:
