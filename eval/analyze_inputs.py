@@ -11,18 +11,27 @@ def main():
     PRINT_INDICES = True
     THRESHOLD = 80  # Thrshold for similarity for exception messages
     
-    if len(sys.argv) < 3:
-        print("Usage: python analyze_inputs.py <api> <low> <index> <detailed, default: False>")
+    if len(sys.argv) < 4:
+        print("Usage: python analyze_inputs.py <api> <lib> <low> <index> <detailed, default: False>")
         return
     
     api = sys.argv[1]
-    low = int(sys.argv[2]) if len(sys.argv) > 2 else 0
-    ind = int(sys.argv[3]) if len(sys.argv) > 3 else None
-    detailed = True if len(sys.argv) > 4 and sys.argv[4] == "detailed" else False # for detailed output with all indices with max_diff
+    lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
+    low = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    ind = int(sys.argv[4]) if len(sys.argv) > 4 else None
+    detailed = True if len(sys.argv) > 5 and sys.argv[5] == "detailed" else False # for detailed output with all indices with max_diff
+    
+    # alias
+    if lib == "pytorch":
+        lib = "torch"
+    elif lib == "tensorflow":
+        lib = "tf"
+    
     # Directory containing the input files
     tmp = get_tmp_dir()
     input_file = os.path.join(tmp, "fuzz_inputs", f"{api}_inputs.pkl")
-    oracle_file = os.path.join(tmp, "oracle_results", f"{api}.pkl")
+    oracle_folder = f"oracle_results_{lib}"
+    oracle_file = os.path.join(tmp, oracle_folder, f"{api}.pkl")
     
     if not os.path.exists(input_file):
         print(f"Input file {input_file} does not exist.")
@@ -50,7 +59,7 @@ def main():
                 print(f"{ind}: {'\n'.join([str(x) for x in oracle_result])}")
             
         print("\nRe running the oracle...")
-        driver = get_driver(api)
+        driver = get_driver(api, lib=lib)
         signature = get_signatures()[api]
         rng = np.random.default_rng(seed)
         input_dict = concretize_input(abs_input, signature, rng)

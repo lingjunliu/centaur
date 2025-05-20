@@ -6,6 +6,7 @@ from copy import deepcopy
 import numpy as np
 import sys, os
 import time
+from datetime import datetime
 
 def max_diff_with_indices(a, b, rtol=1e-7, atol=0.01, equal_nan=True, equal_inf=True):
     """
@@ -218,9 +219,9 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08, detailed=
     
     return ("nominal", "")
 
-def save_state_oracle(api, result_summary, oracle_results):
+def save_state_oracle(api, result_summary, oracle_results, lib="torch"):
     # Save the results
-    results_dir = create_subdir(get_tmp_dir(), "oracle_results")
+    results_dir = create_subdir(get_tmp_dir(), f"oracle_results_{lib}")
     save_to_pkl(os.path.join(results_dir, f"{api}.pkl"), oracle_results)
     csv_file = os.path.join(results_dir, f"{api}.csv")
     with open(csv_file, "w") as f:
@@ -229,7 +230,7 @@ def save_state_oracle(api, result_summary, oracle_results):
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python oracle.py <api_name>")
+        print("Usage: python oracle.py <api_name> <lib | defaul: torch> <low | optional> <high | optional>")
         return
     
     A_TOL = 1e-02   # Tolerance: 0.01 (from FreeFuzz)
@@ -238,13 +239,25 @@ def main():
     saving_interval = 100 # inputs
     
     api = sys.argv[1]
+    lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
     # Optional: low and high values for input generation [low, high)
-    low = int(sys.argv[2]) if len(sys.argv) > 2 else -1
-    high = int(sys.argv[3]) if len(sys.argv) > 3 else -1
+    low = int(sys.argv[3]) if len(sys.argv) > 3 else -1
+    high = int(sys.argv[4]) if len(sys.argv) > 4 else -1
+
+    # alias
+    if lib == "pytorch":
+        lib = "torch"
+    elif lib == "tensorflow":
+        lib = "tf"
+    
+    print(f"Running oracle for {api} with {lib} library")
+    print('Started fuzzing at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    print()
+
     # Directory containing the input files
     tmp = get_tmp_dir()
     input_dir = os.path.join(tmp, "fuzz_inputs")
-    input_file = os.path.join(input_dir, f"{api}_inputs.pkl")
+    input_file = os.path.join(input_dir, f"{api}_{lib}_inputs.pkl")
     
     if not os.path.exists(input_file):
         print(f"Input file {input_file} does not exist.")
@@ -252,7 +265,7 @@ def main():
     
     generated_inputs = read_pkl(input_file)
     signature = get_signatures()[api]
-    driver = get_driver(api)
+    driver = get_driver(api, lib=lib)
     
     if low != -1 and high != -1:
         print(f"Filtering generated inputs from {low} to {high}")
@@ -292,7 +305,7 @@ def main():
     for best_distance, abs_input, seed in generated_inputs:
         i += 1
         if i % saving_interval == 0:
-            save_state_oracle(api, result_summary, oracle_results)
+            save_state_oracle(api, result_summary, oracle_results, lib=lib)
 
         rng = np.random.default_rng(seed)
         # Get the input dictionary
@@ -319,7 +332,7 @@ def main():
     for result, count in result_summary.items():
         print(f"{result}: {count}")
         
-    save_state_oracle(api, result_summary, oracle_results)
+    save_state_oracle(api, result_summary, oracle_results, lib=lib)
 
 if __name__ == "__main__":
     main()
