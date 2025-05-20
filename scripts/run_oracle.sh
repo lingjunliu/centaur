@@ -12,9 +12,6 @@ if [ "$lib" == "pytorch" ]; then
     lib="torch"
 elif [ "$lib" == "tensorflow" ]; then
     lib="tf"
-else
-    echo "Invalid library. Use 'torch' or 'tf'."
-    exit 1
 fi
 
 # Creating virtual environment
