@@ -2,7 +2,7 @@ from generator.rules import check_rules
 from generator.rules_z3 import check_rules_z3
 from .inputs import get_inputs
 from utils.api_utils import get_driver, get_signatures
-from utils.misc import get_dir_in_root
+from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir
 from generator.input_generators import abstract_print, get_abstract_input
 from eval.oracle import oracle_crash
 import os, sys
@@ -54,9 +54,12 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         print(f"Inferring invariants for {api} with {len(list_of_inputs)} inputs\n")
         api_driver = get_driver(api, lib=lib)
         api_signature = get_signatures()[api]
+        valid = 0
+        invalid = 0
         for idx, input_dict in enumerate(list_of_inputs):
             status, exception_message = oracle_crash(api_driver, input_dict, cpu=True)
             if status == "invalid":
+                invalid += 1
                 if print_details:
                     print(f"Input {idx} is invalid")
             else:
@@ -68,8 +71,13 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     ruleset = check_rules_z3(input_dict) if z3 else check_rules(input_dict)
                     initialized = True
                 else:
-                    ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))             
-        
+                    ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
+                valid += 1
+        # Save some stats
+        infer_dir = create_subdir(get_tmp_dir(), "infer_results")
+        csv_file = os.path.join(infer_dir, f"{api}.csv")
+        with open(csv_file, "w") as f:
+            f.write(f"{api},{valid},{invalid},{round(valid*100/(valid+invalid), 4) if (valid+invalid) > 0 else 0}\n")
         save_invariants(api, ruleset, invariant_file)
     
     if print_details:

@@ -779,12 +779,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
         
         # Save abstract inputs to file
         save_to_new_pkl(input_file, abstract_inputs)
-            
-        # Save some stats
-        infer_dir = create_subdir(get_tmp_dir(), "infer_results")
-        csv_file = os.path.join(infer_dir, f"{api}_{time_budget}.csv")
-        with open(csv_file, "w") as f:
-            f.write(f"{api},{valid},{invalid},{round(valid*100/(valid+invalid), 4) if (valid+invalid) > 0 else 0}\n")    
+    
     return list_of_inputs
 
 def main():
