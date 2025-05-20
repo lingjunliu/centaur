@@ -15,23 +15,26 @@ from utils.misc import create_subdir, get_tmp_dir
 from generator.input_generators import abstract_print
 from eval.oracle import oracle_crash
 
-def save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir):
+def save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
     total = valid + invalid + crash + excp
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
     # Save outputs
-    csv_file = os.path.join(tmp_results, f"{api}.csv")
+    csv_file = os.path.join(tmp_results, f"{api}_{lib}.csv")
     with open(csv_file, "w") as f:
         # api, valid, invalid, crash, excp, total, valid_prcnt
         f.write(f"{api},{valid},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
     # Save generated inputs
-    with open(os.path.join(input_dir, f"{api}_inputs.pkl"), "wb") as f_in:
+    with open(os.path.join(input_dir, f"{api}_{lib}_inputs.pkl"), "wb") as f_in:
         pickle.dump(generated_inputs, f_in)
 
-def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_max=0, print_details=False, model_regen=False, seed=42):
+def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_max=0, print_details=False, model_regen=False, seed=42, lib="torch"):
     # Initialize directories
     input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
     tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
-    driver = get_driver(api)
+    
+    # Library specific
+    driver = get_driver(api, lib=lib)
+    corpus_dir = "corpus_tf" if lib == "tf" else "corpus"
 
     print(f"Optimizing for {api} with {model_gen_duration} (max_model) and {fuzz_duration} (fuzz) second budgets")
     execution_time = 0
@@ -49,10 +52,10 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         return
 
     z3_args = create_z3_args(definition["signature"])
-    if os.path.exists(f"corpus/{api}") and not model_regen:
+    if os.path.exists(f"{corpus_dir}/{api}") and not model_regen:
         models = []
-        for model_file in sorted(os.listdir(f"corpus/{api}")):
-            model_path = os.path.join(f"corpus/{api}", model_file)
+        for model_file in sorted(os.listdir(f"{corpus_dir}/{api}")):
+            model_path = os.path.join(f"{corpus_dir}/{api}", model_file)
             with open(model_path, "r") as f:
                 model_data = json.load(f)
             model = load_model(model_data, z3_args)
@@ -60,10 +63,10 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         print(f"Loaded {len(models)} existing models for {api}")
     else:
         models = gen_models(definition, driver, z3_args, model_gen_duration, max_model, seed=seed, print_details=print_details)
-        os.makedirs(f"corpus", exist_ok=True)
-        os.makedirs(f"corpus/{api}", exist_ok=True)
+        os.makedirs(corpus_dir, exist_ok=True)
+        os.makedirs(f"{corpus_dir}/{api}", exist_ok=True)
         for idx, model in enumerate(models):
-            path = os.path.join(f"corpus/{api}", f"model-{idx}.json")
+            path = os.path.join(f"{corpus_dir}/{api}", f"model-{idx}.json")
             save_model(model, path)
         print(f"Generated {len(models)} models for {api}")
     
@@ -72,7 +75,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     start = time.time()
     while len(models) > 0 and elapsed < fuzz_duration:
         if elapsed - last_saved > save_interval:
-            save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir)
+            save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
             last_saved = elapsed
 
         seed += 1
@@ -120,7 +123,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
     print(f"Models: {len(models)} | Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
     
-    save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir)
+    save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
         
 
 if __name__ == "__main__":
@@ -128,7 +131,8 @@ if __name__ == "__main__":
     model_gen_duration = 60 # seconds
     fuzz_duration = 30 # seconds
     max_model = 100
+    lib = "torch"
     print_details = sys.argv[1].lower() == 'true' if len(sys.argv) > 1 else False
     
-    run_api_with_duration("add", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
-    run_api_with_duration("combinations", model_gen_duration, fuzz_duration, max_model, print_details=print_details)
+    run_api_with_duration("add", model_gen_duration, fuzz_duration, max_model, print_details=print_details, lib=lib)
+    run_api_with_duration("combinations", model_gen_duration, fuzz_duration, max_model, print_details=print_details, lib=lib)

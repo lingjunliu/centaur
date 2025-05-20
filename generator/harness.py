@@ -55,7 +55,7 @@ def main():
     #     ## Traceback for debugging
     #     traceback.print_exc()
     
-def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False):
+def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False, lib="torch"):
     driver = get_driver(api)
 
     print(f"Optimizing for {api} with a {duration} second budget")

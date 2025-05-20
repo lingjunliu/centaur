@@ -6,11 +6,11 @@ def get_driver(api, lib="torch"):
     api = importlib.import_module(f"drivers.{api}")
     functions = dir(api)
     for function_name in functions:
-        if lib.lower() == "torch":
+        if lib.lower() in ["torch", "pytorch"]:
             if function_name.startswith("torch_") or function_name.startswith("pytorch_") or function_name.startswith("pt_"):
                 lib_version = getattr(api, function_name)
                 break
-        elif lib.lower() == "tensorflow":    
+        elif lib.lower() in ["tf", "tensorflow"]:
             if function_name.startswith("tensorflow_") or function_name.startswith("tf_"):
                 lib_version = getattr(api, function_name)
                 break
