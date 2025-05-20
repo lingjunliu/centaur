@@ -9,44 +9,50 @@ import copy
 def lerp_inputs():
     list_of_inputs = []
 
-    # Example 1: Basic float tensors, weight as scalar
-    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    end1 = np.array([4.0, 5.0, 6.0], dtype=np.float32)
-    weight1 = 0.5
-    input_dict1 = {"input": torch.from_numpy(input1), "end": torch.from_numpy(end1), "weight": weight1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Test case 1: Basic float tensors with scalar weight
+    start = torch.arange(1., 5.)
+    end = torch.full_like(torch.arange(1., 5.), 10.)
+    weight = 0.5
+    input_dict = {"input": start.numpy(), "end": end.numpy(), "weight": weight}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Example 2: Int tensors, weight as tensor
-    input2 = np.array([1, 2, 3], dtype=np.int32)
-    end2 = np.array([4, 5, 6], dtype=np.int32)
-    weight2 = np.array([0.2, 0.5, 0.8], dtype=np.float32)
-    input_dict2 = {"input": torch.from_numpy(input2), "end": torch.from_numpy(end2), "weight": torch.from_numpy(weight2)}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Test case 2: Float tensors with tensor weight
+    start = torch.arange(1., 5.)
+    end = torch.full_like(torch.arange(1., 5.), 10.)
+    weight = torch.full_like(torch.arange(1., 5.), 0.5)
+    input_dict = {"input": start.numpy(), "end": end.numpy(), "weight": weight.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Example 3: 2D tensors, weight as scalar
-    input3 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    end3 = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    weight3 = 0.7
-    input_dict3 = {"input": torch.from_numpy(input3), "end": torch.from_numpy(end3), "weight": weight3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Test case 3: Int tensors with scalar weight
+    start = torch.arange(1, 5).float()
+    end = torch.full_like(torch.arange(1, 5).float(), 10.)
+    weight = 0.5
+    input_dict = {"input": start.numpy(), "end": end.numpy(), "weight": weight}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Example 4: 3D tensors, weight as tensor
-    input4 = np.random.rand(2, 3, 4).astype(np.float32)
-    end4 = np.random.rand(2, 3, 4).astype(np.float32)
-    weight4 = np.random.rand(2, 3, 4).astype(np.float32)
-    input_dict4 = {"input": torch.from_numpy(input4), "end": torch.from_numpy(end4), "weight": torch.from_numpy(weight4)}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Test case 4: Int tensors with tensor weight
+    start = torch.arange(1, 5).float()
+    end = torch.full_like(torch.arange(1, 5).float(), 10.)
+    weight = torch.full_like(torch.arange(1, 5, dtype=torch.float32), 0.5)
+    input_dict = {"input": start.numpy(), "end": end.numpy(), "weight": weight.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Example 5: Different data types, weight as scalar
-    input5 = np.array([1, 2, 3], dtype=np.int64)
-    end5 = np.array([4.0, 5.0, 6.0], dtype=np.float32)
-    weight5 = 0.3
-    input_dict5 = {"input": torch.from_numpy(input5), "end": torch.from_numpy(end5), "weight": weight5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Test case 5: Negative values and different weight
+    start = torch.arange(-2., 2.)
+    end = torch.full_like(torch.arange(-2., 2.), -5.)
+    weight = 0.75
+    input_dict = {"input": start.numpy(), "end": end.numpy(), "weight": weight}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = lerp_inputs()
+
+for i in range(len(generated_inputs)):
+    generated_inputs[i]["input"] = torch.from_numpy(generated_inputs[i]["input"])
+    generated_inputs[i]["end"] = torch.from_numpy(generated_inputs[i]["end"])
+    if type(generated_inputs[i]["weight"]) is not float:
+        generated_inputs[i]["weight"] = torch.from_numpy(generated_inputs[i]["weight"])
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash

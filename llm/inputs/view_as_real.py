@@ -1,0 +1,60 @@
+
+from utils.api_utils import get_driver
+from eval.oracle import oracle_crash
+
+import torch, copy
+import numpy as np
+
+def view_as_real_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 2D float tensor
+    input1 = torch.randn(3, 4).numpy()
+    input_dict1 = {"input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 3D float tensor
+    input2 = torch.randn(2, 3, 5).numpy()
+    input_dict2 = {"input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Complex 2D tensor
+    input3 = torch.randn(2, 2, dtype=torch.complex64).numpy()
+    input_dict3 = {"input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Complex 3D tensor
+    input4 = torch.randn(3, 1, 2, dtype=torch.complex128).numpy()
+    input_dict4 = {"input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5: Larger float tensor with different dimensions
+    input5 = torch.randn(4, 5, 2, 3).numpy()
+    input_dict5 = {"input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Float Tensor with size 1
+    input6 = torch.randn(1, 1, 1).numpy()
+    input_dict6 = {"input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Float Tensor with zeros
+    input7 = torch.zeros(2, 3).numpy()
+    input_dict7 = {"input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    return list_of_inputs
+
+generated_inputs = view_as_real_inputs()
+
+from utils.api_utils import get_driver
+from eval.oracle import oracle_crash
+
+def check_valid(api, list_of_inputs, lib="torch"):
+    api_driver = get_driver(api, lib=lib)
+    for idx, input_dict in enumerate(list_of_inputs):
+        api_driver(input_dict, cpu=True)
+    
+    print("Valid")
+
+check_valid('view_as_real', generated_inputs)

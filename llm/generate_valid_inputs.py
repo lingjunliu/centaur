@@ -13,6 +13,13 @@ def get_torch_api(api):
             if tokens[0] == api:
                 torch_api = tokens[1]
                 break
+    if torch_api is None:
+        with open(f"{CUR_DIR}/drivers_to_api.csv", "r") as f:
+            for line in f.readlines():
+                driver, cur_api = line.strip().split(',')
+                if driver == api:
+                    torch_api = cur_api
+                    break
     return torch_api
 
 def get_prompt(api):

@@ -2,43 +2,66 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def solve_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float tensors, left=True
-    A = np.array([[1.0, 2.0], [3.0, 5.0]], dtype=np.float32)
-    B = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    input_dict = {"A": A, "B": B, "left": True}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Float tensors, left=False
-    A = np.array([[1.0, 2.0], [3.0, 5.0]], dtype=np.float32)
-    B = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    # Case 1: Basic float tensors, A is square
+    A = np.random.rand(3, 3).astype(np.float32)
+    B = np.random.rand(3, 1).astype(np.float32)
     input_dict = {"A": A, "B": B, "left": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different shapes, left=True
-    A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 7.0], [7.0, 8.0, 9.0]], dtype=np.float32)
-    B = np.array([[10.0, 11.0, 12.0], [13.0, 14.0, 15.0], [16.0, 17.0, 18.0]], dtype=np.float32)
-    input_dict = {"A": A, "B": B, "left": True}
+    # Case 3: Double tensors, A is square
+    A = np.random.rand(4, 4).astype(np.float64)
+    B = np.random.rand(4, 3).astype(np.float64)
+    input_dict = {"A": A, "B": B, "left": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different shapes, left=False
-    A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 7.0], [7.0, 8.0, 9.0]], dtype=np.float32)
-    B = np.array([[10.0, 11.0, 12.0], [13.0, 14.0, 15.0], [16.0, 17.0, 18.0]], dtype=np.float32)
+    # Case 4: Complex tensors
+    A = (np.random.rand(2, 2) + 1j * np.random.rand(2, 2)).astype(np.complex64)
+    B = (np.random.rand(2, 1) + 1j * np.random.rand(2, 1)).astype(np.complex64)
     input_dict = {"A": A, "B": B, "left": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5: Negative values, left=True
-    A = np.array([[-1.0, 2.0], [3.0, -5.0]], dtype=np.float32)
-    B = np.array([[5.0, -6.0], [-7.0, 8.0]], dtype=np.float32)
+    # Case 5: Complex tensors, A is square
+    A = (np.random.rand(3, 3) + 1j * np.random.rand(3, 3)).astype(np.complex128)
+    B = (np.random.rand(3, 2) + 1j * np.random.rand(3, 2)).astype(np.complex128)
+    input_dict = {"A": A, "B": B, "left": False}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 6: Float tensors, A is batch of square matrix
+    A = np.random.rand(2, 3, 3).astype(np.float32)
+    B = np.random.rand(2, 3, 1).astype(np.float32)
+    input_dict = {"A": A, "B": B, "left": False}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 7: Float tensors, A is square, left=True
+    A = np.random.rand(3, 3).astype(np.float32)
+    B = np.random.rand(3, 1).astype(np.float32)
     input_dict = {"A": A, "B": B, "left": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Case 9: Float tensors, A is square
+    A = np.random.rand(3, 3).astype(np.float32)
+    B = np.random.rand(3, 3).astype(np.float32)
+    input_dict = {"A": A, "B": B, "left": False}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 10: Basic float tensors, A is square, left = True, correct dimensions
+    A = np.random.rand(3, 3).astype(np.float32)
+    B = np.random.rand(3, 3).astype(np.float32)
+    input_dict = {"A": A, "B": B, "left": True}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 11: Float tensors, A is batch of square matrix, left = True
+    A = np.random.rand(2, 3, 3).astype(np.float32)
+    B = np.random.rand(2, 3, 3).astype(np.float32)
+    input_dict = {"A": A, "B": B, "left": True}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = solve_inputs()

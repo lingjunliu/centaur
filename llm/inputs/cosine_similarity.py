@@ -2,54 +2,83 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def cosine_similarity_inputs():
     list_of_inputs = []
 
-    x1 = np.random.randn(3, 5).astype(np.float32)
-    x2 = np.random.randn(3, 5).astype(np.float32)
+    x1 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    x2 = np.array([[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]])
     dim = 1
     eps = 1e-8
-    input_dict = {"x1": x1, "x2": x2, "dim": dim, "eps": eps}
+
+    input_dict = {
+        "x1": x1,
+        "x2": x2,
+        "dim": dim,
+        "eps": eps
+    }
+
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x1 = np.array([[-1.0, 2.0, -3.0], [4.0, -5.0, 6.0]])
+    x2 = np.array([[7.0, -8.0, 9.0], [-10.0, 11.0, -12.0]])
+    dim = 1
+    eps = 1e-8
+
+    input_dict = {
+        "x1": x1,
+        "x2": x2,
+        "dim": dim,
+        "eps": eps
+    }
+
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    x1 = np.random.randn(10).astype(np.float64)
-    x2 = np.random.randn(10).astype(np.float64)
+    x1 = np.array([1.0, 2.0, 3.0])
+    x2 = np.array([4.0, 5.0, 6.0])
     dim = 0
-    eps = 1e-6
-    input_dict = {"x1": x1, "x2": x2, "dim": dim, "eps": eps}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    eps = 1e-8
 
-    x1 = np.random.randn(2, 3, 4).astype(np.float32)
-    x2 = np.random.randn(2, 3, 4).astype(np.float32)
+    input_dict = {
+        "x1": x1,
+        "x2": x2,
+        "dim": dim,
+        "eps": eps
+    }
+
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x1 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    x2 = np.array([[[9.0, 10.0], [11.0, 12.0]], [[13.0, 14.0], [15.0, 16.0]]])
     dim = 2
-    eps = 1e-12
-    input_dict = {"x1": x1, "x2": x2, "dim": dim, "eps": eps}
+    eps = 1e-8
+
+    input_dict = {
+        "x1": x1,
+        "x2": x2,
+        "dim": dim,
+        "eps": eps
+    }
+
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    x1 = np.random.randn(4, 4).astype(np.float32)
-    x2 = np.random.randn(4, 4).astype(np.float32)
-    dim = 0
-    eps = 1e-8
-    input_dict = {"x1": x1, "x2": x2, "dim": dim, "eps": eps}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x1 = np.random.randn(5, 2).astype(np.float32)
-    x2 = np.random.randn(5, 2).astype(np.float32)
+    x1 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float64)
+    x2 = np.array([[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]], dtype=np.float64)
     dim = 1
     eps = 1e-8
-    input_dict = {"x1": x1, "x2": x2, "dim": dim, "eps": eps}
+
+    input_dict = {
+        "x1": x1,
+        "x2": x2,
+        "dim": dim,
+        "eps": eps
+    }
+
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    x1 = np.array([[1,2,3],[4,5,6]], dtype=np.float32)
-    x2 = np.array([[7,8,9],[10,11,12]], dtype=np.float32)
-    dim = 1
-    eps = 1e-8
-    input_dict = {"x1": x1, "x2": x2, "dim": dim, "eps": eps}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = cosine_similarity_inputs()

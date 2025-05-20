@@ -9,31 +9,42 @@ import copy
 def cross_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float tensors
-    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    other1 = np.array([4.0, 5.0, 6.0], dtype=np.float32)
-    input_dict1 = {"input": input1, "other": other1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Example 1: Basic 2D tensors with dim=1
+    a = torch.randn(4, 3).numpy()
+    b = torch.randn(4, 3).numpy()
+    input_dict = {"input": a, "other": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Integer tensors
-    input2 = np.array([1, 0, 0], dtype=np.int64)
-    other2 = np.array([0, 1, 0], dtype=np.int64)
-    input_dict2 = {"input": input2, "other": other2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Example 2: Different tensor sizes with dim=0
+    a = torch.randn(3, 4).numpy()
+    b = torch.randn(3, 4).numpy()
+    input_dict = {"input": a, "other": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative values
-    input3 = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
-    other3 = np.array([4.0, -5.0, 6.0], dtype=np.float32)
-    input_dict3 = {"input": input3, "other": other3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-
-    # Input 4: Tensors with zeros
-    input7 = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    other7 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict7 = {"input": input7, "other": other7}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    # Example 3: 3D tensors with explicit dim=2
+    a = torch.randn(2, 3, 3).numpy()
+    b = torch.randn(2, 3, 3).numpy()
+    input_dict = {"input": a, "other": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Example 4: Integer tensors with default dim
+    a = torch.randint(-5, 5, (4, 3)).numpy()
+    b = torch.randint(-5, 5, (4, 3)).numpy()
+    input_dict = {"input": a, "other": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Example 5: Float tensors with negative values
+    a = (torch.randn(4, 3) * -1).numpy()
+    b = (torch.randn(4, 3) * -1).numpy()
+    input_dict = {"input": a, "other": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Example 6: 1D tensors, should cause error as dimension must be > 1 and size = 3 at dim=-1/0
+    a = torch.randn(3).numpy()
+    b = torch.randn(3).numpy()
+    input_dict = {"input": a, "other": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = cross_inputs()
