@@ -62,6 +62,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                 invalid += 1
                 if print_details:
                     print(f"Input {idx} is invalid")
+                    print(f"Exception: {exception_message}")
             else:
                 if print_details:
                     print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
