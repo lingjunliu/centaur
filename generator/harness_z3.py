@@ -99,12 +99,12 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
             excp += 1
             # Always log crashes
             print(f"\n[{status}]\n{exception_message}")
-            print(f"\nAbstract input:\n{abstract_print(abstract_input, definition['signature'])}")
+            print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
         elif status.endswith("_crash"):
             crash += 1
             # Always log crashes
             print(f"\n[{status}]\n{exception_message}")
-            print(f"\nAbstract input:\n{abstract_print(abstract_input, definition['signature'])}")
+            print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
         else:
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
