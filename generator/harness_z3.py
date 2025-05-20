@@ -34,7 +34,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     
     # Library specific
     driver = get_driver(api, lib=lib)
-    corpus_dir = "corpus_tf" if lib == "tf" else "corpus"
+    corpus_dir = "corpus_tf" if lib == "tf" else "corpus_torch"
 
     print(f"Optimizing for {api} with {model_gen_duration} (max_model) and {fuzz_duration} (fuzz) second budgets")
     execution_time = 0
