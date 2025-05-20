@@ -1,7 +1,7 @@
 import sys
 from .harness import run_api_with_duration as fuzz_with_optimizer
 from .harness_z3 import run_api_with_duration as fuzz_with_z3
-import datetime
+from datetime import datetime
 
 def main():
     if len(sys.argv) < 3:
