@@ -7,7 +7,7 @@
 # each execution
 
 if [ -z "${max_parallel}" ]; then
-    max_parallel=349    # Fix number of slurm jobs to run at a time if not set
+    max_parallel=690    # Fix number of slurm jobs to run at a time if not set
 fi
 
 if [ -z "${slurm_time}" ]; then
