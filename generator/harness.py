@@ -68,7 +68,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False,
     excp = 0
     seed = 200
     generated_inputs = []
-    definition = get_definition(api)
+    definition = get_definition(api, lib=lib)
     if len(definition["ruleset"]) == 0:
         print(f"No invariants learned for {api}")
         return

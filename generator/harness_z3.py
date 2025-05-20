@@ -46,7 +46,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     crash = 0
     excp = 0
     generated_inputs = []
-    definition = get_definition(api, z3=True)
+    definition = get_definition(api, z3=True, lib=lib)
     if len(definition["ruleset"]) == 0:
         print(f"No invariants learned for {api}")
         return
