@@ -744,7 +744,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
     
     # Generate valid inputs through random generation otherwise
     api_signature = get_signatures()[api]
-    input_file = os.path.join(get_dir_in_root("valid_inputs"), f"{api}.pkl")
+    input_file = os.path.join(get_dir_in_root(f"valid_inputs_{lib}"), f"{api}.pkl")
     
     list_of_inputs = []
     

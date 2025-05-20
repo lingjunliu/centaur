@@ -43,7 +43,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         If regen is passed as True, forces inferring invariants
         again even if they are saved.
     '''
-    invariant_file = os.path.join(get_dir_in_root("invariants"), api)
+    invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), api)
     # Unlese regeneration is forced, return existing ruleset
     if os.path.isfile(invariant_file) and not regen:
         ruleset = read_invariants(invariant_file)
@@ -74,7 +74,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
                 valid += 1
         # Save some stats
-        infer_dir = create_subdir(get_tmp_dir(), "infer_results")
+        infer_dir = create_subdir(get_tmp_dir(), f"infer_results_{lib}")
         csv_file = os.path.join(infer_dir, f"{api}.csv")
         with open(csv_file, "w") as f:
             f.write(f"{api},{valid},{invalid},{round(valid*100/(valid+invalid), 4) if (valid+invalid) > 0 else 0}\n")
@@ -90,8 +90,9 @@ def main():
     api = sys.argv[1] if len(sys.argv) > 1 else "scatter"
     budget = int(sys.argv[2]) if len(sys.argv) > 2 else 30  # seconds
     regen = int(sys.argv[3]) == 1 if len(sys.argv) > 3 else False
+    lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
         
-    ruleset = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True)
+    ruleset = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib)
     
 if __name__ == "__main__":
     main()
