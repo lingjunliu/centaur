@@ -664,7 +664,6 @@ inputs_per_api = {
     'FractionalMaxPool3d': valid_inputs.fractionalmaxpool3d_inputs(),
     'strict_fusion': valid_inputs.strict_fusion_inputs(),
     'stft': valid_inputs.torch_stft_inputs(),
-    'read_vitals': valid_inputs.read_vitals_inputs(),
     'acos_': valid_inputs.acos_inputs(),
     'spherical_bessel_j0': valid_inputs.spherical_bessel_j0_inputs(),
     'bilinear': valid_inputs.bilinear_inputs(),

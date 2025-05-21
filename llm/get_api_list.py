@@ -85,7 +85,7 @@ def update_apis():
     backend_apis = set()
 
     for api in torch_apis:
-        if api.endswith("torch.tensor"):
+        if api.endswith("torch.tensor") or api.endswith("torch.read_vitals"):
             continue
         if pattern.match(api):
             backend_apis.add(api)

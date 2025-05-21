@@ -15440,52 +15440,6 @@ def manual_seed_inputs():
     input_dict6 = {"seed": seed6}
     list_of_inputs.append(copy.deepcopy(input_dict6))
     return list_of_inputs
-def read_vitals_inputs():
-    list_of_inputs = []
-    input1 = {
-        "path": "/tmp/test_file_1.txt",
-        "devices": ["cpu"],
-        "timeout": 10.0,
-        "retry_count": 3
-    }
-    list_of_inputs.append(copy.deepcopy(input1))
-    input2 = {
-        "path": "/tmp/test_file_2.log",
-        "devices": ["cuda:0", "cpu"],
-        "timeout": 5.5,
-        "retry_count": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input2))
-    input3 = {
-        "path": "/home/user/data.dat",
-        "devices": [],
-        "timeout": 0.1,
-        "retry_count": 5
-    }
-    list_of_inputs.append(copy.deepcopy(input3))
-    
-    input4 = {
-        "path": "C:\\data\\important.vtl",
-        "devices": ["cpu"],
-        "timeout": 100.0,
-        "retry_count": 0
-    }
-    list_of_inputs.append(copy.deepcopy(input4))
-    input5 = {
-        "path": "./relative/path/data.txt",
-        "devices": ["cuda:1"],
-        "timeout": 2.718,
-        "retry_count": 2
-    }
-    list_of_inputs.append(copy.deepcopy(input5))
-    input6 = {
-        "path": "https://example.com/data.vitals",
-        "devices": ["cpu", "cuda:0", "cuda:1"],
-        "timeout": 1.618,
-        "retry_count": 4
-    }
-    list_of_inputs.append(copy.deepcopy(input6))
-    return list_of_inputs
 def swapdims_inputs():
     list_of_inputs = []
     # Input 1: 3D float tensor

@@ -14413,12 +14413,6 @@ signatures["torch.randperm"] = {
 signatures["torch.ravel"] = {
     "input": "tensor"
 }
-signatures["torch.read_vitals"] = {
-    "path": "string",
-    "devices": "list", #Could be a list of strings, unsure
-    "timeout": "float",
-    "retry_count": "integer"
-}
 signatures["torch.real"] = {
     "input": "tensor"
 }
