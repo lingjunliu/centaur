@@ -255,7 +255,8 @@ def retrieve_state_oracle(api, result_summary, oracle_results, lib="torch"):
         with open(os.path.join(results_dir, f"{api}.csv"), "r") as f:
             lines = f.readlines()
             if len(lines) > 0:
-                result_summary = {k: int(v) for k, v in zip(list(result_summary.keys()), lines[0].strip().split(",")[1:])}
+                result_summary = {k: int(v) for k, v in zip(list(result_summary.keys())[:-1], lines[0].strip().split(",")[1:-1])}
+                result_summary["max_diff"] = float(lines[0].strip().split(",")[-1])
     except Exception as e:
         logger.error(f"Reading oracle results file {api}.csv resulted in error: {str(e)}")
     
