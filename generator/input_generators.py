@@ -124,7 +124,6 @@ def concretize_input(abstract, signature, rng=np.random.default_rng(42)):
         else:   # if abstract is a list
             ll = [abstract[i], abstract[i+1], abstract[i+2]]
             i += 3
-        print(ll)
         concrete[arg] = gen_concrete_input(domain, ll, rng)
         
     return concrete
