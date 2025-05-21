@@ -28,3 +28,8 @@ def run_with_timeout(func, timeout, *args, **kwargs):
         return process.exitcode, None, os.strerror(process.exitcode)
     else:        
         return return_dict["return_code"], return_dict["outputs"], return_dict["exception_message"]
+
+def run(func, *args, **kwargs):
+    return_dict = {}
+    worker(func, return_dict, *args, **kwargs)
+    return return_dict["return_code"], return_dict["outputs"], return_dict["exception_message"]

@@ -1,12 +1,13 @@
-from utils.proc import run_with_timeout
+from utils.proc import run
 from utils.api_utils import get_driver, get_signatures
 from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_pkl, get_input_size
 from generator.input_generators import abstract_print, concretize_input
-from copy import deepcopy
 import numpy as np
 import sys, os
 import time
-from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 def max_diff_with_indices(a, b, rtol=1e-7, atol=0.01, equal_nan=True, equal_inf=True):
     """
@@ -120,7 +121,7 @@ def consistent(output1, output2, rtol=1e-07, atol=1e-08):
     elem2_val = None
 
     if type(output1) != type(output2):
-        print(f"Expected two dicts, got {type(output1)} and {type(output2)}")
+        logger.error(f"Expected two dicts, got {type(output1)} and {type(output2)}")
         return False, None, indices, elem1_val, elem2_val
 
     for name in output1.keys():
@@ -150,7 +151,7 @@ def oracle_crash(driver, input_dict, timeout=10, cpu=True):
             - ("cpu_excp", exception_message) if the API throws an exception on CPU.
             - ("gpu_excp", exception_message) if the API throws an exception on GPU.
     """
-    return_code, output, exception_message = run_with_timeout(driver, timeout, input_dict, cpu=cpu)
+    return_code, output, exception_message = run(driver, input_dict, cpu=cpu)
     
     if return_code < 0: # signal raised
         return ("cpu_crash", exception_message) if cpu else ("gpu_crash", exception_message)
@@ -161,7 +162,7 @@ def oracle_crash(driver, input_dict, timeout=10, cpu=True):
     else:
         return ("nominal", "")
 
-def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08, detailed=True):
+def oracle_diff(driver, input_dict, atol=1e-08, detailed=True):
     """
     Run the API with a timeout on cpu and gpu, and compare the outputs.
     
@@ -187,22 +188,26 @@ def oracle_diff(driver, signature, input_dict, timeout=10, atol=1e-08, detailed=
         - If the execution is nominal, returns ("nominal", "").
     """
     # cpu
-    return_code_cpu, output_cpu, exception_message_cpu = run_with_timeout(driver, timeout, deepcopy(input_dict), cpu=True)
+    return_code_cpu, output_cpu, exception_message_cpu = run(driver, input_dict, cpu=True)
     
     # check if the CPU execution crashed
-    if return_code_cpu < 0: # signal raised
+    if return_code_cpu < 0: # signal raised, should not reach here since we are not using run_with_timeout
         return ("cpu_crash", exception_message_cpu)
     elif check_crash(return_code_cpu, exception_message_cpu):
         return ("cpu_excp", exception_message_cpu)
     
+    print("CPU execution finished")
+
     # gpu
-    return_code_gpu, output_gpu, exception_message_gpu = run_with_timeout(driver, timeout, deepcopy(input_dict), cpu=False)
+    return_code_gpu, output_gpu, exception_message_gpu = run(driver, input_dict, cpu=False)
     
     # check if the GPU execution crashed
-    if return_code_gpu < 0: # signal raised
+    if return_code_gpu < 0: # signal raised, should not reach here since we are not using run_with_timeout
         return ("gpu_crash", exception_message_gpu)
     elif check_crash(return_code_gpu, exception_message_gpu):
         return ("gpu_excp", exception_message_gpu)
+    
+    print("GPU execution finished")
     
     # check if the outputs are the same
     if return_code_cpu != return_code_gpu:
@@ -228,6 +233,22 @@ def save_state_oracle(api, result_summary, oracle_results, lib="torch"):
         # api,nominal,invalid,cpu_crash,gpu_crash,cpu_excp,gpu_excp,cpu_only_excp,gpu_only_excp,inconsistent,max_diff
         f.write(f"{api}," + ",".join([str(x) for x in result_summary.values()]) + "\n")
 
+def retrieve_state_oracle(api, result_summary, oracle_results, lib="torch"):
+    results_dir = create_subdir(get_tmp_dir(), f"oracle_results_{lib}")
+    try:
+        oracle_results += read_pkl(os.path.join(results_dir, f"{api}.pkl"))
+    except Exception as e:
+        logger.error(f"Reading oracle results file {api}.pkl resulted in error: {str(e)}")
+    try:
+        with open(os.path.join(results_dir, f"{api}.csv"), "r") as f:
+            lines = f.readlines()
+            if len(lines) > 1:
+                result_summary = {k: int(v) for k, v in zip(list(result_summary.keys()), lines[0].strip().split(",")[1:])}
+    except Exception as e:
+        logger.error(f"Reading oracle results file {api}.csv resulted in error: {str(e)}")
+    
+    return oracle_results, result_summary
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python oracle.py <api_name> <lib | defaul: torch> <low | optional> <high | optional>")
@@ -236,13 +257,23 @@ def main():
     A_TOL = 1e-02   # Tolerance: 0.01 (from FreeFuzz)
     TIMEOUT = 10    # seconds
     print_details = True
-    saving_interval = 100 # inputs
     
     api = sys.argv[1]
     lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
     # Optional: low and high values for input generation [low, high)
     low = int(sys.argv[3]) if len(sys.argv) > 3 else -1
     high = int(sys.argv[4]) if len(sys.argv) > 4 else -1
+    resume = True if len(sys.argv) > 5 and sys.argv[5] == "resume" else False # for resuming from the last state
+
+    results_dir = create_subdir(get_tmp_dir(), f"oracle_results_{lib}")
+    mode = "a" if resume else "w"
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,                                     # Minimum log level
+        format='%(asctime)s - %(levelname)s - %(message)s',     # Log format
+        filename=f'{results_dir}/{api}.out',                    # Log file path
+        filemode=mode                                           # Append/Write mode
+    )
 
     # alias
     if lib == "pytorch":
@@ -250,9 +281,7 @@ def main():
     elif lib == "tensorflow":
         lib = "tf"
     
-    print(f"Running oracle for {api} with {lib} library")
-    print('Started fuzzing at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    print()
+    logger.info(f"Running oracle for {api} with {lib} library")
 
     # Directory containing the input files
     tmp = get_tmp_dir()
@@ -260,29 +289,12 @@ def main():
     input_file = os.path.join(input_dir, f"{api}_{lib}_inputs.pkl")
     
     if not os.path.exists(input_file):
-        print(f"Input file {input_file} does not exist.")
+        logger.info(f"Input file {input_file} does not exist.")
         return
     
     generated_inputs = read_pkl(input_file)
     signature = get_signatures()[api]
     driver = get_driver(api, lib=lib)
-    
-    if low != -1 and high != -1:
-        print(f"Filtering generated inputs from {low} to {high}")
-        # Filter the generated inputs based on the low and high values
-        if low < len(generated_inputs):
-            generated_inputs = generated_inputs[low:min(high, len(generated_inputs))]
-        else:
-            print(f"Low value {low} is out of range for the generated inputs.")
-            return
-    elif low != -1:
-        print(f"Filtering generated inputs from {low} to the end")
-        # Filter the generated inputs based on the low value
-        if low < len(generated_inputs):
-            generated_inputs = generated_inputs[low:]
-        else:
-            print(f"Low value {low} is out of range for the generated inputs.")
-            return
     
     oracle_results = []
     result_summary = {
@@ -297,15 +309,34 @@ def main():
         "inconsistent": 0,
         "max_diff": 0
     }
+
+    if resume:
+        oracle_results, result_summary = retrieve_state_oracle(api, result_summary, oracle_results, lib=lib)
+        low = sum(list(result_summary.values())[:-1])   # excluding max_diff
+    
+    if low != -1 and high != -1:
+        logger.info(f"Filtering generated inputs from {low} to {high}")
+        # Filter the generated inputs based on the low and high values
+        if low < len(generated_inputs):
+            generated_inputs = generated_inputs[low:min(high, len(generated_inputs))]
+        else:
+            logger.error(f"Low value {low} is out of range for the generated inputs.")
+            return
+    elif low != -1:
+        logger.info(f"Filtering generated inputs from {low} to the end")
+        # Filter the generated inputs based on the low value
+        if low < len(generated_inputs):
+            generated_inputs = generated_inputs[low:]
+        else:
+            logger.error(f"Low value {low} is out of range for the generated inputs.")
+            return
     
     total = len(generated_inputs)
     total_time = 0
     i = 0
     
     for best_distance, abs_input, seed in generated_inputs:
-        i += 1
-        if i % saving_interval == 0:
-            save_state_oracle(api, result_summary, oracle_results, lib=lib)
+        save_state_oracle(api, result_summary, oracle_results, lib=lib)
 
         rng = np.random.default_rng(seed)
         # Get the input dictionary
@@ -313,24 +344,26 @@ def main():
         
         # Run the oracle
         start_time = time.time()
-        result_tuple = oracle_diff(driver, signature, input_dict, timeout=TIMEOUT, atol=A_TOL)
+        result_tuple = oracle_diff(driver, input_dict, atol=A_TOL)
         duration = round(time.time() - start_time, 2)
         total_time += duration
         oracle_results.append(result_tuple)
         result_summary[result_tuple[0]] += 1
         if result_tuple[0] == "inconsistent":
             result_summary["max_diff"] = max(result_summary["max_diff"], result_tuple[1])
-        print(f"Checked {i}/{total} inputs | Took {duration} s | Avg: {round(total_time/i, 2)} s | Size: {round(get_input_size(abs_input, signature), 2)} MB           ", end="\r", flush=True)
         
-        if result_tuple[0] not in ["nominal", "invalid"] and print_details:
-            print(' | '.join([str(x) for x in result_tuple]))
-            print('Seed:', seed)
-            print(abstract_print(abs_input, signature))
+        logger.info(f"Checked {i+1}/{total} inputs | Took {duration}s | Avg: {round(total_time/i, 2)}s")
 
+        if result_tuple[0] not in ["nominal", "invalid"] and print_details:
+            logger.info(' | '.join([str(x) for x in result_tuple]))
+            logger.info(f'Index: {i} | Seed: {seed}')
+            logger.info(abstract_print(abs_input, signature))
+
+        i += 1
     # Print the summary
-    print(f"Oracle results for {api}:")
+    logger.info(f"Oracle results for {api}:")
     for result, count in result_summary.items():
-        print(f"{result}: {count}")
+        logger.info(f"{result}: {count}")
         
     save_state_oracle(api, result_summary, oracle_results, lib=lib)
 

@@ -28,7 +28,7 @@ i=0
 # Running oracle
 for api in "${apis[@]}"; do
     ((i++))
-    python -m eval.oracle ${api} ${lib} ${low} ${high}
+    python -m eval.crash_monitor ${api} ${lib} ${low} ${high}
     echo "Finished ${i}/${n_apis}"
 done
 

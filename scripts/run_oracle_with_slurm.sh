@@ -16,7 +16,7 @@ job_name=orcl
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 export slurm_time="8:00:00"
 
-bash $slurm_sh "python -m eval.oracle" ${job_name} ${lib} ${low} ${high}
+bash $slurm_sh "python -m eval.crash_monitor" ${job_name} ${lib} ${low} ${high}
 
 # Aggregating and saving results
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..

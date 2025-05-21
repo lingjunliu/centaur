@@ -11,7 +11,7 @@ high=${2:--1}
 job_name=orcl
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base_ncsa.sh # base script for slurm
 
-bash $slurm_sh "python -m eval.oracle" ${job_name} ${low} ${high}
+bash $slurm_sh "python -m eval.crash_monitor" ${job_name} ${low} ${high}
 
 # Aggregating and saving results
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
