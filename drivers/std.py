@@ -19,7 +19,7 @@ def torch_version_std(input, cpu=True):
     if not cpu:
         std = std.cpu()
 
-    return std.numpy()
+    return {'result': std.numpy()}
 
 def tensorflow_version_std(input, cpu=True):
     import tensorflow as tf
@@ -47,7 +47,7 @@ def tensorflow_version_std(input, cpu=True):
             correction_factor = tf.sqrt(tf.math.maximum(0.0, N / (N - 1.0)))
             std *= correction_factor
 
-        return std.numpy()
+        return {'result': std.numpy()}
 
 def main():
 
@@ -62,7 +62,7 @@ def main():
     tf_result_1 = tensorflow_version_std(input_data_1)
     print("Torch result 1:", torch_result_1)
     print("TensorFlow result 1:", tf_result_1)
-    print("equal" if np.allclose(torch_result_1, tf_result_1, rtol=1e-5) else "not equal")
+    print("equal" if np.allclose(torch_result_1['result'], tf_result_1['result'], rtol=1e-5) else "not equal")
 
     input_data_2 = {
         "input": np.random.rand(4, 4).astype(np.float32),
@@ -75,7 +75,7 @@ def main():
     tf_result_2 = tensorflow_version_std(input_data_2)
     print("Torch result 2:", torch_result_2)
     print("TensorFlow result 2:", tf_result_2)
-    print("equal" if np.allclose(torch_result_2, tf_result_2, rtol=1e-5) else "not equal")
+    print("equal" if np.allclose(torch_result_2['result'], tf_result_2['result'], rtol=1e-5) else "not equal")
 
 if __name__ == "__main__":
     main()

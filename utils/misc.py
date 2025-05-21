@@ -81,6 +81,25 @@ def has_time(start, duration):
             return False
     return True
 
+def is_inhomogeneous(lst):
+    if not isinstance(lst, list):
+        return False  # Base case: non-list elements are homogeneous
+    
+    lengths = [len(sublist) if isinstance(sublist, list) else -1 for sublist in lst]
+    
+    # Check if all sublists have the same length
+    if len(set(lengths)) > 1:
+        return True
+    
+    # Recursively check sublists
+    return any(is_inhomogeneous(sublist) for sublist in lst if isinstance(sublist, list))
+
+def flatten(lst):
+    """Recursively flatten a nested list."""
+    if isinstance(lst, list):
+        return [item for sublist in lst for item in flatten(sublist)]
+    return [lst]
+
 def merge_csvs(csv_1, csv_2, csv_3):
     with open(csv_1, "r") as f_1:
         lines_1 = f_1.readlines()

@@ -15,7 +15,7 @@ def torch_square(input, cpu=True):
         squared_tensor = squared_tensor.cpu()
 
     # Return as numpy array for consistent comparison
-    return squared_tensor.numpy()
+    return {'result':squared_tensor.numpy()}
 
 def tensorflow_square(input, cpu=True):
     import tensorflow as tf
@@ -33,7 +33,7 @@ def tensorflow_square(input, cpu=True):
         # Apply to TensorFlow equivalent: tf.square
         squared_tensor = tf.square(input_tensor)
 
-        return squared_tensor.numpy()
+        return {'result':squared_tensor.numpy()}
 
 def main():
     # Example input
@@ -50,7 +50,7 @@ def main():
     print("TensorFlow result:", tf_result)
 
     # Assert results are equal and print appropriate message
-    if np.allclose(torch_result, tf_result, atol=1e-6):
+    if np.allclose(torch_result['result'], tf_result['result'], atol=1e-6):
         print("equal")
     else:
         print("not equal")
