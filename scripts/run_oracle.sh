@@ -3,6 +3,9 @@
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 export PYTHONPATH=$PROJECT_DIR:$PYTHONPATH
 export PYTHONWARNINGS="ignore"
+# Tensorflow envrironment variables
+export TF_FORCE_GPU_ALLOW_GROWTH=true
+export TF_CPP_MIN_LOG_LEVEL=2
 
 lib=${1:-"torch"}
 low=${21:--1}

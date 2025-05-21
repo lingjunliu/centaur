@@ -13,6 +13,9 @@ export PYTHONPATH=$PROJECT_DIR:$PYTHONPATH
 python -m venv venv
 source venv/bin/activate
 pip install -r $PROJECT_DIR/requirements.txt
+# Tensorflow envrironment variables
+export TF_FORCE_GPU_ALLOW_GROWTH=true
+export TF_CPP_MIN_LOG_LEVEL=2
 
 z3_flag=false
 print_arg=false

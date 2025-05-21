@@ -24,6 +24,9 @@ job_name=$2         # slurm job name
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 export PYTHONPATH=$PROJECT_DIR:$PYTHONPATH
 export PYTHONWARNINGS="ignore"
+# Tensorflow envrironment variables
+export TF_FORCE_GPU_ALLOW_GROWTH=true
+export TF_CPP_MIN_LOG_LEVEL=2
 
 source ${PROJECT_DIR}/scripts/utils.sh
 
