@@ -29,7 +29,7 @@ def main():
     
     # Directory containing the input files
     tmp = get_tmp_dir()
-    input_file = os.path.join(tmp, "fuzz_inputs", f"{api}_inputs.pkl")
+    input_file = os.path.join(tmp, "fuzz_inputs", f"{api}_{lib}_inputs.pkl")
     oracle_folder = f"oracle_results_{lib}"
     oracle_file = os.path.join(tmp, oracle_folder, f"{api}.pkl")
     

@@ -120,8 +120,11 @@ def compare_two(elem1, elem2, rtol=1e-07, atol=0.01):
     
     try:
         matched = np.allclose(elem1, elem2, rtol=rtol, atol=atol, equal_nan=True)
-    except: # most likely not numeric
-        matched = elem1 == elem2
+    except: 
+        if (isinstance(elem1, list) and isinstance(elem2, list)) or (isinstance(elem1, tuple) and isinstance(elem2, tuple)):
+                matched = all([np.allclose(a, b, rtol=rtol, atol=atol, equal_nan=True) for a, b in zip(elem1, elem2)])
+        else: # most likely not numeric
+            matched = elem1 == elem2
 
     return matched, max_diff, indices, elem1_val, elem2_val
 
