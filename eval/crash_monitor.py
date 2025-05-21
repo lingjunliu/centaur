@@ -14,11 +14,11 @@ def main():
     elif lib == "tensorflow":
         lib = "tf"
 
-    cmd = ["python3", "-m", "eval.oracle", api, lib, low, high]
+    cmd = ["python3", "-m", "eval.oracle", api, lib, str(low), str(high)]
     try:
         output = subprocess.run(cmd, capture_output=True)
     except Exception as e:
-        print(f"ERROR: Faced exception: {str(e)}\nExiting...")
+        print(f"ERROR while running the oracle. Faced exception: {str(e)} \nExiting...")
         return
 
     out, err = output.stdout.decode(), output.stderr.decode()
@@ -65,11 +65,11 @@ def main():
 
         print(f"Input {low-1} raised signal: {exception_message}\nRestarting the oracle...")
 
-        cmd = ["python3", "-m", "eval.oracle", api, lib, low, high, "resume"]
+        cmd = ["python3", "-m", "eval.oracle", api, lib, str(low), str(high), "resume"]
         try:
             output = subprocess.run(cmd, capture_output=True)
         except Exception as e:
-            print(f"ERROR: Faced exception: {str(e)}\nExiting...")
+            print(f"ERROR while re-running the oracle. Faced exception: {str(e)} \nExiting...")
             return
 
 

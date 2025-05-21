@@ -17,7 +17,7 @@ def torch_version(input_data, cpu=True):
         reshaped_tensor = reshaped_tensor.cpu()
 
     # Return as numpy array
-    return reshaped_tensor.numpy()
+    return {'result': reshaped_tensor.numpy()}
 
 def tensorflow_version(input_data, cpu=True):
     import tensorflow as tf
@@ -37,7 +37,7 @@ def tensorflow_version(input_data, cpu=True):
         reshaped_tensor = tf.reshape(input_tensor, shape)
 
         # Return as numpy array
-        return reshaped_tensor.numpy()
+        return {'result': reshaped_tensor.numpy()}
 
 def main():
     # Example input
@@ -55,7 +55,7 @@ def main():
     print("TensorFlow result:", tf_result)
 
     # Compare results
-    if np.array_equal(torch_result, tf_result):
+    if np.array_equal(torch_result['result'], tf_result['result']):
         print("equal")
     else:
         print("not equal")

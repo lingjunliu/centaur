@@ -79,12 +79,29 @@ def gen_concrete_input(domain, ll, rng=np.random.default_rng(42)):
     '''
         Generate a concrete input given a list of lists. If the domain is tensor,
         the provided rng will be used to generate the concrete input.
-    '''
-    if domain != "dtype" and ll[2][0] > ll[2][1]:
-        ll[2] = [ll[2][1], ll[2][0]]
+    '''    
     if domain in ["integer", "float", "string", "boolean", "dtype"]: # primitives and dtype
         return list_of_available_dtypes[ll[1][0]](ll[0][0])
-    elif domain == "tensor": # tensors, uses the rng passed to the function
+    elif domain == "tensor" or domain == "tensor_list": # tensors, uses the rng passed to the function        
+        # Check high > low
+        if ll[2][0] > ll[2][1]: # swap them
+            ll[2] = [ll[2][1], ll[2][0]]
+        
+        # Check if range is finite and valid
+        highest_limit = np.finfo(np.float64).max
+        if list_of_available_dtypes[ll[1][0]] != bool and not np.isfinite(ll[2][1] - ll[2][0]):
+            # clip extremes
+            if ll[2][0] < -highest_limit:
+                ll[2][0] = -highest_limit
+            if ll[2][1] > highest_limit:
+                ll[2][1] = highest_limit
+            if not np.isfinite(ll[2][1] - ll[2][0]):
+                # Still not finite, so we need to adjust the range
+                if -1*ll[2][0] > ll[2][1]:  # low is extreme, preserve that
+                    ll[2][1] = ll[2][0] + highest_limit
+                else:   # high is extreme, preserve that
+                    ll[2][0] = ll[2][1] - highest_limit
+        
         return rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0]).astype(list_of_available_dtypes[ll[1][0]])
     elif domain == "tuple":
         return tuple([list_of_available_dtypes[ll[1][0]](x) for x in ll[0]])

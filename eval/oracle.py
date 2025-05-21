@@ -90,22 +90,27 @@ def compare_two(elem1, elem2, rtol=1e-07, atol=0.01):
     elem1_val = None
     elem2_val = None
     if type(elem1) != type(elem2):
-        return False, None, indices, elem1_val, elem2_val
+        return False, None, ["Different Type"], elem1_val, elem2_val
     
     if isinstance(elem1, list):
         elem1 = np.array(elem1).flatten()
         elem2 = np.array(elem2).flatten()
     
-    if elem1.size > 0 and elem2.size > 0:
-        max_diff, indices, elem1_val, elem2_val = max_diff_with_indices(elem1, elem2, rtol=rtol, atol=atol, equal_nan=True, equal_inf=True)
-    elif elem1.size == 0 and elem2.size == 0:
-        max_diff = 0.0
-    else:
-        max_diff = None
-        
     if isinstance(elem1, np.ndarray):
         if elem1.size != elem2.size:
-            return False, max_diff, indices, elem1_val, elem2_val
+            return False, float('inf'), ["Different Length"], elem1_val, elem2_val
+        elif elem1.size > 0 and elem2.size > 0:
+            max_diff, indices, elem1_val, elem2_val = max_diff_with_indices(elem1, elem2, rtol=rtol, atol=atol, equal_nan=True, equal_inf=True)
+        else:
+            max_diff = 0
+            indices = ["Empty outputs"]
+    else:
+        try:
+            max_diff = np.abs(elem1 - elem2)
+            indices = ["Primitives"]
+        except:
+            max_diff = 0
+            indices = ["Could not compute max diff"]
     
     try:
         matched = np.allclose(elem1, elem2, rtol=rtol, atol=atol, equal_nan=True)
@@ -350,9 +355,9 @@ def main():
         oracle_results.append(result_tuple)
         result_summary[result_tuple[0]] += 1
         if result_tuple[0] == "inconsistent":
-            result_summary["max_diff"] = max(result_summary["max_diff"], result_tuple[1])
+            result_summary["max_diff"] = max(result_summary["max_diff"], result_tuple[1]) if result_tuple[1] is not None else result_summary["max_diff"]
         
-        logger.info(f"Checked {i+1}/{total} inputs | Took {duration}s | Avg: {round(total_time/i, 2)}s")
+        logger.info(f"Checked {i+1}/{total} inputs | Took {duration}s | Avg: {round(total_time/(i+1), 2)}s")
 
         if result_tuple[0] not in ["nominal", "invalid"] and print_details:
             logger.info(' | '.join([str(x) for x in result_tuple]))
