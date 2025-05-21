@@ -1,5 +1,6 @@
 import sys, subprocess, signal
 from eval.oracle import save_state_oracle, retrieve_state_oracle
+from utils.misc import create_subdir, get_tmp_dir
 
 def main():
     api = sys.argv[1]
@@ -25,9 +26,12 @@ def main():
 
     if output.returncode > 0:
         print(f"Process terminated with error code: {output.returncode}")
-        print(f"Error message: {err}\bExiting...")
+        print(f"Error message: {err}\nExiting...")
         return
     
+    results_dir = create_subdir(get_tmp_dir(), f"oracle_results_{lib}")
+    logfile = f'{results_dir}/{api}.out'
+
     while output.returncode < 0:
         oracle_results = []
         result_summary = {
@@ -47,11 +51,13 @@ def main():
         # Determine where the crash occurred
 
         crash_category = None
-        for line in out.splitlines():
-            if line.strip() == "CPU execution finished":
-                crash_category = "cpu_crash"
-            elif line.strip() == "GPU execution finished":
-                crash_category = "gpu_crash"
+        with open(logfile, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                if "CPU execution started" in line.strip():
+                    crash_category = "cpu_crash"
+                elif "GPU execution started" in line.strip():
+                    crash_category = "gpu_crash"
         
         # Updating result
         if crash_category:
@@ -59,6 +65,7 @@ def main():
         
         low = sum(list(result_summary.values())[:-1])   # excluding max_diff
         oracle_results.append((crash_category, exception_message))
+        print(f"{crash_category} | {exception_message}")
 
         # Save the state
         save_state_oracle(api, result_summary, oracle_results, lib=lib)

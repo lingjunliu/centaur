@@ -1,6 +1,6 @@
 from utils.proc import run
 from utils.api_utils import get_driver, get_signatures
-from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_pkl, get_input_size
+from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_pkl, is_inhomogeneous, flatten
 from generator.input_generators import abstract_print, concretize_input
 import numpy as np
 import sys, os
@@ -93,8 +93,14 @@ def compare_two(elem1, elem2, rtol=1e-07, atol=0.01):
         return False, None, ["Different Type"], elem1_val, elem2_val
     
     if isinstance(elem1, list):
-        elem1 = np.array(elem1).flatten()
-        elem2 = np.array(elem2).flatten()
+        if is_inhomogeneous(elem1):
+            elem1 = np.array(elem1).flatten()
+        else:
+            elem1 = flatten(elem1)
+        if is_inhomogeneous(elem2):
+            elem2 = np.array(elem2).flatten()
+        else:
+            elem2 = flatten(elem2)
     
     if isinstance(elem1, np.ndarray):
         if elem1.size != elem2.size:
@@ -193,6 +199,7 @@ def oracle_diff(driver, input_dict, atol=1e-08, detailed=True):
         - If the execution is nominal, returns ("nominal", "").
     """
     # cpu
+    logger.info("CPU execution started")
     return_code_cpu, output_cpu, exception_message_cpu = run(driver, input_dict, cpu=True)
     
     # check if the CPU execution crashed
@@ -200,10 +207,9 @@ def oracle_diff(driver, input_dict, atol=1e-08, detailed=True):
         return ("cpu_crash", exception_message_cpu)
     elif check_crash(return_code_cpu, exception_message_cpu):
         return ("cpu_excp", exception_message_cpu)
-    
-    print("CPU execution finished")
 
     # gpu
+    logger.info("GPU execution started")
     return_code_gpu, output_gpu, exception_message_gpu = run(driver, input_dict, cpu=False)
     
     # check if the GPU execution crashed
@@ -211,8 +217,6 @@ def oracle_diff(driver, input_dict, atol=1e-08, detailed=True):
         return ("gpu_crash", exception_message_gpu)
     elif check_crash(return_code_gpu, exception_message_gpu):
         return ("gpu_excp", exception_message_gpu)
-    
-    print("GPU execution finished")
     
     # check if the outputs are the same
     if return_code_cpu != return_code_gpu:
@@ -247,7 +251,7 @@ def retrieve_state_oracle(api, result_summary, oracle_results, lib="torch"):
     try:
         with open(os.path.join(results_dir, f"{api}.csv"), "r") as f:
             lines = f.readlines()
-            if len(lines) > 1:
+            if len(lines) > 0:
                 result_summary = {k: int(v) for k, v in zip(list(result_summary.keys()), lines[0].strip().split(",")[1:])}
     except Exception as e:
         logger.error(f"Reading oracle results file {api}.csv resulted in error: {str(e)}")
