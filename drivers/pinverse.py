@@ -7,9 +7,10 @@ def torch_version(input, cpu=True):
 
     # Convert input to tensor
     input_tensor = torch.tensor(input["input"])
+    rcond = input.get("rcond", 1e-15)
 
     # Compute the pseudoinverse using PyTorch
-    pinverse_tensor = torch.pinverse(input_tensor, rcond=1e-15)
+    pinverse_tensor = torch.pinverse(input_tensor, rcond=rcond)
 
     if not cpu:
         pinverse_tensor = pinverse_tensor.cpu()
@@ -25,9 +26,10 @@ def tensorflow_version(input, cpu=True):
     with tf.device(device_string):
         # Convert input to tensor
         input_tensor = tf.constant(input["input"])
+        rcond = input.get("rcond", 1e-15)
 
         # Compute the pseudoinverse using TensorFlow
-        pinverse_tensor = tf.linalg.pinv(input_tensor, rcond=1e-15)
+        pinverse_tensor = tf.linalg.pinv(input_tensor, rcond=rcond)
 
         return {"pinverse": pinverse_tensor.numpy()}
 

@@ -63,10 +63,10 @@ def main():
         signature = get_signatures()[api]
         rng = np.random.default_rng(seed)
         input_dict = concretize_input(abs_input, signature, rng)
+        print(f"\nAbstract input (seed {seed}):\n{abstract_print(abs_input, signature)}")
         diff_oracle_result = oracle_diff(driver, input_dict, atol=A_TOL, detailed=detailed)
         
-        print(f"\nOracle result: {diff_oracle_result}")
-        print(f"\nAbstract input (seed {seed}): {abstract_print(abs_input, signature)}")
+        print(f"\nOracle result: {diff_oracle_result}")        
     else:
         err_count = {}
         groups = {}
