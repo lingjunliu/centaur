@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export max_parallel=24   # Fix number of slurm jobs to 16
+export max_parallel=16   # Fix number of slurm jobs to 16
 
 lib=${1:-"torch"}
 low=${21:--1}
