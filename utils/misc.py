@@ -5,6 +5,54 @@ import pickle
 import time
 from utils.defaults import list_of_available_dtypes
 
+CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def map_torch_to_driver():
+    torch_to_driver = {}
+    driver_to_torch = {}
+    csv_file = os.path.join(CUR_DIR, "../llm/drivers_to_api.csv")
+    with open(csv_file, "r") as f:
+        for line in f.readlines():
+            driver, torch_api = line.strip().split(",")
+            if driver == "Driver":  # Skip the header
+                continue
+            driver_to_torch[driver] = torch_api
+            torch_to_driver[torch_api] = driver
+    
+    supported = os.path.join(CUR_DIR, "../llm/supported.csv")
+    with open(supported, "r") as f:
+        for line in f.readlines():
+            driver, torch_api, _, _, _ = line.strip().split(",")
+            if driver == "API":  # Skip the header
+                continue
+            if driver in driver_to_torch:
+                continue
+            if driver == "":
+                continue
+            driver_to_torch[driver] = torch_api
+            torch_to_driver[torch_api] = driver
+
+    return torch_to_driver, driver_to_torch
+
+def generate_executible_snippet_from_str(code, library="", print_exception=False):
+    to_ret = ""
+    if library > "":
+        to_ret = f"import {library}\n"
+    
+    to_ret += "try:\n"
+    if code > "":
+        for line in code.splitlines():
+            to_ret += f"\t{line}\n"
+    else:
+        to_ret += "\tpass\n"
+    
+    if print_exception:
+        to_ret += f"except Exception as e:\n\tprint(str(e.__class__.__name__), str(e))\n"
+    else:
+        to_ret += f"except:\n\tpass\n"
+    
+    return to_ret
+
 def get_tensor_size(ll):
     sz = np.dtype(list_of_available_dtypes[ll[1][0]]).itemsize
     for dim in ll[0]:
@@ -121,3 +169,9 @@ def merge_csvs(csv_1, csv_2, csv_3):
 if __name__ == "__main__":
     if len(sys.argv) > 3:
         merge_csvs(sys.argv[1], sys.argv[2], sys.argv[3])
+    else:
+        torch_to_driver, driver_to_torch = map_torch_to_driver()
+        with open(os.path.join(CUR_DIR, "../apis.txt"), "r") as f:
+            apis = [line.strip() for line in f.readlines()]
+        for driver in apis:
+            print(driver_to_torch[driver])
