@@ -1,9 +1,9 @@
 import importlib, os, json
 
 # get the driver code for corresponding api using the name of the api
-def get_driver(api, lib="torch"):
+def get_driver(api, lib="torch", module="drivers"):
     # driver
-    api = importlib.import_module(f"drivers.{api}")
+    api = importlib.import_module(f"{module}.{api}")
     functions = dir(api)
     for function_name in functions:
         if lib.lower() in ["torch", "pytorch"]:
