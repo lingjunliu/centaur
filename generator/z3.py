@@ -103,7 +103,7 @@ def instantiate_args(model, signature, z3_args, seed=42):
     for param_name, z3_var in z3_args.items():
         param_type = signature[param_name]
 
-        if param_type == "tensor":
+        if param_type == "tensor" or param_type == "tensor_list":
             ndim = model.eval(z3_var['ndim'], model_completion=True).as_long()
             shape = [model.eval(Select(z3_var['shape'], i), model_completion=True).as_long() for i in range(ndim)]
             dtype = model.eval(z3_var['dtype'], model_completion=True).as_long()

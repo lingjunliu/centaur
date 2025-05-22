@@ -43,7 +43,6 @@ apisFile=${root_dir}/src/input_apis
 declare -a apis
 apis=(`cat "$apisFile"`)
 
-suffix=centurion_fixed_500
 n_procs=200
 time_interval=300
 
@@ -138,8 +137,3 @@ if [ ${COMPUTE_COV} -eq 1 ]; then
 fi
 
 echo "Results are saved in ${result_file}"
-
-merged_csv=outputs/GreyFox_vs_Titanfuzz.csv
-python ${root_dir}/src/merge_results.py ${result_file} ${root_dir}/src/outputs ${suffix} ${merged_csv} Titanfuzz
-
-echo "Merge results are saved in ${merged_csv}"
