@@ -42,6 +42,7 @@ apis=(`cat "$apisFile"`)
 n_procs=192
 time_interval=10
 
+# Clearing old results
 if [ ${APPLY_MONKE} -eq 1 ]; then
     rm -r $out_dir > /dev/null 2>&1
 elif [ ${RUN_MOD} -eq 1 ]; then
@@ -67,8 +68,8 @@ if [ ${APPLY_MONKE} -eq 1 ]; then
 
     for input_file in input_files_*; do
         [ -e $input_file ] || continue # ignoring the pattern itself
-        log_file=${logs}/${input_file}.log
-        err_file=${logs}/${input_file}.error
+        log_file=${logs}/monke_${input_file}.log
+        err_file=${logs}/monke_${input_file}.error
 
         sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "bash ${root_dir}/eval/titanfuzz/batch_monkey_patching.sh ${input_file} ${out_dir}" --output ${log_file} --error ${err_file}
     done
@@ -80,43 +81,37 @@ if [ ${APPLY_MONKE} -eq 1 ]; then
 fi
 
 if [ ${RUN_MOD} -eq 1 ]; then
-    cp batch_input_running.sh ${out_dir}/
-    cd ${out_dir}
-    mkdir -p ${logs}
-
     find . -name "*.py" -type f > list_of_input_files
     split -l ${inputs_per_proc} --numeric-suffixes list_of_input_files input_files_
 
     for input_file in input_files_*; do
         [ -e $input_file ] || continue # ignoring the pattern itself
-        log_file=${logs}/${input_file}.log
-        err_file=${logs}/${input_file}.error
+        log_file=${logs}/mod_${input_file}.log
+        err_file=${logs}/mod_${input_file}.error
 
-        sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "bash ${root_dir}/eval/titanfuzz/batch_input_running.sh ${input_file}" --output ${log_file} --error ${err_file} > /dev/null 2>&1
+        sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "bash ${root_dir}/eval/titanfuzz/batch_input_running.sh ${input_file}" --output ${log_file} --error ${err_file}
     done
 
     wait_for_slurm ${time_interval} ${sota} "run modified code"
     # clean up
     rm input_files_*
-
-    cd ${root_dir}/src/titanfuzz_utils
 fi
 
 # Activate conda environment for coverage computation
-source ~/.bashrc
+deactivate
 conda init > /dev/null 2>&1
 eval "$(conda shell.bash hook)" > /dev/null 2>&1
 
 if [ ${COMPUTE_COV} -eq 1 ]; then
-    conda activate ${conda_env_name}
+    conda activate torch310
     libname=torch
     export TORCH_BUILD_DIR=$(pip show "$libname" | grep "Location:" | awk '{print $2}')/${libname}
     echo "Using ${libname} from ${TORCH_BUILD_DIR}"
     echo $PWD
     for api in "${apis[@]}"
     do
-        log_file=${logs}/${api}.log
-        err_file=${logs}/${api}.error
+        log_file=${logs}/cov_${api}.log
+        err_file=${logs}/cov_${api}.error
         out_file=${outputs}/${api}.txt
 
         sbatch -c 1 --mem-per-cpu 1G -t 2:00:00 -J $sota --wrap "python -m eval.titanfuzz.compute_coverage_titanfuzz ${out_dir} ${api} ${out_file} ${MAX_INPUTS}" --output ${log_file} --error ${err_file}

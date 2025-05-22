@@ -6,7 +6,7 @@ out_dir=${2:-tmp}
 root_dir=$(git rev-parse --show-toplevel)
 export PYTHONPATH=${PYTHONPATH}:${root_dir}
 
-apisFile=${root_dir}/src/input_apis
+apisFile=${root_dir}/apis.txt
 
 declare -a inputs
 inputs=(`cat "$input_files"`)

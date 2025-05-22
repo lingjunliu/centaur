@@ -55,7 +55,7 @@ a_monke = monke()
 
 """
 
-def get_driver(api):
+def get_driver(api, driver):
     # valid,invalid,crash,exception,total,valid_prcnt
     return f"""
 import sys, os, pickle, torch
@@ -89,7 +89,7 @@ for file in os.listdir(dir):
                 invalid += 1
         total += 1
         with open(csv_file, 'w') as f:
-            f.write(str(valid) + ',' + str(invalid) + ',0,' + str(excp) + ',' + str(total) + ',' + str((total-invalid)*100/total if total > 0 else 0) + '\\n')
+            f.write('{driver},' + str(valid) + ',' + str(invalid) + ',0,' + str(excp) + ',' + str(total) + ',' + str((total-invalid)*100/total if total > 0 else 0) + '\\n')
 """
 
 def monkey_patch(code, apis):
@@ -115,7 +115,7 @@ def main():
     for api in apis:
         os.makedirs(f"{out_dir}/{api}", exist_ok=True)
         with open(f"{out_dir}/{api}/driver.py", "w") as f_driver:
-            f_driver.write(get_driver(api))
+            f_driver.write(get_driver(api, torch_to_driver[api]))
     
     with open(input_file, "r") as f:
         modified_input = monkey_patch(f.read(), apis)

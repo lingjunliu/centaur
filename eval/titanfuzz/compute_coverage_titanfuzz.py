@@ -26,6 +26,8 @@ def main():
     dir = sys.argv[1]
     api = sys.argv[2]
     out_file = sys.argv[3]
+
+    print(f"dir: {dir}, api: {api}, out_file: {out_file}")
     
     limit = 300
     if len(sys.argv) > 4:
