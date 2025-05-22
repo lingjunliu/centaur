@@ -6,6 +6,10 @@
 # and the rest of the arguments has to be fixed for
 # each execution
 
+if [ -z "${setup_env}" ]; then
+    setup_env=1    # Flag to setup the environment
+fi
+
 if [ -z "${max_parallel}" ]; then
     max_parallel=690    # Fix number of slurm jobs to run at a time if not set
 fi
@@ -28,10 +32,12 @@ export TF_CPP_MIN_LOG_LEVEL=2
 
 source ${PROJECT_DIR}/scripts/utils.sh
 
-# Creating virtual environment
-python -m venv venv
-source venv/bin/activate
-pip install -r $PROJECT_DIR/requirements.txt
+if [ $setup_env -eq 1 ]; then
+    # Creating virtual environment
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r $PROJECT_DIR/requirements.txt
+fi
 
 # Running random generation
 cd $PROJECT_DIR

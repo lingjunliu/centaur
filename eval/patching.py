@@ -1,14 +1,15 @@
 
 import re, sys, shutil, os, pickle
 import numpy as np
-from generator.input_generators import concretize_input
+from generator.input_generators import concretize_input, abstract_print
 from utils.misc import map_torch_to_driver, create_subdir, get_dir_in_root, get_tmp_dir, read_pkl
 from utils.api_utils import get_driver, get_signatures
+from .oracle import oracle_crash
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def replace_function_invocation(script, old_function_name, new_function_name):
-    pattern = rf"{old_function_name}\((.*?)\)"
+    pattern = rf"(?:^|\s|=){old_function_name}\((.*?)\)"
     matches = re.finditer(pattern, script)
     for match in matches:
         old_args = match.group(1)
@@ -60,29 +61,42 @@ with open(filename_1, 'rb') as f:
 with open(filename_2, 'rb') as f:
     input_list_2 = pickle.load(f)
 
+print(len(input_list_1), len(input_list_2))
+ran = 0
+
 if len(input_list_1) != len(input_list_2):
     for input_dict in input_list_1:
         try:
             output = {torch_api}(*input_dict['args'], **input_dict['kwargs'])
+            ran += 1
         except Exception as e:
             print(e.__class__.__name__ + ": " + str(e))
 else:
     for input_dict_1, input_dict_2 in zip(input_list_1, input_list_2):
         try:
             output = {torch_api}(*input_dict_1['args'], **input_dict_1['kwargs'])(*input_dict_2['args'], **input_dict_2['kwargs'])
+            ran += 1
         except Exception as e:
             print(e.__class__.__name__ + ": " + str(e))
+print(ran)
 """
 
 def main():
     driver = sys.argv[1]
+    n_inputs = int(sys.argv[2]) if len(sys.argv) > 2 else -1
 
+    print_details = True
     lib = "torch"
+    seed = 19
+    rng_choice = np.random.default_rng(seed)
 
     patch_dir = create_subdir(CUR_DIR, "patched_drivers")     # directory to save patched drivers and inputs
     src_driver = os.path.join(get_dir_in_root("drivers"), f"{driver}.py")  # path to source driver
     patched_driver = os.path.join(patch_dir, f"{driver}.py")        # path to save patched driver
     shutil.copy(src_driver, patched_driver)
+
+    validity_dir = create_subdir(get_tmp_dir(), "validity_results")  # directory to save validity results
+    valdity_csv = os.path.join(validity_dir, f"{driver}.csv")  # path to save validity results
 
     torch_to_driver, driver_to_torch = map_torch_to_driver()
     torch_api = driver_to_torch[driver]
@@ -103,7 +117,7 @@ def main():
         code = replace_function_invocation(code, torch_api, "wrapper_1")
 
         print(f"arg_class: {arg_class}")
-        
+
         if arg_class:
             code = replace_function_invocation(code, arg_class, "wrapper_2")
     
@@ -141,18 +155,45 @@ def main():
     driver_function = get_driver(driver, lib=lib, module="eval.patched_drivers")
     valid = 0
     invalid = 0
+    crash = 0
+    excp = 0
+    total = 0
+    valid_prcnt = 0
+
+    if n_inputs > 0:
+        # Choose n_inputs inputs randomly
+        indices = list(range(0, len(generated_inputs)))
+        rng_choice.shuffle(indices)
+        generated_inputs = [generated_inputs[i] for i in indices[:n_inputs]]
+
+    print(f"Running patched driver for {len(generated_inputs)} inputs.")
     for best_distance, abs_input, seed in generated_inputs:
         rng = np.random.default_rng(seed)
         # Get the input dictionary
         input_dict = concretize_input(abs_input, signature, rng)
-        # try:
-        output = driver_function(input_dict, cpu=True)
-        valid += 1
-        # except Exception as e:
-        #     print(e.__class__.__name__ + ": " + str(e))
-        #     invalid += 1
+        status, exception_message = oracle_crash(driver_function, input_dict, cpu=True)
+        if status == "invalid":
+            invalid += 1
+        elif status == "cpu_excp":
+            excp += 1
+        elif status == "cpu_crash":
+            crash += 1
+        else:
+            valid += 1
+        
+        if print_details:
+            print(f"Input:\n{abstract_print(abs_input, signature)}")
+            print(f"Status: {status}")
+            if exception_message > "":
+                print(f"Exception: {exception_message}")
+        
+        total += 1
+        valid_prcnt = ((total-invalid) / total) * 100 if total > 0 else 0
+        with open(valdity_csv, "w") as f:
+            # api,valid,invalid,crash,exception,total,valid_prcnt        
+            f.write(f"{driver},{valid},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
 
-    print(f"Valid inputs: {valid} | Invalid inputs: {invalid}")
+    print(f"Total inputs: {total} | Valid Percentage: {valid_prcnt:.2f}%")
 
 if __name__ == "__main__":
     main()

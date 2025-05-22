@@ -99,6 +99,15 @@ def monitor_memory(proc, limit=16000):
     return memory_error
 
 def gen_cov_torch(driver, input_file, cpu=True, capture_output=True, is_snippet=False):
+    """
+    Generate coverage data for a given driver and input file.
+    If is_snippet is True, the input file is the python script to run.
+    
+    Example: gen_cov_torch("GroupNorm", "-m eval.patched_drivers.GroupNorm_cov_in_loop", cpu=True, capture_output=True, is_snippet=True)
+    This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files. 
+    
+    If is_snippet is False, the input file is the input for the driver.
+    """
     if "TORCH_BUILD_DIR" in os.environ:
         TORCH_BUILD_DIR = os.environ["TORCH_BUILD_DIR"]
     else:
@@ -116,8 +125,14 @@ def gen_cov_torch(driver, input_file, cpu=True, capture_output=True, is_snippet=
     LIB1 = f"{TORCH_BUILD_DIR}/lib/libtorch_cpu.so"
     LIB2 = f"{TORCH_BUILD_DIR}/lib/libtorch.so"
     
-    profraw_file = f"{os.path.dirname(input_file)}/{driver}.profraw"
-    profdata_file = f"{os.path.dirname(input_file)}/{driver}.profdata"
+    if os.path.exists(input_file):
+        profraw_file = f"{os.path.dirname(input_file)}/{driver}.profraw"
+        profdata_file = f"{os.path.dirname(input_file)}/{driver}.profdata"
+    else:
+        tmp_dir = f"{SCRIPT_DIR}/tmp"
+        os.makedirs(tmp_dir, exist_ok=True)
+        profraw_file = f"{tmp_dir}/{driver}.profraw"
+        profdata_file = f"{tmp_dir}/{driver}.profdata"
 
     # cleanup
     if os.path.isfile(profraw_file):
@@ -140,7 +155,7 @@ def gen_cov_torch(driver, input_file, cpu=True, capture_output=True, is_snippet=
         custom_env = os.environ.copy()
         custom_env["LLVM_PROFILE_FILE"] = profraw_file
         
-        return_obj = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=custom_env)
+        return_obj = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=custom_env)
         memory_error = monitor_memory(return_obj)
     except subprocess.CalledProcessError as err:
         raise Exception(f"Could not run {driver} with input {input_file}. Error Code {err.returncode}: {err}")
@@ -152,6 +167,8 @@ def gen_cov_torch(driver, input_file, cpu=True, capture_output=True, is_snippet=
 
     if not capture_output:
         print("Sorry! Capturing output disabled for now...")
+    else:
+        print(return_obj.communicate()[0].decode())
 
     # coverage
     if not os.path.isfile(profraw_file):
