@@ -9,6 +9,24 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+list_of_exceptions = [
+    "Segmentation fault",
+    "Aborted",
+    "Illegal instruction",
+    "Floating point exception",
+    "Bus error",
+    "Killed",
+    "Abort trap",
+    "Process killed",
+    "MemoryError",
+    "INTERNAL ASSERT ERROR",
+    "please report a bug",
+    "CUDA out of memory",
+    "CUDA error"
+    "Timeout"
+    # Add more crash-related strings as needed
+]
+
 def max_diff_with_indices(a, b, rtol=1e-7, atol=0.01, equal_nan=True, equal_inf=True):
     """
         Returns the max diff, the indices of the max diff, and the values of a and b at those indices.
@@ -56,30 +74,13 @@ def check_crash(return_code, exception_message):
     Returns:
         bool: True if the exception message indicates a crash, False otherwise.
     """
-    list_of_strings = [
-        "Segmentation fault",
-        "Aborted",
-        "Illegal instruction",
-        "Floating point exception",
-        "Bus error",
-        "Killed",
-        "Abort trap",
-        "Process killed",
-        "MemoryError",
-        "INTERNAL ASSERT ERROR",
-        "please report a bug",
-        "CUDA out of memory",
-        "CUDA error"
-        "Timeout"
-        # Add more crash-related strings as needed
-    ]
     
     if return_code == 0:
         return False
     elif return_code < 0:
         return True
     else:
-        for string in list_of_strings:
+        for string in list_of_exceptions:
             if string.lower() in exception_message.lower():
                 return True
     

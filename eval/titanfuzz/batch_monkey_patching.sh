@@ -15,7 +15,7 @@ echo "Starting monkey patching"
 
 n=0
 for input_file in "${inputs[@]}"; do
-    python monkey_patching.py ${input_file} ${apisFile} ${out_dir}
+    python -m eval.titanfuzz.monkey_patching ${input_file} ${apisFile} ${out_dir}
     if ((n % 100 == 0)); then
         echo "${n}/${#inputs[@]} done"
     fi

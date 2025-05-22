@@ -1,6 +1,25 @@
 import re, os, sys
 from utils.misc import map_torch_to_driver, generate_executible_snippet_from_str
 
+# TODO: import from oracle
+list_of_exceptions = [
+    "Segmentation fault",
+    "Aborted",
+    "Illegal instruction",
+    "Floating point exception",
+    "Bus error",
+    "Killed",
+    "Abort trap",
+    "Process killed",
+    "MemoryError",
+    "INTERNAL ASSERT ERROR",
+    "please report a bug",
+    "CUDA out of memory",
+    "CUDA error"
+    "Timeout"
+    # Add more crash-related strings as needed
+]
+
 def replace_function_invocation(script, old_function_name, new_function_name):
     pattern = rf"{old_function_name}\((.*?)\)"
     matches = re.finditer(pattern, script)
@@ -37,17 +56,40 @@ a_monke = monke()
 """
 
 def get_driver(api):
+    # valid,invalid,crash,exception,total,valid_prcnt
     return f"""
 import sys, os, pickle, torch
 
 dir = sys.argv[1]
+list_of_exceptions = {list_of_exceptions}
+valid = 0
+invalid = 0
+excp = 0
+total = 0
+csv_file = os.path.join(dir, 'validity.csv')
 for file in os.listdir(dir):
     if not file.endswith('.pkl'):
         continue
     
     with open(os.path.join(dir, file), 'rb') as f:
         input_dict = pickle.load(f)
-        output = {api}(*input_dict['{api}']['args'], **input_dict['{api}']['kwargs'])
+        try:
+            output = {api}(*input_dict['{api}']['args'], **input_dict['{api}']['kwargs'])
+            valid += 1
+        except Exception as e:
+            exception_msg = e.__class__.__name__ + ": " + str(e)
+            exp = False
+            for msg in list_of_exceptions:
+                if msg in exception_msg:
+                    exp = True
+                    break
+            if exp:
+                excp += 1
+            else:
+                invalid += 1
+        total += 1
+        with open(csv_file, 'w') as f:
+            f.write(str(valid) + ',' + str(invalid) + ',0,' + str(excp) + ',' + str(total) + ',' + str((total-invalid)*100/total if total > 0 else 0) + '\\n')
 """
 
 def monkey_patch(code, apis):
@@ -71,10 +113,9 @@ def main():
             apis.append(driver_to_torch[line.strip()])
     
     for api in apis:
-        if not os.path.isdir(f"{out_dir}/{api}"):
-            os.mkdir(f"{out_dir}/{api}")
-            with open(f"{out_dir}/{api}/driver.py", "w") as f_driver:
-                f_driver.write(get_driver(api))
+        os.makedirs(f"{out_dir}/{api}", exist_ok=True)
+        with open(f"{out_dir}/{api}/driver.py", "w") as f_driver:
+            f_driver.write(get_driver(api))
     
     with open(input_file, "r") as f:
         modified_input = monkey_patch(f.read(), apis)
