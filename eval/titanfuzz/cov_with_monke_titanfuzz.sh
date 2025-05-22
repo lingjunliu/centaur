@@ -19,8 +19,11 @@ wait_for_slurm(){
         remaining=$(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l)
         pending=$(squeue --user=$USER --state=PENDING | grep -vE "JOBID" | grep "${job_name}" | wc -l)
         running=$(squeue --user=$USER --state=RUNNING | grep -vE "JOBID" | grep "${job_name}" | wc -l)
+        if (( n % wait_time == 0 )); then
+            printf "${remaining} ${job_type} jobs remaining, ${running} running, ${pending} waiting | ${n} seconds elapsed\n"
+        fi
         ((n++))
-        printf "${remaining} jobs remaining, ${running} running, ${pending} waiting| ${n} seconds elapsed\r"
+        printf "${remaining} ${job_type} jobs remaining, ${running} running, ${pending} waiting | ${n} seconds elapsed\r"
     done
 }
 
@@ -46,7 +49,7 @@ time_interval=10
 if [ ${APPLY_MONKE} -eq 1 ]; then
     rm -r $out_dir > /dev/null 2>&1
 elif [ ${RUN_MOD} -eq 1 ]; then
-    rm -r $out_dir/*/ > /dev/null 2>&1
+    rm -r $out_dir/*/*.pkl > /dev/null 2>&1
 fi
 
 outputs=$root_dir/.tmp/titanfuzz_results
@@ -81,7 +84,8 @@ if [ ${APPLY_MONKE} -eq 1 ]; then
 fi
 
 if [ ${RUN_MOD} -eq 1 ]; then
-    find . -name "*.py" -type f > list_of_input_files
+    cd ${out_dir}
+    find ${out_dir} -name "*.py" -type f > list_of_input_files
     split -l ${inputs_per_proc} --numeric-suffixes list_of_input_files input_files_
 
     for input_file in input_files_*; do
@@ -95,6 +99,7 @@ if [ ${RUN_MOD} -eq 1 ]; then
     wait_for_slurm ${time_interval} ${sota} "run modified code"
     # clean up
     rm input_files_*
+    cd ${root_dir}
 fi
 
 # Activate conda environment for coverage computation
