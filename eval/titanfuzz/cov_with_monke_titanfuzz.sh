@@ -125,7 +125,7 @@ if [ ${COMPUTE_COV} -eq 1 ]; then
     wait_for_slurm ${time_interval} ${sota} "computing coverage"
 
     rm ${result_file}
-    printf "api,coverage,line_coverage,n_inputs\n" >> ${result_file}
+    printf "api,coverage,line_coverage,n_inputs,return_code\n" >> ${result_file}
     for api in "${apis[@]}"
     do
         api_out=${outputs}/${api}.txt

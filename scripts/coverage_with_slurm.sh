@@ -32,7 +32,7 @@ echo "Validity results saved in ${result}"
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 cov_results=$PROJECT_DIR/.tmp/coverage_results
 result=$PROJECT_DIR/.tmp/coverage.csv
-echo "api,coverage,line_coverage" > ${result}
+echo "api,coverage,line_coverage,return_code" > ${result}
 for filename in ${cov_results}/*.csv
 do
     cat ${filename} >> ${result}

@@ -4,6 +4,7 @@ import os
 import psutil
 import time
 from .misc import get_tmp_dir, create_subdir
+from .process_lcov import analyze_lcov
 
 def monitor_memory(proc, limit=16000):
     memory_error = False
@@ -34,8 +35,6 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True):
     
     Example: gen_cov_torch("-m eval.patched_drivers.GroupNorm_cov_in_loop", prefix="GroupNorm", capture_output=True)
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files. 
-    
-    If is_snippet is False, the input file is the input for the driver.
     """
     if "TORCH_BUILD_DIR" in os.environ:
         TORCH_BUILD_DIR = os.environ["TORCH_BUILD_DIR"]
@@ -138,11 +137,44 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True):
     
     return return_code, lcov_data, memory_error
 
+def get_cov_torch(cmd_line, prefix="default", capture_output=True):
+    """
+    Generate # of branches and # of lines covered in Pytorch after running a command.
+    To differentiate the generated profraw and profdata files from other
+    parallel executions, provide a prefix for the file names. The default is "default".
+    capture_output=True will print the output (default behavior).
+    
+    Example: gen_cov_torch("-m eval.patched_drivers.GroupNorm_cov_in_loop", prefix="GroupNorm", capture_output=True)
+    This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files.
+    It will return the num_branches, num_lines, return_code of executing cmd_line and a dict containing detailed information.
+    """
+    return_code, lcov_data, memory_error = gen_cov_torch(cmd_line, prefix=prefix, capture_output=capture_output)
+        
+    if memory_error and capture_output:
+        print(f"WARNING: Faced memory error while executing {cmd_line}")
+    
+    coverage_dict = analyze_lcov(lcov_data)
+    num_branches = 0
+    num_lines = 0
+    for filename, coverage_info in coverage_dict.items():
+        num_branches += len(coverage_info["branches"])
+        num_lines += len(coverage_info["lines"])
+        
+    return num_branches, num_lines, return_code, coverage_dict
+    
+
 def main():
     if len(sys.argv) > 1:
         cmd_line = sys.argv[1]
         prefix = sys.argv[2] if len(sys.argv) > 2 else "default"
-        return_code, lcov_data, memory_error = gen_cov_torch(cmd_line, prefix=prefix)
+        num_branches, num_lines, return_code, coverage_dict = get_cov_torch(cmd_line, prefix=prefix)
+
+        if return_code != 0:
+            print(f"Executing {cmd_line} failed with return code {return_code}")
+        else:
+            print(f"Execution successful")
+        print(f"Number of branches covered: {num_branches}")
+        print(f"Number of lines covered: {num_lines}")
 
 if __name__ == "__main__":
     main()

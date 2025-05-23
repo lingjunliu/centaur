@@ -1,5 +1,5 @@
 import sys, os, random
-from utils.coverage_utils import gen_cov_torch
+from utils.coverage_utils import get_cov_torch
 from utils.process_lcov import analyze_lcov
 from utils.misc import map_torch_to_driver
 
@@ -43,22 +43,13 @@ def main():
         return
     
     print(f"{dir}/driver.py")
-    return_code, lcov_data, memory_error = gen_cov_torch(f"python {dir}/driver.py {dir}", prefix=api, capture_output=True)
-        
-    if memory_error:
-        print(f"Faced memory error while running on {torch_api}")
+    num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python {dir}/driver.py {dir}", prefix=api, capture_output=True)
 
-    files_dict = analyze_lcov(lcov_data)
-    branch_cov = 0
-    line_cov = 0
-    branches_covered = {}
-    for filename in files_dict:
-        branches_covered[filename] = set(files_dict[filename]["branches"])
-        branch_cov += len(files_dict[filename]["branches"])
-        line_cov += len(files_dict[filename]["lines"])
-
+    if return_code != 0:
+        print(f"ERROR: Execution for {api} failed and returned {return_code}")
+    
     with open(out_file, "w") as f:
-        f.write(f"{api},{branch_cov},{line_cov},{n_inputs}\n")
+        f.write(f"{api},{num_branches},{num_lines},{n_inputs},{return_code}\n")
 
 if __name__ == "__main__":
     main()
