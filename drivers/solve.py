@@ -15,11 +15,7 @@ def torch_version(input, cpu=True):
         input_tensor = input_tensor.cuda()
         A_tensor = A_tensor.cuda()
     
-    # Apply to torch.linalg.solve (or torch.solve for older versions)
-    if hasattr(torch.linalg, 'solve'):
-        result = torch.linalg.solve(A_tensor, input_tensor, left=left)
-    else:
-        result, _ = torch.solve(input_tensor, A_tensor, left=left)
+    result = torch.linalg.solve(A_tensor, input_tensor, left=left)
     
     return {"solution": result.cpu().resolve_conj().numpy() if not cpu else result.resolve_conj().numpy()}
 

@@ -7,33 +7,6 @@ from utils.defaults import list_of_available_dtypes
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def map_torch_to_driver():
-    torch_to_driver = {}
-    driver_to_torch = {}
-    csv_file = os.path.join(CUR_DIR, "../llm/drivers_to_api.csv")
-    with open(csv_file, "r") as f:
-        for line in f.readlines():
-            driver, torch_api = line.strip().split(",")
-            if driver == "Driver":  # Skip the header
-                continue
-            driver_to_torch[driver] = torch_api
-            torch_to_driver[torch_api] = driver
-    
-    supported = os.path.join(CUR_DIR, "../llm/supported.csv")
-    with open(supported, "r") as f:
-        for line in f.readlines():
-            driver, torch_api, _, _, _ = line.strip().split(",")
-            if driver == "API":  # Skip the header
-                continue
-            if driver in driver_to_torch:
-                continue
-            if driver == "":
-                continue
-            driver_to_torch[driver] = torch_api
-            torch_to_driver[torch_api] = driver
-
-    return torch_to_driver, driver_to_torch
-
 def generate_executible_snippet_from_str(code, library="", print_exception=False):
     to_ret = ""
     if library > "":
@@ -74,19 +47,17 @@ def get_input_size(input, signature):
     return total_size
 
 def get_dir_in_root(subdir):
-    cur_dir = os.path.dirname(os.path.abspath(__file__))
-    dir = os.path.join(cur_dir, f"../{subdir}")
+    dir = os.path.join(CUR_DIR, f"../{subdir}")
     if not os.path.isdir(dir):
         os.mkdir(dir)
     
     return dir
 
 def read_file_in_root(filename):
-    cur_dir = os.path.dirname(os.path.abspath(__file__))
-    filepath = os.path.join(cur_dir, f"../{filename}")
+    filepath = os.path.join(CUR_DIR, f"../{filename}")
     if os.path.exists(filepath):
         with open(filepath, "r") as f:
-            return f.readlines()
+            return [line.strip() for line in f.readlines()]
     
     return []
 
@@ -148,6 +119,88 @@ def flatten(lst):
         return [item for sublist in lst for item in flatten(sublist)]
     return [lst]
 
+def api_in_file(api, filename):
+    """
+    Check if the given API is present in the specified file.
+    """
+    if not os.path.exists(filename):
+        print(f"File {filename} does not exist.")
+        return False
+    with open(filename, "r") as f:
+        for line in f.readlines():
+            if f"{api}(" in line:
+                return True
+    return False
+
+def generate_driver_map():
+    driver_dir = get_dir_in_root("drivers")
+    drivers = read_file_in_root("apis.txt")
+    llm_dir = get_dir_in_root("llm")
+    # TODO: Bring this list to a common dir
+    all_apis_file = f"{llm_dir}/api_full.txt"
+    with open(all_apis_file, "r") as f:
+        torch_apis = [line.strip() for line in f.readlines()]
+    
+    drivers_to_api_str = "Driver,API\n"
+    apis_to_exclude = ["torch.use_deterministic_algorithms", "torch.utils.deterministic.fill_uninitialized_memory", "torch.tensor"]
+    for driver in drivers:
+        filepath = f"{driver_dir}/{driver}.py"
+        candidates = set()
+        for torch_api in torch_apis:
+            if torch_api in apis_to_exclude:
+                continue
+            if api_in_file(torch_api, filepath):
+                candidates.add(torch_api)
+        
+        # prune candidates
+        if len(candidates) > 1:
+            to_remove = set()
+            for candidate in candidates:
+                if not candidate.split('.')[-1] in driver:
+                    to_remove.add(candidate)
+            
+            candidates = candidates - to_remove
+        
+        if len(candidates) == 1:
+            drivers_to_api_str += f"{driver},{candidates.pop()}\n"
+        elif len(candidates) == 0:
+            print(f"No candidate found for drivers/{driver}.py")
+            print("-" * 10)
+        else:
+            print(f"Driver drivers/{driver}.py has {len(candidates)} matching apis:")
+            print("\n".join(candidates))
+            for candidate in candidates:
+                if candidate.split('.')[-1] == driver:
+                    print(f"Selected {candidate}")
+                    drivers_to_api_str += f"{driver},{candidate}\n"
+                    break
+            print("-" * 10)
+    
+    csv_file = os.path.join(CUR_DIR, "../drivers_to_api.csv")
+    with open(csv_file, "w") as f:
+        f.write(drivers_to_api_str)
+        print(f"Saved the mapping to {csv_file}")
+    
+    with open(f"{CUR_DIR}/../torch_apis.txt", "w") as f:
+        for line in drivers_to_api_str.splitlines():
+            if line.startswith("Driver"):
+                continue    # header
+            f.write(f"{line.split(',')[1]}\n")
+            
+
+def map_torch_to_driver():
+    torch_to_driver = {}
+    driver_to_torch = {}
+    lines = read_file_in_root("drivers_to_api.csv")
+    for line in lines:
+        driver, torch_api = line.strip().split(",")
+        if driver == "Driver":  # Skip the header
+            continue
+        driver_to_torch[driver] = torch_api
+        torch_to_driver[torch_api] = driver
+
+    return torch_to_driver, driver_to_torch
+
 def merge_csvs(csv_1, csv_2, csv_3):
     with open(csv_1, "r") as f_1:
         lines_1 = f_1.readlines()
@@ -170,8 +223,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 3:
         merge_csvs(sys.argv[1], sys.argv[2], sys.argv[3])
     else:
-        torch_to_driver, driver_to_torch = map_torch_to_driver()
-        with open(os.path.join(CUR_DIR, "../apis.txt"), "r") as f:
-            apis = [line.strip() for line in f.readlines()]
-        for driver in apis:
-            print(driver_to_torch[driver])
+        generate_driver_map()

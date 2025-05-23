@@ -3,6 +3,7 @@ import inspect
 import pkgutil
 import importlib
 import re, os
+from utils.misc import api_in_file
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,19 +31,6 @@ def get_apis(module, prefix=''):
                 pass  # Skip modules that can't be imported
     
     return apis
-
-def api_in_file(api, filename):
-    """
-    Check if the given API is present in the specified file.
-    """
-    if not os.path.exists(filename):
-        print(f"File {filename} does not exist.")
-        return False
-    with open(filename, "r") as f:
-        for line in f.readlines():
-            if f"{api}(" in line:
-                return True
-    return False
 
 def update_apis():
     # Get all PyTorch APIs
