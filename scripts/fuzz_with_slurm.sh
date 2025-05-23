@@ -32,7 +32,7 @@ bash $slurm_sh "python -m generator.fuzz" ${job_name} ${duration} ${mode} ${n_ma
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 tmp_results=$PROJECT_DIR/.tmp/fuzz_results
 result=$PROJECT_DIR/.tmp/fuzz_result_$lib.csv
-echo "api,valid,invalid,crash,exception,total,valid_prcnt" > ${result}
+echo "api,n_models,valid,invalid,crash,exception,total,valid_prcnt" > ${result}
 for filename in ${tmp_results}/*${lib}.csv
 do
     cat ${filename} >> ${result}

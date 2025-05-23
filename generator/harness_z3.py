@@ -15,14 +15,14 @@ from utils.misc import create_subdir, get_tmp_dir
 from generator.input_generators import abstract_print
 from eval.oracle import oracle_crash
 
-def save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
+def save_state(api, n_models, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
     total = valid + invalid + crash + excp
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
     # Save outputs
     csv_file = os.path.join(tmp_results, f"{api}_{lib}.csv")
     with open(csv_file, "w") as f:
-        # api, valid, invalid, crash, excp, total, valid_prcnt
-        f.write(f"{api},{valid},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
+        # api, n_models, valid, invalid, crash, excp, total, valid_prcnt
+        f.write(f"{api},{n_models},{valid},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
     # Save generated inputs
     with open(os.path.join(input_dir, f"{api}_{lib}_inputs.pkl"), "wb") as f_in:
         pickle.dump(generated_inputs, f_in)
@@ -70,12 +70,13 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
             save_model(model, path)
         print(f"Generated {len(models)} models for {api}")
     
+    n_models = len(models)
     rng_model = np.random.default_rng(seed) # random generator for models
 
     start = time.time()
     while len(models) > 0 and elapsed < fuzz_duration:
         if elapsed - last_saved > save_interval:
-            save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
+            save_state(api, n_models, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
             last_saved = elapsed
 
         seed += 1
@@ -123,7 +124,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
     print(f"Models: {len(models)} | Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
     
-    save_state(api, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
+    save_state(api, n_models, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
         
 
 if __name__ == "__main__":
