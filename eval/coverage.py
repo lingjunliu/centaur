@@ -14,7 +14,7 @@ def main():
     torch_to_driver, driver_to_torch = map_torch_to_driver()
     torch_api = driver_to_torch[api]
 
-    return_code, lcov_data, memory_error = gen_cov_torch(api, f"-m eval.patched_drivers.{api}_cov_in_loop", cpu=True, capture_output=True, is_snippet=True)
+    return_code, lcov_data, memory_error = gen_cov_torch(f"python -m eval.patched_drivers.{api}_cov_in_loop", prefix=api, capture_output=True)
 
     if memory_error:
         print(f"Faced memory error while running on {torch_api}")

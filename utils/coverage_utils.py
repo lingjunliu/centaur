@@ -1,81 +1,9 @@
-import pickle
 import subprocess
 import sys
 import os
-import importlib
-import numpy as np
 import psutil
 import time
-
-SCRIPT_DIR = os.path.dirname(__file__)
-REPO_DIR = "/".join(SCRIPT_DIR.split("/")[:-1])
-
-sys.path.append(REPO_DIR)
-
-def get_input_stats(input_file):
-    is_np = True
-
-    shape_l = []
-    dtype_l = []
-    min_max_l = []
-
-    try:
-        if input_file.endswith(".py"):
-            spec = importlib.util.spec_from_file_location(
-                name="input",
-                location=input_file,
-            )
-            module_inp = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module_inp)
-
-            args = module_inp.get_args()
-            is_np = False
-        elif input_file.endswith(".pickle"):
-            with open(input_file, "rb") as fpickle:
-                args_dict = pickle.load(fpickle)
-            
-            args = []
-            for k in args_dict.keys():
-                args.append(args_dict[k])
-        else:
-            raise Exception(f"Input file {input_file} not supported")
-    except:
-        return shape_l, dtype_l, min_max_l
-
-    for arg in args:
-        if hasattr(arg, "shape"):
-            try:
-                shape_l.append(arg.shape)
-                dtype_l.append(arg.dtype)
-                if 0 in list(arg.shape):
-                    min_max_l.append((0, 0))
-                else:
-                    if is_np:
-                        min_max_l.append((np.min(arg), np.max(arg)))
-                    else:
-                        try:
-                            min_max_l.append((np.min(arg.numpy()), np.max(arg.numpy())))
-                        except:
-                            min_max_l.append((0, 0))
-            except:
-                shape_l.append("non_tensor")
-                dtype_l.append(type(arg))
-                if isinstance(arg, list):
-                    min_max_l.append(f"length: {len(arg)}")
-                else:    
-                    min_max_l.append(arg)
-        else:
-            try:
-                shape_l.append("non_tensor")
-                dtype_l.append(type(arg))
-                if isinstance(arg, list):
-                    min_max_l.append(f"length: {len(arg)}")
-                else:    
-                    min_max_l.append(arg)
-            except:
-                continue
-                        
-    return shape_l, dtype_l, min_max_l
+from .misc import get_tmp_dir, create_subdir
 
 def monitor_memory(proc, limit=16000):
     memory_error = False
@@ -98,12 +26,13 @@ def monitor_memory(proc, limit=16000):
     
     return memory_error
 
-def gen_cov_torch(driver, input_file, cpu=True, capture_output=True, is_snippet=False):
+def gen_cov_torch(cmd_line, prefix="default", capture_output=True):
     """
-    Generate coverage data for a given driver and input file.
-    If is_snippet is True, the input file is the python script to run.
+    Generate coverage data after running a command. To differentiate the generated profraw and profdata files from other
+    parallel executions, provide a prefix for the file names. The default is "default".
+    capture_output=True will print the output (default behavior).
     
-    Example: gen_cov_torch("GroupNorm", "-m eval.patched_drivers.GroupNorm_cov_in_loop", cpu=True, capture_output=True, is_snippet=True)
+    Example: gen_cov_torch("-m eval.patched_drivers.GroupNorm_cov_in_loop", prefix="GroupNorm", capture_output=True)
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files. 
     
     If is_snippet is False, the input file is the input for the driver.
@@ -125,14 +54,9 @@ def gen_cov_torch(driver, input_file, cpu=True, capture_output=True, is_snippet=
     LIB1 = f"{TORCH_BUILD_DIR}/lib/libtorch_cpu.so"
     LIB2 = f"{TORCH_BUILD_DIR}/lib/libtorch.so"
     
-    if os.path.exists(input_file):
-        profraw_file = f"{os.path.dirname(input_file)}/{driver}.profraw"
-        profdata_file = f"{os.path.dirname(input_file)}/{driver}.profdata"
-    else:
-        tmp_dir = f"{SCRIPT_DIR}/tmp"
-        os.makedirs(tmp_dir, exist_ok=True)
-        profraw_file = f"{tmp_dir}/{driver}.profraw"
-        profdata_file = f"{tmp_dir}/{driver}.profdata"
+    cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
+    profraw_file = f"{cov_dir}/{prefix}.profraw"
+    profdata_file = f"{cov_dir}/{prefix}.profdata"
 
     # cleanup
     if os.path.isfile(profraw_file):
@@ -142,32 +66,21 @@ def gen_cov_torch(driver, input_file, cpu=True, capture_output=True, is_snippet=
         os.remove(profdata_file)
 
     # call
-    if is_snippet:  # passed input file is the snippet to run
-        cmd = ["python"] + input_file.split()
-    else:           # passed input file is the input for the driver
-        if os.path.isdir(input_file):
-            driver_wrapper = "run_driver_in_loop.py"
-        else:
-            driver_wrapper = "run_driver.py"
-        cmd = ["python", driver_wrapper, driver, input_file, str(cpu)]
-    
     try:
         custom_env = os.environ.copy()
         custom_env["LLVM_PROFILE_FILE"] = profraw_file
         
-        return_obj = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=custom_env)
+        return_obj = subprocess.Popen(cmd_line.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=custom_env)
         memory_error = monitor_memory(return_obj)
     except subprocess.CalledProcessError as err:
-        raise Exception(f"Could not run {driver} with input {input_file}. Error Code {err.returncode}: {err}")
+        raise Exception(f"Could not run {cmd_line}. Error Code {err.returncode}: {err}")
     except KeyboardInterrupt:
         print("Stopped...")
         raise KeyboardInterrupt    
 
     return_code = return_obj.returncode
 
-    if not capture_output:
-        print("Sorry! Capturing output disabled for now...")
-    else:
+    if capture_output:
         print(return_obj.communicate()[0].decode())
 
     # coverage
@@ -224,3 +137,12 @@ def gen_cov_torch(driver, input_file, cpu=True, capture_output=True, is_snippet=
         os.remove(profdata_file)
     
     return return_code, lcov_data, memory_error
+
+def main():
+    if len(sys.argv) > 1:
+        cmd_line = sys.argv[1]
+        prefix = sys.argv[2] if len(sys.argv) > 2 else "default"
+        return_code, lcov_data, memory_error = gen_cov_torch(cmd_line, prefix=prefix)
+
+if __name__ == "__main__":
+    main()

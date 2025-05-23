@@ -43,7 +43,7 @@ def main():
         return
     
     print(f"{dir}/driver.py")
-    return_code, lcov_data, memory_error = gen_cov_torch(driver=api, input_file=f"{dir}/driver.py {dir}", capture_output=True, is_snippet=True)
+    return_code, lcov_data, memory_error = gen_cov_torch(f"python {dir}/driver.py {dir}", prefix=api, capture_output=True)
         
     if memory_error:
         print(f"Faced memory error while running on {torch_api}")
