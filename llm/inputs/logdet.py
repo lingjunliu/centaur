@@ -2,39 +2,38 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
-def det_inputs():
+def logdet_inputs():
     list_of_inputs = []
 
-    A = np.array([[1.0, 2.0], [3.0, 4.0]])
-    input_dict = {"A": A}
+    A = np.random.rand(3, 3).astype(np.float32)
+    input_dict = {"input": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    A = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    input_dict = {"A": A}
+    A = np.random.rand(2, 2).astype(np.float32)
+    input_dict = {"input": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    A = np.array([[-1.0, 2.0], [3.0, -4.0]])
-    input_dict = {"A": A}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    A = np.array([[1.5, 2.5], [3.5, 4.5]])
-    input_dict = {"A": A}
+    A = np.array([[1.0, 0.0], [0.0, 1.0]]).astype(np.float32)
+    input_dict = {"input": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
-    input_dict = {"A": A}
+    A = np.random.rand(3, 3).astype(np.float32)
+    A = np.expand_dims(A, axis=0)
+    input_dict = {"input": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    A = np.random.rand(4, 4)
-    input_dict = {"A": A}
+    A = np.random.rand(2, 2).astype(np.float32)
+    A = np.expand_dims(A, axis=0)
+    input_dict = {"input": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = det_inputs()
+generated_inputs = logdet_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -46,4 +45,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('det', generated_inputs)
+check_valid('logdet', generated_inputs)

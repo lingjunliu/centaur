@@ -19,11 +19,15 @@ def slogdet_inputs():
     A = torch.randn(5, 5).numpy()
     input_dict = {"A": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    A = np.array([[1.0, 0.0], [0.0, 1.0]])
+
+    A = torch.eye(3).numpy()
     input_dict = {"A": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    A = (torch.eye(3) * -1).numpy()
+    input_dict = {"A": A}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = slogdet_inputs()

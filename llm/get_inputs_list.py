@@ -12,9 +12,6 @@ def main():
                 apis_successful.add(tokens[0])
             else:
                 apis_successful = apis_successful - set(tokens[0])
-    
-    for api in apis_successful:
-        dict_str += f"    '{api}': valid_inputs.{api}_inputs(),\n"
 
     needs_inputs = []
     with open(f"{CUR_DIR}/needs_inputs.txt", "r") as f:
@@ -22,6 +19,8 @@ def main():
             api = line.strip()
             if api not in apis_successful:
                 needs_inputs.append(api)
+            else:
+                dict_str += f"    '{api}': valid_inputs.{api}_inputs(),\n"
     
     with open(f"{CUR_DIR}/needs_inputs.txt", "w") as f:
         for api in needs_inputs:
