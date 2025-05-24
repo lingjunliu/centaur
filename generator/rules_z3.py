@@ -65,7 +65,7 @@ _ = lambda s,r,v: {
         s.add(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8))  # check for float types (6: np.float16, 8: np.float64)
     ),
     "rule_14": lambda s,v: (
-        s.add(Or(*[And(i < v["arg1_ndim"], Select(v["arg1_shape"], i) == 0) for i in range(MAX_N_DIM)]))
+        s.add(And(*[Implies(i < v["arg1_ndim"], Select(v["arg1_shape"], i) > 0) for i in range(MAX_N_DIM)]))
     ),
     "rule_15": lambda s,v: (
         s.add(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0)),
