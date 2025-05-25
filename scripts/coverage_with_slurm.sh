@@ -17,7 +17,7 @@ python -m venv venv
 source venv/bin/activate
 pip install -r $PROJECT_DIR/requirements.txt
 # Install instrumented pytorch
-if [ ! -f /tmp/foo.txt ]; then  # Download only if not already downloaded
+if [ ! -f $PROJECT_DIR/instrumented_pytorch/torch-* ]; then  # Download only if not already downloaded
     pip install gdown
     gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
 fi
