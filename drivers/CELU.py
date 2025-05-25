@@ -7,11 +7,12 @@ def torch_version(input_dict, cpu=True):
 
     input_tensor = torch.tensor(input_dict["input"])
     alpha = input_dict.get("alpha", 1.0)
+    inplace = input_dict.get("inplace", False)
 
     if not cpu:
         input_tensor = input_tensor.cuda()
 
-    celu = torch.nn.CELU(alpha=alpha)
+    celu = torch.nn.CELU(alpha=alpha, inplace=inplace)
     result = celu(input_tensor)
 
     if not cpu:

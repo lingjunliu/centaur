@@ -2604,7 +2604,7 @@ def layer_norm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict5))
     
     return list_of_inputs
-def layernorm_inputs():
+def LayerNorm_inputs():
     list_of_inputs = []
     # Input 1: 2D tensor, normalized_shape = [2]
     input1 = np.random.randn(3, 2).astype(np.float32)
@@ -2805,7 +2805,7 @@ def linear_inputs():
     input_dict_7 = {"input": input_7.numpy(), "weight": weight_7.numpy(), "bias": bias_7.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict_7))
     return list_of_inputs
-def linear_inputs():
+def Linear_inputs():
     list_of_inputs = []
     # Input 1: Basic float input with bias
     input1 = torch.randn(3, 5).numpy()
@@ -5127,7 +5127,7 @@ def rot90_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict8))
         
     return list_of_inputs
-def softmax_inputs():
+def Softmax_inputs_2():
     list_of_inputs = []
     # Input 1: 1D tensor
     input1 = np.array([1.0, 2.0, 3.0])
@@ -7584,7 +7584,7 @@ def fractionalmaxpool3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Case 3: Integer kernel_size and return_indices=True
     input_dict = {
-        'kernel_size': 2,
+        'kernel_size': (2,),
         'output_size': (7, 8, 9),
         'output_ratio': None,
         'return_indices': True,
@@ -7897,7 +7897,7 @@ def adaptive_avg_pool3d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Test case 2: Single integer (cube)
     input_dict = {
-        "output_size": 7,
+        "output_size": (7,),
         "input": np.random.randn(1, 64, 10, 9, 8).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
@@ -8062,29 +8062,29 @@ def BCEWithLogitsLoss_inputs():
     # Case 1: No optional arguments, provide dummy input and target
     input_val = np.random.rand(3, 5).astype(np.float32)
     target_val = np.random.randint(0, 2, size=(3, 5)).astype(np.float32)
-    input_dict = {"input": input_val, "target": target_val}
+    input_dict = {"input": input_val, "target": target_val, "weight": None, "size_average": None,"reduce":None,"reduction":"mean","pos_weight":None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Case 2: weight
     weight = np.random.rand(5).astype(np.float32)
     input_val = np.random.rand(3, 5).astype(np.float32)
     target_val = np.random.randint(0, 2, size=(3, 5)).astype(np.float32)
-    input_dict = {"input": input_val, "target": target_val, "weight": weight}
+    input_dict = {"input": input_val, "target": target_val, "weight": weight, "size_average": None,"reduce":None,"reduction":"mean","pos_weight":None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Case 3: pos_weight
     pos_weight = np.random.rand(5).astype(np.float32)
     input_val = np.random.rand(3, 5).astype(np.float32)
     target_val = np.random.randint(0, 2, size=(3, 5)).astype(np.float32)
-    input_dict = {"input": input_val, "target": target_val, "pos_weight": pos_weight}
+    input_dict = {"input": input_val, "target": target_val, "pos_weight": pos_weight,"size_average": None,"reduce":None,"reduction":"mean","weight":None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Case 4: reduction = 'sum'
     input_val = np.random.rand(3, 5).astype(np.float32)
     target_val = np.random.randint(0, 2, size=(3, 5)).astype(np.float32)
-    input_dict = {"input": input_val, "target": target_val, "reduction": "sum"}
+    input_dict = {"input": input_val, "target": target_val, "reduction": "sum", "weight":None, "size_average": None,"reduce":None,"pos_weight":None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Case 5: reduction = 'none'
     input_val = np.random.rand(3, 5).astype(np.float32)
     target_val = np.random.randint(0, 2, size=(3, 5)).astype(np.float32)
-    input_dict = {"input": input_val, "target": target_val, "reduction": "none"}
+    input_dict = {"input": input_val, "target": target_val, "reduction": "none", "size_average": None,"reduce":None,"pos_weight":None, "weight": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 def clamp_max_inputs():
@@ -8378,9 +8378,9 @@ def is_autocast_cache_enabled_inputs():
     return list_of_inputs
 def set_grad_enabled_inputs():
     list_of_inputs = []
-    input1 = {'set_grad_enabled': True}
+    input1 = {'mode': True}
     list_of_inputs.append(input1)
-    input2 = {'set_grad_enabled': False}
+    input2 = {'mode': False}
     list_of_inputs.append(input2)
     return list_of_inputs
 def smoothl1loss_inputs():
@@ -8932,7 +8932,7 @@ def index_put_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
-def threshold_inputs():
+def Threshold_inputs():
     list_of_inputs = []
     input_dict = {
         "input": np.array([1.0, 0.0, -1.0]),
@@ -10100,41 +10100,41 @@ def parameter_inputs():
     input_dict = {"data": data, "requires_grad": True}
     generated_inputs.append(copy.deepcopy(input_dict))
     return generated_inputs
-def celu_inputs():
+def celu_inputs_2():
     list_of_inputs = []
     input1 = np.array([-2, -1, 0, 1, 2], dtype=np.float32)
     alpha1 = 1.0
-    input_dict1 = {"input": input1, "alpha": alpha1}
+    input_dict1 = {"input": input1, "alpha": alpha1, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict1))
     input2 = np.array([[-1, -0.5], [0, 0.5]], dtype=np.float64)
     alpha2 = 0.5
-    input_dict2 = {"input": input2, "alpha": alpha2}
+    input_dict2 = {"input": input2, "alpha": alpha2, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict2))
     input3 = np.array([[-1, -0.5], [0, 0.5]], dtype=np.float32)
     alpha3 = 2.0
-    input_dict3 = {"input": input3, "alpha": alpha3}
+    input_dict3 = {"input": input3, "alpha": alpha3, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict3))
     input4 = np.array([[-1, -0.5], [0, 0.5]], dtype=np.float16)
     alpha4 = 0.75
-    input_dict4 = {"input": input4, "alpha": alpha4}
+    input_dict4 = {"input": input4, "alpha": alpha4, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict4))
     input5 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
     alpha5 = 1.5
-    input_dict5 = {"input": input5, "alpha": alpha5}
+    input_dict5 = {"input": input5, "alpha": alpha5, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict5))
     input6 = np.array([[-2, -1, 0, 1, 2]], dtype=np.float32)
     alpha6 = 0.25
-    input_dict6 = {"input": input6, "alpha": alpha6}
+    input_dict6 = {"input": input6, "alpha": alpha6, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict6))
     
     input7 = np.array([[-3, -2, -1], [0, 1, 2]], dtype=np.float64)
     alpha7 = 0.8
-    input_dict7 = {"input": input7, "alpha": alpha7}
+    input_dict7 = {"input": input7, "alpha": alpha7, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     
     input8 = np.array([1, 2, 3, 4, 5], dtype=np.float32)
     alpha8 = 0.9
-    input_dict8 = {"input": input8, "alpha": alpha8}
+    input_dict8 = {"input": input8, "alpha": alpha8, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict8))
     return list_of_inputs
 def is_tracing_inputs():
@@ -10486,29 +10486,29 @@ def set_module_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-def celu_inputs():
+def celu_inputs_3():
     list_of_inputs = []
     # Input 1: Basic float tensor with alpha=1.0
     input_tensor = torch.randn(3, 4).numpy()
-    input_dict = {"input": input_tensor, "alpha": 1.0}
+    input_dict = {"input": input_tensor, "alpha": 1.0, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 2: Float tensor with negative values and alpha=0.5
     input_tensor = torch.randn(2, 2) * -1.0
     input_tensor = input_tensor.numpy()
-    input_dict = {"input": input_tensor, "alpha": 0.5}
+    input_dict = {"input": input_tensor, "alpha": 0.5, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 3: Float tensor with alpha=2.0
     input_tensor = torch.randn(5,).numpy()
-    input_dict = {"input": input_tensor, "alpha": 2.0}
+    input_dict = {"input": input_tensor, "alpha": 2.0, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 4: High-dimensional tensor with alpha=0.25
     input_tensor = torch.randn(2, 3, 4, 5).numpy()
-    input_dict = {"input": input_tensor, "alpha": 0.25}
+    input_dict = {"input": input_tensor, "alpha": 0.25, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 5: Scalar tensor (0-dimensional) with alpha=1.5
     input_tensor = torch.randn(1).item()
     input_tensor = np.array(input_tensor)
-    input_dict = {"input": input_tensor, "alpha": 1.5}
+    input_dict = {"input": input_tensor, "alpha": 1.5, "inplace": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 def scatter_add_inputs():
@@ -10910,7 +10910,7 @@ def gammaincc_inputs():
     return list_of_inputs
 def circularpad1d_inputs():
     list_of_inputs = []
-    padding = 2
+    padding = (2,)
     input_dict = {
         "padding": padding,
         "input": np.arange(4, dtype=np.float32).reshape(2, 2)
@@ -10923,7 +10923,7 @@ def circularpad1d_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    padding = 0
+    padding = (0,)
     input_dict = {
         "padding": padding,
         "input": np.arange(4, dtype=np.float32).reshape(1, 4)
@@ -10935,7 +10935,7 @@ def circularpad1d_inputs():
         "input": np.arange(4, dtype=np.int32).reshape(1, 4)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    padding = 1
+    padding = (1,)
     input_dict = {
         "padding": padding,
         "input": np.arange(4, dtype=np.float64).reshape(1, 4)
@@ -10948,7 +10948,7 @@ def circularpad1d_inputs():
         "input": np.arange(4, dtype=np.int64).reshape(1, 4)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    padding = 2
+    padding = (2,)
     input_dict = {
         "padding": padding,
         "input": np.arange(6, dtype=np.float32).reshape(2, 3)
@@ -10961,8 +10961,8 @@ def cosine_similarity_inputs():
     input1 = np.random.randn(100, 128).astype(np.float32)
     input2 = np.random.randn(100, 128).astype(np.float32)
     input_dict = {
-        "input1": input1,
-        "input2": input2,
+        "x1": input1,
+        "x2": input2,
         "dim": 1,
         "eps": 1e-08
     }
@@ -10970,8 +10970,8 @@ def cosine_similarity_inputs():
     input1 = np.random.randn(50, 64).astype(np.float32)
     input2 = np.random.randn(50, 64).astype(np.float32)
     input_dict = {
-        "input1": input1,
-        "input2": input2,
+        "x1": input1,
+        "x2": input2,
         "dim": 0,
         "eps": 1e-06
     }
@@ -10980,8 +10980,8 @@ def cosine_similarity_inputs():
     input1 = np.random.randn(20, 30, 40).astype(np.float32)
     input2 = np.random.randn(20, 30, 40).astype(np.float32)
     input_dict = {
-        "input1": input1,
-        "input2": input2,
+        "x1": input1,
+        "x2": input2,
         "dim": -1,
         "eps": 1e-04
     }
@@ -10989,8 +10989,8 @@ def cosine_similarity_inputs():
     input1 = np.random.randn(10, 20, 30).astype(np.float32)
     input2 = np.random.randn(10, 20, 30).astype(np.float32)
     input_dict = {
-        "input1": input1,
-        "input2": input2,
+        "x1": input1,
+        "x2": input2,
         "dim": 2,
         "eps": 1e-02
     }
@@ -10998,8 +10998,8 @@ def cosine_similarity_inputs():
     input1 = np.random.randn(5, 10).astype(np.float32)
     input2 = np.random.randn(5, 10).astype(np.float32)
     input_dict = {
-        "input1": input1,
-        "input2": input2,
+        "x1": input1,
+        "x2": input2,
         "dim": 1,
         "eps": 1e-12
     }
@@ -11009,7 +11009,7 @@ def hsplit_inputs():
     list_of_inputs = []
     # Case 1: 2D tensor, integer sections
     t1 = torch.arange(16.0).reshape(4, 4).numpy()
-    input_dict1 = {"input": t1, "indices_or_sections": 2}
+    input_dict1 = {"input": t1, "indices_or_sections": [2]}
     list_of_inputs.append(copy.deepcopy(input_dict1))
     # Case 2: 2D tensor, list of indices
     t2 = torch.arange(16.0).reshape(4, 4).numpy()
@@ -11017,7 +11017,7 @@ def hsplit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict2))
     # Case 3: 1D tensor, integer sections
     t3 = torch.arange(12.0).numpy()
-    input_dict3 = {"input": t3, "indices_or_sections": 3}
+    input_dict3 = {"input": t3, "indices_or_sections": [3]}
     list_of_inputs.append(copy.deepcopy(input_dict3))
     # Case 4: 1D tensor, list of indices
     t4 = torch.arange(12.0).numpy()
@@ -11025,7 +11025,7 @@ def hsplit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict4))
     # Case 5: 3D tensor, integer sections
     t5 = torch.arange(24.0).reshape(2, 4, 3).numpy()
-    input_dict5 = {"input": t5, "indices_or_sections": 2}
+    input_dict5 = {"input": t5, "indices_or_sections": [2]}
     list_of_inputs.append(copy.deepcopy(input_dict5))
     # Case 6: 3D tensor, list of indices
     t6 = torch.arange(24.0).reshape(2, 3, 4).numpy()
@@ -11034,7 +11034,7 @@ def hsplit_inputs():
     
     # Case 7: 2D int tensor
     t7 = torch.arange(16).reshape(4, 4).numpy()
-    input_dict7 = {"input": t7, "indices_or_sections": 2}
+    input_dict7 = {"input": t7, "indices_or_sections": [2]}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
 def multiply_inputs():
@@ -11399,7 +11399,7 @@ def vsplit_inputs():
     list_of_inputs = []
     # Input 1: Splitting into equal sections
     t = torch.arange(16.0).reshape(4, 4).numpy()
-    input_dict = {"input": t, "indices_or_sections": 2}
+    input_dict = {"input": t, "indices_or_sections": [2]}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 2: Splitting at specified indices
     t = torch.arange(16.0).reshape(4, 4).numpy()
@@ -11415,7 +11415,7 @@ def vsplit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 5: Float tensor
     t = torch.randn(6, 4).numpy()
-    input_dict = {"input": t, "indices_or_sections": 3}
+    input_dict = {"input": t, "indices_or_sections": [3]}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 6: Integer Tensor
     t = torch.randint(0, 10, (5, 5)).numpy()
@@ -11429,7 +11429,7 @@ def vsplit_inputs():
 def ZeroPad2d_inputs():
     list_of_inputs = []
     input_dict_1 = {
-        "padding": 2,
+        "padding": (2,),
         "input": np.random.randn(1, 1, 3, 3).astype(np.float32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict_1))
@@ -11966,19 +11966,19 @@ def permute_inputs():
     input_dict8 = {"input": input8, "dims": dims8}
     list_of_inputs.append(copy.deepcopy(input_dict8))
     return list_of_inputs
-def softplus_inputs():
+def Softplus_inputs():
     generated_inputs = []
     # Case 1: Default beta and threshold, with input
     input_val = np.random.randn(2, 3).astype(np.float32)
-    input_dict = {"input": input_val}
+    input_dict = {"input": input_val, "beta": 1.0, "threshold": 20.0}
     generated_inputs.append(copy.deepcopy(input_dict))
     # Case 2: Custom beta, with input
     input_val = np.random.randn(2, 3).astype(np.float32)
-    input_dict = {"beta": 2, "input": input_val}
+    input_dict = {"beta": 2.0, "input": input_val, "threshold": 20.0}
     generated_inputs.append(copy.deepcopy(input_dict))
     # Case 3: Custom threshold, with input
     input_val = np.random.randn(2, 3).astype(np.float32)
-    input_dict = {"threshold": 10, "input": input_val}
+    input_dict = {"threshold": 10.0, "input": input_val, "beta": 1.0}
     generated_inputs.append(copy.deepcopy(input_dict))
     # Case 4: Custom beta and threshold, with input
     input_val = np.random.randn(2, 3).astype(np.float32)
@@ -11986,12 +11986,12 @@ def softplus_inputs():
     generated_inputs.append(copy.deepcopy(input_dict))
     # Case 5: Beta is zero, with input
     input_val = np.random.randn(2, 3).astype(np.float32)
-    input_dict = {"beta": 0, "input": input_val}
+    input_dict = {"beta": 0, "input": input_val, "threshold": 20.0}
     generated_inputs.append(copy.deepcopy(input_dict))
     
     # Case 6: Negative Beta, with input
     input_val = np.random.randn(2, 3).astype(np.float32)
-    input_dict = {"beta": -1, "input": input_val}
+    input_dict = {"beta": -1, "input": input_val, "threshold": 20.0}
     generated_inputs.append(copy.deepcopy(input_dict))
     return generated_inputs
 def is_autocast_cpu_enabled_inputs():
@@ -12688,13 +12688,13 @@ def clone_inputs():
 def ZeroPad1d_inputs():
     list_of_inputs = []
     # Test case 1: Integer padding
-    input_dict = {"padding": 2, "input": np.random.randn(1, 2, 4)}
+    input_dict = {"padding": (2,), "input": np.random.randn(1, 2, 4)}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Test case 2: Tuple padding (different left and right)
     input_dict = {"padding": (3, 1), "input": np.random.randn(1, 2, 3)}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Test case 3: Zero padding
-    input_dict = {"padding": 0, "input": np.random.randn(1, 2, 5)}
+    input_dict = {"padding": (0,), "input": np.random.randn(1, 2, 5)}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Test case 4: Large padding values
     input_dict = {"padding": (10, 5), "input": np.random.randn(1, 2, 2)}
@@ -12707,7 +12707,7 @@ def ReflectionPad3d_inputs():
     generated_inputs = []
     # Test case 1: int padding
     input1 = torch.arange(8, dtype=torch.float).reshape(1, 1, 2, 2, 2).numpy()
-    padding1 = 1
+    padding1 = (1,)
     input_dict1 = {"padding": padding1, "input": input1}
     generated_inputs.append(copy.deepcopy(input_dict1))
     # Test case 2: tuple padding (different on each side)
@@ -12722,12 +12722,12 @@ def ReflectionPad3d_inputs():
     generated_inputs.append(copy.deepcopy(input_dict3))
     # Test case 4: zero padding
     input4 = torch.randn(1, 1, 4, 4, 4).numpy()
-    padding4 = 0
+    padding4 = (0,)
     input_dict4 = {"padding": padding4, "input": input4}
     generated_inputs.append(copy.deepcopy(input_dict4))
     # Test case 5: smaller padding
     input5 = torch.randn(1, 2, 3, 3, 3).numpy()
-    padding5 = 1
+    padding5 = (1,)
     input_dict5 = {"padding": padding5, "input": input5}
     generated_inputs.append(copy.deepcopy(input_dict5))
     
@@ -14510,7 +14510,7 @@ def dsplit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 2: 3D tensor with integer sections that evenly divide
     t = torch.arange(16.0).reshape(2, 2, 4).numpy()
-    input_dict = {"input": t, "indices_or_sections": 2}
+    input_dict = {"input": t, "indices_or_sections": [2]}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 3: 4D tensor with list of indices
     t = torch.arange(48.0).reshape(2, 2, 3, 4).numpy()
@@ -14518,7 +14518,7 @@ def dsplit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 4: 3D tensor with float values and tuple of indices
     t = torch.randn(2, 3, 5).numpy()
-    input_dict = {"input": t, "indices_or_sections": (2, 4)}
+    input_dict = {"input": t, "indices_or_sections": [2, 4]}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 5: 3D tensor with a split resulting in an empty tensor
     t = torch.arange(24.0).reshape(2, 3, 4).numpy()
@@ -14526,11 +14526,11 @@ def dsplit_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 6: 3D tensor with complex numbers
     t = torch.randn(2, 2, 4, dtype=torch.complex64).numpy()
-    input_dict = {"input": t, "indices_or_sections": 2}
+    input_dict = {"input": t, "indices_or_sections": [2]}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 7: 5D tensor
     t = torch.arange(32.0).reshape(1, 2, 2, 2, 4).numpy()
-    input_dict = {"input": t, "indices_or_sections": 2}
+    input_dict = {"input": t, "indices_or_sections": [2]}
     list_of_inputs.append(copy.deepcopy(input_dict))
     # Input 8: 3D tensor, uneven split using list
     t = torch.arange(24.0).reshape(2, 3, 4).numpy()
@@ -14686,7 +14686,7 @@ def constant_pad1d_inputs():
     # Example 1: Integer padding, float value
     input_dict = {
         "input": torch.randn(1, 2, 4).numpy(),
-        "padding": 2,
+        "padding": (2,),
         "value": 3.5
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
@@ -14700,7 +14700,7 @@ def constant_pad1d_inputs():
     # Example 3: Zero padding, negative value
     input_dict = {
         "input": torch.randn(1, 1, 5).numpy(),
-        "padding": 0,
+        "padding": (0,),
         "value": -1.0
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
@@ -14714,7 +14714,7 @@ def constant_pad1d_inputs():
     # Example 5: Same padding on both sides, negative value
     input_dict = {
         "input": torch.randn(2, 2, 1).numpy(),
-        "padding": 5,
+        "padding": (5,),
         "value": -2.5
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
@@ -15820,32 +15820,6 @@ def set_warn_always_inputs():
         "warn_always": np.array(False)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    input_dict = {
-        "warn_always": np.array([True])
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    input_dict = {
-        "warn_always": np.array([False])
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input_dict = {
-        "warn_always": np.array([[True]])
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    input_dict = {
-        "warn_always": np.array([[False]])
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    input_dict = {
-        "warn_always": np.array([True, False, True])
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input_dict = {
-        "warn_always": np.array([[True, False], [False, True]])
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 def get_rng_state_inputs():
     list_of_inputs = []
@@ -16282,7 +16256,7 @@ def multinomial_inputs():
 import torch
 import numpy as np
 import copy
-def softmax_inputs():
+def Softmax_inputs():
     list_of_inputs = []
     # Input 1: Basic 2D tensor, dim=1
     input1 = np.random.randn(3, 5)

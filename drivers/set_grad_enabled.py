@@ -5,7 +5,7 @@ def torch_version(input_dict, cpu=True):
     torch.use_deterministic_algorithms(True)
     torch.utils.deterministic.fill_uninitialized_memory = True
 
-    set_grad_enabled = input_dict["set_grad_enabled"]
+    set_grad_enabled = input_dict["mode"]
 
     torch.set_grad_enabled(set_grad_enabled)
 
@@ -16,7 +16,7 @@ def torch_version(input_dict, cpu=True):
 def tensorflow_version(input_dict, cpu=True):
     import tensorflow as tf
     tf.config.experimental.enable_op_determinism()
-    set_grad_enabled = input_dict["set_grad_enabled"]
+    set_grad_enabled = input_dict["mode"]
     
     # TensorFlow doesn't have a direct equivalent, so we'll use a tf.Variable
     # and control its trainable property. This isn't exactly the same, but it's
@@ -35,7 +35,7 @@ def main():
     A_TOL = 0.01
 
     input_data = {
-        "set_grad_enabled": False
+        "mode": False
     }
 
     torch_result = torch_version(input_data)
@@ -43,7 +43,7 @@ def main():
     assert np.allclose(torch_result["result"], tf_result["result"], atol=A_TOL), "Results do not match"
     
     input_data = {
-        "set_grad_enabled": True
+        "mode": True
     }
 
     torch_result = torch_version(input_data)

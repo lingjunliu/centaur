@@ -894,35 +894,35 @@ def unsqueeze_inputs():
     input_tensor = torch.randn(2, 3).numpy()
     dim = 0
     input_dict = {
-        "tensor": input_tensor,
+        "input": input_tensor,
         "dim": dim
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     input_tensor = torch.randn(2, 3, 4).numpy()
     dim = 1
     input_dict = {
-        "tensor": input_tensor,
+        "input": input_tensor,
         "dim": dim
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     input_tensor = torch.randn(5).numpy()
     dim = 0
     input_dict = {
-        "tensor": input_tensor,
+        "input": input_tensor,
         "dim": dim
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     input_tensor = torch.randn(2, 2, 2, 2).numpy()
     dim = 3
     input_dict = {
-        "tensor": input_tensor,
+        "input": input_tensor,
         "dim": dim
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     input_tensor = torch.randn(3, 4, 5).numpy()
     dim = -1
     input_dict = {
-        "tensor": input_tensor,
+        "input": input_tensor,
         "dim": dim
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
@@ -3893,7 +3893,7 @@ def bitwise_and_inputs():
     input_dict = {"input": input1, "other": input2}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-def layernorm_inputs():
+def LayerNorm_inputs():
     list_of_inputs = []
     input = torch.randn(2, 3, 4).numpy()
     normalized_shape = [3, 4]
@@ -3958,7 +3958,7 @@ def layernorm_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
-def linear_inputs():
+def Linear_inputs():
     list_of_inputs = []
     input = torch.randn(1, 5).numpy()
     in_features = 5
@@ -4117,7 +4117,7 @@ def maxpool2d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
-def prelu_inputs():
+def PReLU_inputs():
     list_of_inputs = []
     input = torch.randn(1, 3, 5, 5).numpy()
     num_parameters = 1
@@ -4165,7 +4165,7 @@ def prelu_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-def softmax_inputs():
+def Softmax_inputs():
     list_of_inputs = []
     input1 = torch.randn(2, 3).numpy()
     dim1 = 1

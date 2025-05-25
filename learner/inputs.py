@@ -342,6 +342,182 @@ def lp_pool1d_inputs():
 
     return list_of_inputs
 
+def introduce_floats(input_dict, signature):
+    """
+    Mutation to prevent learning rule_8 incorrectly
+    """
+    seed = 42
+    mutated_inputs = []
+    float_types = [np.float16, np.float32, np.float64]
+    rng = np.random.default_rng(seed)
+    index = rng.integers(0, len(float_types))
+    for arg, domain in signature.items():
+        if input_dict[arg] is None:
+            continue
+        
+        if domain in ["tensor", "tensor_list"]:
+            new_input = copy.deepcopy(input_dict)
+            if isinstance(new_input[arg], np.ndarray):
+                new_input[arg] = new_input[arg].astype(float_types[index%len(float_types)])
+            elif isinstance(new_input[arg], list):
+                for i, _ in enumerate(new_input[arg]):
+                    new_input[arg][i] = new_input[arg][i].astype(float_types[index%len(float_types)])
+            else:
+                new_input[arg] = float_types[index%len(float_types)](new_input[arg])
+            index += 1
+            mutated_inputs.append(new_input)
+    
+    return mutated_inputs
+
+def introduce_integers(input_dict, signature):
+    """
+    Mutation to prevent learning rule_13 incorrectly
+    """
+    seed = 42
+    mutated_inputs = []
+    int_types = [np.int8, np.int16, np.int32, np.int64, np.uint8]
+    rng = np.random.default_rng(seed)
+    index = rng.integers(0, len(int_types))
+    for arg, domain in signature.items():
+        if input_dict[arg] is None:
+            continue
+        
+        if domain in ["tensor", "tensor_list"]:
+            new_input = copy.deepcopy(input_dict)
+            if isinstance(new_input[arg], np.ndarray):
+                new_input[arg] = new_input[arg].astype(int_types[index%len(int_types)])
+            elif isinstance(new_input[arg], list):
+                for i, _ in enumerate(new_input[arg]):
+                    new_input[arg][i] = new_input[arg][i].astype(int_types[index%len(int_types)])
+            else:
+                new_input[arg] = int_types[index%len(int_types)](new_input[arg])
+            index += 1
+            mutated_inputs.append(new_input)
+    
+    return mutated_inputs
+
+def introduce_empty_tensors(input_dict, signature):
+    """
+    Mutation to prevent learning rule_14 incorrectly
+    """
+    mutated_inputs = []
+    for arg, domain in signature.items():
+        if domain in ["tensor", "tensor_list"]:
+            new_input = copy.deepcopy(input_dict)
+            new_input[arg] = np.array([])
+            mutated_inputs.append(new_input)
+    
+    return mutated_inputs
+
+def introduce_zeros(input_dict, signature):
+    """
+    Mutation to prevent learning rule_21 incorrectly
+    """
+    mutated_inputs = []
+    for arg, domain in signature.items():
+        new_input = None
+        if domain in ["tensor", "tensor_list"]:
+            new_input = copy.deepcopy(input_dict)
+            if isinstance(new_input[arg], np.ndarray):
+                new_input[arg] = np.zeros(new_input[arg].shape)
+            else:
+                new_input[arg] = 0.0
+            
+        elif domain == "integer":
+            new_input = copy.deepcopy(input_dict)
+            new_input[arg] = 0
+        elif domain == "float":
+            new_input = copy.deepcopy(input_dict)
+            new_input[arg] = 0.0
+        elif domain in ["list", "tuple"]:
+            new_input = copy.deepcopy(input_dict)
+            
+            if new_input[arg] is None:
+                new_input[arg] = [0]
+            else:
+                if domain == "tuple":
+                    new_input[arg] = list(new_input[arg])
+                for i, entry in enumerate(new_input[arg]):
+                    new_input[arg][i] = 0
+                
+            if domain == "tuple":
+                new_input[arg] = tuple(new_input[arg])
+        
+        if new_input:
+            mutated_inputs.append(new_input)
+
+    return mutated_inputs
+
+def introduce_opposite_bools(input_dict, signature):
+    """
+    Mutation to increase diversity
+    """
+    mutated_inputs = []
+    for arg, domain in signature.items():
+        if domain == "boolean":
+            new_input = copy.deepcopy(input_dict)
+            new_input[arg] = not new_input[arg]
+            mutated_inputs.append(new_input)
+            
+    return mutated_inputs
+
+def introduce_negatives(input_dict, signature):
+    """
+    Mutation to prevent learning rule_17 and rule_18 incorrectly
+    """
+    mutated_inputs = []
+    none_replacements = {
+        "integer": -1,
+        "float": -1.0,
+        "list": [-1],
+        "tuple": (-1),
+        "tensor": np.array([-1.0]),
+        "tensor_list": np.array([-1.0])
+    }
+    for arg, domain in signature.items():
+        new_input = None
+        if input_dict[arg] is None and domain in none_replacements:
+            new_input = copy.deepcopy(input_dict)
+            new_input[arg] = none_replacements[domain]
+        elif domain in ["tensor", "tensor_list", "integer", "float"]:
+            new_input = copy.deepcopy(input_dict)
+            new_input[arg] = new_input[arg] * -1
+        elif domain in ["list", "tuple"]:
+            new_input = copy.deepcopy(input_dict)
+            for i, entry in enumerate(new_input[arg]):
+                if domain == "tuple":
+                    new_input[arg] = list(new_input[arg])
+            
+                for i, entry in enumerate(new_input[arg]):
+                    if new_input[arg][i] is None:
+                        new_input[arg][i] = -1
+                    else:
+                        new_input[arg][i] = new_input[arg][i] * -1
+                    
+                if domain == "tuple":
+                    new_input[arg] = tuple(new_input[arg])
+        
+        if new_input:
+            mutated_inputs.append(new_input)
+
+    return mutated_inputs
+
+def augment_inputs(list_of_inputs, signature):
+    """
+    Mutate inputs to have diversity to ensure wrong invariants are not learned
+    And return the original inputs + mutated inputs
+    """
+    mutators = [introduce_empty_tensors, introduce_floats, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
+    mutated_inputs = []
+    for input_dict in list_of_inputs:
+        for arg,domain in signature.items():
+            if arg not in input_dict:
+                print(f"\nSignature: {signature} | input: {input_dict.keys()}\n")
+        for mutator in mutators:
+            mutated_inputs += mutator(input_dict, signature)
+            
+    return list_of_inputs + mutated_inputs
+
 # Add human and LLM defined inputs for APIs that are
 # difficult to generate inputs for
 inputs_per_api = {
@@ -436,11 +612,11 @@ inputs_per_api = {
     'adaptive_max_pool2d': valid_inputs.adaptive_max_pool2d_inputs() + valid_inputs_old.adaptive_max_pool2d_inputs(),
     'alpha_dropout': valid_inputs.alpha_dropout_inputs() + valid_inputs_old.alpha_dropout_inputs(),
     'bitwise_and': valid_inputs.bitwise_and_inputs() + valid_inputs_old.bitwise_and_inputs(),
-    'LayerNorm': valid_inputs.layer_norm_inputs() + valid_inputs_old.layer_norm_inputs(),
-    'Linear': valid_inputs.linear_inputs() + valid_inputs_old.linear_inputs(),
+    'LayerNorm': valid_inputs.LayerNorm_inputs() + valid_inputs_old.LayerNorm_inputs(),
+    'Linear': valid_inputs.Linear_inputs() + valid_inputs_old.Linear_inputs(),
     'MaxPool2d': valid_inputs.MaxPool2d_inputs() + valid_inputs_old.maxpool2d_inputs(),
-    'PReLU_': valid_inputs.prelu_inputs() + valid_inputs_old.prelu_inputs(),
-    'Softmax': valid_inputs.softmax_inputs() + valid_inputs_old.softmax_inputs(),
+    'PReLU_': valid_inputs.PReLU_inputs() + valid_inputs_old.PReLU_inputs(),
+    'Softmax': valid_inputs.Softmax_inputs() + valid_inputs.Softmax_inputs_2() + valid_inputs_old.Softmax_inputs(),
     'Softmin': valid_inputs.softmin_inputs() + valid_inputs_old.softmin_inputs(),
     'bincount': valid_inputs.bincount_inputs() + valid_inputs_old.bincount_inputs(),
     'bitwise_or': valid_inputs.bitwise_or_inputs() + valid_inputs_old.bitwise_or_inputs(),
@@ -520,7 +696,7 @@ inputs_per_api = {
     'moveaxis': valid_inputs.moveaxis_inputs(),
     'tan_': valid_inputs.tan__inputs(),
     'tanh': valid_inputs.tanh_inputs(),
-    'Softplus': valid_inputs.softplus_inputs(),
+    'Softplus': valid_inputs.Softplus_inputs(),
     'vector_norm': valid_inputs.vector_norm_inputs(),
     'is_autocast_ipu_enabled': valid_inputs.is_autocast_ipu_enabled_inputs(),
     'ZeroPad1d': valid_inputs.ZeroPad1d_inputs(),
@@ -556,7 +732,7 @@ inputs_per_api = {
     'index_put': valid_inputs.index_put_inputs(),
     'hann_window': valid_inputs.hann_window_inputs(),
     'is_autocast_cache_enabled': valid_inputs.is_autocast_cache_enabled_inputs(),
-    'celu_': valid_inputs.ceil__inputs(),
+    'celu_': valid_inputs.celu_inputs() + valid_inputs.celu_inputs_2() + valid_inputs.celu_inputs_3(),
     'ReflectionPad3d': valid_inputs.ReflectionPad3d_inputs(),
     'save': valid_inputs.torch_save_inputs(),
     'PixelUnshuffle': valid_inputs.pixel_unshuffle_inputs(),
@@ -567,7 +743,7 @@ inputs_per_api = {
     'isin': valid_inputs.isin_inputs(),
     'gammaincc': valid_inputs.gammaincc_inputs(),
     'arcsin': valid_inputs.arcsin_inputs(),
-    'CELU': valid_inputs.celu_inputs(),
+    'CELU': valid_inputs.celu_inputs() + valid_inputs.celu_inputs_2() + valid_inputs.celu_inputs_3(),
     'igammac': valid_inputs.igammac_inputs(),
     'sigmoid_': valid_inputs.sigmoid__inputs(),
     'Sigmoid': valid_inputs.Sigmoid_inputs(),
@@ -615,7 +791,6 @@ inputs_per_api = {
     'negative_': valid_inputs.negative_inputs(),
     'greater_equal': valid_inputs.greater_equal_inputs(),
     'empty': valid_inputs.torch_empty_inputs(),
-    'optimize_for_inference': valid_inputs.optimize_for_inference_inputs(),
     'TripletMarginLoss': valid_inputs.triplet_margin_loss_inputs(),
     'alias_copy': valid_inputs.alias_copy_inputs(),
     'entr': valid_inputs.entr_inputs(),
@@ -681,11 +856,10 @@ inputs_per_api = {
     'floor_': valid_inputs.floor_inputs(),
     'narrow_copy': valid_inputs.narrow_copy_inputs(),
     'use_deterministic_algorithms': valid_inputs.use_deterministic_algorithms_inputs(),
-    'Threshold': valid_inputs.threshold_inputs(),
+    'Threshold': valid_inputs.Threshold_inputs(),
     'erfcx': valid_inputs.erfcx_inputs(),
     'multiply': valid_inputs.multiply_inputs(),
     'logit_': valid_inputs.logit__inputs(),
-    'annotate': valid_inputs.annotate_inputs(),
     'solve_triangular': valid_inputs.solve_triangular_inputs(),
     'is_autocast_xla_enabled': valid_inputs.is_autocast_xla_enabled_inputs(),
     'rfft': valid_inputs.rfft_inputs(),
@@ -702,10 +876,8 @@ inputs_per_api = {
     'Error': valid_inputs.jit_error_inputs(),
     'meshgrid': valid_inputs.meshgrid_inputs(),
     'layer_norm': valid_inputs.layer_norm_inputs(),
-    'load': valid_inputs.jit_load_inputs(),
     'inv': valid_inputs.linalg_inv_inputs(),
     'Identity': valid_inputs.identity_inputs(),
-    'freeze': valid_inputs.freeze_inputs(),
     'nan_to_num': valid_inputs.nan_to_num_inputs(),
     'adjoint': valid_inputs.adjoint_inputs(),
     'clip_': valid_inputs.clip_inputs(),
@@ -720,9 +892,8 @@ inputs_per_api = {
     'LazyInstanceNorm1d': valid_inputs.lazy_instance_norm1d_inputs(),
     'matrix_rank': valid_inputs.matrix_rank_inputs(),
     'lerp': valid_inputs.lerp_inputs(),
-    'celu': valid_inputs.celu_inputs(),
+    'celu': valid_inputs.celu_inputs() + valid_inputs.celu_inputs_2() + valid_inputs.celu_inputs_3(),
     'fft2': valid_inputs.fft2_inputs(),
-    'ModuleList': valid_inputs.modulelist_inputs(),
     'UninitializedParameter': valid_inputs.uninitialized_parameter_inputs(),
     'take': valid_inputs.take_inputs(),
     'fmax': valid_inputs.fmax_inputs(),
@@ -782,12 +953,13 @@ inputs_per_api = {
 }
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
+    api_signature = get_signatures()[api]
     # Return human written inputs if available
     if api in inputs_per_api:
-        return inputs_per_api[api]
+        print(api)
+        return augment_inputs(inputs_per_api[api], api_signature)
     
     # Generate valid inputs through random generation otherwise
-    api_signature = get_signatures()[api]
     input_file = os.path.join(get_dir_in_root(f"valid_inputs_{lib}"), f"{api}.pkl")
     
     list_of_inputs = []
@@ -824,14 +996,14 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
         # Save abstract inputs to file
         save_to_new_pkl(input_file, abstract_inputs)
     
-    return list_of_inputs
+    return augment_inputs(list_of_inputs, api_signature)
 
 def main():
     apis = set()
     total_inputs = 0
     for api, inputs in inputs_per_api.items():
         apis.add(api)
-        total_inputs += len(inputs)
+        total_inputs += len(get_inputs(api))
     
     print(f"{len(apis)} apis has pre-defined inputs, {round(total_inputs/len(apis), 2)} inputs on average")
     
