@@ -10,10 +10,11 @@ CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def replace_function_invocation(script, old_function_name, new_function_name):
     pattern = rf"(?:^|\s|=){old_function_name}\((.*?)\)"
-    matches = re.finditer(pattern, script)
+    regex = re.compile(pattern, re.DOTALL)
+    matches = re.finditer(regex, script)
     for match in matches:
         old_args = match.group(1)
-        new_invocation = f"{new_function_name}({old_function_name}, {old_args})"
+        new_invocation = f" {new_function_name}({old_function_name}, {old_args})"
         script = script.replace(match.group(), new_invocation)
     
     return script
