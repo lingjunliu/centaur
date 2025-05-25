@@ -1,5 +1,12 @@
 llvm_config=${1:-"llvm-config"}
 
+PROJECT_DIR=`dirname "$(realpath "$0")"`/..
+python -m venv venv
+source venv/bin/activate
+pip install -r $PROJECT_DIR/requirements.txt
+# Install instrumented pytorch
+pip install $PROJECT_DIR/instrumented_pytorch/torch-*
+
 # Test coverage filtering
 
 rm mm.profraw > /dev/null 2>&1
