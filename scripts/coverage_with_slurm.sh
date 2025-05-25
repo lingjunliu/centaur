@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export slurm_time="0:10:00" # Time limit is 10 minutes
+export slurm_time="2:00:00" # Time limit is 2 hours
 export max_parallel=690   # Fix number of slurm jobs to 690
 
 n_inputs=${1:-500}
@@ -17,6 +17,10 @@ python -m venv venv
 source venv/bin/activate
 pip install -r $PROJECT_DIR/requirements.txt
 # Install instrumented pytorch
+if [ ! -f /tmp/foo.txt ]; then  # Download only if not already downloaded
+    pip install gdown
+    gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
+fi
 pip install $PROJECT_DIR/instrumented_pytorch/torch-*
 
 job_name=cov
