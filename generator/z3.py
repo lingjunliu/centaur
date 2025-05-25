@@ -206,6 +206,9 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
                 for i in range(array_len):
                     block.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
                     potential_valid_blocks.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    # Do not dim_size to be 0 more than once for a dimension in the shape
+                    if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
+                        solver.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
             else:
                 block.append(var != val)
                 if not suffix and suffix not in ["ndim", "dtype"]: # potentially can add length too, TODO: asess
