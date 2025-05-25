@@ -28,15 +28,26 @@ slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
 bash $slurm_sh "python -m generator.fuzz" ${job_name} ${duration} ${mode} ${n_max} ${limit} ${seed} ${lib}
 
-# Aggregating and saving results
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
+# Aggregating and saving results
 tmp_results=$PROJECT_DIR/.tmp/fuzz_results
 result=$PROJECT_DIR/.tmp/fuzz_result_$lib.csv
-echo "api,n_models,valid,invalid,crash,exception,total,valid_prcnt" > ${result}
+echo "api,n_models,nominal,invalid,crash,exception,total,valid_prcnt" > ${result}
 for filename in ${tmp_results}/*${lib}.csv
 do
     cat ${filename} >> ${result}
 done
 rm -r ${tmp_results}
 
-echo "Results saved in ${result}"
+echo "Fuzzing results saved in ${result}"
+
+tmp_results=$PROJECT_DIR/.tmp/model_results
+result=$PROJECT_DIR/.tmp/model_generation_$lib.csv
+echo "api,unsat,nominal,invalid,crash,exception,total,valid_prcnt" > ${result}
+for filename in ${tmp_results}/*.csv
+do
+    cat ${filename} >> ${result}
+done
+rm -r ${tmp_results}
+
+echo "Model gen results saved in ${result}"

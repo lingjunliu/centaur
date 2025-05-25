@@ -1,6 +1,6 @@
 import time
 import numpy as np
-import traceback
+import copy
 import os
 import pickle
 import sys
@@ -15,14 +15,14 @@ from utils.misc import create_subdir, get_tmp_dir
 from generator.input_generators import abstract_print
 from eval.oracle import oracle_crash
 
-def save_state(api, n_models, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
-    total = valid + invalid + crash + excp
+def save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
+    total = nominal + invalid + crash + excp
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
     # Save outputs
     csv_file = os.path.join(tmp_results, f"{api}_{lib}.csv")
     with open(csv_file, "w") as f:
-        # api, n_models, valid, invalid, crash, excp, total, valid_prcnt
-        f.write(f"{api},{n_models},{valid},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
+        # api, n_models, nominal, invalid, crash, excp, total, valid_prcnt
+        f.write(f"{api},{n_models},{nominal},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
     # Save generated inputs
     with open(os.path.join(input_dir, f"{api}_{lib}_inputs.pkl"), "wb") as f_in:
         pickle.dump(generated_inputs, f_in)
@@ -41,7 +41,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     elapsed = 0
     last_saved = 0
     save_interval = 600 # seconds, 10 minutes
-    valid = 0
+    nominal = 0
     invalid = 0
     crash = 0
     excp = 0
@@ -73,21 +73,29 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
     n_models = len(models)
     rng_model = np.random.default_rng(seed) # random generator for models
 
+    temp_models = copy.deepcopy(models)
+
     start = time.time()
     while len(models) > 0 and elapsed < fuzz_duration:
         if elapsed - last_saved > save_interval:
-            save_state(api, n_models, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
+            save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
             last_saved = elapsed
 
         seed += 1
-        model = models[rng_model.integers(len(models))]
+        selected_model = rng_model.integers(len(temp_models))
+        model = temp_models[selected_model]
+        # Don't reuse the same model until all models have been used
+        del temp_models[selected_model]
+        if len(temp_models) == 0:
+            temp_models = copy.deepcopy(models)
+        
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args, seed=seed)
         generated_inputs.append((0, abstract_input, seed))  # first element is distance, set as 0 for consistency
 
         start_execution = time.time()
         status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
         if status == "nominal":
-            valid += 1
+            nominal += 1
             if print_details:
                 print(f"\nNominal input:\n{abstract_print(abstract_input, definition['signature'])}")
         elif status == "invalid":
@@ -110,21 +118,21 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         execution_time = execution_time + time.time() - start_execution
-        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {round(elapsed-last_saved, 2)}s ago", end='\r', flush=True)
+        print(f"Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {round(elapsed-last_saved, 2)}s ago", end='\r', flush=True)
 
         # If n_max is defined and n_max inputs have been generated, exit
-        if n_max > 0 and (valid+invalid) == n_max:
+        if n_max > 0 and (nominal+invalid) == n_max:
             break
 
         elapsed = time.time() - start
 
     total_time = time.time() - start
-    total = valid + invalid + crash + excp
+    total = nominal + invalid + crash + excp
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
-    print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {valid+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
-    print(f"Models: {len(models)} | Valid: {valid} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
+    print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {nominal+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")
+    print(f"Models: {len(models)} | Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Total {total} | Validity Rate: {valid_prcnt}%")
     
-    save_state(api, n_models, valid, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
+    save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
         
 
 if __name__ == "__main__":

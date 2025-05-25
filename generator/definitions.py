@@ -3,6 +3,7 @@ from learner.invariant_inference import infer_invariants
 from learner.inputs import get_inputs
 from utils.defaults import *
 from utils.api_utils import get_signatures
+from utils.misc import map_torch_to_driver
 # TODO: Move the definitions to JSON
 
 ############### api definitions ################
@@ -418,8 +419,11 @@ map_defs = {
     Get definition per API with an empty random candidate
 '''
 def get_definition(api, z3=False, lib="torch"):
+    torch_to_driver, driver_to_torch = map_torch_to_driver()
     signature = get_signatures()[api]
     definition = {
+        "api": api,
+        "torch_api": driver_to_torch[api],
         "signature": signature,
         "ruleset":  infer_invariants(api, z3=z3, lib=lib),
         "random_candidate": {},

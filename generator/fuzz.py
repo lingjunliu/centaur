@@ -20,6 +20,9 @@ def main():
         lib = "tf"
     elif lib == "pytorch":
         lib = "torch"
+
+    # Max model 1000
+    max_model = 1000
         
     # Logging run config at the beginning
     print(f"Fuzzing with the {api} driver on {lib}. Mode: {mode}, seed: {seed}.")
@@ -30,7 +33,6 @@ def main():
         # use <limit> as the ratio
         model_gen_duration = int(duration*limit/100)
         fuzz_duration = duration - model_gen_duration
-        max_model = n_max
         fuzz_with_z3(api, model_gen_duration, fuzz_duration, max_model, n_max=n_max, seed=seed, lib=lib)
     else:
         fuzz_with_optimizer(api, duration, n_max, limit, lib=lib)

@@ -66,8 +66,7 @@ def get_tmp_dir():
 
 def create_subdir(dir, subfolder):
     subdir = os.path.join(dir, subfolder)
-    if not os.path.isdir(subdir):
-        os.mkdir(subdir)
+    os.makedirs(subdir, exist_ok=True)
     
     return subdir
 

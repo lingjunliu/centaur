@@ -4,8 +4,19 @@ from z3 import *
 from .input_generators import get_ll, abstract_print
 from .rules_z3 import rule_func_map
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values
+from utils.misc import create_subdir, get_tmp_dir
 from eval.oracle import oracle_crash
 from functools import reduce
+import os
+
+def save_state_models(api, unsat, nominal, invalid, crash, excp, tmp_results):
+    total = nominal + invalid + crash + excp
+    valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
+    # Save outputs
+    csv_file = os.path.join(tmp_results, f"{api}.csv")
+    with open(csv_file, "w") as f:
+        # api, unsat, nominal, invalid, crash, excp, total, valid_prcnt
+        f.write(f"{api},{unsat},{nominal},{invalid},{crash},{excp},{total},{valid_prcnt}\n")
 
 def create_z3_args(signature):
     z3_args = {}
@@ -164,8 +175,17 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
     valid_blocks = []   # list of blocks for valid models, saved for restarts
     rng = np.random.default_rng(seed)
 
+    nominal = 0
+    invalid = 0
+    crash = 0
+    excp = 0
+    unsat = 0
+
+    tmp_results = create_subdir(get_tmp_dir(), "model_results")
+
     while elapsed < model_gen_duration and (num_model < max_model or max_model == 0):
         if solver.check() != sat:
+            unsat += 1
             if stale > saturation:
                 # restart the solver
                 solver = Solver()
@@ -175,6 +195,7 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
                 block = []
                 stale = 0
                 seed += 1
+                saturation += 10    # Making it more difficult to reach stale
                 rng = np.random.default_rng(seed)
                 continue
 
@@ -224,6 +245,12 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
         status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
  
         if status != "invalid":
+            if status == "cpu_crash":
+                crash += 1
+            elif status == "cpu_excp":
+                excp += 1
+            elif status == "nominal":
+                nominal += 1
             models.append(model)
             num_model += 1
             print(f"Valid models: {num_model}", end='\r', flush=True)
@@ -235,9 +262,12 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
                 print(f"\n[{status}]\n{exception_message}")
                 print(f"\nPotential bug. Input:\n{abstract_print(abstract_input, definition['signature'])}")
         elif print_details:
+            invalid += 1
             print(abstract_print(abstract_input, definition["signature"]))
             print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         
         elapsed = time.time() - start
+
+        save_state_models(definition["api"], unsat, nominal, invalid, crash, excp, tmp_results)
 
     return models
