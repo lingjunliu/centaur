@@ -2,9 +2,8 @@
 
 ## clone the repo and all (submodules)
 rm -r pytorch -f
-git clone --recursive https://github.com/pytorch/pytorch
+git clone --recursive --depth 1 -b v2.6.0 https://github.com/pytorch/pytorch.git
 cd pytorch
-git checkout 1a71eb647bd1502e301a94bc0009752f8a4278c7
 git submodule sync
 git submodule update --init --recursive
 # install deps into the environment
