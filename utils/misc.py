@@ -189,6 +189,9 @@ def generate_driver_map():
             
 
 def map_torch_to_driver():
+    """
+    return torch_to_driver, driver_to_torch maps
+    """
     torch_to_driver = {}
     driver_to_torch = {}
     lines = read_file_in_root("drivers_to_api.csv")
