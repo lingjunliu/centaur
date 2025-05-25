@@ -9,15 +9,9 @@ import copy
 def ndtr_inputs():
     list_of_inputs = []
 
-    # Input 1: Scalar float
-    x = np.array(1.0)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: 1D array of floats
-    x = np.array([-1.0, 0.0, 1.0, 2.0])
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    x1 = np.array([0.0, 1.0, -1.0, 2.0, -2.0], dtype=np.float32)
+    input_dict1 = {"x": x1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
     return list_of_inputs
 

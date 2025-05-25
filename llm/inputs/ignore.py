@@ -5,7 +5,7 @@ from eval.oracle import oracle_crash
 import torch
 import copy
 
-def jit_ignore_inputs():
+def torch_jit_ignore_inputs():
     list_of_inputs = []
 
     # Case 1: drop=False, no kwargs
@@ -13,39 +13,18 @@ def jit_ignore_inputs():
         "drop": False,
         "kwargs": ()
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Case 2: drop=True, no kwargs
     input_dict = {
         "drop": True,
         "kwargs": ()
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Case 3: drop=False, with kwargs (one int)
-    input_dict = {
-        "drop": False,
-        "kwargs": (1,)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Case 4: drop=True, with kwargs (one int)
-    input_dict = {
-        "drop": True,
-        "kwargs": (1,)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Case 5: drop=False, with kwargs (multiple types)
-    input_dict = {
-        "drop": False,
-        "kwargs": (1, "hello", 3.14)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 
-generated_inputs = jit_ignore_inputs()
+generated_inputs = torch_jit_ignore_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash

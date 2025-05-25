@@ -7,25 +7,32 @@ import numpy as np
 import copy
 
 def bceloss_inputs():
-    generated_inputs = []
+    list_of_inputs = []
 
+    # Case 1: No weight, default reduction
     input_dict = {
         "weight": None,
         "size_average": None,
         "reduce": None,
-        "reduction": 'mean'
+        "reduction": 'mean',
+        "input": np.random.rand(3,2) ,
+        "target": np.random.rand(3,2)
     }
-    generated_inputs.append(copy.deepcopy(input_dict))
-    
-    input_dict = {
-        "weight": torch.randn(5).numpy(),
-        "size_average": True,
-        "reduce": False,
-        "reduction": None
-    }
-    generated_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    return generated_inputs
+    # Case 2: weight, reduction='sum'
+    input_dict = {
+        "weight": torch.randn(5).numpy() if torch.cuda.is_available() else torch.randn(5).cpu().numpy(),
+        "size_average": None,
+        "reduce": None,
+        "reduction": 'sum',
+        "input": np.random.rand(5),
+        "target": np.random.rand(5)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
 
 generated_inputs = bceloss_inputs()
 

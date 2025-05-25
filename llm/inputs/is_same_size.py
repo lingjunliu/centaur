@@ -9,9 +9,8 @@ import copy
 def is_same_size_inputs():
     list_of_inputs = []
 
-    # Test case 1: Two tensors with the same size (1D)
-    tensor1 = torch.randn(5).numpy()
-    tensor2 = torch.randn(5).numpy()
+    tensor1 = np.random.randn(2, 3).astype(np.float32)
+    tensor2 = np.random.randn(2, 3).astype(np.float32)
     input_dict = {"tensor1": tensor1, "tensor2": tensor2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

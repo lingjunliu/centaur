@@ -9,16 +9,28 @@ import copy
 def max_unpool1d_inputs():
     list_of_inputs = []
 
-    # Case 1: Basic case with N, C, Hin
-    input_tensor = torch.randn(1, 1, 4)
-    pool = torch.nn.MaxPool1d(kernel_size=2, stride=2, return_indices=True)
-    output_tensor, indices_tensor = pool(input_tensor)
+    # Case 1: Basic case with N, C, H_in
+    input_np = torch.randn(1, 1, 4).numpy()
+    indices_np = torch.arange(0, 2).reshape(1, 1, 2).long().numpy()
     input_dict = {
         "kernel_size": 2,
         "stride": 2,
         "padding": 0,
-        "input": output_tensor.numpy(),
-        "indices": indices_tensor.numpy(),
+        "input": input_np,
+        "indices": indices_np,
+        "output_size": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 2: Basic case with C, H_in
+    input_np = torch.randn(3, 5).numpy()
+    indices_np = torch.arange(0, 2*3).reshape(3, 2).long().numpy()
+    input_dict = {
+        "kernel_size": 2,
+        "stride": 2,
+        "padding": 0,
+        "input": input_np,
+        "indices": indices_np,
         "output_size": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))

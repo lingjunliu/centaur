@@ -11,29 +11,27 @@ def vector_to_parameters_inputs():
 
     # Input 1: Basic test with float parameters
     parameters1 = [torch.randn(2, 3), torch.randn(4)]
-    vec1 = torch.cat([p.flatten() for p in parameters1])
-    input_dict1 = {"vec": vec1, "parameters": parameters1}
+    vec1 = torch.cat([p.view(-1) for p in parameters1])
+    input_dict1 = {"vec": vec1.numpy(), "parameters": parameters1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: Test with integer parameters
-    parameters2 = [torch.randint(0, 10, (2, 2)), torch.randint(-5, 5, (3,))]
-    vec2 = torch.cat([p.flatten().float() for p in parameters2])
-    input_dict2 = {"vec": vec2, "parameters": parameters2}
+    parameters2 = [torch.randint(0, 10, (2, 2)), torch.randint(0, 5, (3,))]
+    vec2 = torch.cat([p.view(-1).float() for p in parameters2])  # Convert to float for concatenation
+    input_dict2 = {"vec": vec2.numpy(), "parameters": parameters2}
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Test with different shaped parameters and negative values in vec
-    parameters3 = [torch.randn(1, 5, 5), torch.randn(2, 2, 2), torch.randn(10)]
-    vec3 = torch.cat([p.flatten() for p in parameters3])
-    vec3[0] = -10 # Test negative vec
-    input_dict3 = {"vec": vec3, "parameters": parameters3}
+    # Input 3: Test with negative values and different shapes
+    parameters3 = [torch.randn(1, 5, 5) * -1, torch.randn(2, 2, 2) * -0.5]
+    vec3 = torch.cat([p.view(-1) for p in parameters3])
+    input_dict3 = {"vec": vec3.numpy(), "parameters": parameters3}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Test with a single parameter tensor
-    parameters4 = [torch.randn(5, 5)]
-    vec4 = torch.cat([p.flatten() for p in parameters4])
-    input_dict4 = {"vec": vec4, "parameters": parameters4}
+    # Input 4: Test with single parameter tensor
+    parameters4 = [torch.randn(10,)]
+    vec4 = torch.cat([p.view(-1) for p in parameters4])
+    input_dict4 = {"vec": vec4.numpy(), "parameters": parameters4}
     list_of_inputs.append(copy.deepcopy(input_dict4))
-
 
     return list_of_inputs
 

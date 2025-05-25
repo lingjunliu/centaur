@@ -8,58 +8,43 @@ import numpy as np
 def QFunctional_inputs():
     list_of_inputs = []
 
-    # Example 1: Basic addition with scale and zero_point
-    x = np.array([1, 2, 3], dtype=np.int32)
-    y = np.array([4, 5, 6], dtype=np.int32)
-    scale = 0.5
-    zero_point = 0
+    scale1 = 0.5
+    zero_point1 = 10
+    dtype1 = torch.quint8
+    x1 = torch.randn(2, 3, 4, 5)
+    qx1 = torch.quantize_per_tensor(x1, scale1, zero_point1, dtype1)
 
-    input_dict = {
-        "x": x,
-        "y": y,
-        "scale": scale,
-        "zero_point": zero_point
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Example 2: Addition with different data types and shapes
-    x = np.array([[1, 2], [3, 4]], dtype=np.int8)
-    y = np.array([[5, 6], [7, 8]], dtype=np.int8)
-    scale = 0.25
-    zero_point = 10
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "scale": scale,
-        "zero_point": zero_point
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    scale2 = 0.75
+    zero_point2 = 5
+    dtype2 = torch.quint8
+    x2 = torch.randn(2, 3, 4, 5)
+    qx2 = torch.quantize_per_tensor(x2, scale2, zero_point2, dtype2)
     
-    x = np.array([1, 2, 3], dtype=np.int32)
-    y = np.array([4, 5, 6], dtype=np.int32)
-    scale = 0.5
-    zero_point = 0
-
     input_dict = {
-        "x": x,
-        "y": y,
-        "scale": scale,
-        "zero_point": zero_point
+        "x": qx1,
+        "y": qx2,
+        "scale": torch.tensor(0.6),
+        "zero_point": torch.tensor(7)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Example 2: Addition with different data types and shapes
-    x = np.array([[1, 2], [3, 4]], dtype=np.int8)
-    y = np.array([[5, 6], [7, 8]], dtype=np.int8)
-    scale = 0.25
-    zero_point = 10
+    scale1 = 0.3
+    zero_point1 = 12
+    dtype1 = torch.qint8
+    x1 = torch.randn(3, 5, 7)
+    qx1 = torch.quantize_per_tensor(x1, scale1, zero_point1, dtype1)
 
+    scale2 = 0.6
+    zero_point2 = -3
+    dtype2 = torch.qint8
+    x2 = torch.randn(3, 5, 7)
+    qx2 = torch.quantize_per_tensor(x2, scale2, zero_point2, dtype2)
+    
     input_dict = {
-        "x": x,
-        "y": y,
-        "scale": scale,
-        "zero_point": zero_point
+        "x": qx1,
+        "y": qx2,
+        "scale": torch.tensor(0.4),
+        "zero_point": torch.tensor(-5)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -7,24 +7,12 @@ import torch, copy
 def parse_type_comment_inputs():
     list_of_inputs = []
 
+    # Example 1: Simple type hint
     input_dict = {
         "comment": "Tensor",
         "module": "torch"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "comment": "Optional[Tensor]",
-        "module": "torch"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "comment": "List[Tensor]",
-        "module": "torch"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = parse_type_comment_inputs()

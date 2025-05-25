@@ -13,21 +13,9 @@ def bessel_y0_inputs():
     input_dict1 = {"x": x1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    x2 = np.array([0.5, 1.0, 1.5], dtype=np.float64)
+    x2 = np.array([0.1, 0.5, 1.0], dtype=np.float32)
     input_dict2 = {"x": x2}
     list_of_inputs.append(copy.deepcopy(input_dict2))
-
-    x3 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict3 = {"x": x3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-
-    x4 = np.array([1, 2, 3], dtype=np.int32).astype(np.float32)
-    input_dict4 = {"x": x4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    x5 = np.array([1.5, 2.5, 3.5], dtype=np.float64)
-    input_dict5 = {"x": x5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
 
     return list_of_inputs
 

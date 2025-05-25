@@ -8,43 +8,28 @@ import numpy as np
 def psi_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float tensor
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    # Input 1: Simple float tensor
+    x = torch.randn(3, 4).numpy()
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Two-dimensional float tensor
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    # Input 2: Integer tensor converted to float
+    x = torch.randint(1, 10, (2, 2)).float().numpy()
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Integer tensor (cast to float)
-    x = np.array([1, 2, 3], dtype=np.int32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5: Multi-dimensional array
-    x = np.random.rand(2, 3, 4).astype(np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: Single float value
-    x = np.array(2.5, dtype=np.float32)
+    # Input 3: Tensor with negative values
+    x = (torch.randn(5) - 2).numpy()
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Float64
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    # Input 4: 1D tensor
+    x = torch.randn(10).numpy()
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8: Float16
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: int64
-    x = np.array([1, 2, 3], dtype=np.int64)
+    # Input 5: 3D tensor
+    x = torch.randn(2, 3, 4).numpy()
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

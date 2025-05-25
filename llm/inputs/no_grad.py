@@ -8,11 +8,9 @@ import copy
 def no_grad_inputs():
     list_of_inputs = []
 
-    def dummy_func():
-        pass
-
+    input1 = None
     input_dict1 = {
-        "orig_func": dummy_func
+        "orig_func": input1
     }
     list_of_inputs.append(copy.deepcopy(input_dict1))
 

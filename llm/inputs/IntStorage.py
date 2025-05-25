@@ -9,35 +9,30 @@ def intstorage_inputs():
     list_of_inputs = []
 
     input1 = {
-        "data": np.array([]).astype(np.int64),
-        "size": 0
+        "storage": torch.IntStorage(np.array([1, 2, 3, 4, 5], dtype=np.int64).tolist())
     }
     list_of_inputs.append(copy.deepcopy(input1))
 
     input2 = {
-        "data": np.array([1]).astype(np.int64),
-        "size": 1
+        "storage": torch.IntStorage(np.array([], dtype=np.int64).tolist())
     }
     list_of_inputs.append(copy.deepcopy(input2))
 
     input3 = {
-        "data": np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).astype(np.int64),
-        "size": 10
+        "storage": torch.IntStorage(np.array([-1, 0, 1], dtype=np.int64).tolist())
     }
     list_of_inputs.append(copy.deepcopy(input3))
-    
+
     input4 = {
-        "data": np.arange(100).astype(np.int64),
-        "size": 100
+        "storage": torch.IntStorage(np.array([2**31 - 1, -2**31], dtype=np.int64).tolist())
     }
     list_of_inputs.append(copy.deepcopy(input4))
-
+    
     input5 = {
-        "data": np.arange(1000).astype(np.int64),
-        "size": 1000
+        "storage": torch.IntStorage(np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], dtype=np.int64).tolist())
     }
     list_of_inputs.append(copy.deepcopy(input5))
-
+    
     return list_of_inputs
 
 generated_inputs = intstorage_inputs()

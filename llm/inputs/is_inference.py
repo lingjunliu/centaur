@@ -3,11 +3,12 @@ from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
 import torch
-import copy
 import numpy as np
+import copy
 
 def is_inference_inputs():
-    return [{}]
+    list_of_inputs = []
+    return list_of_inputs
 
 generated_inputs = is_inference_inputs()
 

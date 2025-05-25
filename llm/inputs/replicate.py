@@ -13,15 +13,20 @@ def replicate_inputs():
     class SimpleModule(nn.Module):
         def __init__(self):
             super(SimpleModule, self).__init__()
-            self.linear = nn.Linear(10, 5)
+            self.linear = nn.Linear(10, 10)
 
         def forward(self, x):
             return self.linear(x)
 
     module1 = SimpleModule()
-    device_ids1 = [0]
+    device_ids1 = [0] if torch.cuda.device_count() > 0 else []
     input_dict1 = {"module": module1, "device_ids": device_ids1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    module2 = SimpleModule()
+    device_ids2 = []
+    input_dict2 = {"module": module2, "device_ids": device_ids2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
     return list_of_inputs
 

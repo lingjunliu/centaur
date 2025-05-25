@@ -8,15 +8,7 @@ import numpy as np
 def i0e_inputs():
     list_of_inputs = []
 
-    x = np.array([0.0, 1.0, 2.0], dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = np.array([-1.0, -2.0], dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = np.array([[0.5, 1.5], [2.5, 3.5]], dtype=np.float64)
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

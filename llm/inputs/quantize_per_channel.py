@@ -9,13 +9,12 @@ import copy
 def quantize_per_channel_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float tensor, axis=0
-    input1 = torch.randn(3, 4, 5).numpy()
+    # Input 1: Basic float input
+    input1 = torch.randn(2, 3, 4, 5).numpy()
     scales1 = torch.rand(3).numpy()
-    zero_points1 = np.random.randint(0, 256, size=(3,), dtype=np.int64)
-    axis1 = 0
+    zero_points1 = torch.randint(0, 255, (3,)).numpy()
+    axis1 = 1
     dtype1 = torch.quint8
-
     input_dict1 = {
         "input": input1,
         "scales": scales1,
@@ -24,7 +23,8 @@ def quantize_per_channel_inputs():
         "dtype": dtype1
     }
     list_of_inputs.append(copy.deepcopy(input_dict1))
-    
+
+
     return list_of_inputs
 
 generated_inputs = quantize_per_channel_inputs()

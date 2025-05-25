@@ -7,20 +7,20 @@ import numpy as np
 
 def ShortStorage_inputs():
     list_of_inputs = []
-    
-    input1 = {"size": 0}
+
+    input1 = {"size": 0, "input": np.array([])}
     list_of_inputs.append(copy.deepcopy(input1))
-    
-    input2 = {"size": 1}
+
+    input2 = {"size": 1, "input": np.array([1], dtype=np.int16)}
     list_of_inputs.append(copy.deepcopy(input2))
-    
-    input3 = {"size": 10}
+
+    input3 = {"size": 10, "input": np.arange(10, dtype=np.int16)}
     list_of_inputs.append(copy.deepcopy(input3))
     
-    input4 = {"size": 100}
+    input4 = {"size": 100, "input": np.random.randint(-100, 100, size=100, dtype=np.int16)}
     list_of_inputs.append(copy.deepcopy(input4))
 
-    input5 = {"size": 1000}
+    input5 = {"size": 5, "input": np.array([-1, -2, 0, 1, 2], dtype=np.int16)}
     list_of_inputs.append(copy.deepcopy(input5))
     
     return list_of_inputs

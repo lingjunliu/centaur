@@ -3,15 +3,17 @@ from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
 import torch
-import copy
 import numpy as np
+import copy
 
 def sym_fresh_size_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple string
-    input1 = {"name": "x"}
-    list_of_inputs.append(copy.deepcopy(input1))
+    # Input 1: Simple string name
+    input_dict = {
+        "name": "size"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

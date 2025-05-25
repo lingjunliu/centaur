@@ -2,35 +2,33 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def ndtri_inputs():
-    generated_inputs = []
+    list_of_inputs = []
 
-    # Input 1: Basic float array
-    x1 = np.array([0.1, 0.5, 0.9], dtype=np.float32)
-    generated_inputs.append({"x": x1})
+    x1 = np.array(0.5, dtype=np.float32)
+    input_dict1 = {"x": x1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Different float values including near 0 and 1
-    x2 = np.array([0.01, 0.99, 0.25, 0.75], dtype=np.float64)
-    generated_inputs.append({"x": x2})
+    x2 = np.array([0.1, 0.5, 0.9], dtype=np.float64)
+    input_dict2 = {"x": x2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Multi-dimensional float array
-    x3 = np.array([[0.2, 0.3], [0.6, 0.8]], dtype=np.float32)
-    generated_inputs.append({"x": x3})
+    x3 = np.array([[0.2, 0.6], [0.4, 0.8]], dtype=np.float32)
+    input_dict3 = {"x": x3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Array with a value of 0.5
-    x4 = np.array([0.5], dtype=np.float64)
-    generated_inputs.append({"x": x4})
+    x4 = np.array(0.99999, dtype=np.float64)
+    input_dict4 = {"x": x4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5: Higher dimensional array
-    x5 = np.random.rand(2, 3, 4).astype(np.float32)
-    generated_inputs.append({"x": x5})
+    x5 = np.array([[[0.3, 0.7], [0.5, 0.9]], [[0.1, 0.4], [0.2, 0.6]]], dtype=np.float32)
+    input_dict5 = {"x": x5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-
-    return generated_inputs
+    return list_of_inputs
 
 generated_inputs = ndtri_inputs()
 

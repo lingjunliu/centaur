@@ -13,16 +13,6 @@ def set_autocast_cpu_dtype_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_dict = {
-        "dtype": torch.float16
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "dtype": torch.bfloat16
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = set_autocast_cpu_dtype_inputs()

@@ -9,84 +9,36 @@ import copy
 def spmm_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float sparse matrix and dense matrix
-    indices = torch.tensor([[0, 1], [1, 2], [2, 0]]).t()
-    values = torch.tensor([1.0, 2.0, 3.0])
-    shape = (3, 3)
-    sparse_matrix = torch.sparse_coo_tensor(
-        indices,
-        values,
-        shape
-    ).coalesce().numpy()
-    dense_matrix = torch.randn(3, 4).numpy()
-    input_dict = {"input": sparse_matrix, "mat2": dense_matrix}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic case with float32
+    input1 = torch.randn(3, 4).to_sparse_coo()
+    mat2_1 = torch.randn(4, 5)
+    input_dict1 = {"input": input1, "mat2": mat2_1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Float sparse matrix and dense matrix with different shapes
-    indices = torch.tensor([[0, 0], [1, 1], [2, 2]]).t()
-    values = torch.tensor([1.0, 1.0, 1.0])
-    shape = (3, 3)
-    sparse_matrix = torch.sparse_coo_tensor(
-        indices,
-        values,
-        shape
-    ).coalesce().numpy()
-    dense_matrix = torch.randn(3, 2).numpy()
-    input_dict = {"input": sparse_matrix, "mat2": dense_matrix}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Different dimensions
+    input2 = torch.randn(5, 2).to_sparse_coo()
+    mat2_2 = torch.randn(2, 3)
+    input_dict2 = {"input": input2, "mat2": mat2_2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Int sparse matrix and dense matrix
-    indices = torch.tensor([[0, 1], [1, 2], [2, 0]]).t()
-    values = torch.tensor([1, 2, 3])
-    shape = (3, 3)
-    sparse_matrix = torch.sparse_coo_tensor(
-        indices,
-        values,
-        shape
-    ).coalesce().numpy()
-    dense_matrix = torch.randint(0, 5, (3, 4)).numpy()
-    input_dict = {"input": sparse_matrix, "mat2": dense_matrix}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Integer sparse tensor and float matrix
+    input3 = torch.randint(0, 10, (2, 3)).to_sparse_coo()
+    mat2_3 = torch.randn(3, 4)
+    input_dict3 = {"input": input3, "mat2": mat2_3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Float sparse matrix with negative values and dense matrix
-    indices = torch.tensor([[0, 1], [1, 2], [2, 0]]).t()
-    values = torch.tensor([-1.0, 2.0, -3.0])
-    shape = (3, 3)
-    sparse_matrix = torch.sparse_coo_tensor(
-        indices,
-        values,
-        shape
-    ).coalesce().numpy()
-    dense_matrix = torch.randn(3, 4).numpy()
-    input_dict = {"input": sparse_matrix, "mat2": dense_matrix}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Larger float sparse matrix and dense matrix
-    indices = torch.tensor([[0, 1], [1, 2], [2, 0], [3, 1], [4, 3]]).t()
-    values = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0])
-    shape = (5, 5)
-    sparse_matrix = torch.sparse_coo_tensor(
-        indices,
-        values,
-        shape
-    ).coalesce().numpy()
-    dense_matrix = torch.randn(5, 6).numpy()
-    input_dict = {"input": sparse_matrix, "mat2": dense_matrix}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Rectangular sparse matrix
-    indices = torch.tensor([[0, 1], [1, 2]]).t()
-    values = torch.tensor([1.0, 2.0])
-    shape = (2, 3)
-    sparse_matrix = torch.sparse_coo_tensor(
-        indices,
-        values,
-        shape
-    ).coalesce().numpy()
-    dense_matrix = torch.randn(3, 4).numpy()
-    input_dict = {"input": sparse_matrix, "mat2": dense_matrix}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Float sparse tensor and integer matrix
+    input4 = torch.randn(4, 5).to_sparse_coo()
+    mat2_4 = torch.randint(0, 10, (5, 2))
+    input_dict4 = {"input": input4, "mat2": mat2_4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
     
+    # Input 5: Negative values
+    input5 = torch.randn(2, 3).to_sparse_coo()
+    mat2_5 = torch.randn(3, 2)
+    input_dict5 = {"input": input5, "mat2": mat2_5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
     return list_of_inputs
 
 generated_inputs = spmm_inputs()

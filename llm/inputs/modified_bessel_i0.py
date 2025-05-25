@@ -2,39 +2,16 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def modified_bessel_i0_inputs():
     list_of_inputs = []
 
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = np.array([1, 2, 3], dtype=np.int32).astype(np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = np.array([1.0], dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = np.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=np.complex64)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    x1 = np.array([1.0, 2.0, 3.0])
+    input_dict1 = {"x": x1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
     return list_of_inputs
 

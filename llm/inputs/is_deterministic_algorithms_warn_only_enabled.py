@@ -8,20 +8,11 @@ import numpy as np
 def is_deterministic_algorithms_warn_only_enabled_inputs():
     list_of_inputs = []
 
-    input1 = {}
-    list_of_inputs.append(copy.deepcopy(input1))
-
-    input2 = {"arg": 1}
-    list_of_inputs.append(copy.deepcopy(input2))
-
-    input3 = {"arg1": "test", "arg2": 2}
-    list_of_inputs.append(copy.deepcopy(input3))
-    
-    input4 = []
-    list_of_inputs.append(copy.deepcopy(input4))
-
-    input5 = [1,2,3]
-    list_of_inputs.append(copy.deepcopy(input5))
+    list_of_inputs.append({})
+    list_of_inputs.append({})
+    list_of_inputs.append({})
+    list_of_inputs.append({})
+    list_of_inputs.append({})
 
     return list_of_inputs
 

@@ -8,10 +8,20 @@ import numpy as np
 def pdist_inputs():
     list_of_inputs = []
 
-    input1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    p1 = 2.0
-    input_dict1 = {"input": input1, "p": p1}
+    # Input 1: Basic 2D float tensor
+    input1 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    input_dict1 = {"input": input1, "p": 2.0}
     list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D float tensor with different p values
+    input2 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    input_dict2 = {"input": input2, "p": 1.0}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D float tensor with negative values
+    input3 = np.array([[-1.0, 2.0], [3.0, -4.0]])
+    input_dict3 = {"input": input3, "p": 2.0}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
     return list_of_inputs
 

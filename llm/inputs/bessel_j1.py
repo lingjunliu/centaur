@@ -13,13 +13,9 @@ def bessel_j1_inputs():
     input_dict1 = {"x": x1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    x2 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    x2 = np.array([-1.0, -2.0, -3.0], dtype=np.float64)
     input_dict2 = {"x": x2}
     list_of_inputs.append(copy.deepcopy(input_dict2))
-
-    x3 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    input_dict3 = {"x": x3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
 
     return list_of_inputs
 

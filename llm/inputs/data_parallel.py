@@ -9,7 +9,7 @@ import copy
 import numpy as np
 
 def data_parallel_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
     class DummyModule(nn.Module):
         def __init__(self):
@@ -21,61 +21,21 @@ def data_parallel_inputs():
 
     module = DummyModule()
 
-    input1 = torch.randn(20, 10).float().numpy()
-    input_dict1 = {
-        "module": module,
-        "inputs": input1,
-        "device_ids": [0],
-        "output_device": 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: Simple case with a single GPU
+    inputs = torch.randn(20, 10).numpy()
+    device_ids = [0]
+    output_device = 0
+    input_dict = {'module': module, 'inputs': inputs, 'device_ids': device_ids, 'output_device': output_device}
+    generated_inputs.append(copy.deepcopy(input_dict))
 
-    input2 = torch.randn(10, 10).double().numpy()
-    input_dict2 = {
-        "module": module,
-        "inputs": input2,
-        "device_ids": [0, 1],
-        "output_device": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2: Multiple GPUs
+    inputs = torch.randn(32, 10).numpy()
+    device_ids = [0, 1]
+    output_device = 0
+    input_dict = {'module': module, 'inputs': inputs, 'device_ids': device_ids, 'output_device': output_device}
+    generated_inputs.append(copy.deepcopy(input_dict))
 
-    input3 = torch.randn(5, 10).half().numpy()
-    input_dict3 = {
-        "module": module,
-        "inputs": input3,
-        "device_ids": [0],
-        "output_device": 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-
-    input4 = torch.randn(1, 10, dtype=torch.complex64).numpy()
-    input_dict4 = {
-        "module": module,
-        "inputs": input4,
-        "device_ids": None,
-        "output_device": 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    input5 = torch.randn(30, 10, dtype=torch.complex128).numpy()
-    input_dict5 = {
-        "module": module,
-        "inputs": input5,
-        "device_ids": None,
-        "output_device": 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-
-    input6 = torch.randn(10, 10, 10).float().numpy()
-    input_dict6 = {
-        "module": module,
-        "inputs": input6,
-        "device_ids": [0],
-        "output_device": 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
-    
-    return list_of_inputs
+    return generated_inputs
 
 generated_inputs = data_parallel_inputs()
 

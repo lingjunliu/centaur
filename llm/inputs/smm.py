@@ -3,55 +3,55 @@ from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
 import torch
-import numpy as np
 import copy
+import numpy as np
 
 def smm_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with float32
+    # Input 1: Basic case with float sparse and dense matrices
     indices = torch.tensor([[0, 0], [1, 2], [2, 1]], dtype=torch.long)
-    values = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32)
+    values = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float)
     size = torch.Size([3, 3])
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).to_dense()
-    mat = torch.randn(3, 4).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
+    sparse_input = torch.sparse_coo_tensor(indices, values, size).coalesce()
+    dense_mat = torch.randn(3, 4).numpy()
+    input_dict = {"input": sparse_input.to_dense().numpy(), "mat": dense_mat}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Integer sparse matrix and float dense matrix
-    indices = torch.tensor([[0, 1], [1, 0], [2, 2]], dtype=torch.long)
-    values = torch.tensor([4, 5, 6], dtype=torch.int64)
-    size = torch.Size([3, 3])
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).to_dense()
-    mat = torch.randn(3, 5).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Negative values in sparse matrix
-    indices = torch.tensor([[0, 0], [1, 1], [2, 2]], dtype=torch.long)
-    values = torch.tensor([-1.0, -2.0, -3.0], dtype=torch.float32)
-    size = torch.Size([3, 3])
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).to_dense()
-    mat = torch.randn(3, 2).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Larger sparse matrix and smaller dense matrix (transpose needed)
-    indices = torch.tensor([[0, 0], [1, 2], [2, 1], [3, 3]], dtype=torch.long)
-    values = torch.tensor([1.0, 2.0, 3.0, 4.0], dtype=torch.float32)
+    # Input 2: Different dimensions, int sparse and dense matrices
+    indices = torch.tensor([[0, 0], [1, 1], [2, 2], [3, 3]], dtype=torch.long)
+    values = torch.tensor([1, 2, 3, 4], dtype=torch.int)
     size = torch.Size([4, 4])
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).to_dense()
-    mat = torch.randn(4, 3).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
+    sparse_input = torch.sparse_coo_tensor(indices, values, size).coalesce()
+    dense_mat = torch.randint(0, 5, (4, 2)).numpy()
+    input_dict = {"input": sparse_input.to_dense().numpy(), "mat": dense_mat}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Rectangular sparse matrix
-    indices = torch.tensor([[0, 0], [1, 1], [2, 0]], dtype=torch.long)
-    values = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32)
-    size = torch.Size([3, 2])
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).to_dense()
-    mat = torch.randn(2, 4).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
+    # Input 3: Negative values, float sparse and dense matrices
+    indices = torch.tensor([[0, 1], [1, 0], [2, 2]], dtype=torch.long)
+    values = torch.tensor([-1.0, 2.0, -3.0], dtype=torch.float)
+    size = torch.Size([3, 3])
+    sparse_input = torch.sparse_coo_tensor(indices, values, size).coalesce()
+    dense_mat = torch.randn(3, 5).numpy()
+    input_dict = {"input": sparse_input.to_dense().numpy(), "mat": dense_mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger sparse matrix, complex dense matrix
+    indices = torch.tensor([[0, 0], [1, 2], [3, 1], [4,4]], dtype=torch.long)
+    values = torch.tensor([1.0, 2.0, 3.0, 4.0], dtype=torch.float)
+    size = torch.Size([5, 5])
+    sparse_input = torch.sparse_coo_tensor(indices, values, size).coalesce()
+    dense_mat = (torch.randn(5, 3) + 1j * torch.randn(5, 3)).numpy()
+    input_dict = {"input": sparse_input.to_dense().numpy(), "mat": dense_mat}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Rectangular matrices, mixed types
+    indices = torch.tensor([[0, 0], [1, 2], [2, 0]], dtype=torch.long)
+    values = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float)
+    size = torch.Size([3, 4])
+    sparse_input = torch.sparse_coo_tensor(indices, values, size).coalesce()
+    dense_mat = torch.randn(4, 2).numpy()
+    input_dict = {"input": sparse_input.to_dense().numpy(), "mat": dense_mat}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

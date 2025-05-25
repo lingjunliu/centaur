@@ -8,85 +8,90 @@ import numpy as np
 def compile_inputs():
     list_of_inputs = []
 
-    def foo(x):
+    def simple_model(x):
         return torch.sin(x) + torch.cos(x)
 
-    # Input 1: Basic example with fullgraph=True
-    input_dict = {
-        "model": foo,
-        "fullgraph": True,
-        "dynamic": None,
-        "backend": "inductor",
-        "mode": "default",
+    model = simple_model
+
+    input_dict_1 = {
+        "model": model,
         "options": {"triton.cudagraphs": True},
-        "config": None,
-        "debug": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2:  fullgraph=False, dynamic=True
-    def bar(x, y):
-        return torch.matmul(x, y)
-
-    input_dict = {
-        "model": bar,
-        "fullgraph": False,
-        "dynamic": True,
-        "backend": "inductor",
-        "mode": "max-autotune",
-        "options": {},
-        "config": None,
-        "debug": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3:  Different backend and mode
-    def baz(x):
-        return torch.relu(x)
-
-    input_dict = {
-        "model": baz,
-        "fullgraph": False,
         "dynamic": False,
-        "backend": "inductor",
-        "mode": "reduce-overhead",
-        "options": {},
-        "config": None,
-        "debug": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: with options
-    def qux(x):
-        return x * x
-
-    input_dict = {
-        "model": qux,
-        "fullgraph": False,
-        "dynamic": None,
-        "backend": "inductor",
-        "mode": "max-autotune",
-        "options": {"epilogue_fusion": True, "max_autotune": True},
-        "config": None,
-        "debug": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5:  lambda function as model
-    def fun_lambda(x):
-        return x + 1
-
-    input_dict = {
-        "model": fun_lambda,
+        "backend": 'inductor',
         "fullgraph": True,
-        "dynamic": False,
-        "backend": "inductor",
-        "mode": "default",
-        "options": {},
+        "mode": 'default',
         "config": None,
         "debug": False
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+
+    def model_2(x):
+        return torch.relu(torch.matmul(x, x.T))
+
+    model = model_2
+
+    input_dict_2 = {
+        "model": model,
+        "options": {},
+        "dynamic": True,
+        "backend": 'inductor',
+        "fullgraph": False,
+        "mode": 'max-autotune',
+        "config": None,
+        "debug": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    def model_3(x):
+        return torch.sigmoid(x * 2)
+
+    model = model_3
+
+    input_dict_3 = {
+        "model": model,
+        "options": {"epilogue_fusion": True, "max_autotune": True},
+        "dynamic": None,
+        "backend": 'inductor',
+        "fullgraph": False,
+        "mode": 'default',
+        "config": None,
+        "debug": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    def model_4(x):
+        return torch.log(torch.abs(x) + 1)
+
+    model = model_4
+
+    input_dict_4 = {
+        "model": model,
+        "options": {"shape_padding": True},
+        "dynamic": False,
+        "backend": 'inductor',
+        "fullgraph": False,
+        "mode": 'reduce-overhead',
+        "config": None,
+        "debug": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    def model_5(x):
+        return torch.sqrt(torch.square(x))
+
+    model = model_5
+
+    input_dict_5 = {
+        "model": model,
+        "options": {"trace.enabled": True},
+        "dynamic": True,
+        "backend": 'inductor',
+        "fullgraph": True,
+        "mode": 'max-autotune-no-cudagraphs',
+        "config": None,
+        "debug": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
     return list_of_inputs
 

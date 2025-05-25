@@ -7,11 +7,10 @@ import numpy as np
 
 def vitals_enabled_inputs():
     list_of_inputs = []
-    
-    # Input is not actually used, but driver expects a dictionary with a valid 'input' key.
-    input1 = {"input": np.array([1.0])}
-    list_of_inputs.append(copy.deepcopy(input1))
-    
+
+    input_dict = {"input": np.array(False)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = vitals_enabled_inputs()

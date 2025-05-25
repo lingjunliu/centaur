@@ -2,29 +2,20 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def i1_inputs():
     list_of_inputs = []
 
     # Input 1: Basic float tensor
-    x = torch.randn(5).numpy()
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Negative values
-    x = (torch.randn(5) * -1.0).numpy()
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Multi-dimensional tensor
-    x = torch.randn(2, 3, 4).numpy()
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Tensor with large values
-    x = (torch.rand(5) * 100).numpy()
+    # Input 2: Negative float tensor
+    x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

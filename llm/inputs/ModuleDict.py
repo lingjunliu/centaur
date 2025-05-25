@@ -5,16 +5,16 @@ from eval.oracle import oracle_crash
 import torch
 import torch.nn as nn
 import copy
+import collections
 
 def ModuleDict_inputs():
     list_of_inputs = []
 
-    # Input 1: Empty ModuleDict
-    input_dict = {
-        'modules': {}
-    }
-    list_of_inputs.append(input_dict)
-    
+    # Input 1: Empty dictionary
+    modules = {}
+    input_dict = {"modules": modules}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = ModuleDict_inputs()

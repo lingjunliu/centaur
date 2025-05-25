@@ -7,8 +7,8 @@ import torch, copy
 def run_frozen_optimizations_inputs():
     list_of_inputs = []
 
-    # Example 1: Simple module
-    class SimpleModule(torch.nn.Module):
+    # Example 1: Simple linear model
+    class LinearModel(torch.nn.Module):
         def __init__(self):
             super().__init__()
             self.linear = torch.nn.Linear(10, 5)
@@ -16,8 +16,8 @@ def run_frozen_optimizations_inputs():
         def forward(self, x):
             return self.linear(x)
 
-    mod = SimpleModule()
-    scripted_module = torch.jit.script(mod)
+    model = LinearModel()
+    scripted_module = torch.jit.script(model)
     input_dict = {"mod": scripted_module}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

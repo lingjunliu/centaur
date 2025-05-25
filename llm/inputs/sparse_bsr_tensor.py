@@ -7,49 +7,28 @@ import numpy as np
 import copy
 
 def sparse_bsr_tensor_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
     # Input 1: Basic float tensor
-    crow_indices = np.array([0, 2]).astype(np.int64)
-    col_indices = np.array([0, 1]).astype(np.int64)
-    values = np.random.randn(2, 2, 2).astype(np.float32)
+    crow_indices = np.array([0, 2, 4])
+    col_indices = np.array([0, 2, 1, 2])
+    values = np.random.randn(4, 2, 2).astype(np.float32)
     size = (4, 4)
     blocksize = (2, 2)
     dtype = torch.float32
     requires_grad = False
-    
     input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "blocksize": blocksize,
-        "dtype": dtype,
-        "requires_grad": requires_grad
+        'crow_indices': crow_indices,
+        'col_indices': col_indices,
+        'values': values,
+        'size': size,
+        'blocksize': blocksize,
+        'dtype': dtype,
+        'requires_grad': requires_grad
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2: Int tensor with different blocksize
-    crow_indices = np.array([0, 1]).astype(np.int64)
-    col_indices = np.array([0]).astype(np.int64)
-    values = np.random.randint(0, 10, size=(1, 2, 3)).astype(np.int64)
-    size = (2, 3)
-    blocksize = (2, 3)
-    dtype = torch.int64
-    requires_grad = True
-    
-    input_dict = {
-        "crow_indices": crow_indices,
-        "col_indices": col_indices,
-        "values": values,
-        "size": size,
-        "blocksize": blocksize,
-        "dtype": dtype,
-        "requires_grad": requires_grad
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    return list_of_inputs
+    generated_inputs.append(copy.deepcopy(input_dict))
+
+    return generated_inputs
 
 generated_inputs = sparse_bsr_tensor_inputs()
 

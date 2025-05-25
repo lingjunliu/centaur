@@ -16,7 +16,7 @@ def modified_bessel_i1_inputs():
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    x = np.array([0.5, 1.5, 2.5], dtype=np.float64)
+    x = np.array([0.0, 0.5, 1.5], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -24,7 +24,23 @@ def modified_bessel_i1_inputs():
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    x = np.array([1, 2, 3], dtype=np.int32).astype(np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    x = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    x = np.array([1.0, 2.0], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    x = np.array(1.0, dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

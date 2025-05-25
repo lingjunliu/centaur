@@ -2,18 +2,19 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def hermite_polynomial_he_inputs():
-    list_of_inputs = []
+    generated_inputs = []
 
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    n = 2
-    input_dict = {"x": x, "n": n}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    x1 = np.array([1.0, 2.0, 3.0])
+    n1 = 2
+    input_dict1 = {"x": x1, "n": n1}
+    generated_inputs.append(copy.deepcopy(input_dict1))
     
-    return list_of_inputs
+    return generated_inputs
 
 generated_inputs = hermite_polynomial_he_inputs()
 

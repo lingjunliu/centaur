@@ -8,21 +8,26 @@ import numpy as np
 def get_autocast_xla_dtype_inputs():
     list_of_inputs = []
 
-    input1 = {"dtype": torch.float32}
-    list_of_inputs.append(copy.deepcopy(input1))
+    input_dict = {
+        "dtype": torch.float32
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input2 = {"dtype": torch.float64}
-    list_of_inputs.append(copy.deepcopy(input2))
+    input_dict = {
+        "dtype": torch.float16
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input3 = {"dtype": torch.float16}
-    list_of_inputs.append(copy.deepcopy(input3))
-
-    input4 = {"dtype": torch.complex64}
-    list_of_inputs.append(copy.deepcopy(input4))
-
-    input5 = {"dtype": torch.complex128}
-    list_of_inputs.append(copy.deepcopy(input5))
-
+    input_dict = {
+        "dtype": torch.bfloat16
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_dict = {
+        "dtype": torch.complex64
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = get_autocast_xla_dtype_inputs()

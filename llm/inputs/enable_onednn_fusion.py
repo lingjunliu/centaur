@@ -8,20 +8,17 @@ import copy
 def enable_onednn_fusion_inputs():
     list_of_inputs = []
 
-    input1 = {"fusion": True}
-    list_of_inputs.append(input1)
+    # Test case 1: Enable fusion
+    input_dict_1 = {
+        "fusion": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    input2 = {"fusion": False}
-    list_of_inputs.append(input2)
-
-    input3 = {"fusion": True}
-    list_of_inputs.append(input3)
-
-    input4 = {"fusion": False}
-    list_of_inputs.append(input4)
-    
-    input5 = {"fusion": True}
-    list_of_inputs.append(input5)
+    # Test case 2: Disable fusion
+    input_dict_2 = {
+        "fusion": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
     return list_of_inputs
 

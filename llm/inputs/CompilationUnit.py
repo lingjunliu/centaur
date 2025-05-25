@@ -7,55 +7,55 @@ import torch, copy
 def CompilationUnit_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple function definition
+    # Input 1: Basic valid string
     input1 = """
     def foo(x):
         return x + 1
     """
-    list_of_inputs.append({"source": input1, "input": torch.randn(1).numpy()})
+    input_dict1 = {"script": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Function with type hints
+    # Input 2:  More complex function with multiple operations
     input2 = """
-    def bar(x: int) -> int:
-        return x * 2
+    def bar(x, y):
+        z = x * y
+        return z - 2
     """
-    list_of_inputs.append({"source": input2, "input": torch.randint(0, 10, (1,)).numpy()})
+    input_dict2 = {"script": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Class definition with a method
+    # Input 3: Function with conditional statement
     input3 = """
-    class MyClass:
-        def __init__(self, value: float):
-            self.value = value
-
-        def get_value(self) -> float:
-            return self.value
+    def baz(x):
+        if x > 0:
+            return x * 2
+        else:
+            return x / 2
     """
-    list_of_inputs.append({"source": input3, "input": torch.randn(1, 1).numpy()})
-
-    # Input 4: Multiple functions and classes
+    input_dict3 = {"script": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4: Multiple functions defined in the same string
     input4 = """
-    def add(x: int, y: int) -> int:
-        return x + y
+    def func1(a):
+        return a + 5
 
-    class Point:
-        def __init__(self, x: float, y: float):
-            self.x = x
-            self.y = y
-
-        def distance_from_origin(self) -> float:
-            return (self.x**2 + self.y**2)**0.5
+    def func2(b):
+        return b * 3
     """
-    list_of_inputs.append({"source": input4, "input": torch.randn(2, 2).numpy()})
-
-    # Input 5: A function that uses torch
+    input_dict4 = {"script": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5:  Function calling another function (defined within the same string)
     input5 = """
-    import torch
+    def inner(x):
+        return x * x
 
-    def create_tensor(size: int) -> torch.Tensor:
-        return torch.randn(size)
+    def outer(y):
+        return inner(y) + 1
     """
-    list_of_inputs.append({"source": input5, "input": torch.randn(3, 3).numpy()})
-
+    input_dict5 = {"script": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
     return list_of_inputs
 

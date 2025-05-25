@@ -9,18 +9,36 @@ import numpy as np
 def fork_inputs():
     list_of_inputs = []
 
-    # Example 1: Forking a simple function with a tensor argument
-    def foo1(a):
-        return a + 1
+    # Define a simple function to be forked
+    def simple_func(a, b=1):
+        return a + b
 
-    input1 = torch.randn(2, 3).numpy()
-    input_dict1 = {
-        "func": foo1,
-        "args": [input1],
+    # Input 1: Fork a free function with positional arguments
+    input_dict = {
+        "func": simple_func,
+        "args": [torch.tensor(1)],
         "kwargs": {}
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 2: Fork a free function with positional and keyword arguments
+    input_dict = {
+        "func": simple_func,
+        "args": [torch.tensor(2)],
+        "kwargs": {"b": torch.tensor(3)}
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Fork a free function with no arguments
+    def no_arg_func():
+        return torch.tensor(4)
+    input_dict = {
+        "func": no_arg_func,
+        "args": [],
+        "kwargs": {}
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = fork_inputs()

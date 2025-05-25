@@ -4,38 +4,21 @@ from eval.oracle import oracle_crash
 
 import torch
 import torch.nn as nn
-import numpy as np
+import torch.nn.utils as nn_utils
+import copy
 
 def remove_weight_norm_inputs():
     list_of_inputs = []
 
-    # Example 1: Linear layer
-    linear_module = nn.Linear(10, 20)
-    nn.utils.weight_norm(linear_module, name='weight')
-    input_dict = {
-        "module": linear_module,
-        "name": 'weight'
-    }
-    list_of_inputs.append(input_dict)
-
-    # Example 2: Conv1d layer
-    conv1d_module = nn.Conv1d(3, 16, 5)
-    nn.utils.weight_norm(conv1d_module, name='weight')
-    input_dict = {
-        "module": conv1d_module,
-        "name": 'weight'
-    }
-    list_of_inputs.append(input_dict)
-
-    # Example 3: Conv2d layer
-    conv2d_module = nn.Conv2d(3, 16, (3, 5))
-    nn.utils.weight_norm(conv2d_module, name='weight')
-    input_dict = {
-        "module": conv2d_module,
-        "name": 'weight'
-    }
-    list_of_inputs.append(input_dict)
-
+    class MyModule1(nn.Module):
+        def __init__(self):
+            super(MyModule1, self).__init__()
+            self.linear = nn.Linear(10, 20)
+            nn_utils.weight_norm(self.linear)
+    module1 = MyModule1()
+    input_dict1 = {"module": module1, "name": "linear"}
+    list_of_inputs.append(input_dict1)
+    
     return list_of_inputs
 
 generated_inputs = remove_weight_norm_inputs()

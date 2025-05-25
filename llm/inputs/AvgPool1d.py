@@ -9,49 +9,37 @@ def avgpool1d_inputs():
     list_of_inputs = []
 
     input1 = torch.randn(1, 1, 7).numpy()
+    kernel_size1 = 3
+    stride1 = 2
+    padding1 = 0
+    ceil_mode1 = False
+    count_include_pad1 = True
     input_dict1 = {
-        'input': input1,
-        'kernel_size': 3,
-        'stride': 2,
-        'padding': 0,
-        'ceil_mode': False,
-        'count_include_pad': True
+        "input": input1,
+        "kernel_size": kernel_size1,
+        "stride": stride1,
+        "padding": padding1,
+        "ceil_mode": ceil_mode1,
+        "count_include_pad": count_include_pad1
     }
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     input2 = torch.randn(1, 2, 10).numpy()
+    kernel_size2 = 4
+    stride2 = 2
+    padding2 = 1
+    ceil_mode2 = True
+    count_include_pad2 = False
     input_dict2 = {
-        'input': input2,
-        'kernel_size': 2,
-        'stride': 1,
-        'padding': 1,
-        'ceil_mode': False,
-        'count_include_pad': True
+        "input": input2,
+        "kernel_size": kernel_size2,
+        "stride": stride2,
+        "padding": padding2,
+        "ceil_mode": ceil_mode2,
+        "count_include_pad": count_include_pad2
     }
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input3 = torch.randn(2, 3, 15).numpy()
-    input_dict3 = {
-        'input': input3,
-        'kernel_size': 4,
-        'stride': 3,
-        'padding': 2,
-        'ceil_mode': True,
-        'count_include_pad': False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-
-    input4 = torch.randn(1, 10).numpy()
-    input_dict4 = {
-        'input': input4,
-        'kernel_size': 3,
-        'stride': 1,
-        'padding': 0,
-        'ceil_mode': False,
-        'count_include_pad': False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-    
     return list_of_inputs
 
 generated_inputs = avgpool1d_inputs()

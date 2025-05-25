@@ -949,14 +949,21 @@ inputs_per_api = {
     'masked_select': valid_inputs.masked_select_inputs(),
     'logical_and': valid_inputs.logical_and_inputs(),
     'logical_xor': valid_inputs.logical_xor_inputs(),
-    'cartesian_prod': valid_inputs.cartesian_prod_inputs()  # llm end
+    'cartesian_prod': valid_inputs.cartesian_prod_inputs(),
+    'unique': valid_inputs.unique_inputs(),
+    'DoubleStorage': valid_inputs.DoubleStorage_inputs(),
+    'ShortStorage': valid_inputs.ShortStorage_inputs(),
+    'enable_grad': valid_inputs.enable_grad_inputs(),
+    'HingeEmbeddingLoss': valid_inputs.hinge_embedding_loss_inputs(),
+    'asarray': valid_inputs.asarray_inputs(),
+    'sspaddmm': valid_inputs.sspaddmm_inputs(),
+    'vitals_enabled': valid_inputs.vitals_enabled_inputs(),  # llm end
 }
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
     api_signature = get_signatures()[api]
     # Return human written inputs if available
     if api in inputs_per_api:
-        print(api)
         return augment_inputs(inputs_per_api[api], api_signature)
     
     # Generate valid inputs through random generation otherwise
@@ -1005,7 +1012,7 @@ def main():
         apis.add(api)
         total_inputs += len(get_inputs(api))
     
-    print(f"{len(apis)} apis has pre-defined inputs, {round(total_inputs/len(apis), 2)} inputs on average")
+    print(f"\n{len(apis)} apis has pre-defined inputs, {round(total_inputs/len(apis), 2)} inputs on average")
     
 if __name__ == "__main__":
     main()

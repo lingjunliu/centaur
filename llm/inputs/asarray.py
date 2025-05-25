@@ -9,24 +9,14 @@ import copy
 def asarray_inputs():
     list_of_inputs = []
 
-    # Input 1: 1D numpy array of integers
-    obj = np.array([1, 2, 3], dtype=np.int32)
+    # Input 1: 1D NumPy array of integers
+    obj = np.array([1, 2, 3, 4, 5])
     input_dict = {"obj": obj, "dtype": None, "copy": None, "requires_grad": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D numpy array of floats, specify dtype
-    obj = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)
+    # Input 2: 2D NumPy array of floats with specified dtype
+    obj = np.array([[1.1, 2.2], [3.3, 4.4]])
     input_dict = {"obj": obj, "dtype": torch.float64, "copy": True, "requires_grad": False}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Numpy scalar
-    obj = np.float32(0.5)
-    input_dict = {"obj": obj, "dtype": None, "copy": None, "requires_grad": False}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4: 1D numpy array of negative integers
-    obj = np.array([-1, -2, -3], dtype=np.int32)
-    input_dict = {"obj": obj, "dtype": None, "copy": None, "requires_grad": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

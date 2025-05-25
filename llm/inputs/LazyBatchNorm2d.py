@@ -13,34 +13,7 @@ def lazy_batchnorm2d_inputs():
         "momentum": 0.1,
         "affine": True,
         "track_running_stats": True,
-        "dtype": torch.float32
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "eps": 1e-03,
-        "momentum": 0.2,
-        "affine": False,
-        "track_running_stats": False,
-        "dtype": torch.float64
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "eps": 1e-07,
-        "momentum": None,
-        "affine": True,
-        "track_running_stats": True,
-        "dtype": torch.float16
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input_dict = {
-        "eps": 0.0,
-        "momentum": 0.99,
-        "affine": False,
-        "track_running_stats": False,
-        "dtype": torch.float32
+        "dtype": None,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

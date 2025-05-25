@@ -5,20 +5,25 @@ from eval.oracle import oracle_crash
 import torch
 import copy
 import numpy as np
+import torch.nn as nn
 
 def torch_jit_script_inputs():
     generated_inputs = []
 
-    def test_sum(a, b):
-        return a + b
+    # 1. Scripting a simple function
+    def simple_func(x, y):
+        if x.max() > y.max():
+            r = x
+        else:
+            r = y
+        return r
 
-    example_inputs = [(np.array(3), np.array(4))]
     input_dict = {
-        'obj': test_sum,
+        'obj': simple_func,
         'optimize': True,
         '_frames_up': 0,
         '_rcb': None,
-        'example_inputs': example_inputs
+        'example_inputs': [(torch.ones(2, 2).numpy(), torch.ones(2, 2).numpy())]
     }
     generated_inputs.append(copy.deepcopy(input_dict))
 

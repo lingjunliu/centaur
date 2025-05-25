@@ -16,6 +16,10 @@ def sinc_inputs():
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    x = np.array(0.0)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     x = np.array([1.0, 2.0, 3.0])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
@@ -27,7 +31,15 @@ def sinc_inputs():
     x = np.array([[1.0, 2.0], [3.0, 4.0]])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    x = np.array([1, 2, 3], dtype=np.int32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = sinc_inputs()

@@ -2,25 +2,19 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def rmsnorm_inputs():
     list_of_inputs = []
 
+    # Test case 1: Basic case with a single integer normalized_shape
     input_dict = {
-        "normalized_shape": [2, 3],
+        "normalized_shape": [3],
         "eps": 1e-05,
         "elementwise_affine": True,
-        "dtype": np.float32
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "normalized_shape": [5],
-        "eps": 1e-06,
-        "elementwise_affine": False,
-        "dtype": np.float64
+        "dtype": torch.float32
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

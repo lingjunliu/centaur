@@ -2,22 +2,26 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def unfold_inputs():
     list_of_inputs = []
 
-    # Test case 1: Basic case with different kernel sizes
-    input = torch.randn(2, 3, 10, 12).numpy()
-    kernel_size = (3, 4)
-    dilation = (1, 1)
-    padding = (0, 0)
-    stride = (1, 1)
-    input_dict = {'input': input, 'kernel_size': kernel_size, 'dilation': dilation, 'padding': padding, 'stride': stride}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    # Case 1: Basic case with different kernel_size, stride, padding, and dilation
+    input1 = torch.randn(2, 3, 10, 12).numpy()
+    kernel_size1 = (3, 4)
+    dilation1 = (2, 1)
+    padding1 = (1, 0)
+    stride1 = (2, 3)
+    input_dict1 = {
+        "input": input1,
+        "kernel_size": kernel_size1,
+        "dilation": dilation1,
+        "padding": padding1,
+        "stride": stride1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
     return list_of_inputs
 
 generated_inputs = unfold_inputs()

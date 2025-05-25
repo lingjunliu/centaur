@@ -10,10 +10,35 @@ def xlog1py_inputs():
     list_of_inputs = []
 
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    y = np.array([0.5, 1.0, 1.5], dtype=np.float32)
+    y = np.array([4.0, 5.0, 6.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    x = np.array([-0.5, -0.2, -0.1], dtype=np.float32)
+    y = np.array([4.0, 5.0, 6.0], dtype=np.float32)
     input_dict = {"x": x, "y": y}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    y = np.array([4.0, 5.0, 6.0], dtype=np.float64)
+    input_dict = {"x": x, "y": y}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    y = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    input_dict = {"x": x, "y": y}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    x = np.array([1.0], dtype=np.float32)
+    y = np.array([4.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x = np.array(np.float32(2.0))
+    y = np.array(np.float32(4.0))
+    input_dict = {"x": x, "y": y}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = xlog1py_inputs()

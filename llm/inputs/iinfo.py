@@ -2,52 +2,19 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def iinfo_inputs():
     list_of_inputs = []
 
-    input_dict = {
-        "dtype": np.dtype('int8')
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    dtypes = [torch.int8, torch.int16, torch.int32, torch.int64, torch.uint8, torch.float16, torch.float32, torch.float64]
 
-    input_dict = {
-        "dtype": np.dtype('int16')
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    for dtype in dtypes:
+        input_dict = {'dtype': dtype}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_dict = {
-        "dtype": np.dtype('int32')
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "dtype": np.dtype('int64')
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "dtype": np.dtype('uint8')
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "dtype": np.dtype('float16')
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "dtype": np.dtype('float32')
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "dtype": np.dtype('float64')
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = iinfo_inputs()

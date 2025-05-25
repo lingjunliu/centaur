@@ -7,11 +7,11 @@ import torch, copy
 def parse_schema_inputs():
     list_of_inputs = []
 
-    # Case 1: Simple schema
-    schema_string = "aten::add(Tensor self, Tensor other, *, Scalar alpha=1) -> Tensor"
-    input_dict = {"schema_string": schema_string}
+    input_dict = {
+        "schema_string": "aten::add.out(Tensor self, Tensor other, *, Scalar alpha=1, Tensor(a!) out) -> Tensor(a!)"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = parse_schema_inputs()

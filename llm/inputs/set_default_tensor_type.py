@@ -16,10 +16,10 @@ def set_default_tensor_type_inputs():
     input3 = {"t": 'torch.HalfTensor'}
     list_of_inputs.append(copy.deepcopy(input3))
 
-    input4 = {"t": 'torch.ByteTensor'}
+    input4 = {"t": 'torch.BFloat16Tensor'}
     list_of_inputs.append(copy.deepcopy(input4))
 
-    input5 = {"t": 'torch.ShortTensor'}
+    input5 = {"t": 'torch.BoolTensor'}
     list_of_inputs.append(copy.deepcopy(input5))
 
     return list_of_inputs

@@ -2,8 +2,9 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def cudnn_affine_grid_generator_inputs():
     list_of_inputs = []
@@ -21,7 +22,8 @@ def cudnn_affine_grid_generator_inputs():
         "W": W1
     }
     list_of_inputs.append(copy.deepcopy(input_dict1))
-    
+
+
     return list_of_inputs
 
 generated_inputs = cudnn_affine_grid_generator_inputs()

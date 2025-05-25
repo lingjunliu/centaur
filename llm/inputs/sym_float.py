@@ -10,8 +10,8 @@ def sym_float_inputs():
     generated_inputs = []
 
     # Input 1: Scalar float
-    a = np.array(3.14, dtype=np.float32)
-    generated_inputs.append({"a": a})
+    a1 = np.array(3.14, dtype=np.float32)
+    generated_inputs.append({"a": a1})
 
     return generated_inputs
 

@@ -2,69 +2,19 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def index_add_inputs():
     list_of_inputs = []
 
-    # Case 1: Simple 2D case with float tensor
-    input_tensor = np.zeros((3, 5), dtype=np.float32)
-    index_tensor = np.array([0, 1, 0], dtype=np.int64)
-    source_tensor = np.random.randn(3, 5).astype(np.float32)
-    dim = 0
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "index": index_tensor,
-        "source": source_tensor
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    input_tensor = np.zeros((3, 5), dtype=np.float32)
-    index_tensor = np.array([0, 1, 0], dtype=np.int64)
-    source_tensor = np.random.randn(3, 5).astype(np.float32)
-    dim = 0
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "index": index_tensor,
-        "source": source_tensor
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    input_tensor = np.zeros((3, 5), dtype=np.float32)
-    index_tensor = np.array([0, 1, 0], dtype=np.int64)
-    source_tensor = np.random.randn(3, 5).astype(np.float32)
-    dim = 0
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "index": index_tensor,
-        "source": source_tensor
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    input_tensor = np.zeros((3, 5), dtype=np.float32)
-    index_tensor = np.array([0, 1, 0], dtype=np.int64)
-    source_tensor = np.random.randn(3, 5).astype(np.float32)
-    dim = 0
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "index": index_tensor,
-        "source": source_tensor
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    input_tensor = np.zeros((3, 5), dtype=np.float32)
-    index_tensor = np.array([0, 1, 0], dtype=np.int64)
-    source_tensor = np.random.randn(3, 5).astype(np.float32)
-    dim = 0
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "index": index_tensor,
-        "source": source_tensor
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    # Case 1: Basic float tensor
+    input1 = np.zeros((5, 3), dtype=np.float32)
+    index1 = np.array([0, 2, 4], dtype=np.int64)
+    source1 = np.random.randn(3, 3).astype(np.float32)
+    input_dict1 = {"input": input1, "dim": 0, "index": index1, "source": source1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
     return list_of_inputs
 

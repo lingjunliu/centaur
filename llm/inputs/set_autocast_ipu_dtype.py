@@ -9,20 +9,35 @@ def set_autocast_ipu_dtype_inputs():
     list_of_inputs = []
 
     input_dict = {
-        "dtype": torch.float32
+        "dtype": np.dtype('float32')
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     input_dict = {
-        "dtype": torch.float16
+        "dtype": np.dtype('float16')
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     input_dict = {
-        "dtype": torch.bfloat16
+        "dtype": np.dtype('int32')
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    input_dict = {
+        "dtype": np.dtype('int8')
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {
+        "dtype": np.dtype('uint8')
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {
+        "dtype": np.dtype('float64')
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = set_autocast_ipu_dtype_inputs()

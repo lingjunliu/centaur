@@ -2,20 +2,19 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch
-import copy
+import torch, copy
 import numpy as np
 
 def rrelu_inputs():
     list_of_inputs = []
 
-    input_dict = {
+    input_dict_1 = {
         "lower": 0.1,
         "upper": 0.3,
         "inplace": False
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    
     return list_of_inputs
 
 generated_inputs = rrelu_inputs()

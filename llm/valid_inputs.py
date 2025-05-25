@@ -18064,3 +18064,493 @@ def cartesian_prod_inputs():
     input_dict5 = {"tensors": tensors5}
     generated_inputs.append(copy.deepcopy(input_dict5))
     return generated_inputs
+import torch
+import numpy as np
+import copy
+def unique_inputs():
+    list_of_inputs = []
+    # Input 1: 1D integer tensor
+    input1 = np.array([1, 3, 2, 3, 1], dtype=np.int64)
+    input_dict1 = {
+        "input": input1,
+        "sorted": True,
+        "return_inverse": False,
+        "return_counts": False,
+        "dim": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 2: 2D float tensor with return_inverse and return_counts
+    input2 = np.array([[1.5, 2.5], [3.5, 1.5], [2.5, 4.5]], dtype=np.float32)
+    input_dict2 = {
+        "input": input2,
+        "sorted": False,
+        "return_inverse": True,
+        "return_counts": True,
+        "dim": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 3: 3D integer tensor with dim=0
+    input3 = np.array([[[1, 2], [3, 4]], [[1, 2], [5, 6]], [[7, 8], [9, 10]]], dtype=np.int32)
+    input_dict3 = {
+        "input": input3,
+        "sorted": True,
+        "return_inverse": False,
+        "return_counts": False,
+        "dim": 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 4: 3D integer tensor with dim=1
+    input4 = np.array([[[1, 2], [3, 4]], [[1, 2], [5, 6]], [[7, 8], [9, 10]]], dtype=np.int32)
+    input_dict4 = {
+        "input": input4,
+        "sorted": False,
+        "return_inverse": True,
+        "return_counts": True,
+        "dim": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 5: 3D integer tensor with dim=2
+    input5 = np.array([[[1, 2], [3, 4]], [[1, 2], [5, 6]], [[7, 8], [9, 10]]], dtype=np.int32)
+    input_dict5 = {
+        "input": input5,
+        "sorted": True,
+        "return_inverse": False,
+        "return_counts": False,
+        "dim": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 6: 1D tensor with negative values
+    input6 = np.array([-1, -2, -1, 0, 1, 2, 0], dtype=np.int64)
+    input_dict6 = {
+        "input": input6,
+        "sorted": True,
+        "return_inverse": True,
+        "return_counts": True,
+        "dim": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: 2D tensor with mixed positive and negative float values
+    input7 = np.array([[-1.5, 2.5], [3.5, -1.5], [2.5, 4.5]], dtype=np.float64)
+    input_dict7 = {
+        "input": input7,
+        "sorted": True,
+        "return_inverse": False,
+        "return_counts": False,
+        "dim": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+    return list_of_inputs
+import torch
+import numpy as np
+import copy
+def bceloss_inputs():
+    list_of_inputs = []
+    # Case 1: No weight, default reduction
+    input_dict = {
+        "weight": None,
+        "size_average": None,
+        "reduce": None,
+        "reduction": 'mean',
+        "input": np.random.rand(3,2) ,
+        "target": np.random.rand(3,2)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Case 2: weight, reduction='sum'
+    input_dict = {
+        "weight": torch.randn(5).numpy() if torch.cuda.is_available() else torch.randn(5).cpu().numpy(),
+        "size_average": None,
+        "reduce": None,
+        "reduction": 'sum',
+        "input": np.random.rand(5),
+        "target": np.random.rand(5)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+import torch
+import copy
+from torch.jit import fork, wait
+def jit_wait_inputs():
+    list_of_inputs = []
+    def dummy_function(x):
+        return x * 2
+    scripted_dummy = torch.jit.script(dummy_function)
+    # Input 1: Float Tensor
+    input_tensor1 = torch.randn(3, 4)
+    future1 = fork(scripted_dummy, input_tensor1)
+    input_dict1 = {"input": input_tensor1.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 2: Int Tensor
+    input_tensor2 = torch.randint(0, 10, (2, 2))
+    future2 = fork(scripted_dummy, input_tensor2)
+    input_dict2 = {"input": input_tensor2.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 3: Different Shape Tensor
+    input_tensor3 = torch.randn(1, 5, 5, 5)
+    future3 = fork(scripted_dummy, input_tensor3)
+    input_dict3 = {"input": input_tensor3.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4: Scalar Tensor
+    input_tensor4 = torch.tensor(5.0)
+    future4 = fork(scripted_dummy, input_tensor4)
+    input_dict4 = {"input": torch.tensor(5.0).numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 5: Bool Tensor
+    input_tensor5 = torch.tensor([True, False, True])
+    future5 = fork(scripted_dummy, input_tensor5)
+    input_dict5 = {"input": torch.tensor([True, False, True]).numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+        
+    return list_of_inputs
+import torch, copy
+import numpy as np
+def DoubleStorage_inputs():
+    list_of_inputs = []
+    input1 = {"size": 0, "input": np.array([])}
+    list_of_inputs.append(copy.deepcopy(input1))
+    input2 = {"size": 1, "input": np.array([1.0])}
+    list_of_inputs.append(copy.deepcopy(input2))
+    input3 = {"size": 10, "input": np.random.randn(10)}
+    list_of_inputs.append(copy.deepcopy(input3))
+    input4 = {"size": 100, "input": np.random.randn(100)}
+    list_of_inputs.append(copy.deepcopy(input4))
+    input5 = {"size": 1000, "input": np.random.randn(1000)}
+    list_of_inputs.append(copy.deepcopy(input5))
+    return list_of_inputs
+import torch, copy
+import numpy as np
+def ShortStorage_inputs():
+    list_of_inputs = []
+    input1 = {"size": 0, "input": np.array([])}
+    list_of_inputs.append(copy.deepcopy(input1))
+    input2 = {"size": 1, "input": np.array([1], dtype=np.int16)}
+    list_of_inputs.append(copy.deepcopy(input2))
+    input3 = {"size": 10, "input": np.arange(10, dtype=np.int16)}
+    list_of_inputs.append(copy.deepcopy(input3))
+    
+    input4 = {"size": 100, "input": np.random.randint(-100, 100, size=100, dtype=np.int16)}
+    list_of_inputs.append(copy.deepcopy(input4))
+    input5 = {"size": 5, "input": np.array([-1, -2, 0, 1, 2], dtype=np.int16)}
+    list_of_inputs.append(copy.deepcopy(input5))
+    
+    return list_of_inputs
+import torch
+import copy
+def enable_grad_inputs():
+    list_of_inputs = []
+    input1 = {
+        'orig_func': None,
+        'x': torch.randn(1, requires_grad=True).detach().numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input1))
+    input2 = {
+        'orig_func': None,
+        'x': torch.randn(2, 2, requires_grad=True).detach().numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input2))
+    input3 = {
+        'orig_func': None,
+        'x': torch.randn(3, 3, 3, requires_grad=True).detach().numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input3))
+    input4 = {
+        'orig_func': None,
+        'x': torch.randn(1, 1, 1, 1, requires_grad=True).detach().numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input4))
+    input5 = {
+        'orig_func': None,
+        'x': torch.randn(10, requires_grad=True).detach().numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input5))
+    return list_of_inputs
+import torch
+import numpy as np
+import copy
+def hinge_embedding_loss_inputs():
+    list_of_inputs = []
+    input1 = np.array([0.5, 0.8, 0.2, 0.9]).astype(np.float32)
+    target1 = np.array([1, -1, 1, -1]).astype(np.int8)
+    input_dict1 = {
+        "margin": 1.0,
+        "size_average": None,
+        "reduce": None,
+        "reduction": 'mean'
+    }
+    list_of_inputs.append({"input": input1, "target": target1, **input_dict1})
+    input2 = np.array([-0.5, -0.8, -0.2, -0.9]).astype(np.float32)
+    target2 = np.array([1, -1, 1, -1]).astype(np.int8)
+    input_dict2 = {
+        "margin": 0.5,
+        "size_average": True,
+        "reduce": False,
+        "reduction": 'sum'
+    }
+    list_of_inputs.append({"input": input2, "target": target2, **input_dict2})
+    input3 = np.array([[0.1, 0.2], [0.3, 0.4]]).astype(np.float32)
+    target3 = np.array([[1, -1], [-1, 1]]).astype(np.int8)
+    input_dict3 = {
+        "margin": 2.0,
+        "size_average": False,
+        "reduce": True,
+        "reduction": 'none'
+    }
+    list_of_inputs.append({"input": input3, "target": target3, **input_dict3})
+    input4 = np.array([0.7]).astype(np.float64)
+    target4 = np.array([-1]).astype(np.int8)
+    input_dict4 = {
+        "margin": 1.5,
+        "size_average": True,
+        "reduce": True,
+        "reduction": 'mean'
+    }
+    list_of_inputs.append({"input": input4, "target": target4, **input_dict4})
+    input5 = np.array([0.2, 0.4, 0.6]).astype(np.float32)
+    target5 = np.array([1, 1, 1]).astype(np.int8)
+    input_dict5 = {
+        "margin": 1.0,
+        "size_average": None,
+        "reduce": None,
+        "reduction": 'sum'
+    }
+    list_of_inputs.append({"input": input5, "target": target5, **input_dict5})
+    input6 = np.array([0.5, 0.8, 0.2, 0.9]).astype(np.float32)
+    target6 = np.array([1, -1, 1, -1]).astype(np.int8)
+    input_dict6 = {
+        "margin": 1.0,
+        "size_average": None,
+        "reduce": None,
+        "reduction": 'none'
+    }
+    list_of_inputs.append({"input": input6, "target": target6, **input_dict6})
+    
+    input7 = np.array([1.0, 2.0, 3.0]).astype(np.float32)
+    target7 = np.array([1, 1, -1]).astype(np.int8)
+    input_dict7 = {
+        "margin": 0.0,
+        "size_average": None,
+        "reduce": None,
+        "reduction": 'mean'
+    }
+    list_of_inputs.append({"input": input7, "target": target7, **input_dict7})
+    return list_of_inputs
+import torch
+import numpy as np
+import copy
+def asarray_inputs():
+    list_of_inputs = []
+    # Input 1: 1D NumPy array of integers
+    obj = np.array([1, 2, 3, 4, 5])
+    input_dict = {"obj": obj, "dtype": None, "copy": None, "requires_grad": False}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: 2D NumPy array of floats with specified dtype
+    obj = np.array([[1.1, 2.2], [3.3, 4.4]])
+    input_dict = {"obj": obj, "dtype": torch.float64, "copy": True, "requires_grad": False}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    return list_of_inputs
+import torch
+import scipy.sparse as sparse
+import numpy as np
+import copy
+def sspaddmm_inputs():
+    list_of_inputs = []
+    # Test case 1: Basic case with float tensors
+    input_sparse = sparse.random(5, 5, density=0.5, format="coo", dtype=np.float32)
+    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
+    mat1_sparse = sparse.random(5, 3, density=0.5, format="coo", dtype=np.float32)
+    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
+    mat2 = torch.randn(3, 4).numpy()
+    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 1.0, "alpha": 1.0}
+    
+    try:
+        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=1.0, alpha=1.0)
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except RuntimeError:
+        pass
+    # Test case 2: Different shapes and beta/alpha values
+    input_sparse = sparse.random(3, 4, density=0.3, format="coo", dtype=np.float64)
+    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
+    mat1_sparse = sparse.random(3, 2, density=0.3, format="coo", dtype=np.float64)
+    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
+    mat2 = torch.randn(2, 4).numpy()
+    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 0.5, "alpha": 2.0}
+    
+    try:
+        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=0.5, alpha=2.0)
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except RuntimeError:
+        pass
+    # Test case 3: Integer tensors
+    input_sparse = sparse.random(4, 4, density=0.4, format="coo", dtype=np.int32)
+    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data.astype(np.float32)), size=input_sparse.shape).to_dense().numpy()
+    mat1_sparse = sparse.random(4, 2, density=0.4, format="coo", dtype=np.int32)
+    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data.astype(np.float32)), size=mat1_sparse.shape).to_dense().numpy()
+    mat2 = torch.randint(0, 10, (2, 3)).numpy()
+    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 0.8, "alpha": 1.5}
+    
+    try:
+        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=0.8, alpha=1.5)
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except RuntimeError:
+        pass
+    # Test case 4: Negative values and different sparsity
+    input_sparse = sparse.random(2, 5, density=0.1, format="coo", dtype=np.float32)
+    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
+    mat1_sparse = sparse.random(2, 3, density=0.1, format="coo", dtype=np.float32)
+    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
+    mat2 = torch.randn(3, 5).numpy() * -1
+    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": -1.0, "alpha": 0.5}
+    
+    try:
+        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=-1.0, alpha=0.5)
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except RuntimeError:
+        pass
+    # Test case 5: Small matrices
+    input_sparse = sparse.random(1, 1, density=1.0, format="coo", dtype=np.float64)
+    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
+    mat1_sparse = sparse.random(1, 1, density=1.0, format="coo", dtype=np.float64)
+    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
+    mat2 = torch.randn(1, 1).numpy()
+    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 0.2, "alpha": 0.8}
+    
+    try:
+        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=0.2, alpha=0.8)
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except RuntimeError:
+        pass
+    
+    # Test case 6: Larger Matrices - Adjusted for potential dimension issues
+    input_sparse = sparse.random(3, 5, density=0.2, format="coo", dtype=np.float32)  # Changed to 3x5
+    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
+    mat1_sparse = sparse.random(3, 2, density=0.2, format="coo", dtype=np.float32)  # Changed to 3x2
+    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
+    mat2 = torch.randn(2, 5).numpy() # Changed to 2x5
+    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 1.0, "alpha": 1.0}
+    try:
+        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=1.0, alpha=1.0)
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except RuntimeError:
+        pass
+    return list_of_inputs
+import torch, copy
+import numpy as np
+def vitals_enabled_inputs():
+    list_of_inputs = []
+    input_dict = {"input": np.array(False)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    return list_of_inputs
+import torch, copy
+import numpy as np
+def get_file_path_inputs():
+    list_of_inputs = []
+    
+    input_dict = {
+        "url": "https://example.com/model1.pth",
+        "model_dir": "./models",
+        "progress": True,
+        "input": np.array([1.0]) # Added to avoid TypeError, using numpy array
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_dict = {
+        "url": "http://example.org/data.tar.gz",
+        "model_dir": "/tmp/data",
+        "progress": False,
+        "input": np.array([1.0]) # Added to avoid TypeError, using numpy array
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_dict = {
+        "url": "ftp://example.net/weights.pt",
+        "model_dir": "~/weights",
+        "progress": True,
+        "input": np.array([1.0]) # Added to avoid TypeError, using numpy array
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_dict = {
+        "url": "https://s3.amazonaws.com/bucket/model.bin",
+        "model_dir": "C:\\Models",
+        "progress": False,
+        "input": np.array([1.0]) # Added to avoid TypeError, using numpy array
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {
+        "url": "https://huggingface.co/model.safetensors",
+        "model_dir": "./cache",
+        "progress": True,
+        "input": np.array([1.0]) # Added to avoid TypeError, using numpy array
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_dict = {
+        "url": "https://github.com/user/repo/releases/download/v1.0/model.zip",
+        "model_dir": "/opt/models",
+        "progress": False,
+        "input": np.array([1.0]) # Added to avoid TypeError, using numpy array
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {
+        "url": "https://www.dropbox.com/s/randomstring/model.ckpt?dl=1",
+        "model_dir": "/usr/local/models",
+        "progress": True,
+        "input": np.array([1.0]) # Added to avoid TypeError, using numpy array
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {
+        "url": "file:///home/user/local_model.pt",
+        "model_dir": ".",
+        "progress": False,
+        "input": np.array([1.0]) # Added to avoid TypeError, using numpy array
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    return list_of_inputs
+import torch
+import torch.nn as nn
+import numpy as np
+import copy
+def ParameterList_inputs():
+    list_of_inputs = []
+    # Input 1: Empty list
+    input1 = []
+    input_dict1 = {"parameter_list": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 2: List of float tensors
+    input2 = [torch.randn(2, 3).detach().numpy(), torch.randn(5).detach().numpy()]
+    input_dict2 = {"parameter_list": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 3: List of int tensors converted to float
+    input3 = [torch.randint(0, 10, (2, 2)).float().numpy(), torch.randint(-5, 5, (3,)).float().numpy()]
+    input_dict3 = {"parameter_list": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 4: List of Parameter objects
+    input4 = [nn.Parameter(torch.randn(2, 2)).detach().numpy(), nn.Parameter(torch.randn(3)).detach().numpy()]
+    input_dict4 = {"parameter_list": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 5: List of mixed tensors and parameters
+    input5 = [torch.randn(2, 2).detach().numpy(), nn.Parameter(torch.randn(3)).detach().numpy()]
+    input_dict5 = {"parameter_list": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    return list_of_inputs
+import torch
+import numpy as np
+import copy
+def from_numpy_inputs():
+    list_of_inputs = []
+    # Example 1: 1D numpy array of integers
+    a = np.array([1, 2, 3, 4, 5], dtype=np.int64)
+    list_of_inputs.append({"input": a})
+    # Example 2: 2D numpy array of floats
+    a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    list_of_inputs.append({"input": a})
+    # Example 3: numpy array with negative values
+    a = np.array([-1, 0, 1, -2, 2], dtype=np.int32)
+    list_of_inputs.append({"input": a})
+    # Example 4: numpy array of booleans
+    a = np.array([True, False, True, True, False], dtype=bool)
+    list_of_inputs.append({"input": a})
+    
+    return list_of_inputs

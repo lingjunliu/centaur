@@ -9,29 +9,30 @@ import copy
 def cholesky_ex_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic positive definite matrix
-    A = np.array([[4, 12, -16], [12, 37, -43], [-16, -43, 98]], dtype=np.float64)
-    input_dict = {"input": A, "upper": False, "check_errors": False}
+    # Input 1: Basic positive definite matrix (float32)
+    A = np.array([[4, 12, -16], [12, 37, -43], [-16, -43, 98]], dtype=np.float32)
+    input_dict = {"input": A, "upper": False, "check_errors": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Upper triangular, check errors
-    B = np.array([[1, 0], [0, 4]], dtype=np.float32)
-    input_dict = {"input": B, "upper": True, "check_errors": True}
+    # Input 2: Different data type (float64), upper=True
+    A = np.array([[25, 15, -5], [15, 18, 0], [-5, 0, 11]], dtype=np.float64)
+    input_dict = {"input": A, "upper": True, "check_errors": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Complex matrix
-    C = np.array([[4 + 0j, 1 + 1j], [1 - 1j, 2 + 0j]], dtype=np.complex128)
-    input_dict = {"input": C, "upper": False, "check_errors": False}
+    # Input 3: Batch of matrices (3D tensor)
+    A = np.array([[[4, 12, -16], [12, 37, -43], [-16, -43, 98]],
+                  [[9, -6, 0], [-6, 5, 0], [0, 0, 1]]], dtype=np.float32)
+    input_dict = {"input": A, "upper": False, "check_errors": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Batched matrices
-    D = np.array([[[4, 1], [1, 4]], [[9, 3], [3, 9]]], dtype=np.float64)
-    input_dict = {"input": D, "upper": False, "check_errors": False}
+    # Input 4: Complex input
+    A = np.array([[4+0j, 1+1j], [1-1j, 2+0j]], dtype=np.complex64)
+    input_dict = {"input": A, "upper": False, "check_errors": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Small matrix
-    E = np.array([[10]], dtype=np.float32)
-    input_dict = {"input": E, "upper": False, "check_errors": False}
+    
+    # Input 5: Another positive definite matrix
+    A = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
+    input_dict = {"input": A, "upper": False, "check_errors": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

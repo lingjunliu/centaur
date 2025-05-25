@@ -2,8 +2,7 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch
-import copy
+import torch, copy
 import torch.distributed as dist
 
 def sync_batchnorm_inputs():
@@ -13,46 +12,6 @@ def sync_batchnorm_inputs():
         "num_features": 100,
         "eps": 1e-05,
         "momentum": 0.1,
-        "affine": True,
-        "track_running_stats": True,
-        "process_group": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "num_features": 50,
-        "eps": 1e-04,
-        "momentum": 0.2,
-        "affine": False,
-        "track_running_stats": False,
-        "process_group": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "num_features": 256,
-        "eps": 1e-03,
-        "momentum": None,
-        "affine": True,
-        "track_running_stats": True,
-        "process_group": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "num_features": 128,
-        "eps": 1e-06,
-        "momentum": 0.05,
-        "affine": False,
-        "track_running_stats": False,
-        "process_group": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input_dict = {
-        "num_features": 64,
-        "eps": 1e-07,
-        "momentum": 0.15,
         "affine": True,
         "track_running_stats": True,
         "process_group": None

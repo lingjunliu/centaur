@@ -2,21 +2,25 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def set_default_dtype_inputs():
     list_of_inputs = []
 
-    input1 = {"d": torch.float32}
-    list_of_inputs.append(copy.deepcopy(input1))
+    input_dict = {"d": torch.float32}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input2 = {"d": torch.float64}
-    list_of_inputs.append(copy.deepcopy(input2))
+    input_dict = {"d": torch.float64}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input3 = {"d": torch.float16}
-    list_of_inputs.append(copy.deepcopy(input3))
-    
+    input_dict = {"d": torch.float16}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {"d": torch.bfloat16}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = set_default_dtype_inputs()

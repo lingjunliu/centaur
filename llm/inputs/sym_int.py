@@ -9,30 +9,25 @@ import copy
 def sym_int_inputs():
     list_of_inputs = []
 
-    # Input 1: Positive integer
-    a1 = 5
-    input_dict1 = {"a": a1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Example 1: Positive integer
+    input_dict = {"a": np.array(5)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Negative integer
-    a2 = -3
-    input_dict2 = {"a": a2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Example 2: Zero
+    input_dict = {"a": np.array(0)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Zero
-    a3 = 0
-    input_dict3 = {"a": a3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-    
-    # Input 4: Another positive integer
-    a4 = 12345
-    input_dict4 = {"a": a4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Example 3: Negative integer
+    input_dict = {"a": np.array(-3)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Another negative integer
-    a5 = -67890
-    input_dict5 = {"a": a5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Example 4: Large integer
+    input_dict = {"a": np.array(1000)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Example 5: Small integer
+    input_dict = {"a": np.array(-1000)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 

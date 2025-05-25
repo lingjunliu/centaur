@@ -8,31 +8,10 @@ import numpy as np
 def log_ndtr_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float tensor
-    x = np.array([0.0, 1.0, -1.0, 2.0, -2.0], dtype=np.float32)
+    x = np.array([0.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multi-dimensional float tensor
-    x = np.array([[0.0, 1.0], [-1.0, 2.0]], dtype=np.float64)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Large values
-    x = np.array([5.0, 10.0, 15.0], dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Small values
-    x = np.array([-5.0, -10.0, -15.0], dtype=np.float64)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5: Array of zeros
-    x = np.zeros((3,3), dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = log_ndtr_inputs()

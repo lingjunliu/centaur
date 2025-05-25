@@ -2,30 +2,17 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def expand_copy_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D tensor expansion
-    input1 = torch.tensor([1, 2, 3]).numpy()
-    size1 = (3, 3)
+    # Case 1: 1D int tensor
+    input1 = torch.randint(0, 10, (3,)).numpy()
+    size1 = (2, 3)
     input_dict1 = {"input": input1, "size": size1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
-
-    # Input 2: 2D tensor expansion
-    input2 = torch.randn(2, 3).numpy()
-    size2 = (2, 4, 3)
-    input_dict2 = {"input": input2, "size": size2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
-
-    # Input 3: Expanding a scalar to a higher dimension
-    input3 = torch.tensor(5).numpy()
-    size3 = (2, 3, 4)
-    input_dict3 = {"input": input3, "size": size3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
 
     return list_of_inputs
 

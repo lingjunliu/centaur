@@ -4,40 +4,21 @@ from eval.oracle import oracle_crash
 
 import torch
 import copy
+import numpy as np
 from typing import List, Dict, Tuple, Optional
 
 def isinstance_inputs():
     list_of_inputs = []
 
-    # Test case 1: List of ints
-    obj1 = [1, 2, 3]
-    target_type1 = List[int]
+    obj1 = [torch.randn(3, 3).numpy(), torch.randn(4, 4).numpy()]
+    target_type1 = List[torch.Tensor]
     input_dict1 = {"obj": obj1, "target_type": target_type1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Test case 2: Single integer
-    obj2 = 5
-    target_type2 = int
+    obj2 = {"key1": "val1", "key2": "val2"}
+    target_type2 = Dict[str, str]
     input_dict2 = {"obj": obj2, "target_type": target_type2}
     list_of_inputs.append(copy.deepcopy(input_dict2))
-
-    # Test case 3: String
-    obj3 = "hello"
-    target_type3 = str
-    input_dict3 = {"obj": obj3, "target_type": target_type3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-
-    # Test case 4: Boolean
-    obj4 = True
-    target_type4 = bool
-    input_dict4 = {"obj": obj4, "target_type": target_type4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-    
-    # Test case 5: Tuple of ints
-    obj5 = (1, 2)
-    target_type5 = Tuple[int, int]
-    input_dict5 = {"obj": obj5, "target_type": target_type5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
 
     return list_of_inputs
 

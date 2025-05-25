@@ -17,7 +17,7 @@ def dataparallel_inputs():
 
         def forward(self, x):
             return self.linear(x)
-
+    
     module = DummyModule()
 
     input_dict = {

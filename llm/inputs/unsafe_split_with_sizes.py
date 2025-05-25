@@ -9,7 +9,6 @@ import copy
 def unsafe_split_with_sizes_inputs():
     list_of_inputs = []
 
-    # Test case 1: Basic case with integer tensor and positive split sizes
     tensor = torch.arange(10).numpy()
     split_sizes = [2, 3, 5]
     dim = 0
