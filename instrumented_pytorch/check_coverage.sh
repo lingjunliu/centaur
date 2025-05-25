@@ -47,3 +47,6 @@ ${bindir}/llvm-cov export -instr-profile=mm.profdata -format=lcov -object $LIB1 
 
 # check which files were covered
 grep "SF:" mm.lcov | sort | uniq | wc -l
+
+# Restore environment
+pip install -r $PROJECT_DIR/requirements.txt
