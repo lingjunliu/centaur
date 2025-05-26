@@ -23,57 +23,65 @@ def prefix():
     return """# Monkey Patched Driver
 import pickle, os
 
-def wrapper_1(func, *args, **kwargs):
-    filename = os.path.abspath(__file__)[:-3] + '_1.pkl'
-    with open(filename, 'rb') as f:
-        input_list = pickle.load(f)
+class Wrap:
+    count_1 = 0
+    count_2 = 0
+    def wrapper_1(self, func, *args, **kwargs):
+        self.count_1 += 1
+        filename = os.path.abspath(__file__)[:-3] + '_' + str(self.count_1) + '_1.pkl'
         input_dict = {
             'args': args,
             'kwargs': kwargs
         }
-        input_list.append(input_dict)
-    with open(filename, 'wb') as f:
-        pickle.dump(input_list, f)
-    return func(*args, **kwargs)
+        with open(filename, 'wb') as f:
+            pickle.dump(input_dict, f)
+        return func(*args, **kwargs)
 
-def wrapper_2(func, *args, **kwargs):
-    filename = os.path.abspath(__file__)[:-3] + '_2.pkl'
-    with open(filename, 'rb') as f:
-        input_list = pickle.load(f)
+    def wrapper_2(self, func, *args, **kwargs):
+        self.count_2 += 1
+        filename = os.path.abspath(__file__)[:-3] + '_' + str(self.count_2) + '_2.pkl'
         input_dict = {
             'args': args,
             'kwargs': kwargs
         }
-        input_list.append(input_dict)
-    with open(filename, 'wb') as f:
-        pickle.dump(input_list, f)
-    return func(*args, **kwargs)
+        with open(filename, 'wb') as f:
+            pickle.dump(input_dict, f)
+        return func(*args, **kwargs)
 
+wrap = Wrap()
 """
 
-def generate_driver(filename_1, filename_2, torch_api):
+def generate_driver(dir, torch_api):
     return f"""# Driver to run all the inputs
-import pickle, torch
+import pickle, torch, os
 
-filename_1 = '{filename_1}'
-filename_2 = '{filename_2}'
-with open(filename_1, 'rb') as f:
-    input_list_1 = pickle.load(f)
-with open(filename_2, 'rb') as f:
-    input_list_2 = pickle.load(f)
+files = os.listdir('{dir}')
+input_list_1 = []
+input_list_2 = []
+for file in files:
+    if file.endswith('_1.pkl'):
+        input_list_1.append(os.path.join('{dir}', file))
+    elif file.endswith('_2.pkl'):
+        input_list_2.append(os.path.join('{dir}', file))
 
 print(len(input_list_1), len(input_list_2))
 ran = 0
 
 if len(input_list_1) != len(input_list_2):
-    for input_dict in input_list_1:
+    for file in input_list_1:
+        with open(file, 'rb') as f:
+            input_dict = pickle.load(f)
         try:
             output = {torch_api}(*input_dict['args'], **input_dict['kwargs'])
             ran += 1
         except Exception as e:
             print(e.__class__.__name__ + ": " + str(e))
 else:
-    for input_dict_1, input_dict_2 in zip(input_list_1, input_list_2):
+    for file_1, file_2 in zip(input_list_1, input_list_2):
+        with open(file_1, 'rb') as f:
+            input_dict_1 = pickle.load(f)
+        with open(file_2, 'rb') as f:
+            input_dict_2 = pickle.load(f)
         try:
             output = {torch_api}(*input_dict_1['args'], **input_dict_1['kwargs'])(*input_dict_2['args'], **input_dict_2['kwargs'])
             ran += 1
@@ -91,7 +99,8 @@ def main():
     seed = 19
     rng_choice = np.random.default_rng(seed)
 
-    patch_dir = create_subdir(CUR_DIR, "patched_drivers")     # directory to save patched drivers and inputs
+    patch_dir_root = create_subdir(CUR_DIR, "patched_drivers")     # directory to save patched drivers and inputs
+    patch_dir = create_subdir(patch_dir_root, driver)              # subdirectory for api
     src_driver = os.path.join(get_dir_in_root("drivers"), f"{driver}.py")  # path to source driver
     patched_driver = os.path.join(patch_dir, f"{driver}.py")        # path to save patched driver
     shutil.copy(src_driver, patched_driver)
@@ -115,27 +124,19 @@ def main():
                     break
         
         code = f"{prefix()}\n{code}"
-        code = replace_function_invocation(code, torch_api, "wrapper_1")
+        code = replace_function_invocation(code, torch_api, "wrap.wrapper_1")
 
         print(f"arg_class: {arg_class}")
 
         if arg_class:
-            code = replace_function_invocation(code, arg_class, "wrapper_2")
+            code = replace_function_invocation(code, arg_class, "wrap.wrapper_2")
     
     # Save the patched driver
     with open(patched_driver, "w") as f:
         f.write(code)
     
-    # Create two pickle files with empty lists
-    filename_1 = os.path.join(patch_dir, f"{driver}_1.pkl")
-    filename_2 = os.path.join(patch_dir, f"{driver}_2.pkl")
-    with open(filename_1, "wb") as f:
-        pickle.dump([], f)
-    with open(filename_2, "wb") as f:
-        pickle.dump([], f)
-
     # Create the driver to run all the inputs
-    driver_code = generate_driver(filename_1, filename_2, torch_api)
+    driver_code = generate_driver(patch_dir, torch_api)
     driver_file = os.path.join(patch_dir, f"{driver}_cov_in_loop.py")
     with open(driver_file, "w") as f:
         f.write(driver_code)
@@ -153,7 +154,7 @@ def main():
     
     signature = get_signatures()[driver]
     generated_inputs = read_pkl(input_file)
-    driver_function = get_driver(driver, lib=lib, module="eval.patched_drivers")
+    driver_function = get_driver(driver, lib=lib, module=f"eval.patched_drivers.{driver}")
     valid = 0
     invalid = 0
     crash = 0

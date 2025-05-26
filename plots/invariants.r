@@ -14,6 +14,10 @@ if (length(args) > 1) {
 }
 
 csv <- sprintf("%s_vs_%s_%s.csv", sota, tname, mode)
+if (length(args) > 2) {
+  csv <- args[3]
+}
+
 ylabel <- sprintf("Comparison - %s", mode)
 ylim <- c(10000, 13000)
 font_size <- 1.2

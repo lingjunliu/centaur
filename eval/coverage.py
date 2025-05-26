@@ -14,7 +14,7 @@ def main():
     torch_to_driver, driver_to_torch = map_torch_to_driver()
     torch_api = driver_to_torch[api]
 
-    num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python -m eval.patched_drivers.{api}_cov_in_loop", prefix=api, capture_output=True)    
+    num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python -m eval.patched_drivers.{api}.{api}_cov_in_loop", prefix=api, capture_output=True)    
 
     with open(out_file, "w") as f:
         f.write(f"{api},{num_branches},{num_lines},{return_code}\n")
