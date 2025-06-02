@@ -91,34 +91,45 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
         
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args, seed=seed)
         generated_inputs.append((0, abstract_input, seed))  # first element is distance, set as 0 for consistency
+        
+        # Print the abstract input if print_details is True
+        if print_details:
+            print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
 
         start_execution = time.time()
         status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
         if status == "nominal":
             nominal += 1
             if print_details:
-                print(f"\nNominal input:\n{abstract_print(abstract_input, definition['signature'])}")
+                print(f"\nNominal input")
         elif status == "invalid":
             invalid += 1
             ## Traceback for debugging
             if print_details:
                 print(f"\nThe input might be invalid. Faced exception:\n{exception_message}")
-                print(f"\Invalid input:\n{abstract_print(abstract_input, definition['signature'])}")
         elif status.endswith("_excp"):
             excp += 1
             # Always log crashes
             print(f"\n[{status}]\n{exception_message}")
-            print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
+            if not print_details:   # if print_details is True, the abstract input is already printed
+                print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
         elif status.endswith("_crash"):
             crash += 1
             # Always log crashes
             print(f"\n[{status}]\n{exception_message}")
-            print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
+            if not print_details:   # if print_details is True, the abstract input is already printed
+                print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
         else:
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
+        
         execution_time = execution_time + time.time() - start_execution
-        print(f"Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {round(elapsed-last_saved, 2)}s ago", end='\r', flush=True)
+        print_str = f"Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {round(elapsed-last_saved, 2)}s ago"
+        
+        if print_details:
+            print(print_str)            
+        else:
+            print(print_str, end='\r', flush=True)
 
         # If n_max is defined and n_max inputs have been generated, exit
         if n_max > 0 and (nominal+invalid) == n_max:

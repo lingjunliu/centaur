@@ -64,7 +64,7 @@ def initial_constraints(solver, signature, z3_args):
             ndim, shape, dtype, range_ = z3_var['ndim'], z3_var['shape'], z3_var['dtype'], z3_var['range']
             solver.add(And(ndim >= 1, ndim <= MAX_N_DIM))
             solver.add(And(*[
-                Implies(i < ndim, And(Select(shape, i) >= 0, Select(shape, i) <= MAX_SZ_NUM))
+                Implies(i < ndim, And(Select(shape, i) >= 0, Select(shape, i) <= MAX_SZ_DIM))
                 for i in range(MAX_N_DIM)
             ]))
             solver.add(And(dtype >= 0, dtype <= len(list_of_available_dtypes) - 3))
@@ -82,7 +82,7 @@ def initial_constraints(solver, signature, z3_args):
 
             solver.add(And(length >= 1, length <= MAX_N_DIM))
             solver.add(And(*[
-                Implies(i < length, And(Select(values, i) >= -MAX_SZ_NUM, Select(values, i) <= MAX_SZ_NUM))
+                Implies(i < length, And(Select(values, i) >= -MAX_SZ_DIM, Select(values, i) <= MAX_SZ_DIM))
                 for i in range(MAX_N_DIM)
             ]))
         

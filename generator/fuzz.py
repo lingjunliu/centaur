@@ -20,6 +20,8 @@ def main():
         lib = "tf"
     elif lib == "pytorch":
         lib = "torch"
+        
+    print_details = sys.argv[8].lower() == 'true' if len(sys.argv) > 8 else False
 
     # Max model 1000
     max_model = 1000
@@ -33,9 +35,9 @@ def main():
         # use <limit> as the ratio
         model_gen_duration = int(duration*limit/100)
         fuzz_duration = duration - model_gen_duration
-        fuzz_with_z3(api, model_gen_duration, fuzz_duration, max_model, n_max=n_max, seed=seed, lib=lib)
+        fuzz_with_z3(api, model_gen_duration, fuzz_duration, max_model, n_max=n_max, seed=seed, lib=lib, print_details=print_details)
     else:
-        fuzz_with_optimizer(api, duration, n_max, limit, lib=lib)
+        fuzz_with_optimizer(api, duration, n_max, limit, lib=lib, print_details=print_details)
 
 if __name__ == "__main__":
     main()
