@@ -22,6 +22,7 @@ if [ ! -f $PROJECT_DIR/instrumented_pytorch/torch-* ]; then  # Download only if 
     gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
 fi
 pip install $PROJECT_DIR/instrumented_pytorch/torch-*
+export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 
 job_name=cov
 echo "Running coverage script"
