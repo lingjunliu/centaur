@@ -101,6 +101,15 @@ def gen_concrete_input(domain, ll, rng=np.random.default_rng(42)):
                     ll[2][1] = ll[2][0] + highest_limit
                 else:   # high is extreme, preserve that
                     ll[2][0] = ll[2][1] - highest_limit
+        elif list_of_available_dtypes[ll[1][0]] == bool:
+            if not np.isfinite(ll[2][0]):
+                ll[2][0] = 1
+            if not np.isfinite(ll[2][1]):
+                ll[2][1] = 1
+            # adjust ranges with modulo 2 for bools
+            ll[2] = [ll[2][0]%2, ll[2][1]%2]
+            if ll[2][0] > ll[2][1]: # swap them
+                ll[2] = [ll[2][1], ll[2][0]]
         
         return rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0]).astype(list_of_available_dtypes[ll[1][0]])
     elif domain == "tuple":
