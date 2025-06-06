@@ -7,7 +7,6 @@ def main():
     finalized_drivers_dir = f"{CUR_DIR}/../drivers"
     os.makedirs(finalized_drivers_dir, exist_ok=True)
     finalized_signatures = f"{CUR_DIR}/finalized_signatures.json"
-    finalized_drivers = f"{CUR_DIR}/finalized_signatures.json"
     
     with open(f"{CUR_DIR}/../apis.txt", "r") as f:
         existing_drivers = [driver.strip() for driver in f.readlines()]
