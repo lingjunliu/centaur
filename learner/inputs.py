@@ -601,7 +601,7 @@ inputs_per_api = {
     'atan2': valid_inputs.atan2_inputs() + valid_inputs_old.atan2_inputs(),
     'cosine_similarity': valid_inputs.cosine_similarity_inputs() + valid_inputs_old.cosine_similarity_inputs(),
     'cross': valid_inputs.cross_inputs() + valid_inputs_old.cross_inputs(),
-    'cross_entropy': valid_inputs.cross_entropy_inputs() + valid_inputs_old.cross_entropy_inputs(),
+    'cross_entropy': valid_inputs.cross_entropy_inputs(),
     'dist': valid_inputs.dist_inputs() + valid_inputs_old.dist_inputs(),
     'floor_divide': valid_inputs.floor_divide_inputs() + valid_inputs_old.floor_divide_inputs(),
     'fmin': valid_inputs.fmin_inputs() + valid_inputs_old.fmin_inputs(),

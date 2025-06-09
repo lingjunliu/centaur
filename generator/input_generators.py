@@ -49,9 +49,14 @@ def get_ll(domain, value):
         # the extra np.dtype call is needed because python primitive data types are not on the list
         # and putting them on the list confuses the distance function
     elif domain == "tensor": # tensors
-        list_val = list(value.shape)
-        dtype_val = [list_of_available_dtypes.index(value.dtype)]
-        range_val = [np.min(value), np.max(value)] if value.size > 0 else [0, 0]
+        if value is None:
+            list_val = []
+            dtype_val = [list_of_available_dtypes.index(np.float64)]  # default dtype
+            range_val = [None, None]
+        else:
+            list_val = list(value.shape)
+            dtype_val = [list_of_available_dtypes.index(value.dtype)]
+            range_val = [np.min(value), np.max(value)] if value.size > 0 else [0, 0]
     elif domain in ["tuple", "list"]:
         list_val = list(value)
         dtype_val = [list_of_available_dtypes.index(np.dtype(type(value[0])))] if len(value) > 0 else [list_of_available_dtypes.index(np.int64)]
