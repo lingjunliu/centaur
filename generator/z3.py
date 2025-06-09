@@ -8,6 +8,7 @@ from utils.misc import create_subdir, get_tmp_dir
 from eval.oracle import oracle_crash
 from functools import reduce
 import os
+import random
 
 def save_state_models(api, unsat, nominal, invalid, crash, excp, tmp_results):
     total = nominal + invalid + crash + excp
@@ -153,14 +154,116 @@ def instantiate_args(model, signature, z3_args, seed=42):
         else:
             value = model.eval(z3_var, model_completion=True)
             if isinstance(value, BoolRef):
-                concrete_args[param_name] = is_true(value)
+                concrete_args[param_name] = random.choice([True, False]) 
             else:
                 concrete_args[param_name] = value
 
         abstract_args[param_name] = get_ll(param_type, concrete_args[param_name])
 
     return concrete_args, abstract_args
+
+def is_const_num(expr):
+    return is_int_value(expr) or is_rational_value(expr)
+
+def is_nonlinear_expr(expr):
+    kind = expr.decl().kind()
+    nonlinear_kinds = {Z3_OP_MUL, Z3_OP_DIV, Z3_OP_POWER}
     
+    if kind in nonlinear_kinds:
+        children = expr.children()
+        non_const_children = [c for c in children if not is_const_num(c)]
+        if len(non_const_children) >= 2:
+            return True
+
+    for c in expr.children():
+        if is_nonlinear_expr(c):
+            return True
+    return False
+
+# Z3 Optimize().{maximize, minimize} cannot handle nonlinear assertions
+def is_nonlinear_assertion(assertion):
+    if assertion.decl().kind() in [Z3_OP_AND, Z3_OP_OR, Z3_OP_IMPLIES]:
+        return any(is_nonlinear_assertion(c) for c in assertion.children())
+    return is_nonlinear_expr(assertion)
+
+# Getting the minimum and maximum values that Z3 variables can have 
+def variable_bounds(assertions):
+    def collect_vars(expr):
+        vars_found = set()
+        def walk(e):
+            if is_const(e) and e.decl().kind() == Z3_OP_UNINTERPRETED:
+                if e.sort().kind() != Z3_ARRAY_SORT and e.sort().kind() != Z3_BOOL_SORT:
+                    vars_found.add(e)
+            elif e.decl().kind() == Z3_OP_SELECT:
+                arr, idx = e.children()
+                if is_const(arr) and is_int_value(idx):
+                    vars_found.add(Select(arr, idx))
+            for ch in e.children():
+                walk(ch)
+        walk(expr)
+        return vars_found
+
+    all_vars = set()
+    for a in assertions:
+        all_vars |= collect_vars(a)
+
+    bounds = {}
+    linear_assertions = [a for a in assertions if not is_nonlinear_assertion(a)]
+
+    for var in all_vars:
+        sort_kind = var.sort().kind()
+        opt_min = Optimize()
+        opt_min.add(linear_assertions)
+        opt_min.minimize(var)
+        if opt_min.check() == sat:
+            val = opt_min.model().eval(var, model_completion=True)
+            minv = float(val.as_fraction()) if sort_kind == Z3_REAL_SORT else val.as_long()
+        else:
+            continue
+        opt_max = Optimize()
+        opt_max.add(linear_assertions)
+        opt_max.maximize(var)
+        if opt_max.check() == sat:
+            val = opt_max.model().eval(var, model_completion=True)
+            maxv = float(val.as_fraction()) if sort_kind == Z3_REAL_SORT else val.as_long()
+        else:
+            continue
+        bounds[var] = set([minv, maxv]) 
+    return bounds
+
+# Add assertions for sampled values from partitions
+def sample_partitions(var_values_map, p):
+    sampled_partitions = set()
+    all_vars = list(var_values_map.keys())
+
+    sample_size = int(len(all_vars) * p)
+    sampled_vars = random.sample(all_vars, sample_size)
+
+    for var in sampled_vars:
+        values = sorted(var_values_map[var])
+        if len(values) < 2:
+            continue
+
+        idx = random.randint(0, len(values) - 2)
+        v1, v2 = values[idx], values[idx + 1]
+
+        sort_kind = var.sort().kind()
+        if sort_kind == Z3_INT_SORT:
+            if int(v2) - int(v1) <= 1:
+                continue 
+            v = random.randint(int(v1) + 1, int(v2) - 1)
+        elif sort_kind == Z3_REAL_SORT:
+            if abs(v2 - v1) <= 1e-6:
+                continue
+            v = random.uniform(v1 + 1e-6, v2 - 1e-6)
+        else:
+            continue
+
+        assertion = (var == v)
+        sampled_partitions.add(assertion)
+
+    return sampled_partitions
+
 def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10):
     elapsed = 0
     start = time.time()
@@ -170,9 +273,9 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
     models, num_model = [], 0
     initial_constraints(solver, definition["signature"], z3_args)
     collect_constraints(solver, definition["ruleset"], z3_args)
-    block = []
+    block_all = set()
     stale = 0
-    valid_blocks = []   # list of blocks for valid models, saved for restarts
+    # valid_blocks = []   # list of blocks for valid models, saved for restarts
     rng = np.random.default_rng(seed)
 
     nominal = 0
@@ -182,17 +285,30 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
     unsat = 0
 
     tmp_results = create_subdir(get_tmp_dir(), "model_results")
+    var_values_map = variable_bounds(solver.assertions())
 
     while elapsed < model_gen_duration and (num_model < max_model or max_model == 0):
-        if solver.check() != sat:
+        block_one = []
+        one_solver = Solver()
+        one_solver.add(*solver.assertions())
+
+        # Strategy #1: Adding blocking constraints with probability p_1
+        sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
+        one_solver.add(*sampled_blocks)
+
+        # Strategy #2: Adding partitioning-based constraints with probability p_2
+        sampled_partitions = sample_partitions(var_values_map, 0.3)
+        one_solver.add(*sampled_partitions)
+        
+        if one_solver.check() != sat:
             unsat += 1
             if stale > saturation:
                 # restart the solver
                 solver = Solver()
                 initial_constraints(solver, definition["signature"], z3_args)
                 collect_constraints(solver, definition["ruleset"], z3_args)
-                solver.add(And(valid_blocks))   # Adding previously saved blocks from valid models
-                block = []
+                # solver.add(And(valid_blocks))   # Adding previously saved blocks from valid models
+                # block = []
                 stale = 0
                 seed += 1
                 saturation += 10    # Making it more difficult to reach stale
@@ -203,8 +319,8 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
             elapsed = time.time() - start
             continue
         
-        potential_valid_blocks = []
-        model = solver.model()
+        # potential_valid_blocks = []
+        model = one_solver.model()
         for decl in model.decls():
             var, val = decl(), model[decl]
             name_parts = str(decl.name()).rsplit("_", 1)
@@ -225,21 +341,46 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
                 elif suffix == "range":
                     array_len = 2
                 for i in range(array_len):
-                    block.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
-                    potential_valid_blocks.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    block_one.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    # For strategy #2: Value set which a partition is created from is updated 
+                    actual_key = None
+                    for key in var_values_map.keys():
+                        if key.sexpr() == Select(var, i).sexpr():
+                            actual_key = key
+                            break
+                    if actual_key is not None:
+                        var_values_map[actual_key].add(model.eval(Select(var, i), model_completion=True).as_long())
+                    # potential_valid_blocks.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
                     # Do not dim_size to be 0 more than once for a dimension in the shape
-                    if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
-                        solver.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    # if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
+                    #     solver.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
             else:
-                block.append(var != val)
-                if not suffix and suffix not in ["ndim", "dtype"]: # potentially can add length too, TODO: asess
-                    potential_valid_blocks.append(var != val)
+                block_one.append(var != val)
+                # For strategy #2: Value set which a partition is created from is updated 
+                actual_key = None
+                for key in var_values_map.keys():
+                    if key.sexpr() == var.sexpr():
+                        actual_key = key
+                        break
+                if actual_key is not None:
+                    val = model.eval(var, model_completion=True)
+                    if var.sort().kind() == Z3_INT_SORT:
+                        var_values_map[actual_key].add(val.as_long())
+                    elif var.sort().kind() == Z3_REAL_SORT:
+                        var_values_map[actual_key].add(float(val.as_fraction()))
+                # if not suffix and suffix not in ["ndim", "dtype"]: # potentially can add length too, TODO: asess
+                #     potential_valid_blocks.append(var != val)
         
         # Randomly block one of the constraints
-        selected_const = block[rng.integers(len(block))]
-        solver.add(selected_const)
-        if print_details:
-            print(f"Blocking constraint: {selected_const}")
+        # selected_const = block[rng.integers(len(block))]
+        # solver.add(selected_const)
+        # if print_details:
+        #     print(f"Blocking constraint: {selected_const}")
+
+        # For strategy #1: The set of blocking constraints is updated
+        for elem in block_one:
+            if elem not in block_all:
+                block_all.add(elem)
 
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args)
         status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
@@ -255,9 +396,9 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
             num_model += 1
             print(f"Valid models: {num_model}", end='\r', flush=True)
             # TODO: Check if this could be improved
-            selected_valid_block = potential_valid_blocks[rng.integers(len(potential_valid_blocks))]
-            solver.add(selected_valid_block)
-            valid_blocks.append(selected_valid_block)
+            # selected_valid_block = potential_valid_blocks[rng.integers(len(potential_valid_blocks))]
+            # solver.add(selected_valid_block)
+            # valid_blocks.append(selected_valid_block)
             if status != "nominal": # Always log crashes
                 print(f"\n[{status}]\n{exception_message}")
                 print(f"\nPotential bug. Input:\n{abstract_print(abstract_input, definition['signature'])}")
