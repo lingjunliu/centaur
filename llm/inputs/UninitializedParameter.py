@@ -2,16 +2,25 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
+generated_inputs = dict()
+
 import torch
-import numpy as np
 import copy
+import numpy as np
 
 def uninitialized_parameter_inputs():
     list_of_inputs = []
 
+    input_dict = {
+        "dtype": torch.float32,
+        "requires_grad": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs = uninitialized_parameter_inputs()
+generated_inputs = {}
+generated_inputs["torch.nn.UninitializedParameter"] = uninitialized_parameter_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -23,4 +32,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('UninitializedParameter', generated_inputs)
+check_valid('UninitializedParameter', generated_inputs['torch.nn.UninitializedParameter'], lib="torch")

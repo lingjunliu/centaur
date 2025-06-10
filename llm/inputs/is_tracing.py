@@ -2,16 +2,33 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
-import torch
+generated_inputs = dict()
+
+import torch, copy
 import numpy as np
-import copy
 
 def is_tracing_inputs():
     list_of_inputs = []
 
+    input_dict = {"input": np.array([1])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {"input": np.array([1.0])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {"input": np.array([[1, 2], [3, 4]])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_dict = {"input": np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {"input": np.array([-1, -2, -3])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs = is_tracing_inputs()
+generated_inputs = {}
+generated_inputs["torch.jit.is_tracing"] = is_tracing_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -23,4 +40,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('is_tracing', generated_inputs)
+check_valid('is_tracing', generated_inputs['torch.jit.is_tracing'], lib="torch")

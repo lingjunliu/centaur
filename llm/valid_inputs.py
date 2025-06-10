@@ -1,7 +1,9 @@
 import torch, copy
-import numpy as np
+from typing import Dict, List, Optional
 import torch.nn as nn
 import torch.jit
+import numpy as np
+
 def adaptive_avg_pool2d_inputs():
     list_of_inputs = []
     # Input 1: Basic float input with a single integer output size
@@ -6689,7 +6691,7 @@ def matrix_exp_inputs():
     input_dict = {"A": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-from typing import Dict, List, Optional
+
 def annotate_inputs():
     list_of_inputs = []
     # Example 1: Empty dictionary
@@ -16222,9 +16224,9 @@ def bitwise_right_shift_inputs():
     input_dict7 = {"input": input7, "other": other7}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def multinomial_inputs():
     generated_inputs = []
     # Example 1: Basic vector input
@@ -16253,9 +16255,9 @@ def multinomial_inputs():
     input_dict5 = {"input": input5, "num_samples": num_samples5}
     generated_inputs.append(copy.deepcopy(input_dict5))
     return generated_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def Softmax_inputs():
     list_of_inputs = []
     # Input 1: Basic 2D tensor, dim=1
@@ -16287,8 +16289,8 @@ def Softmax_inputs():
     input_dict7 = {"input": input7, "dim": 0}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def softmin_inputs():
     list_of_inputs = []
     input1 = torch.randn(2, 3).numpy()
@@ -16330,8 +16332,8 @@ def softmin_inputs():
     input_dict9 = {"input": input9, "dim": dim9}
     list_of_inputs.append(copy.deepcopy(input_dict9))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def matrix_exp_inputs():
     list_of_inputs = []
     # Input 1: Simple 2x2 matrix
@@ -16362,8 +16364,8 @@ def matrix_exp_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def matrix_power_inputs():
     list_of_inputs = []
     # Input 1: Basic float matrix
@@ -16404,9 +16406,9 @@ def matrix_power_inputs():
     input_dict7 = {"input": input7, "n": n7}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def logdet_inputs():
     list_of_inputs = []
     A = np.random.rand(3, 3).astype(np.float32)
@@ -16427,9 +16429,9 @@ def logdet_inputs():
     input_dict = {"input": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def log_softmax_inputs_3():
     list_of_inputs = []
     input1 = np.random.randn(2, 3).astype(np.float32)
@@ -16458,8 +16460,7 @@ def log_softmax_inputs_3():
     input_dict8 = {"input": input8, "dim": 1}
     list_of_inputs.append(copy.deepcopy(input_dict8))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
 def slogdet_inputs():
     list_of_inputs = []
     A = torch.randn(3, 3).numpy()
@@ -16478,8 +16479,7 @@ def slogdet_inputs():
     input_dict = {"A": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
 def symeig_inputs():
     list_of_inputs = []
     input1 = np.random.rand(3, 3)
@@ -16510,9 +16510,9 @@ def symeig_inputs():
     input_dict6 = {"input": input6}
     list_of_inputs.append(copy.deepcopy(input_dict6))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def remainder_inputs():
     list_of_inputs = []
     input1 = torch.tensor([-3., -2, -1, 1, 2, 3]).numpy()
@@ -16545,8 +16545,8 @@ def remainder_inputs():
     input_dict7 = {"input": input7, "other": other7}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def lt_inputs():
     list_of_inputs = []
     input1 = torch.tensor([[1, 2], [3, 4]]).numpy()
@@ -16584,9 +16584,9 @@ def lt_inputs():
     input_dict8 = {"input": input8, "other": other8}
     list_of_inputs.append(copy.deepcopy(input_dict8))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def logaddexp2_inputs():
     generated_inputs = []
     # Test case 1: Basic float tensors
@@ -16614,9 +16614,9 @@ def logaddexp2_inputs():
     other9 = np.array([4.0, 5.0, 6.0], dtype=np.float64)
     generated_inputs.append({"input": input9, "other": other9})
     return generated_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def logaddexp_inputs():
     generated_inputs = []
     input1 = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
@@ -16650,9 +16650,9 @@ def logaddexp_inputs():
     input_dict7 = {"input": input7, "other": other7}
     generated_inputs.append(copy.deepcopy(input_dict7))
     return generated_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def maximum_inputs():
     list_of_inputs = []
     # Case 1: Basic integer tensors
@@ -16692,9 +16692,9 @@ def maximum_inputs():
     input2 = np.array([5], dtype=np.int32)
     list_of_inputs.append({"input": input1, "other": input2})
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def minimum_inputs():
     list_of_inputs = []
     # Input 1: Basic integer tensors
@@ -16739,9 +16739,9 @@ def minimum_inputs():
     input_dict8 = {"input": input8, "other": other8}
     list_of_inputs.append(copy.deepcopy(input_dict8))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def nextafter_inputs():
     list_of_inputs = []
     input1 = torch.randn(3, 4).numpy()
@@ -16774,9 +16774,9 @@ def nextafter_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict8))
     
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def inverse_inputs():
     list_of_inputs = []
     # Input 1: Basic square matrix (float)
@@ -16805,8 +16805,7 @@ def inverse_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict7))
     
     return list_of_inputs
-import torch, copy
-import numpy as np
+
 def chain_matmul_inputs():
     list_of_inputs = []
     # Input 1: Basic case with float tensors
@@ -16835,8 +16834,7 @@ def chain_matmul_inputs():
     input_dict = {"matrices": matrices}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
 def cumsum_inputs():
     list_of_inputs = []
     # Example 1: 1D tensor, dim=0
@@ -16876,9 +16874,9 @@ def cumsum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict7))
     
     return list_of_inputs
-import torch
-import copy
-import numpy as np
+
+
+
 def avg_pool2d_inputs():
     list_of_inputs = []
     input1 = torch.randn(1, 3, 32, 32).numpy()
@@ -16969,9 +16967,9 @@ def avg_pool2d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict5))
     
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def cumprod_inputs():
     list_of_inputs = []
     # Example 1: 1D tensor, positive values
@@ -17021,8 +17019,8 @@ def cumprod_inputs():
     input_dict_9 = {"input": input_9, "dim": dim_9}
     list_of_inputs.append(copy.deepcopy(input_dict_9))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def det_inputs():
     list_of_inputs = []
     A = np.array([[1.0, 2.0], [3.0, 4.0]])
@@ -17045,9 +17043,9 @@ def det_inputs():
     input_dict = {"A": A}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def torch_amin_inputs():
     list_of_inputs = []
     # Input 1: Basic 2D float tensor, dim=1, keepdim=False
@@ -17088,9 +17086,9 @@ def torch_amin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def argmax_inputs():
     list_of_inputs = []
     # Case 1: 1D float tensor
@@ -17123,9 +17121,9 @@ def argmax_inputs():
     input_dict_8 = {"input": input_8, "dim": 1, "keepdim": False}
     list_of_inputs.append(copy.deepcopy(input_dict_8))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def argmin_inputs():
     list_of_inputs = []
     # Case 1: Basic 2D float tensor, no dim specified
@@ -17154,9 +17152,9 @@ def argmin_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def argsort_inputs():
     list_of_inputs = []
     input1 = torch.randn(4, 4).numpy()
@@ -17233,9 +17231,9 @@ def argsort_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict9))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def unique_inputs():
     list_of_inputs = []
     # Test case 1: 1D integer tensor
@@ -17249,9 +17247,9 @@ def unique_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict1))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def unique_consecutive_inputs():
     list_of_inputs = []
     # Example 1: 1D int tensor
@@ -17319,9 +17317,9 @@ def unique_consecutive_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def logsumexp_inputs():
     list_of_inputs = []
     # Input 1: 2D tensor, dim=1, keepdim=False
@@ -17353,9 +17351,9 @@ def logsumexp_inputs():
     input_dict7 = {"input": input7, "dim": 3, "keepdim": True}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def generate_max_inputs():
     generated_inputs = []
     # Input 1: 2D float tensor, dim=1, keepdim=False
@@ -17387,9 +17385,9 @@ def generate_max_inputs():
     input_dict = {'input': input_tensor, 'dim': 1, 'keepdim': False}
     generated_inputs.append(copy.deepcopy(input_dict))
     return generated_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def prod_inputs():
     list_of_inputs = []
     # Input 1: 2D float tensor, dim=0
@@ -17422,8 +17420,8 @@ def prod_inputs():
     input_dict7 = {"input": input7, "dim": 1}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def squeeze_inputs():
     list_of_inputs = []
     input1 = torch.randn(2, 1, 3, 1, 4).numpy()
@@ -17455,9 +17453,9 @@ def squeeze_inputs():
     input_dict7 = {"input": input7, "dim": dim7}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import copy
-import numpy as np
+
+
+
 def log_softmax_inputs_4():
     list_of_inputs = []
     input1 = np.random.randn(3, 5).astype(np.float32)
@@ -17490,9 +17488,9 @@ def log_softmax_inputs_4():
     input_dict7 = {"input": input7, "dim": dim7}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import copy
-import numpy as np
+
+
+
 def pairwise_distance_inputs():
     list_of_inputs = []
     # Input 1: Basic float tensors
@@ -17576,9 +17574,9 @@ def pairwise_distance_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def mul_inputs():
     list_of_inputs = []
     # Example 1: Float tensors
@@ -17623,9 +17621,9 @@ def mul_inputs():
     input_dict8 = {"input": input8, "other": other8}
     list_of_inputs.append(copy.deepcopy(input_dict8))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def ne_inputs():
     list_of_inputs = []
     input1 = torch.tensor([[1, 2], [3, 4]]).numpy()
@@ -17658,9 +17656,9 @@ def ne_inputs():
     input_dict7 = {"input": input7, "other": other7}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def eig_inputs():
     list_of_inputs = []
     # Input 1: Basic square matrix with eigenvectors
@@ -17692,9 +17690,9 @@ def eig_inputs():
     input_dict7 = {"input": input7, "eigenvectors": False}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def GRUCell_inputs():
     list_of_inputs = []
     input1 = torch.randn(3, 10).numpy()
@@ -17753,8 +17751,8 @@ def GRUCell_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict6))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def add_inputs():
     list_of_inputs = []
     # Case 1: Basic float tensors
@@ -17795,9 +17793,9 @@ def add_inputs():
     input_dict7 = {"input": input7, "other": other7, "alpha": 1.0}
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def stack_inputs():
     list_of_inputs = []
     # Input 1: Basic example with float tensors and dim=0
@@ -17837,8 +17835,8 @@ def stack_inputs():
     input_dict = {"tensors": tensors, "dim": dim}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def unbind_inputs():
     list_of_inputs = []
     # Case 1: 2D integer tensor, dim=0
@@ -17893,9 +17891,9 @@ def unbind_inputs():
     input_dict10 = {"input": input10, "dim": dim10}
     list_of_inputs.append(copy.deepcopy(input_dict10))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def logical_or_inputs():
     list_of_inputs = []
     # Case 1: Basic boolean tensors
@@ -17936,9 +17934,9 @@ def logical_or_inputs():
     input_dict = {"input": input1, "other": input2}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def masked_select_inputs():
     list_of_inputs = []
     # Input 1: Basic float tensor and boolean mask
@@ -17967,9 +17965,9 @@ def masked_select_inputs():
     input_dict = {"input": input_tensor, "mask": mask}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def logical_and_inputs():
     list_of_inputs = []
     # Case 1: Basic boolean tensors
@@ -18002,9 +18000,9 @@ def logical_and_inputs():
     input2 = np.random.choice([True, False], size=(2, 3, 4))
     list_of_inputs.append({"input": input1, "other": input2})
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def logical_xor_inputs():
     list_of_inputs = []
     input1 = np.array([True, False, True, False])
@@ -18038,9 +18036,9 @@ def logical_xor_inputs():
     input_dict = {"input": input1, "other": input2}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def cartesian_prod_inputs():
     generated_inputs = []
     # Input 1: Basic integer tensors
@@ -18064,9 +18062,9 @@ def cartesian_prod_inputs():
     input_dict5 = {"tensors": tensors5}
     generated_inputs.append(copy.deepcopy(input_dict5))
     return generated_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def unique_inputs():
     list_of_inputs = []
     # Input 1: 1D integer tensor
@@ -18141,9 +18139,9 @@ def unique_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict7))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def bceloss_inputs():
     list_of_inputs = []
     # Case 1: No weight, default reduction
@@ -18168,8 +18166,8 @@ def bceloss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
-import torch
-import copy
+
+
 from torch.jit import fork, wait
 def jit_wait_inputs():
     list_of_inputs = []
@@ -18204,8 +18202,8 @@ def jit_wait_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict5))
         
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def DoubleStorage_inputs():
     list_of_inputs = []
     input1 = {"size": 0, "input": np.array([])}
@@ -18219,8 +18217,8 @@ def DoubleStorage_inputs():
     input5 = {"size": 1000, "input": np.random.randn(1000)}
     list_of_inputs.append(copy.deepcopy(input5))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def ShortStorage_inputs():
     list_of_inputs = []
     input1 = {"size": 0, "input": np.array([])}
@@ -18236,8 +18234,8 @@ def ShortStorage_inputs():
     list_of_inputs.append(copy.deepcopy(input5))
     
     return list_of_inputs
-import torch
-import copy
+
+
 def enable_grad_inputs():
     list_of_inputs = []
     input1 = {
@@ -18266,9 +18264,9 @@ def enable_grad_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input5))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def hinge_embedding_loss_inputs():
     list_of_inputs = []
     input1 = np.array([0.5, 0.8, 0.2, 0.9]).astype(np.float32)
@@ -18336,9 +18334,9 @@ def hinge_embedding_loss_inputs():
     }
     list_of_inputs.append({"input": input7, "target": target7, **input_dict7})
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def asarray_inputs():
     list_of_inputs = []
     # Input 1: 1D NumPy array of integers
@@ -18350,100 +18348,15 @@ def asarray_inputs():
     input_dict = {"obj": obj, "dtype": torch.float64, "copy": True, "requires_grad": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch
-import scipy.sparse as sparse
-import numpy as np
-import copy
-def sspaddmm_inputs():
-    list_of_inputs = []
-    # Test case 1: Basic case with float tensors
-    input_sparse = sparse.random(5, 5, density=0.5, format="coo", dtype=np.float32)
-    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
-    mat1_sparse = sparse.random(5, 3, density=0.5, format="coo", dtype=np.float32)
-    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
-    mat2 = torch.randn(3, 4).numpy()
-    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 1.0, "alpha": 1.0}
-    
-    try:
-        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=1.0, alpha=1.0)
-        list_of_inputs.append(copy.deepcopy(input_dict))
-    except RuntimeError:
-        pass
-    # Test case 2: Different shapes and beta/alpha values
-    input_sparse = sparse.random(3, 4, density=0.3, format="coo", dtype=np.float64)
-    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
-    mat1_sparse = sparse.random(3, 2, density=0.3, format="coo", dtype=np.float64)
-    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
-    mat2 = torch.randn(2, 4).numpy()
-    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 0.5, "alpha": 2.0}
-    
-    try:
-        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=0.5, alpha=2.0)
-        list_of_inputs.append(copy.deepcopy(input_dict))
-    except RuntimeError:
-        pass
-    # Test case 3: Integer tensors
-    input_sparse = sparse.random(4, 4, density=0.4, format="coo", dtype=np.int32)
-    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data.astype(np.float32)), size=input_sparse.shape).to_dense().numpy()
-    mat1_sparse = sparse.random(4, 2, density=0.4, format="coo", dtype=np.int32)
-    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data.astype(np.float32)), size=mat1_sparse.shape).to_dense().numpy()
-    mat2 = torch.randint(0, 10, (2, 3)).numpy()
-    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 0.8, "alpha": 1.5}
-    
-    try:
-        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=0.8, alpha=1.5)
-        list_of_inputs.append(copy.deepcopy(input_dict))
-    except RuntimeError:
-        pass
-    # Test case 4: Negative values and different sparsity
-    input_sparse = sparse.random(2, 5, density=0.1, format="coo", dtype=np.float32)
-    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
-    mat1_sparse = sparse.random(2, 3, density=0.1, format="coo", dtype=np.float32)
-    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
-    mat2 = torch.randn(3, 5).numpy() * -1
-    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": -1.0, "alpha": 0.5}
-    
-    try:
-        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=-1.0, alpha=0.5)
-        list_of_inputs.append(copy.deepcopy(input_dict))
-    except RuntimeError:
-        pass
-    # Test case 5: Small matrices
-    input_sparse = sparse.random(1, 1, density=1.0, format="coo", dtype=np.float64)
-    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
-    mat1_sparse = sparse.random(1, 1, density=1.0, format="coo", dtype=np.float64)
-    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
-    mat2 = torch.randn(1, 1).numpy()
-    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 0.2, "alpha": 0.8}
-    
-    try:
-        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=0.2, alpha=0.8)
-        list_of_inputs.append(copy.deepcopy(input_dict))
-    except RuntimeError:
-        pass
-    
-    # Test case 6: Larger Matrices - Adjusted for potential dimension issues
-    input_sparse = sparse.random(3, 5, density=0.2, format="coo", dtype=np.float32)  # Changed to 3x5
-    input_tensor = torch.sparse_coo_tensor(torch.tensor([input_sparse.row.astype(np.int64), input_sparse.col.astype(np.int64)]), torch.from_numpy(input_sparse.data), size=input_sparse.shape).to_dense().numpy()
-    mat1_sparse = sparse.random(3, 2, density=0.2, format="coo", dtype=np.float32)  # Changed to 3x2
-    mat1_tensor = torch.sparse_coo_tensor(torch.tensor([mat1_sparse.row.astype(np.int64), mat1_sparse.col.astype(np.int64)]), torch.from_numpy(mat1_sparse.data), size=mat1_sparse.shape).to_dense().numpy()
-    mat2 = torch.randn(2, 5).numpy() # Changed to 2x5
-    input_dict = {"input": input_tensor, "mat1": mat1_tensor, "mat2": mat2, "beta": 1.0, "alpha": 1.0}
-    try:
-        torch.sspaddmm(torch.from_numpy(input_tensor), torch.from_numpy(mat1_tensor), torch.from_numpy(mat2), beta=1.0, alpha=1.0)
-        list_of_inputs.append(copy.deepcopy(input_dict))
-    except RuntimeError:
-        pass
-    return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def vitals_enabled_inputs():
     list_of_inputs = []
     input_dict = {"input": np.array(False)}
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch, copy
-import numpy as np
+
+
 def get_file_path_inputs():
     list_of_inputs = []
     
@@ -18508,10 +18421,8 @@ def get_file_path_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
-import torch
-import torch.nn as nn
-import numpy as np
-import copy
+
+
 def ParameterList_inputs():
     list_of_inputs = []
     # Input 1: Empty list
@@ -18535,9 +18446,9 @@ def ParameterList_inputs():
     input_dict5 = {"parameter_list": input5}
     list_of_inputs.append(copy.deepcopy(input_dict5))
     return list_of_inputs
-import torch
-import numpy as np
-import copy
+
+
+
 def from_numpy_inputs():
     list_of_inputs = []
     # Example 1: 1D numpy array of integers
@@ -18620,3 +18531,1359 @@ def cross_entropy_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
+def scatter_add_inputs():
+    list_of_inputs = []
+    input = torch.zeros(5, 3).numpy()
+    dim = 0
+    index = torch.tensor([[0, 1, 2], [0, 2, 4], [1, 4, 3], [1, 2, 3], [2, 3, 4]]).numpy()
+    src = torch.randn(5, 3).numpy()
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "index": index,
+        "src": src
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input = torch.zeros(3, 5).numpy()
+    dim = 1
+    index = torch.tensor([[0, 1, 2, 0, 0], [0, 2, 4, 1, 1], [1, 4, 3, 2, 2]]).numpy()
+    src = torch.randn(3, 5).numpy()
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "index": index,
+        "src": src
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input = torch.zeros(2, 3, 4).numpy()
+    dim = 0
+    index = torch.tensor([[[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0]], [[1, 1, 1, 1], [0, 0, 0, 0], [1, 1, 1, 1]]]).numpy()
+    src = torch.randn(2, 3, 4).numpy()
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "index": index,
+        "src": src
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input = torch.zeros(2, 3, 4).numpy()
+    dim = 1
+    index = torch.tensor([[[0, 1, 0, 1], [1, 0, 1, 0]], [[0, 0, 1, 1], [1, 1, 0, 0]]]).numpy()
+    src = torch.randn(2, 2, 4).numpy()
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "index": index,
+        "src": src
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    input = torch.zeros(2, 3, 4).numpy()
+    dim = 2
+    index = torch.tensor([[[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]], [[0, 1, 2, 3], [0, 1, 2, 3], [0, 1, 2, 3]]]).numpy()
+    src = torch.randn(2, 3, 4).numpy()
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "index": index,
+        "src": src
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    return list_of_inputs
+###########################################################################################
+
+# New system: Dictionary based
+
+generated_inputs = {
+    "torch.full": full_inputs(),
+    "torch.empty_strided": empty_strided_inputs(),
+    "torch.broadcast_shapes": broadcast_shapes_inputs(),
+    "torch.rand": rand_inputs(),
+    "torch.zeros": zeros_inputs(),
+    "torch.ones": ones_inputs(),
+    "torch.nn.functional.max_pool1d": max_pool1d_inputs(),
+    "torch.mean": mean_inputs(),
+    "torch.rot90": rot90_inputs(),
+    "torch.nn.functional.max_pool3d": max_pool3d_inputs(),
+    "torch.var": var_inputs(),
+    "torch.transpose": transpose_inputs(),
+    "torch.nn.functional.max_pool2d": max_pool2d_inputs(),
+    "torch.nn.functional.normalize": normalize_inputs(),
+    "torch.split": split_inputs(),
+    "torch.var_mean": var_mean_inputs(),
+    "torch.std": std_inputs(),
+    "torch.unsqueeze": unsqueeze_inputs(),
+    "torch.nansum": nansum_inputs(),
+    "torch.nn.functional.pixel_shuffle": pixel_shuffle_inputs(),
+    "torch.logcumsumexp": logcumsumexp_inputs(),
+    "torch.movedim": movedim_inputs(),
+    "torch.narrow": narrow_inputs(),
+    "torch.nn.functional.pad": pad_inputs(),
+    "torch.reshape": reshape_inputs(),
+    "torch.std_mean": std_mean_inputs(),
+    "torch.linspace": linspace_inputs(),
+    "torch.logspace": logspace_inputs(),
+    "torch.linalg.lstsq": lstsq_inputs(),
+    "torch.trapz": trapz_inputs(),
+    "torch.triangular_solve": triangular_solve_inputs(),
+    "torch.tensordot": tensordot_inputs(),
+    "torch.nn.functional.multilabel_soft_margin_loss": multilabel_soft_margin_loss_inputs(),
+    "torch.nn.functional.linear": linear_inputs(),
+    "torch.lu_solve": lu_solve_inputs(),
+    "torch.nn.functional.margin_ranking_loss": margin_ranking_loss_inputs(),
+    "torch.where": where_inputs(),
+    "torch.pow": pow_inputs(),
+    "torch.mm": mm_inputs(),
+    "torch.mv": mv_inputs(),
+    "torch.polar": polar_inputs(),
+    "torch.nn.functional.prelu": prelu_inputs(),
+    "torch.linalg.solve": solve_inputs(),
+    "torch.sub": sub_inputs(),
+    "torch.nn.functional.nll_loss": nll_loss_inputs(),
+    "torch.flatten": flatten_inputs(),
+    "torch.nn.functional.interpolate": interpolate_inputs(),
+    "torch.is_nonzero": is_nonzero_inputs(),
+    "torch.nn.functional.layer_norm": layer_norm_inputs(),
+    "torch.chunk": chunk_inputs(),
+    "torch.isclose": isclose_inputs(),
+    "torch.heaviside": heaviside_inputs(),
+    "torch.gt": gt_inputs(),
+    "torch.hypot": hypot_inputs(),
+    "torch.special.gammainc": igamma_inputs(),
+    "torch.inner": inner_inputs(),
+    "torch.lcm": lcm_inputs(),
+    "torch.le": le_inputs(),
+    "torch.einsum": einsum_inputs(),
+    "torch.index_select": index_select_inputs(),
+    "torch.as_strided": as_strided_inputs(),
+    "torch.broadcast_to": broadcast_to_inputs(),
+    "torch.cat": cat_inputs(),
+    "torch.flip": flip_inputs(),
+    "torch.nn.Flatten": flatten_inputs_2(),
+    "torch.nn.FractionalMaxPool2d": fractional_max_pool2d_inputs(),
+    "torch.nn.functional.adaptive_avg_pool2d": adaptive_avg_pool2d_inputs(),
+    "torch.amax": amax_inputs(),
+    "torch.atan2": atan2_inputs(),
+    "torch.nn.functional.cosine_similarity": cosine_similarity_inputs(),
+    "torch.cross": cross_inputs(),
+    "torch.nn.functional.cross_entropy": cross_entropy_inputs(),
+    "torch.dist": dist_inputs(),
+    "torch.floor_divide": floor_divide_inputs(),
+    "torch.fmin": fmin_inputs(),
+    "torch.outer": ger_inputs(),
+    "torch.nn.GroupNorm": groupnorm_inputs(),
+    "torch.nn.MaxPool3d": MaxPool3d_inputs(),
+    "torch.nn.PixelShuffle": pixel_shuffle_inputs(),
+    "torch.nn.functional.adaptive_max_pool2d": adaptive_max_pool2d_inputs(),
+    "torch.nn.functional.alpha_dropout": alpha_dropout_inputs(),
+    "torch.bitwise_and": bitwise_and_inputs(),
+    "torch.nn.LayerNorm": LayerNorm_inputs(),
+    "torch.nn.Linear": Linear_inputs(),
+    "torch.nn.MaxPool2d": MaxPool2d_inputs(),
+    "torch.nn.PReLU": PReLU_inputs(),
+    "torch.nn.Softmax": Softmax_inputs() + Softmax_inputs_2(),
+    "torch.nn.Softmin": softmin_inputs(),
+    "torch.bincount": bincount_inputs(),
+    "torch.bitwise_or": bitwise_or_inputs(),
+    "torch.bitwise_xor": bitwise_xor_inputs(),
+    "torch.bmm": bmm_inputs(),
+    "torch.cdist": cdist_inputs(),
+    "torch.complex": complex_inputs(),
+    "torch.copysign": copysign_inputs(),
+    "torch.dot": dot_inputs(),
+    "torch.eq": eq_inputs(),
+    "torch.float_power": float_power_inputs(),
+    "torch.ge": ge_inputs(),
+    "torch.allclose": allclose_inputs(),
+    "torch.nn.L1Loss": l1loss_inputs(),
+    "torch.nn.MSELoss": MSELoss_inputs(),
+    "torch.nn.MultiMarginLoss": multimarginloss_inputs(),
+    "torch.nn.PairwiseDistance": pairwise_distance_inputs(),
+    "torch.nn.PoissonNLLLoss": poisson_nll_loss_inputs(),
+    "torch.addmm": addmm_inputs(),
+    "torch.nn.functional.embedding_bag": embedding_bag_inputs(),
+    "torch.nn.functional.binary_cross_entropy_with_logits": binary_cross_entropy_with_logits_inputs(),
+    "torch.addcdiv": addcdiv_inputs(),
+    "torch.addmv": addmv_inputs(),
+    "torch.addr": addr_inputs(),
+    "torch.nn.MultiLabelSoftMarginLoss": multilabel_soft_margin_loss_inputs(),
+    "torch.nn.NLLLoss": nll_loss_inputs(),
+    "torch.nn.functional.batch_norm": batch_norm_inputs(),
+    "torch.nn.LSTMCell": lstm_cell_inputs(),
+    "torch.nn.MarginRankingLoss": margin_ranking_loss_inputs(),
+    "torch.set_autocast_cpu_enabled": set_autocast_cpu_enabled_inputs(),
+    "torch.bitwise_right_shift": bitwise_right_shift_inputs(),
+    "torch.arcsinh_": arcsinh_inputs(),
+    "torch.set_num_interop_threads": set_num_interop_threads_inputs(),
+    "torch.linalg.solve_ex": solve_ex_inputs(),
+    "torch.fake_quantize_per_tensor_affine": fake_quantize_per_tensor_affine_inputs(),
+    "torch.typename": typename_inputs(),
+    "torch.swapaxes": swapaxes_inputs(),
+    "torch.scatter_reduce": scatter_reduce_inputs(),
+    "torch.cross": cross_inputs(),
+    "torch.aminmax": aminmax_inputs(),
+    "torch.argwhere": argwhere_inputs(),
+    "torch.all": all_inputs(),
+    "torch.matrix_power": matrix_power_inputs(),
+    "torch.conj_physical_": conj_physical__inputs(),
+    "torch.miopen_batch_norm": miopen_batch_norm_inputs(),
+    "torch.atan_": atan_inputs(),
+    "torch.nn.LazyInstanceNorm2d": lazy_instance_norm2d_inputs(),
+    "torch.vstack": vstack_inputs(),
+    "torch.linalg.lu": lu_inputs(),
+    "torch.clamp_max": clamp_max_inputs(),
+    "torch.cos_": cos__inputs(),
+    "torch.get_num_threads": get_num_threads_inputs(),
+    "torch.special.softmax": softmax_inputs(),
+    "torch.linalg.pinv": torch_linalg_pinv_inputs(),
+    "torch.dsplit": dsplit_inputs(),
+    "torch.nn.CircularPad1d": circularpad1d_inputs(),
+    "torch.nn.Mish": mish_inputs(),
+    "torch.view_as_complex_copy": view_as_complex_copy_inputs(),
+    "torch.hspmm": hspmm_inputs(),
+    "torch.trunc_": trunc__inputs(),
+    "torch.set_autocast_ipu_enabled": set_autocast_ipu_enabled_inputs(),
+    "torch.isreal": isreal_inputs(),
+    "torch.fft.ifftshift": ifftshift_inputs(),
+    "torch.native_dropout": native_dropout_inputs(),
+    "torch.is_grad_enabled": is_grad_enabled_inputs(),
+    "torch.flatten": flatten_inputs(),
+    "torch.arccos_": arccos__inputs(),
+    "torch.index_copy": index_copy_inputs(),
+    "torch.arctan": arctan_inputs(),
+    "torch.less_equal": less_equal_inputs(),
+    "torch.bartlett_window": bartlett_window_inputs(),
+    "torch.reciprocal_": reciprocal__inputs(),
+    "torch.as_strided_copy": as_strided_copy_inputs(),
+    "torch.arccos": arccos_inputs(),
+    "torch.nn.AdaptiveAvgPool3d": adaptive_avg_pool3d_inputs(),
+    "torch.nn.functional.embedding_bag": embedding_bag_inputs(),
+    "torch.moveaxis": moveaxis_inputs(),
+    "torch.tan_": tan__inputs(),
+    "torch.tanh": tanh_inputs(),
+    "torch.nn.Softplus": Softplus_inputs(),
+    "torch.linalg.vector_norm": vector_norm_inputs(),
+    "torch.is_autocast_ipu_enabled": is_autocast_ipu_enabled_inputs(),
+    "torch.nn.ZeroPad1d": ZeroPad1d_inputs(),
+    "torch.manual_seed": manual_seed_inputs(),
+    "torch.nn.functional.log_softmax": log_softmax_inputs() + log_softmax_inputs_2() + log_softmax_inputs_3() + log_softmax_inputs_4(),
+    "torch.set_warn_always": set_warn_always_inputs(),
+    "torch.gcd_": gcd__inputs(),
+    "torch.rsub": rsub_inputs(),
+    "torch.ceil_": ceil__inputs(),
+    "torch.ldexp_": ldexp_inputs(),
+    "torch.nn.utils.parameters_to_vector": parameters_to_vector_inputs(),
+    "torch.get_autocast_cpu_dtype": get_autocast_cpu_dtype_inputs(),
+    "torch.swapdims": swapdims_inputs(),
+    "torch.any": any_inputs(),
+    "torch.vsplit": vsplit_inputs(),
+    "torch.set_anomaly_enabled": set_anomaly_enabled_inputs(),
+    "torch.nn.BCEWithLogitsLoss": BCEWithLogitsLoss_inputs(),
+    "torch.autocast_increment_nesting": autocast_increment_nesting_inputs(),
+    "torch.frexp": frexp_inputs(),
+    "torch.linalg.eig": eig_inputs(),
+    "torch.arcsin_": arcsin_inputs(),
+    "torch.set_num_threads": set_num_threads_inputs(),
+    "torch.jit.is_tracing": is_tracing_inputs(),
+    "torch.arctanh": arctanh_inputs(),
+    "torch.linalg.eigvals": linalg_eigvals_inputs(),
+    "torch.nn.CrossEntropyLoss": cross_entropy_loss_inputs(),
+    "torch.is_anomaly_enabled": is_anomaly_enabled_inputs(),
+    "torch.nn.HuberLoss": HuberLoss_inputs(),
+    "torch.clip": clip_inputs(),
+    "torch.rsqrt_": rsqrt_inputs(),
+    "torch.erfc_": erfc_inputs(),
+    "torch.nn.Parameter": parameter_inputs(),
+    "torch.index_put": index_put_inputs(),
+    "torch.hann_window": hann_window_inputs(),
+    "torch.is_autocast_cache_enabled": is_autocast_cache_enabled_inputs(),
+    "torch.nn.functional.celu": celu_inputs() + celu_inputs_2() + celu_inputs_3(),
+    "torch.nn.ReflectionPad3d": ReflectionPad3d_inputs(),
+    "torch.save": torch_save_inputs(),
+    "torch.nn.PixelUnshuffle": pixel_unshuffle_inputs(),
+    "torch.concatenate": concatenate_inputs(),
+    "torch.cond": cond_inputs(),
+    "torch.corrcoef": corrcoef_inputs(),
+    "torch.quantile": quantile_inputs(),
+    "torch.isin": isin_inputs(),
+    "torch.special.gammaincc": gammaincc_inputs(),
+    "torch.arcsin": arcsin_inputs(),
+    "torch.nn.CELU": celu_inputs() + celu_inputs_2() + celu_inputs_3(),
+    "torch.igammac": igammac_inputs(),
+    "torch.sigmoid_": sigmoid__inputs(),
+    "torch.nn.Sigmoid": Sigmoid_inputs(),
+    "torch.is_autocast_enabled": is_autocast_enabled_inputs(),
+    "torch.scatter_add": scatter_add_inputs(),
+    "torch.row_stack": row_stack_inputs(),
+    "torch.negative": negative_inputs(),
+    "torch.nn.CosineSimilarity": cosine_similarity_inputs(),
+    "torch.view_as_real": view_as_real_inputs(),
+    "torch.qr": qr_inputs(),
+    "torch.cholesky": cholesky_inputs(),
+    "torch.nn.GaussianNLLLoss": gaussian_nllloss_inputs(),
+    "torch.acosh_": acosh_inputs(),
+    "torch.is_autocast_cpu_enabled": is_autocast_cpu_enabled_inputs(),
+    "torch.sin_": sin__inputs(),
+    "torch.divide": generate_divide_inputs(),
+    "torch.prepare_multiprocessing_environment": prepare_multiprocessing_environment_inputs(),
+    "torch.get_rng_state": get_rng_state_inputs(),
+    "torch.set_autocast_enabled": set_autocast_enabled_inputs(),
+    "torch.square_": square__inputs(),
+    "torch.arccosh": arccosh_inputs(),
+    "torch.count_nonzero": count_nonzero_inputs(),
+    "torch.index_select": index_select_inputs(),
+    "torch.special.expit": expit_inputs(),
+    "torch.set_deterministic_debug_mode": set_deterministic_debug_mode_inputs(),
+    "torch.select": torch_select_inputs(),
+    "torch.nn.Tanhshrink": Tanhshrink_inputs(),
+    "torch.get_default_device": get_default_device_inputs(),
+    "torch.matrix_exp": matrix_exp_inputs(),
+    "torch.histogram": torch_histogram_inputs(),
+    "torch.nn.Tanh": Tanh_inputs(),
+    "torch.is_inference_mode_enabled": is_inference_mode_enabled_inputs(),
+    "torch.native_channel_shuffle": native_channel_shuffle_inputs(),
+    "torch.equal": equal_inputs(),
+    "torch.tile": torch_tile_inputs(),
+    "torch.ldexp": ldexp_inputs(),
+    "torch.crow_indices_copy": crow_indices_copy_inputs(),
+    "torch.arctan_": arctan_inputs(),
+    "torch.nn.SoftMarginLoss": soft_margin_loss_inputs(),
+    "torch.randn_like": randn_like_inputs(),
+    "torch.subtract": subtract_inputs(),
+    "torch.conj_physical": conj_physical_inputs(),
+    "torch.column_stack": column_stack_inputs(),
+    "torch.true_divide": true_divide_inputs(),
+    "torch.negative_": negative_inputs(),
+    "torch.greater_equal": greater_equal_inputs(),
+    "torch.empty": torch_empty_inputs(),
+    "torch.nn.TripletMarginLoss": triplet_margin_loss_inputs(),
+    "torch.alias_copy": alias_copy_inputs(),
+    "torch.special.entr": entr_inputs(),
+    "torch.asinh_": asinh_inputs(),
+    "torch.log_": log_inputs(),
+    "torch.set_autocast_xla_enabled": set_autocast_xla_enabled_inputs(),
+    "torch.linalg.vecdot": vecdot_inputs(),
+    "torch.jit.ScriptWarning": script_warning_inputs(),
+    "torch.nn.Unflatten": unflatten_inputs(),
+    "torch.is_floating_point": is_floating_point_inputs(),
+    "torch.nn.LocalResponseNorm": local_response_norm_inputs(),
+    "torch.slogdet": slogdet_inputs(),
+    "torch.is_storage": is_storage_inputs(),
+    "torch.masked_scatter": masked_scatter_inputs(),
+    "torch.nn.LogSoftmax": log_softmax_inputs() + log_softmax_inputs_2() + log_softmax_inputs_3() + log_softmax_inputs_4(),
+    "torch.nn.CosineEmbeddingLoss": CosineEmbeddingLoss_inputs(),
+    "torch.concat": concat_inputs(),
+    "torch.set_autocast_cache_enabled": set_autocast_cache_enabled_inputs(),
+    "torch.arcsinh": arcsinh_inputs(),
+    "torch.fft.rfftfreq": rfftfreq_inputs(),
+    "torch.atanh_": atanh_inputs(),
+    "torch.unravel_index": unravel_index_inputs(),
+    "torch.lu_unpack": lu_unpack_inputs(),
+    "torch.clone": clone_inputs(),
+    "torch.set_default_device": set_default_device_inputs(),
+    "torch.permute": permute_inputs(),
+    "torch.absolute": absolute_inputs(),
+    "torch.threshold": threshold_inputs(),
+    "torch.cosh_": cosh__inputs(),
+    "torch.get_device": get_device_inputs(),
+    "torch.relu_": relu_inputs(),
+    "torch.fft.fftfreq": fftfreq_inputs(),
+    "torch.quantize_per_tensor": quantize_per_tensor_inputs(),
+    "torch.nn.KLDivLoss": KLDivLoss_inputs(),
+    "torch.clear_autocast_cache": clear_autocast_cache_inputs(),
+    "torch.sqrt_": sqrt__inputs(),
+    "torch.asin_": asin__inputs(),
+    "torch.vander": vander_inputs(),
+    "torch.fft.fftn": fftn_inputs(),
+    "torch.are_deterministic_algorithms_enabled": are_deterministic_algorithms_enabled_inputs(),
+    "torch.nn.functional.cosine_similarity": cosine_similarity_inputs(),
+    "torch.get_default_dtype": get_default_dtype_inputs(),
+    "torch.view_as_complex": view_as_complex_inputs(),
+    "torch.gather": gather_inputs(),
+    "torch.det": det_inputs(),
+    "torch.nn.FractionalMaxPool3d": fractionalmaxpool3d_inputs(),
+    "torch.jit.strict_fusion": strict_fusion_inputs(),
+    "torch.stft": torch_stft_inputs(),
+    "torch.acos_": acos_inputs(),
+    "torch.special.spherical_bessel_j0": spherical_bessel_j0_inputs(),
+    "torch.bilinear": bilinear_inputs(),
+    "torch.nanmean": nanmean_inputs(),
+    "torch.hamming_window": hamming_window_inputs(),
+    "torch.greater": greater_inputs(),
+    "torch.erf_": erf__inputs(),
+    "torch.nn.ZeroPad2d": ZeroPad2d_inputs(),
+    "torch.vdot": vdot_inputs(),
+    "torch.is_warn_always_enabled": is_warn_always_enabled_inputs(),
+    "torch.is_anomaly_check_nan_enabled": is_anomaly_check_nan_enabled_inputs(),
+    "torch.ones_like": ones_like_inputs(),
+    "torch.not_equal": not_equal_inputs(),
+    "torch.nn.ReLU": ReLU_inputs(),
+    "torch.floor_": floor_inputs(),
+    "torch.narrow_copy": narrow_copy_inputs(),
+    "torch.manual_seed": use_deterministic_algorithms_inputs(),
+    "torch.nn.Threshold": Threshold_inputs(),
+    "torch.special.erfcx": erfcx_inputs(),
+    "torch.multiply": multiply_inputs(),
+    "torch.logit_": logit__inputs(),
+    "torch.linalg.solve_triangular": solve_triangular_inputs(),
+    "torch.is_autocast_xla_enabled": is_autocast_xla_enabled_inputs(),
+    "torch.fft.rfft": rfft_inputs(),
+    "torch.nn.ConstantPad1d": constant_pad1d_inputs(),
+    "torch.less": less_inputs(),
+    "torch.nn.Hardsigmoid": hardsigmoid_inputs(),
+    "torch.diff": diff_inputs(),
+    "torch.hsplit": hsplit_inputs(),
+    "torch.jit.is_scripting": is_scripting_inputs(),
+    "torch.set_grad_enabled": set_grad_enabled_inputs(),
+    "torch.fft.rfft2": rfft2_inputs(),
+    "torch.arctanh_": arctanh_inputs(),
+    "torch.select_copy": select_copy_inputs(),
+    "torch.jit.Error": jit_error_inputs(),
+    "torch.meshgrid": meshgrid_inputs(),
+    "torch.nn.functional.layer_norm": layer_norm_inputs(),
+    "torch.linalg.inv": linalg_inv_inputs(),
+    "torch.nn.Identity": identity_inputs(),
+    "torch.nan_to_num": nan_to_num_inputs(),
+    "torch.adjoint": adjoint_inputs(),
+    "torch.clip_": clip_inputs(),
+    "torch.jit.set_module": set_module_inputs(),
+    "torch.addmv_": addmv_inputs(),
+    "torch.diagonal": diagonal_inputs(),
+    "torch.bitwise_left_shift": bitwise_left_shift_inputs(),
+    "torch.fft.fft": fft_inputs(),
+    "torch.linalg.eigh": torch_linalg_eigh_inputs(),
+    "torch.fix": fix_inputs(),
+    "torch.nn.SmoothL1Loss": smoothl1loss_inputs(),
+    "torch.nn.LazyInstanceNorm1d": lazy_instance_norm1d_inputs(),
+    "torch.linalg.matrix_rank": matrix_rank_inputs(),
+    "torch.lerp": lerp_inputs(),
+    "torch.celu": celu_inputs() + celu_inputs_2() + celu_inputs_3(),
+    "torch.fft.fft2": fft2_inputs(),
+    "torch.nn.UninitializedParameter": uninitialized_parameter_inputs(),
+    "torch.take": take_inputs(),
+    "torch.fmax": fmax_inputs(),
+    "torch.fft.fftshift": fftshift_inputs(),
+    "torch.positive": positive_inputs(),
+    "torch.linalg.multi_dot": multi_dot_inputs(),
+    "torch.linalg.svdvals": svdvals_inputs(),
+    "torch.abs_": abs__inputs(),
+    "torch.special.multigammaln": multigammaln_inputs(),
+    "torch.get_deterministic_debug_mode": get_deterministic_debug_mode_inputs(),
+    "torch.nn.utils.get_total_norm": get_total_norm_inputs(),
+    "torch.multinomial": multinomial_inputs(),
+    "torch.nn.functional.softmax": softmax_inputs(),
+    "torch.nn.functional.softmin": softmin_inputs(),
+    "torch.matrix_exp": matrix_exp_inputs(),
+    "torch.matrix_power": matrix_power_inputs(),
+    "torch.logdet": logdet_inputs(),
+    "torch.nn.LogSoftmax": log_softmax_inputs() + log_softmax_inputs_2() + log_softmax_inputs_3() + log_softmax_inputs_4(),
+    "torch.slogdet": slogdet_inputs(),
+    "torch.linalg.eigh": symeig_inputs(),
+    "torch.remainder": remainder_inputs(),
+    "torch.lt": lt_inputs(),
+    "torch.logaddexp2": logaddexp2_inputs(),
+    "torch.logaddexp": logaddexp_inputs(),
+    "torch.maximum": maximum_inputs(),
+    "torch.minimum": minimum_inputs(),
+    "torch.nextafter": nextafter_inputs(),
+    "torch.inverse": inverse_inputs(),
+    "torch.chain_matmul": chain_matmul_inputs(),
+    "torch.cumsum": cumsum_inputs(),
+    "torch.nn.functional.avg_pool2d": avg_pool2d_inputs(),
+    "torch.cumprod": cumprod_inputs(),
+    "torch.det": det_inputs(),
+    "torch.amin": torch_amin_inputs(),
+    "torch.argmax": argmax_inputs(),
+    "torch.argmin": argmin_inputs(),
+    "torch.argsort": argsort_inputs(),
+    "torch.unique_consecutive": unique_consecutive_inputs(),
+    "torch.logsumexp": logsumexp_inputs(),
+    "torch.max": generate_max_inputs(),
+    "torch.prod": prod_inputs(),
+    "torch.squeeze": squeeze_inputs(),
+    "torch.nn.functional.log_softmax": log_softmax_inputs() + log_softmax_inputs_2() + log_softmax_inputs_3() + log_softmax_inputs_4(),
+    "torch.nn.functional.pairwise_distance": pairwise_distance_inputs(),
+    "torch.mul": mul_inputs(),
+    "torch.ne": ne_inputs(),
+    "torch.linalg.eig": eig_inputs(),
+    "torch.nn.GRUCell": GRUCell_inputs(),
+    "torch.add": add_inputs(),
+    "torch.stack": stack_inputs(),
+    "torch.unbind": unbind_inputs(),
+    "torch.logical_or": logical_or_inputs(),
+    "torch.masked_select": masked_select_inputs(),
+    "torch.logical_and": logical_and_inputs(),
+    "torch.logical_xor": logical_xor_inputs(),
+    "torch.cartesian_prod": cartesian_prod_inputs(),
+    "torch.unique": unique_inputs(),
+    "torch.DoubleStorage": DoubleStorage_inputs(),
+    "torch.ShortStorage": ShortStorage_inputs(),
+    "torch.enable_grad": enable_grad_inputs(),
+    "torch.nn.HingeEmbeddingLoss": hinge_embedding_loss_inputs(),
+    "torch.asarray": asarray_inputs(),
+    "torch.vitals_enabled": vitals_enabled_inputs(),
+}
+
+def cross_entropy_inputs():
+    list_of_inputs = []
+
+    # Case 1: Basic case with default parameters
+    input_tensor = np.random.randn(3, 5).astype(np.float32)
+    target_tensor = np.random.randint(0, 5, size=(3,)).astype(np.int64)
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "weight": None,
+        "ignore_index": -100,
+        "reduction": 'mean',
+        "label_smoothing": 0.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 2: Different reduction mode and weight
+    input_tensor = np.random.randn(2, 4).astype(np.float32)
+    target_tensor = np.random.randint(0, 4, size=(2,)).astype(np.int64)
+    weight_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "weight": weight_tensor,
+        "ignore_index": -100,
+        "reduction": 'sum',
+        "label_smoothing": 0.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 3: Ignore index
+    input_tensor = np.random.randn(4, 3).astype(np.float32)
+    target_tensor = np.random.randint(0, 3, size=(4,)).astype(np.int64)
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "weight": None,
+        "ignore_index": 1,
+        "reduction": 'mean',
+        "label_smoothing": 0.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 4: Label smoothing
+    input_tensor = np.random.randn(5, 6).astype(np.float32)
+    target_tensor = np.random.randint(0, 6, size=(5,)).astype(np.int64)
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "weight": None,
+        "ignore_index": -100,
+        "reduction": 'mean',
+        "label_smoothing": 0.1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    # Case 6: Weight with ignore_index
+    input_tensor = np.random.randn(3, 4).astype(np.float32)
+    target_tensor = np.random.randint(0, 4, size=(3,)).astype(np.int64)
+    weight_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "weight": weight_tensor,
+        "ignore_index": 2,
+        "reduction": 'mean',
+        "label_smoothing": 0.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 7: None reduction - Removing for now as non scalar output leads to error
+    input_tensor = np.random.randn(2, 3).astype(np.float32)
+    target_tensor = np.random.randint(0, 3, size=(2,)).astype(np.int64)
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "weight": None,
+        "ignore_index": -100,
+        "reduction": 'mean', # changed reduction to mean
+        "label_smoothing": 0.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.functional.cross_entropy"] = cross_entropy_inputs()
+
+def conv_transpose2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with different parameters
+    input = torch.randn(1, 3, 5, 5).numpy()
+    weight = torch.randn(3, 2, 3, 3).numpy()
+    bias = torch.randn(2).numpy()
+    stride = (2, 2)
+    padding = (1, 1)
+    output_padding = (1, 1)
+    groups = 1
+    dilation = (1, 1)
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different batch size and channel size
+    input = torch.randn(2, 6, 8, 8).numpy()
+    weight = torch.randn(6, 4, 2, 2).numpy()
+    bias = torch.randn(4).numpy()
+    stride = (1, 1)
+    padding = (0, 0)
+    output_padding = (0, 0)
+    groups = 1
+    dilation = (1, 1)
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Groups > 1 - Corrected weight shape
+    input = torch.randn(1, 4, 7, 7).numpy()
+    weight = torch.randn(4, 2, 3, 3).numpy()  # Modified weight shape
+    bias = torch.randn(2).numpy()
+    stride = (2, 2)
+    padding = (1, 1)
+    output_padding = (1, 1)
+    groups = 2  # Not actually using groups for conv_transpose2d, it does not support the groups argument
+    dilation = (1, 1)
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": 1,  # Setting groups to 1 to avoid the group related error
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: Different dilation
+    input = torch.randn(1, 3, 5, 5).numpy()
+    weight = torch.randn(3, 2, 3, 3).numpy()
+    bias = torch.randn(2).numpy()
+    stride = (1, 1)
+    padding = (1, 1)
+    output_padding = (1, 1)
+    groups = 1
+    dilation = (2, 2)
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Asymmetric stride and padding
+    input = torch.randn(1, 3, 5, 5).numpy()
+    weight = torch.randn(3, 2, 3, 3).numpy()
+    bias = torch.randn(2).numpy()
+    stride = (2, 1)
+    padding = (1, 0)
+    output_padding = (1, 0)
+    groups = 1
+    dilation = (1, 1)
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.functional.conv_transpose2d"] = conv_transpose2d_inputs()
+
+def adaptive_max_pool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with 4D tensor
+    input1 = torch.randn(1, 3, 32, 32).numpy()
+    output_size1 = (16, 16)
+    return_indices1 = False
+    input_dict1 = {
+        "input": input1,
+        "output_size": output_size1,
+        "return_indices": return_indices1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 3D tensor
+    input2 = torch.randn(3, 32, 32).numpy()
+    output_size2 = (16, 16)
+    return_indices2 = True
+    input_dict2 = {
+        "input": input2,
+        "output_size": output_size2,
+        "return_indices": return_indices2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Different output size (single integer)
+    input3 = torch.randn(1, 3, 64, 64).numpy()
+    output_size3 = (8, 8)
+    return_indices3 = False
+    input_dict3 = {
+        "input": input3,
+        "output_size": output_size3,
+        "return_indices": return_indices3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Small input size
+    input4 = torch.randn(1, 1, 4, 4).numpy()
+    output_size4 = (2, 2)
+    return_indices4 = True
+    input_dict4 = {
+        "input": input4,
+        "output_size": output_size4,
+        "return_indices": return_indices4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Batch size > 1
+    input5 = torch.randn(4, 3, 32, 32).numpy()
+    output_size5 = (8, 8)
+    return_indices5 = False
+    input_dict5 = {
+        "input": input5,
+        "output_size": output_size5,
+        "return_indices": return_indices5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6: Input with different data type (float64)
+    input6 = torch.randn(1, 3, 32, 32, dtype=torch.float64).numpy()
+    output_size6 = (16, 16)
+    return_indices6 = False
+    input_dict6 = {
+        "input": input6,
+        "output_size": output_size6,
+        "return_indices": return_indices6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.adaptive_max_pool2d"] = adaptive_max_pool2d_inputs()
+
+
+
+
+
+def cdist_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with p=2
+    x1 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    x2 = np.array([[5.0, 6.0], [7.0, 8.0]])
+    p = 2.0
+    input_dict = {"x1": x1, "x2": x2, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different shapes
+    x1 = np.array([[1.0, 2.0, 3.0]])
+    x2 = np.array([[4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    p = 2.0
+    input_dict = {"x1": x1, "x2": x2, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Different p value
+    x1 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    x2 = np.array([[5.0, 6.0], [7.0, 8.0]])
+    p = 1.0
+    input_dict = {"x1": x1, "x2": x2, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Negative values
+    x1 = np.array([[-1.0, 2.0], [3.0, -4.0]])
+    x2 = np.array([[5.0, -6.0], [-7.0, 8.0]])
+    p = 2.0
+    input_dict = {"x1": x1, "x2": x2, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: p = infinity
+    x1 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    x2 = np.array([[5.0, 6.0], [7.0, 8.0]])
+    p = float('inf')
+    input_dict = {"x1": x1, "x2": x2, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 3D tensors
+    x1 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    x2 = np.array([[[9.0, 10.0], [11.0, 12.0]], [[13.0, 14.0], [15.0, 16.0]]])
+    p = 2.0
+    input_dict = {"x1": x1, "x2": x2, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: p = 0
+    x1 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    x2 = np.array([[5.0, 6.0], [7.0, 8.0]])
+    p = 0.0
+    input_dict = {"x1": x1, "x2": x2, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.cdist"] = cdist_inputs()
+
+
+
+
+def cross_inputs():
+    list_of_inputs = []
+
+    # Test case 1: Basic case with float tensors and dim=1
+    a = torch.randn(4, 3).numpy()
+    b = torch.randn(4, 3).numpy()
+    input_dict = {"input": a, "other": b, "dim": 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Test case 2: Basic case with float tensors and no dim specified
+    a = torch.randn(4, 3).numpy()
+    b = torch.randn(4, 3).numpy()
+    input_dict = {"input": a, "other": b, "dim": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Test case 3: Integer tensors with dim=0
+    a = torch.randint(-5, 5, (3, 3)).numpy()
+    b = torch.randint(-5, 5, (3, 3)).numpy()
+    input_dict = {"input": a, "other": b, "dim": 0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Test case 4: Complex tensors with dim=-1 (should fail in torch.cross but test valid input format)
+    a = torch.randn(3, 3, dtype=torch.complex64).numpy()
+    b = torch.randn(3, 3, dtype=torch.complex64).numpy()
+    input_dict = {"input": a, "other": b, "dim": -1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Test case 5: Different sized tensors (should cause a broadcast error when using torch.cross)
+    a = torch.randn(3).numpy()
+    b = torch.randn(3).numpy()
+    input_dict = {"input": a, "other": b, "dim": 0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Test case 6: 3D tensors with dim=2
+    a = torch.randn(2, 4, 3).numpy()
+    b = torch.randn(2, 4, 3).numpy()
+    input_dict = {"input": a, "other": b, "dim": 2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Test case 7: Double tensors
+    a = torch.randn(4, 3, dtype=torch.float64).numpy()
+    b = torch.randn(4, 3, dtype=torch.float64).numpy()
+    input_dict = {"input": a, "other": b, "dim": 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.cross"] = cross_inputs()
+
+
+
+
+def torch_diagonal_inputs():
+    list_of_inputs = []
+
+    input_1 = torch.randn(3, 3).numpy()
+    input_dict_1 = {"input": input_1, "offset": 0, "dim1": 0, "dim2": 1}
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.diagonal"] = torch_diagonal_inputs()
+
+
+
+
+
+def linalg_eigh_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple symmetric matrix (float64)
+    A = np.array([[2.0, 1.0], [1.0, 3.0]], dtype=np.float64)
+    input_dict = {"A": A, "UPLO": 'L'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Batch of symmetric matrices (float32)
+    A = np.array([[[2.0, 1.0], [1.0, 3.0]], [[4.0, 2.0], [2.0, 5.0]]], dtype=np.float32)
+    input_dict = {"A": A, "UPLO": 'U'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Complex Hermitian matrix (complex128)
+    A = np.array([[2.0 + 0j, 1.0 - 1j], [1.0 + 1j, 3.0 + 0j]], dtype=np.complex128)
+    input_dict = {"A": A, "UPLO": 'L'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Batch of complex Hermitian matrices (complex64)
+    A = np.array([[[2.0 + 0j, 1.0 - 1j], [1.0 + 1j, 3.0 + 0j]], [[4.0 + 0j, 2.0 - 2j], [2.0 + 2j, 5.0 + 0j]]], dtype=np.complex64)
+    input_dict = {"A": A, "UPLO": 'U'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: Larger symmetric matrix (float64)
+    A = np.array([[4.0, 1.0, 2.0], [1.0, 5.0, 3.0], [2.0, 3.0, 6.0]], dtype=np.float64)
+    input_dict = {"A": A, "UPLO": 'L'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Matrix with negative values (float32)
+    A = np.array([[2.0, -1.0], [-1.0, 3.0]], dtype=np.float32)
+    input_dict = {"A": A, "UPLO": 'U'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: 3D batch of matrices
+    A = np.random.rand(2, 3, 3)
+    A = A + np.transpose(A, (0, 2, 1))
+    input_dict = {"A": A.astype(np.float64), "UPLO": 'L'}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.eigh"] = linalg_eigh_inputs()
+
+
+
+
+
+def interpolate_inputs():
+    list_of_inputs = []
+
+    # Input 1: 4D tensor, size, bilinear, align_corners=False
+    input1 = torch.randn(1, 3, 10, 10).numpy()
+    size1 = (20, 20)
+    input_dict1 = {
+        "input": input1,
+        "size": size1,
+        "scale_factor": None,
+        "mode": 'bilinear',
+        "align_corners": False,
+        "recompute_scale_factor": None,
+        "antialias": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 4D tensor, scale_factor, nearest
+    input2 = torch.randn(2, 4, 5, 5).numpy()
+    scale_factor2 = 2.0
+    input_dict2 = {
+        "input": input2,
+        "size": None,
+        "scale_factor": scale_factor2,
+        "mode": 'nearest',
+        "align_corners": None,
+        "recompute_scale_factor": None,
+        "antialias": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 5D tensor, size, trilinear, align_corners=True
+    input3 = torch.randn(1, 2, 3, 4, 5).numpy()
+    size3 = (6, 8, 10)
+    input_dict3 = {
+        "input": input3,
+        "size": size3,
+        "scale_factor": None,
+        "mode": 'trilinear',
+        "align_corners": True,
+        "recompute_scale_factor": None,
+        "antialias": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor, scale_factor tuple, linear, align_corners=False
+    input4 = torch.randn(1, 3, 5).numpy()
+    scale_factor4 = (2.0,)
+    input_dict4 = {
+        "input": input4,
+        "size": None,
+        "scale_factor": scale_factor4,
+        "mode": 'linear',
+        "align_corners": False,
+        "recompute_scale_factor": None,
+        "antialias": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 4D tensor, size, bicubic, align_corners=True, recompute_scale_factor=True
+    input5 = torch.randn(2, 1, 8, 8).numpy()
+    size5 = (16, 16)
+    input_dict5 = {
+        "input": input5,
+        "size": size5,
+        "scale_factor": None,
+        "mode": 'bicubic',
+        "align_corners": True,
+        "recompute_scale_factor": False,
+        "antialias": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    return list_of_inputs
+
+   
+generated_inputs["torch.nn.functional.interpolate"] = interpolate_inputs()
+
+
+
+
+def is_tracing_inputs():
+    list_of_inputs = []
+
+    input_dict = {"input": np.array([1])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {"input": np.array([1.0])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {"input": np.array([[1, 2], [3, 4]])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_dict = {"input": np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input_dict = {"input": np.array([-1, -2, -3])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.jit.is_tracing"] = is_tracing_inputs()
+
+
+
+
+def layer_norm_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic float input, 2D
+    input1 = np.random.randn(2, 3).astype(np.float32)
+    normalized_shape1 = (3,)
+    weight1 = np.random.randn(3).astype(np.float32)
+    bias1 = np.random.randn(3).astype(np.float32)
+    eps1 = 1e-5
+    input_dict1 = {
+        "input": input1,
+        "normalized_shape": normalized_shape1,
+        "weight": weight1,
+        "bias": bias1,
+        "eps": eps1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 3D input, different normalized shape
+    input2 = np.random.randn(2, 4, 5).astype(np.float32)
+    normalized_shape2 = (4, 5)
+    weight2 = np.random.randn(4, 5).astype(np.float32)
+    bias2 = np.random.randn(4, 5).astype(np.float32)
+    eps2 = 1e-8
+    input_dict2 = {
+        "input": input2,
+        "normalized_shape": normalized_shape2,
+        "weight": weight2,
+        "bias": bias2,
+        "eps": eps2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Input with negative values, 1D
+    input3 = np.random.randn(10).astype(np.float32) - 5
+    normalized_shape3 = (10,)
+    weight3 = np.random.randn(10).astype(np.float32)
+    bias3 = np.random.randn(10).astype(np.float32)
+    eps3 = 1e-6
+    input_dict3 = {
+        "input": input3,
+        "normalized_shape": normalized_shape3,
+        "weight": weight3,
+        "bias": bias3,
+        "eps": eps3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Larger input, 4D
+    input4 = np.random.randn(1, 3, 16, 16).astype(np.float32)
+    normalized_shape4 = (16, 16)
+    weight4 = np.random.randn(16, 16).astype(np.float32)
+    bias4 = np.random.randn(16, 16).astype(np.float32)
+    eps4 = 1e-7
+    input_dict4 = {
+        "input": input4,
+        "normalized_shape": normalized_shape4,
+        "weight": weight4,
+        "bias": bias4,
+        "eps": eps4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Different eps
+    input5 = np.random.randn(2, 3).astype(np.float32)
+    normalized_shape5 = (3,)
+    weight5 = np.random.randn(3).astype(np.float32)
+    bias5 = np.random.randn(3).astype(np.float32)
+    eps5 = 1e-3
+    input_dict5 = {
+        "input": input5,
+        "normalized_shape": normalized_shape5,
+        "weight": weight5,
+        "bias": bias5,
+        "eps": eps5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6: 1D input
+    input6 = np.random.randn(5).astype(np.float32)
+    normalized_shape6 = (5,)
+    weight6 = np.random.randn(5).astype(np.float32)
+    bias6 = np.random.randn(5).astype(np.float32)
+    eps6 = 1e-4
+    input_dict6 = {
+        "input": input6,
+        "normalized_shape": normalized_shape6,
+        "weight": weight6,
+        "bias": bias6,
+        "eps": eps6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.layer_norm"] = layer_norm_inputs()
+
+
+
+
+def log_softmax_inputs():
+    list_of_inputs = []
+
+    input1 = np.random.randn(3, 5).astype(np.float32)
+    dim1 = 1
+    dtype1 = None
+    input_dict1 = {
+        "input": input1,
+        "dim": dim1,
+        "dtype": dtype1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    input2 = np.random.randn(2, 4, 6).astype(np.float64)
+    dim2 = 0
+    dtype2 = None
+    input_dict2 = {
+        "input": input2,
+        "dim": dim2,
+        "dtype": dtype2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    input3 = np.random.randn(1, 3, 5, 7).astype(np.float16)
+    dim3 = 2
+    dtype3 = None
+    input_dict3 = {
+        "input": input3,
+        "dim": dim3,
+        "dtype": dtype3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    input4 = np.random.randn(4).astype(np.float32)
+    dim4 = 0
+    dtype4 = None
+    input_dict4 = {
+        "input": input4,
+        "dim": dim4,
+        "dtype": dtype4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    input5 = np.random.randn(2, 2).astype(np.float32)
+    dim5 = -1
+    dtype5 = None
+    input_dict5 = {
+        "input": input5,
+        "dim": dim5,
+        "dtype": dtype5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    input6 = np.random.randn(2, 2).astype(np.float32)
+    dim6 = -2
+    dtype6 = None
+    input_dict6 = {
+        "input": input6,
+        "dim": dim6,
+        "dtype": dtype6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.log_softmax"] = log_softmax_inputs()
+
+
+
+
+
+def outer_inputs():
+    list_of_inputs = []
+
+    v1 = np.arange(1., 5.)
+    v2 = np.arange(1., 4.)
+    input_dict = {
+        "input": v1,
+        "vec2": v2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    v1 = np.array([-1., -2., -3.])
+    v2 = np.array([1., 2., 3.])
+    input_dict = {
+        "input": v1,
+        "vec2": v2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    v1 = np.array([1, 2, 3], dtype=np.int32)
+    v2 = np.array([4, 5], dtype=np.int32)
+    input_dict = {
+        "input": v1,
+        "vec2": v2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    v1 = np.array([1.5, 2.5], dtype=np.float64)
+    v2 = np.array([3.5, 4.5, 5.5], dtype=np.float64)
+    input_dict = {
+        "input": v1,
+        "vec2": v2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    v1 = np.array([0, 0, 0])
+    v2 = np.array([0, 0])
+    input_dict = {
+        "input": v1,
+        "vec2": v2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    v1 = np.array([1, 2, 3], dtype=np.int64)
+    v2 = np.array([4, 5, 6, 7], dtype=np.int64)
+    input_dict = {
+        "input": v1,
+        "vec2": v2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.outer"] = outer_inputs()
+
+
+
+
+def strict_fusion_inputs():
+    list_of_inputs = []
+    
+    x = torch.randn(2, 3).numpy()
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x = torch.randn(1, 1, 5, 5).numpy()
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x = torch.randn(4).numpy()
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x = torch.randn(2, 2, 2, 2, 2).numpy()
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    x = torch.randn(1).numpy()
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.jit.strict_fusion"] = strict_fusion_inputs()
+
+def add_inputs():
+    list_of_inputs = []
+
+    # Case 1: Basic addition with float tensors and alpha=1
+    input1 = torch.randn(4).numpy()
+    other1 = torch.randn(4).numpy()
+    alpha1 = 1.0
+    input_dict1 = {"input": input1, "other": other1, "alpha": alpha1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Case 2: Addition with different shapes (broadcasting) and alpha=2
+    input2 = torch.randn(4, 1).numpy()
+    other2 = torch.randn(4).numpy()
+    alpha2 = 2.0
+    input_dict2 = {"input": input2, "other": other2, "alpha": alpha2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Case 3: Addition with integer tensors and negative alpha
+    input3 = torch.randint(-5, 5, (3, 3)).numpy()
+    other3 = torch.randint(-5, 5, (3, 3)).numpy()
+    alpha3 = -1
+    input_dict3 = {"input": input3, "other": other3, "alpha": alpha3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Case 4: Addition with a scalar (number) and complex input
+    input4 = torch.randn(2, 2, dtype=torch.complex64).numpy()
+    other4 = torch.tensor([3.0], dtype=torch.float32).numpy()
+    alpha4 = 1.0
+    input_dict4 = {"input": input4, "other": other4, "alpha": alpha4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Case 5: Addition with high dimensional tensor and alpha=0
+    input5 = torch.randn(2, 3, 4, 5).numpy()
+    other5 = torch.randn(2, 3, 4, 5).numpy()
+    alpha5 = 0.0
+    input_dict5 = {"input": input5, "other": other5, "alpha": alpha5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    return list_of_inputs
+
+generated_inputs["torch.add"] = add_inputs()

@@ -2,6 +2,8 @@
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
 
+generated_inputs = dict()
+
 import torch
 import numpy as np
 import copy
@@ -9,44 +11,76 @@ import copy
 def adaptive_max_pool2d_inputs():
     list_of_inputs = []
 
-    input1 = np.random.randn(2, 3, 20, 20).astype(np.float32)
-    output_size1 = (5, 7)
-    input_dict1 = {"input": input1, "output_size": output_size1}
+    # Input 1: Basic case with 4D tensor
+    input1 = torch.randn(1, 3, 32, 32).numpy()
+    output_size1 = (16, 16)
+    return_indices1 = False
+    input_dict1 = {
+        "input": input1,
+        "output_size": output_size1,
+        "return_indices": return_indices1
+    }
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input2 = np.random.randn(1, 1, 32, 32).astype(np.float64)
-    output_size2 = (10, 10)
-    input_dict2 = {"input": input2, "output_size": output_size2}
+    # Input 2: 3D tensor
+    input2 = torch.randn(3, 32, 32).numpy()
+    output_size2 = (16, 16)
+    return_indices2 = True
+    input_dict2 = {
+        "input": input2,
+        "output_size": output_size2,
+        "return_indices": return_indices2
+    }
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input3 = np.random.randn(4, 5, 16, 16).astype(np.float16)
+    # Input 3: Different output size (single integer)
+    input3 = torch.randn(1, 3, 64, 64).numpy()
     output_size3 = (8, 8)
-    input_dict3 = {"input": input3, "output_size": output_size3}
+    return_indices3 = False
+    input_dict3 = {
+        "input": input3,
+        "output_size": output_size3,
+        "return_indices": return_indices3
+    }
     list_of_inputs.append(copy.deepcopy(input_dict3))
-    
-    input4 = np.random.randn(3, 7, 24, 24).astype(np.float32)
-    output_size4 = (12, 6)
-    input_dict4 = {"input": input4, "output_size": output_size4}
+
+    # Input 4: Small input size
+    input4 = torch.randn(1, 1, 4, 4).numpy()
+    output_size4 = (2, 2)
+    return_indices4 = True
+    input_dict4 = {
+        "input": input4,
+        "output_size": output_size4,
+        "return_indices": return_indices4
+    }
     list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input5 = np.random.randn(1, 2, 28, 28).astype(np.float64)
-    output_size5 = (14, 7)
-    input_dict5 = {"input": input5, "output_size": output_size5}
+    # Input 5: Batch size > 1
+    input5 = torch.randn(4, 3, 32, 32).numpy()
+    output_size5 = (8, 8)
+    return_indices5 = False
+    input_dict5 = {
+        "input": input5,
+        "output_size": output_size5,
+        "return_indices": return_indices5
+    }
     list_of_inputs.append(copy.deepcopy(input_dict5))
-
-    input6 = np.random.randn(2, 4, 10, 10).astype(np.float32)
-    output_size6 = 7
-    input_dict6 = {"input": input6, "output_size": output_size6}
+    
+    # Input 6: Input with different data type (float64)
+    input6 = torch.randn(1, 3, 32, 32, dtype=torch.float64).numpy()
+    output_size6 = (16, 16)
+    return_indices6 = False
+    input_dict6 = {
+        "input": input6,
+        "output_size": output_size6,
+        "return_indices": return_indices6
+    }
     list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    input7 = np.random.randn(1, 3, 15, 15).astype(np.float64)
-    output_size7 = 5
-    input_dict7 = {"input": input7, "output_size": output_size7}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
-    
     return list_of_inputs
 
-generated_inputs = adaptive_max_pool2d_inputs()
+generated_inputs = {}
+generated_inputs["torch.nn.functional.adaptive_max_pool2d"] = adaptive_max_pool2d_inputs()
 
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
@@ -58,4 +92,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('adaptive_max_pool2d', generated_inputs)
+check_valid('adaptive_max_pool2d', generated_inputs['torch.nn.functional.adaptive_max_pool2d'], lib="torch")

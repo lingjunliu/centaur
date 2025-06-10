@@ -35,11 +35,14 @@ def get_prompt(api):
         prompt = prompt.replace("{signature}", str(signature))
     return prefix + prompt
 
-def save_and_run_code(api, code):
+def save_and_run_code(api, code, lib="torch"):
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+    torch_api = get_torch_api(api)
     validity_checker_code = f"""
 from utils.api_utils import get_driver
 from eval.oracle import oracle_crash
+
+generated_inputs = dict()
 
 {code}
 
@@ -53,7 +56,7 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
-check_valid('{api}', generated_inputs)
+check_valid('{api}', generated_inputs['{torch_api}'], lib="{lib}")
 """
     
     filepath = f"{CUR_DIR}/inputs/{api}.py"

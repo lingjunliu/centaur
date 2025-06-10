@@ -7,11 +7,11 @@ For the api {api}, give me at least five valid inputs. These are the criteria:
     - If the API supports negative values, use them
     - If the API does not have any constraints on number of dimensions, do not use only one variety. Try to use different numbers of dimensions
     - Do your best to cover as many valid cases as you can, exceed the 5 input limit if you need to
-- Assign the input to a list named `generated_inputs` by calling the input
+- Assign the input to the key `"{api}"` in a dictionary named `generated_inputs` by calling the function. Assume the dictionary was already initialized before, do not initialize the dictionary.
 - It would follow a specific signature. The signature for this api is:
     {signature}
 
-Here is an example for torch.nn.functional.conv_transpose2d:
+Here is an example for `torch.nn.functional.conv_transpose2d`:
 
 ```python
 import torch, copy
@@ -90,7 +90,7 @@ def conv_transpose2d_inputs():
     
     return list_of_inputs
 
-generated_inputs = conv_transpose2d_inputs()
+generated_inputs["torch.nn.functional.conv_transpose2d"] = conv_transpose2d_inputs()
 ```
 
 Only provide the code, skip any other text. Do not include verbose comments inside code. Do not make any system calls within the code. Do not break any dependencies.
