@@ -10,6 +10,7 @@ def main():
     gen_html = False
 
     api = sys.argv[1]
+    save_lcov = int(sys.argv[2]) == 1 if len(sys.argv) > 2 else False
 
     # Directory containing the input files
     tmp = get_tmp_dir()

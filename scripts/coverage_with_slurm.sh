@@ -31,7 +31,7 @@ export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to 
 
 job_name=cov
 echo "Running coverage script"
-bash $slurm_sh "python -m eval.coverage" ${job_name}
+bash $slurm_sh "python -m eval.coverage" ${job_name} ${debug}
 
 # DEBUG ################################
 
