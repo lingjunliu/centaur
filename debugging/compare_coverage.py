@@ -45,7 +45,7 @@ def print_dict_info(coverage_dict):
     print(f"Branches: {num_branches}")
     print(f"Lines: {num_lines}")
 
-def check_coverage_addition(coverage_dict, driver_file, pkl_dir, filename_new_br):
+def check_coverage_addition(coverage_dict, driver_file, pkl_dir, filename_new_br, prefix):
     print("Original:")
     print_dict_info(coverage_dict)
 
@@ -64,7 +64,6 @@ def check_coverage_addition(coverage_dict, driver_file, pkl_dir, filename_new_br
     for i, file in enumerate(pkl_files):
         pkl_file = os.path.join(pkl_dir, file)
         print(f"[{i+1}/{total}] Working with {file}")
-        prefix = file.split(".")[0]
         cmd_line = f"python {driver_file} {pkl_file}"
         return_code, lcov_data, memory_error = gen_cov_torch(cmd_line, prefix=prefix)
         new_dict = analyze_lcov(lcov_data)
@@ -116,6 +115,7 @@ def main():
     filename_new_br = os.path.join(output_dir, f"{api}.csv")
 
     # Titanfuzz
+    prefix = f"{api}_titan"
     pkl_dir = os.path.join(get_dir_in_root("eval"), f"titanfuzz/modified_inputs/{torch_api}")
     if not os.path.exists(pkl_dir):
         print(f"No saved inputs found from titanfuzz execution of {torch_api}")
@@ -123,7 +123,7 @@ def main():
 
     coverage_dict = get_cov_dict_from_file(lcov_file)
     driver_file = create_driver(torch_api)
-    files_w_new_br = check_coverage_addition(coverage_dict, driver_file, pkl_dir, filename_new_br)
+    files_w_new_br = check_coverage_addition(coverage_dict, driver_file, pkl_dir, filename_new_br, prefix)
     print("Files that uncovered new branches:")
     print('\n'.join(files_w_new_br))
 
