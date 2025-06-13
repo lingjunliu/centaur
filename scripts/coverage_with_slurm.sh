@@ -4,6 +4,7 @@ export slurm_time="2:00:00" # Time limit is 2 hours
 export max_parallel=690   # Fix number of slurm jobs to 690
 
 n_inputs=${1:-500}
+debug=${2:-0}    # To debug coverage difference with titanfuzz, pass 1
 
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
@@ -28,8 +29,28 @@ job_name=cov
 echo "Running coverage script"
 bash $slurm_sh "python -m eval.coverage" ${job_name}
 
+# DEBUG ################################
+
+if [ $debug -eq 1 ]; then
+    echo "Running debugging scripts"
+    job_name=deb
+    bash $slurm_sh "python -m debugging.compare_coverage" ${job_name}
+fi
+
+# END DEBUG ############################
+
 # Re-install vanilla pytorch
 pip install -r $PROJECT_DIR/requirements.txt
+
+# DEBUG ################################
+
+if [ $debug -eq 1 ]; then
+    echo "Extracting abstracts from debugged data"
+    job_name=abs
+    bash $slurm_sh "python -m debugging.get_abstracts" ${job_name}
+fi
+
+# END DEBUG ############################
 
 # Aggregating and saving results: validity
 valid_results=$PROJECT_DIR/.tmp/validity_results
