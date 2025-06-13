@@ -6,6 +6,10 @@ export max_parallel=690   # Fix number of slurm jobs to 690
 n_inputs=${1:-500}
 debug=${2:-0}    # To debug coverage difference with titanfuzz, pass 1
 
+if [ $debug -eq 1 ]; then
+    echo "Running in debugging mode"
+fi
+
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
