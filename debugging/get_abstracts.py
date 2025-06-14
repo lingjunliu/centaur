@@ -1,6 +1,6 @@
 import sys, pickle, torch, os
 from utils.misc import create_subdir, get_tmp_dir
-from utils.api_utils import get_signatures
+from utils.api_utils import get_signatures, get_arglist
 import logging
 from utils.defaults import *
 
@@ -87,7 +87,11 @@ def match_values(arg, domain):
             invalid_dtype += 1
     
     return invalid_dtype, invalid_length, invalid_value, invalid_ndim, invalid_dimsize, invalid_range
+
 def main():
+    # Debug params
+    multiply = "count"  # set this to "branch" to multiply by the new_branches, "count" to count the instances only
+
     api = sys.argv[1]
 
     output_dir = create_subdir(get_tmp_dir(), "debug_coverage")
@@ -111,6 +115,7 @@ def main():
         list_of_files = [line.strip().split(',') for line in f.readlines()]
     
     api_signature = get_signatures()[api]
+    arg_list = None
     
     # Categories
     missing_params = 0
@@ -125,22 +130,31 @@ def main():
         with open(file, "rb") as f:
             pkl_dict = pickle.load(f)
             for torch_api, input_dict in pkl_dict.items():
+                if not arg_list:
+                    arg_list = get_arglist(torch_api)
+                    logger.info(f"Args for {torch_api}: {arg_list}\n")
+
                 logger.info(f"New Branches: {new_branches} | API: {torch_api}")
                 logger.info("args:")
                 count = 0
+                mult = int(new_branches) if multiply.lower() == "branch" else 1
                 for arg in input_dict['args']:
-                    domain = list(api_signature.values())[count]
+                    name = arg_list[count]
                     count += 1
-                    print_arg(arg, f"{count} |")
+                    print_arg(arg, f"{count} | name: {name},")
 
-                    # stat
-                    invalid_dtype, invalid_length, invalid_value, invalid_ndim, invalid_dimsize, invalid_range = match_values(arg, domain)
-                    length_mismatches += invalid_length*int(new_branches)
-                    value_mismatches += invalid_value*int(new_branches)
-                    ndim_mismatches += invalid_ndim*int(new_branches)
-                    dimsize_mismatches += invalid_dimsize*int(new_branches)
-                    range_mismatches += invalid_range*int(new_branches)
-                    different_dtype += invalid_dtype*int(new_branches)
+                    if name not in api_signature:
+                        missing_params += mult
+                    else:
+                        # stat
+                        domain = api_signature[name]
+                        invalid_dtype, invalid_length, invalid_value, invalid_ndim, invalid_dimsize, invalid_range = match_values(arg, domain)
+                        length_mismatches += invalid_length*mult
+                        value_mismatches += invalid_value*mult
+                        ndim_mismatches += invalid_ndim*mult
+                        dimsize_mismatches += invalid_dimsize*mult
+                        range_mismatches += invalid_range*mult
+                        different_dtype += invalid_dtype*mult
                 
                 if len(input_dict['kwargs']) > 0:
                     logger.info("kwargs:")
@@ -149,17 +163,17 @@ def main():
                     print_arg(kwarg, f"{count} | name: {name},")
                     
                     if name not in api_signature:
-                        missing_params += int(new_branches)
+                        missing_params += mult
                     else:
                         # stat
                         domain = api_signature[name]
                         invalid_dtype, invalid_length, invalid_value, invalid_ndim, invalid_dimsize, invalid_range = match_values(arg, domain)
-                        length_mismatches += invalid_length*int(new_branches)
-                        value_mismatches += invalid_value*int(new_branches)
-                        ndim_mismatches += invalid_ndim*int(new_branches)
-                        dimsize_mismatches += invalid_dimsize*int(new_branches)
-                        range_mismatches += invalid_range*int(new_branches)
-                        different_dtype += invalid_dtype*int(new_branches)
+                        length_mismatches += invalid_length*mult
+                        value_mismatches += invalid_value*mult
+                        ndim_mismatches += invalid_ndim*mult
+                        dimsize_mismatches += invalid_dimsize*mult
+                        range_mismatches += invalid_range*mult
+                        different_dtype += invalid_dtype*mult
                 
                 logger.info("")
 

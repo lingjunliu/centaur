@@ -61,7 +61,7 @@ for api in "${apis[@]}"; do
     # limit number of running jobs
     while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) >= max_parallel )); do
         print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
-        sleep 10
+        sleep 1
         (( elapsed = elapsed + 10 ))
     done
 done
@@ -69,6 +69,6 @@ done
 # wait for everything to finish
 while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) > 0 )); do
     print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
-    sleep 10
+    sleep 1
     (( elapsed = elapsed + 10 ))
 done

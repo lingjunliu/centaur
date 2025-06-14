@@ -1,4 +1,4 @@
-import importlib, os, json
+import importlib, os, json, re
 
 # get the driver code for corresponding api using the name of the api
 def get_driver(api, lib="torch", module="drivers"):
@@ -37,3 +37,17 @@ def get_signatures():
         signatures = json.load(f)
     
     return signatures
+
+def get_arglist(torch_api):
+    import torch
+    try:
+        func = f"{torch_api}.__code__.co_varnames"
+        argline = eval(func)
+        return list(argline)
+    except:
+        func = f"{torch_api}.__doc__"
+        doc = eval(func)
+        for line in doc.splitlines():
+            if "(" in line:
+                argline = re.search(r'\(([^)]*)\)', line).group(1)
+                return [x.strip().split('=')[0] for x in argline.split(',')]
