@@ -38,16 +38,39 @@ def get_signatures():
     
     return signatures
 
-def get_arglist(torch_api):
+def get_arglist(torch_api, n_args=0):
     import torch
     try:
         func = f"{torch_api}.__code__.co_varnames"
         argline = eval(func)
         return list(argline)
     except:
+        all_sigs = []
+        selected_sigs = []
         func = f"{torch_api}.__doc__"
         doc = eval(func)
         for line in doc.splitlines():
             if "(" in line:
-                argline = re.search(r'\(([^)]*)\)', line).group(1)
-                return [x.strip().split('=')[0] for x in argline.split(',')]
+                pattern = re.search(r'\(([^)]*)\)', line)
+                if pattern is not None:
+                    argline = pattern.group(1)
+                    all_sigs.append([x.strip().split('=')[0] for x in argline.split(',')])
+                    if "->" in line:
+                        selected_sigs.append([x.strip().split('=')[0] for x in argline.split(',')])
+        
+        if len(selected_sigs) == 0:
+            selected_sigs = all_sigs
+        
+        max_sig = []
+        for sig in selected_sigs:
+            for i, arg in enumerate(sig):
+                if arg.strip() == '*':
+                    sig = sig[:i] + sig[i+1:]
+                    break
+            
+            if len(sig) > n_args:
+                return sig
+            elif len(sig) > len(max_sig):
+                max_sig = sig
+        
+        return max_sig

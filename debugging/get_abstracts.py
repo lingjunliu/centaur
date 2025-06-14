@@ -90,7 +90,7 @@ def match_values(arg, domain):
 
 def main():
     # Debug params
-    multiply = "count"  # set this to "branch" to multiply by the new_branches, "count" to count the instances only
+    multiply = "branch"  # set this to "branch" to multiply by the new_branches, "count" to count the instances only
 
     api = sys.argv[1]
 
@@ -115,7 +115,6 @@ def main():
         list_of_files = [line.strip().split(',') for line in f.readlines()]
     
     api_signature = get_signatures()[api]
-    arg_list = None
     
     # Categories
     missing_params = 0
@@ -130,9 +129,9 @@ def main():
         with open(file, "rb") as f:
             pkl_dict = pickle.load(f)
             for torch_api, input_dict in pkl_dict.items():
-                if not arg_list:
-                    arg_list = get_arglist(torch_api)
-                    logger.info(f"Args for {torch_api}: {arg_list}\n")
+                n_args = len(input_dict['args']) + len(input_dict['kwargs'].keys())
+                arg_list = get_arglist(torch_api, n_args)
+                logger.info(f"Args: {arg_list}")
 
                 logger.info(f"New Branches: {new_branches} | API: {torch_api}")
                 logger.info("args:")
