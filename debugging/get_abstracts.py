@@ -149,7 +149,7 @@ def main():
                     print_arg(kwarg, f"{count} | name: {name},")
                     
                     if name not in api_signature:
-                        missing_params += 1*int(new_branches)
+                        missing_params += int(new_branches)
                     else:
                         # stat
                         domain = api_signature[name]
