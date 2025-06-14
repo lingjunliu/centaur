@@ -1,6 +1,8 @@
 import sys, pickle, torch, os
 from utils.misc import create_subdir, get_tmp_dir
+from utils.api_utils import get_signatures
 import logging
+from utils.defaults import *
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +15,78 @@ def print_arg(arg, prefix):
     else:
         logger.info(f"{prefix} value: {arg}, dtype: {type(arg)}")
 
+def match_types(arg, domain):
+    if domain == "tensor" or domain == "tensor_list":
+        return isinstance(arg, torch.Tensor)
+    elif domain == "integer":
+        return isinstance(arg, int)
+    elif domain == "float":
+        return isinstance(arg, float)
+    elif domain == "dtype":
+        return isinstance(arg, torch.dtype)
+    elif domain == "string":
+        return isinstance(arg, str)
+    elif domain == "tuple":
+        return isinstance(arg, tuple)
+    elif domain == "list":
+        return isinstance(arg, list)
+    elif domain == "boolean":
+        return isinstance(arg, bool)
+    else:
+        return False
+        
+def match_values(arg, domain):
+    invalid_dtype = 0
+    invalid_length = 0
+    invalid_value = 0
+    invalid_ndim = 0
+    invalid_dimsize = 0
+    invalid_range = 0
+    if domain == "dtype":
+        if match_types(arg, domain):
+            if not arg in list_of_available_dtypes:
+                invalid_value += 1
+        else:
+            invalid_dtype += 1
+    elif domain == "string":
+        if match_types(arg, domain):
+            if not arg in list_of_string_values:
+                invalid_value += 1
+        else:
+            invalid_dtype += 1
+    elif domain in ["list", "tuple"]:
+        if match_types(arg, domain):
+            if len(arg) < domain_limits[domain][2] or len(arg) > domain_limits[domain][3]:
+                invalid_length += 1
+            for v in arg:
+                if v < domain_limits[domain][0] or v > domain_limits[domain][1]:
+                    invalid_value += 1
+        else:
+            invalid_dtype += 1
+    elif domain in ["float", "boolean", "integer"]:
+        if match_types(arg, domain):
+            if arg < domain_limits[domain][0] or arg > domain_limits[domain][1]:
+                invalid_value += 1
+        else:
+            invalid_dtype += 1
+    elif domain in ["tensor", "tensor_list"]:
+        if match_types(arg, domain):
+            shape = arg.shape
+            if len(shape) < domain_limits["tensor"][2] or len(shape) > domain_limits["tensor"][3]:
+                invalid_ndim += 1
+            for v in shape:
+                if v < domain_limits["tensor"][0] or v > domain_limits["tensor"][1]:
+                    invalid_dimsize += 1
+            try:
+                min_val, max_val = torch.min(arg), torch.max(arg)
+                if min_val < domain_limits["tensor_value_range"][0] or max_val > domain_limits["tensor_value_range"][1]:
+                    invalid_range += 1
+            except:
+                pass
+        else:
+            invalid_dtype += 1
+    
+    return invalid_dtype, invalid_length, invalid_value, invalid_ndim, invalid_dimsize, invalid_range
 def main():
     api = sys.argv[1]
 
@@ -24,6 +98,7 @@ def main():
         return
     
     logfile = f'{output_dir}/{api}_abstracts.log'
+    csvfile = f'{output_dir}/{api}_stats.csv'
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,                                     # Minimum log level
@@ -35,6 +110,17 @@ def main():
     with open(filename_new_br, "r") as f:
         list_of_files = [line.strip().split(',') for line in f.readlines()]
     
+    api_signature = get_signatures()[api]
+    
+    # Categories
+    missing_params = 0
+    different_dtype = 0
+    length_mismatches = 0
+    value_mismatches = 0
+    ndim_mismatches = 0
+    dimsize_mismatches = 0
+    range_mismatches = 0
+    
     for file, new_branches in list_of_files:
         with open(file, "rb") as f:
             pkl_dict = pickle.load(f)
@@ -43,17 +129,53 @@ def main():
                 logger.info("args:")
                 count = 0
                 for arg in input_dict['args']:
+                    domain = list(api_signature.values())[count]
                     count += 1
                     print_arg(arg, f"{count} |")
+
+                    # stat
+                    invalid_dtype, invalid_length, invalid_value, invalid_ndim, invalid_dimsize, invalid_range = match_values(arg, domain)
+                    length_mismatches += invalid_length*int(new_branches)
+                    value_mismatches += invalid_value*int(new_branches)
+                    ndim_mismatches += invalid_ndim*int(new_branches)
+                    dimsize_mismatches += invalid_dimsize*int(new_branches)
+                    range_mismatches += invalid_range*int(new_branches)
+                    different_dtype += invalid_dtype*int(new_branches)
                 
                 if len(input_dict['kwargs']) > 0:
                     logger.info("kwargs:")
                 for name, kwarg in input_dict['kwargs'].items():
                     count += 1
                     print_arg(kwarg, f"{count} | name: {name},")
+                    
+                    if name not in api_signature:
+                        missing_params += 1*int(new_branches)
+                    else:
+                        # stat
+                        domain = api_signature[name]
+                        invalid_dtype, invalid_length, invalid_value, invalid_ndim, invalid_dimsize, invalid_range = match_values(arg, domain)
+                        length_mismatches += invalid_length*int(new_branches)
+                        value_mismatches += invalid_value*int(new_branches)
+                        ndim_mismatches += invalid_ndim*int(new_branches)
+                        dimsize_mismatches += invalid_dimsize*int(new_branches)
+                        range_mismatches += invalid_range*int(new_branches)
+                        different_dtype += invalid_dtype*int(new_branches)
                 
                 logger.info("")
 
+    logger.info("-----"*5)
+    logger.info(f"missing_params: {missing_params}")
+    logger.info(f"different_dtype: {different_dtype}")
+    logger.info(f"length_mismatches: {length_mismatches}")
+    logger.info(f"value_mismatches: {value_mismatches}")
+    logger.info(f"ndim_mismatches: {ndim_mismatches}")
+    logger.info(f"dimsize_mismatches: {dimsize_mismatches}")
+    logger.info(f"range_mismatches: {range_mismatches}")
+
+    with open(csvfile, "w") as f:
+        f.write(f"{api},{missing_params},{different_dtype},{length_mismatches},{value_mismatches},{ndim_mismatches},{dimsize_mismatches},{range_mismatches}\n")
+
     print(f"Logged abstract info to {logfile}")
+    print(f"Wrote stats to {csvfile}")
 if __name__ == "__main__":
     main()

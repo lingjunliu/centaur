@@ -52,6 +52,14 @@ if [ $debug -eq 1 ]; then
     echo "Extracting abstracts from debugged data"
     job_name=abs
     bash $slurm_sh "python -m debugging.get_abstracts" ${job_name}
+    # Aggregating debug details
+    stat_results=$PROJECT_DIR/.tmp/debug_coverage
+    result=$PROJECT_DIR/.tmp/debug_stats.csv
+    echo "api,missing_params,different_dtype,length_mismatches,value_mismatches,ndim_mismatches,dimsize_mismatches,range_mismatches" > ${result}
+    for filename in ${stat_results}/*_stats.csv
+    do
+        cat ${filename} >> ${result}
+    done
 fi
 
 # END DEBUG ############################
