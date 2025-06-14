@@ -38,15 +38,15 @@ def get_signatures():
     
     return signatures
 
-def get_arglist(torch_api, n_args=0):
+def get_all_sigs(torch_api):
     import torch
+    all_sigs = []
+    selected_sigs = []
     try:
         func = f"{torch_api}.__code__.co_varnames"
         argline = eval(func)
-        return list(argline)
+        selected_sigs = [list(argline)]
     except:
-        all_sigs = []
-        selected_sigs = []
         func = f"{torch_api}.__doc__"
         doc = eval(func)
         for line in doc.splitlines():
@@ -54,23 +54,32 @@ def get_arglist(torch_api, n_args=0):
                 pattern = re.search(r'\(([^)]*)\)', line)
                 if pattern is not None:
                     argline = pattern.group(1)
-                    all_sigs.append([x.strip().split('=')[0] for x in argline.split(',')])
+                    cur_sig = [x.strip().split('=')[0] for x in argline.split(',')]
+                    if '*' in cur_sig:
+                        cur_sig.remove('*')
+                    all_sigs.append(cur_sig)
                     if "->" in line:
-                        selected_sigs.append([x.strip().split('=')[0] for x in argline.split(',')])
+                        selected_sigs.append(cur_sig)
         
         if len(selected_sigs) == 0:
             selected_sigs = all_sigs
-        
-        max_sig = []
-        for sig in selected_sigs:
-            for i, arg in enumerate(sig):
-                if arg.strip() == '*':
-                    sig = sig[:i] + sig[i+1:]
-                    break
-            
-            if len(sig) > n_args:
-                return sig
-            elif len(sig) > len(max_sig):
-                max_sig = sig
-        
-        return max_sig
+
+        selected_sigs = sorted(selected_sigs, key=len)
+
+    return selected_sigs
+
+
+def get_arglist(torch_api, n_args=0):
+    selected_sigs = get_all_sigs(torch_api)
+
+    if len(selected_sigs) == 1:
+        return selected_sigs[0]
+
+    max_sig = []
+    for sig in selected_sigs:
+        if len(sig) >= n_args:
+            return sig
+        elif len(sig) > len(max_sig):
+            max_sig = sig
+    
+    return max_sig
