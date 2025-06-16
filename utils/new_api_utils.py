@@ -42,9 +42,11 @@ def get_n_variations(api, lib="torch"):
     api = get_lib_version(api, lib=lib)
     signatures = get_original_signatures()
     count = 0
-    for key in signatures.keys():
-        if key.startswith(f"{api}_") or key == api:
-            count += 1
+    if api in signatures.keys():
+        return count+1
+    
+    while f"{api}_{count+1}" in signatures.keys():
+        count += 1
 
     return count
 
