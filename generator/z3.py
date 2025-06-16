@@ -264,7 +264,7 @@ def sample_partitions(var_values_map, p):
 
     return sampled_partitions
 
-def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10):
+def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch"):
     elapsed = 0
     start = time.time()
 
@@ -383,7 +383,7 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
                 block_all.add(elem)
 
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args)
-        status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
+        status, exception_message = oracle_crash(api, definition['signature'], concrete_input, cpu=True, lib=lib)
  
         if status != "invalid":
             if status == "cpu_crash":

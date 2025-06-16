@@ -2,7 +2,7 @@ from google import genai
 import os, re, subprocess, requests, time
 from bs4 import BeautifulSoup
 from llm.get_api_list import update_apis
-from llm.signatures import signatures
+from llm.signatures_old import signatures
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 

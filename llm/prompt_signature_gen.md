@@ -1,6 +1,9 @@
 For the api {api}, provide a signature of the api as a dictionary. Here are the specifications:
-- The keys should be the name of the argument (e.g. 'input')
-- The values should be the type of argument it accepts. This value can only be (strictly) one of the following options:
+- The dictionary should have three keys: 
+    - `args` for positional arguments (parameters). The value should be a dictionary with names of the parameters as the key (e.g. "input"). The values should be the type of argument it accepts.
+    - `kwargs` for keyword arguments. The value should be a dictinary similar to the one above.
+    - `inner` for apis that are callable modules i.e. they return a function that can be called with more parameters. This will contain the signature required to call the function returned by the api. This value should be another dictionary with `args` and `kwargs` if the api is a callable module. Otherwise, keep this dictionary empty (i.e. do not include the `args` or `kwargs` keys). {callables}
+- The types of each parameter can only be (strictly) one of the following options:
     - "tensor"
     - "tensor_list"
     - "integer"
@@ -11,24 +14,60 @@ For the api {api}, provide a signature of the api as a dictionary. Here are the 
     - "list"
     - "tuple"
 - Choose the value that most closely matches with the argument type. For example, change IntTensor or FloatTensor type arguments to "tensor", change "Numbers" to "float" etc.
-- If you are confused about a type, choose the best one and add a small comment on what you think should have been there instead
-- Do not add the arguments "out" or "device"
-- If the api has multiple signatures, choose the one used most commonly. Same goes for argument types, if an argument can be of multiple types (e.g. tuples and integers), choose the most commonly used one
-- Assume I already have a dictionary called `signatures` (you don't have to initialize it). Provide the output as assigning the signature to the entry of the `signatures` dictionary where the key is the api name. Examples:
+- If you are confused about a type, choose the best one and add a small comment on what you think should have been there instead.
+- Do not add the argument "device".
+- If a parameter name starts with an underscore `_` and/or the document does not describe the parameter (i.e. internal parameters), skip including the parameter in the signature.
+- If the api has multiple signatures, add both with a prefix to the dictionary key enumerating the count (e.g. `"{api}_1"`, `"{api}_2"` etc). Same goes for argument types, if an argument can be of multiple types (e.g. tuples and integers), create new signatures for each possible type with same prefixes as mentioned before.
+- Assume I already have a dictionary called `signatures` (you don't have to initialize it). Provide the output as assigning the signature to the entry of the `signatures` dictionary where the key is the api name. 
+
+Examples:
 ```python
 signatures["torch.scatter_add"] = {
-    "input": "tensor",
-    "dim": "integer",
-    "index": "tensor",
-    "src": "tensor"
+    "args": {
+        "input": "tensor",
+        "dim": "integer",
+        "index": "tensor",
+        "src": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
 }
-signatures["multilabel_soft_margin_loss"] = {
-    "input": "tensor",
-    "target": "tensor",
-    "weight": "tensor",
-    "size_average": "boolean",
-    "reduce": "boolean",
-    "reduction": "string"
+signatures["torch.add"] = {
+    "args": {
+        "input": "tensor",
+        "other": "tensor"
+    },
+    "kwargs": {
+        "alpha": "float",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.nn.ReflectionPad1d_1"] = {
+    "args": {
+        "padding": "integer"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "other": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.ReflectionPad1d_2"] = {
+    "args": {
+        "padding": "tuple"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "other": "tensor"
+        },
+        "kwargs": {}
+    }
 }
 ```
 - Only provide the code, skip any other text. Do not include verbose comments inside code other than short comments about confusion. Do not make any system calls within the code. Do not break any dependencies.

@@ -1,5 +1,6 @@
 from utils.proc import run
 from utils.api_utils import get_driver, get_signatures
+from utils.new_api_utils import run_api
 from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_pkl, is_inhomogeneous, flatten
 from generator.input_generators import abstract_print, concretize_input
 import numpy as np
@@ -147,7 +148,7 @@ def consistent(output1, output2, rtol=1e-07, atol=1e-08):
 
     return matched, max_diff, indices, elem1_val, elem2_val
 
-def oracle_crash(driver, input_dict, timeout=10, cpu=True):
+def oracle_crash(api, signature, input_dict, cpu=True, lib="torch"):
     """
         Check if the input is valid for the given API with a timeout or
         if it crashes. This runs on either CPU or GPU.
@@ -166,7 +167,7 @@ def oracle_crash(driver, input_dict, timeout=10, cpu=True):
             - ("cpu_excp", exception_message) if the API throws an exception on CPU.
             - ("gpu_excp", exception_message) if the API throws an exception on GPU.
     """
-    return_code, output, exception_message = run(driver, input_dict, cpu=cpu)
+    return_code, output, exception_message = run(run_api, api, signature, input_dict, cpu=cpu, lib=lib)
     
     if return_code < 0: # signal raised
         return ("cpu_crash", exception_message) if cpu else ("gpu_crash", exception_message)

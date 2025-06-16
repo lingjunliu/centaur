@@ -57,7 +57,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         valid = 0
         invalid = 0
         for idx, input_dict in enumerate(list_of_inputs):
-            status, exception_message = oracle_crash(api_driver, input_dict, cpu=True)
+            status, exception_message = oracle_crash(api, api_signature, input_dict, cpu=True, lib=lib)
             if status == "invalid":
                 invalid += 1
                 if print_details:
