@@ -53,6 +53,9 @@ def check_valid(api, list_of_inputs, lib="torch"):
     
     print("Valid")
 
+if '{key}' not in generated_inputs:
+    raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key '{key}'.")
+
 check_valid('{torch_api}', generated_inputs['{key}'], lib="{lib}")
 """
     

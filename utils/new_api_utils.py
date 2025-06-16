@@ -43,7 +43,7 @@ def get_n_variations(api, lib="torch"):
     signatures = get_original_signatures()
     count = 0
     for key in signatures.keys():
-        if key.startswith(api):
+        if key.startswith(f"{api}_") or key == api:
             count += 1
 
     return count
