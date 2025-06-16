@@ -1,6 +1,7 @@
 from google import genai
 import os, subprocess, time
-from utils.api_utils import get_signatures
+from utils.new_api_utils import get_n_variations, get_signature
+from utils.misc import read_file_in_root
 from llm.create_driver import fetch_documentation, extract_code_from_response, extract_function_info
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -22,54 +23,48 @@ def get_torch_api(api):
                     break
     return torch_api
 
-def get_prompt(api):
-    torch_api = get_torch_api(api)    
-    if not torch_api:
-        return None
+def get_prompt(torch_api, lib="torch", suffix=0):
     doc = extract_function_info(fetch_documentation(torch_api), torch_api)
-    signature = get_signatures()[api]
+    signature = get_signature(torch_api, lib=lib, suffix=suffix)
     prefix = f'This is the documentation for the function {torch_api}:\n\n"{doc.encode('ascii', errors='ignore').decode()}"\n\n' if doc else ""
+    key = torch_api if suffix == 0 else f"{torch_api}_{suffix}"
     with open(f"{CUR_DIR}/prompt_input_gen.md", "r", encoding="utf-8") as file:
         prompt = file.read()
         prompt = prompt.replace("{api}", torch_api)
+        prompt = prompt.replace("{key}", key)
         prompt = prompt.replace("{signature}", str(signature))
     return prefix + prompt
 
-def save_and_run_code(api, code, lib="torch"):
+def save_and_run_code(torch_api, code, suffix=0, lib="torch"):
+    key = torch_api if suffix == 0 else f"{torch_api}_{suffix}"
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-    torch_api = get_torch_api(api)
     validity_checker_code = f"""
-from utils.api_utils import get_driver
-from eval.oracle import oracle_crash
+from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
 {code}
 
-from utils.api_utils import get_driver
-from eval.oracle import oracle_crash
-
 def check_valid(api, list_of_inputs, lib="torch"):
-    api_driver = get_driver(api, lib=lib)
     for idx, input_dict in enumerate(list_of_inputs):
-        api_driver(input_dict, cpu=True)
+        output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
 
-check_valid('{api}', generated_inputs['{torch_api}'], lib="{lib}")
+check_valid('{torch_api}', generated_inputs['{key}'], lib="{lib}")
 """
     
-    filepath = f"{CUR_DIR}/inputs/{api}.py"
+    filepath = f"{CUR_DIR}/inputs/{torch_api.split('.')[-1]}_{suffix}.py"
     with open(filepath, 'w') as f:
         f.write(validity_checker_code)
     
     try:
         # Run the generated file with a timeout of 30 sec just in case
-        result = subprocess.run(['python', '-m', f'llm.inputs.{api}'], capture_output=True, text=True, timeout=30)
+        result = subprocess.run(['python', '-m', f'llm.inputs.{torch_api.split('.')[-1]}_{suffix}'], capture_output=True, text=True, timeout=30)
         
         return result.stdout.strip(), result.stderr.strip()
     except subprocess.TimeoutExpired:
-        print(f"Execution of {api} timed out.")
+        print(f"Execution of {torch_api} timed out.")
         return "", "Timeout: Execution could not be completed in 30 seconds."
 
 def retry_prompt(error):
@@ -78,7 +73,7 @@ Please fix the error and retry the input generation. Only provide the code, skip
     """
     return prompt
 
-def generate_inputs(api, max_attempts=5):
+def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
     model = "gemini-2.0-flash"
     gemini_key = os.getenv("gemini_key")
 
@@ -86,10 +81,10 @@ def generate_inputs(api, max_attempts=5):
     time.sleep(6)
     client = genai.Client(api_key=gemini_key)
     chat = client.chats.create(model=model)
-    response = chat.send_message(get_prompt(api))
+    response = chat.send_message(get_prompt(api, lib=lib, suffix=suffix))
     print("Got response from Gemini API.")
     code = extract_code_from_response(response.text)    
-    output, error = save_and_run_code(api, code)
+    output, error = save_and_run_code(api, code, suffix=suffix, lib=lib)
     attempt = 0
     to_return = [0] * max_attempts
     
@@ -101,7 +96,7 @@ def generate_inputs(api, max_attempts=5):
         response = chat.send_message(retry_prompt(error))
         print("Got response from Gemini API.")
         code = extract_code_from_response(response.text)
-        output, error = save_and_run_code(api, code)
+        output, error = save_and_run_code(api, code, suffix=suffix, lib=lib)
         attempt += 1
         
         if attempt >= max_attempts:
@@ -113,19 +108,27 @@ def generate_inputs(api, max_attempts=5):
         with open(f"{CUR_DIR}/valid_inputs.py", "a") as fv:
             fv.write(code + "\n\n")
     else:
-        print("\nInput generation failed after multiple attempts.")
+        print(f"\nInput generation failed after {max_attempts} attempts.")
         
     return [api, get_torch_api(api)] + to_return
 
 def main():
-    with open(f"{CUR_DIR}/needs_inputs.txt", "r") as f:
-        apis = [line.strip() for line in f.readlines()]
+    lib = "torch"
+    torch_apis = read_file_in_root("torch_apis.txt")
     
-    for api in apis:
-        print(f"\nGenerating valid inputs for {api}...\n")
-        result = generate_inputs(api)
-        with open(f"{CUR_DIR}/inputs.csv", "a") as f:
-            f.write(",".join(map(str, result)) + "\n")
+    for torch_api in torch_apis:
+        n_variations = get_n_variations(torch_api, lib=lib)
+        if n_variations > 1:
+            for i in range(1, n_variations+1):
+                print(f"\nGenerating valid inputs for {torch_api}_{i}...\n")
+                result = generate_inputs(torch_api, suffix=i, lib=lib)
+                with open(f"{CUR_DIR}/inputs.csv", "a") as f:
+                    f.write(",".join(map(str, result)) + "\n")
+        else:
+            print(f"\nGenerating valid inputs for {torch_api}...\n")
+            result = generate_inputs(torch_api, lib=lib)
+            with open(f"{CUR_DIR}/inputs.csv", "a") as f:
+                f.write(",".join(map(str, result)) + "\n")
         
 if __name__ == "__main__":
     main()

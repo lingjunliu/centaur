@@ -18,7 +18,7 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch"):
     while time.time() - start_time < duration:
         rng = np.random.default_rng(seed)
         input_dict = get_random_input(api_signature, rng)
-        status, exception_message = oracle_crash(api, api_signature, input_dict, cpu=True, lib=lib)
+        status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
         if status == "nominal":
             valid += 1
             # Save 

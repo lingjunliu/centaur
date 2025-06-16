@@ -90,7 +90,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False,
         
         # verify if the input is valid
         start_execution = time.time()
-        status, exception_message = oracle_crash(api, definition['signature'], config.translate_to_input_dict(best_input, seed=seed), cpu=True, lib=lib)
+        status, exception_message = oracle_crash(api, config.translate_to_input_dict(best_input, seed=seed), cpu=True, lib=lib)
         if status == "nominal":
             valid += 1
         elif status == "invalid":

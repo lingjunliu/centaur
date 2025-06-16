@@ -427,7 +427,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
         while (time.time() - start_time < time_budget) and (valid < min_val_inp):
             rng = np.random.default_rng(seed)
             input_dict = get_random_input(api_signature, rng)
-            status, exception_message = oracle_crash(api, api_signature, input_dict, cpu=True, lib=lib)
+            status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
             if status == "invalid":
                 invalid += 1
             else:

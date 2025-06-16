@@ -112,6 +112,32 @@ def match_signature(api, signature, lib="torch"):
     # No signatures matched
     raise Exception(f"No matching signatures found for {api} with the simple signature {signature}")
 
+def get_signature_of_input(api, input_dict, lib="torch"):
+    """
+    Given an input dict, match the exact signature variation that was
+    used to generate this.
+    """
+    api = get_lib_version(api, lib=lib)
+    signatures = get_original_signatures()
+    
+    if api in signatures:
+        return signatures[api]
+    args = input_dict.keys()
+    n_sigs = get_n_variations(api, lib=lib)
+    for i in range(1, n_sigs+1):
+        candidate_simple_sig = get_signature(api, lib=lib, suffix=i)
+        match = True
+        for arg in args:
+            if arg not in candidate_simple_sig.keys():
+                match = False
+                break
+        
+        if match:
+            return signatures[f"{api}_{i}"]
+        
+    # No signatures matched
+    raise Exception(f"No matching signatures found for {api} with input {input_dict}")
+
 def get_func(api, lib="torch"):
     api = get_lib_version(api, lib=lib)
 
@@ -134,9 +160,9 @@ def get_func(api, lib="torch"):
 def to_torch(x, device="cpu"):
     # tensor
     if isinstance(x, np.ndarray):
-        return torch.tensor(x).to_device(device)
+        return torch.tensor(x).to(device)
     elif isinstance(x, torch.Tensor):
-        return x.to_device(device)
+        return x.to(device)
     # dtype
     elif isinstance(x, np.dtype):
         return torch.tensor(np.array([], dtype=x)).dtype
@@ -155,7 +181,7 @@ def to_numpy(x, device="cpu"):
     # tensor
     if isinstance(x, torch.Tensor):
         if device != "cpu":
-            x = x.to_device("cpu")
+            x = x.to("cpu")
         return x.numpy()
     # dtype
     elif isinstance(x, torch.dtype):
@@ -171,19 +197,19 @@ def to_numpy(x, device="cpu"):
     
     return x
 
-def get_input(api, signature, input_dict, cpu=True, lib="torch"):
+def get_input(api, input_dict, cpu=True, lib="torch"):
     api = get_lib_version(api, lib=lib)
     device = "cpu" if cpu else "cuda"
-    original_signature = match_signature(api, signature, lib=lib)
+    original_signature = get_signature_of_input(api, input_dict, lib=lib)
     true_input = {
-        "args": {},
+        "args": [],
         "kwargs": {},
         "inner": {}
     }
     
     # args
     for arg in original_signature["args"].keys():
-        true_input["args"][arg] = to_torch(input_dict[arg], device=device)
+        true_input["args"].append(to_torch(input_dict[arg], device=device))
 
     # kwargs
     for arg in original_signature["kwargs"].keys():
@@ -192,20 +218,20 @@ def get_input(api, signature, input_dict, cpu=True, lib="torch"):
     # inner if available
     if len(original_signature["inner"].keys()) > 0:
         true_input["inner"] = {
-            "args": {},
+            "args": [],
             "kwargs": {}
         }
         # args
-        for arg in original_signature["args"].keys():
-            true_input["inner"]["args"][arg] = to_torch(input_dict[arg], device=device)
+        for arg in original_signature["inner"]["args"].keys():
+            true_input["inner"]["args"].append(to_torch(input_dict[arg], device=device))
 
         # kwargs
-        for arg in original_signature["kwargs"].keys():
+        for arg in original_signature["inner"]["kwargs"].keys():
             true_input["inner"]["kwargs"][arg] = to_torch(input_dict[arg], device=device)
     
     return true_input
 
-def run_api(api, signature, input_dict, cpu=True, lib="torch"):
+def run_api(api, input_dict, cpu=True, lib="torch"):
     """
     Keeps the classic format of input and output intact.
     api: Takes in the name of an api (library version or base name).
@@ -216,15 +242,18 @@ def run_api(api, signature, input_dict, cpu=True, lib="torch"):
     """
     api = get_lib_version(api, lib=lib)
     func = get_func(api, lib=lib)
-    inp = get_input(api, signature, input_dict, cpu=cpu, lib=lib)
-    device = "cpu" if cpu else "cuda"
+    inp = get_input(api, input_dict, cpu=cpu, lib=lib)
 
     result = func(*inp["args"], **inp["kwargs"])
     if callable(result):
         if len(inp["inner"]) == 0:
             raise Exception(f"{api} returns a function, but the input does not have inner values")
         
-        result = result.to_device(device)(*inp["inner"]["args"], **inp["inner"]["kwargs"])
+        if not cpu:
+            result = result.cuda()
+        print(inp["inner"]["args"])
+        print(inp["inner"]["kwargs"])
+        result = result(*inp["inner"]["args"], **inp["inner"]["kwargs"])
 
     result_dict = {}
     if isinstance(result, tuple) or isinstance(result, list):

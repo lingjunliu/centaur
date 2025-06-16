@@ -148,7 +148,7 @@ def consistent(output1, output2, rtol=1e-07, atol=1e-08):
 
     return matched, max_diff, indices, elem1_val, elem2_val
 
-def oracle_crash(api, signature, input_dict, cpu=True, lib="torch"):
+def oracle_crash(api, input_dict, cpu=True, lib="torch"):
     """
         Check if the input is valid for the given API with a timeout or
         if it crashes. This runs on either CPU or GPU.
@@ -167,7 +167,7 @@ def oracle_crash(api, signature, input_dict, cpu=True, lib="torch"):
             - ("cpu_excp", exception_message) if the API throws an exception on CPU.
             - ("gpu_excp", exception_message) if the API throws an exception on GPU.
     """
-    return_code, output, exception_message = run(run_api, api, signature, input_dict, cpu=cpu, lib=lib)
+    return_code, output, exception_message = run(run_api, api, input_dict, cpu=cpu, lib=lib)
     
     if return_code < 0: # signal raised
         return ("cpu_crash", exception_message) if cpu else ("gpu_crash", exception_message)

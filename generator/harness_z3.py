@@ -97,7 +97,7 @@ def run_api_with_duration(api, model_gen_duration, fuzz_duration, max_model, n_m
             print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
 
         start_execution = time.time()
-        status, exception_message = oracle_crash(api, definition['signature'], concrete_input, cpu=True, lib=lib)
+        status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
         if status == "nominal":
             nominal += 1
             if print_details:

@@ -383,7 +383,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                 block_all.add(elem)
 
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args)
-        status, exception_message = oracle_crash(api, definition['signature'], concrete_input, cpu=True, lib=lib)
+        status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
  
         if status != "invalid":
             if status == "cpu_crash":
