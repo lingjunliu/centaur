@@ -1,8 +1,10 @@
 from google import genai
 import os, subprocess, time
+import numpy as np
 from utils.new_api_utils import get_n_variations, get_signature
-from utils.misc import read_file_in_root
+from utils.misc import read_file_in_root, bcolors
 from llm.create_driver import fetch_documentation, extract_code_from_response, extract_function_info
+from llm.valid_inputs import generated_inputs
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -105,6 +107,7 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
         
     if output.endswith("Valid"):
         print("\nInput generated successfully.")
+        code = code.replace("generated_inputs = {}", "")
         with open(f"{CUR_DIR}/valid_inputs.py", "a") as fv:
             fv.write(code + "\n\n")
     else:
@@ -115,20 +118,35 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
 def main():
     lib = "torch"
     torch_apis = read_file_in_root("torch_apis.txt")
+    total = len(torch_apis)
+    durations = []
     
-    for torch_api in torch_apis:
+    for idx, torch_api in enumerate(torch_apis):
         n_variations = get_n_variations(torch_api, lib=lib)
+        start = time.time()
+        generated = True
         if n_variations > 1:
             for i in range(1, n_variations+1):
+                key = f"{torch_api}_{i}"
+                if key in generated_inputs:
+                    generated = False
+                    continue
                 print(f"\nGenerating valid inputs for {torch_api}_{i}...\n")
                 result = generate_inputs(torch_api, suffix=i, lib=lib)
                 with open(f"{CUR_DIR}/inputs.csv", "a") as f:
-                    f.write(",".join(map(str, result)) + "\n")
+                    f.write(",".join(map(str, result)) + "\n")            
         else:
+            if torch_api in generated_inputs:
+                generated = False
+                continue
             print(f"\nGenerating valid inputs for {torch_api}...\n")
             result = generate_inputs(torch_api, lib=lib)
             with open(f"{CUR_DIR}/inputs.csv", "a") as f:
                 f.write(",".join(map(str, result)) + "\n")
+        
+        if generated:
+            durations.append(time.time()-start)
+        print(f"{bcolors.OKGREEN}Done with {idx+1}/{total} | ETR: {(total-idx-1)*np.mean(durations):.2f}s{bcolors.ENDC}")
         
 if __name__ == "__main__":
     main()

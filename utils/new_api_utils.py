@@ -182,10 +182,10 @@ def to_numpy(x, device="cpu"):
     if isinstance(x, torch.Tensor):
         if device != "cpu":
             x = x.to("cpu")
-        return x.numpy()
+        return x.numpy(force=True)
     # dtype
     elif isinstance(x, torch.dtype):
-        return torch.tensor([], dtype=x).numpy().dtype
+        return torch.tensor([], dtype=x).numpy(force=True).dtype
     # tensor_list
     elif isinstance(x, list):
         ret_x = []
