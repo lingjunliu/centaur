@@ -93,7 +93,8 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
             print(f"No models available for {api}. Exiting.")
             break
 
-        selected_suffix = rng_model.integers(len(temp_model_collection.keys()))
+        suffix_index = rng_model.integers(len(temp_model_collection.keys()))
+        selected_suffix = list(temp_model_collection.keys())[suffix_index]
         if len(model_collection[selected_suffix]['models']) == 0:
             print(f"No models generated for {api}_{selected_suffix}. Skipping.")
             # Removing the suffix from the model collection
