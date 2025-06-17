@@ -1,5 +1,5 @@
 from utils.misc import read_pkl, get_tmp_dir
-from utils.api_utils import get_driver, get_signatures
+from utils.new_api_utils import get_signature, get_lib_version
 from generator.input_generators import concretize_input, abstract_print
 from eval.oracle import oracle_diff
 import sys, os
@@ -26,6 +26,8 @@ def main():
         lib = "torch"
     elif lib == "tensorflow":
         lib = "tf"
+
+    api = get_lib_version(api, lib=lib)
     
     # Directory containing the input files
     tmp = get_tmp_dir()
@@ -46,7 +48,7 @@ def main():
         if ind < 0 or ind >= len(generated_inputs):
             print(f"Index {ind} out of range for generated inputs.")
             return
-        best_distance, abs_input, seed = generated_inputs[ind]
+        best_distance, abs_input, seed, suffix = generated_inputs[ind]
         
         if ind < len(oracle_results) + low:
             oracle_result = oracle_results[ind-low]
@@ -59,12 +61,11 @@ def main():
                 print(f"{ind}: {'\n'.join([str(x) for x in oracle_result])}")
             
         print("\nRe running the oracle...")
-        driver = get_driver(api, lib=lib)
-        signature = get_signatures()[api]
+        signature = get_signature(api, lib=lib, suffix=suffix)
         rng = np.random.default_rng(seed)
         input_dict = concretize_input(abs_input, signature, rng)
         print(f"\nAbstract input (seed {seed}):\n{abstract_print(abs_input, signature)}")
-        diff_oracle_result = oracle_diff(driver, input_dict, atol=A_TOL, detailed=detailed)
+        diff_oracle_result = oracle_diff(api, input_dict, atol=A_TOL, detailed=detailed, lib=lib)
         
         print(f"\nOracle result: {diff_oracle_result}")        
     else:

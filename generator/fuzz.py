@@ -8,36 +8,31 @@ def main():
         print("Usage: python fuzz.py <api> <duration> <mode, optional (default: z3)> <n_max, optional>")
         return
     
+    mode = "z3" # default mode, optimizer partially implemented
+
     api = sys.argv[1]
     duration = int(sys.argv[2])
-    mode = sys.argv[3] if len(sys.argv) > 3 else "z3"
-    n_max = int(sys.argv[4]) if len(sys.argv) > 4 else 0
-    limit = int(sys.argv[5]) if len(sys.argv) > 5 else 30
-    seed = int(sys.argv[6]) if len(sys.argv) > 6 else 200
-    lib = sys.argv[7] if len(sys.argv) > 7 else "torch"
+    n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
+    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
+    print_details = sys.argv[6].lower() == 'true' if len(sys.argv) > 6 else False
+
     # alias
     if lib == "tensorflow":
         lib = "tf"
     elif lib == "pytorch":
         lib = "torch"
-        
-    print_details = sys.argv[8].lower() == 'true' if len(sys.argv) > 8 else False
 
-    # Max model 1000
-    max_model = 1000
-        
+
     # Logging run config at the beginning
     print(f"Fuzzing with the {api} driver on {lib}. Mode: {mode}, seed: {seed}.")
     print('Started fuzzing at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     
     if mode.strip().lower() == "z3":
-        # split duration between model generation and fuzzing
-        # use <limit> as the ratio
-        model_gen_duration = int(duration*limit/100)
-        fuzz_duration = duration - model_gen_duration
-        fuzz_with_z3(api, model_gen_duration, fuzz_duration, max_model, n_max=n_max, seed=seed, lib=lib, print_details=print_details)
+        fuzz_with_z3(api, duration, n_max=n_max, seed=seed, lib=lib, print_details=print_details)
     else:
-        fuzz_with_optimizer(api, duration, n_max, limit, lib=lib, print_details=print_details)
+        # partially implemented
+        fuzz_with_optimizer(api, duration, n_max=n_max, lib=lib, print_details=print_details)
 
 if __name__ == "__main__":
     main()

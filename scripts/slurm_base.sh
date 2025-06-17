@@ -18,6 +18,10 @@ if [ -z "${slurm_time}" ]; then
     slurm_time="2:00:00"    # Default slurm timeout
 fi
 
+if [ -z "${apis_file}" ]; then
+    apis_file=apis.txt      # File containing the list of APIs
+fi
+
 echo "Using a slurm timeout of $slurm_time"
 
 cmd=$1              # commmand to run parallelly
@@ -42,7 +46,7 @@ fi
 # Running random generation
 cd $PROJECT_DIR
 
-apis=(`cat apis.txt`)
+apis=(`cat ${apis_file}`)
 n_apis=${#apis[@]}
 i=0
 elapsed=0

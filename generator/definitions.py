@@ -1,12 +1,9 @@
 import numpy as np
 from learner.invariant_inference import infer_invariants
-from learner.inputs import get_inputs
 from utils.defaults import *
-from utils.api_utils import get_signatures
-from utils.misc import map_torch_to_driver
-# TODO: Move the definitions to JSON
+from utils.new_api_utils import get_signature, get_lib_version
 
-############### api definitions ################
+############### api definition examples ################
 
 # Scatter
 
@@ -29,7 +26,7 @@ scatter_definition = {
     #                     ('rule_5', 'input', 'index')
     #                 ]),
     # Using invariant inference
-    "ruleset":  infer_invariants("scatter"),
+    "ruleset":  infer_invariants("scatter")[0],
     # Easy
     # "random_candidate": {
     #                         "input": np.random.rand(2,4).astype(np.float32),
@@ -170,7 +167,7 @@ conv_transpose2d_definition = {
     #                     ('rule_7', 'weight', 'input')
     #                 ]),
     # Using invariant inference
-    "ruleset":  infer_invariants("conv_transpose2d"),
+    "ruleset":  infer_invariants("conv_transpose2d")[0],
     "random_candidate": {
                             "input": np.random.rand(2,4,343,10,1).astype(np.float32),
                             "weight": np.random.rand(2,343,1).astype(np.float32),
@@ -418,17 +415,17 @@ map_defs = {
 '''
     Get definition per API with an empty random candidate
 '''
-def get_definition(api, z3=False, lib="torch"):
-    torch_to_driver, driver_to_torch = map_torch_to_driver()
-    signature = get_signatures()[api]
+def get_definition(api, z3=False, lib="torch", suffix=0):
+    signature = get_signature(api, lib=lib, suffix=suffix)
+    
     definition = {
         "api": api,
-        "torch_api": driver_to_torch[api],
         "signature": signature,
-        "ruleset":  infer_invariants(api, z3=z3, lib=lib),
+        "ruleset":  infer_invariants(api, z3=z3, lib=lib, suffix=suffix)[0],
         "random_candidate": {},
         "arg_order": list(signature.keys()),
-        "limits":   []
+        "limits": [],
+        "suffix": suffix
     }
     
     definition["random_candidate"] = {}

@@ -1,8 +1,8 @@
 import torch
 import copy
 import time
-from utils.api_utils import get_signatures, get_driver
-from utils.misc import get_dir_in_root, map_torch_to_driver, save_to_new_pkl, read_pkl, read_file_in_root
+from utils.new_api_utils import get_signature, get_lib_version
+from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_root
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 from eval.oracle import oracle_crash
 import llm.valid_inputs as valid_inputs
@@ -388,16 +388,21 @@ inputs_per_api = {
     "lp_pool1d_": lp_pool1d_inputs(), # human end
 }
 
-def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
-    api_signature = get_signatures()[api]
-    torch_to_driver, driver_to_torch = map_torch_to_driver()
+def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=0):
+    try:
+        api_signature = get_signature(api, lib=lib, suffix=suffix)
+    except Exception as e:
+        # Could not get signature, return empty list
+        print(f"Error getting signature for {api} | {e.__class__.__name__}: {e}")
+        return []
     
+    lib_api = get_lib_version(api, lib=lib)
     # Return LLM generated inputs if available
-    if driver_to_torch[api] in valid_inputs.generated_inputs:
+    if lib_api in valid_inputs.generated_inputs:
         try:
-            return augment_inputs(valid_inputs.generated_inputs[driver_to_torch[api]], api_signature)
+            return augment_inputs(valid_inputs.generated_inputs[lib_api], api_signature)
         except Exception as e:
-            print(f"Error augmenting inputs for {driver_to_torch[api]} | {e.__class__.__name__}: {e}")
+            print(f"Error augmenting inputs for {lib_api} | {e.__class__.__name__}: {e}")
 
     # Return human written inputs if available
     if api in inputs_per_api:
@@ -414,11 +419,13 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
     # If there already is a saved file, read from that and concretize
     if os.path.isfile(input_file):
         abstract_inputs = read_pkl(input_file)
-        for abs_inp, saved_seed in abstract_inputs:
+        for abs_inp, saved_seed, suff in abstract_inputs:
+            if suff != suffix:
+                continue
             rng = np.random.default_rng(saved_seed)
             list_of_inputs.append(concretize_input(abs_inp, api_signature, rng))
-    else:   # Generate and save otherwise
-        api_driver = get_driver(api, lib=lib)
+    
+    if len(list_of_inputs) == 0:   # Generate and save otherwise
         valid = 0
         invalid = 0
         abstract_inputs = []
@@ -436,7 +443,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
                 list_of_inputs.append(input_dict)
                 abs_inp = get_abstract_input(input_dict, api_signature)
                 # Save the abstract input along with the seed
-                abstract_inputs.append((abs_inp, seed))
+                abstract_inputs.append((abs_inp, seed, suffix))
             
             seed += 1
         
@@ -445,11 +452,12 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42):
     
     return augment_inputs(list_of_inputs, api_signature)
 
+# TODO: Fix the main function
+'''
 def main():
     all_apis = set(read_file_in_root("apis.txt"))
     apis = set()
     total_inputs = 0
-    torch_to_driver, driver_to_torch = map_torch_to_driver()
     apis_with_issues = set()
     for api, inputs in inputs_per_api.items():
         generated_inputs = get_inputs(api)
@@ -460,8 +468,7 @@ def main():
         apis.add(api)
         total_inputs += len(generated_inputs)
     for torch_api, inputs in valid_inputs.generated_inputs.items():
-        api = torch_to_driver[torch_api]
-        generated_inputs = get_inputs(api)
+        generated_inputs = get_inputs(torch_api)
         if len(generated_inputs) == 0:
             print(f"Warning: No inputs generated for {api}")
             apis_with_issues.add(api)
@@ -488,3 +495,4 @@ def main():
     
 if __name__ == "__main__":
     main()
+'''

@@ -1,6 +1,7 @@
 import sys, pickle, torch, os
 from utils.misc import create_subdir, get_tmp_dir
-from utils.api_utils import get_signatures, get_arglist
+from utils.api_utils import get_arglist
+from utils.new_api_utils import get_signature, get_lib_version, get_n_variations
 import logging
 from utils.defaults import *
 
@@ -94,6 +95,8 @@ def main():
 
     api = sys.argv[1]
 
+    api = get_lib_version(api, lib="torch")  # Get the API version
+
     output_dir = create_subdir(get_tmp_dir(), "debug_coverage")
     filename_new_br = os.path.join(output_dir, f"{api}.csv")
 
@@ -114,7 +117,12 @@ def main():
     with open(filename_new_br, "r") as f:
         list_of_files = [line.strip().split(',') for line in f.readlines()]
     
-    api_signature = get_signatures()[api]
+    n_variants = get_n_variations(api, lib="torch")  # Get the number of variations for the API
+
+    if n_variants > 1:
+        api_signatures = [get_signature(api, lib="torch", suffix=i) for i in range(1, n_variants+1)]  # Get signatures for all variations
+    else:
+        api_signatures = [get_signature(api, lib="torch", suffix=0)]  # Get the API signature for the given API
     
     # Categories
     missing_params = 0
@@ -142,7 +150,17 @@ def main():
                     count += 1
                     print_arg(arg, f"{count} | name: {name},")
 
-                    if name not in api_signature:
+                    api_signature = api_signatures[0]  # Default to the first signature
+                    param_missing = True
+                    for signature in api_signatures:
+                        if name not in signature:
+                            continue
+                        else:
+                            api_signature = signature
+                            param_missing = False
+                            break
+
+                    if param_missing:
                         missing_params += mult
                     else:
                         # stat
@@ -161,7 +179,17 @@ def main():
                     count += 1
                     print_arg(kwarg, f"{count} | name: {name},")
                     
-                    if name not in api_signature:
+                    api_signature = api_signatures[0]  # Default to the first signature
+                    param_missing = True
+                    for signature in api_signatures:
+                        if name not in signature:
+                            continue
+                        else:
+                            api_signature = signature
+                            param_missing = False
+                            break
+
+                    if param_missing:
                         missing_params += mult
                     else:
                         # stat

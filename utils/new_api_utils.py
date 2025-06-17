@@ -1,7 +1,7 @@
 import torch, importlib, os, json
 import numpy as np
 
-from utils.misc import map_torch_to_driver
+from utils.misc import map_torch_to_driver, read_file_in_root, save_file_in_root
 
 def get_original_signatures():
     """
@@ -269,3 +269,34 @@ def run_api(api, input_dict, cpu=True, lib="torch"):
         result_dict["result"] = to_numpy(result)
 
     return result_dict
+
+def main():
+    variations = ""
+    torch_apis = read_file_in_root("torch_apis.txt")
+    problematic_apis = []
+    for torch_api in torch_apis:
+        n_variants = get_n_variations(torch_api, lib="torch")
+        if n_variants > 1:
+            for i in range(1, n_variants + 1):
+                try:
+                    signature = get_signature(torch_api, lib="torch", suffix=i)
+                    variations += f"{torch_api}_{i}\n"
+                except Exception as e:
+                    print(f"Error getting signature for {torch_api}_{i}\n{e.__class__.__name__}: {e}")
+                    problematic_apis.append(torch_api)
+                    continue
+        else:
+            try:
+                signature = get_signature(torch_api, lib="torch", suffix=0)
+                variations += f"{torch_api}\n"
+            except Exception as e:
+                print(f"Error getting signature for {torch_api}\n{e.__class__.__name__}: {e}")
+                problematic_apis.append(torch_api)
+                continue
+    
+    save_file_in_root("torch_variations.txt", variations)
+    if len(problematic_apis) > 0:
+        save_file_in_root("problematic_apis.txt", "\n".join(problematic_apis))
+
+if __name__ == "__main__":
+    main()
