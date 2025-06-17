@@ -86,7 +86,11 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
     time.sleep(6)
     client = genai.Client(api_key=gemini_key)
     chat = client.chats.create(model=model)
-    response = chat.send_message(get_prompt(api, lib=lib, suffix=suffix))
+    try:
+        response = chat.send_message(get_prompt(api, lib=lib, suffix=suffix))
+    except Exception as e:
+        print(f"Error while sending message to Gemini API: {e}")
+        return [api, get_torch_api(api)] + [1]*max_attempts
     print("Got response from Gemini API.")
     code = extract_code_from_response(response.text)    
     output, error = save_and_run_code(api, code, suffix=suffix, lib=lib)
