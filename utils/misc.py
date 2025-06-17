@@ -64,6 +64,11 @@ def get_dir_in_root(subdir):
     
     return dir
 
+def save_file_in_root(filename, content):
+    filepath = os.path.join(CUR_DIR, f"../{filename}")
+    with open(filepath, "w") as f:
+        f.write(content)
+
 def read_file_in_root(filename):
     filepath = os.path.join(CUR_DIR, f"../{filename}")
     if os.path.exists(filepath):
