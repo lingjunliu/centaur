@@ -3,37 +3,19 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def logical_not_inputs():
     list_of_inputs = []
 
-    # Input 1: Boolean array
-    input1 = np.array([True, False])
+    input1 = np.array([True, False, True, False])
     input_dict1 = {"input": input1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Integer array (0 and 1 for logical interpretation)
-    input2 = np.array([0, 1], dtype=np.int32)
+    input2 = np.array([[True, False], [False, True]])
     input_dict2 = {"input": input2}
     list_of_inputs.append(copy.deepcopy(input_dict2))
-
-    # Input 3: Multidimensional boolean array
-    input3 = np.array([[True, False], [False, True]])
-    input_dict3 = {"input": input3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-
-    # Input 4: 3D boolean array
-    input4 = np.array([[[True, False], [False, True]], [[False, True], [True, False]]])
-    input_dict4 = {"input": input4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    # Input 5: Float array (0.0 and 1.0 for logical interpretation)
-    input5 = np.array([0.0, 1.0], dtype=np.float32)
-    input_dict5 = {"input": input5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
 
     return list_of_inputs
 

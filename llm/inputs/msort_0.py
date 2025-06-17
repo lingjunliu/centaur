@@ -14,10 +14,33 @@ def msort_inputs():
     input_dict1 = {"input": input1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: 2D integer tensor
-    input2 = torch.randint(-5, 5, (5, 4)).numpy()
-    input_dict2 = {"input": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 3: 3D float tensor with negative values. Reshape to 2D
+    input3 = torch.randn(2, 3, 2) * 10 - 5
+    input3 = input3.numpy()
+    input3 = input3.reshape(2, -1)
+    input_dict3 = {"input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 2D tensor with different data types
+    input4 = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
+    input_dict4 = {"input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 2D tensor with zeros
+    input5 = torch.zeros(3, 3).numpy()
+    input_dict5 = {"input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6: 1D Float Tensor - Reshaping to be 2D
+    input6 = torch.randn(5).numpy()
+    input6 = input6.reshape(1,-1)
+    input_dict6 = {"input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: 2D int Tensor
+    input7 = torch.randint(-10, 10, (3, 4)).numpy()
+    input_dict7 = {"input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
     return list_of_inputs
 

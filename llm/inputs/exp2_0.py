@@ -10,18 +10,13 @@ import copy
 def exp2_inputs():
     list_of_inputs = []
 
-    # Input 1: Float tensor
-    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input1 = np.array([1, 2, 3], dtype=np.float32)
     input_dict1 = {"input": input1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
-
-    # Input 2: Integer tensor
-    input2 = np.array([1, 2, 3], dtype=np.int32)
-    input_dict2 = {"input": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
-
+    
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.exp2"] = exp2_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):

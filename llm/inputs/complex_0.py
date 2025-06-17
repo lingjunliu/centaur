@@ -3,34 +3,54 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def complex_inputs():
     list_of_inputs = []
 
-    # Case 1: float32 tensors
-    real = torch.tensor([1, 2, 3], dtype=torch.float32).numpy()
-    imag = torch.tensor([4, 5, 6], dtype=torch.float32).numpy()
-    input_dict = {"real": real, "imag": imag}
+    real = torch.tensor([1, 2], dtype=torch.float32)
+    imag = torch.tensor([3, 4], dtype=torch.float32)
+    input_dict = {
+        "real": real.numpy(),
+        "imag": imag.numpy()
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: float64 tensors, different shapes
-    real = torch.randn(2, 2, dtype=torch.float64).numpy()
-    imag = torch.randn(2, 2, dtype=torch.float64).numpy()
-    input_dict = {"real": real, "imag": imag}
+    real = torch.tensor([1.5, 2.5], dtype=torch.float64)
+    imag = torch.tensor([3.5, 4.5], dtype=torch.float64)
+    input_dict = {
+        "real": real.numpy(),
+        "imag": imag.numpy()
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: float32 tensors, with negative values
-    real = torch.tensor([-1.0, 2.0, -3.0], dtype=torch.float32).numpy()
-    imag = torch.tensor([4.0, -5.0, 6.0], dtype=torch.float32).numpy()
-    input_dict = {"real": real, "imag": imag}
+    real = torch.tensor([[1, 2], [3, 4]], dtype=torch.float32)
+    imag = torch.tensor([[5, 6], [7, 8]], dtype=torch.float32)
+    input_dict = {
+        "real": real.numpy(),
+        "imag": imag.numpy()
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    real = torch.tensor([-1.0, -2.0], dtype=torch.float32)
+    imag = torch.tensor([-3.0, -4.0], dtype=torch.float32)
+    input_dict = {
+        "real": real.numpy(),
+        "imag": imag.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    real = torch.tensor([1.0], dtype=torch.float32)
+    imag = torch.tensor([3.0], dtype=torch.float32)
+    input_dict = {
+        "real": real.numpy(),
+        "imag": imag.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.complex"] = complex_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):

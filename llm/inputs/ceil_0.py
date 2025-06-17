@@ -10,31 +10,16 @@ import copy
 def torch_ceil_inputs():
     list_of_inputs = []
 
-    # Example 1: 1D tensor with positive and negative floats
-    input_tensor = torch.randn(5).numpy()
+    # Input 1: Basic float tensor
+    input_tensor = torch.randn(4).numpy()
     input_dict = {"input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Example 2: 2D tensor with positive and negative floats
-    input_tensor = torch.randn(2, 3).numpy()
+    # Input 2: Negative float tensor
+    input_tensor = (torch.randn(2, 3) * -1.0).numpy()
     input_dict = {"input": input_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Example 3: 3D tensor with positive and negative floats
-    input_tensor = torch.randn(2, 3, 4).numpy()
-    input_dict = {"input": input_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Example 4: 1D tensor with integers
-    input_tensor = torch.randint(-5, 5, (5,)).numpy()
-    input_dict = {"input": input_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Example 5: Scalar float
-    input_tensor = np.random.randn()
-    input_dict = {"input": np.array(input_tensor)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs["torch.ceil"] = torch_ceil_inputs()

@@ -3,33 +3,20 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def cummax_inputs():
     list_of_inputs = []
 
-    # Test case 1: 1D tensor with positive values
-    input_tensor = torch.tensor([1.0, 3.0, 2.0, 4.0, 0.0]).numpy()
+    # Test case 1: 1D tensor, dim=0
+    input_tensor = torch.randn(10).numpy()
     dim = 0
     input_dict = {"input": input_tensor, "dim": dim}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Test case 2: 2D tensor with negative and positive values
-    input_tensor = torch.tensor([[-1.0, 2.0, -3.0], [4.0, -5.0, 6.0]]).numpy()
-    dim = 1
-    input_dict = {"input": input_tensor, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Test case 3: 3D tensor
-    input_tensor = torch.randn(2, 3, 4).numpy()
-    dim = 0
-    input_dict = {"input": input_tensor, "dim": dim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Test case 4: 1D tensor with integer values
-    input_tensor = torch.tensor([1, 3, 2, 4, 0]).numpy()
+    # Test case 2: 2D tensor, dim=0
+    input_tensor = torch.randn(5, 5).numpy()
     dim = 0
     input_dict = {"input": input_tensor, "dim": dim}
     list_of_inputs.append(copy.deepcopy(input_dict))

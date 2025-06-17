@@ -9,51 +9,10 @@ import numpy as np
 def margin_ranking_loss_inputs():
     list_of_inputs = []
 
+    # Case 1: Basic case with float tensors, margin = 0, reduction = 'mean'
     input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     input2 = np.array([2.0, 2.0, 4.0], dtype=np.float32)
     target = np.array([1, -1, 1], dtype=np.int32)
-    margin = 0.5
-    reduction = 'mean'
-    input_dict = {
-        "input1": input1,
-        "input2": input2,
-        "target": target,
-        "margin": margin,
-        "reduction": reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input1 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    input2 = np.array([-2.0, -2.0, -4.0], dtype=np.float32)
-    target = np.array([-1, 1, -1], dtype=np.int32)
-    margin = 0.2
-    reduction = 'sum'
-    input_dict = {
-        "input1": input1,
-        "input2": input2,
-        "target": target,
-        "margin": margin,
-        "reduction": reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input2 = np.array([[2.0, 2.0], [4.0, 5.0]], dtype=np.float32)
-    target = np.array([1, -1], dtype=np.int32)
-    margin = 1.0
-    reduction = 'none'
-    input_dict = {
-        "input1": input1,
-        "input2": input2,
-        "target": target,
-        "margin": margin,
-        "reduction": reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input1 = np.array([1.0], dtype=np.float32)
-    input2 = np.array([2.0], dtype=np.float32)
-    target = np.array([1], dtype=np.int32)
     margin = 0.0
     reduction = 'mean'
     input_dict = {
@@ -65,10 +24,11 @@ def margin_ranking_loss_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input1 = np.array([1.5, 2.5, 3.5], dtype=np.float64)
-    input2 = np.array([2.5, 2.5, 4.5], dtype=np.float64)
-    target = np.array([1, -1, 1], dtype=np.int32)
-    margin = 0.75
+    # Case 2: Different sized tensors, margin = 0.5, reduction = 'sum'
+    input1 = np.array([1.0, 2.0], dtype=np.float32)
+    input2 = np.array([2.0, 2.0], dtype=np.float32)
+    target = np.array([1, -1], dtype=np.int32)
+    margin = 0.5
     reduction = 'sum'
     input_dict = {
         "input1": input1,
@@ -78,8 +38,55 @@ def margin_ranking_loss_inputs():
         "reduction": reduction
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Case 3: Negative values, margin = 1.0, reduction = 'none'
+    input1 = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
+    input2 = np.array([0.0, -1.0, 2.0], dtype=np.float32)
+    target = np.array([1, -1, 1], dtype=np.int32)
+    margin = 1.0
+    reduction = 'none'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 4: Multi-dimensional arrays
+    input1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input2 = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float32)
+    target = np.array([[1, -1], [1, -1]], dtype=np.int32)
+    margin = 0.2
+    reduction = 'mean'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 5: Different margin, reduction = 'sum'
+    input1 = np.array([0.5, 1.5, 2.5], dtype=np.float32)
+    input2 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    target = np.array([-1, 1, -1], dtype=np.int32)
+    margin = 0.7
+    reduction = 'sum'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
+
+generated_inputs = {}
+generated_inputs["torch.nn.functional.margin_ranking_loss"] = margin_ranking_loss_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):
     for idx, input_dict in enumerate(list_of_inputs):

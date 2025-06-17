@@ -10,30 +10,33 @@ import copy
 def asinh_inputs():
     list_of_inputs = []
 
-    # Input 1: 1D tensor with positive and negative floats
-    input_1 = np.array([0.5, -1.0, 2.0, -0.75], dtype=np.float32)
-    input_dict_1 = {"input": input_1}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Float tensor, 1D
+    input1 = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
+    input_dict1 = {"input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Scalar value
-    input_2 = np.array(-2.5, dtype=np.float32)
-    input_dict_2 = {"input": input_2}
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: Float tensor, 2D
+    input2 = np.array([[-2.0, -1.0], [1.0, 2.0]], dtype=np.float64)
+    input_dict2 = {"input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Zero value
-    input_3 = np.array([0.0], dtype=np.float64)
-    input_dict_3 = {"input": input_3}
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: Float tensor, 3D
+    input3 = np.random.rand(2, 3, 4).astype(np.float32)
+    input_dict3 = {"input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: 2D tensor
-    input_4 = np.array([[1.0, -1.0], [2.0, -2.0]], dtype=np.float32)
-    input_dict_4 = {"input": input_4}
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-
+    # Input 4: Int tensor, 1D
+    input4 = np.array([-2, -1, 0, 1, 2], dtype=np.int32)
+    input_dict4 = {"input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5: Int tensor, 2D
+    input5 = np.array([[-3, -2], [2, 3]], dtype=np.int64)
+    input_dict5 = {"input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.asinh"] = asinh_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):

@@ -15,9 +15,28 @@ def cos_inputs():
     input_dict1 = {"input": input1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
+    # Input 2: 2D float tensor with negative values
+    input2 = torch.randn(2, 3).numpy()
+    input_dict2 = {"input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D float tensor
+    input3 = torch.randn(2, 2, 2).numpy()
+    input_dict3 = {"input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Scalar tensor
+    input4 = np.random.randn(1)
+    input_dict4 = {"input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Large values
+    input5 = (torch.randn(3) * 100).numpy()
+    input_dict5 = {"input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.cos"] = cos_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):

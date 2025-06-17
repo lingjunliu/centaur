@@ -3,33 +3,39 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def nll_loss_inputs():
     list_of_inputs = []
 
-    # Case 1: Basic case with default parameters
+    # Case 1: Basic case with float input and long target
+    input = np.array([[-0.8, -0.2, -0.9], [-0.3, -0.1, -0.5]], dtype=np.float32)
+    target = np.array([0, 1], dtype=np.int64)
     input_dict = {
-        "input": np.array([[-0.5, -0.8, -0.2], [-0.1, -0.9, -0.3]], dtype=np.float32),
-        "target": np.array([0, 1], dtype=np.int64),
+        "input": input,
+        "target": target,
         "log_target": None,
         "weight": None,
         "size_average": None,
-        "ignore_index": -100,
+        "ignore_index": None,
         "reduce": None,
         "reduction": 'mean'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: With weight
+    # Case 2: With weight and ignore_index
+    input = np.array([[-0.8, -0.2, -0.9], [-0.3, -0.1, -0.5]], dtype=np.float32)
+    target = np.array([0, 1], dtype=np.int64)
+    weight = np.array([0.2, 0.8, 0.5], dtype=np.float32)
     input_dict = {
-        "input": np.array([[-0.5, -0.8, -0.2], [-0.1, -0.9, -0.3]], dtype=np.float32),
-        "target": np.array([0, 1], dtype=np.int64),
+        "input": input,
+        "target": target,
         "log_target": None,
-        "weight": np.array([0.2, 0.5, 0.3], dtype=np.float32),
+        "weight": weight,
         "size_average": None,
-        "ignore_index": -100,
+        "ignore_index": 1,
         "reduce": None,
         "reduction": 'mean'
     }

@@ -3,135 +3,87 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch
-import copy
+import torch, copy
 import numpy as np
 
 def embedding_bag_inputs():
     list_of_inputs = []
 
     # Input 1
-    input = torch.randn(10, 3).numpy()
-    weight = torch.randn(5, 3).numpy()
-    indices = torch.tensor([0, 1, 2, 0, 3]).numpy()
-    offsets = torch.tensor([0, 2, 3, 4]).numpy()
     input_dict = {
-        "input": input,
-        "weight": weight,
-        "indices": indices,
-        "offsets": offsets,
-        "max_norm": None,
+        "input": np.random.randn(10, 3).astype(np.float32),
+        "weight": np.random.randn(5, 3).astype(np.float32),
+        "indices": np.array([0, 1, 2, 0, 3, 4, 1, 2], dtype=np.int64),
+        "offsets": np.array([0, 3, 6], dtype=np.int64),
         "norm_type": 2.0,
         "scale_grad_by_freq": False,
         "mode": "sum",
         "sparse": False,
         "per_sample_weights": None,
-        "include_last_offset": False,
+        "include_last_offset": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input = torch.randn(5, 4).numpy()
-    weight = torch.randn(3, 4).numpy()
-    indices = torch.tensor([0, 1, 2, 1, 0, 2]).numpy()
-    offsets = torch.tensor([0, 3]).numpy()
-    per_sample_weights = torch.randn(6).numpy()
-
     input_dict = {
-        "input": input,
-        "weight": weight,
-        "indices": indices,
-        "offsets": offsets,
-        "max_norm": 1.0,
+        "input": np.random.randn(12, 4).astype(np.float32),
+        "weight": np.random.randn(6, 4).astype(np.float32),
+        "indices": np.array([0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5], dtype=np.int64),
+        "offsets": np.array([0, 6], dtype=np.int64),
         "norm_type": 1.0,
         "scale_grad_by_freq": True,
         "mode": "mean",
         "sparse": True,
-        "per_sample_weights": per_sample_weights,
-        "include_last_offset": False,
+        "per_sample_weights": np.random.rand(12).astype(np.float32),
+        "include_last_offset": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input = torch.randn(8, 2).numpy()
-    weight = torch.randn(4, 2).numpy()
-    indices = torch.tensor([0, 1, 2, 3, 0, 1]).numpy()
-    offsets = torch.tensor([0, 2, 4]).numpy()
     input_dict = {
-        "input": input,
-        "weight": weight,
-        "indices": indices,
-        "offsets": offsets,
-        "max_norm": None,
+        "input": np.random.randn(8, 2).astype(np.float64),
+        "weight": np.random.randn(4, 2).astype(np.float64),
+        "indices": np.array([0, 1, 2, 3, 0, 1, 2, 3], dtype=np.int64),
+        "offsets": np.array([0, 4], dtype=np.int64),
+        "norm_type": 2.0,
+        "scale_grad_by_freq": False,
+        "mode": "sum",
+        "sparse": False,
+        "per_sample_weights": None,
+        "include_last_offset": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_dict = {
+        "input": np.random.randn(15, 5).astype(np.float32),
+        "weight": np.random.randn(7, 5).astype(np.float32),
+        "indices": np.array([0, 1, 2, 3, 4, 5, 6, 0, 1, 2, 3, 4, 5, 6, 0], dtype=np.int64),
+        "offsets": np.array([0, 7, 14], dtype=np.int64),
         "norm_type": 2.0,
         "scale_grad_by_freq": False,
         "mode": "max",
         "sparse": False,
         "per_sample_weights": None,
-        "include_last_offset": False,
+        "include_last_offset": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input = torch.randn(12, 5).numpy()
-    weight = torch.randn(6, 5).numpy()
-    indices = torch.tensor([0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4]).numpy()
-    offsets = torch.tensor([0, 4, 7]).numpy()
-    per_sample_weights = torch.randn(11).numpy()
+    # Input 5
     input_dict = {
-        "input": input,
-        "weight": weight,
-        "indices": indices,
-        "offsets": offsets,
-        "max_norm": 2.0,
+        "input": np.random.randn(5, 1).astype(np.float32),
+        "weight": np.random.randn(3, 1).astype(np.float32),
+        "indices": np.array([0, 1, 2, 0, 1], dtype=np.int64),
+        "offsets": np.array([0, 3], dtype=np.int64),
         "norm_type": 2.0,
-        "scale_grad_by_freq": True,
+        "scale_grad_by_freq": False,
         "mode": "sum",
-        "sparse": True,
-        "per_sample_weights": per_sample_weights,
-        "include_last_offset": False,
+        "sparse": False,
+        "per_sample_weights": None,
+        "include_last_offset": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5
-    input = torch.randn(3, 2).numpy()
-    weight = torch.randn(2, 2).numpy()
-    indices = torch.tensor([0, 1]).numpy()
-    offsets = torch.tensor([0]).numpy()
-    input_dict = {
-        "input": input,
-        "weight": weight,
-        "indices": indices,
-        "offsets": offsets,
-        "max_norm": None,
-        "norm_type": 2.0,
-        "scale_grad_by_freq": False,
-        "mode": "sum",
-        "sparse": False,
-        "per_sample_weights": None,
-        "include_last_offset": True,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6 - without max_norm
-    input = torch.randn(3, 2).numpy()
-    weight = torch.randn(2, 2).numpy()
-    indices = torch.tensor([0, 1]).numpy()
-    offsets = torch.tensor([0]).numpy()
-    input_dict = {
-        "input": input,
-        "weight": weight,
-        "indices": indices,
-        "offsets": offsets,
-        "norm_type": 2.0,
-        "scale_grad_by_freq": False,
-        "mode": "sum",
-        "sparse": False,
-        "per_sample_weights": None,
-        "include_last_offset": True,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs["torch.nn.functional.embedding_bag_4"] = embedding_bag_inputs()

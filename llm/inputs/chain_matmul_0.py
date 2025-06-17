@@ -11,32 +11,34 @@ def chain_matmul_inputs():
     list_of_inputs = []
 
     # Input 1: Basic case with float tensors
-    matrices = [torch.randn(2, 3),
-                torch.randn(3, 4),
-                torch.randn(4, 2)]
+    matrices = [torch.from_numpy(np.random.rand(2, 3).astype(np.float32)), torch.from_numpy(np.random.rand(3, 4).astype(np.float32)), torch.from_numpy(np.random.rand(4, 2).astype(np.float32))]
     input_dict = {"matrices": matrices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Two matrices
-    matrices = [torch.randn(4, 5),
-                torch.randn(5, 4)]
+    # Input 2: Integer tensors
+    matrices = [torch.from_numpy(np.random.randint(1, 5, size=(2, 3)).astype(np.int64)), torch.from_numpy(np.random.randint(1, 5, size=(3, 4)).astype(np.int64))]
     input_dict = {"matrices": matrices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative values
-    matrices = [torch.randn(2, 3) * -1,
-                torch.randn(3, 4)]
+    # Input 3: Matrices with negative values
+    matrices = [torch.from_numpy(np.random.randn(2, 3).astype(np.float32)), torch.from_numpy(np.random.randn(3, 4).astype(np.float32)), torch.from_numpy(np.random.randn(4, 2).astype(np.float32))]
     input_dict = {"matrices": matrices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different dtypes
-    matrices = [torch.randn(2, 3, dtype=torch.float64),
-                torch.randn(3, 4, dtype=torch.float64)]
+    # Input 4: Complex tensors
+    matrices = [torch.from_numpy(np.random.rand(2, 3).astype(np.complex64) + 1j * np.random.rand(2, 3).astype(np.complex64)),
+                torch.from_numpy(np.random.rand(3, 2).astype(np.complex64) + 1j * np.random.rand(3, 2).astype(np.complex64))]
+    input_dict = {"matrices": matrices}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: More matrices with different shapes, ensuring matmul compatibility
+    matrices = [torch.from_numpy(np.random.rand(5, 3).astype(np.float32)), torch.from_numpy(np.random.rand(3, 7).astype(np.float32)), torch.from_numpy(np.random.rand(7, 2).astype(np.float32))]
     input_dict = {"matrices": matrices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.chain_matmul"] = chain_matmul_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):

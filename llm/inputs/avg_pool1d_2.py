@@ -3,70 +3,45 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch
-import copy
+import torch, copy
 import numpy as np
 
 def avg_pool1d_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case
-    input_data = torch.randn(1, 3, 10).numpy()
-    kernel_size = (2,)
-    stride = (2,)
-    padding = (0,)
-    ceil_mode = False
-    count_include_pad = True
+    input1 = torch.randn(1, 3, 10).numpy()
+    kernel_size1 = (2,)
+    stride1 = (2,)
+    padding1 = (0,)
+    ceil_mode1 = False
+    count_include_pad1 = True
 
-    input_dict = {
-        "input": input_data,
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "padding": padding,
-        "ceil_mode": ceil_mode,
-        "count_include_pad": count_include_pad,
+    input_dict1 = {
+        "input": input1,
+        "kernel_size": kernel_size1,
+        "stride": stride1,
+        "padding": padding1,
+        "ceil_mode": ceil_mode1,
+        "count_include_pad": count_include_pad1
     }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input2 = torch.randn(2, 4, 15).numpy()
+    kernel_size2 = (3,)
+    stride2 = (1,)
+    padding2 = (1,)
+    ceil_mode2 = True
+    count_include_pad2 = False
 
-    # Input 2: Different stride and kernel size
-    input_data = torch.randn(1, 5, 15).numpy()
-    kernel_size = (3,)
-    stride = (1,)
-    padding = (1,)
-    ceil_mode = False
-    count_include_pad = True
-
-    input_dict = {
-        "input": input_data,
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "padding": padding,
-        "ceil_mode": ceil_mode,
-        "count_include_pad": count_include_pad,
+    input_dict2 = {
+        "input": input2,
+        "kernel_size": kernel_size2,
+        "stride": stride2,
+        "padding": padding2,
+        "ceil_mode": ceil_mode2,
+        "count_include_pad": count_include_pad2
     }
-
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Ceil mode enabled
-    input_data = torch.randn(1, 2, 7).numpy()
-    kernel_size = (2,)
-    stride = (3,)
-    padding = (0,)
-    ceil_mode = True
-    count_include_pad = True
-
-    input_dict = {
-        "input": input_data,
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "padding": padding,
-        "ceil_mode": ceil_mode,
-        "count_include_pad": count_include_pad,
-    }
-
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
     return list_of_inputs
 

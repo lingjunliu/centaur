@@ -9,48 +9,84 @@ import numpy as np
 def torch_pow_inputs():
     list_of_inputs = []
 
-    # Case 1: float input, float exponent
+    # Case 1: input is a tensor, exponent is a float
     input_tensor = torch.randn(4).numpy()
     exponent = 2.0
     input_dict = {
         "input": input_tensor,
-        "exponent": exponent
+        "exponent": exponent,
+        "out": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: float input, tensor exponent
-    input_tensor = torch.randn(4).numpy()
-    exponent = torch.arange(1., 5.).numpy()
+    # Case 2: input is a tensor, exponent is a tensor of the same shape
+    input_tensor = torch.arange(1., 5.).numpy()
+    exponent_tensor = torch.arange(1., 5.).numpy()
     input_dict = {
         "input": input_tensor,
-        "exponent": exponent
+        "exponent": exponent_tensor,
+        "out": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: int input, int exponent
-    input_tensor = torch.randint(1, 5, (4,)).numpy()
-    exponent = torch.randint(1, 5, (4,)).numpy()
+    # Case 3: input is a tensor, exponent is a tensor with broadcastable shapes
+    input_tensor = torch.randn(2, 3).numpy()
+    exponent_tensor = torch.tensor(2.0).numpy()
     input_dict = {
         "input": input_tensor,
-        "exponent": exponent
+        "exponent": exponent_tensor,
+        "out": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Case 4: int input, float exponent
-    input_tensor = torch.randint(1, 5, (4,)).numpy()
-    exponent = 2.5
+    # Case 4: input is a tensor with negative values, exponent is a float
+    input_tensor = torch.randn(4) * -1.0
+    input_tensor = input_tensor.numpy()
+    exponent = 3.0
     input_dict = {
         "input": input_tensor,
-        "exponent": exponent
+        "exponent": exponent,
+        "out": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: float input, float exponent, different shape (broadcastable)
-    input_tensor = torch.randn(2, 3).numpy()
+    # Case 5: input is a tensor, exponent is a tensor with different dtype (int)
+    input_tensor = torch.arange(1., 5.).numpy()
+    exponent_tensor = torch.arange(1, 5).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "exponent": exponent_tensor,
+        "out": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 6: Scalar base, exponent is a tensor
+    base = 2.0
+    exponent_tensor = torch.arange(1., 5.).numpy()
+    input_dict = {
+        "input": base,
+        "exponent": exponent_tensor,
+        "out": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 7: input is a tensor, exponent is a float (negative)
+    input_tensor = torch.randn(4).numpy()
+    exponent = -2.0
+    input_dict = {
+        "input": input_tensor,
+        "exponent": exponent,
+        "out": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 8: input is a tensor (int), exponent is a float
+    input_tensor = torch.arange(1, 5).numpy()
     exponent = 2.0
     input_dict = {
         "input": input_tensor,
-        "exponent": exponent
+        "exponent": exponent,
+        "out": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

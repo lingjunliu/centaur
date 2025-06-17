@@ -9,26 +9,37 @@ import numpy as np
 def isposinf_inputs():
     list_of_inputs = []
 
-    a = np.array([-np.inf, np.inf, 1.2])
-    input_dict = {"input": torch.tensor(a, dtype=torch.float32)}
+    a = np.array([-float('inf'), float('inf'), 1.2])
+    input_dict = {
+        "input": torch.tensor(a)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     a = np.array([float('inf'), float('inf'), float('inf')])
-    input_dict = {"input": torch.tensor(a, dtype=torch.float32)}
+    input_dict = {
+        "input": torch.tensor(a)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    a = np.array([[float('inf'), 2.0], [3.0, float('inf')]])
-    input_dict = {"input": torch.tensor(a, dtype=torch.float32)}
+    a = np.array([1, 2, 3], dtype=np.float32)
+    a[1] = float('inf')
+    input_dict = {
+        "input": torch.tensor(a)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    a = np.array([[[float('inf'), 2.0], [3.0, float('inf')]], [[1.0, -float('inf')], [float('inf'), 4.0]]])
-    input_dict = {"input": torch.tensor(a, dtype=torch.float32)}
+    a = np.array([[1, float('inf')], [float('inf'), 4]])
+    input_dict = {
+        "input": torch.tensor(a)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    a = np.array([[[1, float('inf')], [2, 3]], [[4, 5], [float('inf'), 6]]], dtype=np.float64)
+    input_dict = {
+        "input": torch.tensor(a)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    a = np.array([1.0, 2.0, 3.0])  
-    input_dict = {"input": torch.tensor(a, dtype=torch.float32)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs["torch.isposinf"] = isposinf_inputs()

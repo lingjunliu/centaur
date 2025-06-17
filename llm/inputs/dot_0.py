@@ -3,17 +3,46 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def torch_dot_inputs():
     list_of_inputs = []
 
-    # Test case 1: Basic integer tensors
-    input1 = np.array([2, 3], dtype=np.int64)
-    input2 = np.array([2, 1], dtype=np.int64)
-    input_dict = {"input": input1, "tensor": input2}
+    input1 = torch.tensor([2, 3]).numpy()
+    input2 = torch.tensor([2, 1]).numpy()
+    input_dict = {"input": input1, "tensor": input2, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input1 = torch.tensor([0, 1]).numpy()
+    input2 = torch.tensor([2, 3]).numpy()
+    input_dict = {"input": input1, "tensor": input2, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input1 = torch.tensor([-1, 2, -3]).numpy()
+    input2 = torch.tensor([4, -5, 6]).numpy()
+    input_dict = {"input": input1, "tensor": input2, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input1 = torch.tensor([1.5, 2.5, 3.5]).numpy()
+    input2 = torch.tensor([4.5, 5.5, 6.5]).numpy()
+    input_dict = {"input": input1, "tensor": input2, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input1 = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
+    input2 = torch.tensor([4, 5, 6], dtype=torch.int64).numpy()
+    input_dict = {"input": input1, "tensor": input2, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input1 = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    input2 = torch.tensor([0.4, 0.5, 0.6]).numpy()
+    out_tensor = torch.empty(1).numpy()
+    input_dict = {"input": input1, "tensor": input2, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    input1 = torch.tensor([-2.0, 3.0, -1.0]).numpy()
+    input2 = torch.tensor([1.0, -2.0, 3.0]).numpy()
+    input_dict = {"input": input1, "tensor": input2, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

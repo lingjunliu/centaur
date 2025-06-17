@@ -3,119 +3,92 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def embedding_bag_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case
+    # Example 1: Basic example with SUM mode
+    weight = np.random.randn(10, 3).astype(np.float32)
+    indices = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.int64)
+    offsets = np.array([0, 2, 4, 6, 8], dtype=np.int64)
     input_dict = {
-        "weight": np.random.rand(10, 5).astype(np.float32),
-        "indices": np.array([0, 1, 2, 0, 2, 3], dtype=np.int64),
-        "offsets": np.array([0, 3], dtype=np.int64),
-        "max_norm": None,
-        "norm_type": 2.0,
-        "scale_grad_by_freq": False,
-        "mode": "mean",
-        "sparse": False,
-        "per_sample_weights": None,
-        "include_last_offset": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Using per_sample_weights
-    input_dict = {
-        "weight": np.random.rand(10, 5).astype(np.float32),
-        "indices": np.array([0, 1, 2, 0, 2, 3], dtype=np.int64),
-        "offsets": np.array([0, 3], dtype=np.int64),
+        "input": None,
+        "weight": weight,
+        "indices": indices,
+        "offsets": offsets,
         "max_norm": None,
         "norm_type": 2.0,
         "scale_grad_by_freq": False,
         "mode": "sum",
         "sparse": False,
-        "per_sample_weights": np.random.rand(6).astype(np.float32),
-        "include_last_offset": False
+        "per_sample_weights": None,
+        "include_last_offset": False,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Using max_norm
+    # Example 2: With MEAN mode and per_sample_weights
+    weight = np.random.randn(5, 4).astype(np.float32)
+    indices = np.array([0, 1, 2, 0, 3, 4], dtype=np.int64)
+    offsets = np.array([0, 3], dtype=np.int64)
+    per_sample_weights = np.array([0.5, 0.5, 0.5, 1, 0.2, 0.3], dtype=np.float32)
     input_dict = {
-        "weight": np.random.rand(10, 5).astype(np.float32),
-        "indices": np.array([0, 1, 2, 0, 2, 3], dtype=np.int64),
-        "offsets": np.array([0, 3], dtype=np.int64),
-        "max_norm": 1.0,
+        "input": None,
+        "weight": weight,
+        "indices": indices,
+        "offsets": offsets,
+        "max_norm": None,
         "norm_type": 2.0,
         "scale_grad_by_freq": False,
         "mode": "mean",
         "sparse": False,
-        "per_sample_weights": None,
-        "include_last_offset": False
+        "per_sample_weights": per_sample_weights,
+        "include_last_offset": False,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different mode (max)
+    # Example 3: With MAX mode
+    weight = np.random.randn(3, 5).astype(np.float32)
+    indices = np.array([0, 1, 0, 2], dtype=np.int64)
+    offsets = np.array([0, 2], dtype=np.int64)
     input_dict = {
-        "weight": np.random.rand(10, 5).astype(np.float32),
-        "indices": np.array([0, 1, 2, 0, 2, 3], dtype=np.int64),
-        "offsets": np.array([0, 3], dtype=np.int64),
+        "input": None,
+        "weight": weight,
+        "indices": indices,
+        "offsets": offsets,
         "max_norm": None,
         "norm_type": 2.0,
         "scale_grad_by_freq": False,
         "mode": "max",
         "sparse": False,
         "per_sample_weights": None,
-        "include_last_offset": False
+        "include_last_offset": False,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: scale_grad_by_freq = True
+    # Example 5: With max_norm
+    weight = np.random.randn(6, 3).astype(np.float32)
+    indices = np.array([0, 1, 2, 3, 4, 5], dtype=np.int64)
+    offsets = np.array([0, 3], dtype=np.int64)
     input_dict = {
-        "weight": np.random.rand(10, 5).astype(np.float32),
-        "indices": np.array([0, 1, 2, 0, 2, 3], dtype=np.int64),
-        "offsets": np.array([0, 3], dtype=np.int64),
-        "max_norm": None,
-        "norm_type": 2.0,
-        "scale_grad_by_freq": True,
-        "mode": "mean",
-        "sparse": False,
-        "per_sample_weights": None,
-        "include_last_offset": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: include_last_offset = True
-    input_dict = {
-        "weight": np.random.rand(10, 5).astype(np.float32),
-        "indices": np.array([0, 1, 2, 0, 2, 3, 4], dtype=np.int64),
-        "offsets": np.array([0, 3, 7], dtype=np.int64),
-        "max_norm": None,
+        "input": None,
+        "weight": weight,
+        "indices": indices,
+        "offsets": offsets,
+        "max_norm": 1.0,
         "norm_type": 2.0,
         "scale_grad_by_freq": False,
-        "mode": "mean",
+        "mode": "sum",
         "sparse": False,
         "per_sample_weights": None,
-        "include_last_offset": True
+        "include_last_offset": False,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: sparse = True
-    input_dict = {
-        "weight": np.random.rand(10, 5).astype(np.float32),
-        "indices": np.array([0, 1, 2, 0, 2, 3], dtype=np.int64),
-        "offsets": np.array([0, 3], dtype=np.int64),
-        "max_norm": None,
-        "norm_type": 2.0,
-        "scale_grad_by_freq": False,
-        "mode": "mean",
-        "sparse": True,
-        "per_sample_weights": None,
-        "include_last_offset": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.nn.functional.embedding_bag_3"] = embedding_bag_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):

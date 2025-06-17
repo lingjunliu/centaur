@@ -9,10 +9,16 @@ import numpy as np
 def digamma_inputs():
     list_of_inputs = []
 
-    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    # Input 1: Scalar float
+    input1 = np.array(2.5, dtype=np.float32)
     input_dict1 = {"input": input1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
+    # Input 2: 1D tensor with positive floats
+    input2 = np.array([1.0, 2.0], dtype=np.float64)
+    input_dict2 = {"input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+    
     return list_of_inputs
 
 generated_inputs = {}

@@ -10,19 +10,37 @@ def repeat_interleave_inputs():
     list_of_inputs = []
 
     # Case 1: 1D tensor, scalar repeats
-    input_tensor = np.array([1, 2, 3])
-    repeats = 2
+    input = np.array([1, 2, 3])
+    repeats = np.array(2)
     dim = None
-    input_dict = {"input": input_tensor, "repeats": repeats, "dim": dim, "out": None}
+    out = None
+    input_dict = {"input": input, "repeats": repeats, "dim": dim, "out": out}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Case 2: 2D tensor, 1D repeats, dim=0
-    input_tensor = np.array([[1, 2], [3, 4]])
+    input = np.array([[1, 2], [3, 4]])
     repeats = np.array([1, 2])
     dim = 0
-    input_dict = {"input": input_tensor, "repeats": repeats, "dim": dim, "out": None}
+    out = None
+    input_dict = {"input": input, "repeats": repeats, "dim": dim, "out": out}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Case 3: 2D tensor, 1D repeats, dim=1
+    input = np.array([[1, 2], [3, 4]])
+    repeats = np.array([2, 1])
+    dim = 1
+    out = None
+    input_dict = {"input": input, "repeats": repeats, "dim": dim, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 5: 1D tensor, list repeats
+    input = np.array([1, 2, 3])
+    repeats = np.array([1, 2, 3])
+    dim = None
+    out = None
+    input_dict = {"input": input, "repeats": repeats, "dim": dim, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs["torch.repeat_interleave_2"] = repeat_interleave_inputs()

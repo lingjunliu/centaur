@@ -12,28 +12,38 @@ def ones_like_inputs():
 
     # Input 1: Float tensor
     input1 = np.random.randn(2, 3).astype(np.float32)
-    input_dict1 = {"input": input1, "dtype": torch.float32, "layout": "strided", "requires_grad": False, "memory_format": "contiguous_format"}
+    input_dict1 = {"input": input1, "dtype": None, "layout": None, "requires_grad": False, "memory_format": None}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     # Input 2: Int tensor
-    input2 = np.random.randint(0, 10, size=(4, 4)).astype(np.int64)
-    input_dict2 = {"input": input2, "dtype": torch.int64, "layout": "strided", "requires_grad": True, "memory_format": "contiguous_format"}
+    input2 = np.random.randint(0, 10, size=(3, 4), dtype=np.int64)
+    input_dict2 = {"input": input2, "dtype": None, "layout": None, "requires_grad": False, "memory_format": None}
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
     # Input 3: Bool tensor
-    input3 = np.random.choice([True, False], size=(2, 2)).astype(np.bool_)
-    input_dict3 = {"input": input3, "dtype": torch.bool, "layout": "strided", "requires_grad": False, "memory_format": "contiguous_format"}
+    input3 = np.random.choice([True, False], size=(2, 2), p=[0.5, 0.5])
+    input_dict3 = {"input": input3, "dtype": None, "layout": None, "requires_grad": False, "memory_format": None}
     list_of_inputs.append(copy.deepcopy(input_dict3))
-    
+
     # Input 4: Complex tensor
-    input4 = (np.random.randn(3, 2) + 1j * np.random.randn(3, 2)).astype(np.complex128)
-    input_dict4 = {"input": input4, "dtype": torch.complex128, "layout": "strided", "requires_grad": True, "memory_format": "contiguous_format"}
+    input4 = (np.random.randn(2, 2) + 1j * np.random.randn(2, 2)).astype(np.complex64)
+    input_dict4 = {"input": input4, "dtype": None, "layout": None, "requires_grad": False, "memory_format": None}
     list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5: Multi-dimensional tensor
-    input5 = np.random.rand(2, 3, 4).astype(np.float64)
-    input_dict5 = {"input": input5, "dtype": torch.float64, "layout": "strided", "requires_grad": False, "memory_format": "contiguous_format"}
+    # Input 5: 3D tensor
+    input5 = np.random.randn(2, 3, 4).astype(np.float32)
+    input_dict5 = {"input": input5, "dtype": None, "layout": None, "requires_grad": False, "memory_format": None}
     list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Tensor with negative values
+    input6 = np.random.randint(-10, 0, size=(2, 2), dtype=np.int32)
+    input_dict6 = {"input": input6, "dtype": None, "layout": None, "requires_grad": False, "memory_format": None}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: 0-dimensional tensor (scalar)
+    input7 = np.array(5.0).astype(np.float64)
+    input_dict7 = {"input": input7, "dtype": None, "layout": None, "requires_grad": False, "memory_format": None}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
     
     return list_of_inputs
 

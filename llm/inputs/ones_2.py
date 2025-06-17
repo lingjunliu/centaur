@@ -9,29 +9,30 @@ import numpy as np
 def torch_ones_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with different size
     input_dict = {
         "size": (2, 3),
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different size with a list
     input_dict = {
-        "size": [5],
+        "size": (5,),
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Using dtype
     input_dict = {
-        "size": (4, 2),
+        "size": (3, 2),
         "dtype": torch.float64
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: requires_grad=True
     input_dict = {
-        "size": (3, 3),
+        "size": (4, 5),
         "requires_grad": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    input_dict = {
+        "size": [2,2,2]
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

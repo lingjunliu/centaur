@@ -3,45 +3,53 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def torch_amin_inputs():
     list_of_inputs = []
 
-    # Test case 1: 2D float tensor, dim=0, keepdim=False
-    input_tensor = torch.randn(4, 4).numpy()
-    dim = 0
+    # Case 1: Basic 2D tensor, dim=1, keepdim=False
+    input = torch.randn(4, 4).numpy()
+    dim = 1
     keepdim = False
-    input_dict = {"input": input_tensor, "dim": dim, "keepdim": keepdim}
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Test case 2: 2D int tensor, dim=1, keepdim=True
-    input_tensor = torch.randint(-5, 5, (3, 5)).numpy()
+    # Case 2: 3D tensor, dim=(0, 2), keepdim=True
+    input = torch.randn(3, 5, 2).numpy()
+    dim = (0, 2)
+    keepdim = True
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 3: 1D tensor, dim=0, keepdim=False
+    input = torch.randint(-5, 5, (10,)).float().numpy()
+    dim = 0
+    keepdim = False
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 4: Tensor with negative values, dim=0, keepdim=True
+    input = torch.randint(-10, -1, (2, 3, 4)).float().numpy()
+    dim = 0
+    keepdim = True
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 5: 4D tensor, dim=2, keepdim=False
+    input = torch.randn(2, 3, 4, 5).numpy()
+    dim = 2
+    keepdim = False
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 6: Integer tensor
+    input = torch.randint(0, 10, (3, 3)).numpy()
     dim = 1
     keepdim = True
-    input_dict = {"input": input_tensor, "dim": dim, "keepdim": keepdim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Test case 3: 3D float tensor, dim=(0, 2), keepdim=False
-    input_tensor = torch.randn(2, 3, 4).numpy()
-    dim = (0, 2)
-    keepdim = False
-    input_dict = {"input": input_tensor, "dim": dim, "keepdim": keepdim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Test case 4: 4D int tensor, dim=(1, 3), keepdim=True
-    input_tensor = torch.randint(-10, 10, (2, 3, 2, 4)).numpy()
-    dim = (1, 3)
-    keepdim = True
-    input_dict = {"input": input_tensor, "dim": dim, "keepdim": keepdim}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Test case 5: 1D float tensor, dim=0, keepdim=False
-    input_tensor = torch.randn(5).numpy()
-    dim = 0
-    keepdim = False
-    input_dict = {"input": input_tensor, "dim": dim, "keepdim": keepdim}
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

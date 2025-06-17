@@ -9,31 +9,36 @@ import numpy as np
 def block_diag_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with two 2D tensors
-    tensors1 = [torch.tensor(np.random.randn(2, 3)), torch.tensor(np.random.randn(3, 4))]
-    input_dict1 = {"tensors": tensors1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Case 1: Basic case with two 2D tensors
+    tensors = [torch.from_numpy(np.random.rand(2, 3)), torch.from_numpy(np.random.rand(4, 5))]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different shapes and data types
-    tensors2 = [torch.tensor(np.random.randint(0, 10, (1, 1), dtype=np.int32)), torch.tensor(np.random.randn(2, 2))]
-    input_dict2 = {"tensors": tensors2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Case 2: Three 2D tensors with different shapes
+    tensors = [torch.from_numpy(np.random.rand(1, 1)), torch.from_numpy(np.random.rand(2, 2)), torch.from_numpy(np.random.rand(3, 3))]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: List of 1D tensors
-    tensors3 = [torch.tensor(np.random.randn(3)), torch.tensor(np.random.randn(2))]
-    input_dict3 = {"tensors": tensors3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Case 3: Two 1D tensors (converted to 2D)
+    tensors = [torch.from_numpy(np.random.rand(3)), torch.from_numpy(np.random.rand(4))]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Two 3D tensors
-    tensors4 = [torch.tensor(np.random.randn(1, 2, 3)), torch.tensor(np.random.randn(2, 1, 2))]
-    input_dict4 = {"tensors": tensors4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Case 4: Mix of 1D and 2D tensors
+    tensors = [torch.from_numpy(np.random.rand(2)), torch.from_numpy(np.random.rand(3, 4)), torch.from_numpy(np.random.rand(5))]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Single 2D tensor
-    tensors5 = [torch.tensor(np.random.randn(3, 3))]
-    input_dict5 = {"tensors": tensors5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Case 5: Tensors with negative values
+    tensors = [torch.from_numpy(np.random.randn(2, 2)), torch.from_numpy(np.random.randn(3, 3))]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Case 6: Integer tensors
+    tensors = [torch.from_numpy(np.random.randint(1, 5, size=(2, 2)).astype(np.int64)), torch.from_numpy(np.random.randint(1, 5, size=(3, 3)).astype(np.int64))]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs["torch.block_diag"] = block_diag_inputs()

@@ -3,25 +3,30 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def cosh_inputs():
     list_of_inputs = []
 
-    # Input 1: 1D tensor with positive and negative floats
+    # Input 1: Float tensor, 1D
     input1 = torch.randn(5).numpy()
     input_dict1 = {"input": input1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: 2D tensor with integers
-    input2 = torch.randint(-5, 5, (3, 3)).numpy()
+    # Input 2: Float tensor, 2D, with negative values
+    input2 = torch.randn(3, 4).numpy()
     input_dict2 = {"input": input2}
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
+    # Input 3: Float tensor, 3D
+    input3 = torch.randn(2, 3, 2).numpy()
+    input_dict3 = {"input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.cosh"] = cosh_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):

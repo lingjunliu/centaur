@@ -3,48 +3,35 @@ from utils.new_api_utils import run_api
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def matrix_rank_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float tensor
-    input_1 = np.array([[1.0, 2.0], [2.0, 4.0]])
-    tol_1 = np.array([1e-8])
-    input_dict_1 = {"input": input_1, "tol": tol_1, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Example 1: Basic 2D matrix with full rank
+    input1 = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    tol1 = np.array([1e-8], dtype=np.float32)
+    input_dict1 = {"input": input1, "tol": tol1, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Integer tensor
-    input_2 = np.array([[1, 0, 1], [2, -1, 0], [3, -1, 1]])
-    tol_2 = np.array([1e-8])
-    input_dict_2 = {"input": input_2, "tol": tol_2, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Example 2: Matrix with rank deficiency
+    input2 = np.array([[1, 2], [2, 4]], dtype=np.float32)
+    tol2 = np.array([1e-8], dtype=np.float32)
+    input_dict2 = {"input": input2, "tol": tol2, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Complex tensor, hermitian=True
-    input_3 = np.array([[1 + 0j, 2 - 1j], [2 + 1j, 5 + 0j]])
-    tol_3 = np.array([1e-8])
-    input_dict_3 = {"input": input_3, "tol": tol_3, "hermitian": True}
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Example 3: 3D tensor
+    input3 = np.random.rand(2, 3, 4).astype(np.float32)
+    tol3 = np.array([1e-8], dtype=np.float32)
+    input_dict3 = {"input": input3, "tol": tol3, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Tensor with a small value as tolerance
-    input_4 = np.array([[1.0, 0.0], [0.0, 0.0]])
-    tol_4 = np.array([0.5])
-    input_dict_4 = {"input": input_4, "tol": tol_4, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
-    
-    # Input 5: 3D tensor
-    input_5 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    tol_5 = np.array([1e-8])
-    input_dict_5 = {"input": input_5, "tol": tol_5, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-    
-    # Input 6: Float64 tensor
-    input_6 = np.array([[1.0, 2.0], [2.0, 4.0]], dtype=np.float64)
-    tol_6 = np.array([1e-8])
-    input_dict_6 = {"input": input_6, "tol": tol_6, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
+    # Example 4: Complex matrix
+    input4 = np.array([[1+1j, 2], [3, 4-1j]], dtype=np.complex64)
+    tol4 = np.array([1e-8], dtype=np.float32)
+    input_dict4 = {"input": input4, "tol": tol4, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
     return list_of_inputs
 

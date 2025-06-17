@@ -9,28 +9,42 @@ import numpy as np
 def torch_amin_inputs():
     list_of_inputs = []
 
-    # Input 1: 2D float tensor, dim=1, keepdim=False
-    input1 = torch.randn(4, 4).numpy()
-    dim1 = (1,)
-    keepdim1 = False
-    input_dict1 = {
-        "input": input1,
-        "dim": dim1,
-        "keepdim": keepdim1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Case 1: 2D float tensor, dim=1, keepdim=False
+    input = torch.randn(4, 4).numpy()
+    dim = (1,)
+    keepdim = False
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 3D int tensor, dim=(0, 2), keepdim=True
-    input2 = torch.randint(-5, 5, (2, 3, 4)).numpy()
-    dim2 = (0, 2)
-    keepdim2 = True
-    input_dict2 = {
-        "input": input2,
-        "dim": dim2,
-        "keepdim": keepdim2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Case 2: 3D int tensor, dim=(0, 2), keepdim=True
+    input = torch.randint(-5, 5, (2, 3, 5)).numpy()
+    dim = (0, 2)
+    keepdim = True
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Case 3: 1D tensor, dim=0, keepdim=False
+    input = torch.arange(5).float().numpy()
+    dim = (0,)
+    keepdim = False
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Case 4: 4D tensor, dim=(1, 3), keepdim=False
+    input = torch.randn(2, 3, 4, 5).numpy()
+    dim = (1, 3)
+    keepdim = False
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Case 5: 2D tensor with negative values, dim=0, keepdim=True
+    input = torch.randn(3, 3) * -1.0
+    input = input.numpy()
+    dim = (0,)
+    keepdim = True
+    input_dict = {"input": input, "dim": dim, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs["torch.amin_2"] = torch_amin_inputs()

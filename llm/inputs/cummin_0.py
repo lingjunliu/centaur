@@ -10,9 +10,9 @@ def cummin_inputs():
     list_of_inputs = []
 
     # Test case 1: 1D tensor, dim=0
-    input1 = torch.randn(10)
+    input1 = torch.randn(10).numpy()
     dim1 = 0
-    input_dict1 = {"input": input1.numpy(), "dim": dim1}
+    input_dict1 = {"input": input1, "dim": dim1}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
     return list_of_inputs

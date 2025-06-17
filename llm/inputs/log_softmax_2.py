@@ -9,14 +9,15 @@ import numpy as np
 def log_softmax_inputs():
     list_of_inputs = []
 
-    input_1 = np.random.randn(3, 5).astype(np.float32)
-    dim_1 = 1
-    input_dict_1 = {"input": input_1, "dim": dim_1}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
-
+    # Input 1: 1D tensor
+    input1 = np.random.randn(5).astype(np.float32)
+    dim1 = 0
+    input_dict1 = {"input": input1, "dim": dim1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.nn.functional.log_softmax_2"] = log_softmax_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):

@@ -9,50 +9,36 @@ import numpy as np
 def matrix_rank_inputs():
     list_of_inputs = []
 
-    # Test case 1: Basic float tensor
-    input1 = np.array([[1.0, 2.0], [3.0, 4.0]])
-    input_dict1 = {"input": input1, "atol": 1e-05, "rtol": 0.0, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    def create_input_dict(input_array, tol=None, rtol=None, hermitian=False):
+        input_tensor = torch.from_numpy(input_array)
+        input_dict = {
+            "input": input_tensor,
+            "hermitian": hermitian
+        }
+        if tol is not None:
+            input_dict["atol"] = tol
+        if rtol is not None:
+            input_dict["rtol"] = rtol
+        return input_dict
 
-    # Test case 2: Singular matrix
-    input2 = np.array([[1.0, 2.0], [2.0, 4.0]])
-    input_dict2 = {"input": input2, "atol": 1e-05, "rtol": 0.0, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    input1 = np.array([[1, 2], [2, 4]])
+    list_of_inputs.append(create_input_dict(input1, tol=1e-8))
 
-    # Test case 3: 3D tensor
-    input3 = np.random.rand(2, 3, 4)
-    input_dict3 = {"input": input3, "atol": 1e-05, "rtol": 0.0, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    input2 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    list_of_inputs.append(create_input_dict(input2, tol=1e-8))
 
-    # Test case 4: Complex tensor
-    input4 = np.array([[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]])
-    input_dict4 = {"input": input4, "atol": 1e-05, "rtol": 0.0, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    input3 = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    list_of_inputs.append(create_input_dict(input3, tol=1e-8))
 
-    # Test case 5: Tall matrix
-    input5 = np.random.rand(5, 2)
-    input_dict5 = {"input": input5, "atol": 1e-05, "rtol": 0.0, "hermitian": False}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    input4 = np.array([[1, 2], [3, 4], [5, 6]])
+    list_of_inputs.append(create_input_dict(input4, tol=1e-8))
+
+    input5 = np.array([[1+1j, 2+2j], [3+3j, 4+4j]])
+    list_of_inputs.append(create_input_dict(input5, tol=1e-8))
 
     return list_of_inputs
 
-def convert_to_torch(item):
-    if isinstance(item, np.ndarray):
-        return torch.from_numpy(item).float()
-    return item
-    
-
-def modify_input_dict(input_dict):
-    new_input_dict = {}
-    for k, v in input_dict.items():
-        new_input_dict[k] = convert_to_torch(v)
-    return new_input_dict
-
-modified_list_of_inputs = []
-for input_dict in matrix_rank_inputs():
-    modified_list_of_inputs.append(modify_input_dict(input_dict))
-    
-generated_inputs["torch.linalg.matrix_rank_1"] = modified_list_of_inputs
+generated_inputs["torch.linalg.matrix_rank_1"] = matrix_rank_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):
     for idx, input_dict in enumerate(list_of_inputs):

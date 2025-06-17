@@ -7,38 +7,32 @@ import torch
 import numpy as np
 import copy
 
-def torch_abs_inputs():
+def abs_inputs():
     list_of_inputs = []
 
-    # Example 1: 1D tensor with negative and positive integers
-    input_tensor = torch.tensor([-1, -2, 3, -4, 5]).numpy()
-    input_dict = {"input": input_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input1 = np.array([-1, -2, 3])
+    input_dict1 = {"input": torch.from_numpy(input1)}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Example 2: 2D tensor with floating-point numbers
-    input_tensor = torch.tensor([[-1.5, 2.5], [-3.5, 4.5]]).numpy()
-    input_dict = {"input": input_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input2 = np.array([[-1.5, -2.5], [3.5, -4.5]])
+    input_dict2 = {"input": torch.from_numpy(input2).float()}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Example 3: 3D tensor with integers
-    input_tensor = torch.tensor([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]).numpy()
-    input_dict = {"input": input_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input3 = np.array([1, 2, 3], dtype=np.int64)
+    input_dict3 = {"input": torch.from_numpy(input3).long()}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Example 4: 0D tensor (scalar)
-    input_tensor = torch.tensor(-5).numpy()
-    input_dict = {"input": input_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Example 5: 1D tensor with only positive integers
-    input_tensor = torch.tensor([1, 2, 3, 4, 5]).numpy()
-    input_dict = {"input": input_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input4 = np.array([[-1, 2], [-3, 4]], dtype=np.int32)
+    input_dict4 = {"input": torch.from_numpy(input4).int()}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    input5 = np.array([1.0, -2.0, 3.0, -4.0, 5.0], dtype=np.float32)
+    input_dict5 = {"input": torch.from_numpy(input5).float()}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
     
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["torch.abs"] = torch_abs_inputs()
+generated_inputs["torch.abs"] = abs_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch"):
     for idx, input_dict in enumerate(list_of_inputs):

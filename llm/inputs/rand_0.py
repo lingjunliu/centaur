@@ -10,24 +10,34 @@ import numpy as np
 def rand_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic size argument
-    input_dict = {"size": 5}
+    # Input 1: Basic size
+    input_dict = {"size": 4, "generator": None, "out": None, "dtype": None, "layout": torch.strided, "device": None, "requires_grad": False, "pin_memory": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Size as a tuple
-    input_dict = {"size": (2, 3)}
+    # Input 2: Tuple size
+    input_dict = {"size": (2, 3), "generator": None, "out": None, "dtype": None, "layout": torch.strided, "device": None, "requires_grad": False, "pin_memory": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Size as a list
-    input_dict = {"size": [4, 2, 3]}
+    # Input 3: List size, specific dtype
+    input_dict = {"size": [5, 2], "generator": None, "out": None, "dtype": torch.float64, "layout": torch.strided, "device": None, "requires_grad": True, "pin_memory": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: With dtype specified
-    input_dict = {"size": (3, 4), "dtype": torch.float64}
+    # Input 4: Generator
+    gen = torch.Generator()
+    input_dict = {"size": (1, 4, 3), "generator": gen, "out": None, "dtype": None, "layout": torch.strided, "device": None, "requires_grad": False, "pin_memory": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: With requires_grad=True
-    input_dict = {"size": (2, 2), "requires_grad": True}
+    # Input 5: Out tensor
+    out_tensor = torch.empty(2, 2)
+    input_dict = {"size": (2, 2), "generator": None, "out": out_tensor, "dtype": None, "layout": torch.strided, "device": None, "requires_grad": False, "pin_memory": False}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Different device
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+    else:
+        device = torch.device('cpu')
+    input_dict = {"size": (3, 1), "generator": None, "out": None, "dtype": None, "layout": torch.strided, "device": device, "requires_grad": False, "pin_memory": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
