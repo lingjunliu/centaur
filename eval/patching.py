@@ -11,6 +11,9 @@ def generate_driver_torch(dir, torch_api):
 import pickle, os, sys
 
 files = os.listdir('{dir}')
+logfile = os.path.join('{dir}', 'log.txt')
+with open(logfile, 'w') as log:
+    log.write('Starting driver for {torch_api}\\n')
 input_list = []
 for file in files:
     if file.endswith('.pkl'):
@@ -35,9 +38,14 @@ for file in input_list:
         else:
             output = {torch_api}(*input_dict['args'], **input_dict['kwargs'])
         ran += 1
+        with open(logfile, 'a') as log:
+            log.write('Ran: ' + str(ran) + '\\n')
     except Exception as e:
         print(e.__class__.__name__ + ": " + str(e))
         excp += 1
+        with open(logfile, 'a') as log:
+            log.write('Excp: ' + str(excp) + '\\n')
+            log.write(str(e.__class__.__name__) + ": " + str(e) + '\\n')
 
 print('Ran:', ran)
 print('Exception:', excp)
