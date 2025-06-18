@@ -64,17 +64,6 @@ fi
 
 # END DEBUG ############################
 
-# Aggregating and saving results: validity
-valid_results=$PROJECT_DIR/.tmp/validity_results
-result=$PROJECT_DIR/.tmp/validity.csv
-echo "api,valid,invalid,crash,exception,total,valid_prcnt" > ${result}
-for filename in ${valid_results}/*.csv
-do
-    cat ${filename} >> ${result}
-done
-
-echo "Validity results saved in ${result}"
-
 # Aggregating and saving results: coverage
 cov_results=$PROJECT_DIR/.tmp/coverage_results
 result=$PROJECT_DIR/.tmp/coverage.csv

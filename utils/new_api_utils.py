@@ -200,6 +200,13 @@ def to_numpy(x, device="cpu"):
     return x
 
 def get_input(api, input_dict, cpu=True, lib="torch"):
+    """
+    Given an input dictionary, returns a dictionary with the actual values
+    using data structure from the library. It will also convert the dictionary
+    from the simplified format to the format with args, kwargs, and inner.
+    E.g. if input_dict contains data in numpy format, it will convert it to
+    torch tensors if lib is torch.
+    """
     api = get_lib_version(api, lib=lib)
     device = "cpu" if cpu else "cuda"
     original_signature = get_signature_of_input(api, input_dict, lib=lib)
