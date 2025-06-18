@@ -7,6 +7,9 @@ from .misc import get_tmp_dir, create_subdir
 from .process_lcov import analyze_lcov
 
 def monitor_memory(proc, limit=16000):
+    """
+    For using with subprocess.Popen, this function monitors the memory usage of the process.
+    """
     memory_error = False
     
     if "MEMORY_LIMIT_COV" in os.environ.keys():
@@ -69,8 +72,8 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
         custom_env = os.environ.copy()
         custom_env["LLVM_PROFILE_FILE"] = profraw_file
         
-        return_obj = subprocess.Popen(cmd_line.split(), stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=custom_env)
-        memory_error = monitor_memory(return_obj)
+        return_obj = subprocess.run(cmd_line.split(), capture_output=capture_output, env=custom_env)
+        # memory_error = monitor_memory(return_obj) # Use with subprocess.Popen if you want to monitor memory usage
     except subprocess.CalledProcessError as err:
         raise Exception(f"Could not run {cmd_line}. Error Code {err.returncode}: {err}")
     except KeyboardInterrupt:
@@ -80,7 +83,10 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     return_code = return_obj.returncode
 
     if capture_output:
-        print(return_obj.communicate()[0].decode())
+        print(return_obj.stdout.decode())
+
+    if len(return_obj.stderr.decode()) > 0:
+        print(f"Error faced while running code: {return_obj.stderr.decode()}")
 
     # coverage
     if not os.path.isfile(profraw_file):
@@ -187,7 +193,7 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     if os.path.isfile(profdata_file):
         os.remove(profdata_file)
     
-    return return_code, lcov_data, memory_error
+    return return_code, lcov_data
 
 def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=False, save_lcov=False):
     """
@@ -200,10 +206,7 @@ def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files.
     It will return the num_branches, num_lines, return_code of executing cmd_line and a dict containing detailed information.
     """
-    return_code, lcov_data, memory_error = gen_cov_torch(cmd_line, prefix=prefix, capture_output=capture_output, gen_html=gen_html)
-        
-    if memory_error and capture_output:
-        print(f"WARNING: Faced memory error while executing {cmd_line}")
+    return_code, lcov_data = gen_cov_torch(cmd_line, prefix=prefix, capture_output=capture_output, gen_html=gen_html)
 
     if save_lcov:
         cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
