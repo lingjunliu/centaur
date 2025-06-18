@@ -1,0 +1,10 @@
+torch.polar,1,rule_13,abs
+torch.polar,1,rule_13,angle
+torch.polar,1,rule_14,abs
+torch.polar,1,rule_14,angle
+torch.polar,2,rule_1,abs,angle
+torch.polar,2,rule_15,abs,angle
+torch.polar,2,rule_3,abs,angle
+torch.polar,2,rule_4,abs,angle
+torch.polar,2,rule_6,abs,angle
+torch.polar,2,rule_6,angle,abs
