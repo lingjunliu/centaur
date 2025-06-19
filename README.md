@@ -24,6 +24,11 @@ The code is organized as follow:
 - 📁 utils             # utility functions
 ```
 
+<h1>Prerequisites</h1>
+ 
+ - **python**: The tool uses `python 3.12`
+ - **venv**: `sudo apt install python3.12-venv`
+
 <h1>Use cases</h1>
 
 <h2> 1. Learn invariants (offline) </h2>
