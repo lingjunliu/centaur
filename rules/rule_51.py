@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# The shape of the tensor should be within 2 and 20 in any dimension (Rule 51)
+# If a tensor v_1 is 2-dimensional and has positive shape dimensions, then it must be square shaped. (Rule 51)
 
 rule_51 = lambda s, v: (
-    s.add(And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) >= 2, Select(v["arg1_shape"], i) <= 20)) for i in range(6)]))
+    s.add(If(And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 1), False))
 )
 
 def rule_51_func(arg1, solver=None):
@@ -28,9 +28,9 @@ def rule_51_func(arg1, solver=None):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 51
-        rule_51(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_51(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_51(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']})
+        rule_51(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']})

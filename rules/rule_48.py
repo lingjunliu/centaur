@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If an int is given and tensor has dtype integer, then the int should be smaller than the max of tensor (Rule 48)
+# If ndim of tensor v_1 is greater than 0, and if int v_2 is in the range of its shape dimensions, then v_2 must be less than 10 (Rule 48)
 
 rule_48 = lambda s, v: (
-    s.add(If(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg1_value"] < Select(v["arg2_range"], 1), True))
+    s.add(If(And(And(v["arg1_ndim"] > 0, v["arg2_value"] >= 0), v["arg2_value"] < v["arg1_ndim"]), v["arg2_value"] < 10, False))
 )
 
 def rule_48_func(arg1, arg2, solver=None):
@@ -15,27 +15,24 @@ def rule_48_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
+        if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 48
-        rule_48(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range})
+        rule_48(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_48(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range']})
+        rule_48(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})

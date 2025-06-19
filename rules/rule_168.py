@@ -3,39 +3,47 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-#  If there is an integer variable and tensor has a floating-point number dtype then the integer variable must be smaller than the average of the max and min  (Rule 168)
+# If the dtype of v_1 is complex and v_2 has the same shape with v_1 at any dimension, then bool v_3 should be false (Rule 168)
 
 rule_168 = lambda s, v: (
-    s.add(If((Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8)), v["arg1_value"] < (Select(v["arg2_range"], 1) + Select(v["arg2_range"], 0)) / 2, True))
+    s.add(If(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))), v["arg3_value"] == False, False))
 )
 
-def rule_168_func(arg1, arg2, solver=None):
+def rule_168_func(arg1, arg2, arg3, solver=None):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
+        if not (isinstance(arg1, np.ndarray)):
             return False
         if not (isinstance(arg2, np.ndarray)):
+            return False
+        if not (isinstance(arg3, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_value = Bool('arg3_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 168
-        rule_168(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range})
+        rule_168(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_168(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range']})
+        rule_168(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']})

@@ -3,36 +3,44 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If a tensor has integer dtype and also a string variable is given, then the string must be equal to "int" (Rule 142)
+# if boolean v_1 is True and integer v_2 is 10, then ndim of v_3 should be more than 0 and each shape dimension should not be equal to int v_2 (Rule 142)
 
 rule_142 = lambda s, v: (
-    s.add(If((And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5)), v["arg2_value"] == "int", True))
+    s.add(If(And(v["arg1_value"] == True, v["arg2_value"] == 10), And(v["arg3_ndim"] > 0, And([Implies(i < (v["arg3_ndim"] - 1 + 1), Select(v["arg3_shape"], i) != v["arg2_value"]) for i in range(6)])), False))
 )
 
-def rule_142_func(arg1, arg2, solver=None):
+def rule_142_func(arg1, arg2, arg3, solver=None):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, str)):
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
+            return False
+        if not (isinstance(arg3, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = String('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_value = Int('arg2_value')
+        arg3_ndim = Int('arg3_ndim')
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_ndim == arg3.ndim)
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 142
-        rule_142(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_142(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_142(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']})
+        rule_142(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim']})

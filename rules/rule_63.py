@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If dtype is a string, the string should include the word "tensor" (Rule 63)
+# If float variable v_1 is between -1 and 1, then max value of tensor v_2 must be positive (Rule 63)
 
 rule_63 = lambda s, v: (
-    s.add(If(v["arg1_dtype"] == 11, Or([And(i < (0 + 1), v["arg2_value"] == "tensor") for i in range(6)]), True))
+    s.add(If(And(-1 <= v["arg1_value"], v["arg1_value"] <= 1), Select(v["arg2_range"], 1) > 0, False))
 )
 
 def rule_63_func(arg1, arg2, solver=None):
@@ -15,24 +15,25 @@ def rule_63_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, (float, np.floating))):
             return False
-        if not (isinstance(arg2, str)):
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = String('arg2_value')
+        arg1_value = Real('arg1_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == arg1)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 63
-        rule_63(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_63(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_63(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']})
+        rule_63(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})

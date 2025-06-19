@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# Tensor with more than one dimension should have different size in each dimension when datatype is integer (Rule 127)
+# If tensor v_1 has ndim greater than 1, and the value of second dimension is equal to zero, then v_1's dtype cannot be float16 (Rule 127)
 
 rule_127 = lambda s, v: (
-    s.add(If(And((v["arg1_ndim"] > 1), (And(v["arg1_dtype"] >= 1, v["arg1_dtype"] <= 5))), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], 0) != Select(v["arg1_shape"], i)) for i in range(6)]), True))
+    s.add(If(And(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 1) == 0), v["arg1_dtype"] != 6, False))
 )
 
 def rule_127_func(arg1, solver=None):
@@ -30,9 +30,9 @@ def rule_127_func(arg1, solver=None):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 127
-        rule_127(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape})
+        rule_127(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_127(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape']})
+        rule_127(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']})

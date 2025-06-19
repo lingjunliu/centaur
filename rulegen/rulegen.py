@@ -20,9 +20,9 @@ def log_response(label, prompt, response):
         log_file.write("<<< RESPONSE\n")
         log_file.write(response.strip() + "\n\n")
 
-def generate_rules(lib="torch", timeout=300, max_failures=30, max_rules=300):
+def generate_rules(lib="torch", timeout=300, max_failures=30, max_rules=500):
     num_failures = 0
-    num_rules = 0
+    num_rules = 301
     rule_defs = set()
 
     if os.path.exists("rules"):
@@ -42,7 +42,7 @@ def generate_rules(lib="torch", timeout=300, max_failures=30, max_rules=300):
 
     feedback = ""
     base_time = time.time()
-    while time.time() - base_time < timeout and num_failures < max_failures and num_rules < max_rules:
+    while time.time() - base_time < timeout and num_failures < max_failures and num_rules <= max_rules:
         prompt = ""
         if feedback:
             prompt += f"[Feedback Message from Prior Run]\n{feedback}\n\n"
@@ -69,7 +69,7 @@ def generate_rules(lib="torch", timeout=300, max_failures=30, max_rules=300):
                | <if_expr>
                | <compare_expr>
 
-<if_expr> ::= "if" <expr> "then" <expr> "else" <expr>
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
 <compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
 <arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
 <arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
@@ -105,12 +105,12 @@ def generate_rules(lib="torch", timeout=300, max_failures=30, max_rules=300):
             prompt += f"{desc}\n{rule}\n\n"
 
         prompt += "** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **\n"
-        prompt += "** IMPORTANT: Prioritize rules on tensors, but still try to diversify types (int, float, bool, str, and union). **\n"
+        prompt += "** IMPORTANT: Rules should span diverse types (int, float, bool, str, union), properties, and numbers of parameters. **\n"
         prompt += "** IMPORTANT: Variables should be named v_1, v_2, and so on. **\n"
         prompt += "** IMPORTANT: Bindings should include only variables that are used in the expression. **\n"
 
         response = chat.send_message(prompt)
-        response = response.text.strip().replace('\u2212', '-')
+        response = response.text.strip().replace('\u2212', '-').replace(' else true', '')
         lines = response.splitlines()
 
         new_rule_def = None
@@ -151,7 +151,7 @@ def generate_rules(lib="torch", timeout=300, max_failures=30, max_rules=300):
         num_rules += 1
         num_failures = 0
         base_time = time.time()
-        feedback = "The previous rule generation was successful."
+        feedback = "The previous rule generation was successful. But, try to avoid rules that are too similar."
 
 def main():
     generate_rules()

@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# a float should be between 0 and 1 (Rule 3)
+# string should not be empty (Rule 3)
 
 rule_3 = lambda s, v: (
-    s.add(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1))
+    s.add(v["arg1_value"] != "")
 )
 
 def rule_3_func(arg1, solver=None):
@@ -14,12 +14,12 @@ def rule_3_func(arg1, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
+        if not (isinstance(arg1, str)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = String('arg1_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)

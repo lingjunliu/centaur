@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If a tensor has boolean dtype and the number is either 0 or 1, it means max must be either "false" or "true" (Rule 143)
+# If integer variable v_1 is less than zero or greater than 10, tensor v_2 must have at least 4 dimensions and its max value must be greater than 0. (Rule 143)
 
 rule_143 = lambda s, v: (
-    s.add(If(And((v["arg1_dtype"] == 0), (Or(v["arg2_value"] == 0, v["arg2_value"] == 1))), Or((Select(v["arg1_range"], 1) == "true"), (Select(v["arg1_range"], 1) == "false")), True))
+    s.add(If(Or(v["arg1_value"] < 0, v["arg1_value"] > 10), And(v["arg2_ndim"] >= 4, Select(v["arg2_range"], 1) > 0), False))
 )
 
 def rule_143_func(arg1, arg2, solver=None):
@@ -15,25 +15,27 @@ def rule_143_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 143
-        rule_143(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_143(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_143(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg2_value': arg2['value']})
+        rule_143(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']})

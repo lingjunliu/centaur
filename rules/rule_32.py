@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If int or float, should be greater than the min of the tensor (Rule 32)
+# if dtype of tensor v_1 is in the range of 1 to 5 (integer types (Rule 32)
 
 rule_32 = lambda s, v: (
-    s.add(v["arg1_value"] > Select(v["arg2_range"], 0))
+    s.add(If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), And(1 <= v["arg2_value"], v["arg2_value"] <= 5), False))
 )
 
 def rule_32_func(arg1, arg2, solver=None):
@@ -15,23 +15,22 @@ def rule_32_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
+        if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 32
-        rule_32(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_32(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_32(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})
+        rule_32(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']})

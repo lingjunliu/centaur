@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If dimension size is odd, dtype must be int (Rule 33)
+# If the tensor v_1 has at least one dimension and is of integer type, then it must contain at least one positive element (Rule 33)
 
 rule_33 = lambda s, v: (
-    s.add(If(Select(v["arg1_shape"], 0) / 2 != Select(v["arg1_shape"], 0) / 2.0, Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), True))
+    s.add(If(And(v["arg1_ndim"] > 0, (And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5))), Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))
 )
 
 def rule_33_func(arg1, solver=None):
@@ -19,18 +19,20 @@ def rule_33_func(arg1, solver=None):
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape})
+        rule_33(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape']})
+        rule_33(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']})

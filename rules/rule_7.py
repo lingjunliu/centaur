@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# if a boolean is true, then a tensor must have ndim > 0 (Rule 7)
+# if bool v_1 is true, then tensor v_2 should have at least one dimension. (Rule 7)
 
 rule_7 = lambda s, v: (
-    s.add(If(v["arg1_value"] == True, v["arg2_ndim"] > 0, True))
+    s.add(If(v["arg1_value"], v["arg2_ndim"] > 0, False))
 )
 
 def rule_7_func(arg1, arg2, solver=None):

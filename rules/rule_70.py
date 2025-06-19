@@ -3,34 +3,36 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If number of dimensions is non-zero and even, the max value must be bigger than 5 (Rule 70)
+# If bool v_1 is true, then the absolute value of int v_2 must be greater than 10 (Rule 70)
 
 rule_70 = lambda s, v: (
-    s.add(If(And(v["arg1_ndim"] > 0, v["arg1_ndim"] * 0.5 == v["arg1_ndim"] / 2), Select(v["arg1_range"], 1) > 5, True))
+    s.add(If(v["arg1_value"], If(v["arg2_value"] > 0, v["arg2_value"] > 10, v["arg2_value"] < -10), False))
 )
 
-def rule_70_func(arg1, solver=None):
+def rule_70_func(arg1, arg2, solver=None):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, bool)):
+            return False
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 70
-        rule_70(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range})
+        rule_70(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_70(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range']})
+        rule_70(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']})

@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If the string variable is larger than 'hello' then minimum of the tensor must be smaller than 10 (Rule 66)
+# if str v_1 is equal to "dtype", then dtype of tensor v_2 must be an element between 0 and 12 (Rule 66)
 
 rule_66 = lambda s, v: (
-    s.add(If(v["arg1_value"] > "hello", Select(v["arg2_range"], 0) < 10, True))
+    s.add(If(v["arg1_value"] == "dtype", And(0 <= v["arg2_dtype"], v["arg2_dtype"] <= 12), False))
 )
 
 def rule_66_func(arg1, arg2, solver=None):
@@ -23,17 +23,16 @@ def rule_66_func(arg1, arg2, solver=None):
         # Variable declarations
         solver = Solver()
         arg1_value = String('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 66
-        rule_66(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_66(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_66(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})
+        rule_66(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']})

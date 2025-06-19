@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If two tensors are given, and the first has ndim of 1, then the second has to have equal dimensions sizes (Rule 57)
+# If tensor v_1 has a shape > 0 at dimension 0, then the integer v_2 must not be a multiple of the shape at dimension 0. (Rule 57)
 
 rule_57 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] == 1, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], i)) for i in range(6)]), True))
+    s.add(If(And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) > 0), v["arg2_value"] / Select(v["arg1_shape"], 0) != 0, False))
 )
 
 def rule_57_func(arg1, arg2, solver=None):
@@ -17,28 +17,25 @@ def rule_57_func(arg1, arg2, solver=None):
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg2_value = Int('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 57
-        rule_57(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_57(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_57(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']})
+        rule_57(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})

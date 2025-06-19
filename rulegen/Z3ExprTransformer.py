@@ -64,7 +64,12 @@ class Z3ExprTransformer(Transformer):
         return f"Or([And(i < ({end} + 1), {body}) for i in range({MAX_N_DIM})])"
 
     def if_expr(self, items):
-        cond, then_expr, else_expr = items
+        if len(items) > 2:
+            cond, then_expr, else_expr = items
+        else:
+            cond, then_expr = items
+            else_expr = "False"
+
         return f"If({cond}, {then_expr}, {else_expr})"
 
     def compare_expr_base(self, items):

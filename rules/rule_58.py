@@ -3,34 +3,39 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If dtype of a tensor is bool, the maximum value in the tensor must be less than 2 (Rule 58)
+# If bool v_1 is true and tensor v_2 has at least one dimension, then max of v_2 should be greater than or equal to 0 (Rule 58)
 
 rule_58 = lambda s, v: (
-    s.add(If(v["arg1_dtype"] == 0, Select(v["arg1_range"], 1) < 2, True))
+    s.add(If(And(v["arg1_value"] == True, v["arg2_ndim"] > 0), Select(v["arg2_range"], 1) >= 0, False))
 )
 
-def rule_58_func(arg1, solver=None):
+def rule_58_func(arg1, arg2, solver=None):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, bool)):
+            return False
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_ndim == arg2.ndim)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 58
-        rule_58(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_58(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_58(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']})
+        rule_58(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']})

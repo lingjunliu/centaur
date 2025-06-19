@@ -3,34 +3,41 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If tensor has more than 3 dimensions, then sum of last two shapes has to be > shape of first dimension. (Rule 131)
+# If the string v_1 equals to "float", and integer v_2 is greater than 0, the data type of tensor v_3 must be greater than integer v_2. (Rule 131)
 
 rule_131 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] > 3, (Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg1_shape"], v["arg1_ndim"] - 2)) > Select(v["arg1_shape"], 0), True))
+    s.add(If(v["arg1_value"] == "float", v["arg3_dtype"] > v["arg2_value"], False))
 )
 
-def rule_131_func(arg1, solver=None):
+def rule_131_func(arg1, arg2, arg3, solver=None):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, str)):
+            return False
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
+            return False
+        if not (isinstance(arg3, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = String('arg1_value')
+        arg2_value = Int('arg2_value')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 131
-        rule_131(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_131(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_131(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']})
+        rule_131(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_dtype': arg3['dtype']})

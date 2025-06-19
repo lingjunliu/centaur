@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If there is a boolean variable that is true, all the element must be positive value ( min > 0  (Rule 182)
+# if float or int variable v_1 is less than or equals 0, then the value of the shape of the first dimension of tensor v_2 should be the same as data type of v_2 (Rule 182)
 
 rule_182 = lambda s, v: (
-    s.add(If(v["arg2_value"] == True, Select(v["arg1_range"], 0) > 0, True))
+    s.add(If(v["arg1_value"] <= 0, Select(v["arg2_shape"], 0) == v["arg2_dtype"], False))
 )
 
 def rule_182_func(arg1, arg2, solver=None):
@@ -15,25 +15,25 @@ def rule_182_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
             return False
-        if not (isinstance(arg2, bool)):
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Bool('arg2_value')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 182
-        rule_182(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_182(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_182(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']})
+        rule_182(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_dtype': arg2['dtype']})

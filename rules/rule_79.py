@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# if a string is not empty then a 1-d tensor's shape has to be positive (Rule 79)
+# If the dtype of tensor v_1 is boolean or string, then bool variable v_2 must be equal to true (Rule 79)
 
 rule_79 = lambda s, v: (
-    s.add(If(And(v["arg2_value"] != "", v["arg1_ndim"] == 1), Select(v["arg1_shape"], 0) > 0, True))
+    s.add(If(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 11), v["arg2_value"] == True, False))
 )
 
 def rule_79_func(arg1, arg2, solver=None):
@@ -17,25 +17,22 @@ def rule_79_func(arg1, arg2, solver=None):
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, str)):
+        if not (isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 79
-        rule_79(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_79(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_79(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']})
+        rule_79(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']})

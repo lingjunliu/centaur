@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# String value has to be present within Tensor value (Rule 96)
+# if the dimension of tensor v_1 is not equal to 3, then the string v_2 must be 'other', else the string v_2 must be equal to '3d' (Rule 96)
 
 rule_96 = lambda s, v: (
-    s.add(If(v["arg2_dtype"] == 11, Or([And(i < (v["arg2_ndim"] - 1 + 1), v["arg1_value"] == Select(v["arg2_shape"], i)) for i in range(6)]), True))
+    s.add(If(v["arg1_ndim"] != 3, v["arg2_value"] == "other", v["arg2_value"] == "3d"))
 )
 
 def rule_96_func(arg1, arg2, solver=None):
@@ -15,29 +15,24 @@ def rule_96_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 96
-        rule_96(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape})
+        rule_96(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_96(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape']})
+        rule_96(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})

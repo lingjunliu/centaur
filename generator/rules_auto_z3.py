@@ -4,7 +4,7 @@ import os
 import re
 import importlib.util
 import inspect
-from itertools import combinations,permutations
+from itertools import permutations
 
 RULES_DIR = os.path.join(os.path.dirname(__file__), "..", "rules")
 rule_func_map = {}
@@ -51,12 +51,16 @@ def check_rules_z3(input_dict, print_rules=False):
     for arity in rule_func_map:
         if len(input_dict.keys()) < arity:
             continue
-        for args in combinations(input_dict.keys(), arity):
+        for args in permutations(input_dict.keys(), arity):
             for rule_name, z3_func in rule_func_map[arity].items():
                 try:
                     arg_dicts = tuple({k: input_dict[k]} for k in args)
                     if z3_func(*arg_dicts):
-                        set_of_rules_passed.add((arity, rule_name, *args))
+                        if not any(
+                            arity == a and rule_name == r and set(args) == set(arg_list)
+                            for (a, r, *arg_list) in set_of_rules_passed
+                        ):
+                            set_of_rules_passed.add((arity, rule_name, *args))
                 except:
                     pass 
 

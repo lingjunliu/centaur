@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# Tensor's maximum element needs to be less than a certain number (Rule 54)
+# If int v_1 is equal to the dimension of the tensor, then all values within the tensor v_2 must be smaller than v_1. (Rule 54)
 
 rule_54 = lambda s, v: (
-    s.add(Select(v["arg1_range"], 1) < v["arg2_value"])
+    s.add(If(And(v["arg2_ndim"] > 0, v["arg1_value"] == v["arg2_ndim"]), Select(v["arg2_range"], 1) < v["arg1_value"], False))
 )
 
 def rule_54_func(arg1, arg2, solver=None):
@@ -15,23 +15,27 @@ def rule_54_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 54
-        rule_54(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_54(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_54(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']})
+        rule_54(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']})

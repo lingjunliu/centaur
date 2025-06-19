@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If String has value "less" and float has value larger than 0, than value from min of Tensor must be great than floting parameter multply by 2 (Rule 169)
+# if float variable v_1 is less than 0, or its square is greater than or equals to 100, then max of the tensor v_2's shape must be positive number less than integer v_3 (Rule 169)
 
 rule_169 = lambda s, v: (
-    s.add(If(And((v["arg2_value"] == "less"), (v["arg3_value"] > 0)), Select(v["arg1_range"], 0) > (v["arg3_value"] * 2), True))
+    s.add(If(Or(v["arg1_value"] < 0, v["arg1_value"] * v["arg1_value"] >= 100), And((Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)])), (Or([And(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) < v["arg3_value"]) for i in range(6)]))), False))
 )
 
 def rule_169_func(arg1, arg2, arg3, solver=None):
@@ -16,29 +16,31 @@ def rule_169_func(arg1, arg2, arg3, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, (float, np.floating))):
             return False
-        if not (isinstance(arg2, str)):
+        if not (isinstance(arg2, np.ndarray)):
             return False
-        if not (isinstance(arg3, (float, np.floating))):
+        if not ((isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
-        arg3_value = Real('arg3_value')
+        arg1_value = Real('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
-        solver.add(arg3_value == arg3)
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 169
-        rule_169(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_169(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_169(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']})
+        rule_169(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value']})

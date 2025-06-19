@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# if there is a boolean and a tensor, and the boolean is true all the dimensions of tensor should be greater than 5. (Rule 137)
+# If float variable v_1 is not equal to 0, then the result of v_1*v_1 must be smaller than or equals to max(tensor v_2 (Rule 137)
 
 rule_137 = lambda s, v: (
-    s.add(If(v["arg1_value"] == True, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 5) for i in range(6)]), True))
+    s.add(If(v["arg1_value"] != 0, v["arg1_value"] * v["arg1_value"] <= Select(v["arg2_range"], 1), False))
 )
 
 def rule_137_func(arg1, arg2, solver=None):
@@ -15,27 +15,25 @@ def rule_137_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, bool)):
+        if not (isinstance(arg1, (float, np.floating))):
             return False
         if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_value = Real('arg1_value')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 137
-        rule_137(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_137(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_137(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']})
+        rule_137(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})

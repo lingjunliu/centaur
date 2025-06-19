@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# if dimension is larger than 0, and shape[0] is larger than shape[1], a string must not be empty string (Rule 121)
+# If number v_1 is greater than zero, tensor v_2's dtype must have an index less or equal than 10 (Rule 121)
 
 rule_121 = lambda s, v: (
-    s.add(If(And(v["arg1_ndim"] > 0, Select(v["arg1_shape"], 0) > Select(v["arg1_shape"], 1)), v["arg2_value"] != "", True))
+    s.add(If(v["arg1_value"] > 0, v["arg2_dtype"] <= 10, False))
 )
 
 def rule_121_func(arg1, arg2, solver=None):
@@ -15,27 +15,22 @@ def rule_121_func(arg1, arg2, solver=None):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
             return False
-        if not (isinstance(arg2, str)):
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = String('arg2_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == arg2)
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 121
-        rule_121(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_121(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_121(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']})
+        rule_121(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']})

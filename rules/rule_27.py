@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If the tensor has exactly one element, then that element cannot be zero (Rule 27)
+# If ndim of tensor v_1 is at least 2, then the maximum value of v_1 must be larger than the minimum value of v_1 (Rule 27)
 
 rule_27 = lambda s, v: (
-    s.add(If(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]), And(Select(v["arg1_range"], 0) != 0, Select(v["arg1_range"], 1) != 0), True))
+    s.add(If(v["arg1_ndim"] >= 2, Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0), False))
 )
 
 def rule_27_func(arg1, solver=None):
@@ -20,20 +20,17 @@ def rule_27_func(arg1, solver=None):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 27
-        rule_27(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range, 'arg1_shape': arg1_shape})
+        rule_27(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range'], 'arg1_shape': arg1['shape']})
+        rule_27(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']})

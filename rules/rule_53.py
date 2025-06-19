@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If boolean is true and tensor's dimension is bigger than 0, tensor's dtype must be floating point (Rule 53)
+# If a boolean is set to be false, then string variable must be assigned with a default value (Rule 53)
 
 rule_53 = lambda s, v: (
-    s.add(If(And(v["arg1_value"] == True, v["arg2_ndim"] > 0), Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), True))
+    s.add(If(v["arg1_value"] == False, v["arg2_value"] == "default", False))
 )
 
 def rule_53_func(arg1, arg2, solver=None):
@@ -17,24 +17,22 @@ def rule_53_func(arg1, arg2, solver=None):
     if not solver:
         if not (isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Bool('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_dtype = Int('arg2_dtype')
+        arg2_value = String('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 53
-        rule_53(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
+        rule_53(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']})
+        rule_53(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']})

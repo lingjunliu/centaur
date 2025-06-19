@@ -3,10 +3,10 @@ import numpy as np
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 from z3 import *
 
-# If the string parameter is the string “max”, max of tensor 1 must be equal to max of tensor 2 (Rule 115)
+# If the number of dimensions in the tensor v_1 is equal to integer v_2, the number of dimensions in the tensor v_1 must also be equal to integer v_3. (Rule 115)
 
 rule_115 = lambda s, v: (
-    s.add(If(v["arg3_value"] == "max", Select(v["arg1_range"], 1) == Select(v["arg2_range"], 1), True))
+    s.add(If(v["arg1_ndim"] == v["arg2_value"], v["arg1_ndim"] == v["arg3_value"], False))
 )
 
 def rule_115_func(arg1, arg2, arg3, solver=None):
@@ -18,28 +18,26 @@ def rule_115_func(arg1, arg2, arg3, solver=None):
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
             return False
-        if not (isinstance(arg3, str)):
+        if not ((isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
-        arg3_value = String('arg3_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
-        solver.add(arg3_value == arg3)
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 115
-        rule_115(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range, 'arg3_value': arg3_value})
+        rule_115(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_115(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range'], 'arg3_value': arg3['value']})
+        rule_115(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']})
