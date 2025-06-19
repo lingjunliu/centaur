@@ -488,6 +488,15 @@ def main():
                 break
             apis.add(torch_api)
             total_inputs += len(generated_inputs)
+
+            for input_dict in generated_inputs:
+                try:
+                    _ = get_abstract_input(input_dict, get_signature(torch_api, lib=lib, suffix=suffix))
+                except Exception as e:
+                    print(f"{bcolors.FAIL}Error getting abstract input for {torch_api} with suffix {suffix} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
+                    apis_with_issues.add(torch_api)
+                    break
+
     
     print(f"\n{len(apis)} apis has pre-defined inputs, {round(total_inputs/len(apis), 2) if len(apis) > 0 else 0} inputs on average")
     print(f"{len(apis_with_issues)} APIs with issues, {len(all_apis - apis)} APIs without pre-defined inputs, {len(all_apis)} APIs in total")

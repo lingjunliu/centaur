@@ -41,14 +41,16 @@ def save_and_run_code(torch_api, code, suffix=0, lib="torch"):
     key = torch_api if suffix == 0 else f"{torch_api}_{suffix}"
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
     validity_checker_code = f"""
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
 {code}
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -56,7 +58,7 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if '{key}' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key '{key}'.")
 
-check_valid('{torch_api}', generated_inputs['{key}'], lib="{lib}")
+check_valid('{torch_api}', generated_inputs['{key}'], lib="{lib}", suffix={suffix})
 """
     
     filepath = f"{CUR_DIR}/inputs/{torch_api.split('.')[-1]}_{suffix}.py"
@@ -124,7 +126,10 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
 
 def main():
     lib = "torch"
-    torch_apis = read_file_in_root("torch_apis.txt")
+    # torch_apis = read_file_in_root("torch_apis.txt")
+    with open(f"{CUR_DIR}/apis_w_problematic_inputs.txt", "r") as f:
+        torch_apis = [line.strip() for line in f.readlines() if line.strip()]
+
     total = len(torch_apis)
     durations = []
     
