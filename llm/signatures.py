@@ -5687,17 +5687,6 @@ signatures["torch.special.i1"] = {
     },
     "inner": {},
 }
-signatures["torch.cond"] = {
-    "args": {
-        "pred": "boolean",
-        "true_fn": "callable",
-        "false_fn": "callable",
-    },
-    "kwargs": {
-        "operands": "tuple"
-    },
-    "inner": {},
-}
 signatures["torch.empty_1"] = {
     "args": {
         "size": "integer"
@@ -6667,26 +6656,6 @@ signatures["torch.addmv_"] = {
 signatures["torch.get_default_dtype"] = {
     "args": {},
     "kwargs": {},
-    "inner": {},
-}
-signatures["torch.jit.script_1"] = {
-    "args": {
-        "obj": "Callable", # Could also be class or nn.Module, but Callable is the closest
-    },
-    "kwargs": {
-        "optimize": "boolean", # Assuming None defaults to some boolean value for optimization
-        "example_inputs": "list", # Union[List[Tuple], Dict[Callable, List[Tuple]], None], list is closest
-    },
-    "inner": {},
-}
-signatures["torch.jit.script_2"] = {
-    "args": {
-        "obj": "Callable", # Could also be class or nn.Module, but Callable is the closest
-    },
-    "kwargs": {
-        "optimize": "boolean", # Assuming None defaults to some boolean value for optimization
-        "example_inputs": "dict", # Union[List[Tuple], Dict[Callable, List[Tuple]], None], dict is closest
-    },
     "inner": {},
 }
 signatures["torch.hspmm"] = {
@@ -8008,16 +7977,6 @@ signatures["torch.ceil_"] = {
     "kwargs": {},
     "inner": {},
 }
-signatures["torch.jit.fork"] = {
-    "args": {
-        "func": "callable",  # Could be a function or a module, but "callable" seems closest
-        "*args": "list"  # Representing *args
-    },
-    "kwargs": {
-        "**kwargs": "list"  # Representing **kwargs
-    },
-    "inner": {},
-}
 signatures["torch.nn.CELU"] = {
     "args": {},
     "kwargs": {
@@ -8068,44 +8027,6 @@ signatures["torch.hsplit_3"] = {
     },
     "kwargs": {},
     "inner": {},
-}
-signatures["torch.compile_1"] = {
-    "args": {
-        "model": "Callable"  # Could also be a module, but Callable is more general
-    },
-    "kwargs": {
-        "fullgraph": "boolean",
-        "dynamic": "boolean", # Could be None, representing optional
-        "backend": "Union[str, Callable]", # Accepting either string or callable
-        "mode": "string", # Could be None
-        "options": "dict", # Dictionary of options
-        "disable": "boolean"
-    },
-    "inner": {
-        "args": {
-            # Actual type hint is _InputT, but it's a tensor generally
-        },
-        "kwargs": {}
-    },
-}
-signatures["torch.compile_2"] = {
-    "args": {
-        "model": "None"
-    },
-    "kwargs": {
-        "fullgraph": "boolean",
-        "dynamic": "boolean", # Could be None, representing optional
-        "backend": "Union[str, Callable]", # Accepting either string or callable
-        "mode": "string", # Could be None
-        "options": "dict", # Dictionary of options
-        "disable": "boolean"
-    },
-    "inner": {
-        "args": {
-             "model": "Callable" # Actual type hint is _InputT, but it's a tensor generally
-        },
-        "kwargs": {}
-    },
 }
 signatures["torch.nn.LogSoftmax"] = {
     "args": {},
