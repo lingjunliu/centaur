@@ -2,7 +2,7 @@ import time
 import numpy as np
 from z3 import *
 from .input_generators import get_ll, abstract_print
-from .rules_z3 import rule_func_map
+from .rules_auto_z3 import rule_func_map
 from .definitions import get_definition
 from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values

@@ -1,5 +1,5 @@
 from generator.rules import check_rules
-from generator.rules_z3 import check_rules_z3
+from generator.rules_auto_z3 import check_rules_z3
 from .inputs import get_inputs
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir
@@ -30,7 +30,7 @@ def print_rules(api, ruleset):
     else:
         print(f"No rules passed for {api}.")
 
-def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=5, seed=42, z3=False, suffix=0):
+def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=20, seed=42, z3=False, suffix=0):
     '''
         Takes an API and
         
