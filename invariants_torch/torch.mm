@@ -30,4 +30,5 @@ torch.mm,1,rule_83,input
 torch.mm,1,rule_83,mat2
 torch.mm,2,rule_285,input,mat2
 torch.mm,2,rule_304,input,mat2
+torch.mm,2,rule_307,input,mat2
 torch.mm,2,rule_364,input,mat2
