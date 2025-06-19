@@ -2,15 +2,20 @@ import time
 import numpy as np
 from z3 import *
 from .input_generators import get_ll, abstract_print
-from .rules_z3 import rule_func_map
+from .rules_auto_z3 import rule_func_map
+from .definitions import get_definition
+from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values
-from utils.misc import create_subdir, get_tmp_dir
+from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
+from utils.new_api_utils import get_lib_version
 from eval.oracle import oracle_crash
 from functools import reduce
 import os
 import random
+import json
 
-def save_state_models(api, unsat, nominal, invalid, crash, excp, tmp_results):
+def save_state_models(api, suffix, unsat, nominal, invalid, crash, excp, tmp_results):
+    api = f"{api}_{suffix}" if suffix > 0 else api
     total = nominal + invalid + crash + excp
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
     # Save outputs
@@ -264,7 +269,7 @@ def sample_partitions(var_values_map, p):
 
     return sampled_partitions
 
-def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10):
+def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch"):
     elapsed = 0
     start = time.time()
 
@@ -383,7 +388,7 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
                 block_all.add(elem)
 
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args)
-        status, exception_message = oracle_crash(driver, concrete_input, cpu=True)
+        status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
  
         if status != "invalid":
             if status == "cpu_crash":
@@ -409,6 +414,71 @@ def gen_models(definition, driver, z3_args, model_gen_duration, max_model=0, see
         
         elapsed = time.time() - start
 
-        save_state_models(definition["api"], unsat, nominal, invalid, crash, excp, tmp_results)
+        save_state_models(definition["api"], definition["suffix"], unsat, nominal, invalid, crash, excp, tmp_results)
 
     return models
+
+def load_existing_models(corpus_dir, z3_args):
+    models = []
+    for model_file in sorted(os.listdir(corpus_dir)):
+        model_path = os.path.join(corpus_dir, model_file)
+        with open(model_path, "r") as f:
+            model_data = json.load(f)
+        model = load_model(model_data, z3_args)
+        models.append(model)
+
+    return models
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: python fuzz.py <api> <duration> <lib, default='torch'> <seed, optional> <n_max, optional> <regen, default=False>")
+        return
+    
+    api = sys.argv[1]
+    duration = int(sys.argv[2])
+    n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
+    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
+    regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
+
+    print_details = False # Set to True if you want to print details of the process
+    
+    # alias
+    if lib == "tensorflow":
+        lib = "tf"
+    elif lib == "pytorch":
+        lib = "torch"
+
+    # Check if it is a variation of the API
+    if "_" in api:
+        api, suffix = api.rsplit("_", 1)
+        if suffix.isdigit():
+            suffix = int(suffix)
+        else:
+            suffix = 0
+            api = f"{api}_{suffix}"  # Reconstruct the API name with suffix
+    else:
+        suffix = 0
+    
+    api = get_lib_version(api, lib=lib)
+    definition = get_definition(api, z3=True, lib=lib, suffix=suffix)
+    if len(definition["ruleset"]) == 0:
+        print(f"No invariants learned for {api}")
+        return
+    
+    corpus_dir = "corpus_tf" if lib == "tf" else "corpus_torch"
+    corpus_dir = os.path.join(get_dir_in_root(corpus_dir), f"{api}_{suffix}" if suffix > 0 else api)
+    z3_args = create_z3_args(definition["signature"])
+    if os.path.exists(corpus_dir) and not regen:
+        models = load_existing_models(corpus_dir, z3_args)
+        print(f"Loaded {len(models)} existing models for {api}")
+    else:
+        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details)
+        os.makedirs(corpus_dir, exist_ok=True)
+        for idx, model in enumerate(models):
+            path = os.path.join(corpus_dir, f"model-{idx}.json")
+            save_model(model, path)
+        print(f"Generated {len(models)} models for {api}")
+
+if __name__ == "__main__":
+    main()

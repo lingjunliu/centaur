@@ -1,5 +1,6 @@
 from utils.proc import run
-from utils.api_utils import get_driver, get_signatures
+from utils.new_api_utils import get_signature, get_lib_version
+from utils.new_api_utils import run_api
 from utils.misc import get_tmp_dir, create_subdir, read_pkl, save_to_pkl, is_inhomogeneous, flatten
 from generator.input_generators import abstract_print, concretize_input
 import numpy as np
@@ -147,7 +148,7 @@ def consistent(output1, output2, rtol=1e-07, atol=1e-08):
 
     return matched, max_diff, indices, elem1_val, elem2_val
 
-def oracle_crash(driver, input_dict, timeout=10, cpu=True):
+def oracle_crash(api, input_dict, cpu=True, lib="torch"):
     """
         Check if the input is valid for the given API with a timeout or
         if it crashes. This runs on either CPU or GPU.
@@ -166,7 +167,7 @@ def oracle_crash(driver, input_dict, timeout=10, cpu=True):
             - ("cpu_excp", exception_message) if the API throws an exception on CPU.
             - ("gpu_excp", exception_message) if the API throws an exception on GPU.
     """
-    return_code, output, exception_message = run(driver, input_dict, cpu=cpu)
+    return_code, output, exception_message = run(run_api, api, input_dict, cpu=cpu, lib=lib)
     
     if return_code < 0: # signal raised
         return ("cpu_crash", exception_message) if cpu else ("gpu_crash", exception_message)
@@ -177,7 +178,7 @@ def oracle_crash(driver, input_dict, timeout=10, cpu=True):
     else:
         return ("nominal", "")
 
-def oracle_diff(driver, input_dict, atol=1e-08, detailed=True):
+def oracle_diff(api, input_dict, atol=1e-08, detailed=True, lib="torch"):
     """
     Run the API with a timeout on cpu and gpu, and compare the outputs.
     
@@ -204,7 +205,7 @@ def oracle_diff(driver, input_dict, atol=1e-08, detailed=True):
     """
     # cpu
     logger.info("CPU execution started")
-    return_code_cpu, output_cpu, exception_message_cpu = run(driver, input_dict, cpu=True)
+    return_code_cpu, output_cpu, exception_message_cpu = run(run_api, api, input_dict, cpu=True, lib=lib)
     
     # check if the CPU execution crashed
     if return_code_cpu < 0: # signal raised, should not reach here since we are not using run_with_timeout
@@ -214,7 +215,7 @@ def oracle_diff(driver, input_dict, atol=1e-08, detailed=True):
 
     # gpu
     logger.info("GPU execution started")
-    return_code_gpu, output_gpu, exception_message_gpu = run(driver, input_dict, cpu=False)
+    return_code_gpu, output_gpu, exception_message_gpu = run(run_api, api, input_dict, cpu=False, lib=lib)
     
     # check if the GPU execution crashed
     if return_code_gpu < 0: # signal raised, should not reach here since we are not using run_with_timeout
@@ -279,6 +280,8 @@ def main():
     high = int(sys.argv[4]) if len(sys.argv) > 4 else -1
     resume = True if len(sys.argv) > 5 and sys.argv[5] == "resume" else False # for resuming from the last state
 
+    api = get_lib_version(api, lib=lib)
+
     results_dir = create_subdir(get_tmp_dir(), f"oracle_results_{lib}")
     mode = "a" if resume else "w"
     # Configure logging
@@ -307,8 +310,6 @@ def main():
         return
     
     generated_inputs = read_pkl(input_file)
-    signature = get_signatures()[api]
-    driver = get_driver(api, lib=lib)
     
     oracle_results = []
     result_summary = {
@@ -349,8 +350,9 @@ def main():
     total_time = 0
     i = 0
     
-    for best_distance, abs_input, seed in generated_inputs:
+    for best_distance, abs_input, seed, suffix in generated_inputs:
         save_state_oracle(api, result_summary, oracle_results, lib=lib)
+        signature = get_signature(api, lib=lib, suffix=suffix)
 
         rng = np.random.default_rng(seed)
         # Get the input dictionary
@@ -358,7 +360,7 @@ def main():
         
         # Run the oracle
         start_time = time.time()
-        result_tuple = oracle_diff(driver, input_dict, atol=A_TOL)
+        result_tuple = oracle_diff(api, input_dict, atol=A_TOL, lib=lib)
         duration = round(time.time() - start_time, 2)
         total_time += duration
         oracle_results.append(result_tuple)

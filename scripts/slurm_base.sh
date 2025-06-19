@@ -18,6 +18,10 @@ if [ -z "${slurm_time}" ]; then
     slurm_time="2:00:00"    # Default slurm timeout
 fi
 
+if [ -z "${apis_file}" ]; then
+    apis_file=apis.txt      # File containing the list of APIs
+fi
+
 echo "Using a slurm timeout of $slurm_time"
 
 cmd=$1              # commmand to run parallelly
@@ -34,7 +38,11 @@ source ${PROJECT_DIR}/scripts/utils.sh
 
 if [ $setup_env -eq 1 ]; then
     # Creating virtual environment
-    python -m venv venv
+    if ! command -v python3.12 &> /dev/null; then
+        echo "Error: python3.12 is not installed. Please install it before running this script."
+        exit 1
+    fi
+    python3.12 -m venv venv
     source venv/bin/activate
     pip install -r $PROJECT_DIR/requirements.txt
 fi
@@ -42,7 +50,7 @@ fi
 # Running random generation
 cd $PROJECT_DIR
 
-apis=(`cat apis.txt`)
+apis=(`cat ${apis_file}`)
 n_apis=${#apis[@]}
 i=0
 elapsed=0

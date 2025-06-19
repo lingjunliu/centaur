@@ -24,9 +24,14 @@ The code is organized as follow:
 - 📁 utils             # utility functions
 ```
 
+<h1>Prerequisites</h1>
+ 
+ - **python**: The tool uses `python 3.12`
+ - **venv**: `sudo apt install python3.12-venv`
+
 <h1>Use cases</h1>
 
-<h2> 1. Learn invariants </h2>
+<h2> 1. Learn invariants (offline) </h2>
 
  The `infer_invariants` function in the file `learner/invariant_inference.py` can generate a list of inputs randomly, check which of them are valid and for each valid input, check which rules are satisfied by them. It returns a set of tuples `(arity, rule_name, arg1, arg2, ...)` where `arg1`, `arg2`, ... are the arguments in the input that are relevant for a rule and `arity` is the number of arguments this rule accepts.
 
@@ -42,7 +47,26 @@ The code is organized as follow:
 
  The tests written under `tests/test_invariants.py` demonstrates usage of this function.
 
-<h2> 2. Generate inputs </h2>
+<h2> 2. Generate models (offline) </h2>
+
+ To generate models by solving the constraints, the script `scripts/generate_models_with_slurm.sh` needs to be used. **Be sure to install and configure slurm before running this.**. This runs model generation for all variations of the apis from `torch_variations.txt` for PyTorch and `tf_variations.txt` for Tensorflow. Since this is an offline mode, running this once is enough to run online fuzzing campaigns.
+
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/generate_models_with_slurm.sh <duration> <n_max> <lib> <seed> <regen>
+ ```
+ - `duration`: Time budget for generating model for each api variation in seconds.
+ - `n_max`: Passing 0 (default) means no max on number of models. Anything `> 0` will limit the number of models to that number (if it can reach that number before the time budget `duration` runs out).
+ - `lib`: `torch` for PyTorch, `tf` for Tenosrflow
+ - `seed`: Seed for the generator, default `200`.
+ - `regen`: Pass 1 to regenerate models that already exist. Default: 0.
+
+ Example:
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/generate_models_with_slurm.sh 3600 1000 torch 42 1
+ ```
+ This will generate models for each variation of torch apis until 1h passes or 1000 max models are generated, even if models exist. `42` will be used as the seed.
+
+<h2> 3. Generate inputs (online) </h2>
 
  The `scripts/run_harness.sh` can demonstrate running input generation for some example apis. To run this:
  ```bash
@@ -57,18 +81,15 @@ The code is organized as follow:
 
  To run fuzzing campaings, use the `scripts/fuzz_with_slurm.sh`. **Be sure to install and configure slurm before running this.**. This runs the fuzzing campaign on apis from the file `apis.txt` parallelly.
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh <duration> <mode> <n_max> <limit> <seed>
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh <duration> <n_max> <lib> <seed>
  ```
- - `Duration`: Duration to fuzz each api in seconds.
- - `Mode`: `z3` for Z3 based generator, `ea` for evolutionary algorithm based optimizer
- - `n_max`: Passing 0 (default) means no max on number of inputs. Anything `> 0` will limit the number of inputs to that number (if it can reach that number before the time budget `duration` runs out). If `n_max > 0` is passed, for `z3` this will also limit the number of models initially generated.
- - `limit`: Deafult `30`
-    - For `z3`, this limit represents the percentage of the total `duration` spent on initial model generation
-    - For `ea`, this limit represents the duration after which a random restart will take place.
- - `seed`: Seed for the generator, default `200`
+ - `duration`: Duration to fuzz each api in seconds.
+ - `n_max`: Passing 0 (default) means no max on number of inputs. Anything `> 0` will limit the number of inputs to that number (if it can reach that number before the time budget `duration` runs out).
+ - `lib`: `torch` for PyTorch, `tf` for Tenosrflow
+ - `seed`: Seed for the generator, default `200`.
 
  Example:
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh 3600 z3 0 50 42
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh 3600 0 torch 42
  ```
- This will run the `z3` based generator parallelly on all apis in `apis.txt` with `seed=42`, each with a time budget of 1 hour with no limits on the number of inputs or models generated. 50% of this 1 hour i.e. 30 minutes will be spent on model generation, the rest of the time will be spent on input generation (sampling from the valid models and concretizing the inputs).
+ This will run the `z3` based generator parallelly on all apis in `apis.txt` with `seed=42`, each with a time budget of 1 hour with no limits on the number of inputs or models generated.
