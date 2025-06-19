@@ -1,54 +1,115 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def avg_pool1d_inputs():
     list_of_inputs = []
 
-    input1 = torch.randn(1, 3, 10).numpy()
-    kernel_size1 = (2,)
-    stride1 = (2,)
-    padding1 = (0,)
-    ceil_mode1 = False
-    count_include_pad1 = True
+    # Input 1
+    input_tensor = torch.randn(1, 3, 10).numpy()
+    kernel_size = (3,)
+    stride = (2,)
+    padding = (0,)
+    ceil_mode = False
+    count_include_pad = True
 
-    input_dict1 = {
-        "input": input1,
-        "kernel_size": kernel_size1,
-        "stride": stride1,
-        "padding": padding1,
-        "ceil_mode": ceil_mode1,
-        "count_include_pad": count_include_pad1
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input2 = torch.randn(2, 4, 15).numpy()
-    kernel_size2 = (3,)
-    stride2 = (1,)
-    padding2 = (1,)
-    ceil_mode2 = True
-    count_include_pad2 = False
+    # Input 2
+    input_tensor = torch.randn(2, 5, 15).numpy()
+    kernel_size = (4,)
+    stride = (3,)
+    padding = (1,)
+    ceil_mode = True
+    count_include_pad = False
 
-    input_dict2 = {
-        "input": input2,
-        "kernel_size": kernel_size2,
-        "stride": stride2,
-        "padding": padding2,
-        "ceil_mode": ceil_mode2,
-        "count_include_pad": count_include_pad2
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad
     }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(1, 2, 7).numpy()
+    kernel_size = (2,)
+    stride = (1,)
+    padding = (0,)
+    ceil_mode = False
+    count_include_pad = True
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(3, 4, 20).numpy()
+    kernel_size = (5,)
+    stride = (4,)
+    padding = (2,)
+    ceil_mode = True
+    count_include_pad = False
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(1, 1, 5).numpy()
+    kernel_size = (1,)
+    stride = (1,)
+    padding = (0,)
+    ceil_mode = False
+    count_include_pad = True
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.nn.functional.avg_pool1d_2"] = avg_pool1d_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -56,4 +117,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.nn.functional.avg_pool1d_2' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.nn.functional.avg_pool1d_2'.")
 
-check_valid('torch.nn.functional.avg_pool1d', generated_inputs['torch.nn.functional.avg_pool1d_2'], lib="torch")
+check_valid('torch.nn.functional.avg_pool1d', generated_inputs['torch.nn.functional.avg_pool1d_2'], lib="torch", suffix=2)

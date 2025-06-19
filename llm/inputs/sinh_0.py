@@ -1,5 +1,6 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
@@ -9,38 +10,77 @@ import numpy as np
 def sinh_inputs():
     list_of_inputs = []
 
-    # Input 1: Float tensor
-    input1 = torch.randn(4).numpy()
-    input_dict1 = {"input": input1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: 1D tensor with positive values
+    input_tensor = torch.tensor([0.5, 1.0, 1.5, 2.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
 
-    # Input 2: Int tensor (converted to float)
-    input2 = torch.randint(-5, 5, (3, 3)).float().numpy()
-    input_dict2 = {"input": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative values
-    input3 = (torch.randn(2, 2) * -1.0).numpy()
-    input_dict3 = {"input": input3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 2: 1D tensor with negative values
+    input_tensor = torch.tensor([-0.5, -1.0, -1.5, -2.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multi-dimensional tensor
-    input4 = torch.randn(2, 3, 4).numpy()
-    input_dict4 = {"input": input4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 3: 2D tensor with mixed values
+    input_tensor = torch.tensor([[-0.5, 1.0], [-1.5, 2.0]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Zero tensor
-    input5 = torch.zeros(5).numpy()
-    input_dict5 = {"input": input5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 4: 3D tensor with zeros
+    input_tensor = torch.zeros((2, 2, 2)).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 5: 1D tensor with large values to potentially trigger Sleef behavior (CPU only)
+    input_tensor = torch.tensor([10.0, -10.0, 20.0, -20.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 6: 2D tensor with a specified 'out' tensor
+    input_tensor = torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()
+    out_tensor = torch.zeros((2, 2)).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Empty tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs["torch.sinh"] = sinh_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -48,4 +88,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.sinh' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.sinh'.")
 
-check_valid('torch.sinh', generated_inputs['torch.sinh'], lib="torch")
+check_valid('torch.sinh', generated_inputs['torch.sinh'], lib="torch", suffix=0)

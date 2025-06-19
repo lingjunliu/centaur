@@ -1,5 +1,6 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
@@ -10,47 +11,56 @@ import copy
 def rsub_inputs():
     list_of_inputs = []
 
-    # Case 1: Basic float tensors
-    input1 = np.array([[1.0, 2.0], [3.0, 4.0]])
-    other1 = np.array([[5.0, 6.0], [7.0, 8.0]])
-    alpha1 = 1.0
-    input_dict1 = {"input": input1, "other": other1, "alpha": alpha1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: Basic case with positive values
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    other_tensor = torch.tensor([4.0, 5.0, 6.0]).numpy()
+    alpha_val = 1.0
+    input_dict = {"input": input_tensor, "other": other_tensor, "alpha": alpha_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: Integer tensors with alpha
-    input2 = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    other2 = np.array([[5, 6], [7, 8]], dtype=np.int32)
-    alpha2 = 2.0
-    input_dict2 = {"input": input2, "other": other2, "alpha": alpha2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2: Case with negative values and different alpha
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    other_tensor = torch.tensor([4.0, 5.0, 6.0]).numpy()
+    alpha_val = 0.5
+    input_dict = {"input": input_tensor, "other": other_tensor, "alpha": alpha_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: Negative values and different dimensions
-    input3 = np.array([-1.0, -2.0, -3.0])
-    other3 = 5.0
-    alpha3 = 0.5
-    input_dict3 = {"input": input3, "other": other3, "alpha": alpha3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3: Multi-dimensional tensor
+    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    other_tensor = torch.tensor([[5.0, 6.0], [7.0, 8.0]]).numpy()
+    alpha_val = 1.0
+    input_dict = {"input": input_tensor, "other": other_tensor, "alpha": alpha_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 4: Scalar other
-    input4 = np.array([[1.0, 2.0], [3.0, 4.0]])
-    other4 = 5.0
-    alpha4 = 1.0
-    input_dict4 = {"input": input4, "other": other4, "alpha": alpha4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    # Case 5: 3D tensor
-    input5 = np.random.rand(2, 3, 4)
-    other5 = 2.0
-    alpha5 = 1.0
-    input_dict5 = {"input": input5, "other": other5, "alpha": alpha5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 4: Zero values
+    input_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    other_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    alpha_val = 1.0
+    input_dict = {"input": input_tensor, "other": other_tensor, "alpha": alpha_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 5: Different shapes with broadcasting
+    input_tensor = torch.tensor([1.0, 2.0]).numpy()
+    other_tensor = torch.tensor([[3.0, 4.0], [5.0, 6.0]]).numpy()
+    alpha_val = 1.0
+    input_dict = {"input": input_tensor, "other": other_tensor, "alpha": alpha_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Integer inputs
+    input_tensor = torch.tensor([1, 2, 3]).numpy()
+    other_tensor = torch.tensor([4, 5, 6]).numpy()
+    alpha_val = 1.0
+    input_dict = {"input": input_tensor, "other": other_tensor, "alpha": alpha_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.rsub"] = rsub_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -58,4 +68,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.rsub' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.rsub'.")
 
-check_valid('torch.rsub', generated_inputs['torch.rsub'], lib="torch")
+check_valid('torch.rsub', generated_inputs['torch.rsub'], lib="torch", suffix=0)

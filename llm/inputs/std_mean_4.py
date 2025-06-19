@@ -1,74 +1,80 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def std_mean_inputs():
     list_of_inputs = []
 
-    input1 = torch.randn(2, 3, 4, 5).numpy()
-    dim1 = (0, 2)
-    unbiased1 = True
-    keepdim1 = True
-    input_dict1 = {
-        "input": input1,
-        "dim": dim1,
-        "unbiased": unbiased1,
-        "keepdim": keepdim1,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    dim = (0,)
+    unbiased = True
+    keepdim = False
+    input_dict = {"input": input_tensor, "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input2 = torch.randint(0, 10, (3, 5, 2)).float().numpy()
-    dim2 = (1,)
-    unbiased2 = False
-    keepdim2 = False
-    input_dict2 = {
-        "input": input2,
-        "dim": dim2,
-        "unbiased": unbiased2,
-        "keepdim": keepdim2,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2
+    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    dim = (0,)
+    unbiased = False
+    keepdim = True
+    input_dict = {"input": input_tensor, "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input3 = torch.randn(1, 1, 1).numpy()
-    dim3 = (0, 1, 2)
-    unbiased3 = True
-    keepdim3 = False
-    input_dict3 = {
-        "input": input3,
-        "dim": dim3,
-        "unbiased": unbiased3,
-        "keepdim": keepdim3,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3
+    input_tensor = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
+    dim = (0, 1)
+    unbiased = True
+    keepdim = False
+    input_dict = {"input": input_tensor, "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input4 = torch.randn(4, 4).numpy()
-    dim4 = (0,)
-    unbiased4 = False
-    keepdim4 = True
-    input_dict4 = {
-        "input": input4,
-        "dim": dim4,
-        "unbiased": unbiased4,
-        "keepdim": keepdim4,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 4
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0], dtype=torch.float64).numpy()
+    dim = (0,)
+    unbiased = False
+    keepdim = True
+    input_dict = {"input": input_tensor, "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    input5 = torch.randn(2, 2, 2).numpy()
-    input_dict5 = {
-        "input": input5,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 5
+    input_tensor = torch.tensor([[-1.0, -2.0], [-3.0, -4.0]]).numpy()
+    dim = (0,)
+    unbiased = True
+    keepdim = False
+    input_dict = {"input": input_tensor, "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0]).reshape(2,2).numpy()
+    dim = (0,1)
+    unbiased = True
+    keepdim = True
+    input_dict = {"input": input_tensor, "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    dim = (1,)
+    unbiased = False
+    keepdim = False
+    input_dict = {"input": input_tensor, "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
 
     return list_of_inputs
 
 generated_inputs["torch.std_mean_4"] = std_mean_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -76,4 +82,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.std_mean_4' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.std_mean_4'.")
 
-check_valid('torch.std_mean', generated_inputs['torch.std_mean_4'], lib="torch")
+check_valid('torch.std_mean', generated_inputs['torch.std_mean_4'], lib="torch", suffix=4)

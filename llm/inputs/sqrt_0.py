@@ -1,5 +1,6 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
@@ -9,37 +10,56 @@ import numpy as np
 def sqrt_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple 1D tensor with positive floats
-    input1 = torch.randn(4).abs().numpy()
-    input_dict1 = {"input": input1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: 1D tensor with positive values
+    input_tensor = torch.tensor([1.0, 4.0, 9.0, 16.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D tensor with positive floats
-    input2 = torch.rand(2, 3).numpy()
-    input_dict2 = {"input": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2: 2D tensor with positive values
+    input_tensor = torch.tensor([[1.0, 4.0], [9.0, 16.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D tensor with integers (converted to float)
-    input3 = torch.randint(0, 10, (2, 2, 2)).float().numpy()
-    input_dict3 = {"input": input3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3: 1D tensor with mixed positive and negative values
+    input_tensor = torch.tensor([-1.0, 4.0, -9.0, 16.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Scalar tensor
-    input4 = np.array(9.0).astype(np.float32)
-    input_dict4 = {"input": input4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 4: 3D tensor with positive values
+    input_tensor = torch.tensor([[[1.0, 4.0], [9.0, 16.0]], [[25.0, 36.0], [49.0, 64.0]]]).numpy()
+    out_tensor = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 1D tensor with zero
+    input_tensor = torch.tensor([0.0, 1.0, 4.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 2D tensor with floating point and integer values
+    input_tensor = torch.tensor([[1.5, 4], [9, 16.25]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5: 1D tensor with zeros
-    input5 = torch.zeros(5).numpy()
-    input_dict5 = {"input": input5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.sqrt"] = sqrt_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -47,4 +67,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.sqrt' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.sqrt'.")
 
-check_valid('torch.sqrt', generated_inputs['torch.sqrt'], lib="torch")
+check_valid('torch.sqrt', generated_inputs['torch.sqrt'], lib="torch", suffix=0)

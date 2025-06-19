@@ -1,85 +1,124 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def torch_empty_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with size as a tuple
+    # Input 1
+    size = (2, 3)
+    out = torch.empty(2, 3)
+    dtype = torch.int64
+    layout = "strided"
+    requires_grad = False
+    pin_memory = False
+    memory_format = "contiguous_format"
+
     input_dict = {
-        "size": (2, 3),
-        "out": None,
-        "dtype": None,
-        "layout": torch.strided,
-        "requires_grad": False,
-        "pin_memory": False,
-        "memory_format": torch.contiguous_format,
-        "device": None
+        "size": size,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Size as a list, specific dtype
+    # Input 2
+    size = (5,)
+    out = torch.empty(5)
+    dtype = torch.float32
+    layout = "strided"
+    requires_grad = True
+    pin_memory = False
+    memory_format = "contiguous_format"
+
     input_dict = {
-        "size": [4, 5, 2],
-        "out": None,
-        "dtype": torch.float64,
-        "layout": torch.strided,
-        "requires_grad": True,
-        "pin_memory": False,
-        "memory_format": torch.contiguous_format,
-        "device": None
+        "size": size,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3:  Specific device. Removed pin_memory=True as it might conflict with device.
+    # Input 3
+    size = (2, 2, 2)
+    out = torch.empty(2, 2, 2)
+    dtype = torch.float64
+    layout = "strided"
+    requires_grad = False
+    pin_memory = True
+    memory_format = "contiguous_format"
+
     input_dict = {
-        "size": (1, 8),
-        "out": None,
-        "dtype": torch.int32,
-        "layout": torch.strided,
-        "requires_grad": False,
-        "pin_memory": False,
-        "memory_format": torch.contiguous_format,
-        "device": torch.device("cpu")
+        "size": size,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Using memory_format (only works when out is None)
+    # Input 4
+    size = (1, 5, 1, 5)
+    out = torch.empty(1, 5, 1, 5)
+    dtype = torch.int32
+    layout = "strided"
+    requires_grad = True
+    pin_memory = True
+    memory_format = "contiguous_format"
+
     input_dict = {
-        "size": (2, 2),
-        "out": None,
-        "dtype": torch.float32,
-        "layout": torch.strided,
-        "requires_grad": False,
-        "pin_memory": False,
-        "memory_format": torch.contiguous_format,
-        "device": None
+        "size": size,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: No optional parameters
+     # Input 5
+    size = (10,)
+    out = torch.empty(10)
+    dtype = torch.uint8
+    layout = "strided"
+    requires_grad = False
+    pin_memory = False
+    memory_format = "contiguous_format"
+
     input_dict = {
-        "size": (3, 4),
-        "out": None,
-        "dtype": None,
-        "layout": None,
-        "requires_grad": False,
-        "pin_memory": False,
-        "memory_format": None,
-        "device": None
+        "size": size,
+        "out": out,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.empty_2"] = torch_empty_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -87,4 +126,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.empty_2' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.empty_2'.")
 
-check_valid('torch.empty', generated_inputs['torch.empty_2'], lib="torch")
+check_valid('torch.empty', generated_inputs['torch.empty_2'], lib="torch", suffix=2)

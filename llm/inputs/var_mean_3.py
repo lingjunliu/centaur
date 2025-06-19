@@ -1,5 +1,6 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
@@ -8,79 +9,71 @@ import numpy as np
 
 def var_mean_inputs():
     list_of_inputs = []
+    
+    # Input 1: 1D tensor, unbiased=True, keepdim=False
+    input = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    dim = [0]
+    unbiased = True
+    keepdim = False
+    out = ()
+    input_dict = {"input": torch.from_numpy(input).double(), "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": out}
+    
+    input_dict["dim"] = tuple(input_dict["dim"])
 
-    # Case 1: Basic float tensor, dim=None
-    input = torch.randn(3, 4, 5).numpy()
-    input_dict = {
-        "input": input,
-        "dim": None,
-        "unbiased": True,
-        "keepdim": False,
-        "out": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Case 2: Int tensor, dim=0, keepdim=True
-    input = torch.randint(0, 10, (2, 3, 4)).numpy()
-    input_dict = {
-        "input": input,
-        "dim": (0,),
-        "unbiased": False,
-        "keepdim": True,
-        "out": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Case 3: Float tensor, dim=(1, 2), unbiased=False
-    input = torch.randn(2, 3, 4, 5).numpy()
-    input_dict = {
-        "input": input,
-        "dim": (1, 2),
-        "unbiased": False,
-        "keepdim": False,
-        "out": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Case 4: 1D Float Tensor with negative values
-    input = torch.randn(10).numpy() - 2  # Shift to have negative values
-    input_dict = {
-        "input": input,
-        "dim": (0,),
-        "unbiased": True,
-        "keepdim": False,
-        "out": None
-    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Case 5: Complex Tensor
-    input = (torch.randn(3, 3) + 1j * torch.randn(3, 3)).numpy()
-    input_dict = {
-        "input": input,
-        "dim": None,
-        "unbiased": False,
-        "keepdim": False,
-        "out": None
-    }
+    # Input 2: 2D tensor, unbiased=False, keepdim=True
+    input = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    dim = [0]
+    unbiased = False
+    keepdim = True
+    out = ()
+    input_dict = {"input": torch.from_numpy(input).double(), "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": out}
+
+    input_dict["dim"] = tuple(input_dict["dim"])
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor, unbiased=True, keepdim=False, multiple dims
+    input = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    dim = [0, 1]
+    unbiased = True
+    keepdim = False
+    out = ()
+    input_dict = {"input": torch.from_numpy(input).double(), "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": out}
+
+    input_dict["dim"] = tuple(input_dict["dim"])
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Case 6: Unbiased True, No dim - remove dim and other keywords
-    input = torch.randn(5, 5).numpy()
-    input_dict = {
-        "input": input,
-        "unbiased": True,
-        "dim": None,
-        "keepdim": False,
-        "out": None
-    }
+    # Input 4: 2D tensor with negative values, unbiased=False, keepdim=True, dim=None
+    input = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float32)
+    dim = [1]
+    unbiased = False
+    keepdim = True
+    out = ()
+    input_dict = {"input": torch.from_numpy(input).double(), "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": out}
+
+    input_dict["dim"] = tuple(input_dict["dim"])
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: 1D tensor, unbiased=True, keepdim=True
+    input = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    dim = [0]
+    unbiased = True
+    keepdim = True
+    out = ()
+    input_dict = {"input": torch.from_numpy(input).double(), "dim": dim, "unbiased": unbiased, "keepdim": keepdim, "out": out}
+
+    input_dict["dim"] = tuple(input_dict["dim"])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.var_mean_3"] = var_mean_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -88,4 +81,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.var_mean_3' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.var_mean_3'.")
 
-check_valid('torch.var_mean', generated_inputs['torch.var_mean_3'], lib="torch")
+check_valid('torch.var_mean', generated_inputs['torch.var_mean_3'], lib="torch", suffix=3)

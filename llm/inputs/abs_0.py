@@ -1,41 +1,65 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def abs_inputs():
     list_of_inputs = []
 
-    input1 = np.array([-1, -2, 3])
-    input_dict1 = {"input": torch.from_numpy(input1)}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: 1D tensor with negative and positive values
+    input_tensor = torch.tensor([-1.0, -2.0, 0.0, 2.0, 1.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input2 = np.array([[-1.5, -2.5], [3.5, -4.5]])
-    input_dict2 = {"input": torch.from_numpy(input2).float()}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2: 2D tensor with various values
+    input_tensor = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input3 = np.array([1, 2, 3], dtype=np.int64)
-    input_dict3 = {"input": torch.from_numpy(input3).long()}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3: 3D tensor with only positive values
+    input_tensor = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
+    out_tensor = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input4 = np.array([[-1, 2], [-3, 4]], dtype=np.int32)
-    input_dict4 = {"input": torch.from_numpy(input4).int()}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-    
-    input5 = np.array([1.0, -2.0, 3.0, -4.0, 5.0], dtype=np.float32)
-    input_dict5 = {"input": torch.from_numpy(input5).float()}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-    
+    # Input 4: 1D tensor with only negative values
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 0D tensor (scalar)
+    input_tensor = torch.tensor(-5.0).numpy()
+    out_tensor = torch.tensor(0.0).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with floating point numbers
+    input_tensor = torch.tensor([-1.5, 2.5, -3.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensor with zeros
+    input_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.abs"] = abs_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -43,4 +67,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.abs' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.abs'.")
 
-check_valid('torch.abs', generated_inputs['torch.abs'], lib="torch")
+check_valid('torch.abs', generated_inputs['torch.abs'], lib="torch", suffix=0)

@@ -1,20 +1,23 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def cudnn_affine_grid_generator_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid input
-    theta = torch.randn(1, 2, 3).cuda()
-    N = 1
-    C = 1
-    H = 10
-    W = 20
+    # Input 1
+    theta = torch.tensor([[0.5, 0.0, 0.0], [0.0, 0.5, 0.0]]).cuda().cpu().numpy()
+    N = np.int64(1)
+    C = np.int64(1)
+    H = np.int64(10)
+    W = np.int64(20)
+
     input_dict = {
         "theta": theta,
         "N": N,
@@ -22,15 +25,15 @@ def cudnn_affine_grid_generator_inputs():
         "H": H,
         "W": W
     }
-    input_dict["theta"] = input_dict["theta"].cuda()
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different batch size and spatial dimensions
-    theta = torch.randn(2, 2, 3).cuda()
-    N = 2
-    C = 3
-    H = 15
-    W = 25
+    # Input 2
+    theta = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]).cuda().cpu().numpy()
+    N = np.int64(2)
+    C = np.int64(3)
+    H = np.int64(32)
+    W = np.int64(32)
+
     input_dict = {
         "theta": theta,
         "N": N,
@@ -38,65 +41,16 @@ def cudnn_affine_grid_generator_inputs():
         "H": H,
         "W": W
     }
-    input_dict["theta"] = input_dict["theta"].cuda()
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Larger values in theta
-    theta = (torch.randn(1, 2, 3) * 10).cuda()
-    N = 1
-    C = 1
-    H = 5
-    W = 5
-    input_dict = {
-        "theta": theta,
-        "N": N,
-        "C": C,
-        "H": H,
-        "W": W
-    }
-    input_dict["theta"] = input_dict["theta"].cuda()
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Negative values in theta
-    theta = (torch.randn(1, 2, 3) * -1).cuda()
-    N = 1
-    C = 1
-    H = 7
-    W = 14
-    input_dict = {
-        "theta": theta,
-        "N": N,
-        "C": C,
-        "H": H,
-        "W": W
-    }
-    input_dict["theta"] = input_dict["theta"].cuda()
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5: Different channel size
-    theta = torch.randn(1, 2, 3).cuda()
-    N = 1
-    C = 5
-    H = 12
-    W = 18
-    input_dict = {
-        "theta": theta,
-        "N": N,
-        "C": C,
-        "H": H,
-        "W": W
-    }
-    input_dict["theta"] = input_dict["theta"].cuda()
-
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}
 generated_inputs["torch.cudnn_affine_grid_generator"] = cudnn_affine_grid_generator_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -104,4 +58,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.cudnn_affine_grid_generator' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.cudnn_affine_grid_generator'.")
 
-check_valid('torch.cudnn_affine_grid_generator', generated_inputs['torch.cudnn_affine_grid_generator'], lib="torch")
+check_valid('torch.cudnn_affine_grid_generator', generated_inputs['torch.cudnn_affine_grid_generator'], lib="torch", suffix=0)

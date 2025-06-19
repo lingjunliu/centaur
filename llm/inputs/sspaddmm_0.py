@@ -1,142 +1,144 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def sspaddmm_inputs():
     list_of_inputs = []
 
-    # Case 1: Basic case with float tensors
-    indices1 = torch.tensor([[0, 1], [1, 2]]).long()
-    values1 = torch.tensor([1.0, 2.0])
-    mat1 = torch.sparse_coo_tensor(indices1, values1, (3, 3)).to_dense().numpy()
-
-    mat2 = torch.randn(3, 4).numpy()
-    indices_input = torch.tensor([[0, 0], [1, 1]]).long()
-    values_input = torch.tensor([3.0, 4.0])
-    input = torch.sparse_coo_tensor(indices_input, values_input, (3, 4)).to_dense().numpy()
-
-    input_dict = {
-        "input": input,
-        "mat1": mat1,
-        "mat2": mat2,
-        "beta": 1.0,
-        "alpha": 1.0,
-        "out": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Case 2: Different shapes and alpha/beta values
-    indices1 = torch.tensor([[0, 0], [1, 1], [2, 2]]).long()
-    values1 = torch.tensor([0.5, 1.5, 2.5])
-    mat1 = torch.sparse_coo_tensor(indices1, values1, (3, 3)).to_dense().numpy()
-
-    mat2 = torch.randn(3, 2).numpy()
-    indices_input = torch.tensor([[0, 0], [1, 1]]).long()
-    values_input = torch.tensor([0.7, -0.3])
-    input = torch.sparse_coo_tensor(indices_input, values_input, (3, 2)).to_dense().numpy()
+    # Input 1
+    indices = torch.tensor([[0, 1], [1, 0]])
+    values = torch.tensor([2.0, 3.0])
+    shape = (2, 2)
+    input = torch.sparse_coo_tensor(indices, values, shape).to_dense().numpy()
+    indices1 = torch.tensor([[0, 0], [1, 1]])
+    values1 = torch.tensor([1.0, 4.0])
+    shape1 = (2, 2)
+    mat1 = torch.sparse_coo_tensor(indices1, values1, shape1, dtype=torch.float32).to_dense().numpy()
+    mat2 = torch.tensor([[5.0, 6.0], [7.0, 8.0]], dtype=torch.float32).numpy()
+    beta = 0.5
+    alpha = 0.2
+    out = np.array([])
 
     input_dict = {
         "input": input,
         "mat1": mat1,
         "mat2": mat2,
-        "beta": 0.5,
-        "alpha": 2.0,
-        "out": None
+        "beta": beta,
+        "alpha": alpha,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: Integer tensors
-    indices1 = torch.tensor([[0, 1], [1, 0]]).long()
-    values1 = torch.tensor([1, 2])
-    mat1 = torch.sparse_coo_tensor(indices1, values1, (2, 2)).to_dense().numpy()
-
-    mat2 = torch.randint(0, 5, (2, 3)).numpy()
-    indices_input = torch.tensor([[0, 0], [1, 1]]).long()
-    values_input = torch.tensor([3, 4])
-    input = torch.sparse_coo_tensor(indices_input, values_input, (2, 3)).to_dense().numpy()
+    # Input 2
+    indices = torch.tensor([[0, 0]])
+    values = torch.tensor([1.0])
+    shape = (3, 3)
+    input = torch.sparse_coo_tensor(indices, values, shape).to_dense().numpy()
+    indices1 = torch.tensor([[1, 1]])
+    values1 = torch.tensor([2.0])
+    shape1 = (3, 3)
+    mat1 = torch.sparse_coo_tensor(indices1, values1, shape1, dtype=torch.float32).to_dense().numpy()
+    mat2 = torch.tensor([[9.0, 10.0, 11.0], [12.0, 13.0, 14.0], [15.0, 16.0, 17.0]], dtype=torch.float32).numpy()
+    beta = -1.0
+    alpha = 2.0
+    out = np.array([])
 
     input_dict = {
         "input": input,
         "mat1": mat1,
         "mat2": mat2,
-        "beta": 0.0,
-        "alpha": 1.0,
-        "out": None
+        "beta": beta,
+        "alpha": alpha,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 4: Negative values in tensors
-    indices1 = torch.tensor([[0, 0], [1, 1]]).long()
-    values1 = torch.tensor([-1.0, -2.0])
-    mat1 = torch.sparse_coo_tensor(indices1, values1, (2, 2)).to_dense().numpy()
-
-    mat2 = torch.randn(2, 2).numpy()
-    indices_input = torch.tensor([[0, 1], [1, 0]]).long()
-    values_input = torch.tensor([-3.0, -4.0])
-    input = torch.sparse_coo_tensor(indices_input, values_input, (2, 2)).to_dense().numpy()
+    # Input 3
+    indices = torch.tensor([[0, 2], [2, 0]])
+    values = torch.tensor([-4.0, 5.0])
+    shape = (3, 3)
+    input = torch.sparse_coo_tensor(indices, values, shape).to_dense().numpy()
+    indices1 = torch.tensor([[1, 2]])
+    values1 = torch.tensor([3.0])
+    shape1 = (3, 3)
+    mat1 = torch.sparse_coo_tensor(indices1, values1, shape1, dtype=torch.float32).to_dense().numpy()
+    mat2 = torch.tensor([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=torch.float32).numpy()
+    beta = 0.0
+    alpha = 1.0
+    out = np.array([])
 
     input_dict = {
         "input": input,
         "mat1": mat1,
         "mat2": mat2,
-        "beta": 1.0,
-        "alpha": 1.0,
-        "out": None
+        "beta": beta,
+        "alpha": alpha,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: Different sparse layout and beta=0
-    indices1 = torch.tensor([[0, 2], [2, 0]]).long()
-    values1 = torch.tensor([1.0, 2.0])
-    mat1 = torch.sparse_coo_tensor(indices1, values1, (3, 3)).to_dense().numpy()
-
-    mat2 = torch.randn(3, 4).numpy()
-    indices_input = torch.tensor([[1, 1], [2, 3]]).long()
-    values_input = torch.tensor([3.0, 4.0])
-    input = torch.sparse_coo_tensor(indices_input, values_input, (3, 4)).to_dense().numpy()
+    # Input 4
+    indices = torch.tensor([[0, 0]])
+    values = torch.tensor([6.0])
+    shape = (2, 3)
+    input = torch.sparse_coo_tensor(indices, values, shape).to_dense().numpy()
+    indices1 = torch.tensor([[0, 1]])
+    values1 = torch.tensor([7.0])
+    shape1 = (2, 3)
+    mat1 = torch.sparse_coo_tensor(indices1, values1, shape1, dtype=torch.float32).to_dense().numpy()
+    mat2 = torch.tensor([[18.0], [19.0], [20.0]], dtype=torch.float32).numpy()
+    beta = 1.0
+    alpha = 0.0
+    out = np.array([])
 
     input_dict = {
         "input": input,
         "mat1": mat1,
         "mat2": mat2,
-        "beta": 0.0,
-        "alpha": 1.0,
-        "out": None
+        "beta": beta,
+        "alpha": alpha,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Case 6: Reduce size to prevent OOM and correct sparse_dim
-    indices1 = torch.tensor([[0, 0], [1, 1]]).long()
-    values1 = torch.tensor([1.0, 2.0])
-    mat1 = torch.sparse_coo_tensor(indices1, values1, (2, 2)).to_dense().numpy()
 
-    mat2 = torch.randn(2, 2).numpy()
-    indices_input = torch.tensor([[0, 0], [1, 1]]).long()
-    values_input = torch.tensor([3.0, 4.0])
-    input = torch.sparse_coo_tensor(indices_input, values_input, (2, 2)).to_dense().numpy()
+    # Input 5
+    indices = torch.tensor([[1, 1]])
+    values = torch.tensor([8.0])
+    shape = (4, 2)
+    input = torch.sparse_coo_tensor(indices, values, shape).to_dense().numpy()
+    indices1 = torch.tensor([[2, 0]])
+    values1 = torch.tensor([9.0])
+    shape1 = (4, 2)
+    mat1 = torch.sparse_coo_tensor(indices1, values1, shape1, dtype=torch.float32).to_dense().numpy()
+    mat2 = torch.tensor([[21.0, 22.0], [23.0, 24.0]], dtype=torch.float32).numpy()
+    beta = 0.25
+    alpha = -0.5
+    out = np.array([])
 
     input_dict = {
         "input": input,
         "mat1": mat1,
         "mat2": mat2,
-        "beta": 1.0,
-        "alpha": 1.0,
-        "out": None
+        "beta": beta,
+        "alpha": alpha,
+        "out": out
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
 
     return list_of_inputs
 
 generated_inputs = {}
 generated_inputs["torch.sspaddmm"] = sspaddmm_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -144,4 +146,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.sspaddmm' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.sspaddmm'.")
 
-check_valid('torch.sspaddmm', generated_inputs['torch.sspaddmm'], lib="torch")
+check_valid('torch.sspaddmm', generated_inputs['torch.sspaddmm'], lib="torch", suffix=0)

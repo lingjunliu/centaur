@@ -1,104 +1,115 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def layer_norm_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with float input and affine parameters
-    input1 = np.random.randn(2, 3, 4).astype(np.float32)
-    normalized_shape1 = (4,)
-    weight1 = np.random.randn(4).astype(np.float32)
-    bias1 = np.random.randn(4).astype(np.float32)
-    eps1 = 1e-5
-    elementwise_affine1 = True
-    input_dict1 = {
-        "input": input1,
-        "normalized_shape": normalized_shape1,
-        "weight": weight1,
-        "bias": bias1,
-        "eps": eps1,
-        "elementwise_affine": elementwise_affine1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    normalized_shape = (3, 4)
+    weight = torch.randn(4).numpy()
+    bias = torch.randn(4).numpy()
+    eps = 1e-5
+    elementwise_affine = True
 
-    # Input 2: Input with int data type
-    input2 = np.random.randint(0, 10, size=(2, 3, 4)).astype(np.float32)
-    normalized_shape2 = (4,)
-    weight2 = np.random.randn(4).astype(np.float32)
-    bias2 = np.random.randn(4).astype(np.float32)
-    eps2 = 1e-5
-    elementwise_affine2 = True
-    input_dict2 = {
-        "input": input2,
-        "normalized_shape": normalized_shape2,
-        "weight": weight2,
-        "bias": bias2,
-        "eps": eps2,
-        "elementwise_affine": elementwise_affine2
+    input_dict = {
+        "input": input_tensor,
+        "normalized_shape": normalized_shape,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps,
+        "elementwise_affine": elementwise_affine
     }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Input with negative values and no affine parameters
-    input3 = np.random.randn(2, 3, 4) * -1
-    normalized_shape3 = (4,)
-    weight3 = None
-    bias3 = None
-    eps3 = 1e-5
-    elementwise_affine3 = False
-    input_dict3 = {
-        "input": input3,
-        "normalized_shape": normalized_shape3,
-        "weight": weight3,
-        "bias": bias3,
-        "eps": eps3,
-        "elementwise_affine": elementwise_affine3
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-    
-    # Input 4: Input with different normalized_shape
-    input4 = np.random.randn(2, 3, 4, 5).astype(np.float32)
-    normalized_shape4 = (4, 5)
-    weight4 = np.random.randn(5).astype(np.float32)
-    bias4 = np.random.randn(5).astype(np.float32)
-    eps4 = 1e-5
-    elementwise_affine4 = True
-    input_dict4 = {
-        "input": input4,
-        "normalized_shape": normalized_shape4,
-        "weight": weight4,
-        "bias": bias4,
-        "eps": eps4,
-        "elementwise_affine": elementwise_affine4
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2
+    input_tensor = torch.randn(5, 5).numpy()
+    normalized_shape = (5,)
+    weight = torch.randn(5).numpy()
+    bias = torch.randn(5).numpy()
+    eps = 1e-8
+    elementwise_affine = True
 
-    # Input 5: Input with different eps value
-    input5 = np.random.randn(2, 3, 4).astype(np.float32)
-    normalized_shape5 = (4,)
-    weight5 = np.random.randn(4).astype(np.float32)
-    bias5 = np.random.randn(4).astype(np.float32)
-    eps5 = 1e-8
-    elementwise_affine5 = True
-    input_dict5 = {
-        "input": input5,
-        "normalized_shape": normalized_shape5,
-        "weight": weight5,
-        "bias": bias5,
-        "eps": eps5,
-        "elementwise_affine": elementwise_affine5
+    input_dict = {
+        "input": input_tensor,
+        "normalized_shape": normalized_shape,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps,
+        "elementwise_affine": elementwise_affine
     }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-    
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(1, 2, 3, 4).numpy()
+    normalized_shape = (2, 3, 4)
+    weight = torch.randn(4).numpy()
+    bias = torch.randn(4).numpy()
+    eps = 1e-12
+    elementwise_affine = True
+    input_dict = {
+        "input": input_tensor,
+        "normalized_shape": normalized_shape,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps,
+        "elementwise_affine": elementwise_affine
+    }
+
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(2, 2).numpy()
+    normalized_shape = (2,)
+    weight = torch.randn(2).numpy()
+    bias = torch.randn(2).numpy()
+    eps = 1e-3
+    elementwise_affine = True
+
+    input_dict = {
+        "input": input_tensor,
+        "normalized_shape": normalized_shape,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps,
+        "elementwise_affine": elementwise_affine
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(3, 10).numpy()
+    normalized_shape = (10,)
+    weight = torch.randn(10).numpy()
+    bias = torch.randn(10).numpy()
+    eps = 1e-7
+    elementwise_affine = False
+
+    input_dict = {
+        "input": input_tensor,
+        "normalized_shape": normalized_shape,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps,
+        "elementwise_affine": elementwise_affine
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-def check_valid(api, list_of_inputs, lib="torch"):
+generated_inputs = {}
+generated_inputs["torch.nn.functional.layer_norm"] = layer_norm_inputs()
+
+
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -106,4 +117,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.nn.functional.layer_norm' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.nn.functional.layer_norm'.")
 
-check_valid('torch.nn.functional.layer_norm', generated_inputs['torch.nn.functional.layer_norm'], lib="torch")
+check_valid('torch.nn.functional.layer_norm', generated_inputs['torch.nn.functional.layer_norm'], lib="torch", suffix=0)

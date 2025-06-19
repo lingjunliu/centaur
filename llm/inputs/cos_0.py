@@ -1,46 +1,71 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def cos_inputs():
     list_of_inputs = []
 
-    # Input 1: 1D float tensor
-    input1 = torch.randn(4).numpy()
-    input_dict1 = {"input": input1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: 1D tensor, out=None
+    input_tensor = torch.tensor([0.0, 0.5, 1.0, 1.5, 2.0]).numpy()
+    out_tensor = np.array([])
 
-    # Input 2: 2D float tensor with negative values
-    input2 = torch.randn(2, 3).numpy()
-    input_dict2 = {"input": input2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D float tensor
-    input3 = torch.randn(2, 2, 2).numpy()
-    input_dict3 = {"input": input3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 2: 2D tensor, out=None
+    input_tensor = torch.tensor([[0.0, 0.5], [1.0, 1.5]]).numpy()
+    out_tensor = np.array([])
 
-    # Input 4: Scalar tensor
-    input4 = np.random.randn(1)
-    input_dict4 = {"input": input4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Large values
-    input5 = (torch.randn(3) * 100).numpy()
-    input_dict5 = {"input": input5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 3: 3D tensor, out=None
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = np.array([])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with negative values, out=None
+    input_tensor = torch.tensor([-1.0, -0.5, 0.0, 0.5, 1.0]).numpy()
+    out_tensor = np.array([])
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: Large tensor, out = pre-allocated tensor
+    input_tensor = torch.randn(100).numpy()
+    out_tensor = torch.zeros(100).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.cos"] = cos_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -48,4 +73,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.cos' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.cos'.")
 
-check_valid('torch.cos', generated_inputs['torch.cos'], lib="torch")
+check_valid('torch.cos', generated_inputs['torch.cos'], lib="torch", suffix=0)

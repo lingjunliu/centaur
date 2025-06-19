@@ -1,5 +1,6 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
@@ -10,71 +11,66 @@ import copy
 def pad_sequence_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic test with float tensors
-    seq1 = torch.randn(5, 10).numpy()
-    seq2 = torch.randn(3, 10).numpy()
-    seq3 = torch.randn(7, 10).numpy()
-    sequences = [seq1, seq2, seq3]
+    # Input 1: Basic case with different lengths
+    sequences = [torch.tensor([1, 2, 3]).numpy(), torch.tensor([4, 5]).numpy(), torch.tensor([6, 7, 8, 9]).numpy()]
+    batch_first = np.bool_(False)
+    padding_value = np.float64(0.0)
+    enforce_sorted = np.bool_(True)
     input_dict = {
         "sequences": sequences,
-        "batch_first": False,
-        "padding_value": 0.0,
+        "batch_first": batch_first,
+        "padding_value": padding_value,
+        "enforce_sorted": enforce_sorted
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: batch_first = True, integer tensors
-    seq1 = torch.randint(0, 10, (4, 5)).numpy()
-    seq2 = torch.randint(0, 10, (2, 5)).numpy()
-    sequences = [seq1, seq2]
+    # Input 2: batch_first = True
+    sequences = [torch.tensor([1, 2, 3]).numpy(), torch.tensor([4, 5]).numpy()]
+    batch_first = np.bool_(True)
+    padding_value = np.float64(-1.0)
+    enforce_sorted = np.bool_(False)
     input_dict = {
         "sequences": sequences,
-        "batch_first": True,
-        "padding_value": -1.0,
+        "batch_first": batch_first,
+        "padding_value": padding_value,
+        "enforce_sorted": enforce_sorted
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Empty sequences
+    sequences = [torch.tensor([]).numpy(), torch.tensor([1, 2]).numpy(), torch.tensor([3, 4, 5]).numpy()]
+    batch_first = np.bool_(False)
+    padding_value = np.float64(10.0)
+    enforce_sorted = np.bool_(False)
+    input_dict = {
+        "sequences": sequences,
+        "batch_first": batch_first,
+        "padding_value": padding_value,
+        "enforce_sorted": enforce_sorted
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3: Different sequence lengths, 3D tensors
-    seq1 = torch.randn(2, 5, 3).numpy()
-    seq2 = torch.randn(4, 5, 3).numpy()
-    seq3 = torch.randn(1, 5, 3).numpy()
-    sequences = [seq1, seq2, seq3]
+    # Input 4: 2D sequences
+    sequences = [torch.tensor([[1, 2], [3, 4]]).numpy(), torch.tensor([[5, 6], [7, 8], [9, 10]]).numpy()]
+    batch_first = np.bool_(False)
+    padding_value = np.float64(0.0)
+    enforce_sorted = np.bool_(False)
     input_dict = {
         "sequences": sequences,
-        "batch_first": False,
-        "padding_value": -2.0,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: All sequences are the same length
-    seq1 = torch.randn(3, 4).numpy()
-    seq2 = torch.randn(3, 4).numpy()
-    seq3 = torch.randn(3, 4).numpy()
-    sequences = [seq1, seq2, seq3]
-    input_dict = {
-        "sequences": sequences,
-        "batch_first": True,
-        "padding_value": 1.0,
+        "batch_first": batch_first,
+        "padding_value": padding_value,
+        "enforce_sorted": enforce_sorted
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5: Complex numbers, casting to float32
-    seq1 = (torch.randn(2, 3) + 1j * torch.randn(2, 3)).numpy().astype(np.complex64)
-    seq2 = (torch.randn(4, 3) + 1j * torch.randn(4, 3)).numpy().astype(np.complex64)
-    sequences = [seq1, seq2]
-    input_dict = {
-        "sequences": sequences,
-        "batch_first": False,
-        "padding_value": 0.0,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}
 generated_inputs["torch.nn.utils.rnn.pad_sequence"] = pad_sequence_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -82,4 +78,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.nn.utils.rnn.pad_sequence' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.nn.utils.rnn.pad_sequence'.")
 
-check_valid('torch.nn.utils.rnn.pad_sequence', generated_inputs['torch.nn.utils.rnn.pad_sequence'], lib="torch")
+check_valid('torch.nn.utils.rnn.pad_sequence', generated_inputs['torch.nn.utils.rnn.pad_sequence'], lib="torch", suffix=0)

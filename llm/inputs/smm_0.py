@@ -1,5 +1,6 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
@@ -9,57 +10,44 @@ import numpy as np
 def smm_inputs():
     list_of_inputs = []
 
-    # Case 1: Basic case with float tensors
-    indices = torch.tensor([[0, 1], [1, 2]], dtype=torch.int64)
-    values = torch.tensor([1.0, 2.0])
-    size = (3, 3)
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).coalesce()
-    mat = torch.randn(3, 2).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
+    # Input 1: Basic valid case
+    input = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([1.0, 2.0]), size=(2, 2))
+    mat = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+    input_dict = {"input": input.to_dense().numpy(), "mat": mat.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 2: Integer tensors
-    indices = torch.tensor([[0, 1], [1, 2]], dtype=torch.int64)
-    values = torch.tensor([1, 2])
-    size = (3, 3)
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).coalesce()
-    mat = torch.randint(0, 10, (3, 2)).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
+    # Input 2: Larger matrices
+    input = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1, 2], [1, 2, 0]]), values=torch.tensor([1.0, 2.0, 3.0]), size=(3, 3))
+    mat = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    input_dict = {"input": input.to_dense().numpy(), "mat": mat.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 3: Different dimensions for mat
-    indices = torch.tensor([[0, 1], [1, 2]], dtype=torch.int64)
-    values = torch.tensor([1.0, 2.0])
-    size = (3, 3)
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).coalesce()
-    mat = torch.randn(3, 5).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Case 4: Negative values
-    indices = torch.tensor([[0, 1], [1, 2]], dtype=torch.int64)
-    values = torch.tensor([-1.0, 2.0])
-    size = (3, 3)
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).coalesce()
-    mat = torch.randn(3, 2).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
+    # Input 3: Sparse matrix with negative values
+    input = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([-1.0, 2.0]), size=(2, 2))
+    mat = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+    input_dict = {"input": input.to_dense().numpy(), "mat": mat.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Case 5: Larger sparse matrix
-    indices = torch.tensor([[0, 1], [1, 2], [2, 0]], dtype=torch.int64)
-    values = torch.tensor([1.0, 2.0, 3.0])
-    size = (3, 3)
-    input_sparse = torch.sparse_coo_tensor(indices, values, size).coalesce()
-    mat = torch.randn(3, 4).numpy()
-    input_dict = {"input": input_sparse.numpy(), "mat": mat}
+    # Input 4: Non-square matrices
+    input = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([1.0, 2.0]), size=(2, 3))
+    mat = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    input_dict = {"input": input.to_dense().numpy(), "mat": mat.numpy()}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 5: Different values and sizes.
+    input = torch.sparse_coo_tensor(indices=torch.tensor([[0, 2], [1, 0]]), values=torch.tensor([4.0, -2.0]), size=(3, 2))
+    mat = torch.tensor([[-1.0, 0.5], [3.0, -2.0], [0.0,1.0]])
+    input_dict = {"input": input.to_dense().numpy(), "mat": mat.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.smm"] = smm_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -67,4 +55,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.smm' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.smm'.")
 
-check_valid('torch.smm', generated_inputs['torch.smm'], lib="torch")
+check_valid('torch.smm', generated_inputs['torch.smm'], lib="torch", suffix=0)

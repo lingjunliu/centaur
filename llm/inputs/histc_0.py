@@ -1,55 +1,100 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
+import copy
 import numpy as np
 
 def histc_inputs():
     list_of_inputs = []
 
-    input1 = np.array([1.0, 2.0, 1.0])
-    bins1 = 4
-    min1 = 0.0
-    max1 = 3.0
-    input_dict1 = {"input": input1, "bins": bins1, "min": float(min1), "max": float(max1)}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: Basic example with positive values
+    input_tensor = torch.tensor([1.0, 2.0, 1.0, 3.0, 2.5]).numpy()
+    bins = 5
+    min_val = 0.0
+    max_val = 4.0
+    out_tensor = torch.tensor([]).numpy()
 
-    input2 = np.array([-1.0, 0.0, 1.0, 2.0])
-    bins2 = 5
-    min2 = -2.0
-    max2 = 3.0
-    input_dict2 = {"input": input2, "bins": bins2, "min": float(min2), "max": float(max2)}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input3 = np.array([0.5, 1.5, 2.5, 3.5, 4.5])
-    bins3 = 3
-    min3 = 1.0
-    max3 = 4.0
-    input_dict3 = {"input": input3, "bins": bins3, "min": float(min3), "max": float(max3)}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 2:  Negative values and specified range
+    input_tensor = torch.tensor([-1.0, -0.5, 0.0, 0.5, 1.0]).numpy()
+    bins = 10
+    min_val = -2.0
+    max_val = 2.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input4 = np.array([1, 2, 3, 4, 5], dtype=np.int32)
-    bins4 = 5
-    min4 = 0.0
-    max4 = 6.0
-    input_dict4 = {"input": input4, "bins": bins4, "min": float(min4), "max": float(max4)}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 3:  Zero min and max, using data range
+    input_tensor = torch.tensor([0.5, 1.5, 2.5, 3.5]).numpy()
+    bins = 4
+    min_val = 0.0
+    max_val = 0.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input5 = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], dtype=np.float64)
-    bins5 = 6
-    min5 = 0.0
-    max5 = 1.0
-    input_dict5 = {"input": input5, "bins": bins5, "min": float(min5), "max": float(max5)}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-    
+    # Input 4:  Larger number of bins
+    input_tensor = torch.randn(100).numpy()
+    bins = 50
+    min_val = -3.0
+    max_val = 3.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5:  Smaller number of bins
+    input_tensor = torch.tensor([1.0, 1.5, 2.0, 2.5, 3.0]).numpy()
+    bins = 2
+    min_val = 1.0
+    max_val = 3.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.histc"] = histc_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -57,4 +102,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.histc' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.histc'.")
 
-check_valid('torch.histc', generated_inputs['torch.histc'], lib="torch")
+check_valid('torch.histc', generated_inputs['torch.histc'], lib="torch", suffix=0)

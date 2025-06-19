@@ -1,78 +1,63 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
 import torch, copy
-import torch.distributed as dist
 import numpy as np
-import torch.nn as nn
 
-def SyncBatchNorm_inputs():
+def sync_batchnorm_inputs():
     list_of_inputs = []
 
+    # Input 1
+    num_features = np.int32(100)
+    eps = np.float32(1e-05)
+    momentum = np.float32(0.1)
+    affine = np.bool_(True)
+    track_running_stats = np.bool_(True)
+    process_group = []
+    dtype = None
+
     input_dict = {
-        "num_features": 100,
-        "eps": 1e-05,
-        "momentum": 0.1,
-        "affine": True,
-        "track_running_stats": True,
-        "process_group": None,
-        "dtype": None
+        "num_features": num_features,
+        "eps": eps,
+        "momentum": momentum,
+        "affine": affine,
+        "track_running_stats": track_running_stats,
+        "process_group": process_group,
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_dict = {
-        "num_features": 50,
-        "eps": 1e-04,
-        "momentum": 0.2,
-        "affine": False,
-        "track_running_stats": False,
-        "process_group": None,
-        "dtype": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    input_dict = {
-        "num_features": 128,
-        "eps": 1e-06,
-        "momentum": 0.05,
-        "affine": True,
-        "track_running_stats": True,
-        "process_group": None,
-        "dtype": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2
+    num_features = np.int32(50)
+    eps = np.float32(1e-04)
+    momentum = np.float32(0.2)
+    affine = np.bool_(False)
+    track_running_stats = np.bool_(False)
+    process_group = []
+    dtype = None
 
     input_dict = {
-        "num_features": 64,
-        "eps": 1e-03,
-        "momentum": None,
-        "affine": False,
-        "track_running_stats": True,
-        "process_group": None,
-        "dtype": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    input_dict = {
-        "num_features": 256,
-        "eps": 1e-07,
-        "momentum": 0.3,
-        "affine": True,
-        "track_running_stats": False,
-        "process_group": None,
-        "dtype": None
+        "num_features": num_features,
+        "eps": eps,
+        "momentum": momentum,
+        "affine": affine,
+        "track_running_stats": track_running_stats,
+        "process_group": process_group,
+        "dtype": dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["torch.nn.SyncBatchNorm"] = SyncBatchNorm_inputs()
+generated_inputs["torch.nn.SyncBatchNorm"] = sync_batchnorm_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -80,4 +65,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.nn.SyncBatchNorm' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.nn.SyncBatchNorm'.")
 
-check_valid('torch.nn.SyncBatchNorm', generated_inputs['torch.nn.SyncBatchNorm'], lib="torch")
+check_valid('torch.nn.SyncBatchNorm', generated_inputs['torch.nn.SyncBatchNorm'], lib="torch", suffix=0)

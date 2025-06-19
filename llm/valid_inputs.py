@@ -38382,3 +38382,4678 @@ def is_same_size_inputs():
 
 generated_inputs["torch.is_same_size"] = is_same_size_inputs()
 
+import torch, copy
+import numpy as np
+
+def abs_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with negative and positive values
+    input_tensor = torch.tensor([-1.0, -2.0, 0.0, 2.0, 1.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with various values
+    input_tensor = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with only positive values
+    input_tensor = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
+    out_tensor = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 1D tensor with only negative values
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 0D tensor (scalar)
+    input_tensor = torch.tensor(-5.0).numpy()
+    out_tensor = torch.tensor(0.0).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with floating point numbers
+    input_tensor = torch.tensor([-1.5, 2.5, -3.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensor with zeros
+    input_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.abs"] = abs_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def acos_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor within the domain [-1, 1]
+    input_tensor = torch.tensor([-1.0, -0.5, 0.0, 0.5, 1.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor within the domain [-1, 1]
+    input_tensor = torch.tensor([[-1.0, 0.0, 1.0], [0.5, -0.5, 0.2]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor within the domain [-1, 1]
+    input_tensor = torch.tensor([[[0.2, 0.3], [-0.4, 0.5]], [[-0.6, 0.7], [0.8, -0.9]]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with mixed positive and negative values in [-1, 1]
+    input_tensor = torch.tensor([-0.8, 0.6, -0.2, 0.9, -0.1]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with only zeros
+    input_tensor = torch.zeros(5).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with ones
+    input_tensor = torch.ones(5).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Empty tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.acos"] = acos_inputs()
+
+import torch, copy
+import numpy as np
+
+def acosh_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid input
+    input_tensor = torch.tensor([1.5, 2.0, 2.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different values
+    input_tensor = torch.tensor([1.0, 3.0, 5.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Multi-dimensional tensor
+    input_tensor = torch.tensor([[1.1, 1.2], [1.3, 1.4]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger tensor
+    input_tensor = torch.rand(2, 3, 4).uniform_(1, 2).numpy()
+    out_tensor = torch.zeros(2, 3, 4).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Input with a single element
+    input_tensor = torch.tensor([2.0]).numpy()
+    out_tensor = torch.tensor([0.0]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.acosh"] = acosh_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def angle_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D complex tensor
+    input_tensor = torch.tensor([1 + 1j, -1 + 1j, -1 - 1j, 1 - 1j]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D complex tensor
+    input_tensor = torch.tensor([[1 + 0j, 0 + 1j], [-1 + 0j, 0 - 1j]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 1D real tensor (should return 0 or pi based on sign)
+    input_tensor = torch.tensor([-1.0, 0.0, 1.0, -0.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D complex tensor
+    input_tensor = torch.randn(2, 2, 2, dtype=torch.complex64).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Complex tensor with NaN
+    input_tensor = torch.tensor([float('nan') + 1j, 1 + float('nan')*1j]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty out tensor
+    input_tensor = torch.tensor([1 + 1j, -1 + 1j]).numpy()
+    out_tensor = np.array([])
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Zero tensor
+    input_tensor = torch.zeros(2, 2, dtype=torch.complex64).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.angle"] = angle_inputs()
+
+import torch, copy
+import numpy as np
+
+def any_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple boolean tensor
+    input_tensor = torch.tensor([True, False, True]).numpy()
+    out_tensor = torch.tensor(False).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: All False tensor
+    input_tensor = torch.tensor([False, False, False]).numpy()
+    out_tensor = torch.tensor(False).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Integer tensor (evaluates to boolean)
+    input_tensor = torch.tensor([0, 0, 1, 0]).numpy()
+    out_tensor = torch.tensor(False).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Float tensor (evaluates to boolean)
+    input_tensor = torch.tensor([0.0, 0.0, 1.0, 0.0]).numpy()
+    out_tensor = torch.tensor(False).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: 2D boolean tensor
+    input_tensor = torch.tensor([[True, False], [False, False]]).numpy()
+    out_tensor = torch.tensor(False).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor(False).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Large tensor
+    input_tensor = torch.randint(0, 2, (100, 100)).bool().numpy()
+    out_tensor = torch.tensor(False).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.any_1"] = any_inputs()
+
+import torch, copy
+import numpy as np
+
+def arccosh_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input_tensor = np.array([1.0, 2.0, 3.0])
+    out_tensor = np.array([0.0, 0.0, 0.0])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    input_tensor = np.array([[1.0, 1.5], [2.0, 2.5]])
+    out_tensor = np.array([[0.0, 0.0], [0.0, 0.0]])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = np.array([[[1.0, 1.1], [1.2, 1.3]], [[2.0, 2.1], [2.2, 2.3]]])
+    out_tensor = np.array([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with larger values
+    input_tensor = np.array([5.0, 10.0, 15.0])
+    out_tensor = np.array([0.0, 0.0, 0.0])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with float64 dtype
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    out_tensor = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with different shape
+    input_tensor = np.array([[2.5, 3.5, 4.5], [5.5, 6.5, 7.5]])
+    out_tensor = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.arccosh"] = arccosh_inputs()
+
+import torch, copy
+import numpy as np
+
+def arcsin_inputs():
+    list_of_inputs = []
+
+    # Input 1, valid: basic 1D tensor
+    input = torch.tensor([0.5]).numpy()
+    out = torch.tensor([0.0]).numpy()
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2, valid: 1D tensor with negative values
+    input = torch.tensor([-0.2, 0.0, 0.3, -0.7]).numpy()
+    out = torch.tensor([-0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3, valid: 2D tensor
+    input = torch.tensor([[0.1, 0.2], [-0.3, -0.4]]).numpy()
+    out = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4, valid: 3D tensor
+    input = torch.tensor([[[0.5, -0.5], [0.2, -0.2]], [[0.1, -0.1], [0.8, -0.8]]]).numpy()
+    out = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5, valid: Tensor with values close to 1 and -1
+    input = torch.tensor([0.99, -0.99, 0.01, -0.01]).numpy()
+    out = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6, valid: Empty tensor
+    input = torch.tensor([]).numpy()
+    out = torch.tensor([]).numpy()
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7, valid: specific shape
+    input = torch.randn(2, 2, 3).numpy() * 0.5
+    out = torch.zeros(2, 2, 3).numpy()
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, valid: different data type
+    input = torch.tensor([0.1, 0.2, -0.3], dtype=torch.float64).numpy()
+    out = torch.zeros(3, dtype=torch.float64).numpy()
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.arcsin"] = arcsin_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def arcsinh_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    input_tensor = torch.tensor([0.0, 1.0, 2.0, -1.0, -2.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    input_tensor = torch.tensor([[0.5, 1.5], [-0.5, -1.5]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with zeros
+    input_tensor = torch.zeros(5).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Large values
+    input_tensor = torch.tensor([100.0, -100.0, 1000.0, -1000.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Tensor with mixed values
+    input_tensor = torch.tensor([-0.7, 0.3, 1.2, -2.5, 0.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.arcsinh"] = arcsinh_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def arctan_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values
+    input_tensor = torch.tensor([0.0, 1.0, 2.0, 3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 1D tensor, negative values
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D tensor, mixed values
+    input_tensor = torch.tensor([[-1.0, 0.0, 1.0], [2.0, -2.0, 3.0]]).numpy()
+    out_tensor = torch.tensor([[-0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D tensor, all zeros
+    input_tensor = torch.zeros((2, 3, 4)).numpy()
+    out_tensor = torch.zeros((2, 3, 4)).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 1D tensor, large values
+    input_tensor = torch.tensor([100.0, -100.0, 1000.0, -1000.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: empty tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.arctan"] = arctan_inputs()
+
+import torch, copy
+import numpy as np
+
+def arctanh_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with values in the range (-1, 1)
+    input_tensor = torch.tensor([-0.5, 0.0, 0.5]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with values in the range (-1, 1)
+    input_tensor = torch.tensor([[-0.2, 0.3], [0.6, -0.8]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with values close to 1
+    input_tensor = torch.tensor([[[0.9, 0.95], [0.8, 0.7]], [[0.5, 0.6], [0.4, 0.3]]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with a single element close to -1
+    input_tensor = torch.tensor([-0.99]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with mixed positive and negative values.
+    input_tensor = torch.tensor([-0.1, 0.2, -0.3, 0.4, -0.5]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: tensor with value zero
+    input_tensor = torch.tensor([0.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: tensor with a large shape
+    input_tensor = torch.rand(5, 5, 5).numpy() * 2 - 1
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.arctanh"] = arctanh_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def asin_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid input with out
+    input_tensor = torch.tensor([-0.5, 0, 0.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different values, different out tensor size
+    input_tensor = torch.tensor([-1.0, -0.7, 0.2, 0.9, 1.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Multidimensional array
+    input_tensor = torch.tensor([[-0.8, 0.3], [0.6, -0.1]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Edge case - values outside the domain [-1, 1] will result in NaN
+    input_tensor = torch.tensor([-1.2, 0, 1.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Larger tensor
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.zeros(2, 3, 4).numpy()
+    input_tensor = np.clip(input_tensor, -1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Input with all zeros
+    input_tensor = torch.zeros(5).numpy()
+    out_tensor = torch.zeros(5).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Input with all ones
+    input_tensor = torch.ones(5).numpy()
+    out_tensor = torch.zeros(5).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.asin"] = asin_inputs()
+
+import torch, copy
+import numpy as np
+
+def asinh_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive and negative values
+    input_tensor = torch.tensor([-1.0, -0.5, 0.0, 0.5, 1.0])
+    out_tensor = torch.empty_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with different values
+    input_tensor = torch.tensor([[-2.0, -1.0, 0.0], [1.0, 2.0, 3.0]])
+    out_tensor = torch.empty_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with small values
+    input_tensor = torch.randn(2, 2, 2) * 0.1
+    out_tensor = torch.empty_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with zero values
+    input_tensor = torch.zeros(3, 3)
+    out_tensor = torch.empty_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Large values
+    input_tensor = torch.tensor([-10.0, -5.0, 5.0, 10.0])
+    out_tensor = torch.empty_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Float64 tensor
+    input_tensor = torch.randn(2, 2, dtype=torch.float64)
+    out_tensor = np.empty_like(input_tensor.numpy())
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Empty Tensor
+    input_tensor = torch.tensor([])
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.asinh"] = asinh_inputs()
+
+import torch, copy
+import numpy as np
+
+def atanh_inputs():
+    list_of_inputs = []
+    
+    # Input 1: 1D tensor with values in (-1, 1)
+    input_tensor = torch.tensor([-0.5, 0.2, 0.8, -0.9]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with values in (-1, 1)
+    input_tensor = torch.tensor([[0.1, -0.3], [0.6, -0.4]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with values in (-1, 1)
+    input_tensor = torch.randn(2, 2, 2).uniform_(-0.9, 0.9).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with values close to 1 and -1 to test the +/-INF behavior
+    input_tensor = torch.tensor([0.99, -0.99]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with exactly -1 and 1
+    input_tensor = torch.tensor([-1.0, 1.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.atanh"] = atanh_inputs()
+
+import torch
+import copy
+import numpy as np
+
+def ceil_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic test with positive and negative floats
+    input_tensor = torch.tensor([-2.5, -1.0, 0.0, 1.5, 2.9]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Test with a multi-dimensional tensor
+    input_tensor = torch.randn(2, 3).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Test with all positive values
+    input_tensor = torch.rand(5).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Test with all negative values
+    input_tensor = torch.randn(3) * -1.0
+    input_tensor = input_tensor.numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Test with a larger tensor
+    input_tensor = torch.randn(4, 4).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.ceil"] = ceil_inputs()
+
+import torch, copy
+import numpy as np
+
+def clip_inputs():
+    list_of_inputs = []
+    
+    # Input 1
+    input_tensor = torch.tensor([-1.0, 0.0, 1.0, 2.0]).numpy()
+    min_val = 0.0
+    max_val = 1.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "min": min_val, "max": max_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 2
+    input_tensor = torch.tensor([[-1.0, 0.0], [1.0, 2.0]]).numpy()
+    min_val = -0.5
+    max_val = 1.5
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "min": min_val, "max": max_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3
+    input_tensor = torch.tensor([[-2.0, -1.0, 0.0], [1.0, 2.0, 3.0]]).numpy()
+    min_val = -1.0
+    max_val = 2.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "min": min_val, "max": max_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    min_val = -0.7
+    max_val = 0.9
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "min": min_val, "max": max_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randint(-5, 5, (5,)).float().numpy()
+    min_val = -2.5
+    max_val = 2.5
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "min": min_val, "max": max_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_tensor = torch.arange(-10, 10, 2).float().numpy()
+    min_val = -5.0
+    max_val = 5.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "min": min_val, "max": max_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = torch.randn(1, 1, 1).numpy()
+    min_val = -0.1
+    max_val = 0.1
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "min": min_val, "max": max_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.clip"] = clip_inputs()
+
+import torch, copy
+import numpy as np
+
+def clip_inputs():
+    list_of_inputs = []
+
+    # Input 1, valid
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    min = 1.5
+    max = 2.5
+    input_dict = {
+        "input": input,
+        "min": min,
+        "max": max
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2, valid, negative values
+    input = torch.tensor([-1.0, 0.0, 1.0]).numpy()
+    min = -0.5
+    max = 0.5
+    input_dict = {
+        "input": input,
+        "min": min,
+        "max": max
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3, valid, multi-dimensional
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    min = 1.5
+    max = 3.5
+    input_dict = {
+        "input": input,
+        "min": min,
+        "max": max
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4, valid, different range
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    min = 0.0
+    max = 10.0
+    input_dict = {
+        "input": input,
+        "min": min,
+        "max": max
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5, valid, min > max (should still work but give all max values)
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    min = 5.0
+    max = 0.0
+    input_dict = {
+        "input": input,
+        "min": min,
+        "max": max
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.clip_"] = clip_inputs()
+
+import torch
+import copy
+import numpy as np
+
+def complex_inputs():
+    list_of_inputs = []
+
+    # Input 1: float32, 1D tensors
+    real = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32).numpy()
+    imag = torch.tensor([4.0, 5.0, 6.0], dtype=torch.float32).numpy()
+    out = torch.empty(0, dtype=torch.complex64).numpy()
+    input_dict = {"real": real, "imag": imag, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: float64, 2D tensors
+    real = torch.tensor([[1.0, 2.0], [3.0, 4.0]], dtype=torch.float64).numpy()
+    imag = torch.tensor([[5.0, 6.0], [7.0, 8.0]], dtype=torch.float64).numpy()
+    out = torch.empty(0, dtype=torch.complex128).numpy()
+    input_dict = {"real": real, "imag": imag, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: float32, 0D tensors (scalars)
+    real = torch.tensor(1.0, dtype=torch.float32).numpy()
+    imag = torch.tensor(2.0, dtype=torch.float32).numpy()
+    out = torch.empty(0, dtype=torch.complex64).numpy()
+    input_dict = {"real": real, "imag": imag, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: float64, 3D tensors
+    real = torch.randn(2, 3, 4, dtype=torch.float64).numpy()
+    imag = torch.randn(2, 3, 4, dtype=torch.float64).numpy()
+    out = torch.empty(0, dtype=torch.complex128).numpy()
+    input_dict = {"real": real, "imag": imag, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: float32, negative values
+    real = torch.tensor([-1.0, -2.0], dtype=torch.float32).numpy()
+    imag = torch.tensor([-3.0, -4.0], dtype=torch.float32).numpy()
+    out = torch.empty(0, dtype=torch.complex64).numpy()
+    input_dict = {"real": real, "imag": imag, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.complex"] = complex_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conj_physical_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D complex tensor
+    input_tensor = torch.tensor([1 + 1j, 2 - 2j, 3 + 0j], dtype=torch.complex64).numpy()
+    out_tensor = np.zeros(input_tensor.shape, dtype=np.complex64)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D complex tensor
+    input_tensor = torch.tensor([[1 + 1j, 2 - 2j], [3 + 0j, 4 - 1j]], dtype=torch.complex128).numpy()
+    out_tensor = np.zeros(input_tensor.shape, dtype=np.complex128)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D complex tensor
+    input_tensor = torch.tensor([[[1 + 1j, 2 - 2j], [3 + 0j, 4 - 1j]], [[5 - 1j, 6 + 2j], [7 + 0j, 8 + 1j]]], dtype=torch.complex64).numpy()
+    out_tensor = np.zeros(input_tensor.shape, dtype=np.complex64)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Complex tensor with only real parts
+    input_tensor = torch.tensor([1 + 0j, 2 + 0j, 3 + 0j], dtype=torch.complex128).numpy()
+    out_tensor = np.zeros(input_tensor.shape, dtype=np.complex128)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Complex tensor with only imaginary parts
+    input_tensor = torch.tensor([0 + 1j, 0 - 2j, 0 + 3j], dtype=torch.complex64).numpy()
+    out_tensor = np.zeros(input_tensor.shape, dtype=np.complex64)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Large complex tensor
+    input_tensor = torch.randn(10, 10, dtype=torch.complex128).numpy()
+    out_tensor = np.zeros(input_tensor.shape, dtype=np.complex128)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.conj_physical"] = conj_physical_inputs()
+
+import torch, copy
+import numpy as np
+
+def cos_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, out=None
+    input_tensor = torch.tensor([0.0, 0.5, 1.0, 1.5, 2.0]).numpy()
+    out_tensor = np.array([])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor, out=None
+    input_tensor = torch.tensor([[0.0, 0.5], [1.0, 1.5]]).numpy()
+    out_tensor = np.array([])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor, out=None
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = np.array([])
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with negative values, out=None
+    input_tensor = torch.tensor([-1.0, -0.5, 0.0, 0.5, 1.0]).numpy()
+    out_tensor = np.array([])
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: Large tensor, out = pre-allocated tensor
+    input_tensor = torch.randn(100).numpy()
+    out_tensor = torch.zeros(100).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.cos"] = cos_inputs()
+
+import torch, copy
+import numpy as np
+
+def cosh_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 1D tensor, out=None
+    input_tensor = torch.tensor([0.0, 0.5, -0.5, 1.0, -1.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor, specified out tensor
+    input_tensor = torch.tensor([[0.0, 1.0], [-1.0, 2.0]]).numpy()
+    out_tensor = torch.empty_like(torch.tensor(input_tensor)).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with large values (positive and negative)
+    input_tensor = torch.tensor([-100.0, 100.0, -500.0, 500.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with a mix of small and large values
+    input_tensor = torch.tensor([-0.1, 0.1, -10.0, 10.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with zeros
+    input_tensor = torch.zeros((2, 2)).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Empty Tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.cosh"] = cosh_inputs()
+
+import torch, copy
+import numpy as np
+
+def cummax_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    input1 = torch.tensor([-0.3449, -1.5447, 0.0685, -1.5104, -1.1706, 0.2259, 1.4696, -1.3284, 1.9946, -0.8209]).numpy()
+    dim1 = 0
+    out1 = (np.zeros_like(input1), np.zeros_like(input1, dtype=np.int64))
+    input_dict1 = {"input": input1, "dim": dim1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor, dim=0
+    input2 = torch.randn(3, 4).numpy()
+    dim2 = 0
+    out2 = (np.zeros_like(input2), np.zeros_like(input2, dtype=np.int64))
+    input_dict2 = {"input": input2, "dim": dim2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor, dim=1
+    input3 = torch.randn(3, 4).numpy()
+    dim3 = 1
+    out3 = (np.zeros_like(input3), np.zeros_like(input3, dtype=np.int64))
+    input_dict3 = {"input": input3, "dim": dim3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor, dim=0
+    input4 = torch.randn(2, 3, 4).numpy()
+    dim4 = 0
+    out4 = (np.zeros_like(input4), np.zeros_like(input4, dtype=np.int64))
+    input_dict4 = {"input": input4, "dim": dim4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 3D tensor, dim=1
+    input5 = torch.randn(2, 3, 4).numpy()
+    dim5 = 1
+    out5 = (np.zeros_like(input5), np.zeros_like(input5, dtype=np.int64))
+    input_dict5 = {"input": input5, "dim": dim5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.cummax"] = cummax_inputs()
+
+import torch, copy
+import numpy as np
+
+def cummin_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    input1 = torch.randn(5).numpy()
+    dim1 = 0
+    out1 = (np.array([0.0], dtype=np.float32), np.array([0]))
+    input_dict1 = {"input": input1, "dim": dim1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor
+    input2 = torch.randn(2, 3).numpy()
+    dim2 = 1
+    out2 = (np.array([0.0], dtype=np.float32), np.array([0]))
+    input_dict2 = {"input": input2, "dim": dim2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D tensor
+    input3 = torch.randn(2, 3, 4).numpy()
+    dim3 = 0
+    out3 = (np.array([0.0], dtype=np.float32), np.array([0]))
+    input_dict3 = {"input": input3, "dim": dim3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Tensor with negative values
+    input4 = torch.tensor([-1.0, -2.0, 0.0, 1.0, 2.0]).numpy()
+    dim4 = 0
+    out4 = (np.array([0.0], dtype=np.float32), np.array([0]))
+    input_dict4 = {"input": input4, "dim": dim4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Larger tensor
+    input5 = torch.randn(10, 10).numpy()
+    dim5 = 0
+    out5 = (np.array([0.0], dtype=np.float32), np.array([0]))
+    input_dict5 = {"input": input5, "dim": dim5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.cummin"] = cummin_inputs()
+
+import torch, copy
+import numpy as np
+
+def deg2rad_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    input_tensor = torch.tensor([0.0, 30.0, 45.0, 60.0, 90.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    input_tensor = torch.tensor([[180.0, -180.0], [360.0, -360.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = torch.tensor([[[0.0, 90.0], [180.0, 270.0]], [[360.0, -90.0], [-180.0, -270.0]]]).numpy()
+    out_tensor = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with large values
+    input_tensor = torch.tensor([720.0, 1080.0, 1440.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with negative and positive values, including 0.
+    input_tensor = torch.tensor([-45.0, 0.0, 45.0, -90.0, 90.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Empty tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Tensor with float64
+    input_tensor = torch.tensor([180.0, 360.0], dtype=torch.float64).numpy()
+    out_tensor = torch.tensor([0.0, 0.0], dtype=torch.float64).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.deg2rad"] = deg2rad_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def digamma_inputs():
+    list_of_inputs = []
+
+    # Input 1: Positive values, 1D tensor
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Positive values, 2D tensor
+    input_tensor = torch.tensor([[1.0, 1.5], [2.0, 2.5], [3.0, 3.5]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Positive values, 3D tensor
+    input_tensor = torch.rand(2, 3, 4).numpy() + 0.5 # Ensure positive values
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger positive values, 1D
+    input_tensor = torch.tensor([10.0, 20.0, 30.0, 40.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Small positive values, 2D
+    input_tensor = torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Mixed positive values
+    input_tensor = torch.tensor([0.5, 1.0, 2.5, 5.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Scalar tensor
+    input_tensor = torch.tensor(3.14).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.digamma"] = digamma_inputs()
+
+import torch, copy
+import numpy as np
+
+def erf_inputs():
+    list_of_inputs = []
+
+    # Input 1: Scalar tensor
+    input = np.array(0.5)
+    out = np.array(0.0)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 1D tensor with negative values
+    input = np.array([-1.0, -0.5, 0.0, 0.5, 1.0])
+    out = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D tensor
+    input = np.array([[1.0, 2.0], [3.0, 4.0]])
+    out = np.array([[0.0, 0.0], [0.0, 0.0]])
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D tensor with different values
+    input = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    out = np.array([[[0, 0], [0, 0]], [[0, 0], [0, 0]]], dtype=np.float32)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with large values
+    input = np.array([10.0, 20.0, 30.0])
+    out = np.array([0.0, 0.0, 0.0])
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Tensor with small values
+    input = np.array([0.01, 0.02, 0.03])
+    out = np.array([0.0, 0.0, 0.0])
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensor with a mix of positive and negative values
+    input = np.array([-2.5, -1.0, 0.0, 1.0, 2.5])
+    out = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.erf"] = erf_inputs()
+
+import torch, copy
+import numpy as np
+
+def erfc_inputs():
+    list_of_inputs = []
+
+    # Input 1, valid
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2, valid, negative input
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3, valid, 2D input
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4, valid, 3D input
+    input = torch.randn(2, 3, 4).numpy()
+    out = torch.zeros(2, 3, 4).numpy()
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5, valid, zero input
+    input = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    out = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.erfc"] = erfc_inputs()
+
+import torch, copy, math
+import numpy as np
+
+def exp_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values, out specified
+    input_tensor = torch.tensor([0.0, 1.0, 2.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 1D tensor, negative values, no out
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D tensor, mixed values
+    input_tensor = torch.tensor([[-1.0, 0.0], [1.0, 2.0]]).numpy()
+    out_tensor = torch.tensor([[-1.0, 0.0], [1.0, 2.0]]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D tensor, all zeros
+    input_tensor = torch.zeros((2, 2, 2)).numpy()
+    out_tensor = torch.tensor(np.zeros((2,2,2))).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 1D tensor, some large values
+    input_tensor = torch.tensor([10.0, 20.0, 30.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.exp"] = exp_inputs()
+
+import torch, copy
+import numpy as np
+
+def exp2_inputs():
+    list_of_inputs = []
+    
+    # Input 1: 1D tensor, positive values, out is None
+    input1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out1 = torch.zeros_like(torch.tensor([1.0, 2.0, 3.0])).numpy()
+    input_dict1 = {"input": input1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+    
+    # Input 2: 2D tensor, mixed positive and negative values, out is provided
+    input2 = torch.tensor([[-1.0, 0.0], [1.0, 2.0]]).numpy()
+    out2 = torch.zeros_like(torch.tensor([[-1.0, 0.0], [1.0, 2.0]])).numpy()
+    input_dict2 = {"input": input2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+    
+    # Input 3: 3D tensor, large values
+    input3 = torch.tensor([[[10.0, 20.0], [30.0, 40.0]], [[50.0, 60.0], [70.0, 80.0]]]).numpy()
+    out3 = torch.zeros_like(torch.tensor([[[10.0, 20.0], [30.0, 40.0]], [[50.0, 60.0], [70.0, 80.0]]])).numpy()
+    input_dict3 = {"input": input3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 1D tensor, negative values
+    input4 = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out4 = torch.zeros_like(torch.tensor([-1.0, -2.0, -3.0])).numpy()
+    input_dict4 = {"input": input4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 0D tensor, scalar value
+    input5 = torch.tensor(5.0).numpy()
+    out5 = torch.zeros_like(torch.tensor(5.0)).numpy()
+    input_dict5 = {"input": input5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.exp2"] = exp2_inputs()
+
+import torch, copy
+import numpy as np
+
+def expm1_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values
+    input1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out1 = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict1 = {
+        "input": input1,
+        "out": out1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor, negative values
+    input2 = torch.tensor([[-1.0, -2.0], [-3.0, -4.0]]).numpy()
+    out2 = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict2 = {
+        "input": input2,
+        "out": out2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D tensor, mixed values
+    input3 = torch.tensor([[[1.0, -1.0], [2.0, -2.0]], [[3.0, -3.0], [4.0, -4.0]]]).numpy()
+    out3 = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict3 = {
+        "input": input3,
+        "out": out3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Scalar tensor
+    input4 = torch.tensor(0.5).numpy()
+    out4 = torch.tensor(0.0).numpy()
+    input_dict4 = {
+        "input": input4,
+        "out": out4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Tensor with zeros
+    input5 = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    out5 = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict5 = {
+        "input": input5,
+        "out": out5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Large values
+    input6 = torch.tensor([100.0, -100.0]).numpy()
+    out6 = torch.tensor([0.0, 0.0]).numpy()
+    input_dict6 = {
+        "input": input6,
+        "out": out6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.expm1"] = expm1_inputs()
+
+import torch, copy
+import numpy as np
+
+def fftshift_inputs():
+    list_of_inputs = []
+    
+    # Input 1
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    dim = 0
+    input_dict = {"input": input_tensor, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 2
+    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    dim = 0
+    input_dict = {"input": input_tensor, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    dim = 1
+    input_dict = {"input": input_tensor, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input_tensor = torch.randn(3, 4, 5).numpy()
+    dim = 1
+    input_dict = {"input": input_tensor, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(2, 2, 2, 2).numpy()
+    dim = 3
+    input_dict = {"input": input_tensor, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.fft.fftshift_1"] = fftshift_inputs()
+
+import torch, copy
+import numpy as np
+
+def fix_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values
+    input1 = torch.tensor([1.2, 2.7, 3.1]).numpy()
+    out1 = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict1 = {"input": input1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 1D tensor, negative values
+    input2 = torch.tensor([-1.2, -2.7, -3.1]).numpy()
+    out2 = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict2 = {"input": input2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor, mixed values
+    input3 = torch.tensor([[-1.2, 2.7], [-3.1, 4.5]]).numpy()
+    out3 = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict3 = {"input": input3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor, positive values
+    input4 = torch.tensor([[[1.2, 2.7], [3.1, 4.5]], [[5.6, 6.7], [7.8, 9.0]]]).numpy()
+    out4 = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict4 = {"input": input4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 1D tensor, zero values
+    input5 = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    out5 = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict5 = {"input": input5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.fix"] = fix_inputs()
+
+import torch, copy
+import numpy as np
+
+def floor_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive and negative floats
+    input_tensor = torch.tensor([-1.5, -0.5, 0.5, 1.5, 2.5]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with different float values
+    input_tensor = torch.tensor([[1.2, 2.7], [-0.3, -1.8]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with mixed values
+    input_tensor = torch.tensor([[[1.1, -2.2], [3.3, -4.4]], [[5.5, -6.6], [7.7, -8.8]]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with only zero
+    input_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Large tensor
+    input_tensor = torch.randn(100).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.floor"] = floor_inputs()
+
+import torch, copy
+import numpy as np
+
+def frac_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive and negative floats
+    input_tensor = torch.tensor([1.5, -2.3, 0.7, -0.1]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with integers
+    input_tensor = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with mixed values
+    input_tensor = torch.tensor([[[1.1, 2.2], [-3.3, 4.4]], [[-5.5, 6.6], [7.7, -8.8]]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: 1D tensor with zeros and near-zero values
+    input_tensor = torch.tensor([0.0, 1e-9, -1e-9, 1.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: 1D tensor with large values
+    input_tensor = torch.tensor([1e9 + 0.5, -1e9 - 0.5]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+
+generated_inputs["torch.frac"] = frac_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def frexp_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    input_tensor = torch.arange(1.0, 6.0).numpy()
+    out_tuple = (torch.randn(5).numpy(), torch.zeros(5, dtype=torch.int32).numpy())
+    input_dict = {"input": input_tensor, "out": out_tuple}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    input_tensor = torch.randn(2, 3).numpy()
+    out_tuple = (torch.randn(2, 3).numpy(), torch.zeros((2, 3), dtype=torch.int32).numpy())
+    input_dict = {"input": input_tensor, "out": out_tuple}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = torch.randn(2, 2, 2).numpy()
+    out_tuple = (torch.randn(2, 2, 2).numpy(), torch.zeros((2, 2, 2), dtype=torch.int32).numpy())
+    input_dict = {"input": input_tensor, "out": out_tuple}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with negative values
+    input_tensor = torch.linspace(-5.0, 5.0, 10).numpy()
+    out_tuple = (torch.randn(10).numpy(), torch.zeros(10, dtype=torch.int32).numpy())
+    input_dict = {"input": input_tensor, "out": out_tuple}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with zeros
+    input_tensor = torch.tensor([0.0, 1.0, 2.0, 0.0, -1.0]).numpy()
+    out_tuple = (torch.randn(5).numpy(), torch.zeros(5, dtype=torch.int32).numpy())
+    input_dict = {"input": input_tensor, "out": out_tuple}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.frexp"] = frexp_inputs()
+
+import torch, copy
+
+def get_autocast_xla_dtype_inputs():
+    list_of_inputs = []
+    return list_of_inputs
+
+
+generated_inputs["torch.get_autocast_xla_dtype"] = get_autocast_xla_dtype_inputs()
+
+import torch, copy
+import numpy as np
+
+def heaviside_inputs():
+    list_of_inputs = []
+
+    # Input 1, valid
+    input_tensor = torch.tensor([-1.5, 0, 2.0]).float().numpy()
+    values_tensor = torch.tensor([0.5]).float().numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).float().numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "values": values_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2, valid
+    input_tensor = torch.tensor([-1.5, 0, 2.0]).float().numpy()
+    values_tensor = torch.tensor([1.2, -2.0, 3.5]).float().numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).float().numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "values": values_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3, valid - different dimension
+    input_tensor = torch.randn(2, 3).float().numpy()
+    values_tensor = torch.randn(1).float().numpy()
+    out_tensor = torch.zeros(2, 3).float().numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "values": values_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4, valid - all zeros
+    input_tensor = torch.zeros(5).float().numpy()
+    values_tensor = torch.tensor([2.0]).float().numpy()
+    out_tensor = torch.zeros(5).float().numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "values": values_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5, valid - all positive
+    input_tensor = torch.ones(4).float().numpy()
+    values_tensor = torch.tensor([-1.0]).float().numpy()
+    out_tensor = torch.zeros(4).float().numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "values": values_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6, valid - mixed positive and negative
+    input_tensor = torch.tensor([-2, -1, 0, 1, 2]).float().numpy()
+    values_tensor = torch.tensor([0.0]).float().numpy()
+    out_tensor = torch.zeros(5).float().numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "values": values_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.heaviside"] = heaviside_inputs()
+
+import torch
+import copy
+import numpy as np
+
+def histc_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic example with positive values
+    input_tensor = torch.tensor([1.0, 2.0, 1.0, 3.0, 2.5]).numpy()
+    bins = 5
+    min_val = 0.0
+    max_val = 4.0
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2:  Negative values and specified range
+    input_tensor = torch.tensor([-1.0, -0.5, 0.0, 0.5, 1.0]).numpy()
+    bins = 10
+    min_val = -2.0
+    max_val = 2.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3:  Zero min and max, using data range
+    input_tensor = torch.tensor([0.5, 1.5, 2.5, 3.5]).numpy()
+    bins = 4
+    min_val = 0.0
+    max_val = 0.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4:  Larger number of bins
+    input_tensor = torch.randn(100).numpy()
+    bins = 50
+    min_val = -3.0
+    max_val = 3.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5:  Smaller number of bins
+    input_tensor = torch.tensor([1.0, 1.5, 2.0, 2.5, 3.0]).numpy()
+    bins = 2
+    min_val = 1.0
+    max_val = 3.0
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "bins": bins,
+        "min": min_val,
+        "max": max_val,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.histc"] = histc_inputs()
+
+import torch, copy
+import numpy as np
+
+def i0_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor, mixed values
+    input_tensor = torch.tensor([[-1.0, 0.0], [2.0, -3.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor, small values
+    input_tensor = torch.tensor([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]]).numpy()
+    out_tensor = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: 1D tensor, large positive values
+    input_tensor = torch.tensor([100.0, 200.0, 300.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Scalar tensor
+    input_tensor = torch.tensor(5.0).numpy()
+    out_tensor = torch.tensor(0.0).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.i0"] = i0_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def igammac_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid case
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    other_tensor = torch.tensor([0.5, 1.0, 1.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "other": other_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different values and out tensor size
+    input_tensor = torch.tensor([0.5, 1.5, 2.5]).numpy()
+    other_tensor = torch.tensor([2.0, 1.0, 0.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "other": other_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Multi-dimensional tensors
+    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    other_tensor = torch.tensor([[0.5, 1.0], [1.5, 2.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "other": other_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger values
+    input_tensor = torch.tensor([5.0, 10.0, 15.0]).numpy()
+    other_tensor = torch.tensor([2.5, 5.0, 7.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "other": other_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Different data types
+    input_tensor = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float64).numpy()
+    other_tensor = torch.tensor([0.5, 1.0, 1.5], dtype=torch.float64).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0], dtype=torch.float64).numpy()
+    input_dict = {"input": input_tensor, "other": other_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: More dimensions
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    other_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.zeros(2, 3, 4).numpy()
+    input_dict = {"input": input_tensor, "other": other_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: All ones.
+    input_tensor = np.ones((2, 2))
+    other_tensor = np.ones((2, 2))
+    out_tensor = np.zeros((2, 2))
+    input_dict = {"input": input_tensor, "other": other_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.igammac"] = igammac_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def index_put_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic example with 1D tensor
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
+    indices = (torch.tensor([0, 2, 4]).numpy(),)
+    values = torch.tensor([10.0, 20.0, 30.0]).numpy()
+    accumulate = False
+    input_dict = {"input": input, "indices": indices, "values": values, "accumulate": accumulate}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with boolean mask
+    input = torch.zeros((3, 3)).numpy()
+    indices = (torch.tensor([0, 1]).numpy(), torch.tensor([1, 2]).numpy())
+    values = torch.ones((2,)).numpy()
+    accumulate = False
+    input_dict = {"input": input, "indices": indices, "values": values, "accumulate": accumulate}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Accumulate is True
+    input = torch.ones((3,)).numpy()
+    indices = (torch.tensor([0, 1, 0]).numpy(),)
+    values = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    accumulate = True
+    input_dict = {"input": input, "indices": indices, "values": values, "accumulate": accumulate}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Multidimensional indices
+    input = torch.zeros((2, 2, 2)).numpy()
+    indices = (torch.tensor([0, 1]).numpy(), torch.tensor([0, 1]).numpy(), torch.tensor([0, 1]).numpy())
+    values = torch.ones((2,)).numpy()
+    accumulate = False
+    input_dict = {"input": input, "indices": indices, "values": values, "accumulate": accumulate}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Negative indices
+    input = torch.arange(5).float().numpy()
+    indices = (torch.tensor([-1, -3]).numpy(),)
+    values = torch.tensor([100.0, 200.0]).numpy()
+    accumulate = False
+    input_dict = {"input": input, "indices": indices, "values": values, "accumulate": accumulate}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.index_put_1"] = index_put_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def index_put_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
+    indices = [torch.tensor([0, 2, 4]).numpy()]
+    values_tensor = torch.tensor([10.0, 20.0, 30.0]).numpy()
+    accumulate_bool = False
+    input_dict = {"input": input_tensor, "indices": indices, "values": values_tensor, "accumulate": accumulate_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    input_tensor = torch.zeros((3, 3)).numpy()
+    indices = [torch.tensor([0, 1]).numpy(), torch.tensor([1, 2]).numpy()]
+    values_tensor = torch.tensor([5.0, 6.0]).numpy()
+    accumulate_bool = False
+    input_dict = {"input": input_tensor, "indices": indices, "values": values_tensor, "accumulate": accumulate_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Accumulate = True
+    input_tensor = torch.ones((2, 2)).numpy()
+    indices = [torch.tensor([0, 1]).numpy(), torch.tensor([0, 1]).numpy()]
+    values_tensor = torch.tensor([2.0, 3.0]).numpy()
+    accumulate_bool = True
+    input_dict = {"input": input_tensor, "indices": indices, "values": values_tensor, "accumulate": accumulate_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Negative Indices
+    input_tensor = torch.tensor([1, 2, 3, 4, 5]).numpy()
+    indices = [torch.tensor([-1, -3]).numpy()]
+    values_tensor = torch.tensor([10, 20]).numpy()
+    accumulate_bool = False
+    input_dict = {"input": input_tensor, "indices": indices, "values": values_tensor, "accumulate": accumulate_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Removing multi-dimensional indices due to errors
+    # Input 6: More complex indices and values
+    input_tensor = torch.arange(1, 10).reshape(3, 3).float().numpy()
+    indices = [torch.tensor([0, 2]).numpy(), torch.tensor([1, 2]).numpy()]
+    values_tensor = torch.tensor([100.0, 200.0]).numpy()
+    accumulate_bool = False
+    input_dict = {"input": input_tensor, "indices": indices, "values": values_tensor, "accumulate": accumulate_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.index_put_2"] = index_put_inputs()
+
+import torch, copy
+import numpy as np
+
+def inverse_inputs():
+    list_of_inputs = []
+
+    # Input 1: 2x2 matrix
+    input = torch.tensor([[1.0, 0.0], [0.0, 1.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 3x3 matrix
+    input = torch.tensor([[1.0, 2.0, 3.0], [0.0, 1.0, 4.0], [5.0, 6.0, 0.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]).numpy()
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 4x4 matrix
+    input = torch.tensor([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 0.0]]).numpy()
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Example with negative values
+    input = torch.tensor([[1.0, -2.0], [-3.0, 4.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: another 2x2 matrix
+    input = torch.tensor([[2.0, 1.0], [1.0, 3.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.inverse"] = inverse_inputs()
+
+import torch
+import copy
+import numpy as np
+
+def isneginf_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with negative infinity
+    input_tensor = torch.tensor([-float('inf'), 1.0, 0.0, float('inf')])
+    out_tensor = torch.empty_like(input_tensor, dtype=torch.bool).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with negative infinity
+    input_tensor = torch.tensor([[float('-inf'), 1.0], [0.0, float('inf')]])
+    out_tensor = torch.empty_like(input_tensor, dtype=torch.bool).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor without negative infinity
+    input_tensor = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    out_tensor = torch.empty_like(input_tensor, dtype=torch.bool).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 1D tensor with only negative infinity
+    input_tensor = torch.tensor([float('-inf'), float('-inf'), float('-inf')])
+    out_tensor = torch.empty_like(input_tensor, dtype=torch.bool).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 2D tensor with some negative infinities
+    input_tensor = torch.tensor([[float('-inf'), 2.0, float('-inf')], [4.0, float('-inf'), 6.0]])
+    out_tensor = torch.empty_like(input_tensor, dtype=torch.bool).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.isneginf"] = isneginf_inputs()
+
+import torch, copy
+import numpy as np
+
+def isposinf_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic test with positive infinity
+    input_tensor = torch.tensor([float('inf'), 1.0, -float('inf'), 0.0]).numpy()
+    out_tensor = torch.tensor([False, False, False, False]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Tensor with no positive infinity
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    out_tensor = torch.tensor([False, False, False, False]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Tensor with only positive infinity
+    input_tensor = torch.tensor([float('inf'), float('inf'), float('inf')]).numpy()
+    out_tensor = torch.tensor([False, False, False]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: Multi-dimensional tensor
+    input_tensor = torch.tensor([[1.0, float('inf')], [float('-inf'), 2.0]]).numpy()
+    out_tensor = torch.tensor([[False, False], [False, False]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with a mix of numbers and positive infinity
+    input_tensor = torch.tensor([float('inf'), 0.0, 1.5, float('inf')]).numpy()
+    out_tensor = torch.tensor([False, False, False, False]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+
+generated_inputs["torch.isposinf"] = isposinf_inputs()
+
+import torch, copy
+
+def jit_ignore_inputs():
+    list_of_inputs = []
+
+    # Input 1: drop=True
+    input_dict = {"drop": True}
+    # list_of_inputs.append(input_dict) # Removed append
+
+    # Input 2: drop=False
+    input_dict = {"drop": False}
+    # list_of_inputs.append(input_dict) # Removed append
+
+    return list_of_inputs # Returning an empty list
+
+generated_inputs["torch.jit.ignore"] = jit_ignore_inputs()
+
+import torch, copy
+
+def set_module_inputs():
+    list_of_inputs = []
+
+    # The error indicates that torch.jit.set_module expects an object with a __module__ attribute, not a string.
+    # The provided signature {'mod': 'string', 'new_module': 'string'} is misleading or incorrect for this API.
+    # Since I cannot directly create a valid module object based on the current constraints, I will generate empty list.
+
+    return list_of_inputs
+
+
+generated_inputs["torch.jit.set_module"] = set_module_inputs()
+
+import torch, copy
+import numpy as np
+
+def lgamma_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive values
+    input1 = torch.tensor([0.5, 1.0, 1.5, 2.0]).numpy()
+    out1 = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict1 = {"input": input1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor with positive values
+    input2 = torch.tensor([[0.5, 1.0], [1.5, 2.0]]).numpy()
+    out2 = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict2 = {"input": input2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 1D tensor with larger positive values
+    input3 = torch.tensor([5.0, 10.0, 15.0, 20.0]).numpy()
+    out3 = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict3 = {"input": input3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor with positive values
+    input4 = torch.tensor([[[0.5, 1.0], [1.5, 2.0]], [[2.5, 3.0], [3.5, 4.0]]]).numpy()
+    out4 = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict4 = {"input": input4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 1D tensor with values close to zero
+    input5 = torch.tensor([0.1, 0.2, 0.3, 0.4]).numpy()
+    out5 = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict5 = {"input": input5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Empty tensor
+    input6 = torch.tensor([]).numpy()
+    out6 = torch.tensor([]).numpy()
+    input_dict6 = {"input": input6, "out": out6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Tensor with a mix of small and large numbers
+    input7 = torch.tensor([0.01, 1, 10, 100]).numpy()
+    out7 = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict7 = {"input": input7, "out": out7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+    
+
+    return list_of_inputs
+
+
+generated_inputs["torch.lgamma"] = lgamma_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def torch_linalg_eigvals_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic real matrix
+    A = torch.randn(2, 2).numpy()
+    out = torch.zeros(2, dtype=torch.complex128).numpy()
+
+    input_dict = {
+        "A": A,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Complex matrix
+    A = torch.randn(3, 3, dtype=torch.complex128).numpy()
+    out = torch.zeros(3, dtype=torch.complex128).numpy()
+    input_dict = {
+        "A": A,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Batch of matrices
+    A = torch.randn(2, 4, 4).numpy()
+    out = torch.zeros(2, 4, dtype=torch.complex128).numpy()
+    input_dict = {
+        "A": A,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4:  Real matrix with pre-allocated out
+    A = torch.randn(5, 5).numpy()
+    out = torch.zeros(5, dtype=torch.complex128).numpy()
+
+    input_dict = {
+        "A": A,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: Batch of complex matrices
+    A = torch.randn(3, 2, 2, dtype=torch.complex64).numpy()
+    out = torch.zeros(3, 2, dtype=torch.complex64).numpy()
+    input_dict = {
+        "A": A,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.eigvals"] = torch_linalg_eigvals_inputs()
+
+import torch, copy
+import numpy as np
+
+def linalg_inv_inputs():
+    list_of_inputs = []
+
+    # Input 1: A simple 2x2 matrix
+    A = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: A 3x3 matrix
+    A = torch.tensor([[1.0, 0.0, 0.0], [0.0, 2.0, 0.0], [0.0, 0.0, 3.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]).numpy()
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: A batch of 2x2 matrices (batch size 2)
+    A = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]).numpy()
+    out = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: A matrix with negative values
+    A = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
+    out = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: A larger matrix (4x4)
+    A = torch.randn(4, 4).numpy()
+    out = torch.randn(4, 4).numpy()
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Complex matrix
+    A = torch.randn(2, 2, dtype=torch.complex128).numpy()
+    out = torch.randn(2, 2, dtype=torch.complex128).numpy()
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.inv"] = linalg_inv_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def tensorinv_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    A = torch.eye(4 * 6).reshape((4, 6, 8, 3)).numpy()
+    ind = np.int32(2)
+    out = torch.tensor([]).numpy()
+
+    input_dict = {
+        "A": A,
+        "ind": ind,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    A = torch.randn(4, 4).numpy()
+    ind = np.int32(1)
+    out = torch.tensor([]).numpy()
+
+    input_dict = {
+        "A": A,
+        "ind": ind,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    A = torch.eye(2 * 3).reshape((2, 3, 2, 3)).numpy()
+    ind = np.int32(2)
+    out = torch.tensor([]).numpy()
+
+    input_dict = {
+        "A": A,
+        "ind": ind,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    A = torch.randn(2, 2, 2, 2).numpy()
+    A = A.reshape(4,4)
+    ind = np.int32(1)
+    out = torch.tensor([]).numpy()
+
+    input_dict = {
+        "A": A,
+        "ind": ind,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    A = torch.randn(3, 3, 3, 3).numpy()
+    A = A.reshape(9, 9)
+    ind = np.int32(1)
+    out = torch.tensor([]).numpy()
+
+    input_dict = {
+        "A": A,
+        "ind": ind,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.tensorinv"] = tensorinv_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def log_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid input
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Multi-dimensional input
+    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Different data type
+    input_tensor = torch.tensor([1.5, 2.5, 3.5], dtype=torch.float64).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0], dtype=torch.float64).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: Zero value
+    input_tensor = torch.tensor([0.00001, 0.0001, 0.001]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Larger tensor
+    input_tensor = torch.rand(2, 3, 4).numpy() * 5
+    out_tensor = torch.zeros(2, 3, 4).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty out tensor with matching shape (important for some implementations)
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out_tensor = torch.empty_like(torch.tensor([1.0, 2.0, 3.0])).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.log"] = log_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def log10_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor with positive values
+    input_tensor = torch.tensor([1.0, 10.0, 100.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with positive values
+    input_tensor = torch.tensor([[0.1, 1.0], [10.0, 100.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with positive values
+    input_tensor = torch.tensor([[[0.5, 5.0], [50.0, 500.0]], [[0.05, 0.5], [5.0, 50.0]]]).numpy()
+    out_tensor = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with small positive values
+    input_tensor = torch.tensor([0.001, 0.01, 0.1]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with a mix of values around 1
+    input_tensor = torch.tensor([0.5, 1.0, 2.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty out tensor
+    input_tensor = torch.tensor([2.0, 3.0, 4.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Larger tensor
+    input_tensor = torch.rand(2, 3, 4).numpy() + 0.1
+    out_tensor = torch.zeros(2, 3, 4).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.log10"] = log10_inputs()
+
+import torch, copy
+import numpy as np
+
+def log1p_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values
+    input1 = torch.tensor([0.1, 0.5, 1.0, 2.0]).numpy()
+    out1 = torch.tensor([]).numpy()
+    input_dict1 = {"input": input1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 1D tensor, negative values but > -1
+    input2 = torch.tensor([-0.1, -0.5, -0.9]).numpy()
+    out2 = torch.tensor([]).numpy()
+    input_dict2 = {"input": input2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor, mixed positive and negative values
+    input3 = torch.tensor([[0.2, -0.3], [-0.8, 1.5]]).numpy()
+    out3 = torch.tensor([]).numpy()
+    input_dict3 = {"input": input3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor, all positive
+    input4 = torch.rand(2, 3, 4).numpy()
+    out4 = torch.tensor([]).numpy()
+    input_dict4 = {"input": input4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 1D tensor with a zero value
+    input5 = torch.tensor([0.0, 0.5, -0.2]).numpy()
+    out5 = torch.tensor([]).numpy()
+    input_dict5 = {"input": input5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Empty tensor
+    input6 = torch.tensor([]).numpy()
+    out6 = torch.tensor([]).numpy()
+    input_dict6 = {"input": input6, "out": out6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Tensor with large values
+    input7 = torch.tensor([1000.0, 2000.0, 3000.0]).numpy()
+    out7 = torch.tensor([]).numpy()
+    input_dict7 = {"input": input7, "out": out7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.log1p"] = log1p_inputs()
+
+import torch, copy
+import numpy as np
+
+def logcumsumexp_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    input1 = torch.randn(5).numpy()
+    dim1 = 0
+    out1 = torch.tensor([]).numpy()
+
+    input_dict1 = {
+        "input": input1,
+        "dim": dim1,
+        "out": out1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor
+    input2 = torch.randn(2, 3).numpy()
+    dim2 = 1
+    out2 = torch.tensor([]).numpy()
+
+    input_dict2 = {
+        "input": input2,
+        "dim": dim2,
+        "out": out2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D tensor
+    input3 = torch.randn(3, 4, 5).numpy()
+    dim3 = 0
+    out3 = torch.tensor([]).numpy()
+
+    input_dict3 = {
+        "input": input3,
+        "dim": dim3,
+        "out": out3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Negative values
+    input4 = torch.randn(4).numpy() - 2.0
+    dim4 = 0
+    out4 = torch.tensor([]).numpy()
+
+    input_dict4 = {
+        "input": input4,
+        "dim": dim4,
+        "out": out4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Different dimension
+    input5 = torch.randn(2, 2).numpy()
+    dim5 = 0
+    out5 = torch.tensor([]).numpy()
+
+    input_dict5 = {
+        "input": input5,
+        "dim": dim5,
+        "out": out5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.logcumsumexp"] = logcumsumexp_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def logical_not_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with True/False values
+    input_tensor = torch.tensor([True, False, True, True, False]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with boolean values
+    input_tensor = torch.tensor([[True, False], [False, True]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with mixed boolean values
+    input_tensor = torch.tensor([[[True, False], [False, True]], [[False, True], [True, False]]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: tensor with integer values (0 and 1 treated as False and True respectively)
+    input_tensor = torch.tensor([0, 1, 0, 1, 1, 0], dtype=torch.int8).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: tensor with floating point values (0.0 and non-zero treated as False and True respectively)
+    input_tensor = torch.tensor([0.0, 1.0, -1.0, 0.5, 0.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.logical_not"] = logical_not_inputs()
+
+import torch, copy
+import numpy as np
+
+def msort_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input_tensor = torch.tensor([3.0, 1.0, 4.0, 1.5]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with positive and negative values
+    input_tensor = torch.tensor([[3.0, -1.0, 4.0], [-2.0, 1.5, 0.0]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with duplicate values
+    input_tensor = torch.tensor([1.0, 2.0, 1.0, 3.0, 2.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with all same values
+    input_tensor = torch.ones(5).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with zeros
+    input_tensor = torch.tensor([0.0, 1.0, -1.0, 0.0, 2.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Empty out tensor of the same shape as input
+    input_tensor = torch.randn(2, 3).numpy()
+    out_tensor = np.empty_like(input_tensor)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Input with NaN and inf values
+    input_tensor = torch.tensor([float('nan'), float('inf'), -float('inf'), 1.0, 2.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.msort"] = msort_inputs()
+
+import torch, copy
+import numpy as np
+
+def neg_inputs():
+    list_of_inputs = []
+    
+    # Input 1
+    input_tensor = torch.tensor([1.0, -2.0, 3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(2, 3).numpy()
+    out_tensor = torch.zeros(2, 3).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.zeros(5).numpy()
+    out_tensor = torch.ones(5).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.ones(2, 2, 2).numpy()
+    out_tensor = torch.zeros(2, 2, 2).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.arange(-5, 5, dtype=torch.float32).numpy()
+    out_tensor = torch.zeros(10).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_tensor = torch.tensor([float('inf'), float('-inf'), float('nan')]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = torch.tensor([1, 2, 3], dtype=torch.int32).numpy()
+    out_tensor = torch.tensor([0, 0, 0], dtype=torch.int32).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input_tensor = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
+    out_tensor = torch.tensor([0, 0, 0], dtype=torch.int64).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.neg"] = neg_inputs()
+
+import torch, copy
+import numpy as np
+
+def negative_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    input_tensor = torch.tensor([1.0, -2.0, 3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    input_tensor = torch.tensor([[1, 2], [-3, -4]], dtype=torch.float32).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor)).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor)).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: tensor with integer type
+    input_tensor = torch.tensor([1, -2, 3], dtype=torch.int32).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor, dtype=torch.int32)).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: tensor with all zeros
+    input_tensor = torch.zeros(5).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor)).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.negative"] = negative_inputs()
+
+import torch, copy
+import numpy as np
+
+def bceloss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = torch.tensor([0.2, 0.8, 0.4]).numpy()
+    target = torch.tensor([0.0, 1.0, 0.5]).numpy()
+    weight = torch.tensor([1.0, 1.0, 1.0]).numpy()
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        "weight": weight,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = torch.randn(2, 3, requires_grad=True).sigmoid().detach().numpy()
+    target = torch.rand(2, 3, requires_grad=False).numpy()
+    weight = torch.ones(2,3).numpy()
+    size_average = False
+    reduce = False
+    reduction = 'sum'
+    input_dict = {
+        "weight": weight,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = torch.randn(1, 5).sigmoid().detach().numpy()
+    target = torch.rand(1, 5).numpy()
+    weight = torch.tensor([0.2, 0.3, 0.4, 0.5, 0.6]).numpy()
+    size_average = None
+    reduce = None
+    reduction = 'none'
+    input_dict = {
+        "weight": weight,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input = torch.tensor([[0.1, 0.9], [0.3, 0.7]]).numpy()
+    target = torch.tensor([[0.0, 1.0], [1.0, 0.0]]).numpy()
+    weight = torch.tensor([1.0, 2.0]).numpy()
+    size_average = True
+    reduce = False
+    reduction = 'mean'
+    input_dict = {
+        "weight": weight,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = torch.rand(4, 2, 2).sigmoid().detach().numpy()
+    target = torch.randint(0, 2, (4, 2, 2)).float().numpy()
+    weight = torch.ones(4, 2, 2).numpy()
+    size_average = False
+    reduce = True
+    reduction = 'sum'
+    input_dict = {
+        "weight": weight,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction,
+        "input": input,
+        "target": target
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.BCELoss"] = bceloss_inputs()
+
+import torch, copy
+import numpy as np
+
+def conv_transpose2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 1, 5, 5).numpy()
+    weight_tensor = torch.randn(1, 1, 3, 3).numpy()
+    bias_tensor = torch.randn(1).numpy()
+    stride_val = 1
+    padding_val = 0
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(1, 3, 10, 10).numpy()
+    weight_tensor = torch.randn(3, 1, 5, 5).numpy()
+    bias_tensor = torch.randn(1).numpy()
+    stride_val = 2
+    padding_val = 1
+    output_padding_val = 1
+    groups_val = 1
+    dilation_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(2, 2, 8, 8).numpy()
+    weight_tensor = torch.randn(2, 1, 4, 4).numpy()
+    bias_tensor = torch.randn(1).numpy()
+    stride_val = 1
+    padding_val = 2
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 2
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 4, 12, 12).numpy()
+    weight_tensor = torch.randn(4, 1, 3, 3).numpy()
+    bias_tensor = torch.randn(1).numpy()
+    stride_val = 3
+    padding_val = 0
+    output_padding_val = 2
+    groups_val = 1
+    dilation_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input_tensor = torch.randn(1, 2, 6, 6).numpy()
+    weight_tensor = torch.randn(2, 2, 2, 2).numpy()
+    bias_tensor = torch.randn(2).numpy()
+    stride_val = 2
+    padding_val = 1
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv_transpose2d_1"] = conv_transpose2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv_transpose2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 3, 10, 10).numpy()
+    weight_tensor = torch.randn(3, 3, 3, 3).numpy()
+    bias_tensor = torch.randn(3).numpy()
+    stride = (1, 1)
+    padding = (0, 0)
+    output_padding = (0, 0)
+    groups = 1
+    dilation = (1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(2, 4, 12, 12).numpy()
+    weight_tensor = torch.randn(4, 4, 5, 5).numpy()
+    bias_tensor = torch.randn(4).numpy()
+    stride = (2, 2)
+    padding = (1, 1)
+    output_padding = (1, 1)
+    groups = 1
+    dilation = (1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(1, 2, 8, 8).numpy()
+    weight_tensor = torch.randn(2, 2, 2, 2).numpy()
+    bias_tensor = torch.randn(2).numpy()
+    stride = (3, 3)
+    padding = (0, 0)
+    output_padding = (0, 0)
+    groups = 1
+    dilation = (1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(4, 1, 16, 16).numpy()
+    weight_tensor = torch.randn(1, 1, 7, 7).numpy()
+    bias_tensor = torch.randn(1).numpy()
+    stride = (1, 1)
+    padding = (3, 3)
+    output_padding = (0, 0)
+    groups = 1
+    dilation = (1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input_tensor = torch.randn(1, 1, 5, 5).numpy()
+    weight_tensor = torch.randn(1, 1, 2, 2).numpy()
+    bias_tensor = torch.randn(1).numpy()
+    stride = (2, 2)
+    padding = (1, 1)
+    output_padding = (1, 1)
+    groups = 1
+    dilation = (1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.functional.conv_transpose2d_2"] = conv_transpose2d_inputs()
+
+import torch, copy
+import numpy as np
+
+def rad2deg_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    input_tensor = torch.tensor([0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi])
+    out_tensor = torch.zeros_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with negative values
+    input_tensor = torch.tensor([[-np.pi, -np.pi/2], [0, np.pi/4]])
+    out_tensor = torch.zeros_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = torch.tensor([[[0, np.pi/2], [np.pi, 3*np.pi/2]], [[2*np.pi, -np.pi], [-np.pi/2, 0]]])
+    out_tensor = torch.zeros_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Empty tensor
+    input_tensor = torch.tensor([])
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: Tensor with some large values
+    input_tensor = torch.tensor([100*np.pi, -50*np.pi, 25.5*np.pi])
+    out_tensor = torch.zeros_like(input_tensor).numpy()
+    input_dict = {"input": input_tensor.numpy(), "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.rad2deg"] = rad2deg_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def randn_like_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "dtype": torch.float32,
+        "layout": torch.strided,
+        "requires_grad": False,
+        "memory_format": torch.contiguous_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor, different dtype. Using float since int64 fails
+    input_tensor = torch.ones((2, 3), dtype=torch.float32).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "dtype": torch.float32,
+        "layout": torch.strided,
+        "requires_grad": False,
+        "memory_format": torch.contiguous_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor, different layout
+    input_tensor = torch.randn((2, 3, 4), dtype=torch.float64).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "dtype": torch.float64,
+        "layout": torch.strided,
+        "requires_grad": False,
+        "memory_format": torch.contiguous_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: tensor with requires_grad=True
+    input_tensor = torch.randn((4, 5), requires_grad=True).detach().numpy()
+    input_dict = {
+        "input": input_tensor,
+        "dtype": torch.float32,
+        "layout": torch.strided,
+        "requires_grad": True,
+        "memory_format": torch.contiguous_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Different memory format
+    input_tensor = torch.randn((2, 2)).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "dtype": torch.float32,
+        "layout": torch.strided,
+        "requires_grad": False,
+        "memory_format": torch.contiguous_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: tensor with size 0
+    input_tensor = torch.randn((0, 5)).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "dtype": torch.float32,
+        "layout": torch.strided,
+        "requires_grad": False,
+        "memory_format": torch.contiguous_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    for input_dict in list_of_inputs:
+        input_dict["dtype"] = torch.tensor(0, dtype=input_dict["dtype"]).dtype
+        input_dict["layout"] = torch.strided
+        input_dict["memory_format"] = torch.contiguous_format
+
+    return list_of_inputs
+
+
+generated_inputs["torch.randn_like"] = randn_like_inputs()
+
+import torch, copy
+import numpy as np
+
+def rsqrt_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive values
+    input1 = torch.tensor([1.0, 4.0, 9.0, 16.0]).numpy()
+    out1 = torch.tensor([]).numpy()
+    input_dict1 = {"input": input1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor with positive values
+    input2 = torch.tensor([[1.0, 4.0], [9.0, 16.0]]).numpy()
+    out2 = torch.tensor([]).numpy()
+    input_dict2 = {"input": input2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D tensor with positive values
+    input3 = torch.tensor([[[1.0, 4.0], [9.0, 16.0]], [[25.0, 36.0], [49.0, 64.0]]]).numpy()
+    out3 = torch.tensor([]).numpy()
+    input_dict3 = {"input": input3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Tensor with a mix of positive and zero values
+    input4 = torch.tensor([0.0, 1.0, 4.0, 0.0]).numpy()
+    out4 = torch.tensor([]).numpy()
+    input_dict4 = {"input": input4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5: Tensor with only zero values
+    input5 = torch.zeros((2, 2)).numpy()
+    out5 = torch.tensor([]).numpy()
+    input_dict5 = {"input": input5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.rsqrt"] = rsqrt_inputs()
+
+import torch, copy
+import numpy as np
+
+def sgn_inputs():
+    list_of_inputs = []
+
+    # Input 1: Complex tensor, 1D
+    input_tensor = torch.tensor([3+4j, 7-24j, 0, 1+2j])
+    out_tensor = torch.zeros_like(input_tensor)
+
+    input_dict = {
+        "input": input_tensor.numpy(),
+        "out": out_tensor.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Real tensor, 1D, with negative values
+    input_tensor = torch.tensor([-1.0, 2.0, -3.0, 0.0, 5.0])
+    out_tensor = torch.zeros_like(input_tensor)
+    input_dict = {
+        "input": input_tensor.numpy(),
+        "out": out_tensor.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Complex tensor, 2D
+    input_tensor = torch.tensor([[1+1j, 2-2j], [3+0j, 0-4j]])
+    out_tensor = torch.zeros_like(input_tensor)
+
+    input_dict = {
+        "input": input_tensor.numpy(),
+        "out": out_tensor.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Real tensor, 2D, all zeros
+    input_tensor = torch.zeros((2, 2))
+    out_tensor = torch.zeros_like(input_tensor)
+
+    input_dict = {
+        "input": input_tensor.numpy(),
+        "out": out_tensor.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Real tensor, 3D
+    input_tensor = torch.randn(2, 3, 4)
+    out_tensor = torch.zeros_like(input_tensor)
+    input_dict = {
+        "input": input_tensor.numpy(),
+        "out": out_tensor.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.sgn"] = sgn_inputs()
+
+import torch, copy
+import numpy as np
+
+def sigmoid_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.zeros((2, 2)).numpy()
+    out_tensor = torch.zeros((2, 2)).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.ones((3, 3)).numpy()
+    out_tensor = torch.ones((3, 3)).numpy() * 0.5
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn((4, 4)).numpy()
+    out_tensor = torch.zeros((4, 4)).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.sigmoid"] = sigmoid_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def sign_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive, negative, and zero values
+    input_tensor = torch.tensor([0.7, -1.2, 0.0, 2.3], dtype=torch.float32).numpy()
+    out_tensor = np.array([], dtype=np.float32)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with mixed values
+    input_tensor = torch.tensor([[-1.0, 2.0], [0.0, -3.0]], dtype=torch.float32).numpy()
+    out_tensor = np.array([], dtype=np.float32)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor with all positive values
+    input_tensor = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=torch.float32).numpy()
+    out_tensor = np.array([], dtype=np.float32)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: 1D tensor with only zeros
+    input_tensor = torch.zeros(5, dtype=torch.float32).numpy()
+    out_tensor = np.array([], dtype=np.float32)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: 1D tensor with only negative values
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0], dtype=torch.float32).numpy()
+    out_tensor = np.array([], dtype=np.float32)
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.sign"] = sign_inputs()
+
+import torch, copy
+import numpy as np
+
+def signbit_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor with positive, negative, and zero values
+    input_tensor = torch.tensor([0.7, -1.2, 0.0, 2.3, -0.0]).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor), dtype=torch.bool).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with various values
+    input_tensor = torch.tensor([[-1.0, 2.0], [-3.0, 4.0], [0.0, -0.0]]).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor), dtype=torch.bool).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Tensor with only positive values
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor), dtype=torch.bool).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with only negative values
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0, -4.0]).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor), dtype=torch.bool).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 3D tensor
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.zeros_like(torch.tensor(input_tensor), dtype=torch.bool).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.signbit"] = signbit_inputs()
+
+import torch, copy
+import numpy as np
+
+def sin_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values, out specified
+    input_tensor = torch.tensor([0.0, 0.5, 1.0, 1.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 1D tensor, negative values, out specified
+    input_tensor = torch.tensor([-0.5, -1.0, -1.5, -2.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D tensor, mixed values, out specified
+    input_tensor = torch.tensor([[-0.5, 0.5], [-1.0, 1.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D tensor, positive values, out specified
+    input_tensor = torch.tensor([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]]).numpy()
+    out_tensor = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 1D tensor with a large value, out specified
+    input_tensor = torch.tensor([100.0]).numpy()
+    out_tensor = torch.tensor([0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 1D tensor with a small value, out specified
+    input_tensor = torch.tensor([0.0001]).numpy()
+    out_tensor = torch.tensor([0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: tensor with zeros, out specified
+    input_tensor = torch.zeros(2, 2).numpy()
+    out_tensor = torch.zeros(2, 2).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.sin"] = sin_inputs()
+
+import torch, copy
+import numpy as np
+
+def sinh_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive values
+    input_tensor = torch.tensor([0.5, 1.0, 1.5, 2.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 1D tensor with negative values
+    input_tensor = torch.tensor([-0.5, -1.0, -1.5, -2.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D tensor with mixed values
+    input_tensor = torch.tensor([[-0.5, 1.0], [-1.5, 2.0]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D tensor with zeros
+    input_tensor = torch.zeros((2, 2, 2)).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 1D tensor with large values to potentially trigger Sleef behavior (CPU only)
+    input_tensor = torch.tensor([10.0, -10.0, 20.0, -20.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 2D tensor with a specified 'out' tensor
+    input_tensor = torch.tensor([[0.1, 0.2], [0.3, 0.4]]).numpy()
+    out_tensor = torch.zeros((2, 2)).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Empty tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.sinh"] = sinh_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def erfinv_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input1 = np.array([0.1, 0.5, 0.9])
+    out1 = np.array([])
+    input_dict1 = {"input": input1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor
+    input2 = np.array([[0.2, 0.6], [0.4, 0.8]])
+    out2 = np.array([])
+    input_dict2 = {"input": input2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Tensor with negative values (but within the valid range)
+    input3 = np.array([-0.2, -0.6, 0.3, 0.7])
+    out3 = np.array([])
+    input_dict3 = {"input": input3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Tensor with values close to 1 and -1
+    input4 = np.array([-0.99, -0.9, 0.9, 0.99])
+    out4 = np.array([])
+    input_dict4 = {"input": input4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Empty tensor
+    input5 = np.array([])
+    out5 = np.array([])
+    input_dict5 = {"input": input5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.erfinv"] = erfinv_inputs()
+
+import torch, copy
+import numpy as np
+
+def expit_inputs():
+    list_of_inputs = []
+
+    # Input 1, valid: 1D tensor, positive values
+    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out = np.zeros_like(input)
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2, valid: 1D tensor, negative values
+    input = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    out = np.zeros_like(input)
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3, valid: 2D tensor, mixed positive and negative values
+    input = torch.tensor([[-1.0, 2.0], [-3.0, 4.0]]).numpy()
+    out = np.zeros_like(input)
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4, valid: 3D tensor, all zeros
+    input = torch.zeros((2, 2, 2)).numpy()
+    out = np.zeros_like(input)
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5, valid: 1D tensor, large values
+    input = torch.tensor([100.0, -100.0, 0.0]).numpy()
+    out = np.zeros_like(input)
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.expit"] = expit_inputs()
+
+import torch, copy
+import numpy as np
+
+def gammaln_inputs():
+    list_of_inputs = []
+
+    # Input 1: Positive scalar
+    input_tensor = torch.tensor(2.5).numpy()
+    out_tensor = torch.tensor(0.0).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 1D array of positive numbers
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D array of positive numbers
+    input_tensor = torch.tensor([[0.5, 1.5], [2.5, 3.5]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger values
+    input_tensor = torch.tensor([10.0, 20.0, 30.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Smaller values close to zero (but still positive)
+    input_tensor = torch.tensor([0.1, 0.2, 0.3]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.gammaln"] = gammaln_inputs()
+
+import torch, copy
+import numpy as np
+
+def psi_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive values
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
+    out = torch.tensor([]).numpy()
+
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with positive values
+    input = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    out = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 1D tensor with zero
+    input = torch.tensor([0.0]).numpy()
+    out = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: multi-dimensional tensor
+    input = torch.randn(2, 3, 4).numpy()
+    out = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 1D tensor with a range of values
+    input = torch.arange(1.0, 10.0, step=0.5).numpy()
+    out = torch.tensor([]).numpy()
+    input_dict = {
+        "input": input,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.psi"] = psi_inputs()
+
+import torch, copy
+import numpy as np
+
+def sqrt_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive values
+    input_tensor = torch.tensor([1.0, 4.0, 9.0, 16.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor with positive values
+    input_tensor = torch.tensor([[1.0, 4.0], [9.0, 16.0]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 1D tensor with mixed positive and negative values
+    input_tensor = torch.tensor([-1.0, 4.0, -9.0, 16.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D tensor with positive values
+    input_tensor = torch.tensor([[[1.0, 4.0], [9.0, 16.0]], [[25.0, 36.0], [49.0, 64.0]]]).numpy()
+    out_tensor = torch.tensor([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 1D tensor with zero
+    input_tensor = torch.tensor([0.0, 1.0, 4.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty tensor
+    input_tensor = torch.tensor([]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 2D tensor with floating point and integer values
+    input_tensor = torch.tensor([[1.5, 4], [9, 16.25]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.sqrt"] = sqrt_inputs()
+
+import torch, copy
+import numpy as np
+
+def square_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values, no out
+    input_tensor = torch.tensor([1.0, 2.0, 3.0, 4.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 1D tensor, negative values, no out
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0, -4.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D tensor, mixed values, no out
+    input_tensor = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 1D tensor, positive values, pre-allocated out
+    input_tensor = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    out_tensor = torch.zeros(3).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 2D tensor, negative values, pre-allocated out
+    input_tensor = torch.tensor([[-1.0, -2.0], [-3.0, -4.0]]).numpy()
+    out_tensor = torch.zeros((2, 2)).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 3D tensor, mixed values, no out
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 1D tensor with zeros
+    input_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: 0D tensor (scalar), positive
+    input_tensor = torch.tensor(5.0).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: 0D tensor (scalar), negative
+    input_tensor = torch.tensor(-5.0).numpy()
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.square"] = square_inputs()
+
+import torch, copy
+import numpy as np
+
+def tan_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive values
+    input_tensor = torch.tensor([0.0, 0.5, 1.0]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 1D tensor with negative values
+    input_tensor = torch.tensor([-0.5, -1.0, -1.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D tensor
+    input_tensor = torch.tensor([[0.0, 0.2], [0.4, 0.6]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D tensor
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.randn(2, 3, 4).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with zeros
+    input_tensor = torch.zeros(3, 3).numpy()
+    out_tensor = torch.zeros(3, 3).numpy()
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    return list_of_inputs
+
+generated_inputs["torch.tan"] = tan_inputs()
+
+import torch, copy
+import numpy as np
+
+def tanh_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, out=None
+    input_tensor = torch.randn(4).numpy()
+    out_tensor = np.array([])
+
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor, out with same shape
+    input_tensor = torch.randn(2, 3).numpy()
+    out_tensor = torch.randn(2, 3).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor, out is pre-allocated
+    input_tensor = torch.randn(2, 3, 4).numpy()
+    out_tensor = torch.zeros(2, 3, 4).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: 1D tensor with negative values, out is empty
+    input_tensor = torch.tensor([-1.0, -2.0, -3.0, -4.0]).numpy()
+    out_tensor = np.array([])
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Large tensor
+    input_tensor = torch.randn(100, 100).numpy()
+    out_tensor = np.array([])
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.tanh"] = tanh_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def tensordot_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with dims=1
+    a = torch.randn(3, 4, 5).numpy()
+    b = torch.randn(5, 2, 3).numpy()
+    dims = 1
+    out = torch.tensor([]).numpy()
+    input_dict = {"a": a, "b": b, "dims": dims, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: dims=0 (dot product)
+    a = torch.randn(5).numpy()
+    b = torch.randn(5).numpy()
+    dims = 0
+    out = torch.tensor([]).numpy()
+    input_dict = {"a": a, "b": b, "dims": dims, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Smaller tensors
+    a = torch.randn(2, 2).numpy()
+    b = torch.randn(2, 2).numpy()
+    dims = 1
+    out = torch.tensor([]).numpy()
+    input_dict = {"a": a, "b": b, "dims": dims, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: dims = 1, different shapes
+    a = torch.randn(3, 4).numpy()
+    b = torch.randn(4, 5).numpy()
+    dims = 1
+    out = torch.tensor([]).numpy()
+    input_dict = {"a": a, "b": b, "dims": dims, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: dims = 1, 3D tensors with matching dimension
+    a = torch.randn(2, 3, 4).numpy()
+    b = torch.randn(4, 5, 6).numpy()
+    dims = 1
+    out = torch.tensor([]).numpy()
+    input_dict = {"a": a, "b": b, "dims": dims, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.tensordot_1"] = tensordot_inputs()
+
+import torch, copy
+import numpy as np
+
+def topk_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0]).numpy()
+    k = 3
+    dim = 0
+    largest = True
+    sorted = True
+    out = (np.array([1.0], dtype=np.float32), np.array([1]))
+
+    input_dict = {
+        "input": input,
+        "k": k,
+        "dim": dim,
+        "largest": largest,
+        "sorted": sorted,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
+    k = 2
+    dim = 1
+    largest = False
+    sorted = False
+    out = (np.array([1.0], dtype=np.float32), np.array([1]))
+
+    input_dict = {
+        "input": input,
+        "k": k,
+        "dim": dim,
+        "largest": largest,
+        "sorted": sorted,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = torch.randn(3, 4, 5).numpy()
+    k = 1
+    dim = 2
+    largest = True
+    sorted = True
+    out = (np.array([1.0], dtype=np.float32), np.array([1]))
+
+    input_dict = {
+        "input": input,
+        "k": k,
+        "dim": dim,
+        "largest": largest,
+        "sorted": sorted,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input = torch.tensor([-1.0, -2.0, -3.0, -4.0, -5.0]).numpy()
+    k = 4
+    dim = 0
+    largest = False
+    sorted = True
+    out = (np.array([1.0], dtype=np.float32), np.array([1]))
+
+    input_dict = {
+        "input": input,
+        "k": k,
+        "dim": dim,
+        "largest": largest,
+        "sorted": sorted,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = torch.randn(2, 2).numpy()
+    k = 2
+    dim = 1
+    largest = True
+    sorted = False
+    out = (np.array([1.0], dtype=np.float32), np.array([1]))
+
+    input_dict = {
+        "input": input,
+        "k": k,
+        "dim": dim,
+        "largest": largest,
+        "sorted": sorted,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.topk"] = topk_inputs()
+
+import torch, copy
+import numpy as np
+
+def tril_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with diagonal=0
+    input_tensor = torch.randn(3, 3).numpy()
+    diagonal = 0
+    out_tensor = torch.empty(0).numpy()
+    input_dict = {"input": input_tensor, "diagonal": diagonal, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Positive diagonal
+    input_tensor = torch.randn(4, 5).numpy()
+    diagonal = 2
+    out_tensor = torch.empty(0).numpy()
+    input_dict = {"input": input_tensor, "diagonal": diagonal, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Negative diagonal
+    input_tensor = torch.randn(5, 4).numpy()
+    diagonal = -1
+    out_tensor = torch.empty(0).numpy()
+    input_dict = {"input": input_tensor, "diagonal": diagonal, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Square matrix with large diagonal
+    input_tensor = torch.randn(6, 6).numpy()
+    diagonal = 5
+    out_tensor = torch.empty(0).numpy()
+    input_dict = {"input": input_tensor, "diagonal": diagonal, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Rectangular matrix with large negative diagonal
+    input_tensor = torch.randn(7, 3).numpy()
+    diagonal = -2
+    out_tensor = torch.empty(0).numpy()
+    input_dict = {"input": input_tensor, "diagonal": diagonal, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.tril"] = tril_inputs()
+
+import torch, copy
+import numpy as np
+
+def trunc_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 1D tensor
+    input_tensor = torch.tensor([1.5, 2.7, -3.2, -0.8]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    input_tensor = torch.tensor([[1.2, -2.3], [3.4, -4.5]]).numpy()
+    out_tensor = torch.tensor([[0.0, 0.0], [0.0, 0.0]]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = torch.randn(2, 2, 2).numpy()
+    out_tensor = torch.zeros_like(torch.randn(2, 2, 2)).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with only positive values
+    input_tensor = torch.tensor([0.1, 1.2, 2.3, 3.4]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with only negative values
+    input_tensor = torch.tensor([-0.1, -1.2, -2.3, -3.4]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with zero
+    input_tensor = torch.tensor([0.0, 1.5, -2.5]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Large values
+    input_tensor = torch.tensor([100.5, -200.7]).numpy()
+    out_tensor = torch.tensor([0.0, 0.0]).numpy()
+    input_dict = {"input": input_tensor, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.trunc"] = trunc_inputs()
+
+import torch, copy
+import numpy as np
+
+def vdot_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid input with positive integers
+    input1 = torch.tensor([1, 2, 3], dtype=torch.float32)
+    input2 = torch.tensor([4, 5, 6], dtype=torch.float32)
+    out = torch.tensor([], dtype=torch.float32)
+
+    input_dict = {
+        "input": input1.numpy(),
+        "other": input2.numpy(),
+        "out": out.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Valid input with negative integers
+    input1 = torch.tensor([-1, -2, -3], dtype=torch.float32)
+    input2 = torch.tensor([4, 5, 6], dtype=torch.float32)
+    out = torch.tensor([], dtype=torch.float32)
+    input_dict = {
+        "input": input1.numpy(),
+        "other": input2.numpy(),
+        "out": out.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Valid input with floating-point numbers
+    input1 = torch.tensor([1.5, 2.5, 3.5], dtype=torch.float32)
+    input2 = torch.tensor([4.5, 5.5, 6.5], dtype=torch.float32)
+    out = torch.tensor([], dtype=torch.float32)
+    input_dict = {
+        "input": input1.numpy(),
+        "other": input2.numpy(),
+        "out": out.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Valid input with zeros
+    input1 = torch.tensor([0, 0, 0], dtype=torch.float32)
+    input2 = torch.tensor([1, 2, 3], dtype=torch.float32)
+    out = torch.tensor([], dtype=torch.float32)
+    input_dict = {
+        "input": input1.numpy(),
+        "other": input2.numpy(),
+        "out": out.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Valid input with mixed positive and negative values
+    input1 = torch.tensor([-1, 2, -3], dtype=torch.float32)
+    input2 = torch.tensor([4, -5, 6], dtype=torch.float32)
+    out = torch.tensor([], dtype=torch.float32)
+    input_dict = {
+        "input": input1.numpy(),
+        "other": input2.numpy(),
+        "out": out.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Valid input with complex numbers
+    input1 = torch.tensor([1 + 2j, 3 - 1j], dtype=torch.complex64)
+    input2 = torch.tensor([2 + 1j, 4 - 0j], dtype=torch.complex64)
+    out = torch.tensor([], dtype=torch.complex64)
+    input_dict = {
+        "input": input1.numpy(),
+        "other": input2.numpy(),
+        "out": out.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+generated_inputs["torch.vdot"] = vdot_inputs()
+

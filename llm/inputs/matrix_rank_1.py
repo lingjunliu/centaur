@@ -1,47 +1,66 @@
 
-from utils.new_api_utils import run_api
+from utils.new_api_utils import run_api, get_signature
+from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def matrix_rank_inputs():
     list_of_inputs = []
 
-    def create_input_dict(input_array, tol=None, rtol=None, hermitian=False):
-        input_tensor = torch.from_numpy(input_array)
-        input_dict = {
-            "input": input_tensor,
-            "hermitian": hermitian
-        }
-        if tol is not None:
-            input_dict["atol"] = tol
-        if rtol is not None:
-            input_dict["rtol"] = rtol
-        return input_dict
+    # Input 1: Simple matrix with full rank
+    input1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    tol = 1e-8
+    rtol = 1e-5
+    input_dict1 = {"input": torch.tensor(input1), "tol": tol, "rtol": rtol, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    input1 = np.array([[1, 2], [2, 4]])
-    list_of_inputs.append(create_input_dict(input1, tol=1e-8))
+    # Input 2: Matrix with rank 1
+    input2 = np.array([[1.0, 2.0], [2.0, 4.0]], dtype=np.float32)
+    tol = 1e-8
+    rtol = 1e-5
+    input_dict2 = {"input": torch.tensor(input2), "tol": tol, "rtol": rtol, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input2 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    list_of_inputs.append(create_input_dict(input2, tol=1e-8))
+    # Input 3: Zero matrix
+    input3 = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
+    tol = 1e-8
+    rtol = 1e-5
+    input_dict3 = {"input": torch.tensor(input3), "tol": tol, "rtol": rtol, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    input3 = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    list_of_inputs.append(create_input_dict(input3, tol=1e-8))
+    # Input 4: Rectangular matrix with full rank
+    input4 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    tol = 1e-8
+    rtol = 1e-5
+    input_dict4 = {"input": torch.tensor(input4), "tol": tol, "rtol": rtol, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input4 = np.array([[1, 2], [3, 4], [5, 6]])
-    list_of_inputs.append(create_input_dict(input4, tol=1e-8))
+    # Input 5: Rectangular matrix with rank deficiency
+    input5 = np.array([[1.0, 2.0, 3.0], [2.0, 4.0, 6.0]], dtype=np.float32)
+    tol = 1e-8
+    rtol = 1e-5
+    input_dict5 = {"input": torch.tensor(input5), "tol": tol, "rtol": rtol, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    input5 = np.array([[1+1j, 2+2j], [3+3j, 4+4j]])
-    list_of_inputs.append(create_input_dict(input5, tol=1e-8))
-
+     # Input 6: Matrix with complex numbers and hermitian=True
+    input6 = np.array([[1+0j, 2-1j], [2+1j, 3+0j]], dtype=np.complex64)
+    tol = 1e-8
+    rtol = 1e-5
+    input_dict6 = {"input": torch.tensor(input6), "tol": tol, "rtol": rtol, "hermitian": True}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.linalg.matrix_rank_1"] = matrix_rank_inputs()
 
-def check_valid(api, list_of_inputs, lib="torch"):
+def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
+        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
         output = run_api(api, input_dict, cpu=True, lib=lib)
     
     print("Valid")
@@ -49,4 +68,4 @@ def check_valid(api, list_of_inputs, lib="torch"):
 if 'torch.linalg.matrix_rank_1' not in generated_inputs:
     raise Exception("Output of the input generating function was not assigned to the generated_inputs dictionary to the key 'torch.linalg.matrix_rank_1'.")
 
-check_valid('torch.linalg.matrix_rank', generated_inputs['torch.linalg.matrix_rank_1'], lib="torch")
+check_valid('torch.linalg.matrix_rank', generated_inputs['torch.linalg.matrix_rank_1'], lib="torch", suffix=1)
