@@ -5768,41 +5768,6 @@ signatures["torch.linalg.solve_triangular"] = {
     },
     "inner": {},
 }
-signatures["torch.IntStorage_1"] = {
-    "args": {
-        "size": "integer"
-    },
-    "kwargs": {},
-    "inner": {},
-}
-signatures["torch.IntStorage_2"] = {
-    "args": {
-        "size": "tuple" # Should be a tuple of integers
-    },
-    "kwargs": {},
-    "inner": {},
-}
-signatures["torch.IntStorage_3"] = {
-    "args": {
-        "source": "list" # Could also be a tuple
-    },
-    "kwargs": {},
-    "inner": {},
-}
-signatures["torch.IntStorage_4"] = {
-    "args": {
-        "source": "integer"
-    },
-    "kwargs": {},
-    "inner": {},
-}
-signatures["torch.IntStorage_5"] = {
-    "args": {
-        "storage": "torch.storage" #need a better type. This should be a storage object in torch but I don't have this type
-    },
-    "kwargs": {},
-    "inner": {},
-}
 signatures["torch.nn.AdaptiveAvgPool3d_1"] = {
     "args": {
         "output_size": "integer"
