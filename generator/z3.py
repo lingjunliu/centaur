@@ -269,7 +269,7 @@ def sample_partitions(var_values_map, p):
 
     return sampled_partitions
 
-def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch"):
+def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch", corpus_dir=None, return_models=True):
     elapsed = 0
     start = time.time()
 
@@ -397,8 +397,15 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                 excp += 1
             elif status == "nominal":
                 nominal += 1
-            models.append(model)
+            
+            if return_models:
+                models.append(model)
+            # Save the model
+            if corpus_dir:
+                path = os.path.join(corpus_dir, f"model-{num_model}.json")
+                save_model(model, path)
             num_model += 1
+            
             print(f"Valid models: {num_model}", end='\r', flush=True)
             # TODO: Check if this could be improved
             # selected_valid_block = potential_valid_blocks[rng.integers(len(potential_valid_blocks))]
@@ -416,6 +423,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
 
         save_state_models(definition["api"], definition["suffix"], unsat, nominal, invalid, crash, excp, tmp_results)
 
+    print(f"Generated {num_model} models for {api}")
     return models
 
 def load_existing_models(corpus_dir, z3_args):
@@ -473,12 +481,8 @@ def main():
         models = load_existing_models(corpus_dir, z3_args)
         print(f"Loaded {len(models)} existing models for {api}")
     else:
-        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details)
         os.makedirs(corpus_dir, exist_ok=True)
-        for idx, model in enumerate(models):
-            path = os.path.join(corpus_dir, f"model-{idx}.json")
-            save_model(model, path)
-        print(f"Generated {len(models)} models for {api}")
+        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False)
 
 if __name__ == "__main__":
     main()

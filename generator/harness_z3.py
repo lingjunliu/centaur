@@ -7,8 +7,7 @@ import sys
 
 from z3 import *
 from .definitions import get_definition
-from .serialize import load_model, save_model 
-from .z3 import create_z3_args, gen_models, instantiate_args, load_existing_models 
+from .z3 import create_z3_args, instantiate_args, load_existing_models 
 from utils.new_api_utils import get_n_variations, get_lib_version
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
 from generator.input_generators import abstract_print
