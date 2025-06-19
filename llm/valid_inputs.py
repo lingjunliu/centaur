@@ -796,10 +796,7 @@ def L1Loss_inputs():
     
     return list_of_inputs
 
-if __name__ == '__main__':
-    
-    generated_inputs["torch.nn.L1Loss"] = L1Loss_inputs()
-    #print(generated_inputs)
+generated_inputs["torch.nn.L1Loss"] = L1Loss_inputs()
 
 import torch
 import copy
@@ -1092,10 +1089,7 @@ def L1Loss_inputs():
     
     return list_of_inputs
 
-if __name__ == '__main__':
-    
-    generated_inputs["torch.nn.L1Loss"] = L1Loss_inputs()
-    #print(generated_inputs)
+generated_inputs["torch.nn.L1Loss"] = L1Loss_inputs()
 
 import torch, copy
 import numpy as np
@@ -12041,18 +12035,7 @@ def isfinite_inputs():
 
     return list_of_inputs
 
-def convert_to_torch(generated_inputs):
-    for api_name, input_list in generated_inputs.items():
-        for input_dict in input_list:
-            for key, value in input_dict.items():
-                if isinstance(value, np.ndarray):
-                    input_dict[key] = torch.from_numpy(value)
-                elif isinstance(value, (int, float)):
-                    input_dict[key] = torch.tensor(value)
-    return generated_inputs
-
 generated_inputs["torch.isfinite"] = isfinite_inputs()
-generated_inputs = convert_to_torch(generated_inputs)
 
 import torch
 import numpy as np
@@ -37841,10 +37824,7 @@ def masked_scatter_inputs():
     
     return list_of_inputs
 
-if __name__ == '__main__':
-    
-    generated_inputs["torch.masked_scatter"] = masked_scatter_inputs()
-    print(generated_inputs)
+generated_inputs["torch.masked_scatter"] = masked_scatter_inputs()
 
 import torch, copy
 import numpy as np

@@ -260,8 +260,6 @@ def run_api(api, input_dict, cpu=True, lib="torch"):
         
         if not cpu:
             result = result.cuda()
-        print(inp["inner"]["args"])
-        print(inp["inner"]["kwargs"])
         result = result(*inp["inner"]["args"], **inp["inner"]["kwargs"])
 
     result_dict = {}

@@ -1,13 +1,14 @@
 import torch
 import copy
 import time
-from utils.new_api_utils import get_signature, get_lib_version
-from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_root
+from utils.new_api_utils import get_signature, get_lib_version, get_n_variations
+from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_root, bcolors
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 from eval.oracle import oracle_crash
 import llm.valid_inputs as valid_inputs
 import numpy as np
 import os
+import traceback
 
 def scatter_inputs():
     list_of_inputs = []
@@ -380,36 +381,41 @@ def augment_inputs(list_of_inputs, signature):
 
 # Add human and LLM defined inputs for APIs that are
 # difficult to generate inputs for
-inputs_per_api = {
-    "scatter": scatter_inputs(),      # human start
-    "matmul": matmul_inputs(),
-    "combinations": combinations_inputs(),
-    "addcmul": addcmul_inputs(),
-    "lp_pool1d_": lp_pool1d_inputs(), # human end
-}
+
+# Human defined inputs: Uncomment if needed (LLM generated inputs are preferred)
+# inputs_per_api = {
+    # "scatter": scatter_inputs(),      # human start
+    # "matmul": matmul_inputs(),
+    # "combinations": combinations_inputs(),
+    # "addcmul": addcmul_inputs(),
+    # "lp_pool1d_": lp_pool1d_inputs(), # human end
+# }
 
 def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=0):
     try:
         api_signature = get_signature(api, lib=lib, suffix=suffix)
     except Exception as e:
         # Could not get signature, return empty list
-        print(f"Error getting signature for {api} | {e.__class__.__name__}: {e}")
+        print(f"{bcolors.FAIL}Error getting signature for {api} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
         return []
     
     lib_api = get_lib_version(api, lib=lib)
+    variation = f"{lib_api}_{suffix}" if suffix > 0 else lib_api
     # Return LLM generated inputs if available
-    if lib_api in valid_inputs.generated_inputs:
+    if variation in valid_inputs.generated_inputs:
+        print(f"Using LLM generated inputs for {variation}")
         try:
-            return augment_inputs(valid_inputs.generated_inputs[lib_api], api_signature)
+            return augment_inputs(valid_inputs.generated_inputs[variation], api_signature)
         except Exception as e:
-            print(f"Error augmenting inputs for {lib_api} | {e.__class__.__name__}: {e}")
+            print(f"{bcolors.FAIL}Error augmenting inputs for {variation} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
+            traceback.print_exc()
 
     # Return human written inputs if available
-    if api in inputs_per_api:
-        try:
-            return augment_inputs(inputs_per_api[api], api_signature)
-        except Exception as e:
-            print(f"Error augmenting inputs for {api} in {lib} | {e.__class__.__name__}: {e}")
+    # if api in inputs_per_api:
+    #     try:
+    #         return augment_inputs(inputs_per_api[api], api_signature)
+    #     except Exception as e:
+    #         print(f"Error augmenting inputs for {api} in {lib} | {e.__class__.__name__}: {e}")
     
     # Generate valid inputs through random generation otherwise
     input_file = os.path.join(get_dir_in_root(f"valid_inputs_{lib}"), f"{api}.pkl")
@@ -418,6 +424,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=
     
     # If there already is a saved file, read from that and concretize
     if os.path.isfile(input_file):
+        print(f"Using saved inputs for {api} from {input_file}")
         abstract_inputs = read_pkl(input_file)
         for abs_inp, saved_seed, suff in abstract_inputs:
             if suff != suffix:
@@ -426,6 +433,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=
             list_of_inputs.append(concretize_input(abs_inp, api_signature, rng))
     
     if len(list_of_inputs) == 0:   # Generate and save otherwise
+        print(f"Generating inputs for {api} (suffix: {suffix}) with time budget {time_budget} seconds and minimum valid inputs {min_val_inp}")
         valid = 0
         invalid = 0
         abstract_inputs = []
@@ -452,35 +460,41 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=
     
     return augment_inputs(list_of_inputs, api_signature)
 
-# TODO: Fix the main function
-'''
 def main():
-    all_apis = set(read_file_in_root("apis.txt"))
+    all_apis = set(read_file_in_root("torch_apis.txt"))
     apis = set()
     total_inputs = 0
     apis_with_issues = set()
-    for api, inputs in inputs_per_api.items():
-        generated_inputs = get_inputs(api)
-        if len(generated_inputs) == 0:
-            print(f"Warning: No inputs generated for {api}")
-            apis_with_issues.add(api)
-            continue
-        apis.add(api)
-        total_inputs += len(generated_inputs)
-    for torch_api, inputs in valid_inputs.generated_inputs.items():
-        generated_inputs = get_inputs(torch_api)
-        if len(generated_inputs) == 0:
-            print(f"Warning: No inputs generated for {api}")
-            apis_with_issues.add(api)
-            continue
-        apis.add(api)
-        total_inputs += len(generated_inputs)
+    lib = "torch"
     
-    print(f"\n{len(apis)} apis has pre-defined inputs, {round(total_inputs/len(apis), 2)} inputs on average")
+    for torch_api in all_apis:
+        n_variations = get_n_variations(torch_api, lib=lib)
+        suffixes = []
+        if n_variations == 1:
+            suffixes = [0]
+        else:
+            suffixes = [i for i in range(1, n_variations + 1)]
+
+        for suffix in suffixes:
+            variation = f"{torch_api}_{suffix}" if suffix > 0 else torch_api
+            if variation not in valid_inputs.generated_inputs.keys():
+                print(f"{bcolors.WARNING}Warning: {variation} not found in valid_inputs.generated_inputs{bcolors.ENDC}")
+                apis_with_issues.add(torch_api)
+                break
+            generated_inputs = get_inputs(torch_api, time_budget=0, lib=lib, suffix=suffix)
+            if len(generated_inputs) == 0:
+                print(f"{bcolors.WARNING}Warning: No inputs generated for {torch_api} with suffix {suffix}{bcolors.ENDC}")
+                apis_with_issues.add(torch_api)
+                break
+            apis.add(torch_api)
+            total_inputs += len(generated_inputs)
+    
+    print(f"\n{len(apis)} apis has pre-defined inputs, {round(total_inputs/len(apis), 2) if len(apis) > 0 else 0} inputs on average")
     print(f"{len(apis_with_issues)} APIs with issues, {len(all_apis - apis)} APIs without pre-defined inputs, {len(all_apis)} APIs in total")
     
     predefined_inputs_file = os.path.join(get_dir_in_root("llm"), "predefined_inputs.txt")
     needs_inputs_file = os.path.join(get_dir_in_root("llm"), "needs_inputs.txt")
+    issues_file = os.path.join(get_dir_in_root("llm"), "apis_w_problematic_inputs.txt")
     
     with open(predefined_inputs_file, "w") as f:
         for api in sorted(apis):
@@ -488,11 +502,9 @@ def main():
     with open(needs_inputs_file, "w") as f:
         for api in sorted(all_apis - apis):
             f.write(f"{api}\n")
-    
-    print("APIs with issues:")
-    for api in sorted(apis_with_issues):
-        print(f"{api}")
+    with open(issues_file, "w") as f:
+        for api in sorted(apis_with_issues):
+            f.write(f"{api}\n")
     
 if __name__ == "__main__":
     main()
-'''

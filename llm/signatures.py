@@ -4526,17 +4526,6 @@ signatures["torch.rsqrt"] = {
     },
     "inner": {},
 }
-signatures["torch.save"] = {
-    "args": {
-        "obj": "object", # Could be any object
-        "f": "object" # Could be string or file-like object
-    },
-    "kwargs": {
-        "pickle_module": "object", # Could be any module
-        "pickle_protocol": "integer",
-    },
-    "inner": {},
-}
 signatures["torch.scatter"] = {
     "args": {
         "input": "tensor",
@@ -6307,13 +6296,6 @@ signatures["torch.flatten"] = {
     },
     "inner": {},
 }
-signatures["torch.jit.run_frozen_optimizations"] = {
-    "args": {
-        "mod": "object" # could be more specific, but "object" is the closest match
-    },
-    "kwargs": {},
-    "inner": {},
-}
 signatures["torch.index_add"] = {
     "args": {
         "input": "tensor",
@@ -6458,14 +6440,6 @@ signatures["torch.nn.LazyInstanceNorm1d"] = {
         },
         "kwargs": {}
     },
-}
-signatures["torch.nn.parallel.replicate"] = {
-    "args": {
-        "module": "object",  # Could potentially be nn.Module, but object is safer for now
-        "device_ids": "list"
-    },
-    "kwargs": {},
-    "inner": {}
 }
 signatures["torch.nn.utils.vector_to_parameters"] = {
     "args": {
@@ -7581,18 +7555,6 @@ signatures["torch.nn.HuberLoss"] = {
         "kwargs": {}
     },
 }
-signatures["torch.frombuffer"] = {
-    "args": {
-        "buffer": "object"  # Could be a more specific buffer type if available
-    },
-    "kwargs": {
-        "dtype": "dtype",
-        "count": "integer",
-        "offset": "integer",
-        "requires_grad": "boolean"
-    },
-    "inner": {},
-}
 signatures["torch.nan_to_num"] = {
     "args": {
         "input": "tensor"
@@ -8208,18 +8170,6 @@ signatures["torch.swapaxes"] = {
         "axis1": "integer"
     },
     "kwargs": {},
-    "inner": {},
-}
-signatures["torch.nn.parallel.data_parallel"] = {
-    "args": {
-        "module": "object", # object seems most appropriate, but could potentially be more specific
-        "inputs": "tensor",
-    },
-    "kwargs": {
-        "device_ids": "list",
-        "output_device": "integer",
-        "dim": "integer",
-    },
     "inner": {},
 }
 signatures["torch.conj_physical_"] = {
