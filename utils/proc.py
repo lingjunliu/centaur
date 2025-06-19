@@ -1,4 +1,17 @@
-import multiprocessing, signal, os
+import multiprocessing, signal, os, psutil
+
+def get_memory_usage():
+    # Get the current process
+    process = psutil.Process(os.getpid())
+
+    # Get memory information (Resident Set Size in bytes)
+    memory_info = process.memory_info()
+    rss_bytes = memory_info.rss
+
+    # Convert to megabytes for better readability
+    rss_mb = rss_bytes / (1024 * 1024)
+
+    return rss_mb
 
 def worker(func, return_dict, *args, **kwargs):
     try:

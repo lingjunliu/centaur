@@ -13,6 +13,7 @@ from functools import reduce
 import os
 import random
 import json
+from utils.proc import get_memory_usage
 
 def save_state_models(api, suffix, unsat, nominal, invalid, crash, excp, tmp_results):
     api = f"{api}_{suffix}" if suffix > 0 else api
@@ -406,7 +407,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                 save_model(model, path)
             num_model += 1
             
-            print(f"Valid models: {num_model}", end='\r', flush=True)
+            print(f"Valid models: {num_model} | Memory usage: {get_memory_usage():.2f}")
             # TODO: Check if this could be improved
             # selected_valid_block = potential_valid_blocks[rng.integers(len(potential_valid_blocks))]
             # solver.add(selected_valid_block)
