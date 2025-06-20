@@ -252,6 +252,10 @@ def run_api(api, input_dict, cpu=True, lib="torch"):
     api = get_lib_version(api, lib=lib)
     func = get_func(api, lib=lib)
     inp = get_input(api, input_dict, cpu=cpu, lib=lib)
+    
+    if lib == "torch":            
+        torch.use_deterministic_algorithms(True)
+        torch.utils.deterministic.fill_uninitialized_memory = True
 
     result = func(*inp["args"], **inp["kwargs"])
     if callable(result):

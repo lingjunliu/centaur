@@ -20,6 +20,7 @@ if [ "$lib" != "torch" ]; then
 fi
 
 export apis_file=${lib}_variations.txt
+export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 
 # Add 2 minutes (120 seconds)
 total_seconds=$((duration + 120))

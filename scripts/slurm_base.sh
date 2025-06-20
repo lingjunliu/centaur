@@ -14,6 +14,10 @@ if [ -z "${max_parallel}" ]; then
     max_parallel=690    # Fix number of slurm jobs to run at a time if not set
 fi
 
+if [ -z "${max_memory}" ]; then
+    max_memory=4096    # Fix maximum memory for each job in MB
+fi
+
 if [ -z "${slurm_time}" ]; then
     slurm_time="2:00:00"    # Default slurm timeout
 fi
@@ -76,7 +80,8 @@ done
 
 # wait for everything to finish
 while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) > 0 )); do
-    print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
+    # print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
+    python -m utils.monitor_mem ${job_name} ${elapsed} ${i} ${n_apis} ${max_memory}
     sleep 1
     (( elapsed = elapsed + 1 ))
 done
