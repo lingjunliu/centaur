@@ -28,6 +28,7 @@ The code is organized as follow:
  
  - **python**: The tool uses `python 3.12`
  - **venv**: `sudo apt install python3.12-venv`
+ - **libopenmp**: `sudo apt-get install libomp-dev`
 
 <h1>Use cases</h1>
 

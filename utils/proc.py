@@ -7,6 +7,9 @@ def get_memory_usage_by_pid(pid):
     '''
     Get the memory usage of a process by its PID in megabytes.
     '''
+    if not psutil.pid_exists(pid):
+        return -1
+    
     process = psutil.Process(pid)
 
     # Get memory information (Resident Set Size in bytes)

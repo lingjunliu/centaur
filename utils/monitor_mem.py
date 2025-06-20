@@ -80,6 +80,8 @@ def main():
             if not pid.isdigit():
                 continue
             mem_usage = get_memory_usage_by_pid(int(pid))
+            if mem_usage < 0:
+                continue
             if mem_usage > threshold:
                 print(f"Job {job_name} (ID: {job_id}, PID: {pid}) is using {mem_usage:.2f} MB memory, exceeding the threshold of {threshold} MB.")
                 cancel_slurm_job(job_id)
