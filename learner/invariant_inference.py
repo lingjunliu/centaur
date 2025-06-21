@@ -84,7 +84,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     if not filtered_ruleset:
                         filtered_ruleset = check_rules_z3(input_dict) if z3 else check_rules(input_dict)
                     else:
-                        filtered_ruleset = filtered_ruleset.union(filtered_ruleset)
+                        filtered_ruleset = filtered_ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
                 else:
                     if print_details:
                         print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
