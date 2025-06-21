@@ -32,7 +32,7 @@ def get_original_signatures():
 def get_lib_version(api, lib="torch"):
     if lib == "torch" and not api.startswith("torch"):
         _, driver_to_torch = map_torch_to_driver()
-        return driver_to_torch[api]
+        return driver_to_torch[api] if api in driver_to_torch else api
     return api
 
 def get_n_variations(api, lib="torch"):
