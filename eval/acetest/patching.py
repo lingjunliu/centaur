@@ -45,7 +45,8 @@ invalid = 0
 for file in os.listdir(dir):
     if not file.endswith('.pkl'):
         continue
-        
+    
+    total += 1
     with open(os.path.join(dir, file), 'rb') as f:
         input_dict = pickle.load(f)
         try:
