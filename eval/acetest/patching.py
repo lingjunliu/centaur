@@ -1,50 +1,61 @@
-import sys, os, subprocess
+import sys, os, subprocess, re
 from utils.new_api_utils import get_lib_version
 from utils.misc import get_tmp_dir
-from eval.titanfuzz.monkey_patching import replace_function_invocation
+
+def replace_function_invocation(script, old_function_name, new_function_name):
+    # The 're.DOTALL' flag allows '.' to match newlines.
+    # We use a non-greedy quantifier (.*?) to match as little as possible.
+    pattern = re.compile(rf"{old_function_name}\((.*?)\)", re.DOTALL)
+
+    def replacer(match):
+        old_args = match.group(1)
+        # Ensure that old_function_name is correctly quoted if it's a string literal
+        # in the new invocation, as per your example.
+        return f"{new_function_name}({old_function_name}, {old_args})"
+
+    return pattern.sub(replacer, script)
 
 def patch_code(code, api, output_dir):
     prefix = f"""
-    import os, pickle, torch
+import os, pickle, torch
 
-    def monkey(self, func, func_str, *args, **kwargs):
-        input_dict = {
-            'args': args,
-            'kwargs': kwargs
-        }
-        pkl_file = os.path.join('{output_dir}', os.path.basename(__file__)[:-2] + 'pkl')
-        with open(pkl_file, 'wb') as f:
-            pickle.dump(input_dict, f)
+def monkey(func, *args, **kwargs):
+    input_dict = {{
+        'args': args,
+        'kwargs': kwargs
+    }}
+    pkl_file = os.path.join('{output_dir}', os.path.basename(__file__)[:-2] + 'pkl')
+    with open(pkl_file, 'wb') as f:
+        pickle.dump(input_dict, f)
 
-        return func(*args, **kwargs)
-
-    """
+    return func(*args, **kwargs)
+"""
     code = replace_function_invocation(code, api, 'monkey')
     return prefix + code
 
 def driver(api, output_dir):
     driver_code = f"""
-    import os, pickle, torch
-    
-    dir = '{output_dir}'
-    total = 0
-    valid = 0
-    invalid = 0
-    
-    for file in os.listdir(dir):
-        if not file.endswith('.pkl'):
-            continue
+import os, pickle, torch
+
+dir = '{output_dir}'
+total = 0
+valid = 0
+invalid = 0
+
+for file in os.listdir(dir):
+    if not file.endswith('.pkl'):
+        continue
+        
+    with open(os.path.join(dir, file), 'rb') as f:
+        input_dict = pickle.load(f)
+        try:
+            output = {api}(*input_dict['args'], **input_dict['kwargs'])
+            valid += 1
+        except Exception as e:
+            invalid += 1
             
-        with open(os.path.join(dir, file), 'rb') as f:
-            input_dict = pickle.load(f)
-            try:
-                output = {api}(*input_dict['args'], **input_dict['kwargs'])
-                valid += 1
-            except Exception as e:
-                invalid += 1
-                
-    print(total, valid, invalid)
-    """
+print(total, valid, invalid)
+"""
     return driver_code
 
 
@@ -62,14 +73,15 @@ def main():
     api = get_lib_version(api, lib=lib)
     
     output_dir = os.path.join(get_tmp_dir(), "acetest_patched", api)
-    os.makedirs(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
     
     for category in categories:
         result_dir = os.path.join(dir, api, category)
         if not os.path.exists(result_dir):
             continue
         
-        for file in os.listdir(result_dir):
+        files = os.listdir(result_dir)
+        for i, file in enumerate(files):
             if not file.endswith('.py'):
                 continue
             
@@ -90,7 +102,9 @@ def main():
                     raise KeyboardInterrupt
                 
                 if len(return_obj.stderr.decode()) > 0:
-                    print(f"Error faced while running patched code: {return_obj.stderr.decode()}")                
+                    print(f"Error faced while running patched code: {return_obj.stderr.decode()}")
+                    
+                print(f"Patched {i+1}/{len(files)} files        ", end='\r', flush=True)
                     
         driver_file = os.path.join(output_dir, "driver.py")
         driver_code = driver(api, output_dir)
