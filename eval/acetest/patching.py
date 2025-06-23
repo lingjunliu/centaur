@@ -51,6 +51,10 @@ def driver(api, output_dir):
 def main():
     api = sys.argv[1]
     dir = sys.argv[2]
+    
+    if not os.path.exists(dir):
+        print(f"{dir} does not exist")
+        return
 
     lib = "torch"
     categories = ['non_crash'] # Add more categories as needed: crash, invalid, samples, timeout, non_crash

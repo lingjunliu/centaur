@@ -35,6 +35,10 @@ def main():
     eval = get_dir_in_root("eval")
     driver_file = f"{eval}/patched_drivers/{api}/{api}_cov_in_loop.py"
     
+    if not os.path.exists(driver_file):
+        print(f"{driver_file} does not exist")
+        return
+    
     compute_coverage(api, cov_results, driver_file, lib=lib, save_lcov=save_lcov, gen_html=gen_html)
 
 if __name__ == "__main__":

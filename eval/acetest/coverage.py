@@ -17,6 +17,10 @@ def main():
     cov_results = create_subdir(get_tmp_dir(), "acetest_coverage")
     driver_file = os.path.join(get_tmp_dir(), "acetest_patched", api, "driver.py")
     
+    if not os.path.exists(driver_file):
+        print(f"{driver_file} does not exist")
+        return
+    
     compute_coverage(api, cov_results, driver_file, lib=lib, save_lcov=save_lcov, gen_html=gen_html)
 
 if __name__ == "__main__":
