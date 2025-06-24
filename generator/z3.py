@@ -438,18 +438,7 @@ def load_existing_models(corpus_dir, z3_args):
 
     return models
 
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: python fuzz.py <api> <duration> <lib, default='torch'> <seed, optional> <n_max, optional> <regen, default=False>")
-        return
-    
-    api = sys.argv[1]
-    duration = int(sys.argv[2])
-    n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
-    lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
-    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
-    regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
-
+def run_model_gen(api, duration, n_max, lib, seed, regen):
     print_details = False # Set to True if you want to print details of the process
     
     # alias
@@ -484,6 +473,21 @@ def main():
     else:
         os.makedirs(corpus_dir, exist_ok=True)
         models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False)
+    
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: python fuzz.py <api> <duration> <lib, default='torch'> <seed, optional> <n_max, optional> <regen, default=False>")
+        return
+    
+    api = sys.argv[1]
+    duration = int(sys.argv[2])
+    n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
+    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
+    regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
+    
+    run_model_gen(api, duration, n_max, lib, seed, regen)
 
 if __name__ == "__main__":
     main()
