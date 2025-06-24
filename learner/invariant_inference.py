@@ -64,7 +64,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         else:   # Inference
             list_of_inputs = get_inputs(api, lib=lib, time_budget=time_budget, min_val_inp=min_val_inp, seed=seed, suffix=suff)
             ruleset = set()
-            filtered_ruleset = set()
+            initialized = False
             print(f"Inferring invariants for {variant} with {len(list_of_inputs)} inputs\n")
             try:
                 api_signature = get_signature(api, lib=lib, suffix=suff)
@@ -81,21 +81,17 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     if print_details:
                         print(f"Input {idx} is invalid")
                         print(f"Exception: {exception_message}")
-                    if not filtered_ruleset:
-                        filtered_ruleset = check_rules_z3(input_dict) if z3 else check_rules(input_dict)
-                    else:
-                        filtered_ruleset = filtered_ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
                 else:
                     if print_details:
                         print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
                         print(f"Input {idx} is valid")
                     # Check rules for the input dictionary
-                    if not ruleset:  # If ruleset is not initialized
+                    if not initialized:
                         ruleset = check_rules_z3(input_dict) if z3 else check_rules(input_dict)
+                        initialized = True
                     else:
                         ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
                     valid += 1
-            ruleset = ruleset.difference(filtered_ruleset)
             # Save some stats
             infer_dir = create_subdir(get_tmp_dir(), f"infer_results_{lib}")
             csv_file = os.path.join(infer_dir, f"{variant}.csv")
