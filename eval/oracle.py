@@ -180,7 +180,7 @@ def oracle_crash(api, input_dict, cpu=True, lib="torch", include_traceback=False
         return_val = ("nominal", "")
     
     if include_traceback:
-        return_val += (return_dict["traceback"])
+        return_val += (return_dict["traceback"],)
     
     return return_val
 
