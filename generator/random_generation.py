@@ -32,6 +32,8 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch", logfile=No
         api_signature = get_signature(api, lib=lib, suffix=suffix)
         input_dict, abs_inp = get_random_input(api_signature, rng)
         status, exception_message, traceback = oracle_crash(api, input_dict, cpu=True, lib=lib, include_traceback=True)
+        if len(exception_message.splitlines()) > 1:
+            exception_message = ' '.join(exception_message.splitlines())
         if status == "nominal":
             valid += 1
             # Save 
