@@ -45,13 +45,13 @@ def analyze(logfile, threshold=80, expand=False):
 
 def main():
     api = sys.argv[1]
+    EXPAND = sys.argv[2].lower() == 'true' or sys.argv[2] == '+' if len(sys.argv) > 2 else False      # Expand similar exception messages
     
     lib = "torch"
     api = get_lib_version(api, lib=lib)  # Assuming torch as the default library
     tmp_results = create_subdir(get_tmp_dir(), "rand_results")
     logfile = os.path.join(tmp_results, f"{api}_excp.log")
     THRESHOLD = 80      # Threshold for similarity for exception messages
-    EXPAND = False      # Expand similar exception messages
     
     if not os.path.exists(logfile):
         print(f"Log file {logfile} does not exist.")
