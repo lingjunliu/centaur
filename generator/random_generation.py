@@ -31,7 +31,7 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch", logfile=No
         suffix = 0 if n_variants == 1 else rng.integers(1, n_variants+1)
         api_signature = get_signature(api, lib=lib, suffix=suffix)
         input_dict, abs_inp = get_random_input(api_signature, rng)
-        status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
+        status, exception_message, traceback = oracle_crash(api, input_dict, cpu=True, lib=lib, include_traceback=True)
         if status == "nominal":
             valid += 1
             # Save 
@@ -42,12 +42,14 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch", logfile=No
             invalid += 1
             # Traceback for debugging
             logger.error(exception_message)
+            logger.info(traceback)
             logger.info(f"Status: {status}, Seed: {seed}, Suffix: {suffix}")
             logger.info(f"Abstract Input:\n{abstract_print(abs_inp, api_signature)}")
         elif status == "cpu_crash":
             crash += 1
             # Traceback for debugging
             logger.error(exception_message)
+            logger.info(traceback)
             logger.info(f"Status: {status}, Seed: {seed}, Suffix: {suffix}")
             logger.info(f"Abstract Input:\n{abstract_print(abs_inp, api_signature)}")
         

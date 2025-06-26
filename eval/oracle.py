@@ -148,7 +148,7 @@ def consistent(output1, output2, rtol=1e-07, atol=1e-08):
 
     return matched, max_diff, indices, elem1_val, elem2_val
 
-def oracle_crash(api, input_dict, cpu=True, lib="torch"):
+def oracle_crash(api, input_dict, cpu=True, lib="torch", include_traceback=False):
     """
         Check if the input is valid for the given API with a timeout or
         if it crashes. This runs on either CPU or GPU.
@@ -167,16 +167,22 @@ def oracle_crash(api, input_dict, cpu=True, lib="torch"):
             - ("cpu_excp", exception_message) if the API throws an exception on CPU.
             - ("gpu_excp", exception_message) if the API throws an exception on GPU.
     """
-    return_code, output, exception_message = run(run_api, api, input_dict, cpu=cpu, lib=lib)
+    return_dict = run(run_api, api, input_dict, cpu=cpu, lib=lib)
+    return_code, exception_message = return_dict["return_code"], return_dict["exception_message"]
     
     if return_code < 0: # signal raised
-        return ("cpu_crash", exception_message) if cpu else ("gpu_crash", exception_message)
+        return_val = ("cpu_crash", exception_message) if cpu else ("gpu_crash", exception_message)
     elif check_crash(return_code, exception_message): # non-signal error
-        return ("cpu_excp", exception_message) if cpu else ("gpu_excp", exception_message)
+        return_val = ("cpu_excp", exception_message) if cpu else ("gpu_excp", exception_message)
     elif return_code > 0:
-        return ("invalid", exception_message)
+        return_val = ("invalid", exception_message)
     else:
-        return ("nominal", "")
+        return_val = ("nominal", "")
+    
+    if include_traceback:
+        return_val += (return_dict["traceback"])
+    
+    return return_val
 
 def oracle_diff(api, input_dict, atol=1e-08, detailed=True, lib="torch"):
     """
@@ -205,7 +211,8 @@ def oracle_diff(api, input_dict, atol=1e-08, detailed=True, lib="torch"):
     """
     # cpu
     logger.info("CPU execution started")
-    return_code_cpu, output_cpu, exception_message_cpu = run(run_api, api, input_dict, cpu=True, lib=lib)
+    return_dict_cpu = run(run_api, api, input_dict, cpu=True, lib=lib)
+    return_code_cpu, output_cpu, exception_message_cpu = return_dict_cpu["return_code"], return_dict_cpu["output"], return_dict_cpu["exception_message"]
     
     # check if the CPU execution crashed
     if return_code_cpu < 0: # signal raised, should not reach here since we are not using run_with_timeout
@@ -215,7 +222,8 @@ def oracle_diff(api, input_dict, atol=1e-08, detailed=True, lib="torch"):
 
     # gpu
     logger.info("GPU execution started")
-    return_code_gpu, output_gpu, exception_message_gpu = run(run_api, api, input_dict, cpu=False, lib=lib)
+    return_dict_gpu = run(run_api, api, input_dict, cpu=False, lib=lib)
+    return_code_gpu, output_gpu, exception_message_gpu = return_dict_gpu["return_code"], return_dict_gpu["output"], return_dict_gpu["exception_message"]
     
     # check if the GPU execution crashed
     if return_code_gpu < 0: # signal raised, should not reach here since we are not using run_with_timeout
