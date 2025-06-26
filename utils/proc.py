@@ -3,6 +3,12 @@ import multiprocessing, signal, os, psutil
 def get_memory_usage():
     return get_memory_usage_by_pid(os.getpid())
 
+def get_system_memory_usage():
+    '''
+    Get the system memory usage in percentage.
+    '''
+    return psutil.virtual_memory().percent
+
 def get_memory_usage_by_pid(pid):
     '''
     Get the memory usage of a process by its PID in megabytes.

@@ -14,8 +14,8 @@ if [ -z "${max_parallel}" ]; then
     max_parallel=690    # Fix number of slurm jobs to run at a time if not set
 fi
 
-if [ -z "${max_memory}" ]; then
-    max_memory=4096    # Fix maximum memory for each job in MB
+if [ -z "${max_memory_usage}" ]; then
+    max_memory_usage=95    # Maximum system memory usage in percent
 fi
 
 if [ -z "${slurm_time}" ]; then
@@ -81,7 +81,7 @@ done
 # wait for everything to finish
 while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) > 0 )); do
     # print_progress ${job_name} ${elapsed} "${i}/${n_apis}"
-    python -m utils.monitor_mem ${job_name} ${elapsed} ${i} ${n_apis} ${max_memory}
+    python -m utils.monitor_mem ${job_name} ${elapsed} ${i} ${n_apis} ${max_memory_usage}
     sleep 1
     (( elapsed = elapsed + 1 ))
 done
