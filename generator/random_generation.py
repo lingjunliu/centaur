@@ -1,11 +1,23 @@
-import sys, time, os
+import sys, time, os, logging
 import numpy as np
-from .input_generators import get_random_input, get_abstract_input
+from .input_generators import get_random_input, abstract_print
 from utils.new_api_utils import get_signature, get_n_variations, get_lib_version
 from utils.misc import get_tmp_dir, create_subdir, get_dir_in_root, save_to_pkl, save_to_new_pkl
 from eval.oracle import oracle_crash
 
-def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch"):
+logger = logging.getLogger(__name__)
+
+def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch", logfile=None):
+    if not logfile:
+        logfile = f"logs/{api}_ran_excp.log"
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,                                     # Minimum log level
+        format='%(asctime)s | %(levelname)s | %(message)s',     # Log format
+        filename=logfile,                                       # Log file path
+        filemode="w"                                            # Append/Write mode
+    )
+
     n_variants = get_n_variations(api, lib=lib)
     
     valid = 0
@@ -29,11 +41,15 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch"):
         elif status == "invalid":
             invalid += 1
             # Traceback for debugging
-            print(f"\nThe input might be invalid. Faced exception:\n{exception_message}")
+            logger.error(exception_message)
+            logger.info(f"Status: {status}, Seed: {seed}, Suffix: {suffix}")
+            logger.info(f"Abstract Input:\n{abstract_print(abs_inp, api_signature)}")
         elif status == "cpu_crash":
             crash += 1
             # Traceback for debugging
-            print(f"\nThe input crashed. Faced exception:\n{exception_message}")
+            logger.error(exception_message)
+            logger.info(f"Status: {status}, Seed: {seed}, Suffix: {suffix}")
+            logger.info(f"Abstract Input:\n{abstract_print(abs_inp, api_signature)}")
         
         print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash}", end="\r", flush=True)
         
@@ -58,9 +74,10 @@ def main():
     seed = 42   # seed for reproduction
     tmp_results = create_subdir(get_tmp_dir(), "rand_results")
     csv_file = os.path.join(tmp_results, f"{api}_{duration}_{seed}.csv")
+    logfile = os.path.join(tmp_results, f"{api}_excp.log")
     
     print(f"Started fuzzing {api} for {duration} seconds...")
-    valid, invalid, crash, abstract_inputs = random_fuzz(api, seed, duration, n_max=n_max, n_valid=n_valid, lib=lib)
+    valid, invalid, crash, abstract_inputs = random_fuzz(api, seed, duration, n_max=n_max, n_valid=n_valid, lib=lib, logfile=logfile)
     total = valid + invalid + crash
     valid_prcnt = round((valid+crash)*100/total,2) if total > 0 else 0
     result = f"{api},{valid},{invalid},{crash},{total},{valid_prcnt}\n"
