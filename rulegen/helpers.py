@@ -9,8 +9,7 @@ with open("grammar.lark", "r", encoding="utf-8") as f:
 
 parser = Lark(grammar, start="start", parser="lalr", lexer="contextual")
 
-def create_rule_expr(rule_number, rule_def):
-    filename = f"../rules/rule_{rule_number}.py"
+def create_rule_expr(rule_number, rule_def, filename):
     try:
         bindings_text = re.findall(r"\{([^}]+)\}", rule_def)[0]
         bindings = [b.strip() for b in bindings_text.split(",")]

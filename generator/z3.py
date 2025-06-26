@@ -2,7 +2,7 @@ import time
 import numpy as np
 from z3 import *
 from .input_generators import get_ll, abstract_print
-from .rules_auto_z3 import rule_func_map
+from .rules_auto_z3 import get_rules_map
 from .definitions import get_definition
 from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values
@@ -102,7 +102,8 @@ def initial_constraints(solver, signature, z3_args):
         elif param_type == "dtype":
             solver.add(And(z3_var >= 0, z3_var <= len(list_of_available_dtypes) - 3)) 
 
-def collect_constraints(solver, ruleset, z3_args):
+def collect_constraints(solver, ruleset, z3_args, use_reference=False):
+    rule_func_map = get_rules_map(use_reference=use_reference)
     for rule in ruleset:
         arity, rule_name, *args = rule
         rule_func = rule_func_map[arity][rule_name]
@@ -270,7 +271,7 @@ def sample_partitions(var_values_map, p):
 
     return sampled_partitions
 
-def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch", corpus_dir=None, return_models=True):
+def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch", corpus_dir=None, return_models=True, use_reference=False):
     elapsed = 0
     start = time.time()
 
@@ -278,7 +279,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     solver = Solver()
     models, num_model = [], 0
     initial_constraints(solver, definition["signature"], z3_args)
-    collect_constraints(solver, definition["ruleset"], z3_args)
+    collect_constraints(solver, definition["ruleset"], z3_args, use_reference=use_reference)
     block_all = set()
     stale = 0
     # valid_blocks = []   # list of blocks for valid models, saved for restarts
@@ -312,7 +313,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                 # restart the solver
                 solver = Solver()
                 initial_constraints(solver, definition["signature"], z3_args)
-                collect_constraints(solver, definition["ruleset"], z3_args)
+                collect_constraints(solver, definition["ruleset"], z3_args, use_reference=use_reference)
                 # solver.add(And(valid_blocks))   # Adding previously saved blocks from valid models
                 # block = []
                 stale = 0
@@ -438,7 +439,7 @@ def load_existing_models(corpus_dir, z3_args):
 
     return models
 
-def run_model_gen(api, duration, n_max, lib, seed, regen):
+def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
     print_details = False # Set to True if you want to print details of the process
     
     # alias
@@ -472,7 +473,7 @@ def run_model_gen(api, duration, n_max, lib, seed, regen):
         print(f"Loaded {len(models)} existing models for {api}")
     else:
         os.makedirs(corpus_dir, exist_ok=True)
-        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False)
+        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference)
     
 
 def main():
@@ -486,8 +487,9 @@ def main():
     lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
     seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
     regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
+    use_reference = int(sys.argv[7]) == 1 if len(sys.argv) > 7 else False
     
-    run_model_gen(api, duration, n_max, lib, seed, regen)
+    run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=use_reference)
 
 if __name__ == "__main__":
     main()

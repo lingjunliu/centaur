@@ -20,7 +20,7 @@ from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_
 from z3 import *
 
 # {description} (Rule {rule_number})''')
-    return rule_number
+    return rule_number, filename
 
 def create_func_template(rule_number, var_map, var_types, filename):
     param_list = [var_map[var] for var in var_map]
@@ -81,12 +81,11 @@ def write_rules(dir, rules_file):
             rules.append((header, rule_def))
 
     for i, (header, rule_def) in enumerate(rules, 1):
-        rule_number = create_py(header)
-        result = create_rule_expr(rule_number, rule_def)
+        rule_number, rules_filename = create_py(header, directory=dir)
+        result = create_rule_expr(rule_number, rule_def, filename=rules_filename)
         if result is None:
             continue
         var_map, var_types = result
-        rules_filename = f"{dir}/rule_{rule_number}.py"
         create_func_template(rule_number, var_map, var_types, rules_filename)
         create_func_body(rule_number, rule_def, var_map, var_types, rules_filename)
 
