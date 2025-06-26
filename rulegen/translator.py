@@ -22,9 +22,7 @@ from z3 import *
 # {description} (Rule {rule_number})''')
     return rule_number
 
-def create_func_template(rule_number, var_map, var_types):
-    filename = f"../rules/rule_{rule_number}.py"
-
+def create_func_template(rule_number, var_map, var_types, filename):
     param_list = [var_map[var] for var in var_map]
     param_str = ", ".join(param_list + ["solver=None"])
     extract_lines = [f"    {arg} = next(iter({arg}.values()))" for arg in param_list]
@@ -69,23 +67,33 @@ def rule_{rule_number}_func({param_str}):
     with open(filename, "a", encoding="utf-8") as f:
         f.write(func_code)
 
-rules = []
-with open("rules", "r", encoding="utf-8") as f:
-    content = f.read()
+def write_rules(dir, rules_file):
+    rules = []
+    with open(rules_file, "r", encoding="utf-8") as f:
+        content = f.read()
 
-chunks = [chunk.strip() for chunk in content.split(">>") if chunk.strip()]
-for chunk in chunks:
-    match = re.match(r"(Rule\s+\d+\s+\(.*?\))\s*\n(.*)", chunk, re.DOTALL)
-    if match:
-        header = match.group(1).strip()
-        rule_def = match.group(2).strip()
-        rules.append((header, rule_def))
+    chunks = [chunk.strip() for chunk in content.split(">>") if chunk.strip()]
+    for chunk in chunks:
+        match = re.match(r"(Rule\s+\d+\s+\(.*?\))\s*\n(.*)", chunk, re.DOTALL)
+        if match:
+            header = match.group(1).strip()
+            rule_def = match.group(2).strip()
+            rules.append((header, rule_def))
 
-for i, (header, rule_def) in enumerate(rules, 1):
-    rule_number = create_py(header)
-    result = create_rule_expr(rule_number, rule_def)
-    if result is None:
-        continue
-    var_map, var_types = result
-    create_func_template(rule_number, var_map, var_types)
-    create_func_body(rule_number, rule_def, var_map, var_types)
+    for i, (header, rule_def) in enumerate(rules, 1):
+        rule_number = create_py(header)
+        result = create_rule_expr(rule_number, rule_def)
+        if result is None:
+            continue
+        var_map, var_types = result
+        rules_filename = f"{dir}/rule_{rule_number}.py"
+        create_func_template(rule_number, var_map, var_types, rules_filename)
+        create_func_body(rule_number, rule_def, var_map, var_types, rules_filename)
+
+def main():
+    dir = "../rules"
+    rules_file = "rules"
+    write_rules(dir, rules_file)
+
+if __name__ == "__main__":
+    main()
