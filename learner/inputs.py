@@ -441,7 +441,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=
         start_time = time.time()
         while (time.time() - start_time < time_budget) and (valid < min_val_inp):
             rng = np.random.default_rng(seed)
-            input_dict = get_random_input(api_signature, rng)
+            input_dict, abs_inp = get_random_input(api_signature, rng)
             status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
             if status == "invalid":
                 invalid += 1
@@ -449,7 +449,6 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=
                 valid += 1
                 # Only adding valid inputs
                 list_of_inputs.append(input_dict)
-                abs_inp = get_abstract_input(input_dict, api_signature)
                 # Save the abstract input along with the seed
                 abstract_inputs.append((abs_inp, seed, suffix))
             

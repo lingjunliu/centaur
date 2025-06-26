@@ -18,13 +18,12 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch"):
         rng = np.random.default_rng(seed)
         suffix = 0 if n_variants == 1 else rng.integers(1, n_variants+1)
         api_signature = get_signature(api, lib=lib, suffix=suffix)
-        input_dict = get_random_input(api_signature, rng)
+        input_dict, abs_inp = get_random_input(api_signature, rng)
         status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
         if status == "nominal":
             valid += 1
             # Save 
             if valid <= n_valid:
-                abs_inp = get_abstract_input(input_dict, api_signature)
                 # Save the abstract input along with the seed
                 abstract_inputs.append((abs_inp, seed, suffix))
         elif status == "invalid":
@@ -36,7 +35,7 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch"):
             # Traceback for debugging
             print(f"\nThe input crashed. Faced exception:\n{exception_message}")
         
-        print(f"Valid:: {valid} | Invalid: {invalid} | Crash: {crash}", end="\r", flush=True)
+        print(f"Valid: {valid} | Invalid: {invalid} | Crash: {crash}", end="\r", flush=True)
         
         # Check if maximum number of inputs reached
         if n_max > 0 and (valid+invalid) == n_max:

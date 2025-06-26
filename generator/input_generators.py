@@ -168,12 +168,14 @@ def get_random_input(signature, rng=np.random.default_rng(42)):
         Generate random input according to signature and concretize it
     '''
     input_dict = {}
+    abstract_inp = {}
     for arg, domain in signature.items():
         # TODO: Add support for tensor_list
         if domain == "tensor_list":
             domain = "tensor"   # hack until tensor_list is supported
         
-        ll = gen_ran_ll(domain, rng)    # get abstract form            
+        ll = gen_ran_ll(domain, rng)    # get abstract form
+        abstract_inp[arg] = ll          # save abstract input
         input_dict[arg] = gen_concrete_input(domain, ll, rng) # concretize
         
-    return input_dict
+    return input_dict, abstract_inp
