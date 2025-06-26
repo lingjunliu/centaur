@@ -19,7 +19,7 @@ if [ "$lib" != "torch" ]; then
     exit 1
 fi
 
-export apis_file=${lib}_variations.txt
+export elements_file=${lib}_variations.txt
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 
 # Add 2 minutes (120 seconds)

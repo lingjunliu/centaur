@@ -478,10 +478,10 @@ def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: python fuzz.py <api> <duration> <lib, default='torch'> <seed, optional> <n_max, optional> <regen, default=False>")
+        print("Usage: python fuzz.py <variant> <duration> <lib, default='torch'> <seed, optional> <n_max, optional> <regen, default=False>")
         return
     
-    api = sys.argv[1]
+    variant = sys.argv[1]
     duration = int(sys.argv[2])
     n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
     lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
@@ -489,7 +489,7 @@ def main():
     regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
     use_reference = int(sys.argv[7]) == 1 if len(sys.argv) > 7 else False
     
-    run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=use_reference)
+    run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=use_reference)
 
 if __name__ == "__main__":
     main()
