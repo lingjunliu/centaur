@@ -30,7 +30,7 @@ def print_rules(api, ruleset):
     else:
         print(f"No rules passed for {api}.")
 
-def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=20, seed=42, z3=False, suffix=0):
+def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=20, seed=42, z3=False, suffix=0, use_reference=False):
     '''
         Takes an API and
         
@@ -57,7 +57,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
 
     for api, suff in variants:
         variant = f"{api}_{suff}" if suff > 0 else api
-        invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant)
+        invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant) if not use_reference else os.path.join(get_dir_in_root(f"reference_invariants_{lib}"), variant)
         # Unlese regeneration is forced, return existing ruleset
         if os.path.isfile(invariant_file) and not regen:
             ruleset = read_invariants(invariant_file)

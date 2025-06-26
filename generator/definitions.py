@@ -415,13 +415,13 @@ map_defs = {
 '''
     Get definition per API with an empty random candidate
 '''
-def get_definition(api, z3=False, lib="torch", suffix=0):
+def get_definition(api, z3=False, lib="torch", suffix=0, use_reference=False):
     signature = get_signature(api, lib=lib, suffix=suffix)
     
     definition = {
         "api": api,
         "signature": signature,
-        "ruleset":  infer_invariants(api, z3=z3, lib=lib, suffix=suffix)[0],
+        "ruleset":  infer_invariants(api, z3=z3, lib=lib, suffix=suffix, use_reference=use_reference)[0],
         "random_candidate": {},
         "arg_order": list(signature.keys()),
         "limits": [],

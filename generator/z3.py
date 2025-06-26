@@ -460,7 +460,7 @@ def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
         suffix = 0
     
     api = get_lib_version(api, lib=lib)
-    definition = get_definition(api, z3=True, lib=lib, suffix=suffix)
+    definition = get_definition(api, z3=True, lib=lib, suffix=suffix, use_reference=use_reference)
     if len(definition["ruleset"]) == 0:
         print(f"No invariants learned for {api}")
         return

@@ -6,8 +6,8 @@ import importlib.util
 import inspect
 from itertools import permutations
 
-def get_rules_map(use_refernce=False):
-    RULES_DIR = os.path.join(os.path.dirname(__file__), "..", "rules") if not use_refernce else os.path.join(os.path.dirname(__file__), "..", "references")
+def get_rules_map(use_reference=False):
+    RULES_DIR = os.path.join(os.path.dirname(__file__), "..", "rules") if not use_reference else os.path.join(os.path.dirname(__file__), "..", "references")
     rule_func_map = {}
 
     for filename in os.listdir(RULES_DIR):
