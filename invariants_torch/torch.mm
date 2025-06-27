@@ -101,7 +101,6 @@ torch.mm,2,rule_1012,input,mat2
 torch.mm,2,rule_1022,input,mat2
 torch.mm,2,rule_1029,input,mat2
 torch.mm,2,rule_173,input,mat2
-torch.mm,2,rule_351,input,mat2
 torch.mm,2,rule_941,input,mat2
 torch.mm,2,rule_978,input,mat2
 torch.mm,2,rule_988,input,mat2
