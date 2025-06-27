@@ -30,7 +30,7 @@ The code is organized as follow:
  - **venv**: `sudo apt install python3.12-venv`
  - **libopenmp**: `sudo apt-get install libomp-dev`
 
-<h1>Use cases</h1>
+<h1>Steps to run</h1>
 
 <h2> 1. Learn invariants (offline) </h2>
  
@@ -128,7 +128,7 @@ The code is organized as follow:
  1. Downloading instrumented pytorch (the script above would download it, if that was never run, download it using these commands):
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ pip install gdown
- (venv) ~/dll-fuzzing-with-input-invariants$ gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
+ (venv) ~/dll-fuzzing-with-input-invariants$ gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O instrumented_pytorch/
  ```
  2. Patching:
  ```bash
