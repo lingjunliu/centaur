@@ -33,22 +33,33 @@ The code is organized as follow:
 <h1>Use cases</h1>
 
 <h2> 1. Learn invariants (offline) </h2>
+ 
+ <h3> Slurm (all apis) </h3>
 
- The `infer_invariants` function in the file `learner/invariant_inference.py` can generate a list of inputs randomly, check which of them are valid and for each valid input, check which rules are satisfied by them. It returns a set of tuples `(arity, rule_name, arg1, arg2, ...)` where `arg1`, `arg2`, ... are the arguments in the input that are relevant for a rule and `arity` is the number of arguments this rule accepts.
+ To run invariant inference for all apis, run the following. **Be sure to install and configure slurm before running this.**
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh <duration> <regen> <lib>
+ ```
 
- To run invariant inference for a single api, run the following (under the venv):
+ Example:
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh 300 1 torch
+ ```
+ This will generate (regenerate if already exists since `1` is passed as `regen`) the invariants for the apis and it will use a time budget of `300` seconds to do so.
+
+ - `duration`: Max time budget per api to learn invariants
+ - `regen`: 1 to regenerate invariants, 0 to learn invariants only if they do not exist
+ - `lib`: `torch` or `tf`
+ 
+ <h3> Without slurm (one api) </h3>
+ To run invariant inference for a single api, run the following *(under the venv)*:
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference <api> <time budget> <1 to regenerate invariants 0 otherwise>
  ```
- Example:
- ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference combinations 300 1
- ```
- This will generate (regenerate if already exists since `1` is passed as `regen`) the invariants for the api `combinations` and it will use a time budget of `300` seconds to do so.
-
- The tests written under `tests/test_invariants.py` demonstrates usage of this function.
 
 <h2> 2. Generate models (offline) </h2>
+ 
+ <h3> Slurm (all apis/variants) </h3>
 
  To generate models by solving the constraints, the script `scripts/generate_models_with_slurm.sh` needs to be used. **Be sure to install and configure slurm before running this.**. This runs model generation for all variations of the apis from `torch_variations.txt` for PyTorch and `tf_variations.txt` for Tensorflow. Since this is an offline mode, running this once is enough to run online fuzzing campaigns.
 
@@ -66,19 +77,18 @@ The code is organized as follow:
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/generate_models_with_slurm.sh 3600 1000 torch 42 1
  ```
  This will generate models for each variation of torch apis until 1h passes or 1000 max models are generated, even if models exist. `42` will be used as the seed.
+ 
+ <h3> Without slurm (one variant) </h3>
 
-<h2> 3. Generate inputs (online) </h2>
+ To run model generation for one variation or variant (unique signature of an api, full list under `<lib>_variations.txt`) *(under the venv)*:
 
- The `scripts/run_harness.sh` can demonstrate running input generation for some example apis. To run this:
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash run_harness.sh [-z3 true|false] [-print true|false]
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m generator.z3 <variant> <duration> <n_max> <lib> <seed> <regen>
  ```
- All parameters are optional. Defaults: `-z3 false`, `-print false`. Passing `z3 True` will use the z3 based generator. Passing `-z3 False` will use the evolutionary algorithm based optimizer. The `-print` flag controls printing detailed output.
 
- Example:
- ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash run_harness.sh -z3 true -print true
- ```
+<h2> 3. Fuzzing (online) </h2>
+ 
+ <h3> Slurm (all apis) </h3>
 
  To run fuzzing campaings, use the `scripts/fuzz_with_slurm.sh`. **Be sure to install and configure slurm before running this.**. This runs the fuzzing campaign on apis from the file `apis.txt` parallelly.
  ```bash
@@ -94,3 +104,38 @@ The code is organized as follow:
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh 3600 0 torch 42
  ```
  This will run the `z3` based generator parallelly on all apis in `apis.txt` with `seed=42`, each with a time budget of 1 hour with no limits on the number of inputs or models generated.
+
+ <h3> Without slurm (one api) </h3>
+
+ To fuzz for a single api *(under the venv)*:
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m generator.fuzz <api> <duration> <n_max> <lib> <seed>
+ ```
+
+ <h2> 4. Compute Coverage: Pytorch (evaluation) </h2>
+ 
+ <h3> Slurm (all apis) </h3>
+
+ To compute coverage for all apis, run the following. **Be sure to install and configure slurm before running this.**
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/coverage_with_slurm <n_inputs>
+ ```
+ - `n_inputs`: Number of inputs per api used for coverage calculation. Passing -1 will cause it to calculate for all inputs.
+
+ <h3> Without slurm (one api) </h3>
+
+ To compute coverage for a single api *(under the venv)*, there are two steps.
+ 1. Downloading instrumented pytorch (the script above would download it, if that was never run, download it using these commands):
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ pip install gdown
+ (venv) ~/dll-fuzzing-with-input-invariants$ gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
+ ```
+ 2. Patching:
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.patching <api> <n_inputs>
+ ```
+ 3. Coverage:
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ pip install instrumented_pytorch/torch*
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.coverage <api>
+ ```

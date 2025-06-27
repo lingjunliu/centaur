@@ -26,7 +26,7 @@ def run_fuzz(api, duration, n_max, lib, seed, print_details):
 
 def main():
     if len(sys.argv) < 3:
-        print("Usage: python fuzz.py <api> <duration> <mode, optional (default: z3)> <n_max, optional>")
+        print("Usage: python fuzz.py <api> <duration> <n_max, optional> <lib, default: torch> <seed, optional> <print_details, optional>")
         return
     
     api = sys.argv[1]
