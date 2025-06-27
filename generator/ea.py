@@ -56,7 +56,7 @@ class Configuration:
                 else:
                     translated_list.append({arg: f"value: {input[value_ind][0]}, dtype: {list_of_available_dtypes[input[dtype_ind][0]]}"})
             else:
-                translated_list.append({arg: gen_concrete_input(self.signature[arg], ll, rng)})
+                translated_list.append({arg: gen_concrete_input(self.signature[arg], ll, arg=arg, rng=rng)})
 
         return translated_list
     

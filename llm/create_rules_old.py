@@ -79,7 +79,7 @@ def generate_rules(api, lib="torch", time_budget=30, seed=42):
     start_time = time.time()
     while time.time() - start_time < time_budget:
         rng = np.random.default_rng(seed)
-        input_dict = get_random_input(api_signature, rng)
+        input_dict, _ = get_random_input(api_signature, rng)
         status, exception_message = oracle_crash(api_driver, input_dict, cpu=True)
 
         if status == "invalid":

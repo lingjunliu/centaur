@@ -9,8 +9,7 @@ with open("grammar.lark", "r", encoding="utf-8") as f:
 
 parser = Lark(grammar, start="start", parser="lalr", lexer="contextual")
 
-def create_rule_expr(rule_number, rule_def):
-    filename = f"../rules/rule_{rule_number}.py"
+def create_rule_expr(rule_number, rule_def, filename):
     try:
         bindings_text = re.findall(r"\{([^}]+)\}", rule_def)[0]
         bindings = [b.strip() for b in bindings_text.split(",")]
@@ -48,7 +47,7 @@ def create_rule_expr(rule_number, rule_def):
 
     return var_map, var_types
 
-def create_func_body(rule_number, rule_def, var_map, var_types):
+def create_func_body(rule_number, rule_def, var_map, var_types, filename):
     tree = parser.parse(rule_def)
 
     collector = UsedVarsCollector()
@@ -143,6 +142,5 @@ def create_func_body(rule_number, rule_def, var_map, var_types):
 
     func_body_str = "\n".join(lines)
 
-    filename = f"../rules/rule_{rule_number}.py"
     with open(filename, "a", encoding="utf-8") as f:
         f.write(func_body_str + "\n")

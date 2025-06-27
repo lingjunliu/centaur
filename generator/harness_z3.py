@@ -4,6 +4,7 @@ import copy
 import os
 import pickle
 import sys
+import logging
 
 from z3 import *
 from .definitions import get_definition
@@ -12,6 +13,8 @@ from utils.new_api_utils import get_n_variations, get_lib_version
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
 from generator.input_generators import abstract_print
 from eval.oracle import oracle_crash
+
+logger = logging.getLogger(__name__)
 
 def save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
     total = nominal + invalid + crash + excp
@@ -31,6 +34,16 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
     # Initialize directories
     input_dir = create_subdir(get_tmp_dir(), "fuzz_inputs")
     tmp_results = create_subdir(get_tmp_dir(), "fuzz_results")
+    log_dir = create_subdir(get_tmp_dir(), "fuzz_logs")
+    logfile = os.path.join(log_dir, f"{api}.log")
+
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,                                     # Minimum log level
+        format='%(asctime)s - %(levelname)s - %(message)s',     # Log format
+        filename=logfile,                                       # Log file path
+        filemode="w"                                            # Append/Write mode
+    )
     
     print(f"Fuzzing {api} with a {duration} second budget using {lib} library.")
     execution_time = 0
@@ -80,6 +93,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
 
     temp_model_collection = copy.deepcopy(model_collection)
 
+    logger.info(f"Starting fuzzing {api} with {n_models} models on average across {len(model_collection.keys())} signature variations.")
     start = time.time()
     while elapsed < duration:
         if elapsed - last_saved > save_interval:
@@ -128,16 +142,19 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         elif status.endswith("_excp"):
             excp += 1
             # Always log crashes
+            logger.error(f"Status: {status}, Exception: {exception_message}, Signature suffix: {selected_suffix}\nInput (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
             print(f"\n[{status}]\n{exception_message}")
             if not print_details:   # if print_details is True, the abstract input is already printed
                 print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
         elif status.endswith("_crash"):
             crash += 1
             # Always log crashes
+            logger.error(f"Status: {status}, Exception: {exception_message}, Signature suffix: {selected_suffix}\nInput (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
             print(f"\n[{status}]\n{exception_message}")
             if not print_details:   # if print_details is True, the abstract input is already printed
                 print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
         else:
+            logger.error(f"Status: {status}, Exception: {exception_message}, Signature suffix: {selected_suffix}\nInput (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         
@@ -160,6 +177,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         if len(temp_model_collection[selected_suffix]['models']) == 0:
             temp_model_collection[selected_suffix]['models'] = copy.deepcopy(model_collection[suffix]['models'])
 
+    logger.info(f"Fuzzing completed for {api}. Total inputs: {total}, Nominal: {nominal}, Invalid: {invalid}, Crash: {crash}, Exception: {excp}.")
     total_time = time.time() - start
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
     print(f"\n[{api}]\n\tOptimzation took {round(total_time-execution_time, 4)}s\n\tExecuting {nominal+invalid} inputs on {api} took {round(execution_time, 4)}s\n\tTotal {round(total_time, 4)}s")

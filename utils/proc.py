@@ -1,7 +1,13 @@
-import multiprocessing, signal, os, psutil
+import multiprocessing, signal, os, psutil, traceback
 
 def get_memory_usage():
     return get_memory_usage_by_pid(os.getpid())
+
+def get_system_memory_usage():
+    '''
+    Get the system memory usage in percentage.
+    '''
+    return psutil.virtual_memory().percent
 
 def get_memory_usage_by_pid(pid):
     '''
@@ -23,12 +29,14 @@ def worker(func, return_dict, *args, **kwargs):
     try:
         result = func(*args, **kwargs)
         return_dict["return_code"] = 0
-        return_dict["outputs"] = result
+        return_dict["output"] = result
         return_dict["exception_message"] = ""
+        return_dict["traceback"] = ""
     except Exception as e:
         return_dict["return_code"] = 1
-        return_dict["outputs"] = None
+        return_dict["output"] = None
         return_dict["exception_message"] = f"{e.__class__.__name__}: {str(e)}"
+        return_dict["traceback"] = traceback.format_exc()
 
 def run_with_timeout(func, timeout, *args, **kwargs):
     manager = multiprocessing.Manager()
@@ -46,9 +54,9 @@ def run_with_timeout(func, timeout, *args, **kwargs):
     elif process.exitcode > 0:
         return process.exitcode, None, os.strerror(process.exitcode)
     else:        
-        return return_dict["return_code"], return_dict["outputs"], return_dict["exception_message"]
+        return return_dict
 
 def run(func, *args, **kwargs):
     return_dict = {}
     worker(func, return_dict, *args, **kwargs)
-    return return_dict["return_code"], return_dict["outputs"], return_dict["exception_message"]
+    return return_dict

@@ -30,7 +30,7 @@ def print_rules(api, ruleset):
     else:
         print(f"No rules passed for {api}.")
 
-def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=20, seed=42, z3=False, suffix=0):
+def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=20, seed=42, z3=False, suffix=0, use_reference=False):
     '''
         Takes an API and
         
@@ -57,13 +57,14 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
 
     for api, suff in variants:
         variant = f"{api}_{suff}" if suff > 0 else api
-        invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant)
+        invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant) if not use_reference else os.path.join(get_dir_in_root(f"reference_invariants_{lib}"), variant)
         # Unlese regeneration is forced, return existing ruleset
         if os.path.isfile(invariant_file) and not regen:
             ruleset = read_invariants(invariant_file)
         else:   # Inference
             list_of_inputs = get_inputs(api, lib=lib, time_budget=time_budget, min_val_inp=min_val_inp, seed=seed, suffix=suff)
             ruleset = set()
+            initialized = False
             print(f"Inferring invariants for {variant} with {len(list_of_inputs)} inputs\n")
             try:
                 api_signature = get_signature(api, lib=lib, suffix=suff)
@@ -85,8 +86,9 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                         print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
                         print(f"Input {idx} is valid")
                     # Check rules for the input dictionary
-                    if not ruleset:  # If ruleset is not initialized
+                    if not initialized:
                         ruleset = check_rules_z3(input_dict) if z3 else check_rules(input_dict)
+                        initialized = True
                     else:
                         ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
                     valid += 1

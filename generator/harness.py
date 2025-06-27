@@ -76,7 +76,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False,
         seed += 1
         config = Configuration(definition, seed)
         # TODO: Debug why initializing random candidate makes optimizer slow
-        config.random_candidate = get_random_input(definition["signature"], config.rng)
+        config.random_candidate, _ = get_random_input(definition["signature"], config.rng)
         # config.set_random_candidate(map_defs[api]["random_candidate"])
         mutator = Mutator(config)
         (best_distance, best_input) = optimize(config, mutator, duration=limit)

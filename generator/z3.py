@@ -2,7 +2,7 @@ import time
 import numpy as np
 from z3 import *
 from .input_generators import get_ll, abstract_print
-from .rules_auto_z3 import rule_func_map
+from .rules_auto_z3 import get_rules_map
 from .definitions import get_definition
 from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values
@@ -102,7 +102,8 @@ def initial_constraints(solver, signature, z3_args):
         elif param_type == "dtype":
             solver.add(And(z3_var >= 0, z3_var <= len(list_of_available_dtypes) - 3)) 
 
-def collect_constraints(solver, ruleset, z3_args):
+def collect_constraints(solver, ruleset, z3_args, use_reference=False):
+    rule_func_map = get_rules_map(use_reference=use_reference)
     for rule in ruleset:
         arity, rule_name, *args = rule
         rule_func = rule_func_map[arity][rule_name]
@@ -113,7 +114,8 @@ def collect_constraints(solver, ruleset, z3_args):
        
         rule_func(*arg_dicts, solver=solver)
 
-def collect_neg_constraint(solver, rule, z3_args):
+def collect_neg_constraint(solver, rule, z3_args, use_reference=False):
+    rule_func_map = get_rules_map(use_reference=use_reference)
     arity, rule_name, *args = rule
     rule_func = rule_func_map[arity][rule_name]
         
@@ -280,7 +282,7 @@ def sample_partitions(var_values_map, p):
 
     return sampled_partitions
 
-def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, lib="torch"):
+def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, lib="torch", use_reference=False):
     ruleset = definition["ruleset"]
     signature = definition["signature"]
     filtered_rules = set()
@@ -297,8 +299,8 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
 
                 solver = Solver()
                 initial_constraints(solver, signature, z3_args)
-                collect_constraints(solver, remaining_ruleset, z3_args)
-                collect_neg_constraint(solver, rule, z3_args)
+                collect_constraints(solver, remaining_ruleset, z3_args, use_reference=use_reference)
+                collect_neg_constraint(solver, rule, z3_args, use_reference=use_reference)
         
                 sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
                 solver.add(*sampled_blocks)
@@ -359,7 +361,7 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
 
     return ruleset
 
-def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch", corpus_dir=None, return_models=True):
+def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch", corpus_dir=None, return_models=True, use_reference=False):
     elapsed = 0
     start = time.time()
 
@@ -367,7 +369,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     solver = Solver()
     models, num_model = [], 0
     initial_constraints(solver, definition["signature"], z3_args)
-    collect_constraints(solver, definition["ruleset"], z3_args)
+    collect_constraints(solver, definition["ruleset"], z3_args, use_reference=use_reference)
     block_all = set()
     stale = 0
     # valid_blocks = []   # list of blocks for valid models, saved for restarts
@@ -401,7 +403,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                 # restart the solver
                 solver = Solver()
                 initial_constraints(solver, definition["signature"], z3_args)
-                collect_constraints(solver, definition["ruleset"], z3_args)
+                collect_constraints(solver, definition["ruleset"], z3_args, use_reference=use_reference)
                 # solver.add(And(valid_blocks))   # Adding previously saved blocks from valid models
                 # block = []
                 stale = 0
@@ -527,19 +529,7 @@ def load_existing_models(corpus_dir, z3_args):
 
     return models
 
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: python fuzz.py <api> <duration> <lib, default='torch'> <seed, optional> <n_max, optional> <regen, default=False>")
-        return
-    
-    api = sys.argv[1]
-    duration = int(sys.argv[2])
-    n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
-    lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
-    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
-    # regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
-    regen = True
-
+def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
     print_details = False # Set to True if you want to print details of the process
     
     # alias
@@ -549,7 +539,6 @@ def main():
         lib = "torch"
 
     # Check if it is a variation of the API
-    '''
     if "_" in api:
         api, suffix = api.rsplit("_", 1)
         if suffix.isdigit():
@@ -559,10 +548,9 @@ def main():
             api = f"{api}_{suffix}"  # Reconstruct the API name with suffix
     else:
         suffix = 0
-    '''
-    suffix = 1
+
     api = get_lib_version(api, lib=lib)
-    definition = get_definition(api, z3=True, lib=lib, suffix=suffix)
+    definition = get_definition(api, z3=True, lib=lib, suffix=suffix, use_reference=use_reference)
     if len(definition["ruleset"]) == 0:
         print(f"No invariants learned for {api}")
         return
@@ -575,8 +563,24 @@ def main():
         print(f"Loaded {len(models)} existing models for {api}")
     else:
         os.makedirs(corpus_dir, exist_ok=True)
-        definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch")
-        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False)
+        definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch", use_reference=use_reference)
+        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference)
+    
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: python fuzz.py <variant> <duration> <lib, default='torch'> <seed, optional> <n_max, optional> <regen, default=False>")
+        return
+    
+    variant = sys.argv[1]
+    duration = int(sys.argv[2])
+    n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
+    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
+    regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
+    use_reference = int(sys.argv[7]) == 1 if len(sys.argv) > 7 else False
+    
+    run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=use_reference)
 
 if __name__ == "__main__":
     main()

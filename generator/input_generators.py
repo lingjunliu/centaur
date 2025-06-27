@@ -80,7 +80,7 @@ def get_abstract_input(concrete, signature):
     
     return abstract
 
-def gen_concrete_input(domain, ll, rng=np.random.default_rng(42)):
+def gen_concrete_input(domain, ll, arg="", rng=np.random.default_rng(42)):
     '''
         Generate a concrete input given a list of lists. If the domain is tensor,
         the provided rng will be used to generate the concrete input.
@@ -118,6 +118,10 @@ def gen_concrete_input(domain, ll, rng=np.random.default_rng(42)):
         
         return rng.uniform(low=ll[2][0], high=ll[2][1], size=ll[0]).astype(list_of_available_dtypes[ll[1][0]])
     elif domain == "tuple":
+        # CORNER CASE: If the arg is out, the tuple is a tuple of tensors
+        if arg == "out":
+            return tuple([np.array([]) for x in ll[0]])
+        
         return tuple([list_of_available_dtypes[ll[1][0]](x) for x in ll[0]])
     elif domain == "list":
         return [list_of_available_dtypes[ll[1][0]](x) for x in ll[0]]
@@ -138,7 +142,7 @@ def concretize_input(abstract, signature, rng=np.random.default_rng(42)):
         else:   # if abstract is a list
             ll = [abstract[i], abstract[i+1], abstract[i+2]]
             i += 3
-        concrete[arg] = gen_concrete_input(domain, ll, rng)
+        concrete[arg] = gen_concrete_input(domain, ll, arg=arg, rng=rng)
         
     return concrete
 
@@ -168,12 +172,14 @@ def get_random_input(signature, rng=np.random.default_rng(42)):
         Generate random input according to signature and concretize it
     '''
     input_dict = {}
+    abstract_inp = {}
     for arg, domain in signature.items():
         # TODO: Add support for tensor_list
         if domain == "tensor_list":
             domain = "tensor"   # hack until tensor_list is supported
         
-        ll = gen_ran_ll(domain, rng)    # get abstract form            
-        input_dict[arg] = gen_concrete_input(domain, ll, rng) # concretize
+        ll = gen_ran_ll(domain, rng)    # get abstract form
+        abstract_inp[arg] = ll          # save abstract input
+        input_dict[arg] = gen_concrete_input(domain, ll, arg=arg, rng=rng) # concretize
         
-    return input_dict
+    return input_dict, abstract_inp

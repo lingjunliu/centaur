@@ -1000,39 +1000,41 @@ def rule_23_func(arg1, solver=None):
 
 ############### mapping ################
 
-rule_func_map = { 
-    1: {
-        'rule_8': rule_8_func,
-        'rule_9': rule_9_func,
-        'rule_13': rule_13_func,
-        'rule_14': rule_14_func,
-        'rule_17': rule_17_func,
-        'rule_18': rule_18_func,
-        'rule_20': rule_20_func,
-        'rule_21': rule_21_func,
-        'rule_23': rule_23_func
-    },
-    2: {
-        'rule_1': rule_1_func,
-        'rule_2': rule_2_func,
-        'rule_3': rule_3_func,
-        'rule_4': rule_4_func,
-        'rule_5': rule_5_func,
-        'rule_6': rule_6_func,
-        'rule_7': rule_7_func,
-        'rule_12': rule_12_func,
-        'rule_15': rule_15_func,
-        'rule_16': rule_16_func,
-        'rule_19': rule_19_func
-    },
-    3: {
-        'rule_11': rule_11_func,
-        'rule_22': rule_22_func
-    },
-    4: {
-        'rule_10': rule_10_func
+def get_rules_map(use_reference=False):
+    rule_func_map = { 
+        1: {
+            'rule_8': rule_8_func,
+            'rule_9': rule_9_func,
+            'rule_13': rule_13_func,
+            'rule_14': rule_14_func,
+            'rule_17': rule_17_func,
+            'rule_18': rule_18_func,
+            'rule_20': rule_20_func,
+            'rule_21': rule_21_func,
+            'rule_23': rule_23_func
+        },
+        2: {
+            'rule_1': rule_1_func,
+            'rule_2': rule_2_func,
+            'rule_3': rule_3_func,
+            'rule_4': rule_4_func,
+            'rule_5': rule_5_func,
+            'rule_6': rule_6_func,
+            'rule_7': rule_7_func,
+            'rule_12': rule_12_func,
+            'rule_15': rule_15_func,
+            'rule_16': rule_16_func,
+            'rule_19': rule_19_func
+        },
+        3: {
+            'rule_11': rule_11_func,
+            'rule_22': rule_22_func
+        },
+        4: {
+            'rule_10': rule_10_func
+        }
     }
-}
+    return rule_func_map
 
 # Add rules where the order of arguments does not matter
 # i.e. the nature of the arguments are the same
@@ -1045,6 +1047,7 @@ order_agnostic_rules = {
 }
 
 def check_rules_z3(input_dict, print_rules=False):
+    rule_func_map = get_rules_map()
     set_of_rules_passed = set()
     
     if len(input_dict.keys()) < 1:

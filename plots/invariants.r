@@ -6,7 +6,7 @@ if (length(args) > 0) {
   sota <- args[1]
 }
 
-tname <- "Invariant"
+tname <- "SLATE"
 
 mode <- "cov"   # "cov" or "val"
 if (length(args) > 1) {
@@ -31,6 +31,8 @@ if (sota == "FreeFuzz") {
   sota_color <- "orange"
 } else if (sota == "Titanfuzz") {
   sota_color <- "pink"
+} else if (sota == "ACETest") {
+  sota_color <- "purple"
 }
 
 if (sota == "FreeFuzz") {
@@ -39,11 +41,13 @@ if (sota == "FreeFuzz") {
   suffix <- "DR"
 } else if (sota == "Titanfuzz") {
   suffix <- "TF"
+} else if (sota == "ACETest") {
+  suffix <- "AC"
 }
 
 
 data <- read.csv(csv)
-filename <- sprintf("invariant_%s.pdf", mode)
+filename <- sprintf("%s_vs_%s_%s.pdf", sota, tname, mode)
 
 sota_col <- data[[sota]]
 tname_col <- data[[tname]]
