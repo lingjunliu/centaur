@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If ndim of tensor v_1 is at least 2, then the maximum value of v_1 must be larger than the minimum value of v_1 (Rule 27)
+# If the first tensor has zero dimensions, then minimum and maximum must be zero (Rule 27)
 
-rule_27 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] >= 2, Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0), False))
+rule_27 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_ndim"] == 0, And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 0), False)) if n else
+          If(v["arg1_ndim"] == 0, And(Select(v["arg1_range"], 0) == 0, Select(v["arg1_range"], 1) == 0), False))
 )
 
-def rule_27_func(arg1, solver=None):
+def rule_27_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
@@ -33,4 +34,4 @@ def rule_27_func(arg1, solver=None):
 
     # Fuzz input generation phase
     else:
-        rule_27(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']})
+        rule_27(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

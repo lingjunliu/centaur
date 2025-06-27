@@ -1,41 +1,42 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If a float variable is greater than 1, a tensor dimension should not be 0 (Rule 314)
+# If number of dimension is 3 and tanh is selected and dtype is in float family then the max of the three axis, shape[0], shape[1] and shape[2] has to be larger than 1000 (Rule 314)
 
-rule_314 = lambda s, v: (
-    s.add(If(v["arg1_value"] > 1, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)]), False))
+rule_314 = lambda s, v, n=False: (
+    s.add(Not(If(And(And((v["arg1_ndim"] == 3), (v["arg2_value"] == 11)), (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))), (Or(Or(Select(v["arg1_shape"], 0) > 1000, Select(v["arg1_shape"], 1) > 1000), Select(v["arg1_shape"], 2) > 1000)), False)) if n else
+          If(And(And((v["arg1_ndim"] == 3), (v["arg2_value"] == 11)), (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))), (Or(Or(Select(v["arg1_shape"], 0) > 1000, Select(v["arg1_shape"], 1) > 1000), Select(v["arg1_shape"], 2) > 1000)), False))
 )
 
-def rule_314_func(arg1, arg2, solver=None):
+def rule_314_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
+        if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == list_of_string_values.index(arg2))
 
         # Constraints for rule 314
-        rule_314(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
+        rule_314(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_314(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']})
+        rule_314(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_'], 'arg2_value': arg2['value']}, neg)

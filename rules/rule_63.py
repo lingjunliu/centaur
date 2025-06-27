@@ -1,39 +1,40 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If float variable v_1 is between -1 and 1, then max value of tensor v_2 must be positive (Rule 63)
+# If the max is greater than min, the shape must be smaller than 10 in any dimensions (Rule 63)
 
-rule_63 = lambda s, v: (
-    s.add(If(And(-1 <= v["arg1_value"], v["arg1_value"] <= 1), Select(v["arg2_range"], 1) > 0, False))
+rule_63 = lambda s, v, n=False: (
+    s.add(Not(If(Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0), Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 10) for i in range(6)]), False)) if n else
+          If(Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0), Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 10) for i in range(6)]), False))
 )
 
-def rule_63_func(arg1, arg2, solver=None):
+def rule_63_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 63
-        rule_63(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_63(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_63(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})
+        rule_63(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

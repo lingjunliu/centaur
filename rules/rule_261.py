@@ -1,41 +1,37 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If an integer v_1 is greater than zero, all dimensions of tensor v_2 must be divisible by v_1. (Rule 261)
+# If the tensor dimension is greater than 0, and the max value is smaller than zero, then its data type should be complex (Rule 261)
 
-rule_261 = lambda s, v: (
-    s.add(If(v["arg1_value"] > 0, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) / v["arg1_value"] == Select(v["arg2_shape"], i) / v["arg1_value"]) for i in range(6)]), False))
+rule_261 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) < 0), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), False)) if n else
+          If(And(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) < 0), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), False))
 )
 
-def rule_261_func(arg1, arg2, solver=None):
+def rule_261_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 261
-        rule_261(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
+        rule_261(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_261(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']})
+        rule_261(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_']}, neg)

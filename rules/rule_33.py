@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the tensor v_1 has at least one dimension and is of integer type, then it must contain at least one positive element (Rule 33)
+# If the dtype of tensor is boolean, then the max should be true (Rule 33)
 
-rule_33 = lambda s, v: (
-    s.add(If(And(v["arg1_ndim"] > 0, (And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5))), Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))
+rule_33 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_dtype"] == 0, Select(v["arg1_range"], 1) == True, False)) if n else
+          If(v["arg1_dtype"] == 0, Select(v["arg1_range"], 1) == True, False))
 )
 
-def rule_33_func(arg1, solver=None):
+def rule_33_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
@@ -19,20 +20,16 @@ def rule_33_func(arg1, solver=None):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_dtype = Int('arg1_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 33
-        rule_33(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_33(solver, {'arg1_range': arg1_range, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_33(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']})
+        rule_33(solver, {'arg1_range': arg1['range'], 'arg1_dtype_': arg1['dtype_']}, neg)

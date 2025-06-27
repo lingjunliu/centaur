@@ -1,43 +1,38 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the number of dimensions of tensor v_1 is equal to 1 and bool v_2 is false, then shape of tensor v_1 on dimension 0 must not be equal to the data type of tensor v_1 (Rule 188)
+# If the first shape is greater than 100, max value should also be larger than 100 and dtype should not be boolean (Rule 188)
 
-rule_188 = lambda s, v: (
-    s.add(If(And(v["arg1_ndim"] == 1, v["arg2_value"] == False), Select(v["arg1_shape"], 0) != v["arg1_dtype"], False))
+rule_188 = lambda s, v, n=False: (
+    s.add(Not(If(Select(v["arg1_shape"], 0) > 100, And(Select(v["arg1_range"], 1) > 100, v["arg1_dtype"] != 0), False)) if n else
+          If(Select(v["arg1_shape"], 0) > 100, And(Select(v["arg1_range"], 1) > 100, v["arg1_dtype"] != 0), False))
 )
 
-def rule_188_func(arg1, arg2, solver=None):
+def rule_188_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, bool)):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Bool('arg2_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == arg2)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 188
-        rule_188(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_188(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_188(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})
+        rule_188(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape'], 'arg1_dtype_': arg1['dtype_']}, neg)

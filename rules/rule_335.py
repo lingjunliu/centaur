@@ -1,44 +1,40 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If both tensors have the same number of dimensions, then the minimum value of the first tensor should be greater than or equal to the minimum value of the second tensor. (Rule 335)
+# The absolute value of v_1 must be less than or equal to the minimum value of tensor v_2 (Rule 335)
 
-rule_335 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] == v["arg2_ndim"], Select(v["arg1_range"], 0) >= Select(v["arg2_range"], 0), False))
+rule_335 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_value"] < 0, 0 - v["arg1_value"], v["arg1_value"] <= Select(v["arg2_range"], 0))) if n else
+          If(v["arg1_value"] < 0, 0 - v["arg1_value"], v["arg1_value"] <= Select(v["arg2_range"], 0)))
 )
 
-def rule_335_func(arg1, arg2, solver=None):
+def rule_335_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, (float, np.floating))):
             return False
         if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_ndim = Int('arg2_ndim')
+        arg1_value = Real('arg1_value')
         arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_value == arg1)
         arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
         arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 335
-        rule_335(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
+        rule_335(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_335(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']})
+        rule_335(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)

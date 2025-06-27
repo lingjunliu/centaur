@@ -1,46 +1,47 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the shape of first dimension of tensor v1 is greater than integer, and v1's data type is a float, and max is also greater than integer, then dimensions of tensor must greater than 2  (Rule 478)
+# if boolean v_1 equals false then for a given dimension v_2 for a tensor v_3, the shape must be one of [2,4,8,16,32,64,128,256,512,1024] (Rule 478)
 
-rule_478 = lambda s, v: (
-    s.add(If(And(And(Select(v["arg1_shape"], 0) > v["arg2_value"], (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8))), Select(v["arg1_range"], 1) > v["arg2_value"]), v["arg1_ndim"] > 2, False))
+rule_478 = lambda s, v, n=False: (
+    s.add(Not(If(And(And(v["arg1_value"] == False, v["arg2_value"] >= 0), v["arg2_value"] < v["arg3_ndim"]), (Or(Or(Or(Or(Or(Or(Or(Or(Or(Select(v["arg3_shape"], v["arg2_value"]) == 2, Select(v["arg3_shape"], v["arg2_value"]) == 4), Select(v["arg3_shape"], v["arg2_value"]) == 8), Select(v["arg3_shape"], v["arg2_value"]) == 16), Select(v["arg3_shape"], v["arg2_value"]) == 32), Select(v["arg3_shape"], v["arg2_value"]) == 64), Select(v["arg3_shape"], v["arg2_value"]) == 128), Select(v["arg3_shape"], v["arg2_value"]) == 256), Select(v["arg3_shape"], v["arg2_value"]) == 512), Select(v["arg3_shape"], v["arg2_value"]) == 1024)), False)) if n else
+          If(And(And(v["arg1_value"] == False, v["arg2_value"] >= 0), v["arg2_value"] < v["arg3_ndim"]), (Or(Or(Or(Or(Or(Or(Or(Or(Or(Select(v["arg3_shape"], v["arg2_value"]) == 2, Select(v["arg3_shape"], v["arg2_value"]) == 4), Select(v["arg3_shape"], v["arg2_value"]) == 8), Select(v["arg3_shape"], v["arg2_value"]) == 16), Select(v["arg3_shape"], v["arg2_value"]) == 32), Select(v["arg3_shape"], v["arg2_value"]) == 64), Select(v["arg3_shape"], v["arg2_value"]) == 128), Select(v["arg3_shape"], v["arg2_value"]) == 256), Select(v["arg3_shape"], v["arg2_value"]) == 512), Select(v["arg3_shape"], v["arg2_value"]) == 1024)), False))
 )
 
-def rule_478_func(arg1, arg2, solver=None):
+def rule_478_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, bool)):
             return False
         if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
+            return False
+        if not (isinstance(arg3, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
         arg2_value = Int('arg2_value')
+        arg3_ndim = Int('arg3_ndim')
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_value == int(arg2))
+        solver.add(arg3_ndim == arg3.ndim)
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 478
-        rule_478(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_478(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_478(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})
+        rule_478(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_shape': arg3['shape'], 'arg3_ndim': arg3['ndim']}, neg)

@@ -1,41 +1,37 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If integer variable v_1 is less than zero or greater than 10, tensor v_2 must have at least 4 dimensions and its max value must be greater than 0. (Rule 143)
+# if the dimension of the tensor is more than 0, and less than 3, then the sum of the shapes must be less than 100 (Rule 143)
 
-rule_143 = lambda s, v: (
-    s.add(If(Or(v["arg1_value"] < 0, v["arg1_value"] > 10), And(v["arg2_ndim"] >= 4, Select(v["arg2_range"], 1) > 0), False))
+rule_143 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_ndim"] > 0, v["arg1_ndim"] < 3), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or([And(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) + Select(v["arg1_shape"], j) < 100) for j in range(6)])) for i in range(6)]), False)) if n else
+          If(And(v["arg1_ndim"] > 0, v["arg1_ndim"] < 3), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or([And(j < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) + Select(v["arg1_shape"], j) < 100) for j in range(6)])) for i in range(6)]), False))
 )
 
-def rule_143_func(arg1, arg2, solver=None):
+def rule_143_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 143
-        rule_143(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
+        rule_143(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_143(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']})
+        rule_143(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

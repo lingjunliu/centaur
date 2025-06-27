@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If data type of tensor v_1 is not string, then both max and min must be within range [-100, 100] (Rule 134)
+# If shape of 0th dimension is larger than 1, then max should be greater than or equals to 0 (Rule 134)
 
-rule_134 = lambda s, v: (
-    s.add(If(v["arg1_dtype"] != 11, And(Select(v["arg1_range"], 1) <= 100, Select(v["arg1_range"], 0) >= -100), False))
+rule_134 = lambda s, v, n=False: (
+    s.add(Not(If(Select(v["arg1_shape"], 0) > 1, Select(v["arg1_range"], 1) >= 0, False)) if n else
+          If(Select(v["arg1_shape"], 0) > 1, Select(v["arg1_range"], 1) >= 0, False))
 )
 
-def rule_134_func(arg1, solver=None):
+def rule_134_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
@@ -19,18 +20,19 @@ def rule_134_func(arg1, solver=None):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 134
-        rule_134(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_134(solver, {'arg1_range': arg1_range, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_134(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']})
+        rule_134(solver, {'arg1_range': arg1['range'], 'arg1_shape': arg1['shape']}, neg)

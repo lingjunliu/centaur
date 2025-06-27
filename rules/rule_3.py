@@ -1,33 +1,35 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# string should not be empty (Rule 3)
+# The minimum value of a tensor should be less than or equal to its maximum value. (Rule 3)
 
-rule_3 = lambda s, v: (
-    s.add(v["arg1_value"] != "")
+rule_3 = lambda s, v, n=False: (
+    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1)) if n else
+          Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1))
 )
 
-def rule_3_func(arg1, solver=None):
+def rule_3_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_value': arg1_value})
+        rule_3(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_value': arg1['value']})
+        rule_3(solver, {'arg1_range': arg1['range']}, neg)

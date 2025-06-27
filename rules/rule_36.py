@@ -1,39 +1,40 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If string v_1 is equal to "true", then max of tensor v_2 must be greater than min of v_2. (Rule 36)
+# If tensor has only a single dimension, and shape is equal to zero, then maximum value should be 0 (Rule 36)
 
-rule_36 = lambda s, v: (
-    s.add(If(v["arg1_value"] == "true", Select(v["arg2_range"], 1) > Select(v["arg2_range"], 0), False))
+rule_36 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 0), Select(v["arg1_range"], 1) == 0, False)) if n else
+          If(And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 0), Select(v["arg1_range"], 1) == 0, False))
 )
 
-def rule_36_func(arg1, arg2, solver=None):
+def rule_36_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 36
-        rule_36(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_36(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_36(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})
+        rule_36(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

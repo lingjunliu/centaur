@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the string v_1 is equal to "max", then the max of tensor v_2 must be greater than 10 (Rule 42)
+# If the string is not none and the tensor has more than one dimension, then the shape along the first dimension must be greater than 1. (Rule 42)
 
-rule_42 = lambda s, v: (
-    s.add(If(v["arg1_value"] == "max", Select(v["arg2_range"], 1) > 10, False))
+rule_42 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_value"] != 6, v["arg2_ndim"] > 1), Select(v["arg2_shape"], 0) > 1, False)) if n else
+          If(And(v["arg1_value"] != 6, v["arg2_ndim"] > 1), Select(v["arg2_shape"], 0) > 1, False))
 )
 
-def rule_42_func(arg1, arg2, solver=None):
+def rule_42_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
@@ -23,17 +24,19 @@ def rule_42_func(arg1, arg2, solver=None):
         # Variable declarations
         solver = Solver()
         arg1_value = String('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 42
-        rule_42(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_42(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_42(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})
+        rule_42(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

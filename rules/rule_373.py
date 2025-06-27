@@ -1,36 +1,42 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the maximum value of a tensor is greater than 100, the tensor's dimension must be less than or equal to 2 (Rule 373)
+# if v_1 is not none, and v_2 tensor has 3 dimensions, then the shape along dimension 1 should be smaller than shape along dimension 2 (Rule 373)
 
-rule_373 = lambda s, v: (
-    s.add(If(Select(v["arg1_range"], 1) > 100, v["arg1_ndim"] <= 2, False))
+rule_373 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_value"] != 6, v["arg2_ndim"] == 3), Select(v["arg2_shape"], 1) < Select(v["arg2_shape"], 2), False)) if n else
+          If(And(v["arg1_value"] != 6, v["arg2_ndim"] == 3), Select(v["arg2_shape"], 1) < Select(v["arg2_shape"], 2), False))
 )
 
-def rule_373_func(arg1, solver=None):
+def rule_373_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, str)):
+            return False
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = String('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 373
-        rule_373(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_373(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_373(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']})
+        rule_373(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

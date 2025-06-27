@@ -1,41 +1,40 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If float v_1 is less than the shape of tensor v_2 at dimension 0, then the data type of tensor v_2 must not be boolean (Rule 176)
+# if the tensor dtype is an integer and tanh is selected, the min should be less than or equal to 0 and max must be greater than or equals to 0 (Rule 176)
 
-rule_176 = lambda s, v: (
-    s.add(If(v["arg1_value"] < Select(v["arg2_shape"], 0), v["arg2_dtype"] != 0, False))
+rule_176 = lambda s, v, n=False: (
+    s.add(Not(If(And((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), v["arg2_value"] == 11), And(Select(v["arg1_range"], 0) <= 0, Select(v["arg1_range"], 1) >= 0), False)) if n else
+          If(And((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), v["arg2_value"] == 11), And(Select(v["arg1_range"], 0) <= 0, Select(v["arg1_range"], 1) >= 0), False))
 )
 
-def rule_176_func(arg1, arg2, solver=None):
+def rule_176_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
+        if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == list_of_string_values.index(arg2))
 
         # Constraints for rule 176
-        rule_176(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_dtype': arg2_dtype})
+        rule_176(solver, {'arg1_range': arg1_range, 'arg1_dtype_': arg1_dtype_, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_176(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_dtype': arg2['dtype']})
+        rule_176(solver, {'arg1_range': arg1['range'], 'arg1_dtype_': arg1['dtype_'], 'arg2_value': arg2['value']}, neg)

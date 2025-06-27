@@ -1,41 +1,42 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If bool v_1 is equal to true, and the tensor v_2 is a string, and first dimension is equal to integer 0, then bool v_1 must be false (Rule 133)
+# if there exists an axis whose shape is more than 1, and string equals to "none", it should evaluate to false (Rule 133)
 
-rule_133 = lambda s, v: (
-    s.add(If(And(v["arg2_dtype"] == 11, Select(v["arg2_shape"], 0) == 0), v["arg1_value"] == False, False))
+rule_133 = lambda s, v, n=False: (
+    s.add(Not(If(And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)])), v["arg2_value"] == 6), False, False)) if n else
+          If(And((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)])), v["arg2_value"] == 6), False, False))
 )
 
-def rule_133_func(arg1, arg2, solver=None):
+def rule_133_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, bool)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == list_of_string_values.index(arg2))
 
         # Constraints for rule 133
-        rule_133(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_dtype': arg2_dtype})
+        rule_133(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_133(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_dtype': arg2['dtype']})
+        rule_133(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

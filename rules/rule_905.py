@@ -1,0 +1,42 @@
+import numpy as np
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from z3 import *
+
+# for the input tensors if number of dimensions is at least 1 and its of int or float type the min(v_1 (Rule 905)
+
+rule_905 = lambda s, v, n=False: (
+    s.add(Not(If(And(And((v["arg1_ndim"] >= 1), (Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8))))), (v["arg2_value"] == True)), (Select(v["arg1_range"], 0) + Select(v["arg1_range"], 1) > 0), False)) if n else
+          If(And(And((v["arg1_ndim"] >= 1), (Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8))))), (v["arg2_value"] == True)), (Select(v["arg1_range"], 0) + Select(v["arg1_range"], 1) > 0), False))
+)
+
+def rule_905_func(arg1, arg2, solver=None, neg=False):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not (isinstance(arg1, np.ndarray)):
+            return False
+        if not (isinstance(arg2, bool)):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = Bool('arg2_value')
+
+        # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == arg2)
+
+        # Constraints for rule 905
+        rule_905(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_, 'arg2_value': arg2_value})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        rule_905(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_'], 'arg2_value': arg2['value']}, neg)

@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If v_1 is a tensor with ndim > 0, then v_2 can be string “int”, “float”, “bool”, or “str” only (Rule 250)
+# If the string is "tanh" and if max of the tensor is more than 1 then dtype should be complex 64 or 128 (Rule 250)
 
-rule_250 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] > 0, Or(Or(Or(v["arg2_value"] == "int", v["arg2_value"] == "float"), v["arg2_value"] == "bool"), v["arg2_value"] == "str"), False))
+rule_250 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg2_value"] == 11, (Select(v["arg1_range"], 1) > 1)), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), False)) if n else
+          If(And(v["arg2_value"] == 11, (Select(v["arg1_range"], 1) > 1)), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), False))
 )
 
-def rule_250_func(arg1, arg2, solver=None):
+def rule_250_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
@@ -22,17 +23,18 @@ def rule_250_func(arg1, arg2, solver=None):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == arg2)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == list_of_string_values.index(arg2))
 
         # Constraints for rule 250
-        rule_250(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_250(solver, {'arg1_range': arg1_range, 'arg1_dtype_': arg1_dtype_, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_250(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})
+        rule_250(solver, {'arg1_range': arg1['range'], 'arg1_dtype_': arg1['dtype_'], 'arg2_value': arg2['value']}, neg)

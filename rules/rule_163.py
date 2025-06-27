@@ -1,42 +1,37 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the bool v_1 is false, then the integer v_2 or float v_2, 3 elements should not be the same. (Rule 163)
+# if ndim > 1 and dtype is complex, then max of the tensor needs to be > 0, otherwise, it’s false. (Rule 163)
 
-rule_163 = lambda s, v: (
-    s.add(If(v["arg1_value"] == False, And(And(v["arg2_value"] != v["arg3_value"], v["arg2_value"] != v["arg4_value"]), v["arg3_value"] != v["arg4_value"]), False))
+rule_163 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_ndim"] > 1, (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10))), Select(v["arg1_range"], 1) > 0, False)) if n else
+          If(And(v["arg1_ndim"] > 1, (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10))), Select(v["arg1_range"], 1) > 0, False))
 )
 
-def rule_163_func(arg1, arg2, arg3, arg4, solver=None):
+def rule_163_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
-    arg4 = next(iter(arg4.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, bool)):
-            return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
-            return False
-        if not ((isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)) or isinstance(arg3, (float, np.floating))):
-            return False
-        if not ((isinstance(arg4, (int, np.integer)) and not isinstance(arg4, bool)) or isinstance(arg4, (float, np.floating))):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 163
-        rule_163(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
+        rule_163(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_163(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']})
+        rule_163(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_']}, neg)

@@ -16,7 +16,7 @@ def create_py(header: str, directory: str = "../rules"):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(f'''import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
 # {description} (Rule {rule_number})''')
@@ -26,7 +26,7 @@ def create_func_template(rule_number, var_map, var_types):
     filename = f"../rules/rule_{rule_number}.py"
 
     param_list = [var_map[var] for var in var_map]
-    param_str = ", ".join(param_list + ["solver=None"])
+    param_str = ", ".join(param_list + ["solver=None", "neg=False"])
     extract_lines = [f"    {arg} = next(iter({arg}.values()))" for arg in param_list]
 
     def get_type_check(arg, typ):

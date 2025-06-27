@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If a tensor's maximum value is greater than its minimum value, then its dtype must be greater than zero. (Rule 291)
+# If the tensor's dtype is boolean, and the tensor has more than 0 dimension, the shapes must be larger than 0 for all axis (Rule 291)
 
-rule_291 = lambda s, v: (
-    s.add(If(Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0), v["arg1_dtype"] > 0, False))
+rule_291 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_dtype"] == 0, v["arg1_ndim"] > 0), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False)) if n else
+          If(And(v["arg1_dtype"] == 0, v["arg1_ndim"] > 0), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))
 )
 
-def rule_291_func(arg1, solver=None):
+def rule_291_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
@@ -19,18 +20,18 @@ def rule_291_func(arg1, solver=None):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 291
-        rule_291(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
+        rule_291(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_291(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']})
+        rule_291(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_']}, neg)

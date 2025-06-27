@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the input tensor has more than 2 dimensions, the second integer input must be greater than 0 (Rule 201)
+# if the string is "none", then tensor must satisfy, max=min=0, and it does not have any dimension (Rule 201)
 
-rule_201 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] > 2, v["arg2_value"] > 0, False))
+rule_201 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg2_value"] == 6, And(And((Select(v["arg1_range"], 1) == 0), (Select(v["arg1_range"], 0) == 0)), (v["arg1_ndim"] == 0)), False)) if n else
+          If(v["arg2_value"] == 6, And(And((Select(v["arg1_range"], 1) == 0), (Select(v["arg1_range"], 0) == 0)), (v["arg1_ndim"] == 0)), False))
 )
 
-def rule_201_func(arg1, arg2, solver=None):
+def rule_201_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
@@ -17,22 +18,25 @@ def rule_201_func(arg1, arg2, solver=None):
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
+        if not (isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_value = Int('arg2_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == int(arg2))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == list_of_string_values.index(arg2))
 
         # Constraints for rule 201
-        rule_201(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_201(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_201(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})
+        rule_201(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

@@ -1,39 +1,35 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If a float variable is positive, then every element of a tensor must be greater than -1 (Rule 327)
+# if the minimum and max of a tensor have the same sign (both positive or both negative (Rule 327)
 
-rule_327 = lambda s, v: (
-    s.add(If(v["arg1_value"] > 0, Select(v["arg2_range"], 0) > -1, False))
+rule_327 = lambda s, v, n=False: (
+    s.add(Not(If(Or((And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) >= 0)), (And(Select(v["arg1_range"], 0) < 0, Select(v["arg1_range"], 1) < 0))), v["arg1_dtype"] != 0, False)) if n else
+          If(Or((And(Select(v["arg1_range"], 0) >= 0, Select(v["arg1_range"], 1) >= 0)), (And(Select(v["arg1_range"], 0) < 0, Select(v["arg1_range"], 1) < 0))), v["arg1_dtype"] != 0, False))
 )
 
-def rule_327_func(arg1, arg2, solver=None):
+def rule_327_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 327
-        rule_327(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_327(solver, {'arg1_range': arg1_range, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_327(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})
+        rule_327(solver, {'arg1_range': arg1['range'], 'arg1_dtype_': arg1['dtype_']}, neg)

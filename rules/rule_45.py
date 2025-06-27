@@ -1,39 +1,35 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If boolean v_1 is true, then tensor v_2 should contain the same value at dimension 0 and dimension 1. (Rule 45)
+# If a tensor's dtype is not boolean, then min must be non negative. (Rule 45)
 
-rule_45 = lambda s, v: (
-    s.add(If(v["arg1_value"], Select(v["arg2_shape"], 0) == Select(v["arg2_shape"], 1), False))
+rule_45 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_dtype"] != 0, Select(v["arg1_range"], 0) >= 0, False)) if n else
+          If(v["arg1_dtype"] != 0, Select(v["arg1_range"], 0) >= 0, False))
 )
 
-def rule_45_func(arg1, arg2, solver=None):
+def rule_45_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, bool)):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 45
-        rule_45(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape})
+        rule_45(solver, {'arg1_range': arg1_range, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_45(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape']})
+        rule_45(solver, {'arg1_range': arg1['range'], 'arg1_dtype_': arg1['dtype_']}, neg)

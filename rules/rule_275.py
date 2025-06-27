@@ -1,38 +1,45 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If an integer v_1 is 1, then the tensor cannot be of type bool (Rule 275)
+# If tensor has at least 1 dimension, the shape is greater than one, its type is integer or float and the max value is greater than its min, then string value should be in (sum, max, tanh (Rule 275)
 
-rule_275 = lambda s, v: (
-    s.add(If(v["arg1_value"] == 1, v["arg2_dtype"] != 0, False))
+rule_275 = lambda s, v, n=False: (
+    s.add(Not(If(And(And(And(v["arg1_ndim"] > 0, (Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))), (Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0))), (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)]))), (Or(Or(v["arg2_value"] == 8, v["arg2_value"] == 9), v["arg2_value"] == 11)), False)) if n else
+          If(And(And(And(v["arg1_ndim"] > 0, (Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))), (Select(v["arg1_range"], 1) > Select(v["arg1_range"], 0))), (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 1) for i in range(6)]))), (Or(Or(v["arg2_value"] == 8, v["arg2_value"] == 9), v["arg2_value"] == 11)), False))
 )
 
-def rule_275_func(arg1, arg2, solver=None):
+def rule_275_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
+        if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == list_of_string_values.index(arg2))
 
         # Constraints for rule 275
-        rule_275(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
+        rule_275(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_275(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']})
+        rule_275(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_'], 'arg2_value': arg2['value']}, neg)

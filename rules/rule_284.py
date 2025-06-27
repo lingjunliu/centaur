@@ -1,41 +1,40 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If ndim is 2 and its first dimension is less than the second dimension, then a second tensor cannot be float32 (Rule 284)
+# if the tensor is three-dimensional and data type is not bool and shape is positive on dimension 0 then, min * max must be smaller than 2 to power of 10 (Rule 284)
 
-rule_284 = lambda s, v: (
-    s.add(If(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) < Select(v["arg1_shape"], 1)), v["arg2_dtype"] != 7, False))
+rule_284 = lambda s, v, n=False: (
+    s.add(Not(If(And(And((v["arg1_ndim"] == 3), (v["arg1_dtype"] != 0)), (Select(v["arg1_shape"], 0) > 0)), (Select(v["arg1_range"], 0) * Select(v["arg1_range"], 1)) < 1024, False)) if n else
+          If(And(And((v["arg1_ndim"] == 3), (v["arg1_dtype"] != 0)), (Select(v["arg1_shape"], 0) > 0)), (Select(v["arg1_range"], 0) * Select(v["arg1_range"], 1)) < 1024, False))
 )
 
-def rule_284_func(arg1, arg2, solver=None):
+def rule_284_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 284
-        rule_284(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_dtype': arg2_dtype})
+        rule_284(solver, {'arg1_shape': arg1_shape, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_284(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg2_dtype': arg2['dtype']})
+        rule_284(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_']}, neg)

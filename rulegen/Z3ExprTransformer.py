@@ -3,7 +3,7 @@ import sys
 from lark import Transformer
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils.defaults import MAX_N_DIM
+from utils.defaults import MAX_N_DIM, list_of_string_values
 
 class Z3ExprTransformer(Transformer):
     def __init__(self, var_map, var_types):
@@ -51,17 +51,15 @@ class Z3ExprTransformer(Transformer):
 
     def forall(self, items):
         var, start, end, body = items
-        var_name = str(var)
-        if var_name != "i":
-            raise Exception(f" invalid variable {var_name}")
-        return f"And([Implies(i < ({end} + 1), {body}) for i in range({MAX_N_DIM})])"
+        # if var != "i":
+            # raise Exception(f" invalid variable {var}")
+        return f"And([Implies({var} < ({end} + 1), {body}) for {var} in range({MAX_N_DIM})])"
 
     def exists(self, items):
         var, start, end, body = items
-        var_name = str(var)
-        if var_name != "i":
-            raise Exception(f" invalid variable {var_name}")
-        return f"Or([And(i < ({end} + 1), {body}) for i in range({MAX_N_DIM})])"
+        # if var != "i":
+            # raise Exception(f" invalid variable {var}")
+        return f"Or([And({var} < ({end} + 1), {body}) for {var} in range({MAX_N_DIM})])"
 
     def if_expr(self, items):
         if len(items) > 2:
@@ -114,7 +112,7 @@ class Z3ExprTransformer(Transformer):
 
         if func_name == "ndim":
             return f'v["{var}_ndim"]'
-        elif func_name == "dtype":
+        elif func_name == "dtype_":
             return f'v["{var}_dtype"]'
         elif func_name == "shape":
             return f'Select(v["{var}_shape"], {index_expr})'
@@ -135,15 +133,19 @@ class Z3ExprTransformer(Transformer):
         return "False"
 
     def string(self, items):
-        return str(items[0])
+        v = items[0].value.strip('"') 
+        if v in list_of_string_values:
+            return str(list_of_string_values.index(v))
+        else:
+            raise Exception(f" unsupported string '{v}'")
 
     def prim_var(self, items):
         v = str(items[0])
-        if v == "i":
-            return v
         typ = self.var_types.get(v, "")
         if "tensor" in typ:
             raise Exception(f" tensor type variable {v}")
+        elif not typ:
+            return v
         else:
             return f'v["{self.var_map[v]}_value"]'
 

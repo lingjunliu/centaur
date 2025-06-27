@@ -1,42 +1,42 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If minimum value of a tensor is greater than 10, then, if another tensor's number of dimension is 2, all of its dimensions must be greater than 1 (Rule 349)
+# if v_1 is int and not equal to 0, then shape(v_2, v_1 (Rule 349)
 
-rule_349 = lambda s, v: (
-    s.add(If(Select(v["arg1_range"], 0) > 10, And([Implies(i < (v["arg2_ndim"] - 1 + 1), If(v["arg2_ndim"] == 2, Select(v["arg2_shape"], i) > 1, False)) for i in range(6)]), False))
+rule_349 = lambda s, v, n=False: (
+    s.add(Not(If(And(And(v["arg1_value"] != 0, v["arg1_value"] >= (0 - v["arg2_ndim"])), v["arg1_value"] < v["arg2_ndim"]), Select(v["arg2_shape"], v["arg1_value"]) != 0, False)) if n else
+          If(And(And(v["arg1_value"] != 0, v["arg1_value"] >= (0 - v["arg2_ndim"])), v["arg1_value"] < v["arg2_ndim"]), Select(v["arg2_shape"], v["arg1_value"]) != 0, False))
 )
 
-def rule_349_func(arg1, arg2, solver=None):
+def rule_349_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
             return False
         if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
         arg2_ndim = Int('arg2_ndim')
         arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
         solver.add(arg2_ndim == arg2.ndim)
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 349
-        rule_349(solver, {'arg1_range': arg1_range, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
+        rule_349(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_349(solver, {'arg1_range': arg1['range'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']})
+        rule_349(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

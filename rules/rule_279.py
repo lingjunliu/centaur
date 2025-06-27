@@ -1,38 +1,42 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If a string v_1 equals ‘min’, then the number of dimensions of tensor v_2 should be greater than 0. (Rule 279)
+# If the number of dimensions for a tensor is one, and the string operation is constant, then if the shape on the 0th dimension is > 0, then data type must belong to either float, integer or boolean (Rule 279)
 
-rule_279 = lambda s, v: (
-    s.add(If(v["arg1_value"] == "min", v["arg2_ndim"] > 0, False))
+rule_279 = lambda s, v, n=False: (
+    s.add(Not(If(And(And((v["arg1_ndim"] == 1), (v["arg2_value"] == 10)), (Select(v["arg1_shape"], 0) > 0)), (Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 0)), False)) if n else
+          If(And(And((v["arg1_ndim"] == 1), (v["arg2_value"] == 10)), (Select(v["arg1_shape"], 0) > 0)), (Or(Or(Or(Or(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 0)), False))
 )
 
-def rule_279_func(arg1, arg2, solver=None):
+def rule_279_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg2, str)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == list_of_string_values.index(arg2))
 
         # Constraints for rule 279
-        rule_279(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
+        rule_279(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_279(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']})
+        rule_279(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_'], 'arg2_value': arg2['value']}, neg)

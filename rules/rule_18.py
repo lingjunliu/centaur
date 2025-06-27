@@ -1,39 +1,34 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If boolean v_1 is false, then the maximum value in tensor v_2 must be smaller than or equal to 0. (Rule 18)
+# If the tensor has more than one dimension, then the dimension must be smaller than 10 (Rule 18)
 
-rule_18 = lambda s, v: (
-    s.add(If(v["arg1_value"] == False, Select(v["arg2_range"], 1) <= 0, False))
+rule_18 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_ndim"] > 1, v["arg1_ndim"] < 10, False)) if n else
+          If(v["arg1_ndim"] > 1, v["arg1_ndim"] < 10, False))
 )
 
-def rule_18_func(arg1, arg2, solver=None):
+def rule_18_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, bool)):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_18(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']})
+        rule_18(solver, {'arg1_ndim': arg1['ndim']}, neg)

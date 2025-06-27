@@ -1,41 +1,37 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the minimum of the tensor is greater than some integer, then its number of dimensions should be a multiple of 2 (Rule 445)
+# If v_1 tensor has 3 dimensions, then the sum of shape along dimension 0 and 1 should be larger than shape along dimension 2 (Rule 445)
 
-rule_445 = lambda s, v: (
-    s.add(If(Select(v["arg1_range"], 0) > v["arg2_value"], (v["arg1_ndim"] / 2) * 2 == v["arg1_ndim"], False))
+rule_445 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) + Select(v["arg1_shape"], 1) > Select(v["arg1_shape"], 2), False)) if n else
+          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 0) + Select(v["arg1_shape"], 1) > Select(v["arg1_shape"], 2), False))
 )
 
-def rule_445_func(arg1, arg2, solver=None):
+def rule_445_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == int(arg2))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 445
-        rule_445(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_445(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_445(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})
+        rule_445(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)

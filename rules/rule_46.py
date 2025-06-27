@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the tensor v_1 has at least one dimension, then the maximum value of tensor v_1 should be greater than its first element (Rule 46)
+# If any shape of the tensor is zero, then max should also be zero (Rule 46)
 
-rule_46 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) > Select(v["arg1_shape"], 0), False))
+rule_46 = lambda s, v, n=False: (
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), If(Select(v["arg1_shape"], i) == 0, Select(v["arg1_range"], 1) == 0, False)) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), If(Select(v["arg1_shape"], i) == 0, Select(v["arg1_range"], 1) == 0, False)) for i in range(6)]))
 )
 
-def rule_46_func(arg1, solver=None):
+def rule_46_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
@@ -36,4 +37,4 @@ def rule_46_func(arg1, solver=None):
 
     # Fuzz input generation phase
     else:
-        rule_46(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']})
+        rule_46(solver, {'arg1_shape': arg1['shape'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

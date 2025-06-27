@@ -111,7 +111,17 @@ def collect_constraints(solver, ruleset, z3_args):
         for param_name in args:
             arg_dicts.append({param_name: z3_args[param_name]})
        
-        rule_func(*arg_dicts, solver)
+        rule_func(*arg_dicts, solver=solver)
+
+def collect_neg_constraint(solver, rule, z3_args):
+    arity, rule_name, *args = rule
+    rule_func = rule_func_map[arity][rule_name]
+        
+    arg_dicts = []
+    for param_name in args:
+        arg_dicts.append({param_name: z3_args[param_name]})
+       
+    rule_func(*arg_dicts, solver=solver, neg=True)
 
 def instantiate_args(model, signature, z3_args, seed=42):
     concrete_args = {}
@@ -269,6 +279,85 @@ def sample_partitions(var_values_map, p):
         sampled_partitions.add(assertion)
 
     return sampled_partitions
+
+def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, lib="torch"):
+    ruleset = definition["ruleset"]
+    signature = definition["signature"]
+    filtered_rules = set()
+
+    while True:
+        for rule in ruleset:
+            trial = 0
+            block_all = set()
+
+            while trial < max_trial:
+                block_one = []
+                remaining_ruleset = set(ruleset)
+                remaining_ruleset.remove(rule)
+
+                solver = Solver()
+                initial_constraints(solver, signature, z3_args)
+                collect_constraints(solver, remaining_ruleset, z3_args)
+                collect_neg_constraint(solver, rule, z3_args)
+        
+                sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
+                solver.add(*sampled_blocks)
+
+                if solver.check() != sat:
+                    if trial == 0:
+                        break
+                    else:
+                        continue
+        
+                model = solver.model()
+                for decl in model.decls():
+                    var, val = decl(), model[decl]
+                    name_parts = str(decl.name()).rsplit("_", 1)
+
+                    if len(name_parts) == 2:
+                        prefix, suffix = name_parts
+                    else:
+                        prefix, suffix = name_parts[0], None
+
+                    if val.sort().kind() == Z3_ARRAY_SORT:                
+                        array_len = None
+                        if suffix == "shape" or suffix == "values":
+                            for other_decl in model.decls():
+                                if str(other_decl.name()) in [f"{prefix}_ndim", f"{prefix}_length"]:
+                                    array_len = model.eval(other_decl(), model_completion=True).as_long()
+                            if array_len is None:
+                                array_len = MAX_N_DIM
+                        elif suffix == "range":
+                            array_len = 2
+                        for i in range(array_len):
+                            block_one.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    else:
+                        block_one.append(var != val)
+        
+                for elem in block_one:
+                    if elem not in block_all:
+                        block_all.add(elem)
+        
+                concrete_input, abstract_input = instantiate_args(model, signature, z3_args)
+                status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
+
+                if status != "invalid":
+                    filtered_rules.add(rule)
+                    break
+                trial = trial+1
+
+        if filtered_rules:
+            ruleset = ruleset - filtered_rules
+            filtered_rules = set()
+        else:
+            break
+
+    if print_details and ruleset:
+        print(f"Refined rules for {api}:")
+        for arity, rule_name, *args in ruleset:
+            print(f"- {rule_name} with arity {arity} on args {args}")
+
+    return ruleset
 
 def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch", corpus_dir=None, return_models=True):
     elapsed = 0
@@ -448,7 +537,8 @@ def main():
     n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
     lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
     seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
-    regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
+    # regen = int(sys.argv[6]) == 1 if len(sys.argv) > 6 else False
+    regen = True
 
     print_details = False # Set to True if you want to print details of the process
     
@@ -459,6 +549,7 @@ def main():
         lib = "torch"
 
     # Check if it is a variation of the API
+    '''
     if "_" in api:
         api, suffix = api.rsplit("_", 1)
         if suffix.isdigit():
@@ -468,7 +559,8 @@ def main():
             api = f"{api}_{suffix}"  # Reconstruct the API name with suffix
     else:
         suffix = 0
-    
+    '''
+    suffix = 1
     api = get_lib_version(api, lib=lib)
     definition = get_definition(api, z3=True, lib=lib, suffix=suffix)
     if len(definition["ruleset"]) == 0:
@@ -483,6 +575,7 @@ def main():
         print(f"Loaded {len(models)} existing models for {api}")
     else:
         os.makedirs(corpus_dir, exist_ok=True)
+        definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch")
         models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False)
 
 if __name__ == "__main__":

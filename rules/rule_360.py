@@ -1,38 +1,42 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the minimum value of a tensor is zero, the dtype must be an integer or the dimension equals to zero (Rule 360)
+# If string v_1 equals "...ij->...ji", then for all the dimension in v_2 tensor, its shape should be the same. (Rule 360)
 
-rule_360 = lambda s, v: (
-    s.add(If(Select(v["arg1_range"], 0) == 0, Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), v["arg1_ndim"] == 0), False))
+rule_360 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_value"] == 4, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], 0) == Select(v["arg2_shape"], i)) for i in range(6)]), False)) if n else
+          If(v["arg1_value"] == 4, And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], 0) == Select(v["arg2_shape"], i)) for i in range(6)]), False))
 )
 
-def rule_360_func(arg1, solver=None):
+def rule_360_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, str)):
+            return False
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = String('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 360
-        rule_360(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_360(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_360(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']})
+        rule_360(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)

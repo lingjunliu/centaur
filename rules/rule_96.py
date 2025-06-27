@@ -1,38 +1,37 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# if the dimension of tensor v_1 is not equal to 3, then the string v_2 must be 'other', else the string v_2 must be equal to '3d' (Rule 96)
+# If dimension greater than 0, then max should be less than or equal to 2 to the power of 15, and dimension smaller than 6 (Rule 96)
 
-rule_96 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] != 3, v["arg2_value"] == "other", v["arg2_value"] == "3d"))
+rule_96 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_ndim"] > 0, And(Select(v["arg1_range"], 1) <= 32768, v["arg1_ndim"] < 6), False)) if n else
+          If(v["arg1_ndim"] > 0, And(Select(v["arg1_range"], 1) <= 32768, v["arg1_ndim"] < 6), False))
 )
 
-def rule_96_func(arg1, arg2, solver=None):
+def rule_96_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
             return False
-        if not (isinstance(arg2, str)):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg2_value = String('arg2_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == arg2)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 96
-        rule_96(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_96(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_96(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})
+        rule_96(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

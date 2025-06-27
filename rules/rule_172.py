@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If number of dimensions for the tensor v_1 is equal to 0, then, data type of the tensor v_1 has to be str (Rule 172)
+# if tensor has one dim, then dtype should be an integer (Rule 172)
 
-rule_172 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] == 0, v["arg1_dtype"] == 11, False))
+rule_172 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_ndim"] == 1, (Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), False)) if n else
+          If(v["arg1_ndim"] == 1, (Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), False))
 )
 
-def rule_172_func(arg1, solver=None):
+def rule_172_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
@@ -20,16 +21,14 @@ def rule_172_func(arg1, solver=None):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 172
-        rule_172(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_172(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_172(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']})
+        rule_172(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_']}, neg)

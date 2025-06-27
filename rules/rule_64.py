@@ -1,47 +1,37 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the string v_1 is equal to "shape", then every shape of tensor v_2 should be equal to shape of tensor v_3 at dimension 0 (Rule 64)
+# if a tensor is 1D, the max value must be smaller than or equal to 1000. (Rule 64)
 
-rule_64 = lambda s, v: (
-    s.add(If(v["arg1_value"] == "shape", And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) == Select(v["arg3_shape"], 0)) for i in range(6)]), False))
+rule_64 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_range"], 1) <= 1000, False)) if n else
+          If(v["arg1_ndim"] == 1, Select(v["arg1_range"], 1) <= 1000, False))
 )
 
-def rule_64_func(arg1, arg2, arg3, solver=None):
+def rule_64_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
-            return False
-        if not (isinstance(arg2, np.ndarray)):
-            return False
-        if not (isinstance(arg3, np.ndarray)):
+        if not (isinstance(arg1, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 64
-        rule_64(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape})
+        rule_64(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_64(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim'], 'arg3_shape': arg3['shape']})
+        rule_64(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)

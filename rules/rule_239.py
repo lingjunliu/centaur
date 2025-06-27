@@ -1,15 +1,16 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# the minimum and maximum value of a tensor should be within a certain range (Rule 239)
+# If dtype is not string and not bool then, minimum and maximum values of the tensor should be the same (Rule 239)
 
-rule_239 = lambda s, v: (
-    s.add(And(Select(v["arg1_range"], 0) >= -1, Select(v["arg1_range"], 1) <= 1))
+rule_239 = lambda s, v, n=False: (
+    s.add(Not(If(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 11)), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 0), False)) if n else
+          If(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 11)), Select(v["arg1_range"], 1) == Select(v["arg1_range"], 0), False))
 )
 
-def rule_239_func(arg1, solver=None):
+def rule_239_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
 
     # Invariant learning phase
@@ -26,9 +27,9 @@ def rule_239_func(arg1, solver=None):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 239
-        rule_239(solver, {'arg1_range': arg1_range})
+        rule_239(solver, {'arg1_range': arg1_range, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_239(solver, {'arg1_range': arg1['range']})
+        rule_239(solver, {'arg1_range': arg1['range'], 'arg1_dtype_': arg1['dtype_']}, neg)

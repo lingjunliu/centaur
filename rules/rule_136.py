@@ -1,23 +1,21 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If tensor v_1 has dimension more than or equal to 1, the number variable v_2 must not be equal to max or min of v_1's data type, meaning that the value should fall in between (Rule 136)
+# If the dimension is positive, and max is greater than 10, then the tensor must be of float or complex type (Rule 136)
 
-rule_136 = lambda s, v: (
-    s.add(If(v["arg1_ndim"] >= 1, And(v["arg2_value"] != Select(v["arg1_range"], 1), v["arg2_value"] != Select(v["arg1_range"], 0)), False))
+rule_136 = lambda s, v, n=False: (
+    s.add(Not(If(And(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) > 10), (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), False)) if n else
+          If(And(v["arg1_ndim"] > 0, Select(v["arg1_range"], 1) > 10), (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), False))
 )
 
-def rule_136_func(arg1, arg2, solver=None):
+def rule_136_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not (isinstance(arg1, np.ndarray)):
-            return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
             return False
 
         # Variable declarations
@@ -31,9 +29,9 @@ def rule_136_func(arg1, arg2, solver=None):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 136
-        rule_136(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_136(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg1_dtype_': arg1_dtype_})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_136(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']})
+        rule_136(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg1_dtype_': arg1['dtype_']}, neg)

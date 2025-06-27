@@ -1,41 +1,39 @@
 import numpy as np
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
 from z3 import *
 
-# If the data type of tensor v_1 is a float type, its maximum value must be less than or equal to float variable v_2 (Rule 26)
+# if a string is equal to bij,bjk->bik, then dimension of tensor should be equal to 3 (Rule 26)
 
-rule_26 = lambda s, v: (
-    s.add(If(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), Select(v["arg1_range"], 1) <= v["arg2_value"], False))
+rule_26 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_value"] == 3, v["arg2_ndim"] == 3, False)) if n else
+          If(v["arg1_value"] == 3, v["arg2_ndim"] == 3, False))
 )
 
-def rule_26_func(arg1, arg2, solver=None):
+def rule_26_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not (isinstance(arg1, str)):
             return False
-        if not (isinstance(arg2, (float, np.floating))):
+        if not (isinstance(arg2, np.ndarray)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Real('arg2_value')
+        arg1_value = String('arg1_value')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 26
-        rule_26(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_26(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_26(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']})
+        rule_26(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)

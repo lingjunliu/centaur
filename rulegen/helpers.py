@@ -37,7 +37,7 @@ def create_rule_expr(rule_number, rule_def):
             print(f"Transformation failed for rule {rule_number}\n{''.join(str(e).splitlines())}")
             return None
 
-        code = f"\n\nrule_{rule_number} = lambda s, v: (\n    s.add({z3_expr})\n)"
+        code = f"\n\nrule_{rule_number} = lambda s, v, n=False: (\n    s.add(Not({z3_expr}) if n else\n          {z3_expr})\n)"
         with open(filename, "a", encoding="utf-8") as f:
             f.write(code)
 
@@ -110,9 +110,12 @@ def create_func_body(rule_number, rule_def, var_map, var_types):
         elif typ == "int":
             if "value" in entries:
                 lines.append(f"{eindent}solver.add({arg}_value == int({arg}))")
-        elif typ in ["float", "bool", "str"]:
+        elif typ in ["float", "bool"]:
             if "value" in entries:
                 lines.append(f"{eindent}solver.add({arg}_value == {arg})")
+        elif typ == "str":
+            if "value" in entries:
+                lines.append(f"{eindent}solver.add({arg}_value == list_of_string_values.index({arg}))")
 
     lines.append(f"\n{eindent}# Constraints for rule {rule_number}")
     dict_entries = []
@@ -136,7 +139,7 @@ def create_func_body(rule_number, rule_def, var_map, var_types):
             dict_entries.append(f"'{arg}_{entry}': {arg}['{entry}']")
 
     dict_str = ", ".join(dict_entries)
-    lines.append(f"{eindent}rule_{rule_number}(solver, {{{dict_str}}})")
+    lines.append(f"{eindent}rule_{rule_number}(solver, {{{dict_str}}}, neg)")
 
     func_body_str = "\n".join(lines)
 
