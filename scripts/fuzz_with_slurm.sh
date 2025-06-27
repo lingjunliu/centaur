@@ -35,6 +35,5 @@ for filename in ${tmp_results}/*${lib}.csv
 do
     cat ${filename} >> ${result}
 done
-rm -r ${tmp_results}
 
 echo "Fuzzing results saved in ${result}"

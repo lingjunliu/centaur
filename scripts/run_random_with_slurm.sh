@@ -26,6 +26,5 @@ for filename in ${tmp_results}/*.csv
 do
     cat ${filename} >> ${result}
 done
-rm -r ${tmp_results}
 
 echo "Results saved in ${result}"
