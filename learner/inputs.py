@@ -309,7 +309,7 @@ def introduce_integer_types(input_dict, signature):
     
     return mutated_inputs
 
-def introduce_ints(input_dict, signature):
+def introduce_integers(input_dict, signature):
     """
     Mutation to introduce random integer values for int-type fields,
     int-typed tensors, or int-valued tuples/lists.
@@ -471,7 +471,7 @@ def augment_inputs(list_of_inputs, signature):
     Mutate inputs to have diversity to ensure wrong invariants are not learned
     And return the original inputs + mutated inputs
     """
-    mutators = [introduce_empty_tensors, introduce_float_types, introduce_floats, introduce_integer_types, introduce_ints, introduce_negatives, introduce_opposite_bools, introduce_zeros]
+    mutators = [introduce_empty_tensors, introduce_float_types, introduce_floats, introduce_integer_types, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
     mutated_inputs = []
     for input_dict in list_of_inputs:
         for arg,domain in signature.items():

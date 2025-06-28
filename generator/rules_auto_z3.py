@@ -73,9 +73,9 @@ def check_rules_z3(input_dict, print_rules=False, use_reference=False):
             print(f"Arity {arity} Rule {rule_name} passed between {args}")
     return set_of_rules_passed
 
-def check_rules_z3_invalid_inputs(invalid_inputs, rule):
+def check_rules_z3_invalid_inputs(invalid_inputs, rule, use_reference=False):
     arity, rule_name, *args = rule
-    rule_func_map = get_rules_map()
+    rule_func_map = get_rules_map(use_reference=use_reference)
 
     z3_func = rule_func_map.get(arity, {}).get(rule_name)
     if z3_func is None:

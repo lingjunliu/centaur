@@ -31,17 +31,10 @@ def print_rules(api, ruleset):
         print(f"No rules passed for {api}.")
 
 def refine_ruleset(ruleset, invalid_inputs):
-    valid = 0
-    invalid = 0
     refined = set()
     for rule in ruleset:
         if check_rules_z3_invalid_inputs(invalid_inputs, rule):
-            valid = valid+1
-            print(f"rule {rule} is valid. valid: {valid}")
             refined.add(rule)
-        else:
-            invalid = invalid+1
-            print(f"rule {rule} is invalid. invalid: {invalid}")
     return refined
 
 def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=20, seed=42, z3=False, suffix=0, use_reference=False):
