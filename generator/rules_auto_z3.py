@@ -87,7 +87,6 @@ def check_rules_z3_invalid_inputs(invalid_inputs, rule):
             if not z3_func(*arg_dicts):
                 return True
         except Exception as e:
-            print(f"Exception while checking invalid input: {str(e)}")
             continue
 
     return False
