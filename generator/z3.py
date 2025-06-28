@@ -39,7 +39,9 @@ def create_z3_args(signature):
                 "dtype": Int(f"{param}_dtype")
             }
         elif typ == "boolean":
-            z3_args[param] = Bool(param)
+            z3_args[param] = {
+                "value": Bool(f"{param}_value")
+            }
         elif typ == "string":
             z3_args[param] = {
                 "value": Int(f"{param}_value"), # string is represented as an index in the list of string values
@@ -58,7 +60,9 @@ def create_z3_args(signature):
                 "range": Array(f"{param}_range", IntSort(), IntSort())
             }
         elif typ == "dtype":
-            z3_args[param] = Int(param)
+            z3_args[param] = {
+                "value": Int(f"{param}_value")
+            }
         else:
             raise ValueError(f"Unsupported type: {typ}")
     return z3_args
@@ -98,9 +102,11 @@ def initial_constraints(solver, signature, z3_args):
             solver.add(And(value >= domain_limits[f'{param_type}_value_range'][0], value <= domain_limits[f'{param_type}_value_range'][1]))
             solver.add(And(dtype >= domain_limits[f'{param_type}_dtype'][0], dtype <= domain_limits[f'{param_type}_dtype'][1]))
         elif param_type == "boolean":
-            solver.add(Or(z3_var == domain_limits[f'{param_type}_value_range'][0], z3_var == domain_limits[f'{param_type}_value_range'][1]))            # Two possible values, True or False
+            value = z3_var['value']
+            solver.add(Or(value == domain_limits[f'{param_type}_value_range'][0], value == domain_limits[f'{param_type}_value_range'][1]))            # Two possible values, True or False
         elif param_type == "dtype":
-            solver.add(And(z3_var >= 0, z3_var <= len(list_of_available_dtypes) - 3)) 
+            value = z3_var['value']
+            solver.add(And(value >= 0, value <= len(list_of_available_dtypes) - 3)) 
 
 def collect_constraints(solver, ruleset, z3_args, use_reference=False):
     rule_func_map = get_rules_map(use_reference=use_reference)
@@ -167,14 +173,11 @@ def instantiate_args(model, signature, z3_args, seed=42):
             dtype = model.eval(z3_var['dtype'], model_completion=True).as_long()
             concrete_args[param_name] = list_of_available_dtypes[dtype](list_of_string_values[value])
         elif param_type == "dtype":
-            dtype = model.eval(z3_var, model_completion=True).as_long()
-            concrete_args[param_name] = list_of_available_dtypes[dtype]
-        else:
-            value = model.eval(z3_var, model_completion=True)
-            if isinstance(value, BoolRef):
-                concrete_args[param_name] = random.choice([True, False]) 
-            else:
-                concrete_args[param_name] = value
+            value = model.eval(z3_var['value'], model_completion=True).as_long()
+            concrete_args[param_name] = list_of_available_dtypes[value]
+        elif param_type == "bool":
+            value = model.eval(z3_var['value'], model_completion=True).as_long()
+            concrete_args[param_name] = is_true(value)
 
         abstract_args[param_name] = get_ll(param_type, concrete_args[param_name])
 
@@ -309,6 +312,7 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
                     if trial == 0:
                         break
                     else:
+                        trial = trial+1
                         continue
         
                 model = solver.model()
@@ -563,7 +567,7 @@ def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
         print(f"Loaded {len(models)} existing models for {api}")
     else:
         os.makedirs(corpus_dir, exist_ok=True)
-        definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch", use_reference=use_reference)
+        # definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch", use_reference=use_reference)
         models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference)
     
 

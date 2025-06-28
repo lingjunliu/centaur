@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If string v_1 equals "tanh" and number v_2 is positive, then the result tensor's min element is not equal to 0 (Rule 372)
@@ -17,11 +19,11 @@ def rule_372_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
+        if not isinstance(arg1, str):
             return False
-        if not (isinstance(arg2, (float, np.floating))):
+        if not isinstance(arg2, (float, np.floating)):
             return False
-        if not (isinstance(arg3, np.ndarray)):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations

@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If the shape of the tensor on the first axis is greater than 1, the dimension cannot be zero. (Rule 38)
@@ -15,7 +17,7 @@ def rule_38_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
@@ -29,9 +31,9 @@ def rule_38_func(arg1, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 38
-        rule_38(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim})
+        rule_38(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_38(solver, {'arg1_shape': arg1['shape'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_38(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)

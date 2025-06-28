@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If a boolean variable v_2 is false, the min value of the tensor should not be less than -1000  (Rule 748)
@@ -16,9 +18,9 @@ def rule_748_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, bool)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations

@@ -1,13 +1,15 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Output argument 'out' must be of floating point dtype when input is floating point (Rule 940)
+# If the first parameter is "tanh", then the second tensor's dtype must be float32 or float64 (Rule 940)
 
 rule_940 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6)), (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 6)))) if n else
-          And((Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 6)), (Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 6))))
+    s.add(Not(If(v["arg1_value"] == 11, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), False)) if n else
+          If(v["arg1_value"] == 11, Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), False))
 )
 
 def rule_940_func(arg1, arg2, solver=None, neg=False):
@@ -16,20 +18,24 @@ def rule_940_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not isinstance(arg1, str):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
+        arg1_value = String('arg1_value')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
+        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 940
-        rule_940(solver, {'arg1_dtype_': arg1_dtype_, 'arg2_dtype_': arg2_dtype_})
+        rule_940(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_940(solver, {'arg1_dtype_': arg1['dtype_'], 'arg2_dtype_': arg2['dtype_']}, neg)
+        rule_940(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype']}, neg)

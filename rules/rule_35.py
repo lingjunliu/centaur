@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If tensor dimensions is greater than zero, then the max must be greater or equal to zero. (Rule 35)
@@ -15,7 +17,7 @@ def rule_35_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations

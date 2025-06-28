@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # if float v_1 is not equal to 0 and tensor v_2 has positive dimension and max > 0, then the shape of its dimension 0 should be greater or equal to float v_1 (Rule 505)
@@ -16,9 +18,9 @@ def rule_505_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
@@ -37,9 +39,9 @@ def rule_505_func(arg1, arg2, solver=None, neg=False):
         arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 505
-        rule_505(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
+        rule_505(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_505(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_505(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)

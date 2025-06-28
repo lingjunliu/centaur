@@ -1,13 +1,15 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If pin_memory is set to True, a pin_memory allocator must be available (Rule 969)
+# If the number of dimensions of a tensor is greater than 2, then the product of the first two dimensions should be greater than 10 (Rule 969)
 
 rule_969 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == False) if n else
-          v["arg1_value"] == False)
+    s.add(Not(If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) > 10, False)) if n else
+          If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) > 10, False))
 )
 
 def rule_969_func(arg1, solver=None, neg=False):
@@ -15,20 +17,23 @@ def rule_969_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 969
-        rule_969(solver, {'arg1_value': arg1_value})
+        rule_969(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_969(solver, {'arg1_value': arg1['value']}, neg)
+        rule_969(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)

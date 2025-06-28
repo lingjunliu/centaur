@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If float v_1 is equal or greater than the max value and smaller than sum of shape from first and second dimension (and greater than 1 (Rule 620)
@@ -18,13 +20,13 @@ def rule_620_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not isinstance(arg2, np.ndarray):
             return False
-        if not (isinstance(arg3, str)):
+        if not isinstance(arg3, str):
             return False
-        if not (isinstance(arg4, bool)):
+        if not isinstance(arg4, bool):
             return False
 
         # Variable declarations
@@ -47,9 +49,9 @@ def rule_620_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg4_value == arg4)
 
         # Constraints for rule 620
-        rule_620(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
+        rule_620(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_range': arg2_range, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_620(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)
+        rule_620(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_range': arg2['range'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)

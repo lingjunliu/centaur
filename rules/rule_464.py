@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # if string v_1 is equal to tanh and float number v_2 is greater or equal to 0, then max of tensor v_3 should be smaller than 1000 and larger than float v_2 (Rule 464)
@@ -17,11 +19,11 @@ def rule_464_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
+        if not isinstance(arg1, str):
             return False
-        if not (isinstance(arg2, (float, np.floating))):
+        if not isinstance(arg2, (float, np.floating)):
             return False
-        if not (isinstance(arg3, np.ndarray)):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations

@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If the result of the multiplication between float number v_1 and float number v_2 is less than one and the tensor v_3 has positive dimensions, then the minimum value of that tensor should be greater than -10 (Rule 621)
@@ -16,9 +18,9 @@ def rule_621_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
@@ -34,9 +36,9 @@ def rule_621_func(arg1, arg2, solver=None, neg=False):
         arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 621
-        rule_621(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg2_ndim': arg2_ndim})
+        rule_621(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_621(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_621(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_range': arg2['range']}, neg)

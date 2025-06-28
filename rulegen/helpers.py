@@ -71,11 +71,11 @@ def create_func_body(rule_number, rule_def, var_map, var_types, filename):
                 lines.append(f"{eindent}{arg}_ndim = Int('{arg}_ndim')")
             if "shape" in entries:
                 lines.append(f"{eindent}{arg}_shape = Array('{arg}_shape', IntSort(), IntSort())")
-            if "dtype" in entries:
+            if "dtype_" in entries:
                 lines.append(f"{eindent}{arg}_dtype = Int('{arg}_dtype')")
             if "range" in entries:
                 lines.append(f"{eindent}{arg}_range = Array('{arg}_range', IntSort(), IntSort())")
-        elif typ == "int":
+        elif typ == "int" or typ == "dtype":
             if "value" in entries:
                 lines.append(f"{eindent}{arg}_value = Int('{arg}_value')")
         elif typ == "float":
@@ -87,6 +87,23 @@ def create_func_body(rule_number, rule_def, var_map, var_types, filename):
         elif typ == "str":
             if "value" in entries:
                 lines.append(f"{eindent}{arg}_value = String('{arg}_value')") 
+        elif (typ.startswith("tuple(") and typ.endswith(")")) or (typ.startswith("list(") and typ.endswith(")")):
+            is_tuple = typ.startswith("tuple(")
+            inner = typ[typ.index("(")+1:-1]
+            if "length" in entries:
+                lines.append(f"{eindent}{arg}_length = Int('{arg}_length')")
+            if "values" in entries:
+                if inner == "int":
+                    val_sort = "IntSort()"
+                elif inner == "float":
+                    val_sort = "RealSort()"
+                elif inner == "bool":
+                    val_sort = "BoolSort()"
+                elif inner == "str":
+                    val_sort = "StringSort()"
+                else:
+                    raise ValueError(f"Unsupported {('tuple' if is_tuple else 'list')} inner type: {inner}")
+                lines.append(f"{eindent}{arg}_values = Array('{arg}_values', IntSort(), {val_sort})")
 
     lines.append(f"\n{eindent}# Value assignments")
 
@@ -101,7 +118,7 @@ def create_func_body(rule_number, rule_def, var_map, var_types, filename):
             if "shape" in entries:
                 lines.append(f"{eindent}for i in range({arg}.ndim):")
                 lines.append(f"{eindent}{findent}{arg}_shape = Store({arg}_shape, i, {arg}.shape[i])")
-            if "dtype" in entries:
+            if "dtype_" in entries:
                 lines.append(f"{eindent}solver.add({arg}_dtype == list_of_available_dtypes.index({arg}.dtype))")
             if "range" in entries:
                 lines.append(f"{eindent}{arg}_range = Store({arg}_range, 0, int(np.min({arg})))")
@@ -115,6 +132,15 @@ def create_func_body(rule_number, rule_def, var_map, var_types, filename):
         elif typ == "str":
             if "value" in entries:
                 lines.append(f"{eindent}solver.add({arg}_value == list_of_string_values.index({arg}))")
+        elif typ == "dtype":
+            if "value" in entries:
+                lines.append(f"{eindent}solver.add({arg}_value == list_of_available_dtypes.index(np_dtype({arg})))")
+        elif typ.startswith("tuple") or typ.startswith("list"):
+            if "length" in entries:
+                lines.append(f"{eindent}solver.add({arg}_length == len({arg}))")
+            if "values" in entries:
+                lines.append(f"{eindent}for i in range(len({arg})):")
+                lines.append(f"{eindent}{findent}{arg}_values = Store({arg}_values, i, {arg}[i])")
 
     lines.append(f"\n{eindent}# Constraints for rule {rule_number}")
     dict_entries = []
@@ -122,6 +148,7 @@ def create_func_body(rule_number, rule_def, var_map, var_types, filename):
         arg = var_map[arg_name]
         entries = used_vars.get(arg_name, set())
         for entry in entries:
+            entry = "dtype" if "dtype" in entry else entry
             dict_entries.append(f"'{arg}_{entry}': {arg}_{entry}")
 
     dict_str = ", ".join(dict_entries)
@@ -135,6 +162,7 @@ def create_func_body(rule_number, rule_def, var_map, var_types, filename):
         arg = var_map[arg_name]
         entries = used_vars.get(arg_name, set())
         for entry in entries:
+            entry = "dtype" if "dtype" in entry else entry
             dict_entries.append(f"'{arg}_{entry}': {arg}['{entry}']")
 
     dict_str = ", ".join(dict_entries)

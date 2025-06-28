@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If string v_1 is tanh, then the difference between its min and max value must be smaller than float v_2 (Rule 547)
@@ -17,11 +19,11 @@ def rule_547_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
+        if not isinstance(arg1, str):
             return False
-        if not (isinstance(arg2, np.ndarray)):
+        if not isinstance(arg2, np.ndarray):
             return False
-        if not (isinstance(arg3, (float, np.floating))):
+        if not isinstance(arg3, (float, np.floating)):
             return False
 
         # Variable declarations

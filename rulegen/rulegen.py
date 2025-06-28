@@ -43,7 +43,7 @@ def log_response(label, prompt, response, num_failures=0):
         else:
             log_file.write("\n\n")
 
-def generate_rules(lib="torch", timeout=1800, max_failures=10000, max_rules=30000):
+def generate_rules(lib="torch", timeout=1800, max_failures=30, max_rules=30000):
     num_failures = 0
     num_rules = 1
     rule_defs = set()
@@ -65,7 +65,7 @@ def generate_rules(lib="torch", timeout=1800, max_failures=10000, max_rules=3000
 
     feedback = ""
     base_time = time.time()
-    while time.time() - base_time < timeout and num_failures < max_failures and num_rules <= max_rules:
+    while time.time() - base_time < timeout and num_rules <= max_rules:
         prompt = ""
         if feedback:
             prompt += f"[Feedback Message from Prior Run]\n{feedback}\n\n"
@@ -81,7 +81,10 @@ def generate_rules(lib="torch", timeout=1800, max_failures=10000, max_rules=3000
          | "int"
          | "float"
          | "bool"
+         | "dtype"
          | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
          | <type> "⊎" <type>
 
 <expr> ::= <and_expr>
@@ -96,8 +99,9 @@ def generate_rules(lib="torch", timeout=1800, max_failures=10000, max_rules=3000
 <compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
 <arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
 <arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
 
+<tuple_access>  ::= "[" <expr> "]" | ".len"
 <func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
 <constant> ::= <NUMBER> | "true" | "false" | <STRING>
 <COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
@@ -106,6 +110,8 @@ def generate_rules(lib="torch", timeout=1800, max_failures=10000, max_rules=3000
 <FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
 <PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
 <TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
 <VAR> ::= same format as PRIMVAR
 <NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
 <STRING> ::= any quoted string (e.g., "hello", 'world')
@@ -137,7 +143,7 @@ def generate_rules(lib="torch", timeout=1800, max_failures=10000, max_rules=3000
             prompt += f"{desc}\n{rule}\n\n"
 
         prompt += "** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **\n"
-        prompt += "** IMPORTANT: Rules should span diverse types (int, float, bool, str, union), properties, and numbers of parameters. **\n"
+        prompt += "** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **\n"
         # prompt += f"** IMPORTANT: Bindings should be from {{{params_str}}} and include only variables that are used in the expression. **\n"
         prompt += "** IMPORTANT: Variables should be named v_1, v_2, and so on. **\n"
         prompt += "** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **\n"
@@ -175,31 +181,38 @@ def generate_rules(lib="torch", timeout=1800, max_failures=10000, max_rules=3000
             feedback = "The output format was incorrect. Please follow the output format strictly."
             num_failures += 1
             log_response("format error", prompt, response, num_failures)
+            if num_failures >= max_failures:
+                feedback = f"Failed {max_failures} times in a row. Try to generate a different rule." 
+                num_failures = 0
             continue
 
         if redundant_vars:
             feedback = f"All variables should appear in the expression. Redundant variables: {', '.join(redundant_vars)}"
             num_failures += 1
             log_response("redundant variables", prompt, response, num_failures)
+            if num_failures >= max_failures:
+                feedback = f"Failed {max_failures} times in a row. Try to generate a different rule." 
+                num_failures = 0
             continue
 
         if new_rule_def in rule_defs:
             feedback = "This rule already exists. Please generate a more diverse and novel rule."
             num_failures += 1
             log_response("duplicated rule", prompt, response, num_failures)
+            if num_failures >= max_failures:
+                feedback = f"Failed {max_failures} times in a row. Try to generate a different rule." 
+                num_failures = 0
             continue
 
         try:
             parser.parse(new_rule_def)
         except Exception as e:
-            if "tuple" in new_rule_def:
-                feedback = "The rule failed to parse with the grammar. Unsupported type: tuple"
-            elif "dtype" in new_rule_def:
-                feedback = "The rule failed to parse with the grammar. Unsupported type: dtype"
-            else:
-                feedback = f"The rule failed to parse with the grammar. Error: {str(e)}"
+            feedback = f"The rule failed to parse with the grammar. Error: {str(e)}"
             num_failures += 1
             log_response("parsing error", prompt, response, num_failures)
+            if num_failures >= max_failures:
+                feedback = f"Failed {max_failures} times in a row. Try to generate a different rule." 
+                num_failures = 0
             continue
     
         with open("rules", "a", encoding="utf-8") as f:

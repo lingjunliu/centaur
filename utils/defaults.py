@@ -53,3 +53,46 @@ domain_limits = {
     'dtype_dtype': [len(list_of_available_dtypes)-1, len(list_of_available_dtypes)-1, 1, 1],   # only dtype
     'dtype_value_range': [0, len(list_of_available_dtypes)-2, 2, 2],
 }
+
+def np_dtype(dtype):
+    try:
+        import torch
+        torch_map = {
+            torch.bool: bool,
+            torch.int8: np.int8,
+            torch.int16: np.int16,
+            torch.int32: np.int32,
+            torch.int64: np.int64,
+            torch.uint8: np.uint8,
+            torch.float16: np.float16,
+            torch.float32: np.float32,
+            torch.float64: np.float64,
+            torch.complex64: np.complex64,
+            torch.complex128: np.complex128,
+        }
+        if isinstance(dtype, torch.dtype):
+            return torch_map.get(dtype, None)
+    except ImportError:
+        pass
+
+    try:
+        import tensorflow as tf
+        tf_map = {
+            tf.bool: bool,
+            tf.int8: np.int8,
+            tf.int16: np.int16,
+            tf.int32: np.int32,
+            tf.int64: np.int64,
+            tf.uint8: np.uint8,
+            tf.float16: np.float16,
+            tf.float32: np.float32,
+            tf.float64: np.float64,
+            tf.complex64: np.complex64,
+            tf.complex128: np.complex128,
+        }
+        if isinstance(dtype, tf.dtypes.DType):
+            return tf_map.get(dtype, None)
+    except ImportError:
+        pass
+
+    return None

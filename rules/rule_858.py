@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If string v_2 does not equal to "tanh", and the shape of dimension zero of tensor v_1 is less than 100, then the maximum element of v_1 is greater than or equal to 1 (Rule 858)
@@ -16,9 +18,9 @@ def rule_858_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, np.ndarray)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, str)):
+        if not isinstance(arg2, str):
             return False
 
         # Variable declarations

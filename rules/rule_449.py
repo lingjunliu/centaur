@@ -1,6 +1,8 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # If v_1 str is "tanh", then number v_2 should be smaller than dimension of tensor v_3 and greater than -1 (Rule 449)
@@ -17,11 +19,11 @@ def rule_449_func(arg1, arg2, arg3, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, str)):
+        if not isinstance(arg1, str):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool))):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not (isinstance(arg3, np.ndarray)):
+        if not isinstance(arg3, np.ndarray):
             return False
 
         # Variable declarations

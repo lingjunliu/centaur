@@ -2806,3 +2806,786 @@ Rule 935 (If the shape of a tensor has a non-positive value, its data type canno
 >>
 Rule 936 (If tensor data type is string then one of following should be valid: The tensor should be exactly a sequence that represents a valid einsum string, the string variable should match tensor, or string variable is "none")
 {v_1: tensor, v_2: str} |= if dtype_(v_1) = 11 then (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = v_2 ∨ v_2 = "none" ∨ v_2 = "mean" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "constant" ∨ v_2 = "tanh")
+>>
+Rule 937 (If the first parameter is "max", the second parameter must be a tensor whose elements are all non-negative)
+{v_1 : str, v_2 : tensor} |= if v_1 = "max" then min(v_2) ≥ 0
+>>
+Rule 938 (If reduction is none, then keep_dims must be false.)
+{v_1 : str, v_2 : bool} |= if v_1 = "none" then v_2 = false
+>>
+Rule 939 (If the first tensor is 2D, the second tensor must have the same number of columns)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 940 (If the first parameter is "tanh", then the second tensor's dtype must be float32 or float64)
+{v_1 : str, v_2 : tensor} |= if v_1 = "tanh" then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 941 (If the first tensor has more than 2 dimensions, then the second integer must be greater than zero)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then v_2 > 0
+>>
+Rule 942 (If the first parameter is a tensor and the second parameter is an integer, then the integer must be less than the number of dimensions of the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 943 (If the first tensor's dtype is int, the second parameter must be an integer within the range of that dtype)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then -128 ≤ v_2 ∧ v_2 ≤ 127 else if dtype_(v_1) = 2 then -32768 ≤ v_2 ∧ v_2 ≤ 32767 else if dtype_(v_1) = 3 then -2147483648 ≤ v_2 ∧ v_2 ≤ 2147483647 else if dtype_(v_1) = 4 then -9223372036854775808 ≤ v_2 ∧ v_2 ≤ 9223372036854775807
+>>
+Rule 944 (If the first tensor's number of dimensions is greater than one, then the second tensor's shape must match the first tensor's shape except for the first dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 945 (If the first tensor is empty, then the second tensor must also be empty)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0
+>>
+Rule 946 (If the first tensor's dtype is boolean, then all elements in the tensor must be either true or false)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = true ∨ v_1[i] = false
+>>
+Rule 947 (If the first parameter is a string, and it's equal to "mean", the second parameter tensor must have a floating point or complex dtype.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "mean" then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 948 (If the first tensor's number of dimensions is one, then the second parameter integer must be between 0 and shape(v_1, 0) - 1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then 0 ≤ v_2 ∧ v_2 ≤ shape(v_1, 0) - 1
+>>
+Rule 949 (If the first parameter's shape at dimension 0 is greater than 10, then the second parameter, an integer, must be less than 100)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > 10 then v_2 < 100
+>>
+Rule 950 (If the first tensor is a complex type, the second tensor also needs to be a complex type.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 951 (If the first parameter is a tensor with a single element, then the second parameter must be true)
+{v_1 : tensor, v_2 : bool} |= if (ndim(v_1) = 0) ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1 ∧ ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = 1) then v_2 = true
+>>
+Rule 952 (If the first tensor has a shape dimension of size 1, the second parameter, an integer, must be 0 or 1.)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) then (v_2 = 0 ∨ v_2 = 1)
+>>
+Rule 953 (If the first parameter is a tensor, and the second parameter is a tuple of integers, then the length of the tuple must be less than or equal to the number of dimensions of the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
+>>
+Rule 954 (If the first parameter is a string equal to "sum", then all values in the tensor must be less than 1000.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "sum" then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 1000
+>>
+Rule 955 (If the first tensor's shape at dimension 0 is equal to the second tensor's shape at dimension 0, then both tensors must have at least 1 dimension)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = shape(v_2, 0) then ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 956 (If the first parameter is a tensor and its number of dimensions is one, then the second parameter must be a float which is greater than the minimum value of the tensor and less than the maximum value of the tensor)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 1 then min(v_1) < v_2 ∧ v_2 < max(v_1)
+>>
+Rule 957 (If the first parameter is a tensor whose number of dimensions is greater than 1, and the second parameter is an integer, then the shape of the first tensor at dimension 0 must be greater than the value of the integer)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then shape(v_1, 0) > v_2
+>>
+Rule 958 (If the first tensor is a float or complex type and has more than one dimension, then the second parameter, a float, must be between the minimum and maximum values of the tensor.)
+{v_1 : tensor, v_2 : float} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) > 1 then min(v_1) < v_2 ∧ v_2 < max(v_1)
+>>
+Rule 959 (If the first parameter is a bool, then the second parameter, a tensor, must have a boolean dtype)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true ∨ v_1 = false then dtype_(v_2) = 0
+>>
+Rule 960 (If the first tensor is of integer type and has more than 2 dimensions, the second parameter, an integer, must be a multiple of 4.)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ ndim(v_1) > 2 then ∃k ∈ [0, 1000] : v_2 = 4 * k
+>>
+Rule 961 (If the reduction mode is 'none', the dimension of the input tensor should be greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "none" then ndim(v_1) > 0
+>>
+Rule 962 (If the first dimension of a tensor is greater than 1, then the minimum value of that tensor should be less than 0.)
+{v_1 : tensor} |= if shape(v_1, 0) > 1 then min(v_1) < 0
+>>
+Rule 963 (If the string value is "tanh", the tensor's dtype should be float16, float32, or float64: 6, 7, or 8)
+{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 964 (If the string is "sum" or "mean", then the number of dimensions of the input tensor should be greater than or equal to 1.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "sum" ∨ v_2 = "mean" then ndim(v_1) ≥ 1
+>>
+Rule 965 (If the first dimension of a tensor is equal to 1, then the maximum value of the tensor should be greater than 0)
+{v_1 : tensor} |= if shape(v_1, 0) = 1 then max(v_1) > 0
+>>
+Rule 966 (The data type of a tensor should not be complex if its number of dimensions is less than 3)
+{v_1 : tensor} |= if ndim(v_1) < 3 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 967 (If a tensor has 2 dimensions and the first dimension is equal to the second dimension, then the minimum value of the tensor should be equal to the maximum value of the tensor)
+{v_1 : tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1) then min(v_1) = max(v_1)
+>>
+Rule 968 (If the string value is equal to "constant", then the number of dimensions of the tensor must be equal to 0.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "constant" then ndim(v_1) = 0
+>>
+Rule 969 (If the number of dimensions of a tensor is greater than 2, then the product of the first two dimensions should be greater than 10)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) * shape(v_1, 1) > 10
+>>
+Rule 970 (If the data type of a tensor is floating point (6,7,8), then its minimum value should be less than or equal to its maximum value.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≤ max(v_1)
+>>
+Rule 971 (If the reduction mode is not 'none' and the number of dimensions of input tensor is one, then the dtype must be in integer family)
+{v_1 : tensor, v_2 : str} |= if v_2 ≠ "none" ∧ ndim(v_1) = 1 then 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+>>
+Rule 972 (If a tensor has a floating-point dtype (6, 7, or 8), then its maximum value should be greater than or equal to 0.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) ≥ 0
+>>
+Rule 973 (If the string value is equal to 'ii->i', the tensor must have 2 dimensions.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" then ndim(v_1) = 2
+>>
+Rule 974 (If a tensor has at least one dimension, then its max value must be greater or equal to its min value)
+{v_1 : tensor} |= if ndim(v_1) ≥ 1 then max(v_1) ≥ min(v_1)
+>>
+Rule 975 (The second dimension of the tensor should be greater than or equal to the square root of the first dimension)
+{v_1 : tensor} |= shape(v_1, 1) ≥ shape(v_1, 0) / 2
+>>
+Rule 976 (If the dtype of a tensor is an integer type, then the minimum of the tensor must be an integer.)
+{v_1 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then min(v_1) = min(v_1)
+>>
+Rule 977 (If the string value is "tanh" and the tensor has 3 dimensions, then the last dimension should be greater than 1)
+{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" ∧ ndim(v_1) = 3 then shape(v_1, 2) > 1
+>>
+Rule 978 (If the tensor has a dimension with size 0, then its minimum value must be greater or equal than 0)
+{v_1: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then min(v_1) ≥ 0
+>>
+Rule 979 (If the string value is "max", then all the elements of the tensor should be greater than -100)
+{v_1 : tensor, v_2 : str} |= if v_2 = "max" then ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] > -100
+>>
+Rule 980 (If the tensor is 1-dimensional and its dtype is boolean, then there must exist at least one element that is true)
+{v_1: tensor} |= if ndim(v_1) = 1 ∧ dtype_(v_1) = 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = true
+>>
+Rule 981 (If a string value is "sum" and the tensor has more than 1 dimension, then the product of the tensor's first two dimensions should be greater than zero.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "sum" ∧ ndim(v_1) > 1 then shape(v_1, 0) * shape(v_1, 1) > 0
+>>
+Rule 982 (If the dtype of the tensor is complex64 or complex128, the number of dimensions should be greater or equal to 2)
+{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) ≥ 2
+>>
+Rule 983 (If tensor's dtype is one of int8, int16, int32, int64 (1,2,3,4) then its max value is less than 10000)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then max(v_1) < 10000
+>>
+Rule 984 (If string value is one of ["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba"] then number of dimension of tensor should be less than or equal to 5)
+{v_1: tensor, v_2: str} |= if v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" then ndim(v_1) ≤ 5
+>>
+Rule 985 (If the number of dimensions of tensor is 2, and the string value is not "none", then the minimum value of the tensor must be less or equal than 100)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 2 ∧ v_2 ≠ "none" then min(v_1) ≤ 100
+>>
+Rule 986 (If the number of dimensions of the tensor is greater than 0, and if the maximum is greater than zero then minimum should be lesser than maximum)
+{v_1 : tensor} |= if ndim(v_1) > 0 ∧ max(v_1) > 0 then min(v_1) < max(v_1)
+>>
+Rule 987 (If string value is 'constant', and dtype is not one of integer types, then the max value of the tensor should be less than 1)
+{v_1 : tensor, v_2: str} |= if v_2 = "constant" ∧ (dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5) then max(v_1) < 1
+>>
+Rule 988 (If the string value is 'mean', then the tensor's dimensions must be same as the list of int's length + 1 )
+{v_1 : tensor, v_2 : str, v_3: list(int)} |= if v_2 = "mean" then ndim(v_1) = v_3.len + 1
+>>
+Rule 989 (If the string value is not 'none', then the minimum value of the tensor should be greater than or equal to -1)
+{v_1 : tensor, v_2 : str} |= if v_2 ≠ "none" then min(v_1) ≥ -1
+>>
+Rule 990 (If the string value is tanh, then the tensor's first dimension shape must be larger than 10)
+{v_1: tensor, v_2: str} |= if v_2 = "tanh" then shape(v_1, 0) > 10
+>>
+Rule 991 (If the tensor's dtype is floating-point type (6,7,8) then the product of max value and min value should be smaller than 1000)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) * min(v_1) < 1000
+>>
+Rule 992 (If a tensor has a floating point dtype (6, 7, 8) and ndim > 1, then shape(v1,0) * shape(v1, 1) should be greater than zero)
+{v_1 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ndim(v_1) > 1 then shape(v_1, 0) * shape(v_1, 1) > 0
+>>
+Rule 993 (If tensor's dtype is complex64 or complex128, then the min value must be less than or equal to zero)
+{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≤ 0
+>>
+Rule 994 (If the tensor is 2D, then the first dimension should be less than the second dimension multiplied by 100)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) < shape(v_1, 1) * 100
+>>
+Rule 995 (If the number of dimensions of tensor is greater than 1, and if its dtype is of integer type (1-5), then the minimum value of tensor must be greater than -100)
+{v_1 : tensor} |= if ndim(v_1) > 1 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then min(v_1) > -100
+>>
+Rule 996 (If the tensor's dtype is float, then the sum of all its dimensions should be greater than 0)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 997 (If the string value is "tanh", the tensor should have the same number of dimensions as the tuple and every dimension of the tensor should be greater than the corresponding dimension of the tuple)
+{v_1 : tensor, v_2: str, v_3 : tuple(int)} |= if v_2 = "tanh" then ndim(v_1) = v_3.len ∧ ∀i ∈ [0, v_3.len - 1] : shape(v_1, i) > v_3[i]
+>>
+Rule 998 (If the string value is tanh, then the minimum value of the tensor should be greater than -1 and the maximum value of the tensor should be less than 1)
+{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" then min(v_1) > -1 ∧ max(v_1) < 1
+>>
+Rule 999 (If a string value is one of "sum", "mean", "max" and the tensor is 3 dimensional, then the product of its dimensions should be greater than 10)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "sum" ∨ v_2 = "mean" ∨ v_2 = "max") ∧ ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) > 10
+>>
+Rule 1000 (If the number of dimensions of a tensor is 2 and the dtype is floating point, then min(v_1) is between -100 and 100)
+{v_1 : tensor} |= if ndim(v_1) = 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then min(v_1) ≥ -100 ∧ min(v_1) ≤ 100
+>>
+Rule 1001 (If the tensor has a floating point dtype and string = "max", then the maximum value must be greater than or equal to 0)
+{v_1 : tensor, v_2 : str} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ v_2 = "max" then max(v_1) ≥ 0
+>>
+Rule 1002 (If the string value is "none", and the tensor is not empty, then the dtype must be either float16, float32, float64, complex64, complex128, or bool.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "none" ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (dtype_(v_1) = 0 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 1003 (If the string is 'constant', and the dtype is one of complex numbers (9, 10), then max(v1) > 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "constant" ∧ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then max(v_1) > 0
+>>
+Rule 1004 (If the tensor has number of dimensions greater than 2, and string is tanh, and dtype is one of 6,7,8 (float), then shape(v1,0) must be greater than shape(v1, ndim(v1)-1))
+{v_1 : tensor, v_2: str} |= if ndim(v_1) > 2 ∧ v_2 = "tanh" ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then shape(v_1, 0) > shape(v_1, ndim(v_1) - 1)
+>>
+Rule 1005 (If the tensor is 1 dimensional and the dtype is boolean, then there should exist a True and a False value within the tensor)
+{v_1 : tensor} |= if ndim(v_1) = 1 ∧ dtype_(v_1) = 0 then (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = true) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = false)
+>>
+Rule 1006 (If a tensor has 3 dimensions and its dtype is int (1-5), then shape[0] * shape[1] should be greater than or equal to shape[2])
+{v_1: tensor} |= if ndim(v_1) = 3 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then shape(v_1, 0) * shape(v_1, 1) ≥ shape(v_1, 2)
+>>
+Rule 1007 (If the string value is "tanh" and number of dimensions of tensor is equal to 1, then the shape of the tensor's first dimension must be greater than 0 and less than or equal to 100.)
+{v_1 : tensor, v_2: str} |= if v_2 = "tanh" ∧ ndim(v_1) = 1 then shape(v_1, 0) > 0 ∧ shape(v_1, 0) ≤ 100
+>>
+Rule 1008 (If dtype is a complex type (9, 10) and tensor is 2 dimensional, then shape(v_1,0) should be equal to shape(v_1, 1))
+{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 1009 (If a tensor is a 1D boolean tensor, then the minimum and maximum values should be 0 and 1 respectively)
+{v_1: tensor} |= if ndim(v_1) = 1 ∧ dtype_(v_1) = 0 then min(v_1) = 0 ∧ max(v_1) = 1
+>>
+Rule 1010 (If the tensor dtype is an integer type (1-5), then if minimum value of the tensor is negative, then there must exist some zero element in this tensor)
+{v_1: tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ min(v_1) < 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0
+>>
+Rule 1011 (If the string value is 'tanh', then the tensor's maximum value must be lesser or equal to 1 and its minimum value must be greater or equal than -1)
+{v_1 : tensor, v_2: str} |= if v_2 = "tanh" then max(v_1) ≤ 1 ∧ min(v_1) ≥ -1
+>>
+Rule 1012 (If the tensor has 2 dimensions, and string value is not none, max, sum or mean then product of its dimension must be greater than 1)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 2 ∧ (v_2 ≠ "none" ∧ v_2 ≠ "max" ∧ v_2 ≠ "sum" ∧ v_2 ≠ "mean") then shape(v_1, 0) * shape(v_1, 1) > 1
+>>
+Rule 1013 (If input tensor has a dimension size of 1, the reduction dimension should not be that dimension.)
+{v_1 : tensor, v_2 : int} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then v_2 ≠ i
+>>
+Rule 1014 (The number of elements in a list must be equal to a certain dimension of a tensor)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len = shape(v_1, 0)
+>>
+Rule 1015 (If the string is 'constant', the value must be a float)
+{v_1 : str, v_2 : float} |= if v_1 = "constant" then v_2 ≥ 0
+>>
+Rule 1016 (The mode string can only be 'none', 'mean', 'sum', or 'max')
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max"
+>>
+Rule 1017 (If the input tensor has more than one dimension, the dimension index should be smaller than its dimension number)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then v_2 < ndim(v_1)
+>>
+Rule 1018 (If the string parameter is a valid einsum equation, the input tensors must match that equation)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "ii->i" then ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1) ∧ ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 1019 (If the dimension index is specified as -1, it must be the last dimension)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then v_2 = ndim(v_1) - 1
+>>
+Rule 1020 (If the dtype is complex, the input tensor should have an even number of elements.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 9 ∨ v_2 = 10 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ ((min(v_1) * max(v_1)) / 2 = 0 )
+>>
+Rule 1021 (If the string is 'bn,anm,bm->ba', the tensors' dimensions must match the equation)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "bn,anm,bm->ba" then ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ ndim(v_3) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_2, 1) = shape(v_3, 0)
+>>
+Rule 1022 (If the number of dimensions in a tensor is 0, then it can only contain one element.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) = 1
+>>
+Rule 1023 (The number of dimensions of the output tensor should be equal to the number of dimensions of the input tensor minus the length of the dimensions to reduce.)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tensor} |= ndim(v_3) = ndim(v_1) - v_2.len
+>>
+Rule 1024 (If a tuple is used for padding, all the elements inside must be positive and even)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∧ (v_1[i] / 2) * 2 = v_1[i]
+>>
+Rule 1025 (If the output tensor's shape is a constant value, then input tensor needs to be broadcastable to the output tensor.)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1)
+>>
+Rule 1026 (The mask must be a boolean.)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 1027 (The shape of the weight tensor should be consistent with the input channel and output channel of conv2d)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ shape(v_2, 1) = v_3 ∧ shape(v_2, 0) = v_4
+>>
+Rule 1028 (If the data type is boolean, the value should either be true or false)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∨ max(v_1) = 1)
+>>
+Rule 1029 (If the padding mode is 'constant', the padding value should be within the range of the input tensor's values)
+{v_1 : tensor, v_2 : str, v_3 : float} |= if v_2 = "constant" then min(v_1) ≤ v_3 ∧ v_3 ≤ max(v_1)
+>>
+Rule 1030 (If the interpolation mode is nearest, the scaling factor must be an integer.)
+{v_1 : str, v_2 : float} |= if v_1 = "nearest" then (v_2 / 1) * 1 = v_2
+>>
+Rule 1031 (If the alignment mode is specified, the dimensions of the input tensors need to be larger than 1)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then ndim(v_1) > 1 ∧ ndim(v_2) > 1
+>>
+Rule 1032 (The weight tensor should have the same data type as the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 1033 (When the data type of a tensor is an integer, then its minimal value must be an integer)
+{v_1 : tensor} |= if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then (min(v_1) / 1) * 1 = min(v_1)
+>>
+Rule 1034 (If the input is a bool tensor, then the output data type can only be a bool tensor.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+>>
+Rule 1035 (If the input tensor has a dimension size greater than 1, then its first dimension needs to be divisible by the group size)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 ∧ shape(v_1, 0) > 1 then (shape(v_1, 0) / v_2) * v_2 = shape(v_1, 0)
+>>
+Rule 1036 (If the string is "bij,bjk->bik", then all dimensions of the matrix multiplication should have the same type.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "bij,bjk->bik" then (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 1037 (If the string is "i,j->ij", then the tensors must be 1D and the first must have an integer data type)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "i,j->ij" then ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5
+>>
+Rule 1038 (The data type of the weight tensor must be floating point to ensure numerical stability)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 1039 (If the input is complex, the other one must be complex, too.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 1040 (If the input data type is an integer, then the number of classes can only be an integer)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then (v_2 / 1) * 1 = v_2
+>>
+Rule 1041 (If the string is "...ij->...ji", then input tensor dimensions are equal or greater than 2)
+{v_1 : tensor, v_2 : str} |= if v_2 = "...ij->...ji" then ndim(v_1) ≥ 2
+>>
+Rule 1042 (If the scale factor is specified, then it can not be equal to zero.)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 1043 (If the string parameter is set to tanh, then the data type of the input tensor cannot be a bool type.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" then dtype_(v_1) ≠ 0
+>>
+Rule 1044 (If the sizes are given, then their product must be equal to the number of elements in the input tensor.)
+{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0) ∧ (if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ shape(v_1, i) = v_2[i] ))
+>>
+Rule 1045 (If the number of input channels for the 2d convolution is smaller than 1, then raise a value error)
+{v_1: int} |= v_1 > 0
+>>
+Rule 1046 (If the parameter is 'sum' or 'mean' and the input tensor is a bool, the output datatype has to be floating point.)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "sum" ∨ v_2 = "mean") ∧ dtype_(v_1) = 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 1047 (If dilation is specified, then it must be greater than 0.)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 1048 (If the tensor requires grad, then its dtype must be a floating point or complex type.)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : true then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 1049 (If the first tensor requires gradient, the second tensor should require gradient too.)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : true then (∃j ∈ [0, ndim(v_2) - 1] : true)
+>>
+Rule 1050 (If the target is of index type, then it is strictly non-negative.)
+{v_1 : tensor} |= if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then min(v_1) ≥ 0
+>>
+Rule 1051 (For string parameters representing einsum equations, there must be at least one '->'.)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "-" ∧ (i+1 < v_1.len ∧ v_1[i+1] = ">")
+>>
+Rule 1052 (If the mode is constant, the dtype of constant value must match tensor dtype)
+{v_1 : tensor, v_2 : str, v_3 : int ⊎ float} |= if v_2 = "constant" then (if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5 then (v_3 / 1) * 1 = v_3 else if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8 then true else false)
+>>
+Rule 1053 (If the string value corresponds to a specific einsum operation, then input tensors should have corresponding number of dimensions)
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" then ndim(v_1) = 2 else if v_2 = "i,j->ij" then ndim(v_1) = 1 else if v_2 = "bij,bjk->bik" then ndim(v_1) = 3 else if v_2 = "...ij->...ji" then ndim(v_1) ≥ 2 else if v_2 = "bn,anm,bm->ba" then ndim(v_1) = 2
+>>
+Rule 1054 (When specifying the padding size as a tuple, the number of elements in the tuple should match the number of spatial dimensions in the input (ndim -2))
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) - 2
+>>
+Rule 1055 (The weights used in a linear layer must have shape (output_dimension, input_dimension))
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) = 2 ∧ shape(v_1, 0) = v_2 ∧ shape(v_1, 1) = v_3
+>>
+Rule 1056 (If an adaptive pooling layer with output size specified then output size > 0)
+{v_1: int ⊎ float} |= v_1 > 0
+>>
+Rule 1057 (For string parameters representing einsum equations, each letter should be alphabet characters only)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z") ∨ v_1[i] = "," ∨ v_1[i] = ">" ∨ v_1[i] = "-" ∨ v_1[i] = "."
+>>
+Rule 1058 (When a specific padding is specified as a tuple, if the input is 1D, tuple.len must be 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 1
+>>
+Rule 1059 (When the shape is specified in AdaptiveAvgPool2D, the output size must be greater or equal than 1)
+{v_1 : int ⊎ float} |= v_1 ≥ 1
+>>
+Rule 1060 (If you specify scale_factor, you should have positive value)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 1061 (When the input has three dimensions, and the data format is NLC, then the number of channels must be first shape)
+{v_1 : tensor, v_2 : str, v_3 : int} |= if ndim(v_1) = 3 ∧ v_2 = "NLC" then shape(v_1, 1) = v_3
+>>
+Rule 1062 (When the data format parameter is specified, the number of channels should be greater than 0.)
+{v_1 : str, v_2 : int} |= if v_1 = "NLC" ∨ v_1 = "NCL" then v_2 > 0
+>>
+Rule 1063 (If the target shape is specified by a tensor, the target tensor's elements have to be positive integers)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (v_1[i] / 1) * 1 = v_1[i] ∧ v_1[i] > 0
+>>
+Rule 1064 (If the scale factor is specified, the output size must match the input size times scale factor)
+{v_1 : tensor, v_2 : float, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i) * v_2
+>>
+Rule 1065 (When using convTranspose2d, the kernel size should be less than the input tensor size)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = 2 ∧ shape(v_1,2) > v_2[0] ∧ shape(v_1,3) > v_2[1]
+>>
+Rule 1066 (If the string is 'none', 'mean', 'sum', or 'max', the tensor dimension number must be more than zero)
+{v_1 : str, v_2 : tensor} |= if v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" then ndim(v_2) > 0
+>>
+Rule 1067 (When the input tensor has at least two dimension, the first two dimensions should have a positive size)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
+>>
+Rule 1068 (If a stride is specified by a tuple, then each element of the stride must be more than zero.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 1069 (If the mode is max, the output dtype should be same as the input dtype.)
+{v_1 : tensor, v_2 : str, v_3 : tensor} |= if v_2 = "max" then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 1070 (When input and output sizes are given, the scale factor cannot be specified)
+{v_1 : int ⊎ float, v_2 : tensor, v_3 : tensor} |= if v_1 > 0 then ndim(v_2) = 0 ∧ ndim(v_3) = 0
+>>
+Rule 1071 (The size of the kernel, stride, and padding cannot be all nones simultaneously)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) ≠ 0 ∨ ndim(v_2) ≠ 0 ∨ ndim(v_3) ≠ 0)
+>>
+Rule 1072 (When input is N-dimensional, the weight must have N-2 dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then ndim(v_2) = ndim(v_1)-2
+>>
+Rule 1073 (If a weight is specified, the input and output channels must match the weight shape)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 1 ∧ shape(v_1,0) = v_2 ∧ shape(v_1,1) = v_3
+>>
+Rule 1074 (If the data type of a tensor is bool, its values must either be 0 or 1)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∧ max(v_1) = 1)
+>>
+Rule 1075 (For any tensor, if stride is specified the number of elements must align)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then (∀i ∈ [0, v_2.len - 1] : shape(v_1,i) > 0)
+>>
+Rule 1076 (If parameter is 'tanh', the min must be less or equal than zero)
+{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" then min(v_1) ≤ 0
+>>
+Rule 1077 (If the number of groups is greater than one, then the input channels and the output channels must both be divisible by the number of groups.)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_1 > 1 then (v_2 / v_1) * v_1 = v_2 ∧ (v_3 / v_1) * v_1 = v_3
+>>
+Rule 1078 (For the mode = constant and if the dtype is bool, the value parameter must be either true or false)
+{v_1 : str, v_2 : dtype, v_3 : bool} |= if v_1 = "constant" ∧ v_2 = 0 then v_3 = true ∨ v_3 = false
+>>
+Rule 1079 (If string parameter is one of einsum equations "ii->i","i,j->ij", the tensor must have element values of the same type as its dtype)
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" ∨ v_2 = "i,j->ij" then ∀i ∈ [0, ndim(v_1) - 1] : (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 1080 (If the mode is equal to none, then the output tensor must have the same number of dimensions and same shape as the input)
+{v_1 : tensor, v_2 : str, v_3 : tensor} |= if v_2 = "none" then ndim(v_1) = ndim(v_3) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
+>>
+Rule 1081 (when use max pooling, maxpool.return_indices must be false)
+{v_1 : bool} |= v_1 = false
+>>
+Rule 1082 (if return_indices = True, the indices tensor should have int data type, i.e., index from 1 to 5.)
+{v_1: bool, v_2: tensor} |= if v_1 = true then (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)
+>>
+Rule 1083 (For convolution transpose layers, if output_padding is specified, it should be non-negative and smaller than max(kernel_size, stride))
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≥ 0 ∧ v_1 < max(v_2, v_3)
+>>
+Rule 1084 (If string parameter is set to max and tensor has floating point type, then number of element must be int type)
+{v_1 : str, v_2 : tensor} |= if v_1="max" ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (v_2 / 1) * 1 = v_2
+>>
+Rule 1085 (If output_padding is specified by tuple, then its length has to be less or equal to the length of kernel_size)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len ≤ v_2.len
+>>
+Rule 1086 (When specifying padding mode as constant, the constant value needs to be within the dtype range of the input data.)
+{v_1 : tensor, v_2 : str, v_3 : int ⊎ float} |= if v_2 = "constant" then (if dtype_(v_1) = 1 then (-128 ≤ v_3 ∧ v_3 ≤ 127) else if dtype_(v_1) = 2 then (-32768 ≤ v_3 ∧ v_3 ≤ 32767) else if dtype_(v_1) = 3 then (-2147483648 ≤ v_3 ∧ v_3 ≤ 2147483647) else if dtype_(v_1) = 4 then (-9223372036854775808 ≤ v_3 ∧ v_3 ≤ 9223372036854775807))
+>>
+Rule 1087 (When groups is not defined, it must be 1)
+{v_1 : int} |= v_1 = 1
+>>
+Rule 1088 (if bias flag is True, the bias must have a dimension matching the output channel)
+{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then ndim(v_2) = 1 ∧ shape(v_2, 0) = v_3
+>>
+Rule 1089 (If the string is 'none', then there should be no value for the constant value)
+{v_1 : str, v_2 : int ⊎ float} |= if v_1 = "none" then v_2 = 0
+>>
+Rule 1090 (The value of channels for the input tensor has to equal to the in_channels of conv2d layer )
+{v_1: tensor, v_2 : int} |= ndim(v_1) ≥ 3 ∧ shape(v_1, 1) = v_2
+>>
+Rule 1091 (When the scale factor is specified as a tensor, it needs to have the same shape as the input.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 1092 (If you specify the string parameter to be tanh, the value must be between -1 and 1 )
+{v_1 : str, v_2 : float} |= if v_1 = "tanh" then v_2 ≥ -1 ∧ v_2 ≤ 1
+>>
+Rule 1093 (if the parameter mode is 'max' or 'sum' and the input type is fp16, then output_type must be fp32)
+{v_1 : tensor, v_2 : dtype, v_3 : str} |= if (v_3 = "max" ∨ v_3 = "sum") ∧ dtype_(v_1) = 6 then v_2 = 7
+>>
+Rule 1094 (For string parameters representing einsum equations, if the equation is not one of "ii->i","i,j->ij", then it cannot be used as input)
+{v_1 : str} |= v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
+>>
+Rule 1095 (For ConvTranspose2d, the product of stride and input size must be greater or equal than kernel Size)
+{v_1: tensor, v_2: tuple(int), v_3: tuple(int)} |= ndim(v_1) = 4 ∧ v_2.len=2 ∧ v_3.len=2 ∧ (shape(v_1,2) * v_3[0] ≥ v_2[0] ∧ shape(v_1,3) * v_3[1] ≥ v_2[1])
+>>
+Rule 1096 (If the weight is specified, the number of output channels has to match the weight shape.)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 1 ∧ shape(v_1, 0) = v_2
+>>
+Rule 1097 (If autograd is enabled for the input, then output must have the same dtype as the input tensor.)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : true then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 1098 (The number of input channels for the 2d convolution must be divisible by groups.)
+{v_1: int, v_2: int} |= (v_2 / v_1) * v_1 = v_2
+>>
+Rule 1099 (If the string parameter is one of einsum equations "ij->i", the dimension of a tensor have to be equal or greater than 2)
+{v_1 : tensor, v_2 : str} |= if v_2 = "i,j->i" then ndim(v_1) = 2
+>>
+Rule 1100 (If the input and output are different shapes, string must be none )
+{v_1: str, v_2: tensor, v_3: tensor} |= if ndim(v_2) ≠ ndim(v_3) then v_1 = "none"
+>>
+Rule 1101 (The output_padding has to be no more than stride - 1.)
+{v_1: int, v_2: int} |= v_1 ≤ v_2 - 1
+>>
+Rule 1102 (If the padding is specified to be 'same', the stride must be greater or equal to dilation.)
+{v_1 : str, v_2 : int, v_3: int} |= if v_1 = "same" then v_2 ≥ v_3
+>>
+Rule 1103 (When specifying size, the size must be positive)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 1104 (If output_size is specified, then scale_factor cannot be used.)
+{v_1 : tuple(int), v_2 : float} |= if v_1.len > 0 then v_2 = 0
+>>
+Rule 1105 (When weight parameter is not None, groups parameter must be great equal than 1)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > 0 then v_2 ≥ 1
+>>
+Rule 1106 (When output_size is specified, the output tensor's spatial dimensions have to match output_size)
+{v_1 : tuple(int), v_2 : tensor} |= v_1.len = 2 ∧ ndim(v_2) = 4 ∧ shape(v_2, 2) = v_1[0] ∧ shape(v_2, 3) = v_1[1]
+>>
+Rule 1107 (If the output_size is None, the number of elements in the list stride must be equal to number of dimension - 2)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) > 1 then v_2.len = ndim(v_1) - 2
+>>
+Rule 1108 (if the number of output channels is provided and the number of groups > 1, then number of output channel and number of groups can't be identical.)
+{v_1 : int, v_2 : int} |= if v_2 > 1 then v_1 ≠ v_2
+>>
+Rule 1109 (When string parameter equals to none, then number of output must equal to dimensions of input.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "none" then ndim(v_2) = ndim(v_3)
+>>
+Rule 1110 (If kernel size is a tuple, then dilation must be a tuple with same number of elements)
+{v_1 : tuple(int), v_2: tuple(int)} |= v_1.len = v_2.len
+>>
+Rule 1111 (When using convTranspose2d, the kernel size has to be smaller or equal to the input size)
+{v_1: tensor, v_2: tuple(int)} |= v_2.len = 2 ∧ shape(v_1,2) ≥ v_2[0] ∧ shape(v_1,3) ≥ v_2[1]
+>>
+Rule 1112 (output padding value has to be less than stride.)
+{v_1: tuple(int), v_2: tuple(int)} |= v_1.len = 2 ∧ v_2.len = 2 ∧ (v_1[0] < v_2[0] ∧ v_1[1] < v_2[1])
+>>
+Rule 1113 (When kernel size and dilation size are specified by tuple, dilation should be less than or equal to kernel)
+{v_1: tuple(int), v_2: tuple(int)} |= v_1.len = 2 ∧ v_2.len = 2 ∧ (v_1[0] ≥ v_2[0] ∧ v_1[1] ≥ v_2[1])
+>>
+Rule 1114 (If there is one more tensor than the equations, then the one additional tensor must be one dimensional with same data type of other tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) = 1) then (dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3))
+>>
+Rule 1115 (If the input tensor's data type is an integer, then the value of reduction dimension should be an integer)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) > 0 ∧ dtype_(v_1) < 6 then (v_2 / 1) * 1 = v_2
+>>
+Rule 1116 (For einsum with 'bn,anm,bm->ba', if a dimension of any of the tensors is zero, then all resulting dimensions from it must be zero. For dimension a )
+{v_1 : tensor, v_2 : str} |= if v_2 = "bn,anm,bm->ba" then (shape(v_1, 1) > 0)
+>>
+Rule 1117 (If input size is specified and tensor is provided, the size must match.)
+{v_1 : tensor, v_2 : tuple(int)} |= if (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ 0) then (v_2.len = ndim(v_1) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] = shape(v_1, i)))
+>>
+Rule 1118 (If the equation is a transposition, the two dimensions have to be equal.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "...ij->...ji" then (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2))
+>>
+Rule 1119 (For parameter mode, if value is constant, that means only float16 and float32, and float64 are available)
+{v_1 : str, v_2 : dtype} |= if v_1 = "constant" then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
+>>
+Rule 1120 (When the kernel size is specified by a tuple or a list, the padding, stride, and dilation parameter has to have the same length, too.)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= v_1.len = v_2.len ∧ v_2.len = v_3.len
+>>
+Rule 1121 (If the padding is 'same' or 'valid' then dilation must be 1)
+{v_1 : str, v_2 : int} |= if v_1 = "same" ∨ v_1 = "valid" then v_2 = 1
+>>
+Rule 1122 (For string parameter equals to none or pad, then constant must have the type float or integer.)
+{v_1 : str, v_2 : int ⊎ float} |= if v_1="none" ∨ v_1="pad" then (v_2 / 1) * 1 = v_2
+>>
+Rule 1123 (If kernel_size type is int, and a weight is specified then the shape 1 has to be equal shape 2)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1,1) = shape(v_1,2)
+>>
+Rule 1124 (When bias is set to false, the bias tensor cannot have any elements)
+{v_1 : bool, v_2 : tensor} |= if v_1 = false then ndim(v_2) = 0
+>>
+Rule 1125 (When the data type is quantized, the scale factor must be of type float.)
+{v_1 : dtype, v_2 : float} |= if v_1 > 10 then (v_2 / 1) * 1 = v_2
+>>
+Rule 1126 (If input tensor shape has zero value, output shape has to has a zero, too.)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0
+>>
+Rule 1127 (For convTranspose2d and if output_size is specified, it needs to have shape output_channel * input + output_padding - (kernel_size -1))
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if ndim(v_1) > 0 then v_4 = v_2 * (shape(v_1,0) - 1) + v_3 - (shape(v_1,0) - 1)
+>>
+Rule 1128 (If the string is tanh, the tensor dtype must not be an integer type)
+{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" then (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) = false
+>>
+Rule 1129 (when parameter is constant and weight requires grad, the parameter value has to be zero.)
+{v_1 : tensor, v_2 : str, v_3: bool} |= if v_2="constant" ∧  ∃i ∈ [0, ndim(v_1) - 1] : true then v_3=false
+>>
+Rule 1130 (If you specify the string parameter to be tanh, all elements of the tensor must have a floating point data type)
+{v_1 : str, v_2 : tensor} |= if v_1 = "tanh" then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 1131 (For AdaptiveMaxPool2d, all values of output size have to be either NULL or greater than 0)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0 ∨ v_1[i] > 0
+>>
+Rule 1132 (If the stride parameter is a tuple, then every element needs to be larger than zero)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 1133 (If groups > 1, in_channels and out_channels must be divisible by groups)
+{v_1: int, v_2: int} |= if v_1 > 1 then (v_2 / v_1) * v_1 = v_2
+>>
+Rule 1134 (when you use stride parameter, this value must be integer)
+{v_1: int ⊎ float} |= (v_1/1)*1 = v_1
+>>
+Rule 1135 (The kernel size should be a tuple of positive values )
+{v_1 : tuple(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 1136 (For a 2D convolution, if the number of output channels is specified, the weight must have dimension four. )
+{v_1 : int, v_2: tensor} |= if v_1 > 0 then ndim(v_2) = 4
+>>
+Rule 1137 (If bias is set to True for ConvTranspose2d, bias must have one dimension)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) = 1
+>>
+Rule 1138 (For ConvTranspose2d, if the number of dimension of input tensor is four and data_format equals "NLC", it is not allowed)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 4 then v_2 ≠ "NLC"
+>>
+Rule 1139 (If the string is tanh, it can only process Floating Point Tensors of complex Tensors)
+{v_1 : str, v_2 : tensor} |= if v_1 = "tanh" then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 1140 (If dilation size is not one, tensor number dimension should be larger than 2)
+{v_1 : tensor, v_2: int} |= if v_2 ≠ 1 then ndim(v_1) > 2
+>>
+Rule 1141 (if the data format is provided, it should be in valid format)
+{v_1: str} |= v_1 = "NLC" ∨ v_1 = "NCL" ∨ v_1 = "NHWC" ∨ v_1 = "NCHW"
+>>
+Rule 1142 (data_format parameter must be specified if number of dimension does not equal 4 and greater than 1)
+{v_1: tensor, v_2 : str} |= if (ndim(v_1) > 1 ∧ ndim(v_1) ≠ 4) then v_2 = "NLC" ∨ v_2 = "NCL" ∨ v_2 = "NHWC" ∨ v_2 = "NCHW"
+>>
+Rule 1143 (When the tensor has no dimensions, then stride value must be equal to 1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 1
+>>
+Rule 1144 (If string parameter is tanh the min of tensor must be greater or equal -1 and max tensor has to be less equal 1.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "tanh" then (min(v_2) ≥ -1 ∧ max(v_2) ≤ 1)
+>>
+Rule 1145 (When scale_factor has more than one dimension the upsampling should be done only on spatial dimensions.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then ndim(v_1) > 2
+>>
+Rule 1146 (For max operation if return indice == true, then indice must have element values of the int type)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 1147 (When bias is set to False, then number of bias tensors should be zero)
+{v_1: bool, v_2: tensor} |= if v_1 = false then ndim(v_2) = 0
+>>
+Rule 1148 (When groups > 1, weight tensor number of dimensions has to be larger than 1)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 then ndim(v_1) > 1
+>>
+Rule 1149 (When the String is one of "none","mean","sum","max","constant","tanh" then input tensor must have elements values of same type as its dtype)
+{v_1 : str, v_2 : tensor} |= if v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh" then ∃i ∈ [0, ndim(v_2) - 1] : (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 1150 (If the number of output channels is set to greater than zero, then the weight tensor needs to have a number of dimensions larger than 0 too.)
+{v_1 : int, v_2 : tensor} |= if v_1 > 0 then ndim(v_2) > 0
+>>
+Rule 1151 (If output_size parameter is a tuple/list then the weight tensor's number of dimensions is 4)
+{v_1 : tuple(int), v_2 : tensor} |= if v_1.len > 0 then ndim(v_2) = 4
+>>
+Rule 1152 (If the output_padding is specified and stride is provided as a tuple, then stride should have the same number of elements and higher than the padding)
+{v_1: tuple(int), v_2: tuple(int)} |= if v_1.len > 0 then (v_2.len = v_1.len ∧ (∀i ∈ [0, v_1.len - 1] : v_2[i] ≥ v_1[i]))
+>>
+Rule 1153 (If the parameter mode is not constant, the value has to be none)
+{v_1: str, v_2: int ⊎ float} |= if v_1 ≠ "constant" then v_2 = 0
+>>
+Rule 1154 (If the tensor shape is a constant value, all tensors have to be float 16,32 or 64 bit)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 )
+>>
+Rule 1155 (For batch norm affine parameter, if parameter is false then the shape is must be empty.)
+{v_1 : bool, v_2 : tensor} |= if v_1 = false then shape(v_2, 0) = 0
+>>
+Rule 1156 (When string parameter equals to none, the shape of the output tensor and input tensor should be equal.)
+{v_1 : str, v_2 : tensor, v_3 : tensor} |= if v_1 = "none" then (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = shape(v_3, i))
+>>
+Rule 1157 (when mode is equal 'tanh', the constant value must be within range -1 and 1.)
+{v_1 : str, v_2 : int ⊎ float} |= if v_1 = "tanh" then v_2 ≥ -1 ∧ v_2 ≤ 1
+>>
+Rule 1158 (If there is a tuple called kernel, the stride, padding and output_padding should be smaller than 1 or of same size of the kernel )
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : tuple(int)} |= v_1.len = 2 ∧ v_2.len ≤ 2 ∧ v_3.len ≤ 2
+>>
+Rule 1159 (When bias parameter is False, number of parameters must be smaller than four.)
+{v_1: bool, v_2: int} |= if v_1=false then v_2 < 4
+>>
+Rule 1160 (If kernel size is int, dilation has to have one dimension and be the same type )
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 1161 (When the data format is NLC or NCL, the last or first dimension of the input has to match input channels number.)
+{v_1 : tensor, v_2 : int, v_3 : str} |= (v_3="NCL" ∧ shape(v_1, ndim(v_1) - 1) = v_2) ∨ (v_3 = "NLC" ∧ shape(v_1, 0) = v_2)
+>>
+Rule 1162 (If the number of input channels is not provided (is zero), then the weight tensor has to have size equal to zero in the second dimension.)
+{v_1 : tensor, v_2 : int} |= if v_2 = 0 then shape(v_1, 1) = 0
+>>
+Rule 1163 (The output tensor must has the same data type with input if mode equal to sum.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "sum" then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 1164 (If the data type is complex and stride/kernel is not 1 then the output must have same type)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ v_2 ≠ 1 then (dtype_(v_1) = dtype_(v_3))
+>>
+Rule 1165 (When the number of output channels for the 2d convolution does not equal the number of output channels in weight, the number of groups cannot be set to 1.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, 0) ≠ v_2 then v_3 ≠ 1
+>>
+Rule 1166 (For same pad and if kernel_size or stride are different, the kernel_size or stride parameters must be specified to be a tuple)
+{v_1: str, v_2: tuple(int), v_3: tuple(int)} |= if v_1 = "same" then v_2.len > 1 ∨ v_3.len > 1
+>>
+Rule 1167 (if the number of dimension of input is larger than one, all stride's element must be larger than 0.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 1 then ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
+>>
+Rule 1168 (In case we want to do batch normalization, channel size must be different of size of the other element for a 4d tensor.)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1,1) ≠ shape(v_1,0) ∧ shape(v_1,1) ≠ shape(v_1,2) ∧ shape(v_1,1) ≠ shape(v_1,3)
+>>
+Rule 1169 (For one-dimensional tensors, values should have the same dtype)
+{v_1 : tensor} |= if ndim(v_1) = 1 then ∃i ∈ [0, shape(v_1, 0) -1] : dtype_(v_1) = dtype_(v_1)
+>>
+Rule 1170 (If the string is ii->i,  dimension zero must have shape greather or equal than dimension one.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" then shape(v_1, 0) ≥ shape(v_1, 1)
+>>
+Rule 1171 (For conv2d, when padding mode equals 'same', the stride should divide the kernel size.)
+{v_1: str, v_2: tuple(int), v_3: tuple(int)} |= if v_1 = "same" then (∃i ∈ [0, v_2.len - 1] : (v_3[i] / v_2[i]) * v_2[i] = v_3[i])
+>>
+Rule 1172 (If string = "tanh", all elements of tensor must belong float type.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 1173 (For string parameter equals to constant, then output_size must be integer, it can be integer or float data type.)
+{v_1 : str, v_2 : int ⊎ float} |= if v_1 = "constant" then (v_2 / 1) * 1 = v_2
+>>
+Rule 1174 (If the dimension equals to one, then parameter output_size value must be larger or equals to zero. )
+{v_1 : tensor, v_2 : int ⊎ float} |= if ndim(v_1) = 1 then v_2 ≥ 0
+>>
+Rule 1175 (For a tuple of ints, the greatest common divisor of all values must be greater than zero.)
+{v_1 : tuple(int)} |= v_1.len > 0 ∧ ∃i ∈ [0,v_1.len -1] : v_1[i] > 0
+>>
+Rule 1176 (if bias = True and tensor data type is int, bias must belong to a union type)
+{v_1 : tensor, v_2 : bool, v_3 : dtype} |= if v_1.len > 0 ∧ (v_3 = 1 ∨ v_3 = 2 ∨ v_3 = 3 ∨ v_3 = 4 ∨ v_3 = 5 ) then v_2 = true
+>>
+Rule 1177 (For string parameter equals to ii->i, ij->i or ,j->ij each individual letter must be on the input shape to transpose the tensor for every letter)
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" then shape(v_1,0) = shape(v_1,1) else if v_2 = "i,j->ij" then ndim(v_1) = 2
+>>
+Rule 1178 (For convTranspose2d if you specify kernel_size or stride, you must provide 2 elements in tuple)
+{v_1 : tuple(int)} |= v_1.len = 2
+>>
+Rule 1179 (If the data type is complex, input tensor size need to be a valid one)
+{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 1180 (When the shape for the weight is not specified, the output size for AdaptiveAvgPool2d is 1.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1,0) = 1
+>>
+Rule 1181 (For an einsum equation using "bn,anm,bm->ba" If  all inputs are the same number, then result dimensions must be the same.)
+{v_1 : tensor, v_2: str} |= if v_2 = "bn,anm,bm->ba" then shape(v_1,0) = shape(v_1,1)
+>>
+Rule 1182 (If the string parameter value corresponds to a valid einsum equation, at least one of the tensors must be non-empty.)
+{v_1: tensor, v_2: tensor, v_3: tensor, v_4 : str} |= if v_4 = "bn,anm,bm->ba" ∨ v_4 = "ii->i" ∨ v_4 = "i,j->ij" ∨ v_4 = "...ij->...ji" then (ndim(v_1) > 0 ∨ ndim(v_2) > 0 ∨ ndim(v_3) > 0)
+>>
+Rule 1183 (For all parameters that are int, they must have a zero value if the tensor shape is zero)
+{v_1 : tensor, v_2 : int} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 = 0
+>>
+Rule 1184 (If a string corresponds to one of the valid equations, then the ndim of its tensors must be smaller or equal than 4)
+{v_1 : str, v_2 : tensor} |= if v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" then ndim(v_2) ≤ 4
+>>
+Rule 1185 (If the weight is a tensor and bias is none then the number of bias parameters should be zero.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) = 0
+>>
+Rule 1186 (if the scale_factor is of type tensor, then it only accepts a tensor of float point)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 1187 (For parameter mode has max or constant value and at least output size is positive.)
+{v_1 : str, v_2 : int ⊎ float} |= if (v_1 = "max" ∨ v_1 = "constant") then v_2 ≥ 0
+>>
+Rule 1188 (If scale factor is a tensor of values and one of the dimension is not specified, its data type must be an integer type (0 <= dtype <=5))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ (∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = 1) then (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5)
+>>
+Rule 1189 (The number of dimensions in stride parameters has to match a maximum of 3 dimensions in tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ 3 ∧ ndim(v_1) ≤ 3
+>>
+Rule 1190 (If the padding mode is specified as a constant, and complex input tensors are used, complex type is necessary)
+{v_1: tensor, v_2: str} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ v_2 = "constant" then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 )
+>>
+Rule 1191 (If the string is tanh, tensor has to have more than one element to make sense.)
+{v_1: str, v_2: tensor} |= if v_1 = "tanh" then ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 1192 (If the tensor has one dimension, the stride can not be different of kernel size)
+{v_1: tensor, v_2: tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 1
+>>
+Rule 1193 (For the mode = constant, the number of values for the constant value should be less or equal than number of channel_number if it is present or less or equal with 3 dimensions.)
+{v_1 : tensor, v_2: int} |= shape(v_1,0) ≤ v_2 ∨ ndim(v_1) <= 3
+>>
+Rule 1194 (If tensor size of the certain dimension in conv2d layer is 1, dilation parameter must equal one)
+{v_1 : tensor, v_2: int} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then v_2 = 1
+>>
+Rule 1195 (If the group size is more than one for a convolution layer with weight, then (number of channels / number of groups) has to have 1 element)
+{v_1: tensor, v_2: int} |= if (ndim(v_1) > 0 ∧ v_2 > 1) then (shape(v_1, 1) / v_2) = 1
+>>
+Rule 1196 (For einsum op, the number of dimensions of output has to be a valid one )
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" then ndim(v_1) > 0
+>>
+Rule 1197 (When the tensor's dtype is complex (9 or 10), the padding has to be 0)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = 0

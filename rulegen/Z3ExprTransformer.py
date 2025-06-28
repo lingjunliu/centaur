@@ -28,7 +28,16 @@ class Z3ExprTransformer(Transformer):
     def int_type(self, _): return "int"
     def float_type(self, _): return "float"
     def bool_type(self, _): return "bool"
+    def dtype_type(self, _): return "dtype"
     def str_type(self, _): return "str"
+
+    def tuple_type(self, items):
+        inner_type = items[0]
+        return f"tuple({inner_type})"
+    
+    def list_type(self, items):
+        inner_type = items[0]
+        return f"list({inner_type})"
 
     def union_type(self, items):
         left, right = items
@@ -142,13 +151,39 @@ class Z3ExprTransformer(Transformer):
     def prim_var(self, items):
         v = str(items[0])
         typ = self.var_types.get(v, "")
-        if "tensor" in typ:
-            raise Exception(f" tensor type variable {v}")
-        elif not typ:
+        if not typ:
             return v
-        else:
-            return f'v["{self.var_map[v]}_value"]'
+        elif "⊎" in typ:
+            member_types = [t.strip() for t in typ.split("⊎")]
+            allowed_types = {"int", "float", "bool", "str", "dtype"}
+            if not all(t in allowed_types for t in member_types):
+                raise Exception(f" Expected union of primitive types for '{v}', got '{typ}'")
+        elif typ not in {"int", "float", "bool", "str", "dtype"}:
+            raise Exception(f" Expected primitive type for '{v}', got '{typ}'")
+        return f'v["{self.var_map[v]}_value"]'
 
     def tensor_var(self, items):
         v = str(items[0])
+        typ = self.var_types.get(v, "")
+        if typ != "tensor":
+            raise Exception(f" Expected tensor type for '{v}', got '{typ}'")
         return self.var_map[v]
+
+    def tuple_var(self, items):
+        v = str(items[0])
+        typ = self.var_types.get(v, "")
+        if not typ.startswith("tuple") and not typ.startswith("list"):
+            raise Exception(f" Expected tuple/list type for '{v}', got '{typ}'")
+        return self.var_map[v]
+
+    def tuple_access(self, items):
+        var = str(items[0])
+        access_expr = items[1]
+        return access_expr.replace("{var}", var)
+
+    def tuple_index(self, items):
+        index_expr = items[0]
+        return f'Select(v["{{var}}_values"], {index_expr})'
+
+    def tuple_len(self, _):
+        return f'v["{{var}}_length"]'

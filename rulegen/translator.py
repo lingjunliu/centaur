@@ -15,8 +15,10 @@ def create_py(header: str, directory: str = "../rules"):
 
     with open(filename, "w", encoding="utf-8") as f:
         f.write(f'''import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
 # {description} (Rule {rule_number})''')
@@ -39,11 +41,32 @@ def create_func_template(rule_number, var_map, var_types, filename):
                 checks.append(f"isinstance({arg}, (float, np.floating))")
             elif t == "bool":
                 checks.append(f"isinstance({arg}, bool)")
+            elif t == "dtype":
+                checks.append(f"(isinstance({arg}, torch.dtype) or isinstance({arg}, tf.dtypes.DType))")
             elif t == "str":
                 checks.append(f"isinstance({arg}, str)")
+            elif (t.startswith("tuple(") and t.endswith(")")) or (t.startswith("list(") and t.endswith(")")):
+                inner = t[t.index("(")+1:-1]
+                container_type = "tuple" if t.startswith("tuple(") else "list"
+                if inner == "int":
+                    inner_check = "(isinstance(e, (int, np.integer)) and not isinstance(e, bool))"
+                elif inner == "float":
+                    inner_check = "isinstance(e, (float, np.floating))"
+                elif inner == "bool":
+                    inner_check = "isinstance(e, bool)"
+                elif inner == "str":
+                    inner_check = "isinstance(e, str)"
+                else:
+                    raise ValueError(f"Unsupported {container_type} inner type: {inner}")
+                checks.append(
+                    f"(isinstance({arg}, {container_type}) and all({inner_check} for e in {arg}))"
+                )
             else:
                 raise ValueError(f"Unsupported type: {t}")
-        return f"not ({' or '.join(checks)})"
+        if len(checks) > 1:
+            return f"not ({' or '.join(checks)})"
+        else:
+            return f"not {checks[0]}"
 
     check_lines = []
     for var in var_map:
@@ -86,7 +109,11 @@ def write_rules(dir, rules_file):
         if result is None:
             continue
         var_map, var_types = result
-        create_func_template(rule_number, var_map, var_types, rules_filename)
+        try:
+            create_func_template(rule_number, var_map, var_types, rules_filename)
+        except Exception as e:
+            print(f"Function template creation failed for rule {rule_number}\n{e}")
+            continue
         create_func_body(rule_number, rule_def, var_map, var_types, rules_filename)
 
 def main():

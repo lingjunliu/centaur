@@ -1,32 +1,52 @@
 import numpy as np
+import torch 
+import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The value tensor v_1 must be representable in Half dtype without overflow (Rule 997)
+# If the string value is "tanh", the tensor should have the same number of dimensions as the tuple and every dimension of the tensor should be greater than the corresponding dimension of the tuple (Rule 997)
 
 rule_997 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_range"], 0) > -65504, Select(v["arg1_range"], 1) < 65504)) if n else
-          And(Select(v["arg1_range"], 0) > -65504, Select(v["arg1_range"], 1) < 65504))
+    s.add(Not(If(v["arg2_value"] == 11, And(v["arg1_ndim"] == v["arg3_length"], And([Implies(i < (v["arg3_length"] - 1 + 1), Select(v["arg1_shape"], i) > Select(v["arg3_values"], i)) for i in range(6)])), False)) if n else
+          If(v["arg2_value"] == 11, And(v["arg1_ndim"] == v["arg3_length"], And([Implies(i < (v["arg3_length"] - 1 + 1), Select(v["arg1_shape"], i) > Select(v["arg3_values"], i)) for i in range(6)])), False))
 )
 
-def rule_997_func(arg1, solver=None, neg=False):
+def rule_997_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating))):
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not isinstance(arg2, str):
+            return False
+        if not (isinstance(arg3, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
             return False
 
         # Variable declarations
         solver = Solver()
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_value = String('arg2_value')
+        arg3_length = Int('arg3_length')
+        arg3_values = Array('arg3_values', IntSort(), IntSort())
 
         # Value assignments
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg3_length == len(arg3))
+        for i in range(len(arg3)):
+            arg3_values = Store(arg3_values, i, arg3[i])
 
         # Constraints for rule 997
-        rule_997(solver, {'arg1_range': arg1_range})
+        rule_997(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_values': arg3_values, 'arg3_length': arg3_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_997(solver, {'arg1_range': arg1['range']}, neg)
+        rule_997(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_values': arg3['values'], 'arg3_length': arg3['length']}, neg)
