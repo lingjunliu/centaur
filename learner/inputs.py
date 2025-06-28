@@ -5,6 +5,7 @@ from utils.new_api_utils import get_signature, get_lib_version, get_n_variations
 from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_root, bcolors
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 from eval.oracle import oracle_crash
+from utils.defaults import domain_limits
 import llm.valid_inputs as valid_inputs
 import numpy as np
 import os
@@ -203,7 +204,7 @@ def lp_pool1d_inputs():
 
     return list_of_inputs
 
-def introduce_floats(input_dict, signature):
+def introduce_float_types(input_dict, signature):
     """
     Mutation to prevent learning rule_8 incorrectly
     """
@@ -230,7 +231,58 @@ def introduce_floats(input_dict, signature):
     
     return mutated_inputs
 
-def introduce_integers(input_dict, signature):
+def introduce_floats(input_dict, signature):
+    """
+    Mutation to introduce random float values for float-type fields,
+    float-typed tensors, or float-valued tuples/lists.
+    """
+    seed = 42
+    mutated_inputs = []
+    rng = np.random.default_rng(seed)
+    float_min, float_max = domain_limits['float'][:2]
+
+    for arg, domain in signature.items():
+        if input_dict[arg] is None:
+            continue
+
+        new_input = copy.deepcopy(input_dict)
+        if domain == "float":
+            new_input[arg] = float(rng.uniform(float_min, float_max))
+            mutated_inputs.append(new_input)
+
+        elif domain == "tensor":
+            if isinstance(new_input[arg], np.ndarray) and np.issubdtype(new_input[arg].dtype, np.floating):
+                new_input[arg] = rng.uniform(float_min, float_max, size=new_input[arg].shape).astype(new_input[arg].dtype)
+                mutated_inputs.append(new_input)
+
+        elif domain == "tensor_list":
+            if isinstance(new_input[arg], list):
+                modified = False
+                for i, arr in enumerate(new_input[arg]):
+                    if isinstance(arr, np.ndarray) and np.issubdtype(arr.dtype, np.floating):
+                        new_input[arg][i] = rng.uniform(float_min, float_max, size=arr.shape).astype(arr.dtype)
+                        modified = True
+                if modified:
+                    mutated_inputs.append(new_input)
+
+        elif domain in ["tuple", "list"]:
+            values = new_input[arg]
+            if isinstance(values, (tuple, list)):
+                modified = False
+                new_values = []
+                for v in values:
+                    if isinstance(v, (float, np.floating)):
+                        new_values.append(float(rng.uniform(float_min, float_max)))
+                        modified = True
+                    else:
+                        new_values.append(v)
+                if modified:
+                    new_input[arg] = tuple(new_values) if domain == "tuple" else new_values
+                    mutated_inputs.append(new_input)
+
+    return mutated_inputs
+
+def introduce_integer_types(input_dict, signature):
     """
     Mutation to prevent learning rule_13 incorrectly
     """
@@ -255,6 +307,57 @@ def introduce_integers(input_dict, signature):
             index += 1
             mutated_inputs.append(new_input)
     
+    return mutated_inputs
+
+def introduce_ints(input_dict, signature):
+    """
+    Mutation to introduce random integer values for int-type fields,
+    int-typed tensors, or int-valued tuples/lists.
+    """
+    seed = 42
+    mutated_inputs = []
+    rng = np.random.default_rng(seed)
+    int_min, int_max = domain_limits['integer'][:2]
+
+    for arg, domain in signature.items():
+        if input_dict[arg] is None:
+            continue
+
+        new_input = copy.deepcopy(input_dict)
+        if domain == "int":
+            new_input[arg] = int(rng.integers(int_min, int_max + 1))
+            mutated_inputs.append(new_input)
+
+        elif domain == "tensor":
+            if isinstance(new_input[arg], np.ndarray) and np.issubdtype(new_input[arg].dtype, np.integer):
+                new_input[arg] = rng.integers(int_min, int_max + 1, size=new_input[arg].shape).astype(new_input[arg].dtype)
+                mutated_inputs.append(new_input)
+
+        elif domain == "tensor_list":
+            if isinstance(new_input[arg], list):
+                modified = False
+                for i, arr in enumerate(new_input[arg]):
+                    if isinstance(arr, np.ndarray) and np.issubdtype(arr.dtype, np.integer):
+                        new_input[arg][i] = rng.integers(int_min, int_max + 1, size=arr.shape).astype(arr.dtype)
+                        modified = True
+                if modified:
+                    mutated_inputs.append(new_input)
+
+        elif domain in ["tuple", "list"]:
+            values = new_input[arg]
+            if isinstance(values, (tuple, list)):
+                modified = False
+                new_values = []
+                for v in values:
+                    if isinstance(v, (int, np.integer)) and not isinstance(v, bool):
+                        new_values.append(int(rng.integers(int_min, int_max + 1)))
+                        modified = True
+                    else:
+                        new_values.append(v)
+                if modified:
+                    new_input[arg] = tuple(new_values) if domain == "tuple" else new_values
+                    mutated_inputs.append(new_input)
+
     return mutated_inputs
 
 def introduce_empty_tensors(input_dict, signature):
@@ -368,7 +471,7 @@ def augment_inputs(list_of_inputs, signature):
     Mutate inputs to have diversity to ensure wrong invariants are not learned
     And return the original inputs + mutated inputs
     """
-    mutators = [introduce_empty_tensors, introduce_floats, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
+    mutators = [introduce_empty_tensors, introduce_float_types, introduce_floats, introduce_integer_types, introduce_ints, introduce_negatives, introduce_opposite_bools, introduce_zeros]
     mutated_inputs = []
     for input_dict in list_of_inputs:
         for arg,domain in signature.items():
@@ -376,7 +479,7 @@ def augment_inputs(list_of_inputs, signature):
                 print(f"\nSignature: {signature} | input: {input_dict.keys()}\n")
         for mutator in mutators:
             mutated_inputs += mutator(input_dict, signature)
-            
+    
     return list_of_inputs + mutated_inputs
 
 # Add human and LLM defined inputs for APIs that are

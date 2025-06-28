@@ -1,5 +1,5 @@
 from generator.rules import check_rules
-from generator.rules_auto_z3 import check_rules_z3
+from generator.rules_auto_z3 import check_rules_z3, check_rules_z3_invalid_inputs
 from .inputs import get_inputs
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir
@@ -29,6 +29,20 @@ def print_rules(api, ruleset):
             print(f"- {rule_name} with arity {arity} on args {args}")
     else:
         print(f"No rules passed for {api}.")
+
+def refine_ruleset(ruleset, invalid_inputs):
+    valid = 0
+    invalid = 0
+    refined = set()
+    for rule in ruleset:
+        if check_rules_z3_invalid_inputs(invalid_inputs, rule):
+            valid = valid+1
+            print(f"rule {rule} is valid. valid: {valid}")
+            refined.add(rule)
+        else:
+            invalid = invalid+1
+            print(f"rule {rule} is invalid. invalid: {invalid}")
+    return refined
 
 def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=20, seed=42, z3=False, suffix=0, use_reference=False):
     '''
@@ -74,6 +88,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             
             valid = 0
             invalid = 0
+            invalid_inputs = []
             for idx, input_dict in enumerate(list_of_inputs):
                 status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
                 if status == "invalid":
@@ -81,6 +96,7 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     if print_details:
                         print(f"Input {idx} is invalid")
                         print(f"Exception: {exception_message}")
+                        invalid_inputs.append(input_dict)
                 else:
                     if print_details:
                         print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
@@ -92,6 +108,8 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     else:
                         ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
                     valid += 1
+            
+            ruleset = refine_ruleset(ruleset, invalid_inputs)
             # Save some stats
             infer_dir = create_subdir(get_tmp_dir(), f"infer_results_{lib}")
             csv_file = os.path.join(infer_dir, f"{variant}.csv")

@@ -72,3 +72,23 @@ def check_rules_z3(input_dict, print_rules=False, use_reference=False):
         for arity, rule_name, *args in set_of_rules_passed:
             print(f"Arity {arity} Rule {rule_name} passed between {args}")
     return set_of_rules_passed
+
+def check_rules_z3_invalid_inputs(invalid_inputs, rule):
+    arity, rule_name, *args = rule
+    rule_func_map = get_rules_map()
+
+    z3_func = rule_func_map.get(arity, {}).get(rule_name)
+    if z3_func is None:
+        return False
+
+    for input_dict in invalid_inputs:
+        try:
+            arg_dicts = tuple({k: input_dict[k]} for k in args)
+            if not z3_func(*arg_dicts):
+                return True
+        except Exception as e:
+            print(f"Exception while checking invalid input: {str(e)}")
+            continue
+
+    return False
+
