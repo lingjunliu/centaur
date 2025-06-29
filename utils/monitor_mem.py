@@ -1,4 +1,4 @@
-import os, sys, subprocess, logging
+import os, sys, subprocess, logging, time
 from utils.proc import get_memory_usage_by_pid, get_system_memory_usage
 
 logger = logging.getLogger(__name__)
@@ -47,6 +47,7 @@ def cancel_slurm_job(job_id):
     
 
 def main():
+    start_time = time.time()
     if len(sys.argv) < 5:
         print("Usage: python monitor_mem.py <jobname> <elapsed> <spawned> <total>")
         return
@@ -108,6 +109,8 @@ def main():
         print(message)
     else:
         print(message, end='\r', flush=True)
+        
+    return round(time.time() - start_time, 2)
 
 if __name__ == "__main__":
     main()

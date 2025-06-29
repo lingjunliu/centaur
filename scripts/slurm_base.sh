@@ -71,14 +71,16 @@ for element in "${elements[@]}"; do
     # limit number of running jobs
     while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) >= max_parallel )); do
         python -m utils.monitor_mem ${job_name} ${elapsed} ${i} ${n_elements} ${max_memory_usage}
+        return_code=$?
         sleep 1
-        (( elapsed = elapsed + 1 ))
+        (( elapsed = elapsed + return_code + 1 ))
     done
 done
 
 # wait for everything to finish
 while (( $(squeue --user=$USER | grep -vE "JOBID" | grep "${job_name}" | wc -l) > 0 )); do
     python -m utils.monitor_mem ${job_name} ${elapsed} ${i} ${n_elements} ${max_memory_usage}
+    return_code=$?
     sleep 1
-    (( elapsed = elapsed + 1 ))
+    (( elapsed = elapsed + return_code + 1 ))
 done
