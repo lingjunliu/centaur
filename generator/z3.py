@@ -175,8 +175,8 @@ def instantiate_args(model, signature, z3_args, seed=42):
         elif param_type == "dtype":
             value = model.eval(z3_var['value'], model_completion=True).as_long()
             concrete_args[param_name] = list_of_available_dtypes[value]
-        elif param_type == "bool":
-            value = model.eval(z3_var['value'], model_completion=True).as_long()
+        elif param_type == "boolean":
+            value = is_true(model.eval(z3_var['value'], model_completion=True))
             concrete_args[param_name] = is_true(value)
 
         abstract_args[param_name] = get_ll(param_type, concrete_args[param_name])
@@ -558,6 +558,12 @@ def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
     if len(definition["ruleset"]) == 0:
         print(f"No invariants learned for {api}")
         return
+    else:
+        print('-----' * 20)
+        print(f"Using these rulesets for {api} with suffix {suffix}:")
+        for arity, rule_name, *args in definition["ruleset"]:
+            print(f"- {rule_name},{arity},{args}")
+        print('-----' * 20)
     
     corpus_dir = "corpus_tf" if lib == "tf" else "corpus_torch"
     corpus_dir = os.path.join(get_dir_in_root(corpus_dir), f"{api}_{suffix}" if suffix > 0 else api)
