@@ -47,7 +47,6 @@ def cancel_slurm_job(job_id):
     
 
 def main():
-    start_time = time.time()
     if len(sys.argv) < 5:
         print("Usage: python monitor_mem.py <jobname> <elapsed> <spawned> <total>")
         return
@@ -108,9 +107,9 @@ def main():
     elif elapsed % persist_period == 0:
         print(message)
     else:
-        print(message, end='\r', flush=True)
-        
-    return round(time.time() - start_time, 2)
+        print(message, end='\r', flush=True)    
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    sys.exit(int(time.time() - start_time))
