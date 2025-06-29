@@ -28,7 +28,7 @@ def save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, t
     with open(os.path.join(input_dir, f"{api}_{lib}_inputs.pkl"), "wb") as f_in:
         pickle.dump(generated_inputs, f_in)
 
-def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_details=False):
+def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_details=False, use_reference=False):
     api = get_lib_version(api, lib=lib)
 
     # Initialize directories
@@ -73,7 +73,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
 
     for suffix in model_collection.keys():
         model_dir = os.path.join(get_dir_in_root(corpus_dir), f"{api}_{suffix}" if suffix > 0 else api)
-        definition = get_definition(api, z3=True, lib=lib, suffix=suffix)
+        definition = get_definition(api, z3=True, lib=lib, suffix=suffix, use_reference=use_reference)
         if len(definition["ruleset"]) == 0:
             print(f"No invariants learned for {api}_{suffix}. Skipping.")
             continue
@@ -118,7 +118,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         # Select a variation of the API (e.g. a different signature) at random
         selected_model = rng_model.integers(len(temp_model_collection[selected_suffix]['models']))
         model = temp_model_collection[selected_suffix]['models'][selected_model]
-        definition = get_definition(api, z3=True, lib=lib, suffix=selected_suffix)
+        definition = get_definition(api, z3=True, lib=lib, suffix=selected_suffix, use_reference=use_reference)
         
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], model_collection[selected_suffix]['z3_args'], seed=seed)
         generated_inputs.append((0, abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency

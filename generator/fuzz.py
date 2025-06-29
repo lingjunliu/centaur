@@ -1,9 +1,8 @@
 import sys
-from .harness import run_api_with_duration as fuzz_with_optimizer
 from .harness_z3 import run_api_with_duration as fuzz_with_z3
 from datetime import datetime
 
-def run_fuzz(api, duration, n_max, lib, seed, print_details):
+def run_fuzz(api, duration, n_max, lib, seed, print_details, use_reference):
     mode = "z3" # default mode, optimizer partially implemented
 
     # alias
@@ -18,10 +17,9 @@ def run_fuzz(api, duration, n_max, lib, seed, print_details):
     print('Started fuzzing at', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     
     if mode.strip().lower() == "z3":
-        fuzz_with_z3(api, duration, n_max=n_max, seed=seed, lib=lib, print_details=print_details)
+        fuzz_with_z3(api, duration, n_max=n_max, seed=seed, lib=lib, print_details=print_details, use_reference=use_reference)
     else:
-        # partially implemented
-        fuzz_with_optimizer(api, duration, n_max=n_max, lib=lib, print_details=print_details)
+        raise Exception(f"Unsupported mode: {mode}. Supported mode: z3.")
     
 
 def main():
@@ -35,8 +33,9 @@ def main():
     lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
     seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
     print_details = sys.argv[6].lower() == 'true' if len(sys.argv) > 6 else False
+    use_reference = sys.argv[7].lower() == 'true' if len(sys.argv) > 7 else False
     
-    run_fuzz(api, duration, n_max, lib, seed, print_details)
+    run_fuzz(api, duration, n_max, lib, seed, print_details, use_reference)
 
 if __name__ == "__main__":
     main()

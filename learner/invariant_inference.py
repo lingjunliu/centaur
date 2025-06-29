@@ -65,9 +65,12 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
     for api, suff in variants:
         variant = f"{api}_{suff}" if suff > 0 else api
         invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant) if not use_reference else os.path.join(get_dir_in_root(f"reference_invariants_{lib}"), variant)
-        # Unlese regeneration is forced, return existing ruleset
+        # Unless regeneration is forced, return existing ruleset
         if os.path.isfile(invariant_file) and not regen:
             ruleset = read_invariants(invariant_file)
+        elif use_reference:
+            print(f"No reference invariants found for {variant}. Skipping inference.")
+            continue
         else:   # Inference
             list_of_inputs = get_inputs(api, lib=lib, time_budget=time_budget, min_val_inp=min_val_inp, seed=seed, suffix=suff)
             ruleset = set()
