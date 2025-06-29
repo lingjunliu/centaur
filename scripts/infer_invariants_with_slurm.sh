@@ -11,7 +11,16 @@ elif [ "$lib" = "tensorflow" ]; then
   lib=tf
 fi
 
-job_name=infer
+# Add 2 minutes (120 seconds)
+total_seconds=$((duration + 120))
+
+# Convert to HH:MM:SS
+hours=$((total_seconds / 3600))
+minutes=$(((total_seconds % 3600) / 60))
+seconds=$((total_seconds % 60))
+export slurm_time=$(printf "%02d:%02d:%02d" $hours $minutes $seconds)
+
+job_name=inf
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
 bash $slurm_sh "python -m learner.invariant_inference" ${job_name} ${duration} ${regen} ${lib}
