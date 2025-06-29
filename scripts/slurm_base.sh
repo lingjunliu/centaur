@@ -15,7 +15,7 @@ if [ -z "${max_parallel}" ]; then
 fi
 
 if [ -z "${max_memory_usage}" ]; then
-    max_memory_usage=95    # Maximum system memory usage in percent
+    max_memory_usage=90    # Maximum system memory usage in percent
 fi
 
 if [ -z "${slurm_time}" ]; then
