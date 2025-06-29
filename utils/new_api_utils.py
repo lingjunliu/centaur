@@ -114,6 +114,40 @@ def match_signature(api, signature, lib="torch"):
     # No signatures matched
     raise Exception(f"No matching signatures found for {api} with the simple signature {signature}")
 
+def match_signature_to_input(input_dict, signature, match_type=False):
+    for arg, value in input_dict.items():
+        if arg not in signature:
+            return False
+        if match_type:
+            if arg == "out" and value is None:
+                continue  # out can be None, so we skip it
+            if signature[arg] in ["tensor", "tensor_list"]:
+                if not isinstance(value, (torch.Tensor, np.ndarray)):
+                    return False
+            elif signature[arg] == "dtype":
+                if not isinstance(value, (np.dtype, torch.dtype)):
+                    return False
+            elif signature[arg] == "string":
+                if not isinstance(value, str):
+                    return False
+            elif signature[arg] == "integer":
+                if not isinstance(value, (int, np.integer)):
+                    return False
+            elif signature[arg] == "float":
+                if not isinstance(value, (int, np.integer, float, np.floating)):
+                    return False
+            elif signature[arg] == "boolean":
+                if not isinstance(value, (bool, np.bool_)):
+                    return False
+            elif signature[arg] == "tuple":
+                if not isinstance(value, (tuple, list)):
+                    return False
+            elif signature[arg] == "list":
+                if not isinstance(value, (list, np.ndarray)):
+                    return False
+    
+    return True
+
 def get_signature_of_input(api, input_dict, lib="torch"):
     """
     Given an input dict, match the exact signature variation that was

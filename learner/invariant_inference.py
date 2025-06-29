@@ -83,6 +83,13 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             invalid = 0
             invalid_inputs = []
             for idx, input_dict in enumerate(list_of_inputs):
+                if print_details:
+                    print(f"\n[Input {idx}]")
+                    try:
+                        print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
+                    except Exception as e:
+                        print(f"Error printing abstract input for {variant}.\n{e.__class__.__name__}: {e}")
+                        
                 status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
                 if status == "invalid":
                     invalid += 1
@@ -92,7 +99,6 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                         invalid_inputs.append(input_dict)
                 else:
                     if print_details:
-                        print(abstract_print(get_abstract_input(input_dict, api_signature), api_signature))
                         print(f"Input {idx} is valid")
                     # Check rules for the input dictionary
                     if not initialized:

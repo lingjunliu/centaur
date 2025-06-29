@@ -1,7 +1,7 @@
 import torch
 import copy
 import time
-from utils.new_api_utils import get_signature, get_lib_version, get_n_variations
+from utils.new_api_utils import get_signature, get_lib_version, get_n_variations, match_signature_to_input
 from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_root, bcolors
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 from eval.oracle import oracle_crash
@@ -472,15 +472,17 @@ def augment_inputs(list_of_inputs, signature):
     And return the original inputs + mutated inputs
     """
     mutators = [introduce_empty_tensors, introduce_float_types, introduce_floats, introduce_integer_types, introduce_integers, introduce_negatives, introduce_opposite_bools, introduce_zeros]
+    original_inputs = []
     mutated_inputs = []
-    for input_dict in list_of_inputs:
-        for arg,domain in signature.items():
-            if arg not in input_dict:
-                print(f"\nSignature: {signature} | input: {input_dict.keys()}\n")
+    for i, input_dict in enumerate(list_of_inputs):
+        if not match_signature_to_input(input_dict, signature, match_type=True):
+            print(f"{bcolors.WARNING}Skipping input at index {i} as it does not match the signature:\n{signature}{bcolors.ENDC}")
+            continue  # Skip inputs that do not match the signature
+        original_inputs.append(input_dict)
         for mutator in mutators:
             mutated_inputs += mutator(input_dict, signature)
     
-    return list_of_inputs + mutated_inputs
+    return original_inputs + mutated_inputs
 
 # Add human and LLM defined inputs for APIs that are
 # difficult to generate inputs for

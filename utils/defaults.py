@@ -1,6 +1,8 @@
 import numpy as np
 ############### default values ################
 
+# Currently supported: tensor, tensor_list (which is just tensor for now), integer, float, boolean, string, tuple, list, dtype
+
 MAX_N_DIM=6
 MAX_SZ_DIM=100
 # MAX_SZ_NUM=10000 # old
