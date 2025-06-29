@@ -519,7 +519,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
 
         save_state_models(definition["api"], definition["suffix"], unsat, nominal, invalid, crash, excp, tmp_results)
 
-    print(f"Generated {num_model} models for {api}")
+    print(f"Generated {num_model} models for {api} with suffix {definition['suffix']}")
     return models
 
 def load_existing_models(corpus_dir, z3_args):
