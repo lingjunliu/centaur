@@ -5,37 +5,42 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# asarray input tensor must have a floating point or complex dtype if requires_grad is True (Rule 1315)
+# lp_pool1d pad must be at most half of effective kernel size (Rule 1315)
 
 rule_1315 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), False)) if n else
-          If(v["arg2_value"] == True, (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), False))
+    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= ((v["arg2_value"] - 1) * v["arg3_value"]) / 2)) if n else
+          And(v["arg1_value"] >= 0, v["arg1_value"] <= ((v["arg2_value"] - 1) * v["arg3_value"]) / 2))
 )
 
-def rule_1315_func(arg1, arg2, solver=None, neg=False):
+def rule_1315_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+            return False
+        if not (isinstance(arg3, (int, np.integer)) and not isinstance(arg3, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Bool('arg2_value')
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
+        arg3_value = Int('arg3_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == int(arg2))
+        solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 1315
-        rule_1315(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_1315(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_1315(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_1315(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

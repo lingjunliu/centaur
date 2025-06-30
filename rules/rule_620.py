@@ -49,9 +49,9 @@ def rule_620_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg4_value == arg4)
 
         # Constraints for rule 620
-        rule_620(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_range': arg2_range, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
+        rule_620(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range, 'arg3_value': arg3_value, 'arg4_value': arg4_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_620(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_range': arg2['range'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)
+        rule_620(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range'], 'arg3_value': arg3['value'], 'arg4_value': arg4['value']}, neg)

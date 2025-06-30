@@ -5,17 +5,16 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# All input tensors should have the same dimension (Rule 1243)
+# Each element of the repeats tensor v_2 must be non-negative (Rule 1243)
 
 rule_1243 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] == v["arg2_ndim"], v["arg2_ndim"] == v["arg3_ndim"])) if n else
-          And(v["arg1_ndim"] == v["arg2_ndim"], v["arg2_ndim"] == v["arg3_ndim"]))
+    s.add(Not(And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 0) for i in range(6)])) if n else
+          And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 0) for i in range(6)]))
 )
 
-def rule_1243_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_1243_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -23,24 +22,21 @@ def rule_1243_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not isinstance(arg3, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_ndim = Int('arg2_ndim')
-        arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_ndim == arg3.ndim)
 
         # Constraints for rule 1243
-        rule_1243(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
+        rule_1243(solver, {'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_1243(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_1243(solver, {'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim']}, neg)

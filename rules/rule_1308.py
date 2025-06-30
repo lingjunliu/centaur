@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# lcm input tensors must have integer dtypes (Rule 1308)
+# polar magnitude and angle tensors must have the same complex dtype (Rule 1308)
 
 rule_1308 = lambda s, v, n=False: (
-    s.add(Not(And((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), (Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5)))) if n else
-          And((Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5)), (Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5))))
+    s.add(Not((Or((And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9)), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10))))) if n else
+          (Or((And(v["arg1_dtype"] == 9, v["arg2_dtype"] == 9)), (And(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10)))))
 )
 
 def rule_1308_func(arg1, arg2, solver=None, neg=False):

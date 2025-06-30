@@ -34,9 +34,9 @@ def rule_289_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 289
-        rule_289(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg1_shape': arg1_shape})
+        rule_289(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_289(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg1_shape': arg1['shape']}, neg)
+        rule_289(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg1_range': arg1['range']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# linear input and weight tensors must have compatible shapes (Rule 1333)
+# matmul input tensors must have compatible shapes for matrix multiplication (Rule 1333)
 
 rule_1333 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] == 2), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], 1))) if n else
-          And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] == 2), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], 1)))
+    s.add(Not(If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1), (Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 2), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 0), Select(v["arg2_shape"], v["arg2_ndim"] - 2) == 0)), If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] > 1), (Or(Or(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], v["arg2_ndim"] - 2), Select(v["arg1_shape"], 0) == 0), Select(v["arg2_shape"], v["arg2_ndim"] - 2) == 0)), If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] == 1), (Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 0), Select(v["arg2_shape"], 0) == 0)), False)))) if n else
+          If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] > 1), (Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 2), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 0), Select(v["arg2_shape"], v["arg2_ndim"] - 2) == 0)), If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] > 1), (Or(Or(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], v["arg2_ndim"] - 2), Select(v["arg1_shape"], 0) == 0), Select(v["arg2_shape"], v["arg2_ndim"] - 2) == 0)), If(And(v["arg1_ndim"] > 1, v["arg2_ndim"] == 1), (Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 0), Select(v["arg2_shape"], 0) == 0)), False))))
 )
 
 def rule_1333_func(arg1, arg2, solver=None, neg=False):

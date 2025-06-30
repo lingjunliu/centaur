@@ -36,9 +36,9 @@ def rule_822_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_value == list_of_string_values.index(arg2))
 
         # Constraints for rule 822
-        rule_822(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_822(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_822(solver, {'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_822(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)

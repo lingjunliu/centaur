@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If out is provided, the output tensor v_2 should have dtype Float or higher (Rule 1262)
+# If out is provided, it should be a tensor and must be of double type (Rule 1262)
 
 rule_1262 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)) if n else
-          Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))
+    s.add(Not(v["arg1_dtype"] == 8) if n else
+          v["arg1_dtype"] == 8)
 )
 
 def rule_1262_func(arg1, solver=None, neg=False):

@@ -303,7 +303,7 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
                 solver = Solver()
                 initial_constraints(solver, signature, z3_args)
                 collect_constraints(solver, remaining_ruleset, z3_args, use_reference=use_reference)
-                collect_neg_constraint(solver, rule, z3_args, use_reference=use_reference)
+                # collect_neg_constraint(solver, rule, z3_args, use_reference=use_reference)
         
                 sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
                 solver.add(*sampled_blocks)
@@ -355,8 +355,9 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
         if filtered_rules:
             ruleset = ruleset - filtered_rules
             filtered_rules = set()
-        else:
-            break
+        break
+        # else:
+            # break
 
     if print_details and ruleset:
         print(f"Refined rules for {api}:")
@@ -573,7 +574,7 @@ def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
         print(f"Loaded {len(models)} existing models for {api}")
     else:
         os.makedirs(corpus_dir, exist_ok=True)
-        # definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch", use_reference=use_reference)
+        definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch", use_reference=use_reference)
         models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference)
     
 

@@ -5,38 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# All dimensions in the combined shape must be non-negative (Rule 1272)
+# Lambda v_1 must be greater or equal to 0 (Rule 1272)
 
 rule_1272 = lambda s, v, n=False: (
-    s.add(Not(And(Select(v["arg1_shape"], 0) > 0, v["arg2_value"] > 0)) if n else
-          And(Select(v["arg1_shape"], 0) > 0, v["arg2_value"] > 0))
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
-def rule_1272_func(arg1, arg2, solver=None, neg=False):
+def rule_1272_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 1272
-        rule_1272(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_1272(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_1272(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_1272(solver, {'arg1_value': arg1['value']}, neg)

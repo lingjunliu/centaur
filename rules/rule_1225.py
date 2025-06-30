@@ -8,8 +8,8 @@ from z3 import *
 # Input tensors v_1 and v_2 must have broadcastable shapes (Rule 1225)
 
 rule_1225 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (Or(Or(Or(Or(i >= v["arg1_ndim"], i >= v["arg2_ndim"]), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i)), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == 1))) for i in range(6)])) if n else
-          And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (Or(Or(Or(Or(i >= v["arg1_ndim"], i >= v["arg2_ndim"]), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i)), Select(v["arg1_shape"], v["arg1_ndim"] - 1 - i) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - 1 - i) == 1))) for i in range(6)]))
+    s.add(Not(And([Implies(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (Or(Or(Or(Or(i >= v["arg1_ndim"], i >= v["arg2_ndim"]), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1))) for i in range(6)])) if n else
+          And([Implies(i < (If(v["arg1_ndim"] > v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), (Or(Or(Or(Or(i >= v["arg1_ndim"], i >= v["arg2_ndim"]), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1))) for i in range(6)]))
 )
 
 def rule_1225_func(arg1, arg2, solver=None, neg=False):

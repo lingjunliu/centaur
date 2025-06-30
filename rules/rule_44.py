@@ -31,9 +31,9 @@ def rule_44_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 44
-        rule_44(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape})
+        rule_44(solver, {'arg1_shape': arg1_shape, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_44(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape']}, neg)
+        rule_44(solver, {'arg1_shape': arg1['shape'], 'arg1_dtype': arg1['dtype']}, neg)

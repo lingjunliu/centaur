@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor must be 3D, 4D, or 5D (Rule 1294)
+# pixel_shuffle input tensor must have at least 3 dimensions (Rule 1294)
 
 rule_1294 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), v["arg1_ndim"] == 5)) if n else
-          Or(Or(v["arg1_ndim"] == 3, v["arg1_ndim"] == 4), v["arg1_ndim"] == 5))
+    s.add(Not(v["arg1_ndim"] >= 3) if n else
+          v["arg1_ndim"] >= 3)
 )
 
 def rule_1294_func(arg1, solver=None, neg=False):

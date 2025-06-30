@@ -33,9 +33,9 @@ def rule_261_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 261
-        rule_261(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim})
+        rule_261(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_261(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_261(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)

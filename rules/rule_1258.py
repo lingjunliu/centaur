@@ -5,14 +5,14 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# cdist input tensors must have at least 2 dimensions (Rule 1335)
+# Padding length v_2 must be less than or equal to two times the input dimension (Rule 1258)
 
-rule_1335 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 2)) if n else
-          And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 2))
+rule_1258 = lambda s, v, n=False: (
+    s.add(Not(v["arg2_ndim"] <= 2 * v["arg1_ndim"]) if n else
+          v["arg2_ndim"] <= 2 * v["arg1_ndim"])
 )
 
-def rule_1335_func(arg1, arg2, solver=None, neg=False):
+def rule_1258_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
 
@@ -32,10 +32,10 @@ def rule_1335_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_ndim == arg2.ndim)
 
-        # Constraints for rule 1335
-        rule_1335(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
+        # Constraints for rule 1258
+        rule_1258(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_1335(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_1258(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

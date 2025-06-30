@@ -30,9 +30,9 @@ def rule_1048_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 1048
-        rule_1048(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_1048(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_1048(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_1048(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)

@@ -42,9 +42,9 @@ def rule_507_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 507
-        rule_507(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})
+        rule_507(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg2_range': arg2_range, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_507(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range'], 'arg2_shape': arg2['shape'], 'arg3_value': arg3['value']}, neg)
+        rule_507(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg2_range': arg2['range'], 'arg3_value': arg3['value']}, neg)

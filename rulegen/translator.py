@@ -112,6 +112,8 @@ def write_rules(dir, rules_file):
         try:
             create_func_template(rule_number, var_map, var_types, rules_filename)
         except Exception as e:
+            if os.path.exists(rules_filename):
+                os.remove(rules_filename)
             print(f"Function template creation failed for rule {rule_number}\n{e}")
             continue
         create_func_body(rule_number, rule_def, var_map, var_types, rules_filename)

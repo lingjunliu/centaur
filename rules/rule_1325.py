@@ -5,40 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# linalg.tensorinv input tensor must have dimensions such that prod(self.shape[ind:] (Rule 1325)
+# MaxUnpool2d output_size must have length 2 or 4 (Rule 1325)
 
 rule_1325 = lambda s, v, n=False: (
-    s.add(Not(And(And(And((v["arg2_value"] >= 0), (v["arg2_value"] <= v["arg1_ndim"])), (If(v["arg2_value"] == 0, 1 == 1, (And([Implies(i < (v["arg2_value"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))))), (If(v["arg2_value"] == v["arg1_ndim"], 1 == 1, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])))))) if n else
-          And(And(And((v["arg2_value"] >= 0), (v["arg2_value"] <= v["arg1_ndim"])), (If(v["arg2_value"] == 0, 1 == 1, (And([Implies(i < (v["arg2_value"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))))), (If(v["arg2_value"] == v["arg1_ndim"], 1 == 1, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))))))
+    s.add(Not(Or(v["arg1_length"] == 2, v["arg1_length"] == 4)) if n else
+          Or(v["arg1_length"] == 2, v["arg1_length"] == 4))
 )
 
-def rule_1325_func(arg1, arg2, solver=None, neg=False):
+def rule_1325_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_value = Int('arg2_value')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 1325
-        rule_1325(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_1325(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_1325(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_1325(solver, {'arg1_length': arg1['length']}, neg)
