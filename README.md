@@ -139,3 +139,22 @@ The code is organized as follow:
  (venv) ~/dll-fuzzing-with-input-invariants$ pip install instrumented_pytorch/torch*
  (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.coverage <api>
  ```
+
+ <h2> 5. Run Oracle (bug detection) </h2>
+ 
+ <h3> Slurm (all apis) </h3>
+
+ To run oracle on all apis, run the following. **Be sure to install and configure slurm before running this.**
+
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/run_oracle_with_slurm.sh <lib> <low, default: -1> <high, default -1>
+ ```
+ - low: the index to start running the oracle from. passing -1 will start from the beginning
+ - high: the index to run oracle until. passing -1 will go through all inputs.
+ 
+ <h3> Without slurm (one api) </h3>
+ To run oracle for a single api *(under the venv)*:
+
+ ```bash
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.oracle <api> <lib>
+ ```
