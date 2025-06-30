@@ -11,7 +11,7 @@ if [ -z "${setup_env}" ]; then
 fi
 
 if [ -z "${max_parallel}" ]; then
-    max_parallel=192    # Fix number of slurm jobs to run at a time if not set
+    max_parallel=673    # Fix number of slurm jobs to run at a time if not set
 fi
 
 if [ -z "${max_memory_usage}" ]; then
