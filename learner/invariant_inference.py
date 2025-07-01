@@ -1,7 +1,7 @@
 from generator.rules import check_rules
 from generator.rules_auto_z3 import check_rules_z3, check_rules_z3_invalid_inputs
 from .inputs import get_inputs
-from utils.new_api_utils import get_n_variations, get_lib_version, get_signature
+from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_api_suffix
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir
 from generator.input_generators import abstract_print, get_abstract_input
 from eval.oracle import oracle_crash
@@ -37,7 +37,7 @@ def refine_ruleset(ruleset, invalid_inputs):
             refined.add(rule)
     return refined
 
-def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=20, seed=42, z3=False, suffix=0, use_reference=False):
+def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=100, seed=42, z3=False, suffix=0, use_reference=False):
     '''
         Takes an API and
         
@@ -127,13 +127,14 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
     return list_of_rulesets
 
 def main():
-    # Usage: python -m learner.invariant_inference <api> <time budget> <1 to regenerate invariants 0 otherwise>
-    api = sys.argv[1] if len(sys.argv) > 1 else "scatter"
+    # Usage: python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise>
+    variant = sys.argv[1] if len(sys.argv) > 1 else "scatter"
     budget = int(sys.argv[2]) if len(sys.argv) > 2 else 30  # seconds
     regen = int(sys.argv[3]) == 1 if len(sys.argv) > 3 else False
     lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
-        
-    list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib)
+    
+    api, suffix = get_api_suffix(variant)
+    list_of_rulesets = infer_invariants(api, print_details=True, regen=regen, time_budget=budget, z3=True, lib=lib, suffix=suffix)
     
 if __name__ == "__main__":
     main()

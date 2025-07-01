@@ -50,6 +50,13 @@ def get_n_variations(api, lib="torch"):
 
     return count
 
+def get_api_suffix(variant):
+    tokens = variant.rsplit('_', 1)
+    if len(tokens) == 2 and tokens[1].isdigit():
+        return tokens[0], int(tokens[1])
+    else:
+        return variant, 0
+
 def get_signature(api, lib="torch", suffix=0):
     """
         Returns a simplified dictionary containing all params for a supported API.

@@ -7,7 +7,7 @@ from .definitions import get_definition
 from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values, int_buckets, float_buckets
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
-from utils.new_api_utils import get_lib_version
+from utils.new_api_utils import get_lib_version, get_api_suffix
 from eval.oracle import oracle_crash
 from functools import reduce
 import os
@@ -549,7 +549,7 @@ def load_existing_models(corpus_dir, z3_args):
 
     return models
 
-def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
+def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=False):
     print_details = False # Set to True if you want to print details of the process
     
     # alias
@@ -559,15 +559,7 @@ def run_model_gen(api, duration, n_max, lib, seed, regen, use_reference=False):
         lib = "torch"
 
     # Check if it is a variation of the API
-    if "_" in api:
-        api, suffix = api.rsplit("_", 1)
-        if suffix.isdigit():
-            suffix = int(suffix)
-        else:
-            suffix = 0
-            api = f"{api}_{suffix}"  # Reconstruct the API name with suffix
-    else:
-        suffix = 0
+    api, suffix = get_api_suffix(variant)
 
     api = get_lib_version(api, lib=lib)
     definition = get_definition(api, z3=True, lib=lib, suffix=suffix, use_reference=use_reference)

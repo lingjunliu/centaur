@@ -34,9 +34,9 @@ The code is organized as follow:
 
 <h2> 1. Learn invariants (offline) </h2>
  
- <h3> Slurm (all apis) </h3>
+ <h3> Slurm (all variants) </h3>
 
- To run invariant inference for all apis, run the following. **Be sure to install and configure slurm before running this.**
+ To run invariant inference for all variants (variations of the apis from `torch_variations.txt` for PyTorch and `tf_variations.txt` for Tensorflow.), run the following. **Be sure to install and configure slurm before running this.**
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh <duration> <regen> <lib>
  ```
@@ -45,23 +45,23 @@ The code is organized as follow:
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh 300 1 torch
  ```
- This will generate (regenerate if already exists since `1` is passed as `regen`) the invariants for the apis and it will use a time budget of `300` seconds to do so.
+ This will generate (regenerate if already exists since `1` is passed as `regen`) the invariants for the variations of apis and it will use a time budget of `300` seconds to do so.
 
- - `duration`: Max time budget per api to learn invariants
+ - `duration`: Max time budget per variation to learn invariants
  - `regen`: 1 to regenerate invariants, 0 to learn invariants only if they do not exist
  - `lib`: `torch` or `tf`
  
- <h3> Without slurm (one api) </h3>
- To run invariant inference for a single api, run the following *(under the venv)*:
+ <h3> Without slurm (one variant) </h3>
+ To run invariant inference for a single variant, run the following *(under the venv)*:
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference <api> <time budget> <1 to regenerate invariants 0 otherwise>
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise>
  ```
 
 <h2> 2. Generate models (offline) </h2>
  
  <h3> Slurm (all apis/variants) </h3>
 
- To generate models by solving the constraints, the script `scripts/generate_models_with_slurm.sh` needs to be used. **Be sure to install and configure slurm before running this.**. This runs model generation for all variations of the apis from `torch_variations.txt` for PyTorch and `tf_variations.txt` for Tensorflow. Since this is an offline mode, running this once is enough to run online fuzzing campaigns.
+ To generate models by solving the constraints, the script `scripts/generate_models_with_slurm.sh` needs to be used. **Be sure to install and configure slurm before running this.** This runs model generation for all variations of the apis from `torch_variations.txt` for PyTorch and `tf_variations.txt` for Tensorflow. Since this is an offline mode, running this once is enough to run online fuzzing campaigns.
 
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/generate_models_with_slurm.sh <duration> <n_max> <lib> <seed> <regen>

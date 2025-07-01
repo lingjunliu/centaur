@@ -6,6 +6,11 @@ export max_parallel=690   # Fix number of slurm jobs to 690
 n_inputs=${1:-500}
 debug=${2:-0}    # To debug coverage difference with titanfuzz, pass 1
 
+# Only torch is supported for coverage for now
+# TODO: Add support for tensorflow
+lib=torch
+export elements_file=${lib}_apis.txt
+
 if [ $debug -eq 1 ]; then
     echo "Running in debugging mode"
 fi

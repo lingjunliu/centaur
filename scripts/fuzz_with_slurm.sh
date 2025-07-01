@@ -12,6 +12,8 @@ elif [ "$lib" = "tensorflow" ]; then
   lib=tf
 fi
 
+export elements_file=${lib}_apis.txt
+
 # Add 2 minutes (120 seconds)
 total_seconds=$((duration + 120))
 
