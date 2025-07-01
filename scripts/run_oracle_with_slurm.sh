@@ -3,7 +3,7 @@
 export max_parallel=16   # Fix number of slurm jobs to 16
 
 lib=${1:-"torch"}
-low=${21:--1}
+low=${2:--1}
 high=${3:--1}
 
 if [ "$lib" == "pytorch" ]; then
