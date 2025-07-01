@@ -5,7 +5,7 @@ from .input_generators import get_ll, abstract_print
 from .rules_auto_z3 import get_rules_map
 from .definitions import get_definition
 from .serialize import load_model, save_model
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values, int_buckets, float_buckets
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
 from utils.new_api_utils import get_lib_version
 from eval.oracle import oracle_crash
@@ -207,7 +207,20 @@ def is_nonlinear_assertion(assertion):
         return any(is_nonlinear_assertion(c) for c in assertion.children())
     return is_nonlinear_expr(assertion)
 
+def add_negative_buckets(buckets):
+    for element in buckets:
+        if element > 0:
+            buckets.append(-1*element)
+    return sorted(buckets)
+
+def clip_buckets(buckets, min_val, max_val):
+    """
+    Clip the buckets to the specified range [min_val, max_val].
+    """
+    return sorted([min_val] + [b for b in buckets if min_val < b < max_val] + [max_val])
+
 # Getting the minimum and maximum values that Z3 variables can have 
+# Then adding buckets within the range to sample from
 def variable_bounds(assertions):
     def collect_vars(expr):
         vars_found = set()
@@ -233,6 +246,8 @@ def variable_bounds(assertions):
 
     for var in all_vars:
         sort_kind = var.sort().kind()
+        default_buckets = float_buckets if sort_kind == Z3_REAL_SORT else int_buckets
+        default_buckets = add_negative_buckets(default_buckets)
         opt_min = Optimize()
         opt_min.add(linear_assertions)
         opt_min.minimize(var)
@@ -249,7 +264,7 @@ def variable_bounds(assertions):
             maxv = float(val.as_fraction()) if sort_kind == Z3_REAL_SORT else val.as_long()
         else:
             continue
-        bounds[var] = set([minv, maxv]) 
+        bounds[var] = set(clip_buckets(default_buckets, minv, maxv)) 
     return bounds
 
 # Add assertions for sampled values from partitions

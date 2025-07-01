@@ -118,7 +118,7 @@ The code is organized as follow:
 
  To compute coverage for all apis, run the following. **Be sure to install and configure slurm before running this.**
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/coverage_with_slurm <n_inputs>
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/coverage_with_slurm.sh <n_inputs>
  ```
  - `n_inputs`: Number of inputs per api used for coverage calculation. Passing -1 will cause it to calculate for all inputs.
 

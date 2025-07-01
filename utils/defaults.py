@@ -13,6 +13,8 @@ MAX_SZ_LST=10
 MAX_SZ_TENSOR=256 # MB
 
 list_of_available_dtypes = [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+int_buckets = [0, MAX_N_DIM, MAX_SZ_DIM, np.iinfo(np.int8).max, np.iinfo(np.int16).max, np.iinfo(np.int32).max, np.iinfo(np.int64).max]
+float_buckets = [0, 1.0, MAX_N_DIM, MAX_SZ_DIM, np.finfo(np.float16).max, np.finfo(np.float32).max, np.finfo(np.float64).max]
 
 list_of_string_values = [
     "ii",
