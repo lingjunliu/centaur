@@ -30,9 +30,9 @@ def rule_966_func(arg1, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 966
-        rule_966(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype})
+        rule_966(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_966(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype']}, neg)
+        rule_966(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
