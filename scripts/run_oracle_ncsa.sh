@@ -1,29 +1,42 @@
 #!/bin/bash
-source /projects/bdfv/spack/share/spack/setup-env.sh && spack load python@3.10.14
-
-which python
-
-export max_parallel=349   # Fix number of slurm jobs to 349
-
-low=${1:--1}
-high=${2:--1}
-
-job_name=orcl
-slurm_sh=`dirname "$(realpath "$0")"`/slurm_base_ncsa.sh # base script for slurm
-
-bash $slurm_sh "python -m eval.crash_monitor" ${job_name} ${low} ${high}
-
-# Aggregating and saving results
-PROJECT_DIR=`dirname "$(realpath "$0")"`/..
-tmp_results=$PROJECT_DIR/.tmp/oracle_results
-result=$PROJECT_DIR/.tmp/oracle_result.csv
-echo "api,nominal,invalid,cpu_crash,gpu_crash,cpu_excp,gpu_excp,cpu_only_excp,gpu_only_excp,inconsistent,max_diff" > ${result}
-for filename in ${tmp_results}/*.csv
-do
-    cat ${filename} >> ${result}
-done
-
-echo "Results saved in ${result}"
-
+module load cuda/12.4.0
+spack load python@3.12.5 
+spack load py-pip@23.1.2 ^python@3.12.5
 source venv/bin/activate
-python -m utils.aggregate_oracle_result ${result}
+
+echo "Node: $SLURMD_NODENAME"
+echo "Job ID: $SLURM_JOB_ID" 
+echo "Time: $(date)"
+
+# Project environment variables
+PROJECT_DIR=$(dirname $(dirname $(realpath $0)))
+export PYTHONPATH=$PROJECT_DIR:$PYTHONPATH
+export PYTHONWARNINGS="ignore"
+
+# Tensorflow environment variables  
+export TF_FORCE_GPU_ALLOW_GROWTH=true
+export TF_CPP_MIN_LOG_LEVEL=2
+
+# GPU environment
+export CUDA_VISIBLE_DEVICES=0
+export NVIDIA_VISIBLE_DEVICES=0
+
+echo "Environment configured:"
+echo "  APIS_PER_NODE: $APIS_PER_NODE"
+echo "  PROJECT_DIR: $PROJECT_DIR"
+echo "  CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES"
+
+# Change to project directory
+cd $PROJECT_DIR
+
+# Verify environment
+echo "Python version: $(python --version)"
+echo "GPU info:"
+nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
+
+# Create necessary directories
+mkdir -p logs .tmp
+
+# python scripts/scheduler.py torch
+
+echo "Node job completed: $(date)"
