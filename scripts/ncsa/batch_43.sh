@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=orcl_torch_batch_10
+#SBATCH --job-name=orcl_torch_batch_43
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=16
 #SBATCH --mem=64g
@@ -7,12 +7,12 @@
 #SBATCH --account=bdfv-delta-gpu
 #SBATCH --time=1-00:00:00
 #SBATCH --gpus-per-node=1
-#SBATCH --output=logs/batch_10_%j.out
-#SBATCH --error=logs/batch_10_%j.err
+#SBATCH --output=logs/batch_43_%j.out
+#SBATCH --error=logs/batch_43_%j.err
 
-echo "Batch 10 starting: $(date)"
+echo "Batch 43 starting: $(date)"
 echo "Node: $SLURMD_NODENAME, Job: $SLURM_JOB_ID"
-echo "APIs: expm1 eye flatten_ flip fliplr flipud float_power floor floor_divide fmin frac full full_like functional_hardsigmoid functional_relu6 ge"
+echo "APIs: quantize_per_channel"
 
 # Load environment
 cd /projects/bdfv/aqin/dll-fuzzing-with-input-invariants
@@ -31,10 +31,10 @@ export CUDA_VISIBLE_DEVICES=0
 
 mkdir -p .tmp/oracle_results_torch
 
-echo "Starting 16 APIs in parallel..."
+echo "Starting 1 APIs in parallel..."
 
 # Run all APIs in parallel
-APIS=(expm1 eye flatten_ flip fliplr flipud float_power floor floor_divide fmin frac full full_like functional_hardsigmoid functional_relu6 ge)
+APIS=(quantize_per_channel)
 pids=()
 
 for api in "${APIS[@]}"; do
@@ -48,6 +48,6 @@ for pid in "${pids[@]}"; do
     wait $pid || ((failed++))
 done
 
-echo "Batch 10 completed: $(date)"
-echo "Failed: $failed/16"
+echo "Batch 43 completed: $(date)"
+echo "Failed: $failed/1"
 exit $failed

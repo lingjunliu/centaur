@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=orcl_torch_batch_3
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
-#SBATCH --mem=128g
+#SBATCH --ntasks-per-node=16
+#SBATCH --mem=64g
 #SBATCH --partition=gpuA40x4
 #SBATCH --account=bdfv-delta-gpu
 #SBATCH --time=1-00:00:00
@@ -12,7 +12,7 @@
 
 echo "Batch 3 starting: $(date)"
 echo "Node: $SLURMD_NODENAME, Job: $SLURM_JOB_ID"
-echo "APIs: dist div dot dstack eig einsum embedding_ embedding_bag empty_like empty_strided eq erf erfc erfinv exp exp2 expm1 eye flatten_ flip fliplr flipud float_power floor floor_divide fmin frac full full_like functional_hardsigmoid functional_relu6 ge gelu ger grucell gt hardshrink_ hardswish heaviside histc hstack hypot i0 igamma imag index_select inner interpolate inverse is_nonzero is_tensor isclose isfinite isinf isnan isneginf isposinf isreal_ kron kthvalue l1_loss layer_norm lcm le"
+echo "APIs: ReflectionPad2d ReplicationPad1d ReplicationPad3d SELU SiLU_ Sigmoid_ Softmax Softmax2d Softmin Softplus_ Softshrink Softsign_ abs acos acosh adaptive_avg_pool1d"
 
 # Load environment
 cd /projects/bdfv/aqin/dll-fuzzing-with-input-invariants
@@ -31,10 +31,10 @@ export CUDA_VISIBLE_DEVICES=0
 
 mkdir -p .tmp/oracle_results_torch
 
-echo "Starting 64 APIs in parallel..."
+echo "Starting 16 APIs in parallel..."
 
 # Run all APIs in parallel
-APIS=(dist div dot dstack eig einsum embedding_ embedding_bag empty_like empty_strided eq erf erfc erfinv exp exp2 expm1 eye flatten_ flip fliplr flipud float_power floor floor_divide fmin frac full full_like functional_hardsigmoid functional_relu6 ge gelu ger grucell gt hardshrink_ hardswish heaviside histc hstack hypot i0 igamma imag index_select inner interpolate inverse is_nonzero is_tensor isclose isfinite isinf isnan isneginf isposinf isreal_ kron kthvalue l1_loss layer_norm lcm le)
+APIS=(ReflectionPad2d ReplicationPad1d ReplicationPad3d SELU SiLU_ Sigmoid_ Softmax Softmax2d Softmin Softplus_ Softshrink Softsign_ abs acos acosh adaptive_avg_pool1d)
 pids=()
 
 for api in "${APIS[@]}"; do
@@ -49,5 +49,5 @@ for pid in "${pids[@]}"; do
 done
 
 echo "Batch 3 completed: $(date)"
-echo "Failed: $failed/64"
+echo "Failed: $failed/16"
 exit $failed

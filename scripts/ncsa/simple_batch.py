@@ -32,8 +32,8 @@ def create_batch_script(batch_id, apis, lib, low, high, project_dir):
     script_content = f'''#!/bin/bash
 #SBATCH --job-name=orcl_{lib}_batch_{batch_id}
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
-#SBATCH --mem=128g
+#SBATCH --ntasks-per-node=16
+#SBATCH --mem=64g
 #SBATCH --partition=gpuA40x4
 #SBATCH --account=bdfv-delta-gpu
 #SBATCH --time=1-00:00:00
@@ -97,7 +97,7 @@ def main():
     parser.add_argument("lib", help="Library (torch/tf)")
     parser.add_argument("--low", type=int, default=-1)
     parser.add_argument("--high", type=int, default=-1)
-    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--batch-size", type=int, default=16)
     
     args = parser.parse_args()
     project_dir = os.getcwd()  # Use current working directory

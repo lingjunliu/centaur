@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=orcl_torch_batch_4
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
-#SBATCH --mem=128g
+#SBATCH --ntasks-per-node=16
+#SBATCH --mem=64g
 #SBATCH --partition=gpuA40x4
 #SBATCH --account=bdfv-delta-gpu
 #SBATCH --time=1-00:00:00
@@ -12,7 +12,7 @@
 
 echo "Batch 4 starting: $(date)"
 echo "Node: $SLURMD_NODENAME, Job: $SLURM_JOB_ID"
-echo "APIs: leaky_relu lerp lgamma linear_ linspace log log10 log1p log2 logSoftmaxClass log_softmax logaddexp logaddexp2 logcumsumexp logdet logical_and logical_not logical_or logical_xor logit logsigmoid logspace logsumexp lp_pool1d_ lp_pool2d lstsq lt lu_solve lu_unpack margin_ranking_loss masked_select matmul matrix_exp matrix_power matrix_rank max max_pool1d max_pool2d max_pool3d max_unpool2d maximum mean median min minimum mm movedim mse_loss msort mul multiheadAttentionClass multilabel_soft_margin_loss multinomial mv mvlgamma nanmedian nansum narrow ne neg nextafter nll_loss nonzero norm"
+echo "APIs: adaptive_avg_pool2d adaptive_max_pool1d adaptive_max_pool2d add addbmm addcdiv addcmul addmm addmv addr allclose alpha_dropout amax amin angle arange"
 
 # Load environment
 cd /projects/bdfv/aqin/dll-fuzzing-with-input-invariants
@@ -31,10 +31,10 @@ export CUDA_VISIBLE_DEVICES=0
 
 mkdir -p .tmp/oracle_results_torch
 
-echo "Starting 64 APIs in parallel..."
+echo "Starting 16 APIs in parallel..."
 
 # Run all APIs in parallel
-APIS=(leaky_relu lerp lgamma linear_ linspace log log10 log1p log2 logSoftmaxClass log_softmax logaddexp logaddexp2 logcumsumexp logdet logical_and logical_not logical_or logical_xor logit logsigmoid logspace logsumexp lp_pool1d_ lp_pool2d lstsq lt lu_solve lu_unpack margin_ranking_loss masked_select matmul matrix_exp matrix_power matrix_rank max max_pool1d max_pool2d max_pool3d max_unpool2d maximum mean median min minimum mm movedim mse_loss msort mul multiheadAttentionClass multilabel_soft_margin_loss multinomial mv mvlgamma nanmedian nansum narrow ne neg nextafter nll_loss nonzero norm)
+APIS=(adaptive_avg_pool2d adaptive_max_pool1d adaptive_max_pool2d add addbmm addcdiv addcmul addmm addmv addr allclose alpha_dropout amax amin angle arange)
 pids=()
 
 for api in "${APIS[@]}"; do
@@ -49,5 +49,5 @@ for pid in "${pids[@]}"; do
 done
 
 echo "Batch 4 completed: $(date)"
-echo "Failed: $failed/64"
+echo "Failed: $failed/16"
 exit $failed

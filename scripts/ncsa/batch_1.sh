@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=orcl_torch_batch_1
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
-#SBATCH --mem=128g
+#SBATCH --ntasks-per-node=16
+#SBATCH --mem=64g
 #SBATCH --partition=gpuA40x4
 #SBATCH --account=bdfv-delta-gpu
 #SBATCH --time=1-00:00:00
@@ -12,7 +12,7 @@
 
 echo "Batch 1 starting: $(date)"
 echo "Node: $SLURMD_NODENAME, Job: $SLURM_JOB_ID"
-echo "APIs: Flatten FractionalMaxPool2d GroupNorm Hardshrink Hardswish_ Hardtanh InstanceNorm1d InstanceNorm2d InstanceNorm3d L1Loss LPPool1d LPPool2d LSTMCell LayerNorm LeakyReLU Linear LogSigmoid_ MSELoss MarginRankingLoss MaxPool2d MaxPool3d MaxUnpool2d MultiLabelSoftMarginLoss MultiMarginLoss NLLLoss PReLU_ PairwiseDistance PixelShuffle PoissonNLLLoss ReLU6_ ReLU_ ReflectionPad1d ReflectionPad2d ReplicationPad1d ReplicationPad3d SELU SiLU_ Sigmoid_ Softmax Softmax2d Softmin Softplus_ Softshrink Softsign_ abs acos acosh adaptive_avg_pool1d adaptive_avg_pool2d adaptive_max_pool1d adaptive_max_pool2d add addbmm addcdiv addcmul addmm addmv addr allclose alpha_dropout amax amin angle arange"
+echo "APIs: Flatten FractionalMaxPool2d GroupNorm Hardshrink Hardswish_ Hardtanh InstanceNorm1d InstanceNorm2d InstanceNorm3d L1Loss LPPool1d LPPool2d LSTMCell LayerNorm LeakyReLU Linear"
 
 # Load environment
 cd /projects/bdfv/aqin/dll-fuzzing-with-input-invariants
@@ -31,10 +31,10 @@ export CUDA_VISIBLE_DEVICES=0
 
 mkdir -p .tmp/oracle_results_torch
 
-echo "Starting 64 APIs in parallel..."
+echo "Starting 16 APIs in parallel..."
 
 # Run all APIs in parallel
-APIS=(Flatten FractionalMaxPool2d GroupNorm Hardshrink Hardswish_ Hardtanh InstanceNorm1d InstanceNorm2d InstanceNorm3d L1Loss LPPool1d LPPool2d LSTMCell LayerNorm LeakyReLU Linear LogSigmoid_ MSELoss MarginRankingLoss MaxPool2d MaxPool3d MaxUnpool2d MultiLabelSoftMarginLoss MultiMarginLoss NLLLoss PReLU_ PairwiseDistance PixelShuffle PoissonNLLLoss ReLU6_ ReLU_ ReflectionPad1d ReflectionPad2d ReplicationPad1d ReplicationPad3d SELU SiLU_ Sigmoid_ Softmax Softmax2d Softmin Softplus_ Softshrink Softsign_ abs acos acosh adaptive_avg_pool1d adaptive_avg_pool2d adaptive_max_pool1d adaptive_max_pool2d add addbmm addcdiv addcmul addmm addmv addr allclose alpha_dropout amax amin angle arange)
+APIS=(Flatten FractionalMaxPool2d GroupNorm Hardshrink Hardswish_ Hardtanh InstanceNorm1d InstanceNorm2d InstanceNorm3d L1Loss LPPool1d LPPool2d LSTMCell LayerNorm LeakyReLU Linear)
 pids=()
 
 for api in "${APIS[@]}"; do
@@ -49,5 +49,5 @@ for pid in "${pids[@]}"; do
 done
 
 echo "Batch 1 completed: $(date)"
-echo "Failed: $failed/64"
+echo "Failed: $failed/16"
 exit $failed

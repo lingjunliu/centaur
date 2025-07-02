@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=orcl_torch_batch_8
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
-#SBATCH --mem=128g
+#SBATCH --ntasks-per-node=16
+#SBATCH --mem=64g
 #SBATCH --partition=gpuA40x4
 #SBATCH --account=bdfv-delta-gpu
 #SBATCH --time=1-00:00:00
@@ -12,7 +12,7 @@
 
 echo "Batch 8 starting: $(date)"
 echo "Node: $SLURMD_NODENAME, Job: $SLURM_JOB_ID"
-echo "APIs: vector_to_parameters from_dlpack GaussianNLLLoss native_channel_shuffle arctan Unfold fftfreq TripletMarginLoss less_equal bessel_y0 addmv_ get_default_dtype hspmm bilinear cholesky_ex tensorinv BCEWithLogitsLoss set_grad_enabled RMSNorm is_inference multigammaln SmoothL1Loss Parameter ldexp_ DoubleStorage is_anomaly_check_nan_enabled dequantize arcsin_ square_ true_divide relu_ MaxUnpool1d pinv erfcx manual_seed bessel_j1 subtract parse_schema CrossEntropyLoss tanh ignore strict_fusion ReflectionPad3d LocalResponseNorm unravel_index arctanh i0e Sigmoid corrcoef ifftshift unsafe_split_with_sizes FractionalMaxPool3d expand_copy is_autocast_xla_enabled get_autocast_cpu_dtype concat CircularPad1d smm solve_ex wait fake_quantize_per_tensor_affine aminmax Threshold vecdot"
+echo "APIs: cosh cosine_similarity countNonzero cross cross_entropy cummax cummin cumprod cumsum deg2rad det diag diag_embed diagflat diagonal digamma"
 
 # Load environment
 cd /projects/bdfv/aqin/dll-fuzzing-with-input-invariants
@@ -31,10 +31,10 @@ export CUDA_VISIBLE_DEVICES=0
 
 mkdir -p .tmp/oracle_results_torch
 
-echo "Starting 64 APIs in parallel..."
+echo "Starting 16 APIs in parallel..."
 
 # Run all APIs in parallel
-APIS=(vector_to_parameters from_dlpack GaussianNLLLoss native_channel_shuffle arctan Unfold fftfreq TripletMarginLoss less_equal bessel_y0 addmv_ get_default_dtype hspmm bilinear cholesky_ex tensorinv BCEWithLogitsLoss set_grad_enabled RMSNorm is_inference multigammaln SmoothL1Loss Parameter ldexp_ DoubleStorage is_anomaly_check_nan_enabled dequantize arcsin_ square_ true_divide relu_ MaxUnpool1d pinv erfcx manual_seed bessel_j1 subtract parse_schema CrossEntropyLoss tanh ignore strict_fusion ReflectionPad3d LocalResponseNorm unravel_index arctanh i0e Sigmoid corrcoef ifftshift unsafe_split_with_sizes FractionalMaxPool3d expand_copy is_autocast_xla_enabled get_autocast_cpu_dtype concat CircularPad1d smm solve_ex wait fake_quantize_per_tensor_affine aminmax Threshold vecdot)
+APIS=(cosh cosine_similarity countNonzero cross cross_entropy cummax cummin cumprod cumsum deg2rad det diag diag_embed diagflat diagonal digamma)
 pids=()
 
 for api in "${APIS[@]}"; do
@@ -49,5 +49,5 @@ for pid in "${pids[@]}"; do
 done
 
 echo "Batch 8 completed: $(date)"
-echo "Failed: $failed/64"
+echo "Failed: $failed/16"
 exit $failed

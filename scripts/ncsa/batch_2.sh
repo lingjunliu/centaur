@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=orcl_torch_batch_2
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
-#SBATCH --mem=128g
+#SBATCH --ntasks-per-node=16
+#SBATCH --mem=64g
 #SBATCH --partition=gpuA40x4
 #SBATCH --account=bdfv-delta-gpu
 #SBATCH --time=1-00:00:00
@@ -12,7 +12,7 @@
 
 echo "Batch 2 starting: $(date)"
 echo "Node: $SLURMD_NODENAME, Job: $SLURM_JOB_ID"
-echo "APIs: argmax argmin argsort as_strided as_tensor asin asinh atan atan2 atanh atleast_1d atleast_2d atleast_3d avg_pool1d avg_pool2d baddbmm batch_norm bernoulli binaryCrossEntropyWithLogits bincount bitwise_and bitwise_not bitwise_or bitwise_xor block_diag bmm broadcast_shapes broadcast_tensors broadcast_to bucketize cartesian_prod cat cdist ceil celu_ chain_matmul cholesky cholesky_inverse cholesky_solve chunk clamp clip_grad_norm_ combinations complex conj conv_transpose2d copysign cos cosh cosine_similarity countNonzero cross cross_entropy cummax cummin cumprod cumsum deg2rad det diag diag_embed diagflat diagonal digamma"
+echo "APIs: LogSigmoid_ MSELoss MarginRankingLoss MaxPool2d MaxPool3d MaxUnpool2d MultiLabelSoftMarginLoss MultiMarginLoss NLLLoss PReLU_ PairwiseDistance PixelShuffle PoissonNLLLoss ReLU6_ ReLU_ ReflectionPad1d"
 
 # Load environment
 cd /projects/bdfv/aqin/dll-fuzzing-with-input-invariants
@@ -31,10 +31,10 @@ export CUDA_VISIBLE_DEVICES=0
 
 mkdir -p .tmp/oracle_results_torch
 
-echo "Starting 64 APIs in parallel..."
+echo "Starting 16 APIs in parallel..."
 
 # Run all APIs in parallel
-APIS=(argmax argmin argsort as_strided as_tensor asin asinh atan atan2 atanh atleast_1d atleast_2d atleast_3d avg_pool1d avg_pool2d baddbmm batch_norm bernoulli binaryCrossEntropyWithLogits bincount bitwise_and bitwise_not bitwise_or bitwise_xor block_diag bmm broadcast_shapes broadcast_tensors broadcast_to bucketize cartesian_prod cat cdist ceil celu_ chain_matmul cholesky cholesky_inverse cholesky_solve chunk clamp clip_grad_norm_ combinations complex conj conv_transpose2d copysign cos cosh cosine_similarity countNonzero cross cross_entropy cummax cummin cumprod cumsum deg2rad det diag diag_embed diagflat diagonal digamma)
+APIS=(LogSigmoid_ MSELoss MarginRankingLoss MaxPool2d MaxPool3d MaxUnpool2d MultiLabelSoftMarginLoss MultiMarginLoss NLLLoss PReLU_ PairwiseDistance PixelShuffle PoissonNLLLoss ReLU6_ ReLU_ ReflectionPad1d)
 pids=()
 
 for api in "${APIS[@]}"; do
@@ -49,5 +49,5 @@ for pid in "${pids[@]}"; do
 done
 
 echo "Batch 2 completed: $(date)"
-echo "Failed: $failed/64"
+echo "Failed: $failed/16"
 exit $failed
