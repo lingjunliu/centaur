@@ -14,6 +14,7 @@ import os
 import random
 import json
 from utils.proc import get_memory_usage
+import shutil
 
 def save_state_models(api, suffix, unsat, nominal, invalid, crash, excp, tmp_results):
     api = f"{api}_{suffix}" if suffix > 0 else api
@@ -301,85 +302,82 @@ def sample_partitions(var_values_map, p):
     return sampled_partitions
 
 def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, lib="torch", use_reference=False):
+    """
+    If after removing a rule, all generated inputs are still valid,
+    then the rule is filtered out from the ruleset.
+    """
     ruleset = definition["ruleset"]
     signature = definition["signature"]
-    filtered_rules = set()
+    rules_to_keep = set()
 
-    while True:
-        for rule in ruleset:
-            trial = 0
-            block_all = set()
+    for rule in ruleset:
+        trial = 0
+        block_all = set()
 
-            while trial < max_trial:
-                block_one = []
-                remaining_ruleset = set(ruleset)
-                remaining_ruleset.remove(rule)
+        while trial < max_trial:
+            block_one = []
+            remaining_ruleset = set(ruleset)
+            remaining_ruleset.remove(rule)
 
-                solver = Solver()
-                initial_constraints(solver, signature, z3_args)
-                collect_constraints(solver, remaining_ruleset, z3_args, use_reference=use_reference)
-                # collect_neg_constraint(solver, rule, z3_args, use_reference=use_reference)
-        
-                sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
-                solver.add(*sampled_blocks)
+            solver = Solver()
+            initial_constraints(solver, signature, z3_args)
+            collect_constraints(solver, remaining_ruleset, z3_args, use_reference=use_reference)
+            # collect_neg_constraint(solver, rule, z3_args, use_reference=use_reference)
+    
+            sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
+            solver.add(*sampled_blocks)
 
-                if solver.check() != sat:
-                    if trial == 0:
-                        break
-                    else:
-                        trial = trial+1
-                        continue
-        
-                model = solver.model()
-                for decl in model.decls():
-                    var, val = decl(), model[decl]
-                    name_parts = str(decl.name()).rsplit("_", 1)
-
-                    if len(name_parts) == 2:
-                        prefix, suffix = name_parts
-                    else:
-                        prefix, suffix = name_parts[0], None
-
-                    if val.sort().kind() == Z3_ARRAY_SORT:                
-                        array_len = None
-                        if suffix == "shape" or suffix == "values":
-                            for other_decl in model.decls():
-                                if str(other_decl.name()) in [f"{prefix}_ndim", f"{prefix}_length"]:
-                                    array_len = model.eval(other_decl(), model_completion=True).as_long()
-                            if array_len is None:
-                                array_len = MAX_N_DIM
-                        elif suffix == "range":
-                            array_len = 2
-                        for i in range(array_len):
-                            block_one.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
-                    else:
-                        block_one.append(var != val)
-        
-                for elem in block_one:
-                    if elem not in block_all:
-                        block_all.add(elem)
-        
-                concrete_input, abstract_input = instantiate_args(model, signature, z3_args)
-                status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
-
-                if status != "invalid":
-                    filtered_rules.add(rule)
+            if solver.check() != sat:
+                if trial == 0:
                     break
-                trial = trial+1
+                else:
+                    trial = trial+1
+                    continue
+    
+            model = solver.model()
+            for decl in model.decls():
+                var, val = decl(), model[decl]
+                name_parts = str(decl.name()).rsplit("_", 1)
 
-        if filtered_rules:
-            ruleset = ruleset - filtered_rules
-            filtered_rules = set()
-        break
-        # else:
-            # break
+                if len(name_parts) == 2:
+                    prefix, suffix = name_parts
+                else:
+                    prefix, suffix = name_parts[0], None
 
-    if print_details and ruleset:
+                if val.sort().kind() == Z3_ARRAY_SORT:                
+                    array_len = None
+                    if suffix == "shape" or suffix == "values":
+                        for other_decl in model.decls():
+                            if str(other_decl.name()) in [f"{prefix}_ndim", f"{prefix}_length"]:
+                                array_len = model.eval(other_decl(), model_completion=True).as_long()
+                        if array_len is None:
+                            array_len = MAX_N_DIM
+                    elif suffix == "range":
+                        array_len = 2
+                    for i in range(array_len):
+                        block_one.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                else:
+                    block_one.append(var != val)
+    
+            for elem in block_one:
+                if elem not in block_all:
+                    block_all.add(elem)
+    
+            concrete_input, abstract_input = instantiate_args(model, signature, z3_args)
+            status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
+
+            if status == "invalid":
+                print(f"Input is invalid without {rule[1]}, the rule is kept.")
+                rules_to_keep.add(rule)
+                break
+            trial = trial+1
+
+    if print_details and rules_to_keep:
         print(f"Refined rules for {api}:")
-        for arity, rule_name, *args in ruleset:
+        for arity, rule_name, *args in rules_to_keep:
             print(f"- {rule_name} with arity {arity} on args {args}")
 
-    return ruleset
+    return rules_to_keep
 
 def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=42, print_details=False, saturation=10, lib="torch", corpus_dir=None, return_models=True, use_reference=False):
     elapsed = 0
@@ -588,6 +586,9 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
         models = load_existing_models(corpus_dir, z3_args)
         print(f"Loaded {len(models)} existing models for {api}")
     else:
+        if os.path.exists(corpus_dir):
+            print(f"Removing existing corpus directory: {corpus_dir}")
+            shutil.rmtree(corpus_dir)
         os.makedirs(corpus_dir, exist_ok=True)
         start_time = time.time()
         print(f"{bcolors.OKBLUE}Refining ruleset for {api} with suffix {suffix}{bcolors.ENDC}")

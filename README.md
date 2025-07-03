@@ -109,7 +109,7 @@ The code is organized as follow:
 
  To fuzz for a single api *(under the venv)*:
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ python -m generator.fuzz <api> <duration> <n_max> <lib> <seed>
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m generator.harness_z3 <api> <duration> <n_max> <lib> <seed>
  ```
 
  <h2> 4. Compute Coverage: Pytorch (evaluation) </h2>

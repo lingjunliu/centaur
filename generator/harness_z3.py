@@ -14,8 +14,6 @@ from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
 from generator.input_generators import abstract_print
 from eval.oracle import oracle_crash
 
-logger = logging.getLogger(__name__)
-
 def save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
     total = nominal + invalid + crash + excp
     valid_prcnt = round((total-invalid)*100/total,2) if total > 0 else 0
@@ -37,6 +35,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
     log_dir = create_subdir(get_tmp_dir(), "fuzz_logs")
     logfile = os.path.join(log_dir, f"{api}.log")
 
+    logger = logging.getLogger(__name__)
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,                                     # Minimum log level
@@ -122,11 +121,15 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         
         concrete_input, abstract_input = instantiate_args(model, definition["signature"], model_collection[selected_suffix]['z3_args'], seed=seed)
         generated_inputs.append((0, abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency
-        total += 1
         
         # Print the abstract input if print_details is True
+        abstract_str = f"[{total}] Abstract input (seed {seed}, suffix: {selected_suffix})\n{abstract_print(abstract_input, definition['signature'])}"
+        logger.info(abstract_str)
         if print_details:
-            print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
+            print(f"\n{abstract_str}")
+        
+        total += 1
+        log_func = logger.info
 
         start_execution = time.time()
         status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
@@ -142,22 +145,22 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         elif status.endswith("_excp"):
             excp += 1
             # Always log crashes
-            logger.error(f"Status: {status}, Exception: {exception_message}, Signature suffix: {selected_suffix}\nInput (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
+            log_func = logger.error
             print(f"\n[{status}]\n{exception_message}")
             if not print_details:   # if print_details is True, the abstract input is already printed
                 print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
         elif status.endswith("_crash"):
             crash += 1
             # Always log crashes
-            logger.error(f"Status: {status}, Exception: {exception_message}, Signature suffix: {selected_suffix}\nInput (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
+            log_func = logger.error
             print(f"\n[{status}]\n{exception_message}")
             if not print_details:   # if print_details is True, the abstract input is already printed
                 print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
         else:
-            logger.error(f"Status: {status}, Exception: {exception_message}, Signature suffix: {selected_suffix}\nInput (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         
+        log_func(f"Status: {status}, Exception: {exception_message}")
         execution_time = execution_time + time.time() - start_execution
         print_str = f"Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {round(elapsed-last_saved, 2)}s ago"
         
@@ -186,11 +189,26 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
     save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib=lib)
         
 
-if __name__ == "__main__":
-    seed = 200
-    fuzz_duration = 30 # seconds
-    lib = "torch"
-    print_details = sys.argv[1].lower() == 'true' if len(sys.argv) > 1 else False
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: python -m generator.harness_z3 <api> <duration> <n_max, optional> <lib, default: torch> <seed, optional> <print_details, optional>")
+        return
     
-    run_api_with_duration("add", fuzz_duration, print_details=print_details, lib=lib)
-    run_api_with_duration("combinations", fuzz_duration, print_details=print_details, lib=lib)
+    api = sys.argv[1]
+    duration = int(sys.argv[2])
+    n_max = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    lib = sys.argv[4] if len(sys.argv) > 4 else "torch"
+    seed = int(sys.argv[5]) if len(sys.argv) > 5 else 200
+    print_details = sys.argv[6].lower() == 'true' if len(sys.argv) > 6 else False
+    use_reference = sys.argv[7].lower() == 'true' if len(sys.argv) > 7 else False
+
+    # alias
+    if lib == "tensorflow":
+        lib = "tf"
+    elif lib == "pytorch":
+        lib = "torch"
+    
+    run_api_with_duration(api, duration, n_max=n_max, seed=seed, lib=lib, print_details=print_details, use_reference=use_reference)
+
+if __name__ == "__main__":
+    main()

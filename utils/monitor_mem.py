@@ -1,5 +1,6 @@
 import os, sys, subprocess, logging, time
 from utils.proc import get_memory_usage_by_pid, get_system_memory_usage
+from utils.misc import get_tmp_dir
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ def main():
     running_cmd = f'squeue -h --user={user} --state=RUNNING'
     pids_cmd = 'scontrol listpids'
 
-    logfile = "logs/cancelled_jobs.log"
+    logfile = os.path.join(get_tmp_dir(), "cancelled_jobs.log")
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,                                     # Minimum log level
