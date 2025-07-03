@@ -6,7 +6,7 @@ from .rules_auto_z3 import get_rules_map
 from .definitions import get_definition
 from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values, int_buckets, float_buckets
-from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
+from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors
 from utils.new_api_utils import get_lib_version, get_api_suffix
 from eval.oracle import oracle_crash
 from functools import reduce
@@ -404,6 +404,9 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     tmp_results = create_subdir(get_tmp_dir(), "model_results")
     var_values_map = variable_bounds(solver.assertions())
 
+    solve_times = []
+    check_times = []
+    start_time = time.time()
     while elapsed < model_gen_duration and (num_model < max_model or max_model == 0):
         block_one = []
         one_solver = Solver()
@@ -438,6 +441,8 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
         
         # potential_valid_blocks = []
         model = one_solver.model()
+        solve_times.append(time.time() - start_time)
+        start_time = time.time()
         for decl in model.decls():
             var, val = decl(), model[decl]
             name_parts = str(decl.name()).rsplit("_", 1)
@@ -532,6 +537,9 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
             print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         
         elapsed = time.time() - start
+        check_times.append(time.time() - start_time)
+        start_time = time.time()
+        print(f"{bcolors.OKCYAN}Solve time: {np.mean(solve_times):.2f} | Check time: {np.mean(check_times):.2f} s | Total: {nominal + invalid + crash + excp} | Saved: {nominal + crash + excp} {bcolors.ENDC}")
 
         save_state_models(definition["api"], definition["suffix"], unsat, nominal, invalid, crash, excp, tmp_results)
 
@@ -581,8 +589,13 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
         print(f"Loaded {len(models)} existing models for {api}")
     else:
         os.makedirs(corpus_dir, exist_ok=True)
+        start_time = time.time()
+        print(f"{bcolors.OKBLUE}Refining ruleset for {api} with suffix {suffix}{bcolors.ENDC}")
         definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch", use_reference=use_reference)
+        print(f"{bcolors.OKBLUE}Refinement took {time.time()-start_time} s | Generating models for {api} with suffix {suffix}{bcolors.ENDC}")
+        start_time = time.time()
         models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference)
+        print(f"{bcolors.OKBLUE}Model generation took {time.time()-start_time} s{bcolors.ENDC}")
     
 
 def main():
