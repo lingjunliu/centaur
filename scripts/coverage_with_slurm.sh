@@ -74,6 +74,7 @@ fi
 # END DEBUG ############################
 
 # Clean up temporary files
+echo "Cleaning up temporary files"
 rm -r $PROJECT_DIR/eval/patched_drivers
 
 # Aggregating and saving results: coverage
