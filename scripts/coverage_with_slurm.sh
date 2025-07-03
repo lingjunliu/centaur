@@ -73,6 +73,9 @@ fi
 
 # END DEBUG ############################
 
+# Clean up temporary files
+rm -r $PROJECT_DIR/eval/patched_drivers
+
 # Aggregating and saving results: coverage
 cov_results=$PROJECT_DIR/.tmp/coverage_results
 result=$PROJECT_DIR/.tmp/coverage.csv
