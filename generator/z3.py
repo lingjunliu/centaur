@@ -309,6 +309,7 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
     ruleset = definition["ruleset"]
     signature = definition["signature"]
     rules_to_keep = set()
+    n_rules_original = len(ruleset)
 
     for rule in ruleset:
         trial = 0
@@ -367,11 +368,15 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
             status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
 
             if status == "invalid":
-                print(f"Input is invalid without {rule[1]}, the rule is kept.")
+                print(f"After {trial+1} trials, found an input that is invalid without {rule[1]}, the rule is kept.")
+                if print_details:
+                    print(f"Input:\n{abstract_print(abstract_input, signature)}")
+                    print(f"Exception message: {exception_message}\n")
                 rules_to_keep.add(rule)
                 break
             trial = trial+1
 
+    print(f"{bcolors.OKBLUE}Rules reduced from {n_rules_original} to {len(rules_to_keep)}{bcolors.ENDC}")
     if print_details and rules_to_keep:
         print(f"Refined rules for {api}:")
         for arity, rule_name, *args in rules_to_keep:
@@ -537,11 +542,10 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
         elapsed = time.time() - start
         check_times.append(time.time() - start_time)
         start_time = time.time()
-        print(f"{bcolors.OKCYAN}Solve time: {np.mean(solve_times):.2f} | Check time: {np.mean(check_times):.2f} s | Total: {nominal + invalid + crash + excp} | Saved: {nominal + crash + excp} {bcolors.ENDC}")
 
         save_state_models(definition["api"], definition["suffix"], unsat, nominal, invalid, crash, excp, tmp_results)
 
-    print(f"Generated {num_model} models for {api} with suffix {definition['suffix']}")
+    print(f"Generated {num_model} models for {api} with suffix {definition['suffix']} | Avg solve time: {np.mean(solve_times):.2f} | Avg check time: {np.mean(check_times):.2f} s ")
     return models
 
 def load_existing_models(corpus_dir, z3_args):
