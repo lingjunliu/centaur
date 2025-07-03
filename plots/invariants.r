@@ -47,7 +47,7 @@ if (sota == "FreeFuzz") {
 
 
 data <- read.csv(csv)
-filename <- sprintf("%s_vs_%s_%s.pdf", sota, tname, mode)
+filename <- sprintf("data/%s_vs_%s_%s.pdf", sota, tname, mode)
 
 sota_col <- data[[sota]]
 tname_col <- data[[tname]]
