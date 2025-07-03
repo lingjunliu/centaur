@@ -534,10 +534,11 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
             if status != "nominal": # Always log crashes
                 print(f"\n[{status}]\n{exception_message}")
                 print(f"\nPotential bug. Input:\n{abstract_print(abstract_input, definition['signature'])}")
-        elif print_details:
+        else:
             invalid += 1
-            print(abstract_print(abstract_input, definition["signature"]))
-            print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
+            if print_details:
+                print(abstract_print(abstract_input, definition["signature"]))
+                print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         
         elapsed = time.time() - start
         check_times.append(time.time() - start_time)
