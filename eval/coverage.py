@@ -23,9 +23,9 @@ def compute_coverage(api, cov_results, driver_file, lib="torch", save_lcov=False
 
 def main():
     api = sys.argv[1]
-    # If you also need html and text formats, save gen_html to True
-    gen_html = False
-    save_lcov = int(sys.argv[2]) == 1 if len(sys.argv) > 2 else False
+    gen_html = sys.argv[2].lower() == "html" if len(sys.argv) > 2 else False
+    save_lcov = int(sys.argv[3]) == 1 if len(sys.argv) > 3 else False
+
     lib = "torch"
     
     api = get_lib_version(api, lib=lib)

@@ -1,10 +1,11 @@
 #!/bin/bash
 
 export slurm_time="2:00:00" # Time limit is 2 hours
-export max_parallel=690   # Fix number of slurm jobs to 690
+export max_parallel=690     # Fix number of slurm jobs to 690
 
 n_inputs=${1:-500}
-debug=${2:-0}    # To debug coverage difference with titanfuzz, pass 1
+method=${2:-lcov}     # Method to run, default is lcov
+debug=${3:-0}         # To debug coverage difference with titanfuzz, pass 1
 
 # Only torch is supported for coverage for now
 # TODO: Add support for tensorflow
@@ -40,7 +41,7 @@ export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to 
 
 job_name=cov
 echo "Running coverage script"
-bash $slurm_sh "python -m eval.coverage" ${job_name} ${debug}
+bash $slurm_sh "python -m eval.coverage" ${job_name} ${method} ${debug}
 
 # DEBUG ################################
 

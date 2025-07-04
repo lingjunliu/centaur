@@ -3,6 +3,8 @@ import sys
 import os
 import psutil
 import time
+import re
+from bs4 import BeautifulSoup
 from .misc import get_tmp_dir, create_subdir
 from .process_lcov import analyze_lcov
 
@@ -30,13 +32,90 @@ def monitor_memory(proc, limit=16000):
     
     return memory_error
 
+def extract_coverage_data(html_content):
+    """
+    Extract coverage data from HTML content.
+    Returns list of tuples (path, coverage_number) and total sum.
+    """
+    filters = [
+        # Tensor/memory management
+        "Copy", "Factory", "TensorShape", "TensorFactories", "TensorOperators",
+        "TensorTransform", "TensorAdvanced", "TensorCompare", "TensorProperties",
+        "Index", "Cat", "Stack", "Unfold", "Resize", "Fill", "utils", "Utils",
+        "ParamUtils", "Param", "Dispatch", "Iterator", "Stride", "Contiguous", "Type", "Tensor", "Loops",
+
+        # Quantization
+        "quantized", "Quant", "qconv", "qlinear", "qmatmul", "qelu", "qrelu",
+        "qsigmoid", "qtanh", "qclamp", "qthreshold", "qhardsigmoid", "qgelu",
+        "qsoftmax", "qmul", "qhardswish", "qdropout", "qnormalization", "fbgemm",
+        "qnnpack", "AffineQuantizer", "FakeQuant", "IntRepr", "MakePerTensor",
+
+        # Random/distribution
+        "Distribution", "Random", "Multinomial", "SobolEngine",
+
+        # Sampling/upsampling (typically not core compute)
+        "UpSample", "GridSampl", "FractionalMaxPool", "PixelShuffle",
+        "ChannelShuffle", "Sorting", "Histogram", "Bucketization",
+
+        # Sparse operations (specialized, not core dense compute)
+        "Sparse", "sparse",
+
+        # Infrastructure
+        "Shim", "Fallback", "Legacy", "Verbose", "Test", "Debug"
+    ]
+    soup = BeautifulSoup(html_content, 'html.parser')
+
+    # Find all rows with class 'light-row'
+    rows = soup.find_all('tr', class_='light-row')
+
+    coverage_data = []
+    total_coverage = 0
+
+    for row in rows:
+        # Find all td elements in the row
+        tds = row.find_all('td')
+
+        if len(tds) >= 4:  # Make sure we have at least 4 columns
+            # First column: extract the path from the <a> tag
+            first_td = tds[0]
+            link = first_td.find('a')
+            if link:
+                # Get the text content of the link (the path)
+                path = link.get_text().strip()
+
+                # if path in filter, than do not add to coverage data
+                flag = 0
+                for filter in filters:
+                    if filter in path:
+                        flag = 1
+                        break
+                if (flag == 1):
+                    continue
+
+
+                # Fourth column: extract the coverage number
+                fourth_td = tds[4]
+                pre_tag = fourth_td.find('pre')
+                if pre_tag:
+                    # Extract text like "0.00% (0/34)" and get the first number before "/"
+                    coverage_text = pre_tag.get_text().strip()
+
+                    # Use regex to find the pattern (number/number)
+                    match = re.search(r'\((\d+)/\d+\)', coverage_text)
+                    if match:
+                        coverage_number = int(match.group(1))
+                        coverage_data.append((path, coverage_number))
+                        total_coverage += coverage_number
+
+    return coverage_data, total_coverage
+
 def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=False):
     """
     Generate coverage data after running a command. To differentiate the generated profraw and profdata files from other
     parallel executions, provide a prefix for the file names. The default is "default".
     capture_output=True will print the output (default behavior).
     
-    Example: gen_cov_torch("-m eval.patched_drivers.GroupNorm_cov_in_loop", prefix="GroupNorm", capture_output=True)
+    Example: gen_cov_torch("python -m eval.patched_drivers.GroupNorm_cov_in_loop", prefix="GroupNorm", capture_output=True)
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files. 
     """
     if "TORCH_BUILD_DIR" in os.environ:
@@ -208,18 +287,26 @@ def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     """
     return_code, lcov_data = gen_cov_torch(cmd_line, prefix=prefix, capture_output=capture_output, gen_html=gen_html)
 
+    cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
     if save_lcov:
-        cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
         lcov_file = os.path.join(cov_dir, f"{prefix}.lcov")
         with open(lcov_file, "w") as f:
             f.write(lcov_data)
     
-    coverage_dict = analyze_lcov(lcov_data)
     num_branches = 0
-    num_lines = 0
-    for filename, coverage_info in coverage_dict.items():
-        num_branches += len(coverage_info["branches"])
-        num_lines += len(coverage_info["lines"])
+    num_lines = 0            
+    
+    if gen_html:    # Use HTML to extract branch coverage number
+        html_file = f"{cov_dir}/{prefix}/index.html"
+        if os.path.isfile(html_file):
+            with open(html_file, "r") as f:
+                html_content = f.read()
+            coverage_dict, num_branches = extract_coverage_data(html_content)
+    else:   # Use lcov data to extract branch and line coverage numbers
+        coverage_dict = analyze_lcov(lcov_data)
+        for filename, coverage_info in coverage_dict.items():
+            num_branches += len(coverage_info["branches"])
+            num_lines += len(coverage_info["lines"])
         
     return num_branches, num_lines, return_code, coverage_dict
     
