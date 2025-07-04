@@ -1,0 +1,69 @@
+>>
+Rule 1 (indices tensor must be int type and have the same shape as input)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = "int" ∧ shape(v_1) = shape(v_2)
+>>
+Rule 2 (output_size must be greater than or equal to the calculated output size)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int, v_5 : tuple(int)} |= v_5[0] ≥ (shape(v_1, 2) - 1) * v_3 - 2 * v_4 + v_2
+>>
+Rule 3 (kernel_size, stride and padding should be non-negative)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 ≥ 0
+>>
+Rule 4 (if output_size is given, its length must be the same as the input's shape, excluding batch dimension if it exists)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 then v_2.len = 3 else v_2.len = 2
+>>
+Rule 5 (input tensor's ndim should be either 2 or 3)
+{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
+>>
+Rule 6 (If output_size is not provided, the output height should be positive)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (shape(v_1, 2) - 1) * v_3 - 2 * v_4 + v_2 > 0
+>>
+Rule 7 (If the input tensor has a batch dimension, the indices tensor must also have a batch dimension and their sizes must match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then ndim(v_2) = 3 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 8 (The second dimension of indices tensor should be same as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 9 (If the input tensor does not have a batch dimension, the indices tensor must also not have a batch dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 2
+>>
+Rule 10 (If determinism is enabled, warn_only must be True)
+{v_1 : bool} |= if v_1 = true then false
+>>
+Rule 11 (if kernel_size is a tuple, its length should be 1)
+{v_1 : tuple(int)} |= v_1.len = 1
+>>
+Rule 12 (If stride is not provided, kernel_size should be used as stride)
+{v_1 : int, v_2 : int} |= v_1 = v_2
+>>
+Rule 13 (indices tensor's values should be less than kernel size)
+{v_1 : tensor, v_2 : int} |= max(v_1) < v_2
+>>
+Rule 14 (indices tensor should have non-negative values)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 15 (input tensor channel dimension should be greater than 0)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 16 (If determinism is enabled, the input's and indices' dtype must not be complex)
+{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11 ∧ dtype_(v_3) ≠ 10 ∧ dtype_(v_3) ≠ 11
+>>
+Rule 17 (The height dimension of indices tensor should be same as input tensor)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+>>
+Rule 18 (If output_size is provided, its values must be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 19 (If output_size is given then the output tensor's height should match with it)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 3 then shape(v_1, 2) = v_2[2] else shape(v_1, 1) = v_2[1]
+>>
+Rule 20 (input tensor's channel and output_size's channel values must be the same, when batch dimension doesn't exist)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 2 then shape(v_1, 0) = v_2[0]
+>>
+Rule 21 (When the number of elements in output_size is not equal to 0, the product of the shape of the input and the elements in kernel_size should be less or equal than the output size)
+{v_1 : tuple(int), v_2 : int, v_3 : tensor} |= if v_1.len ≠ 0 then (shape(v_3, ndim(v_3)-1) * v_2) ≤ v_1[v_1.len-1]
+>>
+Rule 22 (When output_size is given and batch dimension doesn't exist, if the calculated output height is smaller than requested output height, return false)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int, v_5 : tuple(int)} |= if ndim(v_1) = 2 ∧ v_5.len ≠ 0 then (shape(v_1, 1) - 1) * v_3 - 2 * v_4 + v_2 ≤ v_5[1]
+>>
+Rule 23 (If the number of elements in output_size is not equal to 0 and the input has batch dimension, then (H_in - 1) * stride - 2 * padding + kernel_size must be less than or equal to the provided output height)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int, v_5 : tuple(int)} |= if ndim(v_1) = 3 ∧ v_5.len ≠ 0 then (shape(v_1, 2) - 1) * v_3 - 2 * v_4 + v_2 ≤ v_5[2]

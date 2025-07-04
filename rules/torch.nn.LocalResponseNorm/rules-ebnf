@@ -1,0 +1,66 @@
+>>
+Rule 1 (input tensor for LocalResponseNorm must have 3 or more dimensions and size should be positive)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 3 ∧ v_2 > 0
+>>
+Rule 2 (alpha and beta must be non-negative)
+{v_1 : float, v_2 : float} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+>>
+Rule 3 (input tensor's dtype should be float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 4 (k must be non-negative)
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 5 (if input tensor's dtype is Half (float16), the operation is not implemented)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 6 (size should be a positive integer)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 7 (input tensor must have at least two dimensions, because channels occupy the second dimension.)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 8 (Input and Output tensor have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 9 (The amount of neighboring channels should not larger than total channels)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 1)
+>>
+Rule 10 (Input tensor dimension 1 (channel) should be greater than 0)
+{v_1: tensor} |= shape(v_1, 1) > 0 ∧ ndim(v_1) > 1
+>>
+Rule 11 (The output tensor's dtype is same as input tensor's dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 12 (If size is too large then pad should be at most half of size)
+{v_1 : int} |= if v_1 > 100 then v_1 / 2 ≥ 0
+>>
+Rule 13 (If size is 1, it is effectively no normalization)
+{v_1 : tensor, v_2 : int} |= if v_2 = 1 then min(v_1) = max(v_1)
+>>
+Rule 14 (min of input tensor must smaller than max of input tensor)
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+>>
+Rule 15 (Check if k + alpha/size * sum(a**2) can cause overflow)
+{v_1 : float, v_2 : int, v_3 : tensor} |= v_1 + v_2 * max(v_3) * max(v_3) < 1000000000.0
+>>
+Rule 16 (Input tensor should not be a quantized tensor.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 17 (The second dimension of input tensor should be greater or equal to size.)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) ≥ v_2 ∧ ndim(v_1) > 1
+>>
+Rule 18 (alpha/size should not be very small, otherwise k dominates)
+{v_1 : float, v_2 : int} |= v_1 / v_2 > 0.00000001
+>>
+Rule 19 (Beta value should be reasonable range to avoid exploding or vanishing gradient)
+{v_1 : float} |= v_1 > 0.01 ∧ v_1 < 100
+>>
+Rule 20 (If tensor contains nan or inf value, the result will be nan or inf)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : true
+>>
+Rule 21 (If the input tensor requires grad, the output tensor should also require grad)
+{v_1 : tensor} |= if shape(v_1,0) > 0 then true else false
+>>
+Rule 22 (Check size*size is not overflow)
+{v_1 : int} |= v_1 * v_1 < 2147483647

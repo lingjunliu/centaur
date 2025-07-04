@@ -1,0 +1,57 @@
+>>
+Rule 1 (dims must be non-negative)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+>>
+Rule 2 (number of dimensions in dims should not exceed number of dimensions in input)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1) + v_2.len
+>>
+Rule 3 (If input is 0-dimensional, dims must be a 0-dimensional tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+>>
+Rule 4 (Product of elements in dims must not overflow)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ ∃x ∈ [0, 1000000000]: x=1 ∧ (∀i ∈ [0, v_2.len - 1] : x = x * v_2[i])
+>>
+Rule 5 (If dims is an int, then input must be 1-dimensional)
+{v_1 : tensor} |= if ndim(v_1) = 1 then true else false
+>>
+Rule 6 (If input is 1-dimensional, dims must be a 1-dimensional tuple or an int)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 1
+>>
+Rule 7 (If ndim of input tensor is smaller than len of dims, the input tensor is treated as if it were unsqueezed at dimension zero until it has as many dimensions as dims specifies)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then ∃i ∈ [0, v_2.len - ndim(v_1) - 1] : true
+>>
+Rule 8 (If dims specifies fewer dimensions than input has, then ones are prepended to dims until all dimensions are specified)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len < ndim(v_1) then ∃i ∈ [0, ndim(v_1) - v_2.len - 1] : true
+>>
+Rule 9 (If the new dimension is negative, raise ValueError)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > -1
+>>
+Rule 10 (The shape of the output tensor is shape(input) * dims)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) > v_2.len then ndim(v_1) else v_2.len - 1] : if ndim(v_1) <= i then shape(v_1, 0) = 1 * v_2[i] else if v_2.len <= i then shape(v_1, i) = shape(v_1, i) * 1
+>>
+Rule 11 (The output tensor's ndim is equal to max(ndim(input), len(dims)))
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > v_2.len then ndim(v_1) = ndim(v_1) else v_2.len = v_2.len
+>>
+Rule 12 (if dims is an integer, it should be greater than 0)
+{v_2 : int} |= v_2 > 0
+>>
+Rule 13 (If ndim of input tensor > len of dims tuple, pad dims with 1s at the front)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > v_2.len then ∃i ∈ [0, ndim(v_1) - v_2.len - 1] : v_2[i]=1
+>>
+Rule 14 (If ndim of input tensor < len of dims tuple, the input tensor is treated as if it were unsqueezed at dimension zero until it has as many dimensions as dims specifies)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then ∃i ∈ [0, v_2.len - ndim(v_1) - 1] : shape(v_1, 0) = 1
+>>
+Rule 15 (The dims argument specifies the number of repetitions in each dimension, if the size of a dimension in input is zero, the corresponding dim in dims should be 1)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) > v_2.len then ndim(v_1)-1 else v_2.len - 1] : if ndim(v_1) > i then if shape(v_1, i) = 0 then v_2[i] = 1
+>>
+Rule 16 (If a value in dims is zero, the output shape along that axis will be zero)
+{v_1 : tensor, v_2 : tuple(int)} |= if ∃i ∈ [0, v_2.len -1] : v_2[i] = 0 then ∃j ∈ [0, ndim(v_1)-1] : shape(v_1,j) = 0
+>>
+Rule 17 (The dtype of the output tensor is same as the dtype of the input tensor)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+>>
+Rule 18 (The product of `dims` must be representable as an int64)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ ∃p ∈ [0, 9223372036854775807] : if v_2.len = 0 then p = 1 else (p = 1 ∧ (∀i ∈ [0, v_2.len-1] : p = p * v_2[i]))
+>>
+Rule 19 (If a value in dims is one and input has a shape dimension of zero, that dimensions' value becomes zero in output)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) > v_2.len then ndim(v_1) else v_2.len - 1] : if ndim(v_1) <= i then true else if shape(v_1,i) = 0 ∧ v_2[i]=1 then shape(v_1,i) = 0

@@ -1,0 +1,3815 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 1 (input tensor A must have at least two dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (If hermitian is true, the input tensor A should have complex or float dtype)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (6 ≤ dtype(v_1) ∧ dtype(v_1) ≤ 8) ∨ (9 ≤ dtype(v_1) ∧ dtype(v_1) ≤ 10)
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '(' in the current parser context, at line 1 col 53
+
+r, v_2 : bool} |= if v_2 then (6 ≤ dtype(v_1) ∧ dtype(v_1) ≤ 8) ∨ (9 ≤ dtype(v_1
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* LSQB
+	* RPAR
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (If hermitian is true, the input tensor A should have complex or float dtype)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (atol and rtol, if tensors, must have shapes broadcastable to the singular values of A. We approximate singular values of A by shape of A.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = ndim(v_1) - 2 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)) ∧ (ndim(v_3) = ndim(v_1) - 2 ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) = shape(v_1, i))
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 4 (If atol is specified to be greater than zero, then rtol is set to zero.)
+{v_1 : float, v_2 : float} |= if v_1 > 0 then v_2 = 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 5 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 5 (atol and rtol should have the same data type if both of them are specified)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 6 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 6 (If rtol is not None and atol is None, then rtol must be non-negative.)
+{v_1 : float, v_2 : float} |= if v_1 = 0 then v_2 ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 7 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 7 (The input tensor A should have float or complex dtype.)
+{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 8 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 8 (If rtol is None and atol is None, then set rtol = max(m, n) * epsilon)
+{v_1 : tensor, v_2 : float, v_3 : float} |= if v_2 = 0 ∧ v_3 = 0 then true
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 8 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 8 (If atol and rtol are both None, then the input tensor A must have shape information to calculate rtol.)
+{v_2 : float, v_3 : float} |= if v_2 = 0 ∧ v_3 = 0 then true
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 9 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 9 (atol should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 10 (rtol should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+This rule already exists. Please generate a more diverse and novel rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 10 (If hermitian is true, the last two dimensions of input tensor A should be equal.)
+{v_1 : tensor, v_2 : bool} |= if v_2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 11 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 11 (The output tensor should not be the same tensor as the input tensor A)
+{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 12 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 12 (if atol is a tensor, then it must have float dtype)
+{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 13 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (if rtol is a tensor, then it must have float dtype)
+{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+This rule already exists. Please generate a more diverse and novel rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 13 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (If atol or rtol is a tensor, then the last two dimensions of input tensor A should exist.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) > 0 ∧ ndim(v_1) > 1
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 14 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 14 (The output tensor of matrix_rank should be scalar or have batch dimensions of the input A)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (ndim(v_2) = ndim(v_1) - 2 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i))
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 15 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (If atol is specified as a tensor, the type of A and atol should match.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+** DUPLICATED RULE ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+This rule already exists. Please generate a more diverse and novel rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 15 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (If rtol is specified as a tensor, the type of A and rtol should match.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+** DUPLICATED RULE ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+This rule already exists. Please generate a more diverse and novel rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 15 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (If rtol is specified as a tensor, the dtype of rtol must be float.)
+{v_1 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+** DUPLICATED RULE ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+This rule already exists. Please generate a more diverse and novel rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 15 that torch.linalg.matrix_rank API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+linalg.matrix_rank(A, *, atol=None, rtol=None, hermitian=False, out=None) -> Tensor
+
+Computes the numerical rank of a matrix.
+
+The matrix rank is computed as the number of singular values
+(or eigenvalues in absolute value when :attr:`hermitian`\ `= True`)
+that are greater than :math:`\max(\text{atol}, \sigma_1 * \text{rtol})` threshold,
+where :math:`\sigma_1` is the largest singular value (or eigenvalue).
+
+Supports input of float, double, cfloat and cdouble dtypes.
+Also supports batches of matrices, and if :attr:`A` is a batch of matrices then
+the output has the same batch dimensions.
+
+If :attr:`hermitian`\ `= True`, :attr:`A` is assumed to be Hermitian if complex or
+symmetric if real, but this is not checked internally. Instead, just the lower
+triangular part of the matrix is used in the computations.
+
+If :attr:`rtol` is not specified and :attr:`A` is a matrix of dimensions `(m, n)`,
+the relative tolerance is set to be :math:`\text{rtol} = \max(m, n) \varepsilon`
+and :math:`\varepsilon` is the epsilon value for the dtype of :attr:`A` (see :class:`.finfo`).
+If :attr:`rtol` is not specified and :attr:`atol` is specified to be larger than zero then
+:attr:`rtol` is set to zero.
+
+If :attr:`atol` or :attr:`rtol` is a :class:`torch.Tensor`, its shape must be broadcastable to that
+of the singular values of :attr:`A` as returned by :func:`torch.linalg.svdvals`.
+
+.. note::
+    This function has NumPy compatible variant `linalg.matrix_rank(A, tol, hermitian=False)`.
+    However, use of the positional argument :attr:`tol` is deprecated in favor of :attr:`atol` and :attr:`rtol`.
+
+
+.. note:: The matrix rank is computed using a singular value decomposition
+          :func:`torch.linalg.svdvals` if :attr:`hermitian`\ `= False` (default) and the eigenvalue
+          decomposition :func:`torch.linalg.eigvalsh` when :attr:`hermitian`\ `= True`.
+          When inputs are on a CUDA device, this function synchronizes that device with the CPU.
+
+
+Args:
+    A (Tensor): tensor of shape `(*, m, n)` where `*` is zero or more batch dimensions.
+    tol (float, Tensor, optional): [NumPy Compat] Alias for :attr:`atol`. Default: `None`.
+
+Keyword args:
+    atol (float, Tensor, optional): the absolute tolerance value. When `None` it's considered to be zero.
+                                    Default: `None`.
+    rtol (float, Tensor, optional): the relative tolerance value. See above for the value it takes when `None`.
+                                    Default: `None`.
+    hermitian(bool): indicates whether :attr:`A` is Hermitian if complex
+                     or symmetric if real. Default: `False`.
+    out (Tensor, optional): output tensor. Ignored if `None`. Default: `None`.
+
+Examples::
+
+    >>> A = torch.eye(10)
+    >>> torch.linalg.matrix_rank(A)
+    tensor(10)
+    >>> B = torch.eye(10)
+    >>> B[0, 0] = 0
+    >>> torch.linalg.matrix_rank(B)
+    tensor(9)
+
+    >>> A = torch.randn(4, 3, 2)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([2, 2, 2, 2])
+
+    >>> A = torch.randn(2, 4, 2, 3)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[2, 2, 2, 2],
+            [2, 2, 2, 2]])
+
+    >>> A = torch.randn(2, 4, 3, 3, dtype=torch.complex64)
+    >>> torch.linalg.matrix_rank(A)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, hermitian=True)
+    tensor([[3, 3, 3, 3],
+            [3, 3, 3, 3]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0)
+    tensor([[3, 2, 2, 2],
+            [1, 2, 1, 2]])
+    >>> torch.linalg.matrix_rank(A, atol=1.0, rtol=0.0, hermitian=True)
+    tensor([[2, 2, 2, 1],
+            [1, 2, 2, 2]])
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (If atol or rtol is a tensor, then the dtype of A should match the dtype of singular values of A)
+{v_1 : tensor, v_2 : tensor} |= if (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) then dtype_(v_2) = dtype_(v_1) else if (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) then dtype_(v_2) = dtype_(v_1) else false
+** SUCCESS **
+

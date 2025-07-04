@@ -1,0 +1,42 @@
+>>
+Rule 1 (Target tensor should have Long data type when containing class indices)
+{v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0) ∧ min(v_2) ≥ 0 then dtype_(v_2) = 4
+>>
+Rule 2 (Input and target tensors should have compatible batch sizes)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 3 (Weight tensor should have the correct number of classes)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then shape(v_3, 0) = shape(v_2, 1)
+>>
+Rule 4 (label_smoothing should be between 0 and 1 if specified)
+{v_1 : float} |= if v_1 > 0 then v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 5 (ignore_index should be within the valid range of target if specified)
+{v_2 : tensor, v_1 : int} |= if v_1 ≠ -100 then v_1 ≥ min(v_2) ∧ v_1 < max(v_2)
+>>
+Rule 6 (Reduction should be one of the allowed strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+>>
+Rule 7 (Input tensor must have floating point dtype)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 8 (If target is class indices, it should be non-negative)
+{v_1 : tensor} |= if dtype_(v_1) = 4 then min(v_1) ≥ 0
+>>
+Rule 9 (If target is class probabilities, each value should be between 0 and 1)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 4 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+>>
+Rule 10 (if target is indices, it should be less than the number of classes.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 4 then max(v_2) < shape(v_1, 1)
+>>
+Rule 11 (input tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 12 (If weight is specified then it should be a tensor)
+{v_3 : tensor} |= if ndim(v_3) > 0 then true
+>>
+Rule 13 (If target is indices, it should have the correct number of classes.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 4 ∧ ndim(v_2) > 0 then max(v_2) < shape(v_1, 1)
+>>
+Rule 14 (If target is class probabilities, it must have the same shape as the input)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) ≠ 4 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)

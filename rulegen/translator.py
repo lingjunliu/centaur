@@ -116,12 +116,24 @@ def write_rules(dir, rules_file):
                 os.remove(rules_filename)
             print(f"Function template creation failed for rule {rule_number}\n{e}")
             continue
-        create_func_body(rule_number, rule_def, var_map, var_types, rules_filename)
+        try:
+            create_func_body(rule_number, rule_def, var_map, var_types, rules_filename)
+        except Exception as e:
+            if os.path.exists(rules_filename):
+                os.remove(rules_filename)
+            print(f"Function body creation failed for rule {rule_number}\n{e}")
+            continue
 
 def main():
-    dir = "../rules"
-    rules_file = "rules"
-    write_rules(dir, rules_file)
+    base_dir = os.path.abspath("../rules")
+    rules_file = "rules-ebnf"
+
+    for entry in os.listdir(base_dir):
+        sub_path = os.path.join(base_dir, entry)
+        if os.path.isdir(sub_path):
+            rule_path = os.path.join(sub_path, rules_file)
+            if os.path.exists(rule_path):
+                write_rules(sub_path, rule_path)
 
 if __name__ == "__main__":
     main()

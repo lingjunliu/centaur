@@ -1,0 +1,24 @@
+>>
+Rule 1 (input tensors must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (input tensors must have compatible dtypes, excluding complex types)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 9 ∧ (dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 8) ∨ (dtype_(v_1) < 6 ∧ dtype_(v_2) < 6))
+>>
+Rule 3 (if out is specified, it must have the same shape and dtype as input tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_3, 0) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) ∧ dtype_(v_1) = dtype_(v_3) ∧ shape(v_2, 0) = shape(v_3, 0) ∧ ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 4 (tensor must have a non-complex dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 5 (If one of the inputs has zero dimensions, the other must also have zero dimensions at the same index)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (i ≥ ndim(v_1) ∨ i ≥ ndim(v_2)) ∨ ((shape(v_1, i) = 0 ∧ shape(v_2, i) = 0) ∨ (shape(v_1, i) ≠ 0 ∧ shape(v_2, i) ≠ 0))
+>>
+Rule 6 (Broadcasting is valid)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)] : (i < ndim(v_1) ∧ i < ndim(v_2) ∧ (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1)) ∨ (i ≥ ndim(v_1) ∨ i ≥ ndim(v_2))
+>>
+Rule 7 (at least one input tensor is not empty)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 8 (If input tensors have different number of dimensions, the smaller dimension tensor should have shape equals to 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then (∀i ∈ [0, ndim(v_1) - ndim(v_2) -1]: shape(v_1, i) = 1) else if ndim(v_2) > ndim(v_1) then (∀i ∈ [0, ndim(v_2) - ndim(v_1) -1]: shape(v_2, i) = 1)

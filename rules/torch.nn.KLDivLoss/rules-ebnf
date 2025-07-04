@@ -1,0 +1,51 @@
+>>
+Rule 1 (Input and target tensors for KLDivLoss should have the same shape when reduction is not 'none')
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 2 (Input and target tensors should have floating point dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 3 (If log_target is true, then the target tensor values must also be in log space. In practice, this means they should not be probabilities between 0 and 1.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) ≤ 0
+>>
+Rule 4 (If reduction is 'batchmean', input tensor must have at least one dimension.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "batchmean" then ndim(v_1) ≥ 1
+>>
+Rule 5 (If log_target is false, then the target tensor minimum value must be greater or equal to 0)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) ≥ 0
+>>
+Rule 6 (If reduction is sum or batchmean, all elements in the target tensor should be finite.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "sum" ∨ v_2 = "batchmean" then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 7 (Reduction should be one of "none", "mean", "sum", "batchmean")
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "batchmean"
+>>
+Rule 8 (When log_target is False, the input tensor v_1 should contain only log-probabilities (<=0), or when log_target is True, v_1 should contain values in range [0,1].)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) <= 0 else (min(v_1) >= 0 ∧ max(v_1) <= 1)
+>>
+Rule 9 (When target is provided in log-space (log_target=True), the input tensor should have minimum value less than -10)
+{v_1 : tensor, v_3 : bool} |= if v_3 = true then min(v_1) < -10
+>>
+Rule 10 (When log_target is True, the target tensor should have values between 0 and 1)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)
+>>
+Rule 11 (The input and target tensors' values should result in finite loss)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 12 (When reduction is "none", the output shape should be the same as the input and target shapes)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 13 (If reduction is not 'none', the output should be a scalar)
+{v_1 : tensor, v_2 : str} |= if v_2 ≠ "none" then ndim(v_1) = 0
+>>
+Rule 14 (If log_target is True, the target tensor should contain negative values indicating log probabilities)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) <= 0
+>>
+Rule 15 (If reduction is "batchmean", the first dimension size of input tensor must be greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "batchmean" then shape(v_1, 0) > 0
+>>
+Rule 16 (The input tensor must have finite values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 17 (If reduction is 'mean' or 'batchmean', the input tensor cannot have any dimensions of size 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "mean" ∨ v_2 = "batchmean" then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0

@@ -1,0 +1,57 @@
+>>
+Rule 1 (Output tensor's dtype should be the same as input tensor's dtype if provided.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (The input tensor must have floating point or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 3 (The output tensor should have the same shape as the input tensor when provided.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 4 (Input tensor cannot be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 5 (The input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 6 (If output tensor is provided, it must have a floating-point or complex dtype)
+{v_2 : tensor} |= if v_2 ≠ "none" then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 7 (If out is provided, it cannot be of integer type.)
+{v_2 : tensor} |= if v_2 ≠ "none" then (dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5)
+>>
+Rule 8 (If out is provided, its dtype must be compatible with input's dtype)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then (if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10))
+>>
+Rule 9 (If out is provided, its memory layout should be compatible with the input's memory layout, which is hard to represent without more specific functions. This can be approximated by checking the number of elements)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then (shape(v_1,0)*shape(v_1,1) = shape(v_2,0)*shape(v_2,1))
+>>
+Rule 10 (If out is provided, its requires_grad must be false)
+{v_2 : tensor} |= if v_2 ≠ "none" then false
+>>
+Rule 11 (If out is provided, it must have the same device as input.)
+{v_2 : tensor} |= if v_2 ≠ "none" then true
+>>
+Rule 12 (If out is provided, it must not be complex if input is float)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then (if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10))
+>>
+Rule 13 (If out is provided, its layout (represented simplistically by the sum of dimension sizes) must be at least as large as input, when input is floating point)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then (if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (shape(v_1,0)+shape(v_1,1) ≤ shape(v_2,0)+shape(v_2,1)))
+>>
+Rule 14 (If out is provided, number of elements in out should be greater or equal than number of elements in input.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ shape(v_2, i))
+>>
+Rule 15 (If out is provided, and input is complex, then out should also be complex.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then (if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10))
+>>
+Rule 16 (The out tensor should not be of bool or string type.)
+{v_2 : tensor} |= if v_2 ≠ "none" then (dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11)
+>>
+Rule 17 (Expit API cannot accept empty tensor.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 18 (The maximum value of the floating point input tensor should not exceed certain limit.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) < 65500 else if dtype_(v_1) = 7 then max(v_1) < 3.4028235e+38 else if dtype_(v_1) = 8 then max(v_1) < 1.7976931348623157e+308
+>>
+Rule 19 (The minimum value of the floating point input tensor should not fall below a certain limit, if dtype is float16 to avoid overflow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65500

@@ -1,0 +1,78 @@
+>>
+Rule 1 (result tensor's dtype should be compatible with input tensor's dtype for torch.log_)
+{v_1 : tensor, v_2 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5 else if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8 else false
+>>
+Rule 2 (Input tensor for log_ must have floating point or complex dtype)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+>>
+Rule 3 (Elements of input tensor for log_ must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : min(v_1) ≥ 0
+>>
+Rule 4 (If output tensor is provided, it must have the same shape as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 5 (If input is complex, output must be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+>>
+Rule 6 (Shape of input tensor must be within reasonable limits)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+>>
+Rule 7 (If out is provided and has a non-complex float dtype, then input must also have a non-complex float dtype)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 8 (Elements of input tensor for log_ should be finite)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : max(v_1) < 1000000 ∧ min(v_1) > -1000000
+>>
+Rule 9 (Check for inf or nan values in the input tensor)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1,0)-1] : min(v_1) ≠ min(v_1) ∨ max(v_1) ≠ max(v_1)
+>>
+Rule 10 (Check that if the input tensor's minimum value is zero, then the output tensor must be set to negative infinity)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 then min(v_2) < -1000000
+>>
+Rule 11 (If any element in the input tensor is zero, the corresponding element in output tensor must be negative infinity or -inf )
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] = 0 then v_2[i] < -1000000
+>>
+Rule 12 (If out tensor is provided, its values must be within a reasonable range for float type)
+{v_1 : tensor} |= min(v_1) > -10000000 ∧ max(v_1) < 10000000
+>>
+Rule 13 (The out tensor is not int or bool type)
+{v_1 : tensor} |= dtype_(v_1) > 5
+>>
+Rule 14 (If any value in the tensor is a NaN, then the corresponding output is NaN)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] ≠ v_1[i] then v_2[i] ≠ v_2[i]
+>>
+Rule 15 (If input tensor is float16, out tensor must be at least float16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+>>
+Rule 16 (When any element of input tensor is positive infinity then its equivalent element in the out tensor must also be positive infinity )
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : if v_1[i] > 1000000 then v_2[i] > 1000000
+>>
+Rule 17 (If the input tensor has dimension greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 18 (The out tensor should contain float type values if the input is finite)
+{v_1 : tensor, v_2 : tensor} |= if (max(v_1) < 1000000 ∧ min(v_1) > -1000000) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 19 (If the output is not provided and input has dtype float16, then output dtype must be at least float32 to avoid precision issues)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 20 (If out is provided and its dtype is complex64, then input dtype should be at least float32, otherwise, loss of precision can happen.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 10 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+>>
+Rule 21 (If the out tensor is provided and is complex128, the minimum dtype should be float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 11 then dtype_(v_1) = 8
+>>
+Rule 22 (If input tensor contains only the value 1, then the output tensor can be all zeros, if the output is pre-allocated)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 1 ∧ max(v_1) = 1 then (min(v_2) = 0 ∧ max(v_2) = 0)
+>>
+Rule 23 (If all elements in the input are positive, then the max of the output should be less than 10)
+{v_1 : tensor} |= if min(v_1) > 0 then max(v_1) < 10
+>>
+Rule 24 (If the min value is greater than zero)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 25 (The shape of the input should be less than or equal to 1024)
+{v_1 : tensor} |= shape(v_1,0) ≤ 1024
+>>
+Rule 26 (if min of the input is not 0 then max of the output cannot be negative infinity)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) ≠ 0 then max(v_2) ≠ -1000000

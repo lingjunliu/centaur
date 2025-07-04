@@ -1,0 +1,45 @@
+>>
+Rule 1 (x and y should have the same dtype, and out should be None or a tensor with the same dtype as x and y)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ str} |= dtype_(v_1) = dtype_(v_2) ∧ (v_3 = "none" ∨ dtype_(v_1) = dtype_(v_3))
+>>
+Rule 2 (x and y should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float16" ∧ dtype_(v_2) = "float16") ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "complex64" ∧ dtype_(v_2) = "complex64") ∨ (dtype_(v_1) = "complex128" ∧ dtype_(v_2) = "complex128") ∨ (dtype_(v_1) = "float16" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float16")
+>>
+Rule 3 (x and y shapes are compatible for broadcasting along dim)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_1) = ndim(v_2)) ∧ (-1 * ndim(v_1) ≤ v_3 ∧ v_3 ≤ ndim(v_1) - 1)
+>>
+Rule 4 (x and y must have floating point or complex dtype)
+{v_1 : tensor, v_2 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11)
+>>
+Rule 5 (The last dimension of x and y should be the same)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+>>
+Rule 6 (if out is provided, it must have a floating point or complex dtype)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+>>
+Rule 7 (if out is provided, its shape must be broadcastable with the result of vecdot(x,y,dim))
+{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+>>
+Rule 8 (x and y should have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 9 (out, if provided, has one less dimension than input tensors)
+{v_1 : tensor, v_2 : tensor ⊎ str, v_3 : tensor} |= (v_2 = "none") ∨ (ndim(v_3) = ndim(v_1) - 1)
+>>
+Rule 10 (If out is not None, its shape must be compatible with the result's shape after reduction along dim.)
+{v_1 : tensor, v_2 : int, v_3 : tensor ⊎ str} |= (v_3 = "none") ∨ (∀i ∈ [0, ndim(v_1) - 2] : if i < v_2 then shape(v_1, i) = shape(v_3, i) else shape(v_1, i + 1) = shape(v_3, i))
+>>
+Rule 11 (x and y shapes are broadcastable)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) > ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1) ∨ (ndim(v_2) > ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_1, i) = 1)
+>>
+Rule 12 (If `dim` is provided, it must be an integer and a valid dimension for reduction)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 13 (Output must be a Tensor, if provided.)
+{v_1 : tensor ⊎ str} |= (v_1 = "none") ∨ (dtype_(v_1) = dtype_(v_1))
+>>
+Rule 14 (If `out` is provided, the last dimension of x must equal the last dimension of `out` if `dim` != -1.)
+{v_1 : tensor, v_2 : int, v_3 : tensor ⊎ str} |= (v_3 = "none") ∨ (v_2 = -1) ∨ (shape(v_1, ndim(v_1) - 1) = shape(v_3, ndim(v_3) -1))
+>>
+Rule 15 (x and y must have same number of elements if dim is None.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)

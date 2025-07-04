@@ -1,0 +1,45 @@
+>>
+Rule 1 (input and index tensors must have the same number of dimensions, and index tensor must have int64 dtype)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ dtype_(v_2) = 4
+>>
+Rule 2 (dim argument must be within the valid range of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 3 (for all dimensions d != dim, index.size(d) <= input.size(d))
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_3, i) ≤ shape(v_1, i)
+>>
+Rule 4 (index tensor elements must be within the bounds of input tensor along dimension dim)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) < shape(v_1, v_2)
+>>
+Rule 5 (index tensor and input tensor must have same shape except for the dimension dim)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_1, i) = shape(v_3, i)
+>>
+Rule 6 (If dim is negative, it should be translated to a positive dimension)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ 0
+>>
+Rule 7 (output tensor has the same shape as index tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 8 (if sparse_grad is True, input tensor must have floating point dtype)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 9 (if dim is None, it means dim = 0)
+{v_1 : tensor, v_2 : int ⊎ str} |= if v_2 = "none" then 0 < ndim(v_1)
+>>
+Rule 10 (If output tensor is provided, it must have the same dtype as input tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 11 (The values in index tensor must be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 12 (if dim is larger than or equal to ndim(input), the code will fail)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 13 (The maximum value in index tensor must be less than the size of input tensor at the selected dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= max(v_3) < shape(v_1, v_2)
+>>
+Rule 14 (if sparse_grad is true, input tensor dtype can not be integer)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) ≠ 1) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 3) ∧ (dtype_(v_1) ≠ 4) ∧ (dtype_(v_1) ≠ 5)
+>>
+Rule 15 (If dim is negative, it should be converted to a positive dimension, and dim must be less than ndim(input))
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (v_2 + ndim(v_1) ≥ 0) ∧ (v_2 + ndim(v_1) < ndim(v_1)) else (v_2 ≥ 0) ∧ (v_2 < ndim(v_1))

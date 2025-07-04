@@ -1,0 +1,39 @@
+>>
+Rule 1 (Scalar value in quantized multiplication should not be NaN or infinite)
+{v_1 : float} |= v_1 < 100000000000 ∧ v_1 > -100000000000
+>>
+Rule 2 (Scalar value in quantized multiplication should be within a reasonable range for numerical stability)
+{v_1 : float} |= v_1 > -10000 ∧ v_1 < 10000
+>>
+Rule 3 (If the scalar is an integer, it should be within the representable range of the quantized tensor's dtype, if applicable)
+{v_1 : int} |= v_1 > -2147483648 ∧ v_1 < 2147483647
+>>
+Rule 4 (The scalar's type should be consistent with the tensor's dtype if the tensor's dtype is specified)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 1 then v_2 < 2147483647 ∧ v_2 > -2147483648 else if dtype_(v_1) = 7 then true
+>>
+Rule 5 (The tensor should have a defined dtype to allow for scaling)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 6 (The scale of the quantized tensor should be a positive number.)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 7 (The zero point of the quantized tensor should be within the representable range of the dtype.)
+{v_1 : tensor} |= min(v_1) ≥ -128 ∧ max(v_1) <= 127
+>>
+Rule 8 (The scalar should not cause overflow when multiplied with the quantized tensor elements)
+{v_1 : tensor, v_2 : float ⊎ int} |= ∀i ∈ [0, shape(v_1,0) -1] : v_1[i] * v_2 < 2147483647 ∧ v_1[i] * v_2 > -2147483648
+>>
+Rule 9 (The scalar's absolute value should be small enough to preserve precision when multiplied with the quantized tensor)
+{v_2 : float ⊎ int} |= v_2 < 1000 ∧ v_2 > -1000
+>>
+Rule 10 (If a scalar is provided, the resulting tensor's dtype must be representable)
+{v_1: tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 1 then v_2 > -128 ∧ v_2 < 127
+>>
+Rule 11 (If a scalar is provided, the resulting tensor values will not wrap around after multiplication)
+{v_1: tensor, v_2: int ⊎ float} |= if dtype_(v_1) = 5 then v_2 < 255 ∧ v_2 > -255
+>>
+Rule 12 (A scalar should be a number string)
+{v_1 : str} |= v_1 = "0" ∨ v_1 = "1" ∨ v_1 = "2" ∨ v_1 = "3" ∨ v_1 = "4" ∨ v_1 = "5" ∨ v_1 = "6" ∨ v_1 = "7" ∨ v_1 = "8" ∨ v_1 = "9"
+>>
+Rule 13 (The scalar should be of the same complex type as the tensor if the tensor is complex.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then true

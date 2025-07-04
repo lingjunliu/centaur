@@ -1,0 +1,3409 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 1 (The input dtype must be a floating point dtype)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (If dtype is float16, the corresponding complex dtype is complex32)
+{v_1 : dtype} |= if v_1 = 6 then 9 = 9
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If dtype is float32, the corresponding complex dtype is complex64)
+{v_1 : dtype} |= if v_1 = 7 then 10 = 10
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 4 (If dtype is float64, the corresponding complex dtype is complex128)
+{v_1 : dtype} |= if v_1 = 8 then 11 = 11
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 5 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 5 (Dtype must be one of the allowed floating point types)
+{v_1 : dtype} |= (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 6 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 6 (If a Python float is used to construct a tensor without a dtype, the resulting tensor has dtype v_1)
+{v_1 : dtype} |= if v_1 = 6 then true else if v_1 = 7 then true else if v_1 = 8 then true else false
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 7 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 7 (Dtype can be float16, float32, or float64)
+{v_1 : dtype} |= (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8) ∧ v_1 ≠ 12
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 8 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 8 (Setting dtype to v_1 will affect tensors created without explicit dtype)
+{v_1 : dtype, v_2 : tensor} |= if dtype_(v_2) = 0 then true else dtype_(v_2) ≠ v_1
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 9 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 9 (v_1 being default dtype influences the dtype of new tensor v_2)
+{v_1 : dtype, v_2 : tensor} |= if dtype_(v_2) = 7 then v_1 = 7 else if dtype_(v_2) = 6 then v_1 = 6 else if dtype_(v_2) = 8 then v_1 = 8
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 10 (Interaction between default dtype and tensor dtype promotion)
+{v_1 : dtype, v_2 : tensor, v_3 : float} |= if v_1 = 8 then if dtype_(v_2) = 0 then true
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_3
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 10 (Interaction between default dtype and tensor dtype promotion)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 8 then if dtype_(v_2) = 0 then true
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 11 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 11 (The complex dtype derived from v_1 affects tensors with complex numbers)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 6 then if dtype_(v_2) = 10 then true else false else if v_1 = 7 then if dtype_(v_2) = 10 then true else false else if v_1 = 8 then if dtype_(v_2) = 11 then true else false
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 12 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 12 (The type promotion between bool/int and Python float/complex number depends on default dtype v_1)
+{v_1 : dtype, v_2 : tensor, v_3 : float} |= if v_1 = 6 then if dtype_(v_2) = 6 then true else if v_1 = 7 then if dtype_(v_2) = 7 then true else if v_1 = 8 then if dtype_(v_2) = 8 then true
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_3
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 12 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 12 (The type promotion between bool/int and Python float/complex number depends on default dtype v_1)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 6 then if dtype_(v_2) = 6 then true else if v_1 = 7 then if dtype_(v_2) = 7 then true else if v_1 = 8 then if dtype_(v_2) = 8 then true
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 13 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (When v_1 is set, python float turns into this type)
+{v_1 : dtype} |= (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8)
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+This rule already exists. Please generate a more diverse and novel rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 13 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (If dtype is set to bfloat16, an exception should be raised)
+{v_1 : dtype} |= v_1 ≠ 13
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 14 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 14 (set_default_dtype only accept floating point dtype)
+{v_1 : dtype} |= (v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8)
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+This rule already exists. Please generate a more diverse and novel rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 14 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 14 (v_1 is affected when python float or complex is used for new tensors without specified dtypes)
+{v_1 : dtype} |= if v_1 = 6 then true else if v_1 = 7 then true else if v_1 = 8 then true
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 15 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (when v_1 is not float16/32/64, it is invalid)
+{v_1 : dtype} |= not ((v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8))
+** PARSING ERROR ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '(' in the current parser context, at line 1 col 22
+
+{v_1 : dtype} |= not ((v_1 = 6) ∨ (v_1 = 7) ∨ (v_1 = 8))
+                     ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 15 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (set_default_dtype does not accept bool, int, or str)
+{v_1 : dtype} |= v_1 ≠ 0 ∧ v_1 ≠ 1 ∧ v_1 ≠ 2 ∧ v_1 ≠ 3 ∧ v_1 ≠ 4 ∧ v_1 ≠ 5 ∧ v_1 ≠ 12
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 16 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 16 (if tensor has explicit dtype, it should not be changed by set_default_dtype)
+{v_1 : dtype, v_2 : tensor} |= if dtype_(v_2) ≠ 0 then true
+** REDUNDANT VARIABLES ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 16 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 16 (if tensor has explicit dtype, it should not be changed by set_default_dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 17 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 17 (The initial default floating point dtype is torch.float32 (7))
+{v_1 : dtype} |= v_1 = 7
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 18 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 18 (Setting v_1 changes how tensors are created)
+{v_1 : dtype, v_2 : float} |= if v_1 = 6 then shape(v_2) = 6 else if v_1 = 7 then shape(v_2) = 7 else if v_1 = 8 then shape(v_2) = 8
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 19 that torch.set_default_dtype API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Sets the default floating point dtype to :attr:`d`. Supports floating point dtype
+    as inputs. Other dtypes will cause torch to raise an exception.
+
+    When PyTorch is initialized its default floating point dtype is torch.float32,
+    and the intent of set_default_dtype(torch.float64) is to facilitate NumPy-like
+    type inference. The default floating point dtype is used to:
+
+    1. Implicitly determine the default complex dtype. When the default floating type is float16,
+       the default complex dtype is complex32. For float32, the default complex dtype is complex64.
+       For float64, it is complex128. For bfloat16, an exception will be raised because
+       there is no corresponding complex type for bfloat16.
+    2. Infer the dtype for tensors constructed using Python floats or complex Python
+       numbers. See examples below.
+    3. Determine the result of type promotion between bool and integer tensors and
+       Python floats and complex Python numbers.
+
+    Args:
+        d (:class:`torch.dtype`): the floating point dtype to make the default.
+
+    Example:
+        >>> # xdoctest: +SKIP("Other tests may have changed the default type. Can we reset it?")
+        >>> # initial default for floating point is torch.float32
+        >>> # Python floats are interpreted as float32
+        >>> torch.tensor([1.2, 3]).dtype
+        torch.float32
+        >>> # initial default for floating point is torch.complex64
+        >>> # Complex Python numbers are interpreted as complex64
+        >>> torch.tensor([1.2, 3j]).dtype
+        torch.complex64
+
+        >>> torch.set_default_dtype(torch.float64)
+        >>> # Python floats are now interpreted as float64
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float64
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex128
+
+        >>> torch.set_default_dtype(torch.float16)
+        >>> # Python floats are now interpreted as float16
+        >>> torch.tensor([1.2, 3]).dtype  # a new floating point tensor
+        torch.float16
+        >>> # Complex Python numbers are now interpreted as complex128
+        >>> torch.tensor([1.2, 3j]).dtype  # a new complex tensor
+        torch.complex32
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 19 (After setting the default dtype, all new float tensors have this type.)
+{v_1 : dtype, v_2 : tensor} |= if dtype_(v_2) = 0 then true else false
+** REDUNDANT VARIABLES ** (num_failures: 7)
+

@@ -1,0 +1,72 @@
+>>
+Rule 1 (input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 2 (dtype can be None or a valid dtype)
+{v_1 : tensor, v_2 : dtype ⊎ str} |= (v_2 = "none") ∨ (dtype_(v_1) = v_2)
+>>
+Rule 3 (requires_grad is a boolean)
+{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+>>
+Rule 4 (if requires_grad is true, dtype must be floating point or complex)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 5 (shape of input tensor is same as shape of output tensor)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 6 (if input tensor has a particular dimension size then another tensor must have the same dimension size)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > v_3 ∧ ndim(v_2) > v_3 then shape(v_1, v_3) = shape(v_2, v_3)
+>>
+Rule 7 (if input is int type then other variable cannot be string)
+{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 = "none"
+>>
+Rule 8 (memory_format is string and valid value)
+{v_1 : str} |= (v_1 = "preserve_format") ∨ (v_1 = "contiguous_format") ∨ (v_1 = "channels_last")
+>>
+Rule 9 (If dtype is specified, it must be a valid dtype)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+>>
+Rule 10 (If the input's dtype is complex, then requires_grad should be false)
+{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = false
+>>
+Rule 11 (If input has dtype int8, int16, int32 or int64 then output's dtype can not be boolean)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_2 ≠ 0
+>>
+Rule 12 (If input has dtype bool, then output's dtype must also be bool)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 = 0
+>>
+Rule 13 (input tensor's dtype cannot be string type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 14 (If dtype is specified, it should be compatible with the input tensor)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 12 then true else dtype_(v_1) = 12
+>>
+Rule 15 (memory_format can be 'torch.preserve_format', 'torch.contiguous_format' or 'torch.channels_last')
+{v_1 : str} |= v_1 = "torch.preserve_format" ∨ v_1 = "torch.contiguous_format" ∨ v_1 = "torch.channels_last"
+>>
+Rule 16 (if dtype is none, output's dtype should be same as input tensor's dtype)
+{v_1 : tensor, v_2 : str, v_3 : dtype} |= if v_2 = "none" then dtype_(v_1) = v_3
+>>
+Rule 17 (If layout is specified, it should be a valid layout)
+{v_1 : str} |= v_1 = "strided" ∨ v_1 = "sparse_coo" ∨ v_1 = "none"
+>>
+Rule 18 (if input is complex type then output tensor should be complex type)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = 9 ∨ v_2 = 10
+>>
+Rule 19 (If device is specified, then dtype needs to be specified)
+{v_1: str, v_2 : dtype} |= if v_1 ≠ "none" then v_2 ≠ 12
+>>
+Rule 20 (if input tensor has a small number of elements, then output cannot require gradients)
+{v_1 : tensor, v_2 : bool} |= if (shape(v_1, 0) * shape(v_1, 1) < 10) then v_2 = false
+>>
+Rule 21 (layout can be none or a valid layout string, and if specified, ndim of input must be > 0)
+{v_1 : tensor, v_2 : str} |= (v_2 = "none") ∨ (v_2 = "strided" ∧ ndim(v_1) > 0) ∨ (v_2 = "sparse_coo" ∧ ndim(v_1) > 0)
+>>
+Rule 22 (if device is not none, layout also cannot be none)
+{v_1 : str, v_2 : str} |= if v_1 ≠ "none" then v_2 ≠ "none"
+>>
+Rule 23 (If layout is sparse_coo, then dtype needs to be int64)
+{v_1: str, v_2 : dtype} |= if v_1 = "sparse_coo" then v_2 = 4
+>>
+Rule 24 (memory_format must be preserve_format, contiguous_format or channels_last string, and ndim of the input must be 2 or 3 if channels_last is specified)
+{v_1 : str, v_2 : tensor} |= (v_1 = "torch.preserve_format") ∨ (v_1 = "torch.contiguous_format") ∨ (v_1 = "torch.channels_last" ∧ (ndim(v_2) = 2 ∨ ndim(v_2) = 3))

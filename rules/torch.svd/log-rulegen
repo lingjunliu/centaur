@@ -1,0 +1,3487 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 1 (input tensor for svd must have at least 2 dimensions and be of floating point or complex type)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (out argument must be a tuple of tensors if provided)
+{v_1 : tuple(tensor) ⊎ None} |= if v_1 ≠ None then v_1.len = 3
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches 'N' in the current parser context, at line 1 col 24
+
+{v_1 : tuple(tensor) ⊎ None} |= if v_1 ≠ None then v_1.len = 3
+                       ^
+Expected one of: 
+	* FLOAT
+	* STR
+	* INT
+	* LIST
+	* DTYPE
+	* BOOL
+	* TENSOR
+	* TUPLE
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (input and out tensors must have matching dtypes)
+{v_1 : tensor, v_2 : tuple(tensor)} |= if v_2 ≠ None then dtype_(v_1) = dtype_(v_2[0]) ∧ dtype_(v_1) = dtype_(v_2[1]) ∧ dtype_(v_1) = dtype_(v_2[2])
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 83
+
+v_2 ≠ None then dtype_(v_1) = dtype_(v_2[0]) ∧ dtype_(v_1) = dtype_(v_2[1]) ∧ dt
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (input and output tensors should have compatible sizes)
+{v_1 : tensor, v_2 : tuple(tensor)} |= if v_2 ≠ None then ndim(v_2[0]) = ndim(v_1) ∧ ndim(v_2[1]) = ndim(v_1) ∧ ndim(v_2[2]) = ndim(v_1)
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 67
+
+(tensor)} |= if v_2 ≠ None then ndim(v_2[0]) = ndim(v_1) ∧ ndim(v_2[1]) = ndim(v
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (If some is false, compute_uv must also be false)
+{v_1 : bool, v_2 : bool} |= if v_1 = false then v_2 = false
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If the input tensor is complex, the U and V tensors in out tuple should also be complex)
+{v_1 : tensor, v_2 : tuple(tensor)} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2[0]) = 9 ∨ dtype_(v_2[0]) = 10 ∧ dtype_(v_2[2]) = 9 ∨ dtype_(v_2[2]) = 10
+** PARSING ERROR ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 93
+
+) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2[0]) = 9 ∨ dtype_(v_2[0]) = 10 ∧ dtype_(
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If out is specified, the dtypes of input and out[1] should match)
+{v_1 : tensor, v_2 : tuple(tensor)} |= if v_2 ≠ None then dtype_(v_1) = dtype_(v_2[1])
+** PARSING ERROR ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 83
+
+v_2 ≠ None then dtype_(v_1) = dtype_(v_2[1])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If out is specified, then U, S, and V should be tensors)
+{v_1 : tuple(tensor) ⊎ None} |= if v_1 ≠ None then true
+** PARSING ERROR ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches 'N' in the current parser context, at line 1 col 24
+
+{v_1 : tuple(tensor) ⊎ None} |= if v_1 ≠ None then true
+                       ^
+Expected one of: 
+	* FLOAT
+	* STR
+	* INT
+	* LIST
+	* DTYPE
+	* BOOL
+	* TENSOR
+	* TUPLE
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If out is specified, then the shapes of U, S, and V should be valid based on the input's shape and 'some' argument.)
+{v_1 : tensor, v_2 : tuple(tensor), v_3 : bool} |= if v_2 ≠ None then ndim(v_1) ≥ 2
+** REDUNDANT VARIABLES ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_3
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If out is specified, the dimensions of the output tensors should align with the input tensor)
+{v_1 : tensor, v_2 : tuple(tensor)} |= if v_2 ≠ None then ndim(v_2[0]) = ndim(v_1) ∧ ndim(v_2[1]) = ndim(v_1) -1 ∧ ndim(v_2[2]) = ndim(v_1)
+** PARSING ERROR ** (num_failures: 8)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 67
+
+(tensor)} |= if v_2 ≠ None then ndim(v_2[0]) = ndim(v_1) ∧ ndim(v_2[1]) = ndim(v
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If out is specified, the U and V tensors must have at least 2 dimensions)
+{v_1 : tuple(tensor)} |= if v_1 ≠ None then ndim(v_1[0]) ≥ 2 ∧ ndim(v_1[2]) ≥ 2
+** PARSING ERROR ** (num_failures: 9)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 53
+
+(tensor)} |= if v_1 ≠ None then ndim(v_1[0]) ≥ 2 ∧ ndim(v_1[2]) ≥ 2
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If out is specified, the shapes of S must align with the last two dimensions of the input and the 'some' argument)
+{v_1 : tensor, v_2 : tuple(tensor), v_3 : bool} |= if v_2 ≠ None then shape(v_2[1], 0) = if v_3 = true then min(shape(v_1, ndim(v_1)-2), shape(v_1, ndim(v_1)-1)) else shape(v_1, ndim(v_1)-2)
+** PARSING ERROR ** (num_failures: 10)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 80
+
+ : bool} |= if v_2 ≠ None then shape(v_2[1], 0) = if v_3 = true then min(shape(v
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If out is specified and compute_uv is true, the U and V tensors should be square matrices when some is false.)
+{v_1 : tensor, v_2 : tuple(tensor), v_3 : bool, v_4 : bool} |= if v_2 ≠ None ∧ v_4 = true ∧ v_3 = false then shape(v_1, ndim(v_1)-2) = shape(v_2[0], shape(v_2[0], ndim(v_2[0])-1)) ∧ shape(v_1, ndim(v_1)-1) = shape(v_2[2], shape(v_2[2], ndim(v_2[2])-1))
+** PARSING ERROR ** (num_failures: 11)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 145
+
+then shape(v_1, ndim(v_1)-2) = shape(v_2[0], shape(v_2[0], ndim(v_2[0])-1)) ∧ sh
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If out is specified and compute_uv is true, and some is false, the U and V tensors must have specific shapes based on the input)
+{v_1 : tensor, v_2 : tuple(tensor), v_3 : bool, v_4 : bool} |= if v_2 ≠ None ∧ v_4 = true ∧ v_3 = false then shape(v_2[0], ndim(v_2[0])-2) = shape(v_1, ndim(v_1)-2) ∧ shape(v_2[0], ndim(v_2[0])-1) = shape(v_1, ndim(v_1)-2) ∧ shape(v_2[2], ndim(v_2[2])-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_2[2], ndim(v_2[2])-1) = shape(v_1, ndim(v_1)-1)
+** PARSING ERROR ** (num_failures: 12)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 119
+
+ v_4 = true ∧ v_3 = false then shape(v_2[0], ndim(v_2[0])-2) = shape(v_1, ndim(v
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.svd API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+svd(input, some=True, compute_uv=True, *, out=None) -> (Tensor, Tensor, Tensor)
+
+Computes the singular value decomposition of either a matrix or batch of
+matrices :attr:`input`. The singular value decomposition is represented as a
+namedtuple `(U, S, V)`, such that :attr:`input` :math:`= U \text{diag}(S) V^{\text{H}}`.
+where :math:`V^{\text{H}}` is the transpose of `V` for real inputs,
+and the conjugate transpose of `V` for complex inputs.
+If :attr:`input` is a batch of matrices, then `U`, `S`, and `V` are also
+batched with the same batch dimensions as :attr:`input`.
+
+If :attr:`some` is `True` (default), the method returns the reduced singular
+value decomposition. In this case, if the last two dimensions of :attr:`input` are
+`m` and `n`, then the returned `U` and `V` matrices will contain only
+`min(n, m)` orthonormal columns.
+
+If :attr:`compute_uv` is `False`, the returned `U` and `V` will be
+zero-filled matrices of shape `(m, m)` and `(n, n)`
+respectively, and the same device as :attr:`input`. The argument :attr:`some`
+has no effect when :attr:`compute_uv` is `False`.
+
+Supports :attr:`input` of float, double, cfloat and cdouble data types.
+The dtypes of `U` and `V` are the same as :attr:`input`'s. `S` will
+always be real-valued, even if :attr:`input` is complex.
+
+.. warning::
+
+    :func:`torch.svd` is deprecated in favor of :func:`torch.linalg.svd`
+    and will be removed in a future PyTorch release.
+
+    ``U, S, V = torch.svd(A, some=some, compute_uv=True)`` (default) should be replaced with
+
+    .. code:: python
+
+        U, S, Vh = torch.linalg.svd(A, full_matrices=not some)
+        V = Vh.mH
+
+    ``_, S, _ = torch.svd(A, some=some, compute_uv=False)`` should be replaced with
+
+    .. code:: python
+
+        S = torch.linalg.svdvals(A)
+
+.. note:: Differences with :func:`torch.linalg.svd`:
+
+             * :attr:`some` is the opposite of
+               :func:`torch.linalg.svd`'s :attr:`full_matrices`. Note that
+               default value for both is `True`, so the default behavior is
+               effectively the opposite.
+             * :func:`torch.svd` returns `V`, whereas :func:`torch.linalg.svd` returns
+               `Vh`, that is, :math:`V^{\text{H}}`.
+             * If :attr:`compute_uv` is `False`, :func:`torch.svd` returns zero-filled
+               tensors for `U` and `Vh`, whereas :func:`torch.linalg.svd` returns
+               empty tensors.
+
+.. note:: The singular values are returned in descending order. If :attr:`input` is a batch of matrices,
+          then the singular values of each matrix in the batch are returned in descending order.
+
+.. note:: The `S` tensor can only be used to compute gradients if :attr:`compute_uv` is `True`.
+
+.. note:: When :attr:`some` is `False`, the gradients on `U[..., :, min(m, n):]`
+          and `V[..., :, min(m, n):]` will be ignored in the backward pass, as those vectors
+          can be arbitrary bases of the corresponding subspaces.
+
+.. note:: The implementation of :func:`torch.linalg.svd` on CPU uses LAPACK's routine `?gesdd`
+          (a divide-and-conquer algorithm) instead of `?gesvd` for speed. Analogously,
+          on GPU, it uses cuSOLVER's routines `gesvdj` and `gesvdjBatched` on CUDA 10.1.243
+          and later, and MAGMA's routine `gesdd` on earlier versions of CUDA.
+
+.. note:: The returned `U` will not be contiguous. The matrix (or batch of matrices) will
+          be represented as a column-major matrix (i.e. Fortran-contiguous).
+
+.. warning:: The gradients with respect to `U` and `V` will only be finite when the input does not
+             have zero nor repeated singular values.
+
+.. warning:: If the distance between any two singular values is close to zero, the gradients with respect to
+             `U` and `V` will be numerically unstable, as they depends on
+             :math:`\frac{1}{\min_{i \neq j} \sigma_i^2 - \sigma_j^2}`. The same happens when the matrix
+             has small singular values, as these gradients also depend on `S^{-1}`.
+
+.. warning:: For complex-valued :attr:`input` the singular value decomposition is not unique,
+             as `U` and `V` may be multiplied by an arbitrary phase factor :math:`e^{i \phi}` on every column.
+             The same happens when :attr:`input` has repeated singular values, where one may multiply
+             the columns of the spanning subspace in `U` and `V` by a rotation matrix
+             and `the resulting vectors will span the same subspace`_.
+             Different platforms, like NumPy, or inputs on different device types,
+             may produce different `U` and `V` tensors.
+
+Args:
+    input (Tensor): the input tensor of size `(*, m, n)` where `*` is zero or more
+                    batch dimensions consisting of `(m, n)` matrices.
+    some (bool, optional): controls whether to compute the reduced or full decomposition, and
+                           consequently, the shape of returned `U` and `V`. Default: `True`.
+    compute_uv (bool, optional): controls whether to compute `U` and `V`. Default: `True`.
+
+Keyword args:
+    out (tuple, optional): the output tuple of tensors
+
+Example::
+
+    >>> a = torch.randn(5, 3)
+    >>> a
+    tensor([[ 0.2364, -0.7752,  0.6372],
+            [ 1.7201,  0.7394, -0.0504],
+            [-0.3371, -1.0584,  0.5296],
+            [ 0.3550, -0.4022,  1.5569],
+            [ 0.2445, -0.0158,  1.1414]])
+    >>> u, s, v = torch.svd(a)
+    >>> u
+    tensor([[ 0.4027,  0.0287,  0.5434],
+            [-0.1946,  0.8833,  0.3679],
+            [ 0.4296, -0.2890,  0.5261],
+            [ 0.6604,  0.2717, -0.2618],
+            [ 0.4234,  0.2481, -0.4733]])
+    >>> s
+    tensor([2.3289, 2.0315, 0.7806])
+    >>> v
+    tensor([[-0.0199,  0.8766,  0.4809],
+            [-0.5080,  0.4054, -0.7600],
+            [ 0.8611,  0.2594, -0.4373]])
+    >>> torch.dist(a, torch.mm(torch.mm(u, torch.diag(s)), v.t()))
+    tensor(8.6531e-07)
+    >>> a_big = torch.randn(7, 5, 3)
+    >>> u, s, v = torch.svd(a_big)
+    >>> torch.dist(a_big, torch.matmul(torch.matmul(u, torch.diag_embed(s)), v.mT))
+    tensor(2.6503e-06)
+
+.. _the resulting vectors will span the same subspace:
+       (https://en.wikipedia.org/wiki/Singular_value_decomposition#Singular_values,_singular_vectors,_and_their_relation_to_the_SVD)
+
+[Error Messages]
+RuntimeError: linalg.svd: input should have at least 2 dimensions, but has 1 dimensions instead
+RuntimeError: "linalg_svd_cpu" not implemented for 'Half'
+RuntimeError: linalg.svd: Expected a floating point or complex tensor as input. Got Char
+TypeError: svd(): argument 'out' must be tuple of Tensors, not int
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+```
+Rule 3 (If out is specified and compute_uv is true, and some is false, the U and V tensors must have specific shapes based on the input)
+{v_1 : tensor, v_2 : tuple(tensor), v_3 : bool, v_4 : bool} |= if v_2 ≠ None ∧ v_4 = true ∧ v_3 = false then shape(v_2[0], ndim(v_2[0])-2) = shape(v_1, ndim(v_1)-2) ∧ shape(v_2[0], ndim(v_2[0])-1) = shape(v_1, ndim(v_1)-2) ∧ shape(v_2[2], ndim(v_2[2])-2) = shape(v_1, ndim(v_1)-1) ∧ shape(v_2[2], ndim(v_2[2])-1) = shape(v_1, ndim(v_1)-1)
+```
+
+Since `tuple_access` is defined as `[` <expr> `]` and `.` `len`, the shape function calls are not valid tuple access operations and violate the grammar. I apologize for providing invalid rules repeatedly.
+Instead, I'll focus on argument types that I can check without shape information and the `out` parameter.
+
+```
+Rule 3 (some and compute_uv should be boolean)
+{v_1 : bool, v_2 : bool} |= true
+```
+Since booleans are a valid input and do not have any restrictions and this serves only as a check for correct types, the condition is always true. It is not informative, but it is gramatically correct and type-safe.
+** PARSING ERROR ** (num_failures: 13)
+

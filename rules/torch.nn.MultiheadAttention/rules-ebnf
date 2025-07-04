@@ -1,0 +1,57 @@
+>>
+Rule 1 (embed_dim and num_heads must be greater than 0)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 2 (dropout probability should be between 0 and 1 inclusive)
+{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
+>>
+Rule 3 (If query is batched 3D, key_padding_mask should be None or 2D)
+{v_1 : tensor, v_2 : tensor ⊎ str} |= if ndim(v_1) = 3 then (v_2 = "none" ∨ ndim(v_2) = 2)
+>>
+Rule 4 (kdim and vdim should be equal to embed_dim if they are not None)
+{v_1 : int, v_2 : int ⊎ str, v_3 : int ⊎ str} |= if v_2 ≠ "none" then v_2 = v_1 ∧ if v_3 ≠ "none" then v_3 = v_1
+>>
+Rule 5 (embed_dim must be divisible by num_heads)
+{v_1 : int, v_2 : int} |= v_1 / v_2 * v_2 = v_1
+>>
+Rule 6 (attn_mask dtype should be bool or float or match query dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_2) = 0) ∨ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∨ (dtype_(v_2) = dtype_(v_1))
+>>
+Rule 7 (key_padding_mask only supports bool and floating types)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+>>
+Rule 8 (if batch_first is True, input and output tensors are provided as (batch, seq, feature))
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) = 3
+>>
+Rule 9 (The shape of the 2D attn_mask is (S, S) or (N*num_heads, S, S) )
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1)) ∨ (ndim(v_1) = 3 ∧ shape(v_1, 1) = shape(v_1, 2) ∧ shape(v_1, 0) = v_2 * v_3)
+>>
+Rule 10 (query should be unbatched 2D or batched 3D tensor)
+{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
+>>
+Rule 11 (If attn_mask is specified, need is_causal hint)
+{v_1 : tensor, v_2 : bool} |= if v_1 ≠ "none" then v_2 = true
+>>
+Rule 12 (embed_dim cannot be a negative dimension)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 13 (scaled_dot_product_attention_flash_attention: Currently do not support dropout > 0 if flash attention is used)
+{v_1 : float} |= v_1 = 0.0
+>>
+Rule 14 (Sizes of tensors must match except in dimension 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∃i ∈ [1, ndim(v_1) -1] : shape(v_1, i) = shape(v_2, i) else false
+>>
+Rule 15 (shape of key weights should be (E,E))
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 2 ∧ shape(v_1, 0) = v_2 ∧ shape(v_1, 1) = v_2
+>>
+Rule 16 (The shape of the 2D attn_mask should be (S, S) or (N*num_heads, S, S) and N*num_heads can not be overflow)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1)) ∨ (ndim(v_1) = 3 ∧ shape(v_1, 1) = shape(v_1, 2) ∧ (v_2 * v_3) / v_2 = v_3)
+>>
+Rule 17 (Input dtypes must be the same)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 18 (batch_first is boolean type)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 19 (value cannot be converted to type int8_t without overflow)
+{v_1 : int} |= v_1 > -128 ∧ v_1 < 127

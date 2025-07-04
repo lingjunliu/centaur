@@ -1,0 +1,2236 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 31 (kernel_size must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 32 (stride must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 33 (dilation must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 34 (kernel_size must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 35 (stride must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 36 (padding must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 37 (dilation must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 38 (return_indices must be a boolean value)
+{v_1 : bool} |= true ∨ false
+
+Rule 39 (ceil_mode must be a boolean value)
+{v_1 : bool} |= true ∨ false
+
+Rule 40 (input tensor must be 4D or 5D)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 36
+
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_
+                                   ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* THEN
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 31 (kernel_size must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 32 (stride must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 33 (dilation must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 34 (kernel_size must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 35 (stride must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 36 (padding must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 37 (dilation must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 38 (return_indices must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+Rule 39 (ceil_mode must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+Rule 40 (input tensor must be 4D or 5D)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+
+Rule 41 (If kernel_size is a tuple, all elements must be greater than 0)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+
+Rule 42 (If stride is a tuple, all elements must be greater than 0)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+
+Rule 43 (If padding is a tuple, all elements must be greater than or equal to 0)
+{v_1 : tuple(int)} |= v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 ∧ v_1[2] ≥ 0
+
+Rule 44 (If dilation is a tuple, all elements must be greater than 0)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 36
+
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_
+                                   ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* THEN
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 31 (kernel_size must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 32 (stride must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 33 (dilation must be greater than zero)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 34 (kernel_size must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 35 (stride must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 36 (padding must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 37 (dilation must be int or tuple of three ints)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then true else v_1.len = 3
+
+Rule 38 (return_indices must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+Rule 39 (ceil_mode must be a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+
+Rule 40 (input tensor must be 4D or 5D)
+{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+
+Rule 41 (If kernel_size is a tuple, all elements must be greater than 0)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+
+Rule 42 (If stride is a tuple, all elements must be greater than 0)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+
+Rule 43 (If padding is a tuple, all elements must be greater than or equal to 0)
+{v_1 : tuple(int)} |= v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 ∧ v_1[2] ≥ 0
+
+Rule 44 (If dilation is a tuple, all elements must be greater than 0)
+{v_1 : tuple(int)} |= v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+
+Rule 45 (If kernel_size is an int, it must be greater than 0)
+{v_1 : int} |= v_1 > 0
+
+Rule 46 (If stride is an int, it must be greater than 0)
+{v_1 : int} |= v_1 > 0
+
+Rule 47 (If padding is an int, it must be greater than or equal to 0)
+{v_1 : int} |= v_1 ≥ 0
+
+Rule 48 (If dilation is an int, it must be greater than 0)
+{v_1 : int} |= v_1 > 0
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 36
+
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1[0] > 0 ∧ v_
+                                   ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* THEN
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 49 (kernel_size validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 50 (stride validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 51 (padding validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 ≥ 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 ∧ v_1[2] ≥ 0)
+
+Rule 52 (dilation validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+** PARSING ERROR ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 34
+
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v
+                                 ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* RPAR
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 49 (kernel_size validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 50 (stride validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 51 (padding validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 ≥ 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 ∧ v_1[2] ≥ 0)
+
+Rule 52 (dilation validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 53 (Kernel size is valid)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+** PARSING ERROR ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 34
+
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v
+                                 ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* RPAR
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 49 (kernel_size validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 50 (stride validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 51 (padding validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 ≥ 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] ≥ 0 ∧ v_1[1] ≥ 0 ∧ v_1[2] ≥ 0)
+
+Rule 52 (dilation validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 53 (kernel_size is valid)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 54 (Type of kernel_size is valid)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int) ∨ (v_1 : tuple(int) ∧ v_1.len = 3)
+** PARSING ERROR ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 34
+
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v
+                                 ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* RPAR
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 55 (kernel_size is a valid int or a valid tuple)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+** PARSING ERROR ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 34
+
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v
+                                 ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* RPAR
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 55 (kernel_size is a valid int or a valid tuple)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+
+Rule 56 (kernel_size requirements)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+** PARSING ERROR ** (num_failures: 8)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 34
+
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v
+                                 ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* RPAR
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+```
+Rule 57 (kernel_size type and value validation)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+```
+** PARSING ERROR ** (num_failures: 9)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 36
+
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1 : tuple(int
+                                   ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* THEN
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+```
+Rule 57 (kernel_size type and value validation)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+```
+** PARSING ERROR ** (num_failures: 10)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 36
+
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1.len = 3 ∧ v
+                                   ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* THEN
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+```
+Rule 58 (kernel_size type and value validation)
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+```
+** PARSING ERROR ** (num_failures: 11)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 34
+
+{v_1 : int ⊎ tuple(int)} |= (v_1 : int ∧ v_1 > 0) ∨ (v_1 : tuple(int) ∧ v
+                                 ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* COMPOP
+	* LSQB
+	* RPAR
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.nn.MaxPool3d API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+Applies a 3D max pooling over an input signal composed of several input planes.
+
+    In the simplest case, the output value of the layer with input size :math:`(N, C, D, H, W)`,
+    output :math:`(N, C, D_{out}, H_{out}, W_{out})` and :attr:`kernel_size` :math:`(kD, kH, kW)`
+    can be precisely described as:
+
+    .. math::
+        \begin{aligned}
+            \text{out}(N_i, C_j, d, h, w) ={} & \max_{k=0, \ldots, kD-1} \max_{m=0, \ldots, kH-1} \max_{n=0, \ldots, kW-1} \\
+                                              & \text{input}(N_i, C_j, \text{stride[0]} \times d + k,
+                                                             \text{stride[1]} \times h + m, \text{stride[2]} \times w + n)
+        \end{aligned}
+
+    If :attr:`padding` is non-zero, then the input is implicitly padded with negative infinity on both sides
+    for :attr:`padding` number of points. :attr:`dilation` controls the spacing between the kernel points.
+    It is harder to describe, but this `link`_ has a nice visualization of what :attr:`dilation` does.
+
+    Note:
+        When ceil_mode=True, sliding windows are allowed to go off-bounds if they start within the left padding
+        or the input. Sliding windows that would start in the right padded region are ignored.
+
+    The parameters :attr:`kernel_size`, :attr:`stride`, :attr:`padding`, :attr:`dilation` can either be:
+
+        - a single ``int`` -- in which case the same value is used for the depth, height and width dimension
+        - a ``tuple`` of three ints -- in which case, the first `int` is used for the depth dimension,
+          the second `int` for the height dimension and the third `int` for the width dimension
+
+    Args:
+        kernel_size: the size of the window to take a max over
+        stride: the stride of the window. Default value is :attr:`kernel_size`
+        padding: Implicit negative infinity padding to be added on all three sides
+        dilation: a parameter that controls the stride of elements in the window
+        return_indices: if ``True``, will return the max indices along with the outputs.
+                        Useful for :class:`torch.nn.MaxUnpool3d` later
+        ceil_mode: when True, will use `ceil` instead of `floor` to compute the output shape
+
+    Shape:
+        - Input: :math:`(N, C, D_{in}, H_{in}, W_{in})` or :math:`(C, D_{in}, H_{in}, W_{in})`.
+        - Output: :math:`(N, C, D_{out}, H_{out}, W_{out})` or :math:`(C, D_{out}, H_{out}, W_{out})`, where
+
+          .. math::
+              D_{out} = \left\lfloor\frac{D_{in} + 2 \times \text{padding}[0] - \text{dilation}[0] \times
+                (\text{kernel\_size}[0] - 1) - 1}{\text{stride}[0]} + 1\right\rfloor
+
+          .. math::
+              H_{out} = \left\lfloor\frac{H_{in} + 2 \times \text{padding}[1] - \text{dilation}[1] \times
+                (\text{kernel\_size}[1] - 1) - 1}{\text{stride}[1]} + 1\right\rfloor
+
+          .. math::
+              W_{out} = \left\lfloor\frac{W_{in} + 2 \times \text{padding}[2] - \text{dilation}[2] \times
+                (\text{kernel\_size}[2] - 1) - 1}{\text{stride}[2]} + 1\right\rfloor
+
+    Examples::
+
+        >>> # pool of square window of size=3, stride=2
+        >>> m = nn.MaxPool3d(3, stride=2)
+        >>> # pool of non-square window
+        >>> m = nn.MaxPool3d((3, 2, 2), stride=(2, 1, 2))
+        >>> input = torch.randn(20, 16, 50, 44, 31)
+        >>> output = m(input)
+
+    .. _link:
+        https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
+
+[Error Messages]
+RuntimeError: non-empty 4D or 5D (batch mode) tensor expected for input
+RuntimeError: pad should be at most half of effective kernel size, but got pad=0, kernel_size=-3 and dilation=1
+RuntimeError: stride should be greater than zero, but got dT: -2 dH: -2 dW: -2
+RuntimeError: stride should not be zero
+RuntimeError: max_pool3d: kernel_size must either be a single int, or a tuple of three ints
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+```
+Rule 59 (kernel_size validation)
+{v_1 : int ⊎ tuple(int)} |= if v_1 : int then v_1 > 0 else (v_1.len = 3 ∧ v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0)
+```
+** PARSING ERROR ** (num_failures: 12)
+

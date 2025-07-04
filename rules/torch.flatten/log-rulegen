@@ -1,0 +1,2829 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 1 (start_dim should be less than or equal to end_dim, and both should be within the valid dimension range of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ v_3 ∧ v_2 ≥ -ndim(v_1) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ -ndim(v_1) ∧ v_3 < ndim(v_1)
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '-' in the current parser context, at line 1 col 59
+
+ : int, v_3 : int} |= v_2 ≤ v_3 ∧ v_2 ≥ -ndim(v_1) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ -nd
+                                        ^
+Expected one of: 
+	* VAR
+	* SIGNED_NUMBER
+	* TRUE
+	* FUNC
+	* FALSE
+	* ESCAPED_STRING
+	* LPAR
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 1 (start_dim should be less than or equal to end_dim, and both should be within the valid dimension range of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ v_3 ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (If start_dim is equal to end_dim, the number of dimensions of input tensor should be greater than 0)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = v_3 then ndim(v_1) > 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (If end_dim is -1, it means the last dimension, hence ndim of input must be larger than 0)
+{v_1 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_1) > 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 4 (If start_dim and end_dim are valid dimension indices, then start_dim should not come after end_dim when both converted to positive indices)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then (if v_2 < 0 then v_2 + ndim(v_1) else v_2) ≤ (if v_3 < 0 then v_3 + ndim(v_1) else v_3)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 5 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 5 (if start_dim is zero, then for any end_dim, end_dim should be less than ndim of input)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 then v_3 < ndim(v_1)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 6 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 6 (If the number of dimensions is 0, then start_dim and end_dim should both be 0 or -1)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 0 then (v_2 = 0 ∨ v_2 = -1) ∧ (v_3 = 0 ∨ v_3 = -1)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 7 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 7 (If start_dim is a valid dimension, the corresponding shape should be greater than 0)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) > 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 8 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 8 (If the input tensor is a 0-dimensional tensor, the result is a 1-dimensional tensor)
+{v_1 : tensor} |= if ndim(v_1) = 0 then ∃i ∈ [0, 0] : shape(v_1, i) = 1
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 9 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 9 (The flattened tensor's size is the product of the shapes from start_dim to end_dim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then ∃i ∈ [0, 0] : shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) = (if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 10 (if start_dim and end_dim are the same, then all other dimensions are kept the same)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = v_3 then true else ∃i ∈ [0, 0] : shape(v_1, i) = 1
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 11 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 11 (If the input tensor is empty, then start_dim and end_dim don't matter.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_2, v_3
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 11 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 11 (If the input tensor is empty, then start_dim and end_dim don't matter.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 12 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 12 (if start_dim and end_dim are specified and are valid, then the flattened size must be the product of dimensions from start_dim to end_dim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then (if v_2 < 0 then v_2 + ndim(v_1) else v_2) ≤ (if v_3 < 0 then v_3 + ndim(v_1) else v_3)
+** DUPLICATED RULE ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+This rule already exists. Please generate a more diverse and novel rule.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 12 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 12 (if the input tensor only has one dimension, then start_dim must be 0 and end_dim can only be 0 or -1)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 1 then v_2 = 0 ∧ (v_3 = 0 ∨ v_3 = -1)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 13 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (if end_dim is equal to -1, it is always valid)
+{v_1 : tensor, v_3 : int} |= if v_3 = -1 then true else v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 14 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 14 (the absolute value of the difference between start_dim and end_dim must be less than ndim of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then (v_2 - v_3) < ndim(v_1) ∧ (v_3 - v_2) < ndim(v_1)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 15 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (If the size of dimension specified by start_dim is 0, the size of flattened tensor must be 0)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) = 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 16 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 16 (If start_dim is not 0, all dimensions before start_dim are unchanged)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then ∃i ∈ [0, v_2 - 1] : shape(v_1, i) > 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 17 that torch.flatten API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+flatten(input, start_dim=0, end_dim=-1) -> Tensor
+
+Flattens :attr:`input` by reshaping it into a one-dimensional tensor. If :attr:`start_dim` or :attr:`end_dim`
+are passed, only dimensions starting with :attr:`start_dim` and ending with :attr:`end_dim` are flattened.
+The order of elements in :attr:`input` is unchanged.
+
+Unlike NumPy's flatten, which always copies input's data, this function may return the original object, a view,
+or copy. If no dimensions are flattened, then the original object :attr:`input` is returned. Otherwise, if input can
+be viewed as the flattened shape, then that view is returned. Finally, only if the input cannot be viewed as the
+flattened shape is input's data copied. See :meth:`torch.Tensor.view` for details on when a view will be returned.
+
+.. note::
+    Flattening a zero-dimensional tensor will return a one-dimensional view.
+
+Args:
+    input (Tensor): the input tensor.
+    start_dim (int): the first dim to flatten
+    end_dim (int): the last dim to flatten
+
+Example::
+
+    >>> t = torch.tensor([[[1, 2],
+    ...                    [3, 4]],
+    ...                   [[5, 6],
+    ...                    [7, 8]]])
+    >>> torch.flatten(t)
+    tensor([1, 2, 3, 4, 5, 6, 7, 8])
+    >>> torch.flatten(t, start_dim=1)
+    tensor([[1, 2, 3, 4],
+            [5, 6, 7, 8]])
+
+[Error Messages]
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+IndexError: Dimension out of range (expected to be in range of [-1, 0], but got 1)
+RuntimeError: flatten() has invalid args: start_dim cannot come after end_dim
+TypeError: flatten() received an invalid combination of arguments - got (numpy.int64, end_dim=int, start_dim=int), but expected one of:
+ * (Tensor input, int start_dim, int end_dim, name out_dim)
+ * (Tensor input, int start_dim = 0, int end_dim = -1)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+ * (Tensor input, name start_dim, name end_dim, name out_dim)
+ * (Tensor input, tuple of names dims, name out_dim)
+      didn't match because some of the keywords were incorrect: end_dim, start_dim
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 17 (If ndim is zero, then flatten returns a tensor of size 1)
+{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1,0) = 1
+** SUCCESS **
+

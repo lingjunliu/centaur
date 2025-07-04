@@ -1,0 +1,33 @@
+>>
+Rule 1 (input tensors for copysign must have broadcastable shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 2 (input tensor for copysign must have a numeric (int or float) dtype)
+{v_1 : tensor} |= (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+>>
+Rule 3 (Input tensor must not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 4 (If 'other' is zero, input tensor cannot contain NaN)
+{v_1 : tensor, v_2 : int ⊎ float} |= if v_2 = 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 5 (If 'other' is a tensor, dtypes of input and other must match)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 6 (Input tensor min/max values for integer types must be within a reasonable range)
+{v_1 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then min(v_1) ≥ -10000 ∧ max(v_1) ≤ 10000
+>>
+Rule 7 (Single-element tensors have identical min and max values)
+{v_1 : tensor} |= if (ndim(v_1) = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 ∧ ndim(v_1) = 1) then min(v_1) = max(v_1)
+>>
+Rule 8 (if other is positive float, minimum of the resulting tensor should be non-negative)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then min(v_1) ≥ 0
+>>
+Rule 9 (If 'other' tensor has fewer dimensions, all its dimensions should be 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1
+>>
+Rule 10 (If input is a scalar, other cannot be a vector)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) ≠ 1
+>>
+Rule 11 (If input tensor is float16, then the maximum absolute value is below 1000)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then max(v_1) ≤ 1000 ∧ min(v_1) ≥ -1000

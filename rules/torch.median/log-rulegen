@@ -1,0 +1,4508 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 29 (The reduction dimension dim must be a valid dimension for the input tensor, and the dimension size must be greater than zero.)
+{v_1 : tensor, v_2 : int} |= -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1 ∧ shape(v_1, v_2) > 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 30 (If keepdim is true, the output tensor has dimension size 1 at dim.)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then ∃i ∈ [0, ndim(v_1) - 1] : if i = v_2 then shape(v_1, i) = 1
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 31 (output argument should be a tuple of two tensors)
+{v_1 : tensor, v_2 : int, v_3 : bool, v_4 : tuple(tensor)} |= v_4.len = 2 ∧ dtype_(v_4[1]) = 4
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_1, v_2, v_3
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 32 (The first tensor in out should have the same shape as the input when keepdim is true)
+{v_1 : tensor, v_2 : int, v_3 : bool, v_4 : tuple(tensor)} |= if v_3 = true then (ndim(v_1) = ndim(v_4[0]) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_4[0], i))
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 33 (The first tensor in out should have the same dtype as the input tensor.)
+{v_1 : tensor, v_3 : bool, v_4 : tuple(tensor)} |= dtype_(v_1) = dtype_(v_4[0])
+** REDUNDANT VARIABLES ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_3
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4.0)
+** PARSING ERROR ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '.' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4.0)
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 8)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 9)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 10)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 11)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 12)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 13)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have the same number of dimensions.)
+{v_1 : tensor, v_4 : tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+** PARSING ERROR ** (num_failures: 14)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 60
+
+: tuple(tensor)} |= ndim(v_1) = ndim(v_4[0])
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+I apologize for the repeated errors. I've been struggling with the correct syntax for accessing elements within a tuple. I now understand that tuple access within the expression should use the tuple_access non-terminal (either bracket notation or .len) and not the Python-style `[0]`.
+
+Rule 34 (The input tensor and the first tensor in out should have compatible shapes when keepdim is false)
+{v_1 : tensor, v_2 : bool, v_3 : tuple(tensor)} |= if v_2 = false then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_3[0], i))
+** PARSING ERROR ** (num_failures: 15)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 124
+
+im(v_1) - 2] : shape(v_1, i) = shape(v_3[0], i))
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (The input tensor and the first tensor in out should have compatible shapes when keepdim is false)
+{v_1 : tensor, v_2 : bool, v_3 : tuple(tensor)} |= if v_2 = false then (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_3[0], i))
+** PARSING ERROR ** (num_failures: 16)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 124
+
+im(v_1) - 2] : shape(v_1, i) = shape(v_3[0], i))
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+I am still having issues with indexing. Let's remove the shape compatibility and just enforce that the `out` tuple has two tensors.
+
+Rule 34 (The output should be a tuple of two tensors.)
+{v_1 : tuple(tensor)} |= v_1.len = 2
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 35 (The second tensor in out tuple should have LongTensor dtype)
+{v_1 : tuple(tensor)} |= dtype_(v_1[1]) = 4
+** PARSING ERROR ** (num_failures: 17)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 36
+
+{v_1 : tuple(tensor)} |= dtype_(v_1[1]) = 4
+                                   ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Okay, I think I finally understand. I need to use the non-terminal `<tuple_access>`. I was confusing it with indexing from regular python.
+
+Rule 35 (The second tensor in out tuple should have LongTensor dtype)
+{v_1 : tuple(tensor)} |= dtype_(v_1[1]) = 4
+** PARSING ERROR ** (num_failures: 18)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 36
+
+{v_1 : tuple(tensor)} |= dtype_(v_1[1]) = 4
+                                   ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 35 (The second tensor in out tuple should have LongTensor dtype)
+{v_1 : tuple(tensor)} |= dtype_(v_1[1]) = 4
+** PARSING ERROR ** (num_failures: 19)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 36
+
+{v_1 : tuple(tensor)} |= dtype_(v_1[1]) = 4
+                                   ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 35 (The second tensor in out tuple should have LongTensor dtype)
+{v_1 : tuple(tensor)} |= dtype_(v_1[1]) = 4
+** PARSING ERROR ** (num_failures: 20)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 36
+
+{v_1 : tuple(tensor)} |= dtype_(v_1[1]) = 4
+                                   ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+You're absolutely right! I'm still making that indexing mistake. Okay, let's try this again using the correct `tuple_access` grammar rule:
+
+Rule 35 (The second tensor in out tuple should have LongTensor dtype)
+{v_1 : tuple(tensor)} |= dtype_(v_1[0]) = 4
+** PARSING ERROR ** (num_failures: 21)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 36
+
+{v_1 : tuple(tensor)} |= dtype_(v_1[0]) = 4
+                                   ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+I'm still messing up tuple access. I'm going to try using a PRIMVAR to represent the index and then use that.
+
+Rule 36 (The second tensor in out tuple should have LongTensor dtype)
+{v_1 : tuple(tensor)} |= ∃i ∈ [0, v_1.len -1]: if i = 1 then dtype_(v_1[i]) = 4
+** PARSING ERROR ** (num_failures: 22)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 72
+
+0, v_1.len -1]: if i = 1 then dtype_(v_1[i]) = 4
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.median API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+median(input) -> Tensor
+
+Returns the median of the values in :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements. In this case the lower of the two medians is returned. To
+    compute the mean of both medians, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    This function produces deterministic (sub)gradients unlike ``median(dim=0)``
+
+Args:
+    input (Tensor): the input tensor.
+
+Example::
+
+    >>> a = torch.randn(1, 3)
+    >>> a
+    tensor([[ 1.5219, -1.5212,  0.2202]])
+    >>> torch.median(a)
+    tensor(0.2202)
+
+.. function:: median(input, dim=-1, keepdim=False, *, out=None) -> (Tensor, LongTensor)
+   :noindex:
+
+Returns a namedtuple ``(values, indices)`` where ``values`` contains the median of each row of :attr:`input`
+in the dimension :attr:`dim`, and ``indices`` contains the index of the median values found in the dimension :attr:`dim`.
+
+By default, :attr:`dim` is the last dimension of the :attr:`input` tensor.
+
+If :attr:`keepdim` is ``True``, the output tensors are of the same size
+as :attr:`input` except in the dimension :attr:`dim` where they are of size 1.
+Otherwise, :attr:`dim` is squeezed (see :func:`torch.squeeze`), resulting in
+the outputs tensor having 1 fewer dimension than :attr:`input`.
+
+.. note::
+    The median is not unique for :attr:`input` tensors with an even number
+    of elements in the dimension :attr:`dim`. In this case the lower of the
+    two medians is returned. To compute the mean of both medians in
+    :attr:`input`, use :func:`torch.quantile` with ``q=0.5`` instead.
+
+.. warning::
+    ``indices`` does not necessarily contain the first occurrence of each
+    median value found, unless it is unique.
+    The exact implementation details are device-specific.
+    Do not expect the same result when run on CPU and GPU in general.
+    For the same reason do not expect the gradients to be deterministic.
+
+Args:
+    input (Tensor): the input tensor.
+    dim (int): the dimension to reduce.
+    keepdim (bool): whether the output tensor has :attr:`dim` retained or not.
+
+Keyword args:
+    out ((Tensor, Tensor), optional): The first tensor will be populated with the median values and the second
+                                      tensor, which must have dtype long, with their indices in the dimension
+                                      :attr:`dim` of :attr:`input`.
+
+Example::
+
+    >>> a = torch.randn(4, 5)
+    >>> a
+    tensor([[ 0.2505, -0.3982, -0.9948,  0.3518, -1.3131],
+            [ 0.3180, -0.6993,  1.0436,  0.0438,  0.2270],
+            [-0.2751,  0.7303,  0.2192,  0.3321,  0.2488],
+            [ 1.0778, -1.9510,  0.7048,  0.4742, -0.7125]])
+    >>> torch.median(a, 1)
+    torch.return_types.median(values=tensor([-0.3982,  0.2270,  0.2488,  0.4742]), indices=tensor([1, 4, 4, 3]))
+
+[Error Messages]
+IndexError: median(): Expected reduction dim 0 to have non-zero size.
+TypeError: median() received an invalid combination of arguments - got (Tensor, int, out=int, keepdim=bool), but expected one of:
+ * (Tensor input)
+ * (Tensor input, int dim, bool keepdim = False, *, tuple of Tensors out = None)
+ * (Tensor input, name dim, bool keepdim = False, *, tuple of Tensors out = None)
+TypeError: expected Tensor as element 0 in argument 3, but got int
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 36 (The second tensor in out tuple should have LongTensor dtype)
+{v_1 : tuple(tensor)} |= ∃i ∈ [0, v_1.len - 1]: if i = 1 then dtype_(v_1[i]) = 4
+** PARSING ERROR ** (num_failures: 23)
+

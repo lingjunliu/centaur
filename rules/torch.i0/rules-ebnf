@@ -1,0 +1,51 @@
+>>
+Rule 1 (input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 2 (input tensor dtype must be floating point or complex)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 3 (output tensor must have a floating point dtype, if provided)
+{v_2 : tensor} |= if v_2 = v_2 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 4 (if output tensor is provided, it must have the same shape as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = v_2 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 5 (if output tensor is provided, its dtype should match the output dtype of i0 given the input's dtype)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = v_2 then (if dtype_(v_1) = 6 then dtype_(v_2) = 6 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else dtype_(v_2) = 10)
+>>
+Rule 6 (input tensor's values should be within a reasonable range to avoid overflow)
+{v_1 : tensor} |= min(v_1) > -100 ∧ max(v_1) < 100
+>>
+Rule 7 (input tensor values cannot be NaN or Inf)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ (min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "Inf")
+>>
+Rule 8 (if input is complex, output must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then (if v_2 = v_2 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if dtype_(v_1) = 10 then (if v_2 = v_2 then dtype_(v_2) = 10)
+>>
+Rule 9 (Output tensor must be the same device as the input tensor, if provided)
+{v_2 : tensor} |= if v_2 = v_2 then true
+>>
+Rule 10 (if input is complex, the output tensor, if provided, should be complex, and the result of i0 will be real)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then (if v_2 = v_2 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if dtype_(v_1) = 10 then (if v_2 = v_2 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 11 (If output is provided, and input is float16, output should at least be float32 to avoid underflow)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (if v_2 = v_2 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 12 (if output is provided, and input is float32, output should at least be float32 to avoid underflow)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then (if v_2 = v_2 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 13 (if input is complex64, the output must be at least float32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then (if v_2 = v_2 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 14 (If output is provided, and input is complex128, output must be at least float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (if v_2 = v_2 then dtype_(v_2) = 8)
+>>
+Rule 15 (The input tensor should not have very large values which can lead to overflows in the computation.)
+{v_1 : tensor} |= max(v_1) < 1000
+>>
+Rule 16 (if input tensor is complex64, output must be at least float32, and real part must be finite)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then (if v_2 = v_2 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ min(v_2) ≠ "NaN" ∧ max(v_2) ≠ "Inf")
+>>
+Rule 17 (The shape of the input tensor must be within the allowed limits of the hardware, e.g., less than 2^31 in each dimension.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483648

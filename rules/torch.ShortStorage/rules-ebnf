@@ -1,0 +1,66 @@
+>>
+Rule 1 (The offset parameter should be a non-negative integer.)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 2 (The length parameter must be a positive integer.)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 3 (The product of shape dimensions of a tensor must be less than or equal to max value of int32)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (if ndim(v_1) = 0 then 1 else (if ndim(v_1) = 1 then shape(v_1, 0) else (if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) else (if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) else (if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) else 2147483647))))) ≤ 2147483647
+>>
+Rule 4 (If given a fill value, it should be convertible to the ShortStorage's dtype.)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 2 then -32768 ≤ v_2 ∧ v_2 ≤ 32767
+>>
+Rule 5 (If the storage is not shared, the new storage size must be greater than or equal to zero.)
+{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 ≥ 0
+>>
+Rule 6 (The given size must be an integer, and if a dimension is specified, it should be within the tensor's dimensions.)
+{v_1 : int, v_2 : tensor} |= if v_1 < ndim(v_2) then true else false
+>>
+Rule 7 (If a size is provided, it must be a non-empty tuple.)
+{v_1 : tuple(int)} |= v_1.len > 0
+>>
+Rule 8 (If the size is explicitly given, the provided number of elements must be within the allowed range for short tensors given the offset.)
+{v_1 : int, v_2 : int} |= (v_1 + v_2) ≤ 2147483647
+>>
+Rule 9 (When creating a ShortStorage from another storage, the source storage must have a valid size.)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 10 (When using the 'share_memory' option, both ShortStorages must have the same data type.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 11 (If sizes are passed directly, the resulting storage size must fit within the maximum ShortStorage size.)
+{v_1 : int} |= v_1 <= 2147483647
+>>
+Rule 12 (When a ShortStorage is created from a sequence, the elements of the sequence must be convertible to short integers.)
+{v_1 : list(int ⊎ float)} |= ∀i ∈ [0, v_1.len - 1] : -32768 ≤ v_1[i] ∧ v_1[i] ≤ 32767
+>>
+Rule 13 (When providing a size tuple, the product of the dimensions must fit within the maximum storage size.)
+{v_1 : tuple(int)} |= (if v_1.len = 0 then 1 else (if v_1.len = 1 then v_1[0] else (if v_1.len = 2 then v_1[0] * v_1[1] else (if v_1.len = 3 then v_1[0] * v_1[1] * v_1[2] else (if v_1.len = 4 then v_1[0] * v_1[1] * v_1[2] * v_1[3] else 2147483647))))) <= 2147483647
+>>
+Rule 14 (When constructing from another ShortStorage, the other ShortStorage should have elements that fall within the range of a short.)
+{v_1 : tensor} |= if dtype_(v_1) = 2 then min(v_1) >= -32768 ∧ max(v_1) <= 32767
+>>
+Rule 15 (When constructing a storage from a buffer, the offset must be within the bounds of the buffer.)
+{v_1 : int, v_2 : int} |= v_1 >= 0 ∧ v_1 <= v_2
+>>
+Rule 16 (When constructing a storage from a buffer, the size plus the offset must be less than or equal to the buffer's size.)
+{v_1 : int, v_2 : int, v_3 : int} |= (v_1 + v_2) ≤ v_3 ∧ v_1 >=0 ∧ v_2 >= 0
+>>
+Rule 17 (When constructing from a memory format tensor, the number of elements shouldn't be larger than max int.)
+{v_1 : tensor} |= shape(v_1, 0) <= 2147483647
+>>
+Rule 18 (The size of the short storage must be a valid int or long dtype.)
+{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
+>>
+Rule 19 (The new and old sizes must be non-negative.)
+{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+>>
+Rule 20 (If there is a storage offset, it shouldn't be larger than the requested size.)
+{v_1 : int, v_2 : int} |= v_1 <= v_2
+>>
+Rule 21 (If constructing the short storage from another storage and providing a size, that size must be smaller than the size of the initial storage.)
+{v_1 : tensor, v_2 : int} |= v_2 <= shape(v_1, 0)
+>>
+Rule 22 (If constructing from another ShortStorage with an offset, the offset must be less than or equal to the other ShortStorage's size.)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 0)

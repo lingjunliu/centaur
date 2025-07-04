@@ -1,0 +1,60 @@
+>>
+Rule 1 (size and stride tuples must have the same length)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+>>
+Rule 2 (all elements in size tuple should be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 3 (dtype should be a valid dtype index)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12
+>>
+Rule 4 (If size is empty, stride must also be empty)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len = 0 then v_2.len = 0
+>>
+Rule 5 (pin_memory is valid only when the device is CPU)
+{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 = "cpu"
+>>
+Rule 6 (If requires_grad is true, dtype should be float or complex)
+{v_1 : bool, v_2 : dtype} |= if v_1 = true then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10
+>>
+Rule 7 (size and stride cannot both be zero length if requires_grad is true.)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if v_3 = true then (v_1.len ≠ 0) ∨ (v_2.len ≠ 0)
+>>
+Rule 8 (Strides should be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 9 (Stride values should not be excessively large compared to size)
+{v_1 : tuple(int), v_2 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] > 0 then v_2[i] ≤ v_1[i] * 100
+>>
+Rule 10 (product of size should be less than max int)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] >= 0 ∧ (∃j ∈ [0, v_1.len - 1] : v_1[j] <= 2147483647)
+>>
+Rule 11 (If size and stride both have values, then for each dimension i, size[i]*element_size < stride[i], where element_size depends on dtype (simplified))
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 ∧ v_1.len = v_2.len then ∀i ∈ [0, v_1.len - 1] : v_1[i] * 1 < v_2[i]
+>>
+Rule 12 (If size has values, then element in size should not be zero when stride has the same length.)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 ∧ v_1.len = v_2.len then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+>>
+Rule 13 (if size and stride both have values, and if dimension i of size is 1, then stride[i] must also be 1)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 ∧ v_1.len = v_2.len then ∀i ∈ [0, v_1.len - 1] : if v_1[i] = 1 then v_2[i] = 1
+>>
+Rule 14 (if size and stride are given, requires_grad=true, and size[i] != 1, then stride[i] must be greater than zero)
+{v_1 : tuple(int), v_2 : tuple(int), v_3 : bool} |= if v_1.len > 0 ∧ v_2.len > 0 ∧ v_1.len = v_2.len ∧ v_3 = true then ∀i ∈ [0, v_1.len - 1] : if v_1[i] ≠ 1 then v_2[i] > 0
+>>
+Rule 15 (If layout is given, it should be equal to "strided")
+{v_1 : str} |= v_1 = "strided"
+>>
+Rule 16 (if device is cuda, pin_memory must be false.)
+{v_1 : str, v_2 : bool} |= if v_1 = "cuda" then v_2 = false
+>>
+Rule 17 (if size and stride lengths are both greater than zero, each element of size must have a corresponding element in stride, and vice versa.)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len
+>>
+Rule 18 (if any element in size is zero, then the product of all elements in stride must be zero)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] = 0) then (∀j ∈ [0, v_2.len - 1] : v_2[j] = 0)
+>>
+Rule 19 (If an element in size is very large, then the tensor shouldn't require grad to prevent integer overflow during calculation of autograd information)
+{v_1: tuple(int), v_2: bool} |= if (∃i ∈ [0, v_1.len - 1] : v_1[i] > 1000000000) then v_2 = false
+>>
+Rule 20 (If size is a very large tuple, it shouldn't require_grad to prevent memory issues)
+{v_1: tuple(int), v_2: bool} |= if v_1.len > 1000 then v_2 = false

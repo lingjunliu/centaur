@@ -1,0 +1,63 @@
+>>
+Rule 1 (dtype of input tensor and specified dtype for randn_like, if provided, should be compatible)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then dtype_(v_1) = v_2
+>>
+Rule 2 (input tensor must have a non-zero number of dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 3 (all dimensions of the input tensor's shape must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 4 (if requires_grad is specified, it must be a boolean value, and requires_grad cannot be true when input dtype is integer)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 5 (shape of the input tensor should be within reasonable bounds)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
+>>
+Rule 6 (input tensor must not be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 7 (shape of input tensor cannot be an empty tuple)
+{v_1 : tensor} |= ndim(v_1) ≠ 0
+>>
+Rule 8 (number of dimensions of input tensor should be less than a reasonable maximum)
+{v_1 : tensor} |= ndim(v_1) < 10
+>>
+Rule 9 (if dtype is complex, the input must also be complex)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 9 ∨ v_2 = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 10 (If the specified dtype is a floating point, then the shape values should be in a reasonable range.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
+>>
+Rule 11 (When dtype is specified as int8/16/32/64, each shape must be less than 256/65536/2^31/2^63 respectively to prevent overflow)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 256 else if v_2 = 2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 65536 else if v_2 = 3 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483648 else if v_2 = 4 then true
+>>
+Rule 12 (input tensor and optionally specified dtype have a compatible size)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ "none" then (if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8))
+>>
+Rule 13 (If the input tensor is complex, the specified dtype (if not none) also needs to be complex)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (v_2 = "none" ∨ v_2 = 9 ∨ v_2 = 10)
+>>
+Rule 14 (The sum of the dimensions of the input tensor cannot exceed a limit.)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, ndim(v_1) - 1] : i=j ∨ shape(v_1, i) + shape(v_1,j) < 1000))
+>>
+Rule 15 (If the specified dtype is a complex and input tensor dimensions greater than 2, then the product of last two dimension > 1.)
+{v_1 : tensor, v_2 : dtype} |= if (v_2 = 9 ∨ v_2 = 10) ∧ ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) * shape(v_1, ndim(v_1) - 2) > 1
+>>
+Rule 16 (If specified dtype is float16/32/64, input should not have shape values that are very high, otherwise the resulting memory footprint can be huge)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048)
+>>
+Rule 17 (if dtype is complex and ndim=1, shape value should be less than a maximum to prevent allocation errors)
+{v_1 : tensor, v_2 : dtype} |= if (v_2 = 9 ∨ v_2 = 10) ∧ ndim(v_1) = 1 then shape(v_1, 0) < 1000000
+>>
+Rule 18 (shape of the input cannot be too large to avoid integer overflow issues during memory allocation.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 46340
+>>
+Rule 19 (If specified dtype is a floating point type, sum of log2(shape_i) for each dimension shouldn't be too big.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 then ∃i ∈ [0, ndim(v_1) - 1] : 0 ≤ shape(v_1, i) ∧ shape(v_1, i) < 10000
+>>
+Rule 20 (if dtype is complex, at least one dimension should be greater than 1, to facilitate complex number representation.)
+{v_1 : tensor, v_2 : dtype} |= if (v_2 = 9 ∨ v_2 = 10) then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1)
+>>
+Rule 21 (if dtype isn't specified, the original tensor must still have valid dtype and its shape values should be within a limit)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 65536 ∧ (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)

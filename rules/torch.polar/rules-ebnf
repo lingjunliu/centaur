@@ -1,0 +1,57 @@
+>>
+Rule 1 (abs and angle must be float or double tensors with same dtype, and out dtype must be complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ dtype_(v_1) = dtype_(v_2) ∧ ((dtype_(v_1) = 7 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 11)))
+>>
+Rule 2 (abs and angle tensors must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) = 0 ∧ ndim(v_2) = 0)
+>>
+Rule 3 (abs tensor should not contain negative values)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 4 (out tensor is complex and has the same shape as abs)
+{v_1 : tensor, v_3 : tensor} |= (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∧ (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∨ (ndim(v_1) = 0 ∧ ndim(v_3) = 0)
+>>
+Rule 5 (if abs is float32, then out is complex64, else if abs is float64, then out is complex128)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_3) = 10 else if dtype_(v_1) = 8 then dtype_(v_3) = 11
+>>
+Rule 6 (angle tensor should not contain infinite values)
+{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0
+>>
+Rule 7 (if out is specified, its dtype must be complex)
+{v_3 : tensor} |= (dtype_(v_3) = 10) ∨ (dtype_(v_3) = 11)
+>>
+Rule 8 (angle tensor should not contain NaN values)
+{v_2 : tensor} |= min(v_2) = min(v_2)
+>>
+Rule 9 (abs tensor should not contain NaN values)
+{v_1 : tensor} |= min(v_1) = min(v_1)
+>>
+Rule 10 (the dimensions of abs and angle must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0
+>>
+Rule 11 (if one of abs or angle is empty the other one must also be empty)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∧ ∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) > 0)
+>>
+Rule 12 (the output tensor ndim should equal the input tensor ndim if inputs are non-scalar)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then ndim(v_3) = ndim(v_1)
+>>
+Rule 13 (the sum of the abs and angle tensor values should not overflow)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) + max(v_2) < 1000000000
+>>
+Rule 14 (if abs and angle are scalars, they must be of the same type as output)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_3) ∨ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 15 (abs and angle should not be bool or int tensors)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 1) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 3) ∧ (dtype_(v_1) ≠ 4) ∧ (dtype_(v_1) ≠ 5) ∧ (dtype_(v_2) ≠ 0) ∧ (dtype_(v_2) ≠ 1) ∧ (dtype_(v_2) ≠ 2) ∧ (dtype_(v_2) ≠ 3) ∧ (dtype_(v_2) ≠ 4) ∧ (dtype_(v_2) ≠ 5)
+>>
+Rule 16 (abs tensor values should be less than a maximum representable value)
+{v_1 : tensor} |= max(v_1) < 100000.0
+>>
+Rule 17 (the product of shape dimensions in abs should be less than a maximum allowed value)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000 ∨ (ndim(v_1) = 0)
+>>
+Rule 18 (if the shape of abs is [1, 1], then angle is not allowed to have a very large value)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = 1 ∧ shape(v_1, 1) = 1 then max(v_2) < 10000
+>>
+Rule 19 (if inputs are empty the output must have same dtype as it should for non-empty inputs)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0) then ((dtype_(v_1) = 7 ∧ dtype_(v_3) = 10) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_3) = 11))

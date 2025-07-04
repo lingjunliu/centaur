@@ -1,0 +1,39 @@
+>>
+Rule 1 (pad API parameter constraints)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str, v_4 : float} |= (ndim(v_1) ≥ (shape(v_2, 0) / 2)) ∧ ((shape(v_2, 0) / 2) * 2 = shape(v_2, 0)) ∧ (if v_3 = "replicate" ∨ v_3 = "circular" ∨ v_3 = "reflect" then ndim(v_1) ≤ 5) ∧ (if v_3 = "replicate" ∧ v_4 ≠ 0.0 then false)
+>>
+Rule 2 (pad API parameter constraints based on mode)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= if v_3 = "constant" then true else if v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular" then if ndim(v_1) = 2 then shape(v_2, 0) = 2 else if ndim(v_1) = 3 then shape(v_2, 0) = 2 ∨ shape(v_2, 0) = 4 else if ndim(v_1) = 4 then shape(v_2, 0) = 4 ∨ shape(v_2, 0) = 6 else if ndim(v_1) = 5 then shape(v_2, 0) = 6 else false else false
+>>
+Rule 3 (pad values should be within reasonable bounds based on tensor type)
+{v_1 : tensor, v_4 : float} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then -1000.0 ≤ v_4 ∧ v_4 ≤ 1000.0
+>>
+Rule 4 (mode validity check)
+{v_3 : str} |= v_3 = "constant" ∨ v_3 = "reflect" ∨ v_3 = "replicate" ∨ v_3 = "circular"
+>>
+Rule 5 (padding values within tuple should be non-negative)
+{v_2 : tuple(int)} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0
+>>
+Rule 6 (padding length not exceeding input dimension * 2)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_2, 0) ≤ ndim(v_1) * 2
+>>
+Rule 7 (Padding mode replicate requires value = 0)
+{v_3 : str, v_4 : float} |= if v_3 = "replicate" then v_4 = 0.0
+>>
+Rule 8 (If pad length is not according to ndim, it is invalid except constant)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= if (ndim(v_1) = 2 ∧ shape(v_2, 0) = 2) ∨ (ndim(v_1) = 2 ∧ shape(v_2, 0) = 4) ∨ (ndim(v_1) = 3 ∧ shape(v_2, 0) = 2) ∨ (ndim(v_1) = 3 ∧ shape(v_2, 0) = 4) ∨ (ndim(v_1) = 3 ∧ shape(v_2, 0) = 6) ∨ (ndim(v_1) = 4 ∧ shape(v_2, 0) = 4) ∨ (ndim(v_1) = 4 ∧ shape(v_2, 0) = 6) ∨ (ndim(v_1) = 4 ∧ shape(v_2, 0) = 8) ∨ (ndim(v_1) = 5 ∧ shape(v_2, 0) = 6) ∨ (ndim(v_1) = 5 ∧ shape(v_2, 0) = 8) ∨ (ndim(v_1) = 5 ∧ shape(v_2, 0) = 10) then true else if v_3 = "constant" then true else false
+>>
+Rule 9 (Value must be valid regarding data type of tensor)
+{v_1 : tensor, v_4 : float} |= if dtype_(v_1) = 1 then (v_4 = 0.0 ∨ v_4 = 1.0)
+>>
+Rule 10 (If reflect or replicate, the dimension size has to be greater than 0)
+{v_1 : tensor, v_2 : tuple(int), v_3 : str} |= if v_3 = "reflect" ∨ v_3 = "replicate" then ∀i ∈ [0, shape(v_2, 0) - 1] : shape(v_1, i) > 0
+>>
+Rule 11 (Padding can only be applied to last ndim/2 dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, shape(v_2, 0) / 2 - 1] : shape(v_1, ndim(v_1) - 1 - i) > 0
+>>
+Rule 12 (Tuple length has to be smaller or equal to max tuple size of pad function)
+{v_2 : tuple(int)} |= shape(v_2, 0) ≤ 10
+>>
+Rule 13 (Value is required only for constant mode)
+{v_3 : str, v_4 : float} |= if v_3 = "constant" then true else v_4 = 0.0

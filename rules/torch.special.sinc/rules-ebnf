@@ -1,0 +1,72 @@
+>>
+Rule 1 (input tensor cannot have inf values)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 10000 ∧ v_1[i] > -10000
+>>
+Rule 2 (input tensor must have floating-point dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 3 (input tensor dimension must be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 4 (all dimensions of input tensor must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 5 (if out is provided, it must have the same shape as input)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 6 (if out is provided, its dtype must be the same as input's)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 7 (input tensor cannot be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 8 (the elements in the input tensor should be finite.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1,i)-1]: v_1[j] ≠ "inf" ∧ v_1[j] ≠ "-inf" ∧ v_1[j] ≠ "nan"
+>>
+Rule 9 (if the dimension of input tensor is 0, the tensor should be empty.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) = 0
+>>
+Rule 10 (input tensor's elements cannot be complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 11 (elements of the input tensor can't be too small, since it would cause underflow issue)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∃j ∈ [0, shape(v_1,i)-1]: v_1[j] > -1e-8 ∧ v_1[j] < 1e-8
+>>
+Rule 12 (Input tensor should have at least one element)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 13 (If input tensor is 0-dimensional, it can only have one element)
+{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) = 1
+>>
+Rule 14 (the number of elements in the tensor should be less than a limit to prevent OOM)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 1000000
+>>
+Rule 15 (the product of input tensor's dimensions can't be too large)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, 0) * shape(v_1, i) < 2000000000 else shape(v_1, 0) < 2000000000
+>>
+Rule 16 (If input has no elements, dtype doesn't matter, otherwise dtype should be float)
+{v_1 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 17 (the number of dimensions in the input should be smaller than 10)
+{v_1 : tensor} |= ndim(v_1) < 10
+>>
+Rule 18 (The sum of the dimensions in the input should not be too large.)
+{v_1 : tensor} |= (ndim(v_1) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) + i < 10000))
+>>
+Rule 19 (if input is 1-dimensional, the max abs value of an element cannot be too high)
+{v_1 : tensor} |= if ndim(v_1) = 1 then max(v_1) < 1000
+>>
+Rule 20 (check if the result tensor is of the right type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) = dtype_(v_1)
+>>
+Rule 21 (Check the range)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] ≥ -10000 ∧ v_1[j] ≤ 10000
+>>
+Rule 22 (If input tensor is float16, elements must be in a small range to avoid inf or nan)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) - 1]: v_1[j] > -100 ∧ v_1[j] < 100
+>>
+Rule 23 (If out tensor exists, its dtype should be compatible with float)
+{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 24 (if input is integer tensor, it must be cast to float to avoid overflow issues)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then false

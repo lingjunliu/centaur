@@ -1,0 +1,3315 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 1 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 30 (input tensor must have at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 2 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 31 (output tensor must have the same dtype as input tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 3 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 32 (if out is provided, the out tensor shape must match the input tensor shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 33 (if out is provided, the out tensor dtype must match the input tensor dtype)
+{v_1 : tensor, v_2 : tensor} |= if ∃v_2 : tensor then dtype_(v_1) = dtype_(v_2)
+** PARSING ERROR ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 41
+
+{v_1 : tensor, v_2 : tensor} |= if ∃v_2 : tensor then dtype_(v_1) = dtype_(v_2)
+                                        ^
+Expected one of: 
+	* __ANON_5
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 4 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 34 (if out is provided, the out tensor dtype must match the input tensor dtype)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 5 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 35 (input and output tensors must have the same device)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 6 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 36 (diagonal value should be smaller than the minimum dimension of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ min(shape(v_1, 0), shape(v_1, 1))
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '(' in the current parser context, at line 1 col 45
+
+ : tensor, v_2 : int} |= v_2 ≤ min(shape(v_1, 0), shape(v_1, 1))
+                                        ^
+Expected one of: 
+	* RPAR
+	* COMMA
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 6 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 36 (diagonal value should be smaller than the minimum dimension of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ if shape(v_1, 0) < shape(v_1, 1) then shape(v_1, 0) else shape(v_1, 1)
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches 's' in the current parser context, at line 1 col 39
+
+{v_1 : tensor, v_2 : int} |= v_2 ≤ if shape(v_1, 0) < shape(v_1, 1) then shape
+                                      ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* LSQB
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 6 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 36 (diagonal value should be smaller than the minimum dimension of the input tensor)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) < shape(v_1, 1) then v_2 ≤ shape(v_1, 0) else v_2 ≤ shape(v_1, 1)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 7 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 37 (If diagonal is positive, it should be smaller than the number of columns)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then v_2 < shape(v_1, 1)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 8 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 38 (If diagonal is negative, its absolute value should be smaller than the number of rows)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then -v_2 < shape(v_1, 0)
+** PARSING ERROR ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches '-' in the current parser context, at line 1 col 46
+
+: tensor, v_2 : int} |= if v_2 < 0 then -v_2 < shape(v_1, 0)
+                                        ^
+Expected one of: 
+	* FALSE
+	* VAR
+	* SIGNED_NUMBER
+	* FUNC
+	* __ANON_4
+	* TRUE
+	* IF
+	* ESCAPED_STRING
+	* __ANON_6
+	* LPAR
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 8 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 38 (If diagonal is negative, its absolute value should be smaller than the number of rows)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then 0 - v_2 < shape(v_1, 0)
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 9 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 39 (If diagonal is specified and input has more than 2 dimensions, then the diagonal must be valid for all batch dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then (v_2 ≤ if shape(v_1, 1) < shape(v_1, 2) then shape(v_1, 1) else shape(v_1, 2)) ∧ (if v_2 < 0 then 0 - v_2 < shape(v_1, 1)) ∧ (if v_2 > 0 then v_2 < shape(v_1, 2))
+** PARSING ERROR ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches 's' in the current parser context, at line 1 col 62
+
+int} |= if ndim(v_1) > 2 then (v_2 ≤ if shape(v_1, 1) < shape(v_1, 2) then shape
+                                        ^
+Expected one of: 
+	* ADDOP
+	* __ANON_7
+	* __ANON_3
+	* LSQB
+	* RPAR
+	* MULOP
+	* __ANON_2
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 9 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 39 (If diagonal is specified and input has more than 2 dimensions, then the diagonal must be valid for all batch dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 2 then (v_2 ≤ (if shape(v_1, 1) < shape(v_1, 2) then shape(v_1, 1) else shape(v_1, 2))) ∧ ((if v_2 < 0 then 0 - v_2 < shape(v_1, 1)) ∧ (if v_2 > 0 then v_2 < shape(v_1, 2)))
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 40 (If diagonal is an integer, it must be of integer type)
+{v_1 : int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 6)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_1
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 40 (If diagonal is specified, the input must be a tensor)
+{v_1 : tensor, v_2 : int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 7)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_1, v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 40 (If diagonal is specified, the input tensor must have the same type as diagonal)
+{v_1 : tensor, v_2 : int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 8)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+All variables should appear in the expression. Redundant variables: v_1, v_2
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 10 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 40 (If diagonal is specified, then check it is smaller than the dimension)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then (if v_2 < 0 then 0 - v_2 < shape(v_1, 0) else v_2 < shape(v_1, 1))
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The previous rule generation was successful. But, try to avoid rules that are too similar.
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 11 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 41 (if out is provided, it should have the same number of dimensions as input)
+{v_1 : tensor, v_2 : tensor} |= if ∃v_2 : tensor then ndim(v_1) = ndim(v_2)
+** PARSING ERROR ** (num_failures: 9)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches ':' in the current parser context, at line 1 col 41
+
+{v_1 : tensor, v_2 : tensor} |= if ∃v_2 : tensor then ndim(v_1) = ndim(v_2)
+                                        ^
+Expected one of: 
+	* __ANON_5
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 11 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 41 (if out is provided, it should have the same number of dimensions as input)
+{v_1 : tensor, v_2 : tensor} |= if ∃v_2 then ndim(v_1) = ndim(v_2)
+** PARSING ERROR ** (num_failures: 10)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+The rule failed to parse with the grammar. Error: No terminal matches 't' in the current parser context, at line 1 col 41
+
+{v_1 : tensor, v_2 : tensor} |= if ∃v_2 then ndim(v_1) = ndim(v_2)
+                                        ^
+Expected one of: 
+	* __ANON_5
+
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define Rule 11 that torch.triu API parameters should satisfy. Refer to the API documentation and error messages.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+triu(input, diagonal=0, *, out=None) -> Tensor
+
+Returns the upper triangular part of a matrix (2-D tensor) or batch of matrices
+:attr:`input`, the other elements of the result tensor :attr:`out` are set to 0.
+
+The upper triangular part of the matrix is defined as the elements on and
+above the diagonal.
+
+The argument :attr:`diagonal` controls which diagonal to consider. If
+:attr:`diagonal` = 0, all elements on and above the main diagonal are
+retained. A positive value excludes just as many diagonals above the main
+diagonal, and similarly a negative value includes just as many diagonals below
+the main diagonal. The main diagonal are the set of indices
+:math:`\lbrace (i, i) \rbrace` for :math:`i \in [0, \min\{d_{1}, d_{2}\} - 1]` where
+:math:`d_{1}, d_{2}` are the dimensions of the matrix.
+
+Args:
+    input (Tensor): the input tensor.
+    diagonal (int, optional): the diagonal to consider
+
+Keyword args:
+    out (Tensor, optional): the output tensor.
+
+Example::
+
+    >>> a = torch.randn(3, 3)
+    >>> a
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.3480, -0.5211, -0.4573]])
+    >>> torch.triu(a)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.0000, -1.0680,  0.6602],
+            [ 0.0000,  0.0000, -0.4573]])
+    >>> torch.triu(a, diagonal=1)
+    tensor([[ 0.0000,  0.5207,  2.0049],
+            [ 0.0000,  0.0000,  0.6602],
+            [ 0.0000,  0.0000,  0.0000]])
+    >>> torch.triu(a, diagonal=-1)
+    tensor([[ 0.2309,  0.5207,  2.0049],
+            [ 0.2072, -1.0680,  0.6602],
+            [ 0.0000, -0.5211, -0.4573]])
+
+    >>> b = torch.randn(4, 6)
+    >>> b
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.4333,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [-0.9888,  1.0679, -1.3337, -1.6556,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=1)
+    tensor([[ 0.0000, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [ 0.0000,  0.0000, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.0000,  0.0000, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000,  0.0000,  0.0000,  0.4798,  0.2830]])
+    >>> torch.triu(b, diagonal=-1)
+    tensor([[ 0.5876, -0.0794, -1.8373,  0.6654,  0.2604,  1.5235],
+            [-0.2447,  0.9556, -1.2919,  1.3378, -0.1768, -1.0857],
+            [ 0.0000,  0.3146,  0.6576, -1.0432,  0.9348, -0.4410],
+            [ 0.0000,  0.0000, -1.3337, -1.6556,  0.4798,  0.2830]])
+
+[Error Messages]
+RuntimeError: triu: input tensor must have at least 2 dimensions
+RuntimeError: Expected out tensor to have dtype float, but got double instead
+TypeError: triu(): argument 'out' must be Tensor, not float
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 41 (if out is provided, it should have the same number of dimensions as input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2)
+** SUCCESS **
+

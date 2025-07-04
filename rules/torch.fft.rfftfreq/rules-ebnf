@@ -1,0 +1,60 @@
+>>
+Rule 1 (n must be a non-negative integer)
+{n : int} |= n ≥ 0
+>>
+Rule 2 (If out is provided, its dtype must be floating point or complex)
+{out : tensor} |= (dtype_(out) = 6) ∨ (dtype_(out) = 7) ∨ (dtype_(out) = 8) ∨ (dtype_(out) = 9) ∨ (dtype_(out) = 10)
+>>
+Rule 3 (d must be a positive float or int)
+{d : float ⊎ int} |= d > 0
+>>
+Rule 4 (If dtype is provided, it must be a floating point or complex dtype)
+{dtype : dtype} |= (dtype = 6) ∨ (dtype = 7) ∨ (dtype = 8) ∨ (dtype = 9) ∨ (dtype = 10)
+>>
+Rule 5 (If out is specified, it should have compatible dtype with desired dtype or default dtype of rfftfreq)
+{out : tensor, dtype : dtype} |= if dtype ≠ 12 then dtype_(out) = dtype else (dtype_(out) = 7 ∨ dtype_(out) = 8 ∨ dtype_(out) = 9 ∨ dtype_(out) = 10)
+>>
+Rule 6 (If out is provided, its shape must be (n+1)//2)
+{n : int, out : tensor} |= shape(out, 0) = (n + 1) / 2
+>>
+Rule 7 (If n and d are specified, the result frequency should be between 0 and 1/2d)
+{n : int, d : float} |= 0 ≤ ((n + 1) / 2) / (d * n) ∧ ((n + 1) / 2) / (d * n) ≤ (1 / (2 * d))
+>>
+Rule 8 (requires_grad must be a boolean value)
+{requires_grad : bool} |= requires_grad = true ∨ requires_grad = false
+>>
+Rule 9 (If device is specified, it must be a valid device string)
+{device : str} |= device = "cpu" ∨ device = "cuda"
+>>
+Rule 10 (layout must be "torch.strided" which equals to 0)
+{layout : str} |= layout = "torch.strided"
+>>
+Rule 11 (n must be an integer, d must be a float, and n*d must not lead to overflow)
+{n : int, d : float} |= (n*d) < 1000000000000.0 ∧ (n*d) > -1000000000000.0
+>>
+Rule 12 (When n is 0, then d must be infinity or the computation will be invalid)
+{n:int, d:float} |= if n=0 then d > 1000000000000
+>>
+Rule 13 (If n is small, d cannot be too small as it leads to overflow)
+{n:int, d:float} |= if n<10 then d > 0.000000000000001
+>>
+Rule 14 (If n is very large and d is very small, it must not exceed maximum representable float.)
+{n : int, d : float} |= (n < 1000000000) ∨ (d > 0.000000000000001)
+>>
+Rule 15 (if dtype is complex, requires_grad should be false)
+{dtype : dtype, requires_grad : bool} |= if dtype = 9 ∨ dtype = 10 then requires_grad = false
+>>
+Rule 16 (if n and out are specified, the dtype of the output tensor should match desired dtype, if provided, and must be a float or complex)
+{n: int, out: tensor, dtype: dtype} |= if dtype != 12 then dtype_(out) = dtype else (dtype_(out) = 7 ∨ dtype_(out) = 8 ∨ dtype_(out) = 9 ∨ dtype_(out) = 10)
+>>
+Rule 17 (if n and out are specified, the out should be a tensor with one dimension)
+{n: int, out: tensor} |= ndim(out) = 1
+>>
+Rule 18 (If n and out are specified, the out should have data that are sorted in ascending order)
+{n : int, out : tensor} |= ∀i ∈ [0, (n + 1) / 2 - 2] : out[i] ≤ out[i+1]
+>>
+Rule 19 (If device is specified, out cannot have device specified, or they must be the same.)
+{out:tensor, device:str} |= if device = "cpu" then dtype_(out) = 12 else if device = "cuda" then dtype_(out) = 12
+>>
+Rule 20 (If d and out are specified, its values should fall within the expected range.)
+{d : float, out : tensor} |= ∀i ∈ [0, shape(out, 0) - 1] : out[i] ≥ 0 ∧ out[i] ≤ 1 / (2 * d)

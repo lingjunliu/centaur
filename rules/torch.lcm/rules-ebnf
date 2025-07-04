@@ -1,0 +1,51 @@
+>>
+Rule 1 (input and other tensors for lcm must have integer dtypes)
+{v_1 : tensor, v_2 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5
+>>
+Rule 2 (input and other tensors should have the same shape or be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+>>
+Rule 3 (If input tensor is empty, then other tensor must also be empty)
+{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0
+>>
+Rule 4 (If input and other are scalars, they should have integer type)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 ∧ 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
+>>
+Rule 5 (If output tensor is provided, its shape must be broadcastable with the input tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (if ndim(v_1) = ndim(v_3) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) ∨ shape(v_1, i) = 1 ∨ shape(v_3, i) = 1) ∧ (if ndim(v_2) = ndim(v_3) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i) ∨ shape(v_2, i) = 1 ∨ shape(v_3, i) = 1)
+>>
+Rule 6 (If one of the inputs is zero-dimensional, the other must be as well, or have a single element)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1)) else if ndim(v_2) = 0 then (ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1, 0) = 1))
+>>
+Rule 7 (If one input tensor has more than one dimension, the other input tensor should have same number of dimensions or be zero dimensional)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then (ndim(v_2) = ndim(v_1) ∨ ndim(v_2) = 0)
+>>
+Rule 8 (If the shape of one of the tensors contains a 0, the shape of the other should contain 0 at the same location if not scalar.)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then (if ndim(v_2) > 0 then ∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0 ∧ i = j)
+>>
+Rule 9 (at least one of the input tensors should have more than zero elements.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0 ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (ndim(v_2) > 0 ∧ ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 10 (The 'out' tensor must have same dtype as input tensors, if specified)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 11 (If out is specified and not empty, then its dtype should be at least as large as the largest dtype of v_1 and v_2.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) ≥ dtype_(v_1) else dtype_(v_3) ≥ dtype_(v_2))
+>>
+Rule 12 (The element count of the `out` tensor, if specified, should be greater or equal to element count of the smaller input tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (if (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then (ndim(v_3) > 0 ∧ ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0) ∧ (if (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then (if (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then if shape(v_1, 0) * shape(v_1, 0) < shape(v_2, 0) * shape(v_2, 0) then shape(v_1, 0) * shape(v_1, 0) ≤ shape(v_3, 0) * shape(v_3, 0) else shape(v_2, 0) * shape(v_2, 0) ≤ shape(v_3, 0) * shape(v_3, 0))))
+>>
+Rule 13 (If at least one element in any dimension is one in input tensor, the output tensor shape must match the other tensors' shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1)) then (if ndim(v_3) > 0 then ndim(v_3) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)))
+>>
+Rule 14 (If the input tensors have different number of dimensions and the out tensor is specified, the ndim of out must match the larger ndim.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (if ndim(v_3) > 0 then if ndim(v_1) > ndim(v_2) then ndim(v_3) = ndim(v_1) else ndim(v_3) = ndim(v_2))
+>>
+Rule 15 (If input tensors have the same shape and out tensor is provided, out should have the same shape.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))) then (if ndim(v_3) > 0 then (ndim(v_3) = ndim(v_1) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_3, i) = shape(v_1, i))))
+>>
+Rule 16 (If one of the tensors has dimension 1 and out is provided, the shape of the out tensor must match either of the input shapes)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1) then (if ndim(v_3) > 0 then (if (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)) ∨ (ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)) then true else false))
+>>
+Rule 17 (if ndim > 0, tensors v1, v2, and v3 (if specified) should have shape dimensions greater than zero)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (ndim(v_1) > 0) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ if (ndim(v_2) > 0) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 ∧ if (ndim(v_3) > 0) then ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0

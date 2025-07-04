@@ -1,0 +1,48 @@
+>>
+Rule 1 (input tensor should be of floating-point or integer dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6
+>>
+Rule 2 (output tensor, if provided, must have the same dtype as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 3 (output tensor, if provided, must have compatible shape as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 4 (input tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 5 (if output tensor is provided, its dtype must be floating point if input is floating point)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9)
+>>
+Rule 6 (if input tensor is complex, output tensor must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 ∧ (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+>>
+Rule 7 (if input is integer, out should also be integer if provided and different from input)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 8 (Input tensor cannot be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 9 (if the input is a half-precision float, the output must also be a half-precision float if provided as out tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 ∧ dtype_(v_1) = 6 then dtype_(v_2) = 6
+>>
+Rule 10 (if provided output tensor and input tensor are different, then output tensor requires grad is false.)
+{v_1 : tensor, v_2 : tensor} |= if v_1 ≠ v_2 then true
+>>
+Rule 11 (The product of the dimensions of input tensor should be smaller than 2^31 to avoid overflow.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (if ndim(v_1) = 1 then shape(v_1, 0) < 2147483648 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2147483648)
+>>
+Rule 12 (Input and output tensor must have same memory layout)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then true
+>>
+Rule 13 (If the input tensor has NaN, the output also has NaN)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] = "NaN"
+>>
+Rule 14 (If the input tensor has infinity value, the output also has infinity values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] = "inf" ∨ v_1[j] = "-inf"
+>>
+Rule 15 (If the input tensor has only zero value, the output also has only zero value)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1]: v_1[j] = 0
+>>
+Rule 16 (For bfloat16 inputs, the out tensor must be bfloat16 if provided and different)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 ∧ dtype_(v_1) = 13 then dtype_(v_2) = 13

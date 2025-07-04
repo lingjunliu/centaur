@@ -1,0 +1,57 @@
+>>
+Rule 1 (input and other tensors should have compatible shapes for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
+>>
+Rule 2 (input tensor must have a floating-point or integer dtype if other is float)
+{v_1 : tensor} |= if v_1 = v_1 then (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5)
+>>
+Rule 3 (If input and other are both tensors, their dtypes should be the same, if not bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 4 (input tensor should have non-zero dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 5 (if other is a tensor, it shouldn't be empty)
+{v_2 : tensor} |= ndim(v_2) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 6 (input tensor with float dtype should have values within a representable range)
+{v_1 : tensor} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then min(v_1) > -10000000000 ∧ max(v_1) < 10000000000
+>>
+Rule 7 (input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 8 (input tensor, if integer, should have reasonable magnitude)
+{v_1 : tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then min(v_1) > -2000 ∧ max(v_1) < 2000
+>>
+Rule 9 (if input and other have different number of dimensions, other's dimensions must be one)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = 1) ∨ (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1)
+>>
+Rule 10 (if input is a tensor and other is float, other should be within a reasonable range)
+{v_2 : float} |= v_2 > -1000000 ∧ v_2 < 1000000
+>>
+Rule 11 (input is a tensor and other is a tensor, both should be 0-dimensional or greater.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 12 (if input tensor is complex, it must be complex64 or complex128)
+{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else if dtype_(v_1) > 8 then false
+>>
+Rule 13 (If other is a tensor, it has a compatible dtype with input)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then true else (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 14 (if input is a tensor, its dtype cannot be str)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 15 (Dtype of both tensors should be numerical)
+{v_1: tensor, v_2: tensor} |= (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 10) ∧ (1 <= dtype_(v_2) ∧ dtype_(v_2) <= 10)
+>>
+Rule 16 (If other is a float and input's dimension is zero, then other cannot be NaN or Inf)
+{v_1: tensor, v_2 : float} |= if ndim(v_1) = 0 then v_2 ≠ "NaN" ∧ v_2 ≠ "Inf" ∧ v_2 ≠ "-Inf"
+>>
+Rule 17 (If other is an integer, the value should fit within the representable range of input tensor dtype)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then true else v_2 > -10000 ∧ v_2 < 10000
+>>
+Rule 18 (If either input or other is complex, then both must be complex)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then false
+>>
+Rule 19 (If input is Bool tensor, other should not be complex or float)
+{v_1 : tensor, v_2 : tensor ⊎ float} |= if dtype_(v_1) = 0 then (dtype_(v_2) ≠ 6) ∧ (dtype_(v_2) ≠ 7) ∧ (dtype_(v_2) ≠ 8) ∧ (dtype_(v_2) ≠ 9) ∧ (dtype_(v_2) ≠ 10)

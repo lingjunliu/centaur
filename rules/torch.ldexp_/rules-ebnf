@@ -1,0 +1,57 @@
+>>
+Rule 1 (The exponent must be an integer tensor and the mantissa must be a floating point tensor)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4)
+>>
+Rule 2 (Output shape should be broadcastable with input tensor shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+>>
+Rule 3 (If the mantissa is complex, the exponent must be an integer tensor of the same shape)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 4 (The mantissa and exponent tensors must have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_1, i) = shape(v_2, i) * shape(v_2, i) ∨ ndim(v_1) = 0 ∧ ndim(v_2) = 0
+>>
+Rule 5 (The exponent tensor must be of integer type and have values within a reasonable range)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∧ min(v_1) ≥ -1000 ∧ max(v_1) ≤ 1000
+>>
+Rule 6 (If output is provided, it must have compatible dtype with the input mantissa.)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 7 (The mantissa cannot be a boolean tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 8 (If the output is provided it must have enough elements to hold the result.)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_3) then ndim(v_1)-1 else ndim(v_3)-1] : if i < ndim(v_1) ∧ i < ndim(v_3) then shape(v_3, i) = shape(v_1, i) )
+>>
+Rule 9 (If the mantissa is a complex tensor then the output tensor must also be a complex tensor)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_3) = 9 ∨ dtype_(v_3) = 10
+>>
+Rule 10 (If the mantissa is half precision floating point (float16), then the exponent should be int8 or uint8, and the output should also be float16)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_3) = 6
+>>
+Rule 11 (If no output tensor is provided, the resulting type should be representable based on input dtypes)
+{v_1 : tensor, v_2 : tensor} |=  if dtype_(v_1) = 6 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 5
+>>
+Rule 12 (If the exponent is uint8, the mantissa must be non-complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 5 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 13 (The output tensor must be the same size/shape as the mantissa tensor)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
+>>
+Rule 14 (Output should be of the floating or complex type)
+{v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10
+>>
+Rule 15 (If the output is not provided and the exponent is not int64, then mantissa and exponent should have same dtypes.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) ≠ 4 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 16 (The dtypes of mantissa and exponent should be consistent with the API's requirements, based on combination)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 5)) ∨ (dtype_(v_1) = 7 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)) ∨ (dtype_(v_1) = 8 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)) ∨ (dtype_(v_1) = 9 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)) ∨ (dtype_(v_1) = 10 ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5))
+>>
+Rule 17 (the mantissa must be of floating or complex type)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 18 (If the exponent is int64, the output will have the same dtype as the mantissa)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 4 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 19 (The range of values within the exponent tensor should be limited to prevent overflow.)
+{v_2 : tensor} |= min(v_2) > -200 ∧ max(v_2) < 200

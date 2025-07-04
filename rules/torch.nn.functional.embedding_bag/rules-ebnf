@@ -1,0 +1,57 @@
+>>
+Rule 1 (input tensor should be LongTensor or IntTensor)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 2 (weight tensor should be a 2D Tensor)
+{v_1 : tensor} |= ndim(v_1) = 2
+>>
+Rule 3 (per_sample_weights must have the same shape as input if it is not None)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 4 (If input is 1D, offsets must be 1D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1
+>>
+Rule 5 (If input is 2D, offsets must be None)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 0
+>>
+Rule 6 (If include_last_offset is True, size of offsets is num_bags + 1)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then shape(v_2, 0) = shape(v_1,0) + 1
+>>
+Rule 7 (If mode is "max", scale_grad_by_freq should not be True)
+{v_1 : str, v_2 : bool} |= if v_1 = "max" then v_2 = false
+>>
+Rule 8 (weight and per_sample_weights must have the same dtype if per_sample_weights is provided)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 9 (Values in input tensor must be within valid range given weight tensor dimensions.)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) < shape(v_2, 0)
+>>
+Rule 10 (Last offset value must be the size of the input tensor when offsets are used.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then v_2[shape(v_2, 0)-1] = shape(v_1, 0)
+>>
+Rule 11 (Index value in input tensor must be non-negative if padding_idx is not specified)
+{v_1 : tensor, v_2 : int} |= if ndim(v_2) = 0 then min(v_1) >= 0
+>>
+Rule 12 (norm_type must be floating point)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 13 (padding_idx must be in the valid range given the weight tensor dimensions.)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 0)
+>>
+Rule 14 (Weight tensor must be of float or complex type for norm calculation)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 15 (If padding_idx is given, it must be within the valid range of input.)
+{v_1 : int, v_2 : tensor} |= if ndim(v_1) = 0 then (v_1 >= 0 ∧ v_1 < shape(v_2, 0))
+>>
+Rule 16 (embedding dimension should be greater than 0)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 17 (Weight tensor must have at least one element.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0
+>>
+Rule 18 (If input tensor has values out of bound, padding_idx is required)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if min(v_1) < 0 ∨ max(v_1) ≥ shape(v_2, 0) then ndim(v_3) ≠ 0
+>>
+Rule 19 (shape of the embedding matrix must be correct)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_3) = 0 then shape(v_2, 0) > max(v_1)

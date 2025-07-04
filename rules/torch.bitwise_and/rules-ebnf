@@ -1,0 +1,54 @@
+>>
+Rule 1 (input tensors for bitwise_and should be integral or boolean types and have compatible sizes or be scalar)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) ∧ (ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+>>
+Rule 2 (If one input is a number and the other is a tensor, the number must be of integral or boolean type)
+{v_1 : tensor, v_2 : int ⊎ float} |= (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5)
+>>
+Rule 3 (Input tensor must have integral or boolean type)
+{v_1 : tensor} |= (dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 4 (If both inputs are tensors and one is boolean, the other must also be boolean)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0
+>>
+Rule 5 (If one input is a tensor, and the other is a Number, the number should be either an int or a bool)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 0 then true else (v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5)
+>>
+Rule 6 (If input is a scalar, it should be boolean or an integer between -128 to 255)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (dtype_(v_1) = 0 ∨ (min(v_1) ≥ -128 ∧ max(v_1) ≤ 255))
+>>
+Rule 7 (If both inputs are tensors, and their dimensions are not equal, then at least one of them should be a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 0 ∨ ndim(v_2) = 0)
+>>
+Rule 8 (If both inputs are tensors and have more than 0 dimensions, all the dimensions except the last one must be equal)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 9 (If both inputs are tensors and have equal dimensions, the last dimension should also be equal)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+>>
+Rule 10 (If the shapes are different, then the max number in the smaller tensor should be less or equal to the min number in the bigger tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then max(v_1) ≤ min(v_2) else if ndim(v_1) > ndim(v_2) then max(v_2) ≤ min(v_1)
+>>
+Rule 11 (If input and other are of same dimensions, and the type is int8/uint8, the values must be between the range of the type.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 5) then (min(v_1) ≥ -128 ∧ max(v_1) ≤ 127 ∧ min(v_2) ≥ -128 ∧ max(v_2) ≤ 127)
+>>
+Rule 12 (If both inputs are tensors and not boolean, and their shapes are equal, then the output will be a tensor of the same shape.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 13 (If one of inputs is a scalar and the other is a tensor, the scalar's type should be same as the tensor's type.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = dtype_(v_2) else if ndim(v_2) = 0 then dtype_(v_2) = dtype_(v_1)
+>>
+Rule 14 (If both inputs are scalar tensors, and the output tensor is specified, then the output should also be a scalar tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then ndim(v_3) = 0
+>>
+Rule 15 (If input and other are tensors and the out tensor is specified, then the out tensor's shape should be same as input after broadcasting)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∧ (∀i ∈ [0, if ndim(v_3) ≥ ndim(v_1) then ndim(v_3) - 1 else ndim(v_1) -1 ] : ndim(v_1) - i - 1 < 0 ∨ shape(v_3, ndim(v_3) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_3, ndim(v_3) - i - 1) = shape(v_1, ndim(v_1) - i - 1))
+>>
+Rule 16 (If out tensor is provided then its dtype should same as either of input tensors if dtypes are same, else the out tensor dtype should be among integral or boolean types)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else (dtype_(v_3) = 0 ∨ dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5)
+>>
+Rule 17 (if other is Number, then it should be between min and max values of the input tensor)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 0 then true else v_2 ≥ min(v_1) ∧ v_2 ≤ max(v_1)
+>>
+Rule 18 (If the input tensors are boolean, then the result will also be a boolean tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 then true else if dtype_(v_1) = 0 then false else if dtype_(v_2) = 0 then false

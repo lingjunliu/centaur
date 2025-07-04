@@ -1,0 +1,60 @@
+>>
+Rule 1 (A and B should have the same dtype and A should have at least 2 dimensions, and the shapes of A and B should be compatible)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) ≥ 2 ∧ (shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)) ∧ (shape(v_1, ndim(v_1) - 1) = shape(v_2, if ndim(v_2) > 0 then ndim(v_2) -1 else 0))
+>>
+Rule 2 (If A is a sparse tensor, left must be true)
+{v_1 : tensor, v_2 : bool} |= if shape(v_1, 0) = "sparse" then v_2 = true
+>>
+Rule 3 (A and B must be floating point or complex tensors)
+{v_1 : tensor, v_2 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11)
+>>
+Rule 4 (If out is specified, its dtype must be compatible with A and B)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then dtype_(v_3) = dtype_(v_1) ∧ dtype_(v_3) = dtype_(v_2)
+>>
+Rule 5 (If B has more than one dimension, the last dimension of A must equal the first dimension of B)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 6 (The last two dimensions of A must be square)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 7 (B's batch dimensions should be broadcastable to A's)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 2 else ndim(v_2) - 1] : (ndim(v_1) - 2 - i < 0) ∨ (ndim(v_2) - 1 - i < 0) ∨ shape(v_1, ndim(v_1) - 2 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 2 - i) = 1
+>>
+Rule 8 (If left is False, then the last two dimensions of A match the last dimension of B)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2)-1) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2)-1)
+>>
+Rule 9 (If B is 1D, A's last dimension must match B's only dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 10 (If B is not broadcasted, A and B should have same number of batch dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then (ndim(v_1) - 2) = (ndim(v_2) - 1)
+>>
+Rule 11 (If B is 2D, A's last two dimensions must match B's two dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 1) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, 0)
+>>
+Rule 12 (if out is specified, the shape should match B's shape except for the batch dimension)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 then ∀i ∈ [0, if ndim(v_2) > 0 then ndim(v_2) else 0] : (i ≥ ndim(v_3)) ∨ shape(v_3, i) = shape(v_2, i)
+>>
+Rule 13 (A must have at least 2 dimensions.)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 14 (If left is true and A is sparse, then A must be non-batched.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then if shape(v_1, 0) = "sparse" then ndim(v_1) = 2
+>>
+Rule 15 (Output shape consistency: if A is (*, n, n) and B is (*, n, k), output should be (*, n, k))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 16 (Check A's invertibility using min and max functions)
+{v_1 : tensor} |= if ndim(v_1) = 2 then min(v_1) ≠ max(v_1)
+>>
+Rule 17 (Out must be a Tensor.)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 18 (If A has more than 2 dimensions, then all dimensions other than last two must be positive)
+{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) > 0
+>>
+Rule 19 (If B has more than two dimensions, then all dimensions other than the last must be positive)
+{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) > 0
+>>
+Rule 20 (If B has at least 1 dimension, the last dimension of B must be positive)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, ndim(v_1) - 1) > 0

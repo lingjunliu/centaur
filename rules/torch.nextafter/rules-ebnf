@@ -1,0 +1,51 @@
+>>
+Rule 1 (input and other tensors must have broadcastable shapes, simplified)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 2 (input and other tensors must have the same dtype if not boolean)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 3 (input and other tensors should not have dimensions exceeding a limit)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 5 ∧ ndim(v_2) ≤ 5
+>>
+Rule 4 (input tensors have compatible floating-point dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 6)
+>>
+Rule 5 (if input is scalar, other must also be scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 6 (if other is scalar, input must also be scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
+>>
+Rule 7 (if input is bool, other must also be bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+>>
+Rule 8 (The number of elements in input and other must be equal if both are not scalar)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) ≠ 0) ∧ (ndim(v_2) ≠ 0) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 9 (If one of input and other is a floating point type, the other should also be a floating point type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 10 (If one of input or other is complex, the other must also be complex, or at least floating point)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 11 (at least one of the tensors needs to be floating-point or complex)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 12 (If input has a dimension of size 0, then other must be a scalar or must also have a dimension of size 0)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (ndim(v_2) = 0 ∨ (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0))
+>>
+Rule 13 (if input has a floating-point dtype, then other cannot be bool)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then dtype_(v_2) ≠ 0
+>>
+Rule 14 (If other has a floating-point dtype, then input cannot be bool)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then dtype_(v_1) ≠ 0
+>>
+Rule 15 (if other is complex dtype, then input should be float or complex dtype)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 16 (if input is complex dtype, then other should be float or complex dtype)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 17 (If one tensor is complex128, the other cannot be float16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) ≠ 6 else if dtype_(v_2) = 10 then dtype_(v_1) ≠ 6

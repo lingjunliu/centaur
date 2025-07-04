@@ -1,0 +1,54 @@
+>>
+Rule 1 (Input tensor A must have at least 2 dimensions, and dtype must be float or complex)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 2 (The `driver` argument must be a string with a specific value if provided)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "gesvd" ∨ v_1 = "gesvdj" ∨ v_1 = "gesvda"
+>>
+Rule 3 (If `out` is provided, its dtype should be float)
+{v_1 : tensor} |= if v_1 ≠ v_1 then true else dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 4 (If A has shape (*, m, n), then m and n must be positive integers)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ ndim(v_1) ≥ 2
+>>
+Rule 5 (If A has a complex dtype, the driver should be specified)
+{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 ≠ "none"
+>>
+Rule 6 (driver argument is optional)
+{v_1 : str ⊎ bool} |= if v_1 = true then true else (v_1 = "none" ∨ v_1 = "gesvd" ∨ v_1 = "gesvdj" ∨ v_1 = "gesvda")
+>>
+Rule 7 (if driver is specified, input tensor must be on CUDA device)
+{v_1 : tensor, v_2 : str} |= if v_2 = "none" then true else ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≥ 0
+>>
+Rule 8 (if out is specified, its shape should compatible with A's singular values.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_2 then true else ndim(v_2) = ndim(v_1) -1
+>>
+Rule 9 (The output tensor 'out', if provided, must have a floating-point dtype)
+{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+>>
+Rule 10 (When A is complex, out, if specified, must be real-valued and of the corresponding float type)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 then if v_2 ≠ v_2 then true else dtype_(v_2) = 7 else if dtype_(v_1) = 10 then if v_2 ≠ v_2 then true else dtype_(v_2) = 8
+>>
+Rule 11 (The input tensor 'A' cannot have a dtype of 'Half')
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 12 (Input tensor A cannot have a dtype of Char.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1
+>>
+Rule 13 (The output tensor 'out', if provided, must be a Tensor)
+{v_1 : tensor ⊎ bool} |= if v_1 = true then true else ndim(v_1) ≥ 0
+>>
+Rule 14 (The singular values are returned in descending order. This is hard to check automatically, but we can check the dtype of output )
+{v_1 : tensor} |=  (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+>>
+Rule 15 (if A is a batch of matrices, the output has the same batch dimensions.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 16 (if A has shape (*, m, n), then the output has shape (*, min(m,n)))
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_2 then true else if shape(v_1, ndim(v_1) - 2) < shape(v_1, ndim(v_1) - 1) then shape(v_2, ndim(v_2) - 1) = shape(v_1, ndim(v_1) - 2) else shape(v_2, ndim(v_2) - 1) = shape(v_1, ndim(v_1) - 1)
+>>
+Rule 17 (If A is a batch of matrices, the output number of dimension will less than the number of dimension of A.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = ndim(v_1) -1
+>>
+Rule 18 (If A is on CUDA, then the computation is synchronized with CPU)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) ≥ 0

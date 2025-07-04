@@ -1,0 +1,48 @@
+>>
+Rule 1 (input and other tensors in matmul should have compatible data types)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (If one tensor is 1D and the other is 2D, the inner dimension must match using if-then)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 3 (When both tensors are 1D, they should have the same length)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 4 (When first tensor is 2D and second is 1D, the inner dimensions must match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 5 (Batched matrix multiply requires batch dimensions to be broadcastable. Check the last example.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then (shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 1))
+>>
+Rule 6 (If the first tensor is 1D and second at least 1D, last dim of output equals last dim of second tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) >= 1 then shape(v_1, 0) = shape(v_2, ndim(v_2) -1)
+>>
+Rule 7 (Matrix matrix product requires dimension alignment. Combines several other rules.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 8 (If the second tensor is 1D and first at least 1D, last dim of output equals last dim of first tensor before the last)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 ∧ ndim(v_1) > 1 then shape(v_1, ndim(v_1) -2) = shape(v_2, 0)
+>>
+Rule 9 (matmul requires at least one argument to be a tensor, can either be 1 or 2)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 1 ∨ ndim(v_2) >= 1
+>>
+Rule 10 (if ndim(v_1) > 2 and ndim(v_2) = 1, then shape(v_1, ndim(v_1) -1 ) = shape(v_2,0) should hold)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) = 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 11 (Use of min function, any dimension of the tensor shapes should be at least 1)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+>>
+Rule 12 (Using max function: Number of dimensions in a tensor should be smaller than a certain max value, usually 4 or 5)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 13 (Use shape function with int parameter: If dim is specified, it must be within the range)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 14 (Both args can't be scalars.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) = false
+>>
+Rule 15 (If one of tensors is of complex dtype, then both must be complex, 9,10)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 16 (Using max and min : For non-batched case: ndim(v_1) <= 2 and ndim(v_2)<= 2)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 2 ∧ ndim(v_2) ≤ 2

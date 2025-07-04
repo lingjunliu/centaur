@@ -1,0 +1,63 @@
+>>
+Rule 1 (All input tensors should have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (At least one tensor is provided)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 3 (The shapes of the input tensors are compatible for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1) else ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_1, i) = 1)
+>>
+Rule 4 (If one tensor has a dimension of size 1, all other tensors must either have a dimension of size 1 at that index or no dimension at all)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then ∀j ∈ [0, ndim(v_2) - 1] : (if i < ndim(v_2) then shape(v_2, i) = 1)
+>>
+Rule 5 (If any tensor has ndim = 0, all others must have ndim = 0 as well)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 6 (If both tensors have dimensions, their trailing dimensions must either be equal or one of them is 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1) ∨ shape(v_1, ndim(v_1) - 1) = 1 ∨ shape(v_2, ndim(v_2) - 1) = 1)
+>>
+Rule 7 (The number of dimensions in the tensors is not excessively large)
+{v_1 : tensor} |= ndim(v_1) < 10
+>>
+Rule 8 (If a tensor has no dimensions then all others have no dimensions)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 9 (If the number of dimensions is different, the tensor with smaller number of dimensions should be treated as if it has 1 prepended)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, ndim(v_2) - ndim(v_1) + i) = 1)
+>>
+Rule 10 (For all dimensions, the size of the resulting tensor must be equal to the maximum size along each dimension among all the input tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) ≥ shape(v_2, i)) else ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) ≥ shape(v_1, i))
+>>
+Rule 11 (Broadcasting can only happen between tensors with equal dimensions or when one of the dimensions is of size 1)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2)] : (shape(v_1, ndim(v_1) - i -1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)
+>>
+Rule 12 (If one tensor is a scalar, then the other must also be a scalar or must be broadcastable to a scalar.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0) else if ndim(v_2) = 0 then (ndim(v_1) = 0)
+>>
+Rule 13 (If tensors are provided, at least one of them must have a non-zero number of dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 14 (The size of a dimension must be greater than 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 15 (The number of dimensions should be less than or equal to the maximum number of dimensions allowed for a tensor, which is a finite number)
+{v_1 : tensor} |= ndim(v_1) ≤ 6
+>>
+Rule 16 (If a tensor has a size of zero for a dimension, then resulting tensor also has that size of zero for that dimension)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 17 (Either both tensors have the same number of dimensions or the smaller tensor has number of dimensions zero)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 18 (All tensors must have at least zero dimensions.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 19 (Tensors with a single dimension must have size greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+>>
+Rule 20 (If tensors do not have the same number of dimensions, prepend 1 to the shapes of tensors with fewer dimensions until all tensors have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 else ∀i ∈ [0, ndim(v_2) - 1]: shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1
+>>
+Rule 21 (If tensors are provided, the total number of elements is less than a maximum value to avoid overflow)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000000

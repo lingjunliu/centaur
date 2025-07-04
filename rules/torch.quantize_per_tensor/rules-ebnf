@@ -1,0 +1,42 @@
+>>
+Rule 1 (dtype must be one of torch.quint8, torch.qint8, or torch.qint32)
+{v_4 : dtype} |= v_4 = "torch.quint8" ∨ v_4 = "torch.qint8" ∨ v_4 = "torch.qint32"
+>>
+Rule 2 (scale must be greater than zero)
+{v_2 : float} |= v_2 > 0
+>>
+Rule 3 (zero_point must be an integer)
+{v_3 : float ⊎ int} |= if v_3 > 0 then (v_3 - (v_3 * 1.0)) = 0 else if v_3 < 0 then (v_3 - (v_3 * 1.0)) = 0
+>>
+Rule 4 (If scale and zero_point are tensors, they must have the same number of elements.)
+{v_2 : tensor, v_3 : tensor} |= v_2.len = v_3.len
+>>
+Rule 5 (If input is a list of tensors, scale and zero_point tensors must have the same length as the input list)
+{v_1 : list(tensor), v_2 : tensor, v_3 : tensor} |= v_1.len = v_2.len ∧ v_1.len = v_3.len
+>>
+Rule 6 (input tensor must be of float type)
+{v_1 : tensor} |= dtype_(v_1) = "torch.float16" ∨ dtype_(v_1) = "torch.float32" ∨ dtype_(v_1) = "torch.float64"
+>>
+Rule 7 (If scale is a tensor, zero_point must also be a tensor and have the same number of dimensions)
+{v_2 : float ⊎ tensor, v_3 : int ⊎ tensor} |= if ndim(v_2) > 0 then ndim(v_3) > 0
+>>
+Rule 8 (If the input is a tensor and scale/zero_point are also tensors, they must be scalar tensors, i.e. 0-dimensional)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then (ndim(v_2) = 0) ∧ (ndim(v_3) = 0)
+>>
+Rule 9 (scale tensor must contain only positive values)
+{v_2 : tensor} |= if ndim(v_2) > 0 then min(v_2) > 0
+>>
+Rule 10 (zero_point tensor must contain only integer values)
+{v_3 : tensor} |= if ndim(v_3) > 0 then (∃i ∈ [0, shape(v_3,0) - 1] : (v_3[i] - (v_3[i] * 1.0)) = 0)
+>>
+Rule 11 (If zero_point is a tensor, it must contain only integer values)
+{v_3 : tensor} |= if ndim(v_3) > 0 then ∀i ∈ [0, shape(v_3,0) - 1] : (v_3[i] - (v_3[i] * 1.0)) = 0
+>>
+Rule 12 (input tensor must have values within the representable range of the target dtype, given scale and zero_point, assuming quint8 for simplicity)
+{v_1 : tensor, v_2 : float, v_3 : int} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≥ (0 - v_3) * v_2 ∧ v_1[i] ≤ (255 - v_3) * v_2
+>>
+Rule 13 (If scale is a tensor, zero_point must also be a tensor and they must have the same shape)
+{v_2 : float ⊎ tensor, v_3 : int ⊎ tensor} |= if ndim(v_2) > 0 then ndim(v_3) > 0 ∧ ∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) = shape(v_3, i)
+>>
+Rule 14 (If scale and zero_point are tensors, they must have the same number of elements or be scalar tensors)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) = 0 ∧ ndim(v_3) = 0) ∨ (v_2.len = v_3.len)

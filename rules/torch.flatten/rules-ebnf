@@ -1,0 +1,51 @@
+>>
+Rule 1 (start_dim should be less than or equal to end_dim, and both should be within the valid dimension range of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ v_3 ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 2 (If start_dim is equal to end_dim, the number of dimensions of input tensor should be greater than 0)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = v_3 then ndim(v_1) > 0
+>>
+Rule 3 (If end_dim is -1, it means the last dimension, hence ndim of input must be larger than 0)
+{v_1 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_1) > 0
+>>
+Rule 4 (If start_dim and end_dim are valid dimension indices, then start_dim should not come after end_dim when both converted to positive indices)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then (if v_2 < 0 then v_2 + ndim(v_1) else v_2) ≤ (if v_3 < 0 then v_3 + ndim(v_1) else v_3)
+>>
+Rule 5 (if start_dim is zero, then for any end_dim, end_dim should be less than ndim of input)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 then v_3 < ndim(v_1)
+>>
+Rule 6 (If the number of dimensions is 0, then start_dim and end_dim should both be 0 or -1)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 0 then (v_2 = 0 ∨ v_2 = -1) ∧ (v_3 = 0 ∨ v_3 = -1)
+>>
+Rule 7 (If start_dim is a valid dimension, the corresponding shape should be greater than 0)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) > 0
+>>
+Rule 8 (If the input tensor is a 0-dimensional tensor, the result is a 1-dimensional tensor)
+{v_1 : tensor} |= if ndim(v_1) = 0 then ∃i ∈ [0, 0] : shape(v_1, i) = 1
+>>
+Rule 9 (The flattened tensor's size is the product of the shapes from start_dim to end_dim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then ∃i ∈ [0, 0] : shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) = (if v_2 < 0 then v_2 + ndim(v_1) else v_2)
+>>
+Rule 10 (if start_dim and end_dim are the same, then all other dimensions are kept the same)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = v_3 then true else ∃i ∈ [0, 0] : shape(v_1, i) = 1
+>>
+Rule 11 (If the input tensor is empty, then start_dim and end_dim don't matter.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+>>
+Rule 12 (if the input tensor only has one dimension, then start_dim must be 0 and end_dim can only be 0 or -1)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 1 then v_2 = 0 ∧ (v_3 = 0 ∨ v_3 = -1)
+>>
+Rule 13 (if end_dim is equal to -1, it is always valid)
+{v_1 : tensor, v_3 : int} |= if v_3 = -1 then true else v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 14 (the absolute value of the difference between start_dim and end_dim must be less than ndim of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then (v_2 - v_3) < ndim(v_1) ∧ (v_3 - v_2) < ndim(v_1)
+>>
+Rule 15 (If the size of dimension specified by start_dim is 0, the size of flattened tensor must be 0)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, if v_2 < 0 then v_2 + ndim(v_1) else v_2) = 0
+>>
+Rule 16 (If start_dim is not 0, all dimensions before start_dim are unchanged)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 ∧ v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then ∃i ∈ [0, v_2 - 1] : shape(v_1, i) > 0
+>>
+Rule 17 (If ndim is zero, then flatten returns a tensor of size 1)
+{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1,0) = 1

@@ -1,0 +1,54 @@
+>>
+Rule 1 (input tensor for diagonal must be at least 2-dimensional, and dim1 and dim2 cannot be identical, and dim1 and dim2 should be in the valid dimension range of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) ≥ 2 ∧ v_2 ≠ v_3 ∧ (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ (0 - ndim(v_1)) ≤ v_3 ∧ v_3 < ndim(v_1)
+>>
+Rule 2 (offset should be within reasonable bounds relative to the input tensor dimensions)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (0 - shape(v_1, v_3)) < v_2 ∧ v_2 < shape(v_1, v_4)
+>>
+Rule 3 (If dim1 is negative, it must be a valid negative dimension, and if dim2 is negative, it must be a valid negative dimension)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then v_2 ≥ (0 - ndim(v_1)) ∧ if v_3 < 0 then v_3 ≥ (0 - ndim(v_1))
+>>
+Rule 4 (If dim1 and dim2 are equal to -1 and -2 respectively, then ndim(v_1) must be greater than or equal to 2)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = (0 - 1) ∧ v_3 = (0 - 2) then ndim(v_1) ≥ 2
+>>
+Rule 5 (If the input tensor is 2-dimensional, then offset must be less than or equal to the minimum of the shape and greater than or equal to the negative of the minimum of the shape.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 ≤ (if shape(v_1, 0) < shape(v_1, 1) then shape(v_1, 0) else shape(v_1, 1)) ∧ v_2 ≥ (0 - (if shape(v_1, 0) < shape(v_1, 1) then shape(v_1, 0) else shape(v_1, 1)))
+>>
+Rule 6 (dim1 and dim2 must be within the range of -ndim(v_1) to ndim(v_1) -1)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 ≤ (ndim(v_1) - 1) ∧ (0 - ndim(v_1)) ≤ v_3 ∧ v_3 ≤ (ndim(v_1) - 1)
+>>
+Rule 7 (If dim1 is negative, it must be less than ndim(v_1), and same for dim2.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then (0 - v_2) ≤ ndim(v_1) ∧ if v_3 < 0 then (0 - v_3) ≤ ndim(v_1)
+>>
+Rule 8 (Either both dim1 and dim2 are non-negative, or both are negative)
+{v_2 : int, v_3 : int} |= (v_2 ≥ 0 ∧ v_3 ≥ 0) ∨ (v_2 < 0 ∧ v_3 < 0)
+>>
+Rule 9 (The absolute value of offset should be less than at least one of the dimensions involved, specifically shape(v_1, v_2) or shape(v_1, v_3))
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_4 < 0 then 0 - v_4 < shape(v_1, v_2) ∨ 0 - v_4 < shape(v_1, v_3) else v_4 < shape(v_1, v_2) ∨ v_4 < shape(v_1, v_3)
+>>
+Rule 10 (v_1 should have dimension larger than v_2 and v_3. Also v_2, v_3 should have valid shape dimension.)
+{v_1 : tensor, v_2 : int, v_3 : int} |=  ndim(v_1) > v_2 ∧ ndim(v_1) > v_3 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0 ∧ v_2 < ndim(v_1) ∧ v_3 < ndim(v_1)
+>>
+Rule 11 (Input tensor must have dimension larger than 1)
+{v_1 : tensor} |= ndim(v_1) > 1
+>>
+Rule 12 (If dim1 is negative, then shape(v_1, dim1) > abs(offset), and same for dim2)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4: int} |= if v_2 < 0 then shape(v_1, v_2) > (if v_4 > 0 then v_4 else 0 - v_4) ∧ if v_3 < 0 then shape(v_1, v_3) > (if v_4 > 0 then v_4 else 0- v_4)
+>>
+Rule 13 (If dim1 and dim2 are distinct dimensions, then they should not be larger than the dimension size -1.)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 ≠ v_3 then v_2 < ndim(v_1) ∧ v_3 < ndim(v_1)
+>>
+Rule 14 (If dim1 and dim2 have valid non-negative values that are less than the tensor dimension, and have the same value, then throw exception)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 ≥ 0 ∧ v_3 ≥ 0 ∧ v_2 < ndim(v_1) ∧ v_3 < ndim(v_1) then v_2 ≠ v_3
+>>
+Rule 15 (If dim1 is a valid dimension, shape(v_1, v_2) should be greater than 0)
+{v_1: tensor, v_2: int} |= if v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) then shape(v_1, v_2) > 0
+>>
+Rule 16 (the resulting tensor has a smaller size of dim1 and dim2 if offset = 0, otherwise, depends on offset size)
+{v_1 : tensor, v_2: int, v_3: int, v_4: int} |= if v_4 = 0 then shape(v_1, v_2) > 0 ∧ shape(v_1, v_3) > 0
+>>
+Rule 17 (If dim1 is not equal to dim2, then absolute value of dim1 and dim2 should be less than or equal to the dimension of tensor)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 ≠ v_3 then (if v_2 > 0 then v_2 < ndim(v_1) else (0 - v_2) ≤ ndim(v_1)) ∧ (if v_3 > 0 then v_3 < ndim(v_1) else (0 - v_3) ≤ ndim(v_1))
+>>
+Rule 18 (If dim1 is greater or equal to zero, then dim1 should be less than ndim, and offset + dim1 < shape(v_1, dim1).)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) ∧ v_3 + v_2 < shape(v_1, v_2)

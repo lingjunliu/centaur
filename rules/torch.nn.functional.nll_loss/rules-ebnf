@@ -1,0 +1,63 @@
+>>
+Rule 1 (input and target batch size should match, and target values should be within the valid range)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) = shape(v_2, 0)) ∧ (max(v_2) < shape(v_1, 1)) ∧ (min(v_2) ≥ 0)
+>>
+Rule 2 (weight tensor should be defined either for all classes or no classes)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_2, 0) = shape(v_1, 1)
+>>
+Rule 3 (reduction string should be one of the allowed values)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+>>
+Rule 4 (input tensor should have floating point or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 5 (target tensor should have Long dtype)
+{v_1 : tensor} |= dtype_(v_1) = 4
+>>
+Rule 6 (ignore_index should be within the range of possible target values if specified, C is number of classes)
+{v_1 : int, v_2 : tensor} |= v_1 = -100 ∨ (v_1 ≥ 0 ∧ v_1 < shape(v_2, 1))
+>>
+Rule 7 (If target is K-dimensional, its shape (excluding the first dimension which is batch size) must match the input's shape (excluding the first two dimensions which are batch size and number of classes))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then ndim(v_1) = ndim(v_2) + 1 ∧ ∀i ∈ [1, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i + 1)
+>>
+Rule 8 (If weight is a tensor, its elements must be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 9 (input tensor should have at least two dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 10 (If ignore_index is provided, target values should not equal ignore_index)
+{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ v_2
+>>
+Rule 11 (Input is expected to be log-probabilities, so each element must be smaller than or equal to 0)
+{v_1 : tensor} |= max(v_1) ≤ 0
+>>
+Rule 12 (Number of target dimensions must be smaller or equal than number of input dimensions)
+{v_1: tensor, v_2: tensor} |= ndim(v_2) ≤ ndim(v_1)
+>>
+Rule 13 (If reduction is 'none', then size_average and reduce should not be specified)
+{v_1 : str, v_2 : bool, v_3 : bool} |= if v_1 = "none" then (v_2 = true) ∧ (v_3 = true)
+>>
+Rule 14 (If ignore_index is given then target values should not be less than zero)
+{v_1 : int, v_2 : tensor} |= if v_1 ≠ -100 then min(v_2) ≥ 0
+>>
+Rule 15 (target values should be non-negative and smaller than number of classes only if ignore index not specified)
+{v_1 : tensor, v_2 : int} |= if v_2 = -100 then true else ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 1)
+>>
+Rule 16 (If target has more than one dimension, values at indices (i,j) must be smaller than the number of classes in input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then ∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [0, shape(v_2, 1) - 1] : v_2[shape(v_2, 0) * i + j] < shape(v_1, 1)
+>>
+Rule 17 (If input has more than 2 dimensions, then the first dimension of the target should match the first dimension of the input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 18 (Target can have at most K dimensions where input has K+1 dimensions)
+{v_1: tensor, v_2: tensor} |= (ndim(v_1) - ndim(v_2)) = 1 ∨ (ndim(v_1) - ndim(v_2)) = 0
+>>
+Rule 19 (If weight is provided, its dtype should be the same as the input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 20 (If target has more than 1 dimension, each of its elements should be an integer)
+{v_1 : tensor} |= if ndim(v_1) > 1 then 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+>>
+Rule 21 (If ignore_index is provided and the target is one-dimensional, its values should either be equal to ignore index or fall in range [0, C-1], where C is the number of classes)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -100 then true else ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = v_2) ∨ (v_1[i] ≥ 0 ∧ v_1[i] < shape(v_1, 1))

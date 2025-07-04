@@ -1,0 +1,39 @@
+>>
+Rule 1 (Input and target tensors should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ndim(v_1) = ndim(v_2)
+>>
+Rule 2 (If reduction is none, input and output shapes should match)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ ndim(v_1) = ndim(v_2))
+>>
+Rule 3 (Input and target should not have any NaN values)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] ≠ "NaN" ∧ v_2[i] ≠ "NaN"
+>>
+Rule 4 (If target contains zeros, then it is not always the case that input contains ones at the same index)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : if v_2[i] = 0 then v_1[i] ≠ 1
+>>
+Rule 5 (If input has a dimension of size 0, the target must also have a dimension of size 0)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0
+>>
+Rule 6 (If input is complex then target should be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 7 (If input is a scalar then the target must be scalar.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 8 (If input's last dimension is one, the target's last dimension must be one)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) - 1) = 1 then (ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) = 1)
+>>
+Rule 9 (if reduction is mean then output must be a scalar)
+{v_1 : tensor, v_2 : str} |= if v_2 = "mean" then ndim(v_1) = 0
+>>
+Rule 10 (If input requires grad, target must not require grad)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0) then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0)
+>>
+Rule 11 (If the weight tensor is provided, it should not contain NaN values)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "NaN"
+>>
+Rule 12 (if the size of weight is not equal to the first dimension of input tensor, then weight must be none)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) ≠ shape(v_2, 0) then ndim(v_2) = 0
+>>
+Rule 13 (If input and target have the same single element and reduction is none, the output should be zero)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if shape(v_1, 0) = 1 ∧ shape(v_2, 0) = 1 ∧ v_1[0] = v_2[0] ∧ v_3 = "none" then v_1[0] - v_2[0] = 0

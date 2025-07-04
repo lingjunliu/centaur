@@ -1,0 +1,33 @@
+>>
+Rule 1 (Dimension should be within the range of the input tensor's dimensions)
+{v_1 : tensor, v_2 : int} |= (-1) * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 2 (The output tensor's dtype should match the input tensor's dtype when out is specified)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 3 (If dim is a tuple, all dimensions must be within the valid range and no dimension can appear multiple times)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (-1) * ndim(v_1) ≤ v_2[i] ∧ v_2[i] < ndim(v_1) ∧ (∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+>>
+Rule 4 (If input tensor has a zero-sized dimension, reduction cannot occur on that dimension.)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) = 0 then false
+>>
+Rule 5 (Keepdim must be a boolean value)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
+>>
+Rule 6 (If the dimension to reduce has non-zero size.)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+>>
+Rule 7 (out must be a Tensor, if provided)
+{v_3 : tensor ⊎ int ⊎ float ⊎ bool ⊎ dtype ⊎ str ⊎ list(tensor) ⊎ tuple(int)} |= if v_3 = v_3 then true else false
+>>
+Rule 8 (If keepdim is true, the dimension being reduced will have size 1 in the output tensor)
+{v_1 : tensor, v_3 : bool} |= if v_3 = true then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
+>>
+Rule 9 (If dim is a tuple, keepdim determines whether the reduced dimensions are kept with size 1)
+{v_1 : tensor, v_2 : tuple(int), v_3 : bool} |= if v_3 = true then (∀i ∈ [0, v_2.len - 1] : ∃j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = 1)
+>>
+Rule 10 (If input and out are tensors, the output tensor must have compatible shape)
+{v_1 : tensor, v_3 : tensor, v_4 : bool} |= if v_4 = true then ndim(v_3) = ndim(v_1) else ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 11 (If input and out are tensors, the output tensor must have compatible shape depending on keepdim and dim)
+{v_1 : tensor, v_3 : tensor, v_4 : bool} |= if v_4 = true then (ndim(v_1) = ndim(v_3)) else (ndim(v_1) > 0) ∧ (ndim(v_3) > 0)

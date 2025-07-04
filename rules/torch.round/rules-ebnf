@@ -1,0 +1,57 @@
+>>
+Rule 1 (input tensor should not be Char type)
+{v_1 : tensor} |= dtype_(v_1) ≠ "Char"
+>>
+Rule 2 (out argument must be a tensor if provided)
+{v_1 : tensor ⊎ bool ⊎ int ⊎ float ⊎ str} |= if v_1 = true ∨ v_1 = false then true else if v_1 > -1 ∧ v_1 < 1000000 then true else dtype_(v_1) = "tensor"
+>>
+Rule 3 (if decimals are specified, input cannot have low precision float dtype to prevent overflow)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then dtype_(v_1) ≠ "torch.float16"
+>>
+Rule 4 (If the input is of integer type, decimals must be 0)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8") then v_2 = 0
+>>
+Rule 5 (if input is complex, decimals must be 0)
+{v_1 : tensor, v_2 : int} |= if (dtype_(v_1) = "np.complex64" ∨ dtype_(v_1) = "np.complex128") then v_2 = 0
+>>
+Rule 6 (Output tensor 'out' dtype must match input tensor dtype)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 7 (If output tensor is given, its shape should match the input tensor shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 8 (Decimals should be within reasonable bounds for float16 to avoid inf)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "np.float16" then v_2 > -5 ∧ v_2 < 5
+>>
+Rule 9 (If decimals is negative, it should be small enough to avoid overflow)
+{v_1 : int} |= if v_1 < 0 then v_1 ≥ -10
+>>
+Rule 10 (input cannot be bool)
+{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
+>>
+Rule 11 (input cannot be string)
+{v_1 : tensor} |= dtype_(v_1) ≠ "str"
+>>
+Rule 12 (Input tensor dtype must be float or int-compatible)
+{v_1 : tensor} |= (dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.complex64" ∨ dtype_(v_1) = "np.complex128")
+>>
+Rule 13 (decimals argument v_2 must be int type)
+{v_2 : int ⊎ float ⊎ tensor ⊎ bool ⊎ str} |= dtype_(v_2) = "int" ∨ v_2 = true ∨ v_2 = false
+>>
+Rule 14 (Decimals should be a small value to avoid underflow)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "np.float16" then v_2 < 20 else if dtype_(v_1) = "np.float32" then v_2 < 50
+>>
+Rule 15 (If input is integer type, out argument can only be integer type, same for float)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (if (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8") then (dtype_(v_2) = "np.int8" ∨ dtype_(v_2) = "np.int16" ∨ dtype_(v_2) = "np.int32" ∨ dtype_(v_2) = "np.int64" ∨ dtype_(v_2) = "np.uint8") else (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64"))
+>>
+Rule 16 (decimals argument must not be greater than the precision offered by a dtype)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = "np.float16" then v_2 < 11 else if dtype_(v_1) = "np.float32" then v_2 < 24 else if dtype_(v_1) = "np.float64" then v_2 < 53
+>>
+Rule 17 (Input tensor can have only floating point or integer values)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : (if dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" then true else if dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" then true else false))
+>>
+Rule 18 (If decimals is specified, decimals must be representable as int32)
+{v_1: int} |= v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
+>>
+Rule 19 (the `out` tensor must be a subtype of the input tensor when dealing with integers)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "np.int8") then (dtype_(v_2) = "np.int8") else if (dtype_(v_1) = "np.int16") then (dtype_(v_2) = "np.int16" ∨ dtype_(v_2) = "np.int8") else if (dtype_(v_1) = "np.int32") then (dtype_(v_2) = "np.int32" ∨ dtype_(v_2) = "np.int16" ∨ dtype_(v_2) = "np.int8") else if (dtype_(v_1) = "np.int64") then (dtype_(v_2) = "np.int64" ∨ dtype_(v_2) = "np.int32" ∨ dtype_(v_2) = "np.int16" ∨ dtype_(v_2) = "np.int8") else if (dtype_(v_1) = "np.uint8") then (dtype_(v_2) = "np.uint8")

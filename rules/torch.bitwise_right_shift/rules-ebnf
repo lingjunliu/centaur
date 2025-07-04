@@ -1,0 +1,63 @@
+>>
+Rule 1 (input tensor must be of integral type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+>>
+Rule 2 (other tensor must be of integral type)
+{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+>>
+Rule 3 (input and other tensors must have compatible shapes for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)] : (i ≥ ndim(v_1) ∨ i ≥ ndim(v_2) ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1)
+>>
+Rule 4 (other tensor's elements must be non-negative and less than number of bits in input tensor)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < (if dtype_(v_1) = 1 then 1 else if dtype_(v_1) = 2 then 8 else if dtype_(v_1) = 3 then 16 else if dtype_(v_1) = 4 then 32 else 64)
+>>
+Rule 5 (if input is a scalar, other must be a tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) > 0
+>>
+Rule 6 (If input is Number, other must be a tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else ndim(v_2) > 0
+>>
+Rule 7 (if input is Number, other must be a tensor with integral type)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 8 (input and other must have same shape if they are not scalars)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 9 (If input is not Number, other must be a tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) > 0
+>>
+Rule 10 (If input is Number, it must be of integral type)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 11 (other must be Number if input is Number)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 12 (If input is Number and other is also Number, then they both must be of integral type)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 13 (if input is not Number, then other's data type must be the same as input or it can be a number)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = dtype_(v_2) ∨ ndim(v_2) = 0)
+>>
+Rule 14 (If input is not Number and other is not Number, then other's data type must be the same as input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 15 (if input and other are both not Number, then shapes must be broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)] : (i ≥ ndim(v_1) ∨ i ≥ ndim(v_2) ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1))
+>>
+Rule 16 (If input is Number, other must be a Number with same dtype)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ dtype_(v_1) = dtype_(v_2))
+>>
+Rule 17 (If input is a tensor, its datatype cannot be float16)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 18 (If input is a tensor, its datatype cannot be complex64 or complex128)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 19 (If other is a Number, it must be non-negative)
+{v_2 : tensor} |= if ndim(v_2) = 0 then v_2 ≥ 0
+>>
+Rule 20 (If other is a tensor, all elements must be non-negative)
+{v_2 : tensor} |= if ndim(v_2) > 0 then (min(v_2) ≥ 0)
+>>
+Rule 21 (If input is not Number, other tensor elements must be less than the number of bits in input tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < (if dtype_(v_1) = 1 then 1 else if dtype_(v_1) = 2 then 8 else if dtype_(v_1) = 3 then 16 else if dtype_(v_1) = 4 then 32 else 64))

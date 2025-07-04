@@ -1,0 +1,48 @@
+>>
+Rule 1 (padding length should be less than or equal to two times the input dimension if padding is given as int)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ 2 * ndim(v_1)
+>>
+Rule 2 (If padding is a tuple, it must have length 6 when the input tensor dimension is greater than or equal to 5 or length 4 when the input tensor dimension is equal to 4 or 5)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) ≥ 5 then v_2.len = 6 else if ndim(v_1) = 4 then v_2.len = 4 else false
+>>
+Rule 3 (If padding is a tuple, each element of the tuple must be a non-negative integer)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 4 (The padded size must be larger than 0)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) + 2 * v_2 > 0 ∧ shape(v_1, 1) + 2 * v_2 > 0 ∧ shape(v_1, 2) + 2 * v_2 > 0
+>>
+Rule 5 (If the dimension of input tensor is 4, the length of padding tuple should be 4. And padded size calculated by input size substracting 2 times padding must be larger than 0)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2.len = 4 else false ∧ shape(v_1, 0) + 2 * v_2[0] > 0 ∧ shape(v_1, 1) + 2 * v_2[1] > 0 ∧ shape(v_1, 2) + 2 * v_2[2] > 0 ∧ shape(v_1, 3) + 2 * v_2[3] > 0
+>>
+Rule 6 (If the dimension of input tensor is 5, the length of padding tuple should be 6. And padded size calculated by input size substracting 2 times padding must be larger than 0)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 then v_2.len = 6 else false ∧ shape(v_1, 0) + 2 * v_2[0] > 0 ∧ shape(v_1, 1) + 2 * v_2[1] > 0 ∧ shape(v_1, 2) + 2 * v_2[2] > 0 ∧ shape(v_1, 3) + 2 * v_2[3] > 0 ∧ shape(v_1, 4) + 2 * v_2[4] > 0
+>>
+Rule 7 (The dimension of input tensor must be in the range [4,5])
+{v_1 : tensor} |= 4 ≤ ndim(v_1) ∧ ndim(v_1) ≤ 5
+>>
+Rule 8 (If the padding is a tuple with dimension length 4, then pad length should be less than or equal to two times input size for each dimension.)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 4 then v_2[0] <= 2 * shape(v_1, 2) ∧ v_2[1] <= 2 * shape(v_1, 2) ∧ v_2[2] <= 2 * shape(v_1, 3) ∧ v_2[3] <= 2 * shape(v_1, 3)
+>>
+Rule 9 (If padding is a tuple and the input is 4-dimensional, then the front and back padding values must be less than or equal to two times the depth dimension size)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 ∧ v_2.len = 4 then v_2[0] ≤ 2 * shape(v_1, 1) ∧ v_2[1] ≤ 2 * shape(v_1, 1)
+>>
+Rule 10 (If the padding is a tuple with dimension length 6 and input tensor's dimension is 5, then the padding length cannot be greater than two times of each corresponding input dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 ∧ v_2.len = 6 then v_2[0] ≤ 2 * shape(v_1, 2) ∧ v_2[1] ≤ 2 * shape(v_1, 2) ∧ v_2[2] ≤ 2 * shape(v_1, 3) ∧ v_2[3] ≤ 2 * shape(v_1, 3) ∧ v_2[4] ≤ 2 * shape(v_1, 4) ∧ v_2[5] ≤ 2 * shape(v_1, 4)
+>>
+Rule 11 (If the dimension of the input tensor is 5 and the padding is a tuple, then the padded size along each dimension should be non-negative.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 5 ∧ v_2.len = 6 then shape(v_1, 2) + v_2[0] + v_2[1] ≥ 0 ∧ shape(v_1, 3) + v_2[2] + v_2[3] ≥ 0 ∧ shape(v_1, 4) + v_2[4] + v_2[5] ≥ 0
+>>
+Rule 12 (if padding is given as a tuple and input is 4D or 5D, ensure each shape after padding is at least 1)
+{v_1 : tensor, v_2 : tuple(int)} |= if (ndim(v_1) = 4 ∧ v_2.len = 4) then shape(v_1, 2) + v_2[0] + v_2[1] > 0 ∧ shape(v_1, 3) + v_2[2] + v_2[3] > 0 else if (ndim(v_1) = 5 ∧ v_2.len = 6) then shape(v_1, 2) + v_2[0] + v_2[1] > 0 ∧ shape(v_1, 3) + v_2[2] + v_2[3] > 0 ∧ shape(v_1, 4) + v_2[4] + v_2[5] > 0
+>>
+Rule 13 (For 4D tensor input, the top/bottom padding should be less than or equal to two times the height dimension, and the left/right padding should be less than or equal to two times the width dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 ∧ v_2.len = 4 then v_2[2] <= 2 * shape(v_1, 2) ∧ v_2[3] <= 2 * shape(v_1, 2) ∧ v_2[0] <= 2 * shape(v_1, 3) ∧ v_2[1] <= 2 * shape(v_1, 3)
+>>
+Rule 14 (When using int for padding, ensure input tensor isn't too small such that padding results in negative output size)
+{v_1 : tensor, v_2 : int} |= ∀i ∈ [2, ndim(v_1) - 1] : shape(v_1, i) + 2 * v_2 > 0
+>>
+Rule 15 (If the dimension of the input tensor is 4 or 5, then the sum of all the padding values cannot exceed a certain threshold related to the input dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if (ndim(v_1) = 4 ∧ v_2.len = 4) then v_2[0] + v_2[1] + v_2[2] + v_2[3] ≤ 100 else if (ndim(v_1) = 5 ∧ v_2.len = 6) then v_2[0] + v_2[1] + v_2[2] + v_2[3] + v_2[4] + v_2[5] ≤ 100
+>>
+Rule 16 (The padding tuple should consist of integers)
+{v_1 : tuple(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = (v_1[i] * 1.0)

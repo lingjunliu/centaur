@@ -1,0 +1,45 @@
+>>
+Rule 1 (torch.set_default_device API parameter 'device' must be a string representing 'cpu' or 'cuda' or a device object)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then true else false
+>>
+Rule 2 (If device is a tensor, then its shape at index 0 should not be negative.)
+{v_1 : str ⊎ tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then shape(v_1, 0) ≥ 0
+>>
+Rule 3 (If device is a tensor, and it is int or bool, the ndim of v_1 should be less than or equal to 1, since the doc implies only device type and index.)
+{v_1 : str ⊎ tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then ndim(v_1) ≤ 1
+>>
+Rule 4 (If device is a tensor, its dtype must be 1 (int) or 6 (bool) if ndim is 0 or 1)
+{v_1 : str ⊎ tensor} |= if ndim(v_1) ≤ 1 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 6
+>>
+Rule 5 (If the device is a tensor of int or bool type, all values should be non-negative to represent valid device indices)
+{v_1 : str ⊎ tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then min(v_1) ≥ 0
+>>
+Rule 6 (If the device is a string, it should either be "cpu" or start with "cuda")
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if v_1 = "cuda:0" ∨ v_1 = "cuda:1" ∨ v_1 = "cuda:2" ∨ v_1 = "cuda:3" then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then true else false
+>>
+Rule 7 (if the device is a string, it should either be "cpu" or starts with "cuda:")
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if if v_1 > "cuda:" then true else false then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then true else false
+>>
+Rule 8 (If the device is a string that starts with cuda:, the number after cuda: should be an integer between 0 and 3)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if if v_1 > "cuda:" then if 0 ≤ v_1 - "cuda:" ∧ v_1 - "cuda:" ≤ 3 then true else false else false then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then true else false
+>>
+Rule 9 (If the device is a string, its length should be less than or equal to 7, to prevent arbitrarily long device names that are not supported)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if v_1.len ≤ 7 then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then true else false
+>>
+Rule 10 (If device is a tensor representing the device, its type should be int or bool, its ndim should be less or equal to 1, and its value should be non-negative)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then true else false then if ndim(v_1) ≤ 1 then if min(v_1) ≥ 0 then true else false else false
+>>
+Rule 11 (If v_1 is a tensor, its elements should be representable as a string)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then if ∀i ∈ [0, shape(v_1,0) - 1] : if v_1[i] = "0" ∨ v_1[i] = "1" ∨ v_1[i] = "2" ∨ v_1[i] = "3" then true else false then true else false
+>>
+Rule 12 (If device is a tuple, ensure the tuple length is 2. Index 0 corresponds to device type, and index 1 corresponds to the device index.)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then if v_1.len = 2 then true else false
+>>
+Rule 13 (If device is of the form "cuda", then CUDA must be available)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" then true else if v_1 = "cuda" then true else if v_1 > "cuda" then true else false
+>>
+Rule 14 (If a valid string or device tensor is passed, the API will execute without error)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" ∨ v_1 = "cuda" then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then true else if v_1 > "cuda:" then true else false
+>>
+Rule 15 (If a valid string or device tensor is passed and the operation succeeds, then the return value will have the dtype equal to int)
+{v_1 : str ⊎ tensor} |= if v_1 = "cpu" ∨ v_1 = "cuda" then dtype_(v_1) = 1 else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 6 then dtype_(v_1) = 1 else if v_1 > "cuda:" then dtype_(v_1) = 1 else false

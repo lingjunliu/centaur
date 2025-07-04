@@ -1,0 +1,72 @@
+>>
+Rule 1 (When using 'max' reduction for AOTAutograd, the input tensor must be floating-point type)
+{v_1 : tensor, v_2 : str} |= if v_2 = "max" then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 2 (If a string is provided as an argument, it must be one of the supported values)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
+>>
+Rule 3 (If the tensor is a boolean tensor, the reduction type should be 'none', 'mean', or 'sum')
+{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 0 then v_2 = "none" ∨ v_2 = "mean" ∨ v_2 = "sum"
+>>
+Rule 4 (If input tensor has less than 2 dimensions, einsum string must be `ii`)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) < 2 then v_2 = "ii"
+>>
+Rule 5 (The number of dimensions of the input tensors must match the number of operands implied by the einsum string)
+{v_1 : tensor, v_2 : str} |= if v_2 = "ii" then ndim(v_1) = 1 else if v_2 = "ii->i" then ndim(v_1) = 1 else if v_2 = "i,j->ij" then ndim(v_1) = 1 else if v_2 = "bij,bjk->bik" then ndim(v_1) = 1 else if v_2 = "...ij->...ji" then ndim(v_1) = 1 else if v_2 = "bn,anm,bm->ba" then ndim(v_1) = 1
+>>
+Rule 6 (When providing a constant for a reduction, the reduction type must be `constant`)
+{v_1 : str} |= if v_1 = "constant" then true else false
+>>
+Rule 7 (If the einsum string is 'bn,anm,bm->ba', the first dimensions of the tensors must match.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "bn,anm,bm->ba" then shape(v_1,0) = shape(v_2,0) ∧ shape(v_1,0) = shape(v_3,0)
+>>
+Rule 8 (If einsum string is i,j->ij, both tensors must be 1 dimensional.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "i,j->ij" then ndim(v_1) = 1 ∧ ndim(v_2) = 1
+>>
+Rule 9 (For 'bij,bjk->bik', the second dimension of tensor v1 and the first dimension of tensor v2 must match)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "bij,bjk->bik" then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 10 (If the string is equal to tanh, the tensor dtype has to be float16, float32, or float64.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "tanh" then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 11 (If the einsum string is "...ij->...ji", the tensor must have at least 2 dimensions.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "...ij->...ji" then ndim(v_1) ≥ 2
+>>
+Rule 12 (For 'bn,anm,bm->ba', dimensions 1 and 2 of tensor v2 must be greater than 0.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "bn,anm,bm->ba" then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 13 (If v_2 is a constant and a string is provided, then the string argument should be `constant`)
+{v_1 : float, v_2 : str} |= if v_1 > -1000000 ∧ v_1 < 1000000 then v_2 = "constant"
+>>
+Rule 14 (If v_1 is a string, then the length of v_1 must be smaller than 20.)
+{v_1 : str} |= v_1.len < 20
+>>
+Rule 15 (If v_1 is a list of type int, then its length must be smaller than 100.)
+{v_1 : list(int)} |= v_1.len < 100
+>>
+Rule 16 (If a tuple's length is greater than 0, its first element must be a number greater than 0)
+{v_1 : tuple(int)} |= if v_1.len > 0 then v_1[0] > 0
+>>
+Rule 17 (If v_1 is a bool, it must be true or false)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 18 (If a tensor's dimension is 0, it cannot have any elements)
+{v_1 : tensor} |= if ndim(v_1) = 0 then ∃i ∈ [0, 0] : shape(v_1, i) = 0
+>>
+Rule 19 (A tensor must have a smaller number of dimensions than 5)
+{v_1 : tensor} |= ndim(v_1) < 5
+>>
+Rule 20 (The maximum value of the tensor must be greater than or equal to the minimum value of the tensor)
+{v_1 : tensor} |= max(v_1) ≥ min(v_1)
+>>
+Rule 21 (If the reduction is 'max' or 'min', the input tensor must have a dimension greater than 0)
+{v_1 : tensor, v_2 : str} |= if v_2 = "max" ∨ v_2 = "min" then ndim(v_1) > 0
+>>
+Rule 22 (If performing einsum, the string parameter cannot be empty)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 23 (If a tensor's shape at dimension 0 is 1, then its maximum value should be less than or equal to its minimum value plus 1)
+{v_1 : tensor} |= if shape(v_1, 0) = 1 then max(v_1) ≤ min(v_1) + 1
+>>
+Rule 24 (The shape of a tensor in each dimension must be less than 1000)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000

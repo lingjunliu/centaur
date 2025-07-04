@@ -1,0 +1,60 @@
+>>
+Rule 1 (torch.less_equal input tensors should have compatible shapes or one input is a scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) = 0 ∨ ndim(v_2) = 0)
+>>
+Rule 2 (if one input is a scalar, the other should not be a boolean tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_2) ≠ 0 else if ndim(v_2) = 0 then dtype_(v_1) ≠ 0
+>>
+Rule 3 (if one input is a scalar, the other one should have numerical dtype)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11 else if ndim(v_2) = 0 then dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 4 (If one input is int and the other is float, allow comparison)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∧ (dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 8) then true else if (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5) ∧ (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) then true else if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5) then true else if (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) ∧ (dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 8) then true else false
+>>
+Rule 5 (If input tensors have different number of dimensions, the one with fewer dimensions must have size 1 in all dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1
+>>
+Rule 6 (If shapes do not match, at least one tensor should have a shape of size 1 in all dimensions)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = ndim(v_2) ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then (∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = 1 ∨ shape(v_2, j) = 1)
+>>
+Rule 7 (If one of the tensors is boolean, the other tensor's elements will be compared to true (1).)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then true else if dtype_(v_2) = 0 then true
+>>
+Rule 8 (Complex types are not allowed for less_equal operation)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+>>
+Rule 9 (String type tensors are not allowed)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
+>>
+Rule 10 (If dtypes are different, they should be castable)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then (dtype_(v_1) < 11 ∧ dtype_(v_2) < 11)
+>>
+Rule 11 (If number dtype input compared with float dtype input, the number dtype input should be upcasted to float dtype)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∧ (dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 8) then true else if (dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 5) then true
+>>
+Rule 12 (If dtypes are different and casting is required, both tensors can’t be bool.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+>>
+Rule 13 (If one input tensor is a scalar, it must be a number and not a boolean)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) > 0 else if ndim(v_2) = 0 then dtype_(v_2) > 0
+>>
+Rule 14 (If dtypes are different, one can not be str)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
+>>
+Rule 15 (If one tensor's dtype is smaller than the other, it must be cast to the larger dtype.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < dtype_(v_2) then true else if dtype_(v_2) < dtype_(v_1) then true
+>>
+Rule 16 (If input tensors have the same number of dimensions and different shapes, then there must exist one index where they are equal or one of the shapes at that index is one.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 17 (If input tensors have different number of dimensions, ensure compatibility before comparison.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 0 ∨ ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2) - 1 ] : shape(v_1, i) = 1 ∨ shape(v_2, i) = 1 )
+>>
+Rule 18 (If both inputs are not scalars, then number of elements in each dimension should match when broadcasted)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 0 ∧ ndim(v_2) ≠ 0 then (∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : ((if (ndim(v_1) - i - 1) < 0 then 1 else shape(v_1, ndim(v_1) - i - 1)) = (if (ndim(v_2) - i - 1) < 0 then 1 else shape(v_2, ndim(v_2) - i - 1))) ∨ ((if (ndim(v_1) - i - 1) < 0 then 1 else shape(v_1, ndim(v_1) - i - 1)) = 1) ∨ ((if (ndim(v_2) - i - 1) < 0 then 1 else shape(v_2, ndim(v_2) - i - 1)) = 1))
+>>
+Rule 19 (If one is a scalar, the other one should not have dimension size =0 )
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then shape(v_2,0) > 0  else if ndim(v_2) = 0 then shape(v_1,0) > 0
+>>
+Rule 20 (If tensors don't have the same dimensions, then the dimensions should be checked.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then true else if ndim(v_1) = 0 ∨ ndim(v_2) = 0 then true else if ndim(v_1) > ndim(v_2) then (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = 1) else (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1)

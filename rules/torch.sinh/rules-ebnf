@@ -1,0 +1,66 @@
+>>
+Rule 1 (output tensor dtype should be the same as input tensor dtype if specified)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (input tensor must be a floating-point or complex dtype)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+>>
+Rule 3 (If output tensor is specified, it must have the same shape as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 4 (If output tensor is specified, the output tensor and input tensor should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then (dtype_(v_1) = dtype_(v_2)) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 9) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 9) ∨ (dtype_(v_1) = 6 ∧ dtype_(v_2) = 9)
+>>
+Rule 5 (If input is complex, output must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then if v_2 ≠ none then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 6 (If output tensor is specified, output tensor must have the same number of dimensions as the input)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then ndim(v_1) = ndim(v_2)
+>>
+Rule 7 (Minimum value of input tensor must not be infinity)
+{v_1 : tensor} |= min(v_1) ≠ "inf"
+>>
+Rule 8 (Maximum value of input tensor must not be infinity)
+{v_1 : tensor} |= max(v_1) ≠ "inf"
+>>
+Rule 9 (If input tensor is empty, the output tensor if specified should also be empty.)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then if v_2 ≠ none then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 10 (The number of elements in input should not exceed the maximum integer value)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+>>
+Rule 11 (Input tensor's dimension should not exceed 6)
+{v_1 : tensor} |= ndim(v_1) ≤ 6
+>>
+Rule 12 (If input is float16, the implementation might round very large results to infinity)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then true
+>>
+Rule 13 (If the number of dimensions of input tensor is 0, it's a scalar.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true
+>>
+Rule 14 (If the input is a scalar, the output, if specified, must also be a scalar.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then if v_2 ≠ none then ndim(v_2) = 0
+>>
+Rule 15 (For float16 input, the absolute value of input tensor elements must be less than 65500, otherwise the output becomes infinity or negative infinity)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ -65500 ∧ max(v_1) ≤ 65500
+>>
+Rule 16 (input tensor should not have inf or nan values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan"
+>>
+Rule 17 (Output tensor can only be specified if the input tensor is not a bool tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then v_2 = none
+>>
+Rule 18 (if specified output tensor is of complex type, then the corresponding input tensor has to be complex)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then if dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 19 (if the API returns nan, input must contain nan)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ min(v_1) = "nan" ∨ max(v_1) = "nan"
+>>
+Rule 20 (if the API returns inf, input must contain inf)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ min(v_1) = "inf" ∨ max(v_1) = "inf"
+>>
+Rule 21 (The range of the input tensor's values should be appropriate to avoid overflow issues for the chosen dtype)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -1.0e8 ∧ max(v_1) < 1.0e8
+>>
+Rule 22 (if specified output tensor is not complex type, then the corresponding input tensor has to be real)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then if dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10

@@ -1,0 +1,66 @@
+>>
+Rule 1 (input and target tensors should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (reduction must be one of the allowed string values)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+>>
+Rule 3 (if weight tensor is provided, it must have the same shape as input when reduction is none)
+{v_1 : tensor, v_2 : str, v_3 : tensor} |= if v_3 ≠ false then (if v_2 = "none" then (ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)))
+>>
+Rule 4 (input and target should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 5 (weight tensor must be 1D if reduction is not 'none' and input is not 1D)
+{v_1 : tensor, v_2 : str, v_3 : tensor} |= if v_3 ≠ false then (if v_2 ≠ "none" ∧ ndim(v_1) > 1 then ndim(v_3) = 1)
+>>
+Rule 6 (if weight is provided, it should be a tensor with floating point dtype)
+{v_1 : tensor} |= if v_1 ≠ false then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+>>
+Rule 7 (If weight is provided, its number of elements should match target in case of sum reduction)
+{v_1 : tensor, v_2 : str, v_3 : tensor, v_4 : tensor} |= if v_3 ≠ false then (if v_2 = "sum" then (v_1.len = v_4.len))
+>>
+Rule 8 (If input and target are both 0-dimensional, weight must not be provided)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then v_3 = false
+>>
+Rule 9 (if input is 1D, target should also be 1D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1
+>>
+Rule 10 (The input tensor must have floating point or complex dtype)
+{v_1 : tensor} |= 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 11
+>>
+Rule 11 (if the weight is provided, it must be a tensor)
+{v_1 : tensor} |= if v_1 ≠ false then ndim(v_1) ≥ 0
+>>
+Rule 12 (When input and target are more than 1D, weight must have a number of elements corresponding to batch size.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 ∧ v_3 ≠ false then shape(v_1, 0) = shape(v_3, 0)
+>>
+Rule 13 (if input is complex, target should also be complex.)
+{v_1 : tensor, v_2 : tensor} |= if 9 <= dtype_(v_1) ∧ dtype_(v_1) <= 11 then 9 <= dtype_(v_2) ∧ dtype_(v_2) <= 11
+>>
+Rule 14 (if input is a scalar then target should be a scalar and weight must be none.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ v_3 = false)
+>>
+Rule 15 (if target is a 1-D tensor then its length must be equal to the number of classes)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_1.len = v_2
+>>
+Rule 16 (The number of dimensions of input and target tensors must be greater than or equal to 0)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 17 (If weight is given, its dtype should be the same as input dtype if input is floating or complex type)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ false then (if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 11 then dtype_(v_1) = dtype_(v_2))
+>>
+Rule 18 (if reduction mode is mean or sum, input must have floating or complex dtype)
+{v_1 : tensor, v_2 : str} |= if (v_2 = "mean") ∨ (v_2 = "sum") then 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 11
+>>
+Rule 19 (if the input and target tensor is empty, the reduction can only be "none")
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0) then v_3 = "none"
+>>
+Rule 20 (If weight tensor is provided and reduction is mean, number of elements in weight tensor should match input/target except batch dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_1 ≠ false ∧ v_3 = "mean" then (ndim(v_2) = ndim(v_1) ∧ ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 21 (If input and target have different ndim, the weight tensor has to be false)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then v_3 = false
+>>
+Rule 22 (If the weight is provided, it should not be empty)
+{v_1 : tensor} |= if v_1 ≠ false then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0

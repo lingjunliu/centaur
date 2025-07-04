@@ -1,0 +1,54 @@
+>>
+Rule 1 (input tensor must have a complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+>>
+Rule 2 (elements in s should be greater than 0 or equal to -1)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0 ∨ v_1[i] = -1
+>>
+Rule 3 (norm parameter must be a valid string)
+{v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
+>>
+Rule 4 (dim parameter must contain unique dimension indices)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 5 (If s is given, the length of s should be less than or equal to the number of dimensions in dim, if dim is also given.)
+{v_1 : tuple(int), v_2 : list(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len ≤ v_2.len
+>>
+Rule 6 (If dim is given, its length must be less than or equal to the input's ndim)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then v_2.len ≤ ndim(v_1)
+>>
+Rule 7 (The length of the s tuple must be equal to the length of the dim list, if both are given.)
+{v_1 : tuple(int), v_2 : list(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len
+>>
+Rule 8 (if s is given, the product of the elements in s cannot be zero)
+{v_1 : tuple(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+>>
+Rule 9 (If input tensor's dtype is float16, then CUDA with GPU Architecture SM53 or greater is required, and signal length should be power of 2)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then true
+>>
+Rule 10 (if s is not None, all dimensions in dim must be in range [-ndim(input), ndim(input)-1])
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] ≤ (ndim(v_1) - 1)
+>>
+Rule 11 (If a length -1 is specified in s, then corresponding dimension in dim must be less than ndim(input) to avoid no padding)
+{v_1 : tensor, v_2 : tuple(int), v_3 : list(int)} |= if v_2.len > 0 ∧ v_3.len > 0 then ∀i ∈ [0, v_2.len - 1] : if v_2[i] = -1 then v_3[i] < ndim(v_1)
+>>
+Rule 12 (If s is given and dim is None, then length of s must be equal to ndim(input))
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len > 0 then v_2.len = ndim(v_1)
+>>
+Rule 13 (If dim is given, values in dim should be valid dimension indices for input)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1] : (0 - ndim(v_1)) ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+>>
+Rule 14 (If s is given, then each element in s should be an integer.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : true
+>>
+Rule 15 (The shape of the output tensor 'out' should be the same as the shape of the transformed input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 16 (If input tensor's dtype is float16 or chalf, then signal length should be power of 2)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 10 then true
+>>
+Rule 17 (If dim is None and s is None, norm cannot be forward.)
+{v_1 : str} |= if v_1 = "forward" then false
+>>
+Rule 18 (If norm is specified, then dim must be specified)
+{v_1 : str, v_2 : list(int)} |= if v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho" then v_2.len > 0

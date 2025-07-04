@@ -1,0 +1,63 @@
+>>
+Rule 1 (dropout probability has to be between 0 and 1)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 2 (input tensor should have floating point dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 3 (input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 4 (if input tensor is empty, dropout probability doesn't matter)
+{v_1 : tensor, v_2 : float} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (v_2 ≥ 0 ∧ v_2 ≤ 1)
+>>
+Rule 5 (input tensor must have a valid shape along each dimension, i.e., non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 6 (dropout probability must be within range [0,1] or be NaN, if NaN it should not affect the output )
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1 ∨ v_1 = v_1
+>>
+Rule 7 (if the input tensor is a complex type, then alpha dropout might be not supported)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 8 (Alpha dropout should not change the number of dimensions of the input)
+{v_1 : tensor} |= ndim(v_1) = ndim(v_1)
+>>
+Rule 9 (if input tensor is of boolean type, dropout is probably not meaningful)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 10 (input tensor must not have inf or NaN values if dropout probability is non-zero)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0 then min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf" ∧ min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+>>
+Rule 11 (dropout probability cannot be a string)
+{v_1 : float ⊎ str} |= if v_1 = "hello" then false
+>>
+Rule 12 (dropout probability should be of float type or it will raise an error during computation)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = v_2
+>>
+Rule 13 (Alpha dropout preserves the shape of the input tensor)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+>>
+Rule 14 (If the input tensor has a shape with any dimension being zero, alpha dropout does nothing)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+>>
+Rule 15 (dropout probability and the tensor should have compatible dtypes to perform arithmetic operations. Specifically, if the tensor has a float dtype, the dropout probability should also be float.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = v_2
+>>
+Rule 16 (If input tensor requires grad, training mode is enabled.)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 17 (if the input tensor is a scalar, it needs to be floating point to cast the result to a float)
+{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 18 (Alpha Dropout does not change the data type of the tensor)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+>>
+Rule 19 (If the input is quantized, alpha dropout may not be the best choice as the result may not remain quantized)
+{v_1 : tensor} |= dtype_(v_1) < 6
+>>
+Rule 20 (If alpha dropout is used, the input is usually normalized)
+{v_1 : tensor} |= min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
+>>
+Rule 21 (If the input tensor has a shape with at least one zero dimension, the dropout ratio will be ignored.)
+{v_1 : tensor, v_2 : float} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else v_2 ≥ 0 ∧ v_2 ≤ 1

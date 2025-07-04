@@ -1,0 +1,72 @@
+>>
+Rule 1 (device_ids must be a list of integers and the list should not be empty)
+{v_1 : list(int)} |= v_1.len > 0
+>>
+Rule 2 (output_device should be one of the devices in device_ids)
+{v_1 : int, v_2 : list(int)} |= ∃i ∈ [0, v_2.len - 1] : v_1 = v_2[i]
+>>
+Rule 3 (module's parameters and buffers must be on device_ids[0])
+{v_1 : tensor, v_2 : list(int)} |= v_2.len > 0 ∧ dtype_(v_1) = v_2[0]
+>>
+Rule 4 (The batch size of input tensor should be larger than the number of GPUs used.)
+{v_1 : tensor, v_2 : list(int)} |= shape(v_1, 0) > v_2.len
+>>
+Rule 5 (device_ids should contain unique device IDs)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 6 (output_device must be a valid device ID)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 7 (If module returns a scalar, output should be a vector of length equal to the number of devices.)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 0 then shape(v_1, 0) = v_2.len
+>>
+Rule 8 (If device_ids is specified, output_device must be in device_ids.)
+{v_1 : int, v_2 : list(int)} |= if v_2.len > 0 then ∃i ∈ [0, v_2.len - 1] : v_1 = v_2[i]
+>>
+Rule 9 (Input tensor must have batch dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 10 (device_ids should contain integers that are valid GPU device indices)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 11 (If output_device is specified, the module's output must be on that device)
+{v_1 : tensor, v_2 : int} |= dtype_(v_1) = v_2
+>>
+Rule 12 (The module argument cannot be None)
+{v_1 : bool} |= v_1 = true
+>>
+Rule 13 (The module's parameters and buffers must be on the same device.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 14 (If device_ids is empty, output_device should be -1 or not specified)
+{v_1 : int, v_2 : list(int)} |= if v_2.len = 0 then v_1 = -1 ∨ v_1 = 0
+>>
+Rule 15 (If device_ids is specified, all device ids should be less than the total number of available GPUs)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < max(v_1) + 1
+>>
+Rule 16 (The default dim should be 0 for scattering the tensor)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 17 (device_ids list must not contain device id of CPU)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ -1
+>>
+Rule 18 (device_ids should not be a single element list.)
+{v_1 : list(int)} |= v_1.len > 1
+>>
+Rule 19 (device_ids should contain at least one valid cuda device)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 20 (When only one GPU is available, device_ids can contain only one element.)
+{v_1 : list(int)} |= if max(v_1) = 0 then v_1.len ≤ 1
+>>
+Rule 21 (When the batch size is not larger than the number of gpus used, it should raise an error)
+{v_1 : tensor, v_2 : list(int)} |= if shape(v_1, 0) ≤ v_2.len then false
+>>
+Rule 22 (If device_ids is not provided or is an empty list, all available GPUs will be used)
+{v_1 : list(int)} |= if v_1.len = 0 then true
+>>
+Rule 23 (If output_device is specified, it should not be equal to any invalid gpu ids.)
+{v_1 : int } |= v_1 ≥ 0
+>>
+Rule 24 (If batch size is smaller than device count, raise a runtime error)
+{v_1 : tensor, v_2 : list(int)} |= if shape(v_1, 0) < v_2.len then false

@@ -1,0 +1,72 @@
+>>
+Rule 1 (Input tensor dtype should be a floating-point type for rsqrt)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 2 (The output tensor's dtype should be the same as the input tensor's dtype for rsqrt_)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 3 (Check if all elements in the tensor are non-negative before applying rsqrt)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0
+>>
+Rule 4 (rsqrt_ operation is not supported for complex numbers)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 5 (rsqrt input cannot be an empty tensor)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 6 (rsqrt output should not be the same as the input if the input requires grad)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = shape(v_2, 0) then v_1 ≠ v_2
+>>
+Rule 7 (The number of dimensions of the input tensor for rsqrt must be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 8 (If the output tensor is provided, it should have the same shape as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 9 (The maximum value of the input tensor should be less than infinity to avoid NaN results)
+{v_1 : tensor} |= max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+>>
+Rule 10 (if the output tensor is the same as the input tensor, the input tensor must require grad)
+{v_1 : tensor, v_2 : tensor} |= if v_1 = v_2 then true
+>>
+Rule 11 (The minimum value of the input tensor should be greater than zero to avoid division by zero and imaginary numbers)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 12 (Input tensor cannot contain NaN values to avoid propagating them)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1]: min(v_1) ≠ "NaN"
+>>
+Rule 13 (rsqrt cannot be applied to boolean tensors.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 14 (If v_1 is of float16, the device type must support it)
+{v_1: tensor} |= if dtype_(v_1) = 6 then true
+>>
+Rule 15 (For small float16 tensors, use float32 or float64 for better accuracy)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∧ shape(v_1, 0) < 1000 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 16 (rsqrt's input dimension should be less than or equal to 8)
+{v_1 : tensor} |= ndim(v_1) ≤ 8
+>>
+Rule 17 (The stride of the input tensor should be positive for optimal performance with rsqrt.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : 0 < shape(v_1, i)
+>>
+Rule 18 (rsqrt results in inf for input 0. If 0 appears in input, the grad should be disabled.)
+{v_1 : tensor} |= if min(v_1) = 0 then true
+>>
+Rule 19 (rsqrt is not defined for integer tensors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 20 (rsqrt requires the input to be finite. It cannot handle Inf.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : max(v_1) ≠ "Inf"
+>>
+Rule 21 (If input tensor is on the GPU, output tensor should also be on the GPU)
+{v_1 : tensor} |= if ndim(v_1) > 0 then true
+>>
+Rule 22 (Check for zero variance before rsqrt, as it could cause instability)
+{v_1 : tensor} |= if shape(v_1, 0) > 1 then true
+>>
+Rule 23 (The output should not have its `requires_grad` set to `True` if input contains `Inf`)
+{v_1 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : max(v_1) = "Inf" then true
+>>
+Rule 24 (If input requires grad, ensure output dtype is precise enough to store gradients.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then true

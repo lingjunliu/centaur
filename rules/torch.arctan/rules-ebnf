@@ -1,0 +1,36 @@
+>>
+Rule 1 (output tensor dtype should be compatible with input tensor dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) ≠ "none" ∧ (dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float64"))
+>>
+Rule 2 (input tensor should have floating-point or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 3 (output tensor must have at least the same number of dimensions as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≥ ndim(v_1)
+>>
+Rule 4 (if output tensor is provided, its shape must be broadcast-compatible with the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)))
+>>
+Rule 5 (If an output tensor is given, its dtype must be compatible with the input tensor's dtype.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (if dtype_(v_1) = "float32" then (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else if dtype_(v_1) = "float64" then dtype_(v_2) = "float64" else if dtype_(v_1) = "float16" then dtype_(v_2) = "float16" else if dtype_(v_1) = "complex64" then dtype_(v_2) = "complex64" else dtype_(v_2) = "complex128")
+>>
+Rule 6 (input tensor has non-empty shape)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 7 (If an output tensor is provided, it should not alias the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then v_1 ≠ v_2
+>>
+Rule 8 (if output tensor is given, then the number of elements should be large enough to accomodate the output)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 9 (the output tensor must have the same device as the input tensor, if output tensor is provided)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (shape(v_1, 0) > 0 ∨ shape(v_2,0) > 0)
+>>
+Rule 10 (the input tensor must have contiguous memory layout, if the number of elements is not zero)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1,i) > 0
+>>
+Rule 11 (If out is specified, it should be on the same device as input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_1)
+>>
+Rule 12 (If out is specified, it should be on the same layout as input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_1)

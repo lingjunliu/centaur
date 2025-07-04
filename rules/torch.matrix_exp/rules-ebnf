@@ -1,0 +1,48 @@
+>>
+Rule 1 (input tensor A must have at least 2 dimensions and be a floating point or complex tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 2 (shape of the input tensor should be square matrix)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 3 (check if the leading dimensions of the input tensor are positive)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) > 0
+>>
+Rule 4 (check if the shape of input tensor is not too large to prevent overflow)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) < 1000 ∧ shape(v_1, ndim(v_1) - 2) < 1000
+>>
+Rule 5 (if input is complex, ensure the imaginary part is within reasonable bounds to avoid numerical instability)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 10000
+>>
+Rule 6 (check if the element in input tensor is not NaN or inf)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, ndim(v_1) - 1) -1] : v_1[i] ≠ "NaN" ∧ v_1[i] ≠ "inf"
+>>
+Rule 7 (ensure matrix is not singular by checking determinant is non-zero. Requires square matrix.)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ (min(v_1) ≠ 0 ∨ max(v_1) ≠ 0)
+>>
+Rule 8 (check if any of the dimension sizes is 0; empty tensor will also fail)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+>>
+Rule 9 (Ensure matrix has reasonable condition number to avoid precision issues)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ max(v_1) / min(v_1) < 1000000
+>>
+Rule 10 (Ensure non-zero diagonal element for invertibility)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) ∧ (∃i ∈ [0, shape(v_1, ndim(v_1) - 1) - 1] : v_1[i [0]] ≠ 0)
+>>
+Rule 11 (if dtype is float16, then elements should be in a certain range for numerical stability)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -1000 ∧ max(v_1) < 1000
+>>
+Rule 12 (The batch dimensions have to match, assuming batched matrix_exp)
+{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) > 0
+>>
+Rule 13 (The max value in the input matrix A is not too large for float16, float32 datatypes)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 then max(v_1) < 100
+>>
+Rule 14 (ensure reasonable dimension size for GPU memory limits)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 100000000
+>>
+Rule 15 (For complex tensors, ensure the magnitude of the elements is not too small or too large)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (min(v_1) > 0.000001 ∧ max(v_1) < 1000000)
+>>
+Rule 16 (Prevent underflow issue by checking min value is not too small)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -0.00000000001
