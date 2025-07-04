@@ -76,7 +76,7 @@ def log_response(label, prompt, response, dir_path, num_failures=0):
         else:
             log_file.write("\n\n")
 
-def generate_rules(api):
+def generate_rules(api, max_time=30):
     num_failures = 0
     num_rules = 1
     rule_defs = set()
@@ -107,7 +107,7 @@ def generate_rules(api):
 
     feedback = ""
     base_time = time.time()
-    while time.time() - base_time < 30:
+    while time.time() - base_time < max_time:
         prompt = ""
         if feedback:
             prompt += f"[Feedback Message from Prior Run]\n{feedback}\n\n"
