@@ -163,7 +163,7 @@ The code is organized as follow:
  To use random generation instead of the invariant-based approach, run:
 
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ python -m <api> <duration> <n_max> <lib>
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m generator.random_generation <api> <duration> <n_max> <lib>
  ```
 
  It will run the code for `duration` seconds unless `n_max` is specified. With `n_max`, it will run until whichever comes first (`duration` seconds or generation of `n_max` inputs)
