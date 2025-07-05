@@ -1,72 +1,177 @@
 >>
-Rule 1 (result dtype should be able to cast from input tensor dtype)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) < 9 then v_2 > 0
+Rule 1 (Input tensor dtype should be compatible with output dtype to prevent casting issues)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = 8 ∧ v_2 = 7) ∨ (dtype_(v_1) = 7 ∧ v_2 = 8) ∨ (dtype_(v_1) = 7 ∧ v_2 = 7) ∨ (dtype_(v_1) = 8 ∧ v_2 = 8)
 >>
-Rule 2 (eps must be between 0 and 0.5)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 0.5
+Rule 2 (Input tensor should be real to avoid complex number error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 3 (input tensor must be floating point type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 3 (Value parameter for logit_ should not overflow when converted to Half type)
+{v_1 : float} |= v_1 < 65500 ∧ v_1 > -65500
 >>
-Rule 4 (epsilon should be non-negative for numerical stability)
-{v_1 : float} |= v_1 ≥ 0
+Rule 4 (Prevent casting to Char by ensuring output dtype is not Char (represented by its type index))
+{v_1 : dtype} |= v_1 ≠ 1
 >>
-Rule 5 (if eps is provided, the tensor must contain values within the range [0, 1])
-{v_1 : tensor, v_2 : float} |= if v_2 > 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 5 (Input tensor dtype should not be ComplexDouble)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 6 (The values of input tensor must be between 0 and 1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+Rule 6 (Eps value for logit_ must be representable in float16 without overflow)
+{v_1 : float} |= v_1 > -65500 ∧ v_1 < 65500
 >>
-Rule 7 (if the dimension is specified it should be within the range of tensor dimensions)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1)
+Rule 7 (If output dtype is specified, it should be a valid dtype)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
 >>
-Rule 8 (if the dimension is specified, it must be in the valid range.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else if v_2 < 0 then v_2 ≥ (0 - ndim(v_1))
+Rule 8 (If the input is complex, the output should also be complex)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (v_2 = 9 ∨ v_2 = 10)
 >>
-Rule 9 (if eps is provided, it should be a scalar value)
-{v_1 : tensor, v_2 : float} |= if v_2 > 0 then ndim(v_1) ≥ 0
+Rule 9 (Value should be within a reasonable range to prevent overflow during conversion to float16)
+{v_1 : float} |= v_1 > -10000 ∧ v_1 < 10000
 >>
-Rule 10 (if out is provided, its shape must be the same as input)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 10 (prevent float to char conversion error)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 ≠ 1
 >>
-Rule 11 (if out is provided, its dtype must be the same as input)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 12 (value cannot overflow when converted to float16)
+{v_1 : float} |= v_1 > -6.55e+04 ∧ v_1 < 6.55e+04
 >>
-Rule 12 (input and out tensors should have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 13 (Input tensor and specified dtype should be compatible)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 = 7 ∨ v_2 = 8 else if dtype_(v_1) = 8 then v_2 = 8
 >>
-Rule 13 (if out is provided, then the input and output tensors must have same sizes except dimension size)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≥ 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 14 (Check for complex input type)
+{v_1 : tensor} |= if dtype_(v_1) = 9 then false else if dtype_(v_1) = 10 then false
 >>
-Rule 14 (if dimension is provided it should be less than the number of dimensions of the tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then v_2 < ndim(v_1)
+Rule 15 (Ensure 'value' can be safely cast to float16)
+{v_1 : float} |= v_1 ≥ -65504 ∧ v_1 ≤ 65504
 >>
-Rule 15 (if dimension is provided it should be less than the absolute number of dimensions of the tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 ≥ (0 - ndim(v_1))
+Rule 16 (Output dtype should be compatible with float if input is float)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 6
 >>
-Rule 16 (Check that the input values are in range (0, 1) when eps != 0)
-{v_1 : tensor, v_2 : float} |= if v_2 > 0 then (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)
+Rule 17 (Input should not be complex number when using logit_)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 17 (Eps should be less than or equal to 0.5)
-{v_1 : float} |= v_1 ≤ 0.5
+Rule 18 (Eps value must not be too large for float16 conversion)
+{v_1 : float} |= v_1 < 65000 ∧ v_1 > -65000
 >>
-Rule 18 (If dimension is specified, then output's dimension size should be equal to input's dimension size)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 > 0 then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 19 (Ensure the input tensor isn't a Char type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1
 >>
-Rule 19 (Eps value should be between 0 and 0.5, exclusive)
-{v_1 : float} |= v_1 > 0 ∧ v_1 < 0.5
+Rule 21 (The value must be within the representable range of Half type)
+{v_1 : float} |= v_1 > -65536 ∧ v_1 < 65536
 >>
-Rule 20 (If out is provided and the dimension argument is also specified, the size of the specified dimension in out must match the size of the corresponding dimension in input.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 < ndim(v_1) ∧ v_3 < ndim(v_2) then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 24 (Ensure 'eps' value doesn't cause an overflow during float16 conversion)
+{v_1 : float} |= v_1 > -6.55e4 ∧ v_1 < 6.55e4
 >>
-Rule 21 (If eps is provided, it should be non-negative and strictly less than 0.5.)
-{v_1 : float} |= v_1 ≥ 0 ∧ v_1 < 0.5
+Rule 25 (If output dtype is specified, it should not be equal to char)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 ≠ 1 else if dtype_(v_1) = 8 then v_2 ≠ 1
 >>
-Rule 22 (If both input and out tensors are provided, their layouts must match)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 29 (The input tensor cannot be a complex double to avoid "logit_cpu" not implemented error)
+{v_1 : dtype} |= v_1 ≠ 11
 >>
-Rule 23 (If specified dimension is negative, then absolute dimension value should be less than or equal to number of dimensions)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - v_2) ≤ ndim(v_1)
+Rule 31 (The output dtype must be a floating point or integer to avoid cast to Char)
+{v_1 : dtype} |= v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
 >>
-Rule 24 (Check eps value is a scalar)
-{v_1 : float} |= ndim(v_1) = 0
+Rule 32 (If input is complex, output should be complex or input cannot be processed)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = 10 ∨ v_2 = 11
+>>
+Rule 33 (The eps argument must be a value that can be represented without overflow in a float16)
+{v_1 : float} |= max(v_1) ≤ 65500 ∧ min(v_1) ≥ -65500
+>>
+Rule 36 (Check that the value can be represented as a half-precision float)
+{v_1 : float} |= v_1 > -65535 ∧ v_1 < 65535
+>>
+Rule 39 (The argument 'eps' should be within the representable range of float16 to prevent overflow)
+{v_1 : float} |= if v_1 < 0 then v_1 ≥ -65500 else v_1 ≤ 65500
+>>
+Rule 43 (The desired output dtype cannot be char to prevent casting errors.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) ≠ 1 then v_2 ≠ 1
+>>
+Rule 45 (The value argument must be representable as a float16 without overflow)
+{v_1 : float} |= v_1 > -6.5535e+04 ∧ v_1 < 6.5535e+04
+>>
+Rule 46 (Output tensor must be a valid type to prevent casting to 'char')
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 ≠ 1
+>>
+Rule 48 (The eps value must allow a lossless cast to float16)
+{v_1 : float} |= if v_1 > 0 then v_1 < 65500 else v_1 > -65500
+>>
+Rule 49 (If input is float type, then output cannot be of type char to prevent casting error)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 then v_2 ≠ 1
+>>
+Rule 51 (Value argument must be in valid range for float16 conversion to succeed)
+{v_1 : float} |= v_1 ≥ -65500 ∧ v_1 ≤ 65500
+>>
+Rule 52 (Prevent casting errors: Ensure output dtype is not char when input dtype is float)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 ≠ 1
+>>
+Rule 57 (eps must be a value that can be represented without loss as a float16)
+{v_1 : float} |= v_1 > -65504 ∧ v_1 < 65504
+>>
+Rule 58 (The output data type must not be a character, to prevent casting issues)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) ≠ 1 ∧ v_2 ≠ 1
+>>
+Rule 59 (The input cannot be a complex-valued tensor, it's unsupported by this function)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) ≠ 11 ∧ v_2 ≠ 11
+>>
+Rule 60 (The 'eps' value supplied must be a valid float16, to prevent overflow)
+{v_1 : float, v_2 : dtype} |= v_1 > -65000 ∧ v_1 < 65000 ∧ v_2 ≠ 6
+>>
+Rule 61 (Output dtype must be valid to prevent cast to char error)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 ≠ 1 else if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 ≠ 1
+>>
+Rule 62 (Input tensor cannot be of type ComplexDouble)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then false
+>>
+Rule 63 (eps cannot be converted to half without loss of information or overflow)
+{v_1 : float} |= if v_1 < 0 then v_1 > -65000 else v_1 < 65000
+>>
+Rule 64 (Ensure output datatype is not char to prevent data loss and errors)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then v_2 ≠ 1 else if (dtype_(v_1) = 6) then v_2 ≠ 1
+>>
+Rule 67 (If input is a floating-point tensor, the output dtype must also be floating-point or integral to prevent illegal cast)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8)
+>>
+Rule 69 (Value cannot result in overflow or underflow after conversion to float16)
+{v_1 : float} |= min(v_1) > -65500 ∧ max(v_1) < 65500
+>>
+Rule 72 (Eps value should be appropriate for float16: avoid overflow)
+{v_1 : float} |= v_1 > -65000 ∧ v_1 < 65000
+>>
+Rule 76 (Ensure output does not cast to character type)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then v_2 ≠ 1
+>>
+Rule 81 (Limit 'eps' value to prevent float16 overflow during the conversion process)
+{v_1 : float} |= v_1 > -65530 ∧ v_1 < 65530
+>>
+Rule 84 (Ensure the eps value used during calculation is safe for float16 conversion)
+{v_1 : float} |= v_1 ≤ 65500 ∧ v_1 ≥ -65500
+>>
+Rule 85 (If the tensor dtype is not compatible with Float, output can not be of type Char.)
+{v_1 : dtype} |= if (v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 9 ∨ v_1 = 10) then true else v_1 ≠ 1
+>>
+Rule 87 (Value should be within float16 range)
+{v_1 : float} |= v_1 > -6.5e4 ∧ v_1 < 6.5e4
+>>
+Rule 91 (Ensure safe type conversion, output dtype cannot be char.)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) then v_2 ≠ 1
+>>
+Rule 93 (Avoid overflow, eps values must be representable in half precision)
+{v_1 : float} |= v_1 ≥ -65000 ∧ v_1 ≤ 65000
+>>
+Rule 97 (Guarantee safety by avoiding cast to Char during type conversion)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∨ dtype_(v_1) ≠ 2 ∨ dtype_(v_1) ≠ 3 ∨ dtype_(v_1) ≠ 4 ∨ dtype_(v_1) ≠ 5 ∨ dtype_(v_1) ≠ 6 ∨ dtype_(v_1) ≠ 7 ∨ dtype_(v_1) ≠ 8 ∨ dtype_(v_1) ≠ 9 ∨ dtype_(v_1) ≠ 10
+>>
+Rule 99 (Prevent overflow or loss of precision when casting to float16)
+{v_1 : float} |= min(v_1) ≥ -65500 ∧ max(v_1) ≤ 65500
+>>
+Rule 100 (Avoid illegal casting by not allowing output to be char dtype.)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then v_2 ≠ 1
+>>
+Rule 106 (If the tensor is a floating point, the output type can not be char)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_1) ≠ 1
+>>
+Rule 108 (Value is too large or small to be safely casted to float16)
+{v_1 : float} |= (v_1 ≤ 65500) ∧ (v_1 ≥ -65500)
+>>
+Rule 109 (Type check: Output type cannot be char if Input type is float.)
+{v_1 : dtype} |= if v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 6 then v_1 ≠ 1
+>>
+Rule 111 (Ensure value can safely be converted to float16 by bounding the range)
+{v_1 : float} |= (v_1 > -65535) ∧ (v_1 < 65535)

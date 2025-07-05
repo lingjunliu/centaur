@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.is_autocast_cpu_enabled API has no parameters. Introduce a dummy tensor and check its number of dimensions. (Rule 7)
+# torch.is_autocast_cpu_enabled implicitly returns v_1 which is boolean and should be true under autocast (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < 5) if n else
-          v["arg1_ndim"] < 5)
+    s.add(Not(v["arg1_value"] == True) if n else
+          v["arg1_value"] == True)
 )
 
 def rule_7_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_7_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_ndim': arg1_ndim})
+        rule_7(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_7(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input can be a bool tensor, but out tensor has to be float or complex if provided (Rule 13)
+# If input dtype is bool, the output dtype should be at least float16 (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
     s.add(Not(If(v["arg1_dtype"] == 0, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), False)) if n else

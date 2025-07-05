@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If inplace is true, then the input tensor's dtype must be either float16, float32, or float64 (Rule 7)
+# Prevent overflow by ensuring the sum of lower and upper bounds is within a representable range (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), False)) if n else
-          If(v["arg2_value"] == True, Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), False))
+    s.add(Not(And(v["arg1_value"] + v["arg2_value"] < 1000.0, v["arg1_value"] + v["arg2_value"] > -1000.0)) if n else
+          And(v["arg1_value"] + v["arg2_value"] < 1000.0, v["arg1_value"] + v["arg2_value"] > -1000.0))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):
@@ -18,18 +18,18 @@ def rule_7_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
-        if not isinstance(arg2, bool):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_value = Real('arg1_value')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 7

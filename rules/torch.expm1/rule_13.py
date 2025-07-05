@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is complex128, output should be complex128 (Rule 13)
+# input must be a tensor, and if out is provided, the input and out tensors must have compatible dtypes (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))
+    s.add(Not(Or((And((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)))), (And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)))))) if n else
+          Or((And((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)))), (And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))))))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

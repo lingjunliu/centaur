@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Promote float16 and float32 to float32 (Rule 19)
+# If type2 is uint8 and type1 is complex, it is not allowed (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(Or((And(v["arg1_value"] == 6, v["arg2_value"] == 7)), (And(v["arg1_value"] == 7, v["arg2_value"] == 6))), True, False)) if n else
-          If(Or((And(v["arg1_value"] == 6, v["arg2_value"] == 7)), (And(v["arg1_value"] == 7, v["arg2_value"] == 6))), True, False))
+    s.add(Not(If(v["arg2_value"] == 5, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False)) if n else
+          If(v["arg2_value"] == 5, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

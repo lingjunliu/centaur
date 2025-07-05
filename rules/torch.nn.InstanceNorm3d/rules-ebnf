@@ -1,45 +1,564 @@
 >>
-Rule 1 (num_features should be positive)
+Rule 1 (num_features should be greater than zero)
 {v_1 : int} |= v_1 > 0
 >>
 Rule 2 (eps should be non-negative)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 3 (Input tensor should be 4D or 5D)
-{v_1 : tensor} |= ndim(v_1) = 4 ∨ ndim(v_1) = 5
+Rule 3 (momentum should be between 0 and 1 inclusive)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
 >>
-Rule 4 (Input tensor's channel dimension must match num_features)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then shape(v_1, 0) = v_2 else if ndim(v_1) = 5 then shape(v_1, 1) = v_2 else false
+Rule 6 (num_features should not be too large to prevent memory allocation errors)
+{v_1 : int} |= v_1 < 100000
 >>
-Rule 5 (input tensor should have floating point or complex dtype)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 7 (Check if momentum is a valid floating point number)
+{v_1 : float} |= v_1 > -1.0E+38 ∧ v_1 < 1.0E+38
 >>
-Rule 6 (running_mean should contain num_features elements when track_running_stats is true)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then shape(v_1, 0) = v_2
+Rule 8 (Number of features must be an integer)
+{v_1 : float} |= if v_1 > 0 then v_1 = v_1 + 0 else v_1 = v_1 - 0
 >>
-Rule 7 (affine parameter affects input tensor shape)
-{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 = true then shape(v_1, 1) = v_3
+Rule 9 (Preventing negative dimension sizes.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 8 (momentum should be between 0 and 1 inclusive)
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1
+Rule 10 (affine parameter must be a boolean value)
+{v_1 : int} |= v_1 = 0 ∨ v_1 = 1
 >>
-Rule 9 (num_features and input tensor should have compatible dtypes)
-{v_1 : int, v_2 : tensor} |= if 1 <= dtype_(v_2) ∧ dtype_(v_2) <=5 then v_1 <= 5 else if 6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8 then v_1 <= 8 else if 9 <= dtype_(v_2) ∧ dtype_(v_2) <=10 then v_1 <= 10
+Rule 11 (Check for zero valued momentum)
+{v_1 : float} |= v_1 ≠ 0
 >>
-Rule 10 (input tensor's dtype should be same as running_mean's dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 12 (Number of features cannot be negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 11 (momentum is only relevant if track_running_stats is true)
-{v_1 : float, v_2 : bool} |= if v_2 = false then true else v_1 ≥ 0 ∧ v_1 ≤ 1
->>
-Rule 12 (check for negative dimensions after calculation)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > -1
->>
-Rule 13 (If input is 4D or 5D, the last three dimensions should be positive)
-{v_1 : tensor} |= if ndim(v_1) = 4 then ∀i ∈ [1, 3] : shape(v_1, i) > 0 else if ndim(v_1) = 5 then ∀i ∈ [2, 4] : shape(v_1, i) > 0
->>
-Rule 14 (epsilon is not too large)
+Rule 13 (eps cannot be too large)
 {v_1 : float} |= v_1 < 1
 >>
-Rule 15 (if affine is True, then gamma and beta must exist and have num_features elements)
-{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then shape(v_2, 0) = v_3
+Rule 14 (track_running_stats is true, then momentum has to be greater than zero)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0
+>>
+Rule 15 (affine must be a boolean and track_running_stats must be a boolean, not both true)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false
+>>
+Rule 16 (num_features should be representable as an int32 to avoid overflow issues)
+{v_1 : int} |= v_1 < 2147483647 ∧ v_1 > -2147483648
+>>
+Rule 17 (If affine is true, then num_features must be reasonably sized.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 10000
+>>
+Rule 18 (eps should not be extremely small to cause division by zero errors)
+{v_1 : float} |= v_1 > 1.0E-10
+>>
+Rule 19 (Check that number of features is a positive integer)
+{v_1 : float} |= v_1 > 0 ∧ (v_1 - (v_1 + 0)) = 0
+>>
+Rule 20 (Preventing NaN values for momentum)
+{v_1 : float} |= v_1 = v_1
+>>
+Rule 21 (If tracking running stats, momentum should be a valid number)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 ≥ 0 ∧ v_2 ≤ 1
+>>
+Rule 22 (Check valid range for num_features when affine is used.)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 > 0 ∧ v_2 < 65535
+>>
+Rule 23 (Check valid range for momentum when track_running_stats is used)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0 ∧ v_2 < 1
+>>
+Rule 24 (If affine is true, prevent num_features from overflowing during gamma/beta allocation)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 < 30000
+>>
+Rule 25 (Prevent num_features from being zero when affine is true.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≠ 0
+>>
+Rule 26 (Momentum must be finite)
+{v_1 : float} |= min(v_1) > -10000000 ∧ max(v_1) < 10000000
+>>
+Rule 27 (Ensure num_features is reasonable)
+{v_1 : int} |= v_1 < 65536
+>>
+Rule 28 (Eps should be a small positive number)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 0.1
+>>
+Rule 29 (Check for correct data type of momentum)
+{v_1 : float} |= v_1 + 0 = v_1
+>>
+Rule 30 (Ensure momentum is not infinite or NaN)
+{v_1: float} |= v_1 * 0 = 0
+>>
+Rule 31 (The value of num_features cannot exceed the max length of running mean/var)
+{v_1: int} |= v_1 < 1024
+>>
+Rule 32 (If track_running_stats, momentum must be positive)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0
+>>
+Rule 33 (affine must be boolean)
+{v_1: int} |= v_1 = 0 ∨ v_1 = 1
+>>
+Rule 34 (Ensure track_running_stats is not NaN)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 35 (Prevent running_mean size mismatch by relating it to num_features)
+{v_1 : int} |= v_1 < 1000
+>>
+Rule 36 (num_features must be a valid integer and not a float represented as integer)
+{v_1 : float} |= (v_1 - (v_1 + 0)) = 0 ∧ v_1 > 0
+>>
+Rule 37 (If affine is True, num_features cannot be a negative number)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≥ 0
+>>
+Rule 38 (Ensure that the momentum value is reasonable relative to eps)
+{v_1 : float, v_2 : float} |= v_1 < 1 / (v_2 + 0.000001)
+>>
+Rule 39 (Eps should be positive)
+{v_1: float} |= v_1 > 0
+>>
+Rule 40 (If affine is active, number of features should not be too big.)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 < 2048
+>>
+Rule 41 (Momentum should not be extremely small)
+{v_1: float} |= v_1 > 0.0000000001
+>>
+Rule 43 (num_features has to be less than 2^16)
+{v_1: int} |= v_1 < 65536
+>>
+Rule 46 (If track_running_stats is True, then the momentum should not be one, to avoid infinite running stats)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 < 1
+>>
+Rule 47 (num_features has to be a reasonable number)
+{v_1: int} |= v_1 < 2048
+>>
+Rule 48 (Check if eps is not too small)
+{v_1: float} |= v_1 > 1e-12
+>>
+Rule 49 (Check if momentum is not too big)
+{v_1: float} |= v_1 < 10
+>>
+Rule 50 (Check if num_features is an integer and greater than 0)
+{v_1: float} |= (v_1 - (v_1 + 0)) = 0 ∧ v_1 > 0
+>>
+Rule 51 (If track_running_stats is disabled, momentum should not be negative.)
+{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 ≥ 0
+>>
+Rule 52 (num_features cannot be extremely large.)
+{v_1 : int} |= v_1 < 32768
+>>
+Rule 53 (Prevent Storage size calculation overflowed)
+{v_1 : int} |= v_1 < 100000000
+>>
+Rule 54 (if track_running_stats, then momentum should not be NaN or INF)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 * 0 = 0
+>>
+Rule 55 (eps must not be too close to zero)
+{v_1 : float} |= v_1 > 1.0E-8
+>>
+Rule 58 (Check if momentum is in range to prevent numerical instability)
+{v_1: float} |= v_1 > -1 ∧ v_1 < 2
+>>
+Rule 60 (If using affine, then num_features cannot be zero)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 > 0
+>>
+Rule 62 (number of features should be positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 63 (momentum should be smaller than 1)
+{v_1: float} |= v_1 < 1
+>>
+Rule 65 (eps must be greater than zero.)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 68 (Prevent integer overflow for large num_features)
+{v_1: int} |= v_1 < 2147483647
+>>
+Rule 69 (eps must not cause overflow)
+{v_1: float} |= v_1 < 100000
+>>
+Rule 70 (If track_running_stats is true, momentum should be non-negative)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 ≥ 0
+>>
+Rule 71 (num_features must not be a float)
+{v_1 : float} |= (v_1 - (v_1 + 0)) = 0
+>>
+Rule 72 (If affine is true, prevent excessive num_features to avoid large memory allocations.)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 < 4096
+>>
+Rule 73 (Momentum has to be of reasonable small value)
+{v_1 : float} |= v_1 < 0.5
+>>
+Rule 74 (Prevent Storage size calculation overflowed given momentum and features)
+{v_1 : float, v_2 : int} |= if v_1 > 0 then v_2 < 1000000
+>>
+Rule 75 (eps must be a small value)
+{v_1 : float} |= v_1 < 0.01
+>>
+Rule 76 (Prevent numerical instability by ensuring eps is not extremely small relative to momentum)
+{v_1 : float, v_2 : float} |= v_1 > v_2 / 10000
+>>
+Rule 78 (Ensure num_features is not greater than the input size)
+{v_1: int, v_2 : tensor} |= v_1 ≤ shape(v_2, 1)
+>>
+Rule 80 (If track_running_stats is disabled, ensure momentum is not set to NaN)
+{v_1: bool, v_2: float} |= if v_1 = false then v_2 = v_2
+>>
+Rule 81 (Ensure that number of features is an actual integer)
+{v_1 : float} |= v_1 = (v_1 + 0)
+>>
+Rule 82 (If affine is True and memory is limited, keep the num_features small.)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 < 1024
+>>
+Rule 83 (eps should not be so small as to cause underflow issues.)
+{v_1 : float} |= v_1 > 1e-15
+>>
+Rule 85 (eps must be small enough to prevent overflow of the denominator)
+{v_1 : float} |= v_1 < 100
+>>
+Rule 87 (number of features should not be too big to prevent overflow during calculations)
+{v_1 : int} |= v_1 < 10000
+>>
+Rule 88 (Prevent running_mean size mismatch)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
+>>
+Rule 89 (Prevent memory allocation errors with large num_features values)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 < 8192
+>>
+Rule 90 (Eps must be finite value)
+{v_1: float} |= v_1 * 1 = v_1
+>>
+Rule 92 (affine must be a valid boolean.)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 93 (If num_features is 0, then affine should not be true)
+{v_1 : bool, v_2 : int} |= if v_2 = 0 then v_1 = false
+>>
+Rule 94 (num_features needs to be of integral type, not float)
+{v_1: float} |= (v_1-(v_1+0)) = 0
+>>
+Rule 95 (Ensure momentum value does not cause division by zero when subtracted from 1)
+{v_1 : float} |= (1 - v_1) ≠ 0
+>>
+Rule 96 (Prevent possible overflow in calculations involving num_features)
+{v_1 : int} |= v_1 < 16384
+>>
+Rule 98 (Momentum must be finite value.)
+{v_1: float} |= min(v_1) > -1000000 ∧ max(v_1) < 1000000
+>>
+Rule 99 (Prevent Storage size calculation overflowed by limiting the feature count)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 < 5000
+>>
+Rule 100 (if tracking running stats, momentum must be present)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0.0000000001
+>>
+Rule 101 (number of features should not be too high relative to momentum.)
+{v_1 : int, v_2 : float} |= v_1 < (1 / v_2) * 1000000
+>>
+Rule 102 (Eps needs to be finite and reasonably big.)
+{v_1 : float} |= v_1 = v_1 ∧ v_1 > 1e-9
+>>
+Rule 104 (Ensure eps value is a real number, not NAN or INF)
+{v_1 : float} |= v_1*0 = 0
+>>
+Rule 105 (If momentum is zero, running stats must be disabled)
+{v_1: bool, v_2: float} |= if v_2 = 0 then v_1 = false
+>>
+Rule 106 (Momentum should be positive or track_running_stats should be false)
+{v_1 : bool, v_2 : float} |= (v_2 > 0) ∨ (v_1 = false)
+>>
+Rule 107 (If track_running_stats is false, number of features must be zero.)
+{v_1: bool, v_2: int} |= if v_1 = false then v_2 = 0
+>>
+Rule 108 (prevent storage overflow with num_features)
+{v_1 : int} |= v_1 < 300000
+>>
+Rule 109 (momentum must not be so high as to eliminate new samples entirely.)
+{v_1 : float} |= v_1 < 0.9999
+>>
+Rule 110 (If track_running_stats is enabled ensure momentum is not close to 1)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 < 0.99
+>>
+Rule 111 (If affine set, number of features is nonzero)
+{v_1: bool, v_2: int} |= if v_1=true then v_2 != 0
+>>
+Rule 113 (if tracking running stats, make sure momentum is non zero)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 != 0
+>>
+Rule 114 (Prevent running stats failure)
+{v_1: bool} |= if v_1 = true then true
+>>
+Rule 115 (If affine, ensure number of features is not so large it overflows when allocating gamma/beta)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 2000
+>>
+Rule 116 (Prevent storage overflow by ensuring features and momentum does not lead to it.)
+{v_1 : int, v_2 : float} |= v_1 * (1/v_2) < 1000000000
+>>
+Rule 117 (Prevent eps from being too small to allow valid variance calculation)
+{v_1: float} |= v_1 > 1.0E-12
+>>
+Rule 119 (check if num_features can be represented as a float without data loss)
+{v_1: int} |= (v_1 + 0) - v_1 = 0
+>>
+Rule 122 (if affine is disabled, features should still be non-negative to avoid issues)
+{v_1: bool, v_2: int} |= if v_1 = false then v_2 >= 0
+>>
+Rule 123 (If momentum is assigned it must be reasonable to perform the new average)
+{v_1 : float} |= v_1 >= 0 ∧ v_1 <= 1
+>>
+Rule 125 (Require non-zero momentum if track_running_stats is true.)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0.0
+>>
+Rule 126 (If the momentum is too high, that the current batch will dominate)
+{v_1 : float} |= v_1 <= 0.999
+>>
+Rule 127 (ensure num_features does not cause an integer overflow upon multiplication, to prevent potential memory issues)
+{v_1 : int} |= v_1 < 50000
+>>
+Rule 129 (momentum value shouldn't be infinity)
+{v_1: float} |= v_1 / 1 = v_1
+>>
+Rule 130 (Make sure eps doesn't cause underflow)
+{v_1: float} |= v_1 >= 1e-14
+>>
+Rule 133 (The size of eps must not be too high to influence results)
+{v_1 : float} |= v_1 < 0.1
+>>
+Rule 134 (Prevent NaN for num_features given track_running_stats)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 = v_2
+>>
+Rule 135 (Ensure number of features is not too small when affine is enabled)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+>>
+Rule 136 (Momentum must not be too large to prevent instability)
+{v_1 : float} |= v_1 < 1000
+>>
+Rule 137 (prevent overflow due to multiplication)
+{v_1: float, v_2: int} |= v_1 * v_2 < 100000000
+>>
+Rule 138 (Momentum shouldn't be NAN if track running stats is active.)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 = v_2
+>>
+Rule 140 (Prevent issues of tracking mean and variance where stats are too high or low.)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 > 0.000001
+>>
+Rule 141 (num_features has to be nonzero if tracking stats)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 !=0
+>>
+Rule 142 (Epsilon needs to be higher than extremely low values.)
+{v_1 : float} |= v_1 > 0.00000000000000000000000001
+>>
+Rule 143 (Prevent inf momentum where possible)
+{v_1 : float} |= (v_1 + 0) - v_1 = 0
+>>
+Rule 144 (prevent int overflow for large num_features)
+{v_1: int} |= v_1 < 1073741824
+>>
+Rule 145 (prevent running_mean from being large values that cause overflow.)
+{v_1 : int, v_2 : float} |= if v_2 > 0 then v_1 / v_2 < 100000
+>>
+Rule 146 (Ensure number of features are always assigned to a positive value.)
+{v_1 : int} |= v_1 > -1
+>>
+Rule 147 (Momentum shouldn't cause overflow, underflow, or divide by zero.)
+{v_1: float} |= (1 - v_1) != 0 ∧ v_1 + 1 = v_1+1 ∧ v_1*0 = 0
+>>
+Rule 150 (Prevent zero valued number of features)
+{v_1: int} |= v_1 != 0
+>>
+Rule 151 (prevent num features to influence very high momemtum)
+{v_1 : int, v_2 : float} |= if v_2 > 0.99 then v_1 < 1000
+>>
+Rule 152 (Affine should have sane value.)
+{v_1 : bool} |= if v_1 = true then v_1 = true else v_1 = false
+>>
+Rule 153 (If momentum is extremely high, than the number of features has to be close to zero)
+{v_1 : int, v_2 : float} |= if v_2 > 0.99 then v_1 < 10
+>>
+Rule 154 (prevent epsilon to be infinity)
+{v_1 : float} |= (1 / v_1) / 1 = (1 / v_1)
+>>
+Rule 155 (Num_features has to be non-negative and reasonably low to avoid int overflows and OOM errors on memory alloc)
+{v_1 : int} |= v_1 > -1 ∧ v_1 < 32768
+>>
+Rule 156 (prevent momentum from being able to completely overshadow old value from running variance)
+{v_1 : float} |= v_1 < 0.99999999
+>>
+Rule 157 (eps is a reasonably small value to avoid divide by zero but big enough to not cause an underflow)
+{v_1 : float} |= v_1 > 1.0E-12 ∧ v_1 < 0.1
+>>
+Rule 158 (Prevent extremely high num_features that can lead to OOM errors in running mean and var.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 2048
+>>
+Rule 159 (Momentum has to be real value)
+{v_1 : float} |= v_1 = v_1 / 1
+>>
+Rule 160 (if track_running_stats is false then momentum shouldn't be something crazy.)
+{v_1: bool, v_2: float} |= if v_1 = false then v_2 < 10000000
+>>
+Rule 161 (Prevent storage overflows)
+{v_1: int} |= v_1 < 32768
+>>
+Rule 162 (Number of features to be not so huge that calculations become slow)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 < 4000
+>>
+Rule 163 (If track_running_stats is active, then momentum is of sane, stable, non nan type)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 < 10000 ∧ v_2 *0 = 0
+>>
+Rule 164 (prevent epsilon from being negative or INF)
+{v_1 : float} |= v_1 >= 0 ∧ (1/v_1) / 1 = (1/v_1)
+>>
+Rule 165 (eps to be large enough to avoid divide by zero )
+{v_1 : float} |= v_1 > 0.0000000000000001
+>>
+Rule 166 (Check if the number of features is not a very large number)
+{v_1 : int} |= v_1 < 1000000
+>>
+Rule 167 (Avoid possible overflow on momentum update formula)
+{v_1: float} |= 1 - v_1 != 0
+>>
+Rule 168 (Momentum should be less than 1.1.)
+{v_1 : float} |= v_1 < 1.1
+>>
+Rule 169 (Prevent feature values causing memory allocation errors. Requires testing.)
+{v_1: int, v_2: bool} |= if v_2 = true then v_1 < 6000
+>>
+Rule 170 (if track_running_stats is enabled, epsilon should be > 0, to not give NANs in result.)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0.00000000000000000000000001
+>>
+Rule 171 (Number of features must be less than some constant for allocation purpose.)
+{v_1 : int} |= v_1 < 4096
+>>
+Rule 172 (Affine should only take 0 or 1)
+{v_1 : bool, v_2: int} |= if v_1 = true then v_2 < 2
+>>
+Rule 173 (if momentum is assigned, epsilon must have a sensible value relative to it)
+{v_1 : float, v_2 : float} |= v_1 < (1 / v_2) * 10000
+>>
+Rule 174 (Prevent inf values on running statistics tracking)
+{v_1 : bool, v_2 : float} |= if v_1 = true then (1/v_2)/1 = (1/v_2)
+>>
+Rule 175 (Ensure number of features is integral.)
+{v_1 : int ⊎ float} |= (v_1 + 0) - v_1 = 0
+>>
+Rule 176 (Prevent large momentum values that may dominate the mean.)
+{v_1 : float} |= v_1 < 0.9
+>>
+Rule 177 (if track_running_stats is set then momentum cannot be higher than 1)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 <= 1
+>>
+Rule 178 (Prevent high number of features.)
+{v_1: int} |= v_1 < 16384
+>>
+Rule 179 (Eps cannot lead to calculations outside allowed range, due to high value.)
+{v_1: float} |= v_1 < 50
+>>
+Rule 180 (To prevent inf values in momentum set sane boundaries.)
+{v_1: float} |= (v_1 > -1000) ∧ (v_1 < 1000)
+>>
+Rule 182 (If track_running_stats is enabled, then ensure momentum is not equal to 1 because that prevents variance from being updated)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 != 1
+>>
+Rule 183 (if number of features can be properly expressed as int)
+{v_1 : float} |= (v_1- (v_1+0)) = 0
+>>
+Rule 184 (number of features should be reasonable for memory purposes)
+{v_1 : int} |= v_1 < 200000
+>>
+Rule 186 (Ensure the value of momentum if using running stats)
+{v_1 : bool, v_2 : float} |= if v_1 = true then (v_2 > 0.0000000001 ∧ v_2 < 1)
+>>
+Rule 187 (number of features should be a lowish value so the gradients are computed in a sane time.)
+{v_1: int} |= v_1 < 8192
+>>
+Rule 188 (check epsilon to ensure numerical stability even for half precision floats)
+{v_1 : float} |= v_1 < 0.0001
+>>
+Rule 189 (prevent epsilon values from being equal to 0 or less.)
+{v_1 : float} |= v_1 > 0.0
+>>
+Rule 190 (momentum cannot be large value if we track running stats)
+{v_1: float, v_2: bool} |= if v_2 = true then v_1 < 1
+>>
+Rule 191 (Make sure that affine is a valid choice)
+{v_1 : bool} |= if v_1 = true then true else false = false
+>>
+Rule 194 (Feature values should also result in a finite momentum)
+{v_1 : int, v_2 : float} |= v_1 * v_2 < 100000000
+>>
+Rule 195 (When track_running_stats is true, momentum needs to have sane value compared to epsilon.)
+{v_1 : bool, v_2 : float, v_3: float} |= if v_1 = true then v_2 / v_3 > 0.00000001
+>>
+Rule 196 (Ensure that the product of num_features and a batch size doesn't exceed a safe limit.)
+{v_1 : int} |= v_1 < 65000
+>>
+Rule 198 (Momentum must be real and not overflow.)
+{v_1 : float} |= (v_1*1 = v_1) ∧ (v_1/1 = v_1)
+>>
+Rule 199 (if tracking running mean, then ensure that momentum is not INF or NAN.)
+{v_1 : bool, v_2 : float} |= if v_1 = true then (v_2 + 0) - v_2 = 0
+>>
+Rule 200 (Prevent number of features from being zero with affine true.)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 != 0
+>>
+Rule 201 (Momentum must be able to be calculated)
+{v_1 : float} |= (v_1 * 0) = 0
+>>
+Rule 202 (To allow good range for running statistics ensure that momentum is reasonable size)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 < 1
+>>
+Rule 203 (prevent num features and input sizes overflowing on memory allocation calculations)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) > v_2
+>>
+Rule 205 (number of features must be less than the maximum integer representation for int32)
+{v_1 : int} |= v_1 < 2147483647
+>>
+Rule 206 (Prevent excessively high momentum by restricting to sane boundaries to promote stability)
+{v_1 : float} |= v_1 <= 1.0
+>>
+Rule 207 (eps is a positive and small floating value)
+{v_1 : float} |= v_1 < 0.001 ∧ v_1 > 0
+>>
+Rule 208 (Make sure num_features is not infinity )
+{v_1 : int} |= v_1 - (v_1+0) = 0
+>>
+Rule 209 (Momentum can not be a string or give the wrong information, so has to be verified before)
+{v_1 : float} |= v_1 / 1 = v_1
+>>
+Rule 210 (Check high track running stats)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 < 0.95
+>>
+Rule 211 (To prevent running_mean size issues when affine is set)
+{v_1: bool, v_2: int} |= if v_1 = true then v_2 < 100000
+>>
+Rule 212 (Prevent large momentum values that can cause running stats instability. Has to be stable under the model)
+{v_1 : float} |= v_1 > -1
+>>
+Rule 213 (Prevent inf in calculation if running mean is set)
+{v_1 : bool, v_2 : float} |= if v_1 = true then (1 / v_2) / 1 = (1/v_2)
+>>
+Rule 214 (Ensure eps has acceptable low level floating point values)
+{v_1 : float} |= v_1 >= 1e-15
+>>
+Rule 215 (Prevent large num_features by considering sizes and dimensions)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 < shape(v_1, 1) * 10
+>>
+Rule 216 (prevent zero value error for epsilon.)
+{v_1 : float} |= v_1 > 1.0E-14
+>>
+Rule 217 (prevent negative momentum value)
+{v_1: float} |= v_1 >= 0
+>>
+Rule 218 (ensure sane range for track_running_stats parameter)
+{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = true else v_2 = false
+>>
+Rule 219 (Prevent number of features greater than what the system can manage. Set sane low values.)
+{v_1: int} |= v_1 < 4096
+>>
+Rule 220 (To avoid running into issues on back prop, make sure value of gamma doesnt drop under certain threshold.)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0.01
+>>
+Rule 221 (Number of features must allow memory to be made)
+{v_1 : bool, v_2: int} |= if v_1 = true then v_2 < 30000
+>>
+Rule 222 (Affine should be valid and if it is active, features should be positive)
+{v_1 : bool, v_2: int} |= if v_1 = true then v_2 != 0
+>>
+Rule 223 (Momentum should cause updates.)
+{v_1 : bool, v_2: float} |= if v_1 = true then v_2 < 0.9
+>>
+Rule 224 (Prevent storage overflow based on combination of params for affine is true)
+{v_1 : bool, v_2 : int, v_3 : float} |= if v_1= true then v_2 + (1/ v_3) < 10000000

@@ -1,54 +1,423 @@
 >>
-Rule 1 (normalized_shape should be at least 1-dimensional and all dimensions should be positive)
-{v_1 : tuple(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 1 (normalized_shape must contain at least one element, avoiding empty shape error)
+{v_1 : list(int)} |= v_1.len > 0
 >>
-Rule 2 (elementwise_affine is boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 2 (Elements of normalized_shape must be non-negative to prevent negative dimension errors)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 3 (normalized_shape can be an integer, which will be converted to a tuple of length 1)
+Rule 3 (normalized_shape cannot be an empty list (alternative formulation))
+{v_1 : list(int)} |= ∃i ∈ [0, 0] : v_1.len > 0
+>>
+Rule 4 (RMSNorm input tensor should have at least one dimension to work with normalized shape)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) ≥ v_2.len
+>>
+Rule 5 (Preventing very large allocation by limiting size of shape)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 2000000000
+>>
+Rule 6 (epsilon must be a non-negative float to ensure numerical stability)
+{v_1 : float} |= v_1 ≥ 0.0
+>>
+Rule 8 (Input tensor must be of floating point or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 9 (normalized_shape specified as an integer must be positive)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 4 (input tensor must have a floating-point dtype)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Rule 10 (Ensure dimensions are not excessively large to prevent storage overflow)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000
 >>
-Rule 5 (eps should be non-negative)
-{v_1 : float} |= v_1 ≥ 0
+Rule 12 (Shape of the input tensor v_1 must correspond with v_2)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ shape(v_1, ndim(v_1) -1) = v_2
 >>
-Rule 6 (If normalized_shape is an integer, the input tensor's last dimension must match that integer)
-{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) = v_2
+Rule 13 (normalized_shape elements must be within reasonable bounds)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -10000 ∧ v_1[i] < 10000
 >>
-Rule 7 (If normalized_shape is a tuple, its length must be less than or equal to the input tensor's dimension)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1)
+Rule 15 (Input tensor must be of floating point or complex dtype. Alternative formulation)
+{v_1 : tensor} |= dtype_(v_1) ≥ 7 ∧ dtype_(v_1) ≤ 10
 >>
-Rule 8 (If normalized_shape is a tuple, then the last dimensions of the input tensor should match the normalized_shape)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, ndim(v_1) - v_2.len + i) = v_2[i]
+Rule 16 (Preventing very large allocation by limiting the product of normalized shape)
+{v_1 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000)
 >>
-Rule 9 (Check that the provided normalized shape matches the actual input tensor's shape when elementwise_affine is enabled)
-{v_1 : tensor, v_2 : tuple(int), v_3 : bool} |= if v_3 = true then ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+Rule 17 (If normalized shape is a list, its length should be reasonable)
+{v_1 : list(int)} |= v_1.len < 10
 >>
-Rule 10 (normalized_shape can be a list, which will be converted to a tuple)
-{v_1 : list(int)} |= v_1.len > 0 ∧ ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 18 (Preventing very small values)
+{v_1 : float} |= v_1 > 1e-10
 >>
-Rule 11 (if elementwise_affine is enabled, the affine parameters (gamma) must have the same shape as normalized_shape)
-{v_1 : tuple(int), v_2 : bool, v_3 : tensor} |= if v_2 = true then ndim(v_3) = v_1.len ∧ ∀i ∈ [0, v_1.len - 1] : shape(v_3, i) = v_1[i]
+Rule 19 (RMSNorm input tensor should have a valid number of dimensions given normalized shape)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) ≥ v_2.len ∧ ndim(v_1) < 10
 >>
-Rule 12 (Input tensor dimension should be greater than zero)
+Rule 20 (Elements of normalized_shape list must be int)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > -2147483648 ∧ v_1[i] < 2147483647
+>>
+Rule 21 (epsilon should be a small positive value)
+{v_1 : float} |= v_1 > 0.0 ∧ v_1 < 1.0
+>>
+Rule 23 (RMSNorm input tensor with dimension > 1)
+{v_1 : tensor} |= ndim(v_1) > 1
+>>
+Rule 24 (normalized_shape elements must be within smaller, more reasonable bounds)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -100 ∧ v_1[i] < 100
+>>
+Rule 25 (Input tensor ndim should be within reasonable limit)
+{v_1 : tensor} |= ndim(v_1) < 6
+>>
+Rule 26 (If elementwise_affine is false then it must not have grad enabled)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then dtype_(v_1) < 9
+>>
+Rule 27 (Total number of elements should be reasonably small)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000 ∧ v_1.len < 5
+>>
+Rule 28 (epsilon must be positive and not excessively large)
+{v_1 : float} |= v_1 > 0.0 ∧ v_1 < 1000.0
+>>
+Rule 29 (If input tensor shape is within given range)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∨ shape(v_1, 0) < 10000
+>>
+Rule 30 (Avoid very large lists causing memory issues)
+{v_1 : list(int)} |= v_1.len < 20
+>>
+Rule 31 (Dtype of input tensor should be float16, float32, float64, complex64 or complex128)
+{v_1 : tensor} |= 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+>>
+Rule 32 (Input tensor ndim must be positive)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 13 (If normalized_shape is provided as a list, input tensor's last dimensions must match the normalized_shape's values)
-{v_1 : tensor, v_2 : list(int)} |= v_2.len ≤ ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, ndim(v_1) - v_2.len + i) = v_2[i]
+Rule 33 (If the first element in shape is greater than 500, the second must be lesser than 1000)
+{v_1 : tensor} |= if shape(v_1, 0) > 500 then shape(v_1, 1) < 1000
 >>
-Rule 14 (Check the normalized shape dimensionality constraints based on input dimension)
-{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2.len = 1 then ndim(v_1) ≥ 1 else ndim(v_1) ≥ v_2.len
+Rule 34 (Normalized shape dimension bound to 10 to prevent huge input.)
+{v_1 : int} |= v_1 < 11
 >>
-Rule 15 (The output tensor must have the same shape as the input tensor.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 35 (If input is too large, dimensions should be small)
+{v_1 : tensor} |= if shape(v_1, 0) > 1000 then shape(v_1, 1) < 100
 >>
-Rule 16 (The input tensor's shape cannot contain negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 36 (If elementwise affine set to True)
+{v_1 : bool} |= if v_1 = true then true else false
 >>
-Rule 17 (Input tensor is not implemented for 'Char' type)
+Rule 37 (The input tensor has to be a float type if elementwise_affine is false)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then dtype_(v_1) > 6 ∧ dtype_(v_1) < 9
+>>
+Rule 39 (To prevent allocation error, if input tensor shape is > 500 dimensions, limit second dimension)
+{v_1 : tensor} |= if shape(v_1, 0) > 500 then ndim(v_1) < 2
+>>
+Rule 41 (If shape of input tensor dim 0 is large, others have to be small.)
+{v_1 : tensor} |= if shape(v_1, 0) > 100 then ∀i ∈ [1, ndim(v_1)-1] : shape(v_1, i) < 50
+>>
+Rule 42 (Tensor should not be character.)
 {v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 18 (If the input tensor has dimensions greater than 1 and normalized_shape is an integer, the last dimension of the input tensor must equal the normalized_shape)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) = v_2
+Rule 43 (Ensure tensors have more reasonable shapes to prevent overflow)
+{v_1 : tensor} |= shape(v_1, 0) > -10 ∧ shape(v_1, 0) < 10
+>>
+Rule 44 (normalized_shape dimension less than the tensor dimension to prevent invalid input with mismatched sizes)
+{v_1 : tensor, v_2 : list(int)} |= v_2.len < ndim(v_1) + 1
+>>
+Rule 45 (If input tensor shape is greater than 100, its dimension has to be one)
+{v_1 : tensor} |= if shape(v_1, 0) > 100 then ndim(v_1) < 2
+>>
+Rule 46 (If elementwise affine is false, limit the dimensions)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then ndim(v_1) < 3
+>>
+Rule 47 (Input shape dimensions cannot be too large in any case to avoid storage error)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 20000
+>>
+Rule 48 (epsilon must be a positive value greater than machine epsilon to ensure stability)
+{v_1 : float} |= v_1 > 1e-15
+>>
+Rule 49 (normalized shape dimension can not be a negative value for a certain index.)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 50 (If elementwise_affine is true then the number of dimensions should be 2)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) < 3
+>>
+Rule 51 (Shape has to be small to prevent allocation error)
+{v_1 : tensor} |= shape(v_1, 0) < 20000
+>>
+Rule 52 (Dimensions shouldn't be negative)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -1
+>>
+Rule 53 (If dimension one is greater than 20, dimension 0 has to be less than 5.)
+{v_1 : tensor} |= if shape(v_1, 1) > 20 then shape(v_1, 0) < 5
+>>
+Rule 54 (Normalized shape dimension has a maximum size to prevent the creation of large tensors)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 100000
+>>
+Rule 56 (Negative Dimension Check)
+{v_1 : int} |= v_1 > -1
+>>
+Rule 58 (Storage size cannot overflow)
+{v_1 : tensor} |= shape(v_1, 0) < 200 ∧ shape(v_1, 1) < 200 ∧ shape(v_1, 2) < 200 ∧ shape(v_1, 3) < 200 ∧ shape(v_1, 4) < 200 ∧ shape(v_1, 5) < 200 ∧ shape(v_1, 6) < 200 ∧ shape(v_1, 7) < 200 ∧ shape(v_1, 8) < 200
+>>
+Rule 60 (Dimension 0 cant be less than 0, or will cause runtime error)
+{v_1 : tensor} |= shape(v_1, 0) > -1
+>>
+Rule 62 (List length less than 100.)
+{v_1 : list(int)} |= v_1.len < 100
+>>
+Rule 64 (normalized_shape[0] must not exceed a limit to avoid "SymIntArrayRef expected to contain only concrete integers")
+{v_1 : list(int)} |= if v_1.len > 0 then v_1[0] < 2147483647
+>>
+Rule 65 (If the tensor's last dimension shape is greater than 100, force elementwise_affine to be false)
+{v_1 : tensor, v_2 : bool} |= if shape(v_1, ndim(v_1)-1) > 100 then v_2 = false
+>>
+Rule 66 (normalized shape must be less than 5)
+{v_1 : list(int)} |= v_1.len < 5
+>>
+Rule 67 (If the dimension is 1, its shape cant be zero to avoid errors.)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≠ 0
+>>
+Rule 68 (If input dimension is greater than 3, limit its shape to be smaller to prevent large tensor)
+{v_1 : tensor} |= if ndim(v_1) > 3 then shape(v_1, 0) < 1000
+>>
+Rule 69 (When there is a shape on axis 1, it needs to be greater than zero)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) > 0
+>>
+Rule 70 (If the normalized shape is too high for allocation)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000000
+>>
+Rule 71 (Dtype must be smaller than 11)
+{v_1 : tensor} |= dtype_(v_1) < 11
+>>
+Rule 72 (To prevent allocation error, limit shapes based on dimension)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1,0) < 10000 ∧ shape(v_1,1) < 10000
+>>
+Rule 73 (Normalize shape and input must have same dimension count or greater.)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) >= v_2.len
+>>
+Rule 74 (If input dimension is not two, limit its total elements for storage.)
+{v_1 : tensor} |= if ndim(v_1) ≠ 2 then shape(v_1, 0) * shape(v_1, 1) < 10000
+>>
+Rule 75 (if dimension 0 is too large)
+{v_1 : tensor} |= if shape(v_1, 0) > 20000 then false
+>>
+Rule 76 (If the normalized shape is above 10000000, it is likely that the operation will not be possible.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10000000
+>>
+Rule 77 (Prevent division by zero errors)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 78 (If elementwise affine is true and the size is less than 1, it is likely to be an error since its calculating something.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, 0) > 1
+>>
+Rule 79 (If input is 1d and normShape is not 1d, it will cause out of bounds exceptions)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 1 then v_2.len < 2
+>>
+Rule 80 (Input tensor shape must not exceed the int32 limit.)
+{v_1 : tensor} |= shape(v_1, 0) < 2147483647
+>>
+Rule 81 (To prevent allocation errors)
+{v_1 : tensor} |= shape(v_1, 0) < 1000000
+>>
+Rule 82 (Avoid creating tensors with dimensions exceeding the maximum allowed size to avoid memory errors)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 4000
+>>
+Rule 83 (normalized_shape must not lead to excessive memory consumption)
+{v_1 : list(int)} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] < 100000) ∧ (v_1.len < 5)
+>>
+Rule 84 (If the input tensor has a very high dimension shape on one, it will likely allocate too much data so its bad to do.)
+{v_1 : tensor} |= if shape(v_1, 0) > 100000 then false
+>>
+Rule 85 (prevent large lists)
+{v_1 : list(int)} |= v_1.len < 15
+>>
+Rule 86 (Force dimensions to be more sane so it doesnt cause storage error)
+{v_1 : tensor} |= shape(v_1, 0) < 200 ∧ shape(v_1, 1) < 100 ∧ shape(v_1, 2) < 50
+>>
+Rule 88 (If the dimension is small, the tensor can not have a zero shape.)
+{v_1 : tensor} |= if ndim(v_1) < 3 then shape(v_1, 0) ≠ 0
+>>
+Rule 91 (The product of normalized_shape dimensions should be smaller than max int.)
+{v_1 : list(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len-1] : v_1[i] < 100000
+>>
+Rule 92 (The normalized shape can not be smaller than a certain amount or it will cause runtime issues.)
+{v_1 : list(int)} |= if v_1.len > 0 then ∀i ∈ [0, v_1.len-1] : v_1[i] > 0
+>>
+Rule 93 (Dtype must be supported)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 95 (Check tensor shape is valid for large sizes.)
+{v_1 : tensor} |= if shape(v_1, 0) > 5000 then shape(v_1, 1) < 100
+>>
+Rule 96 (Ensure the dimensions shapes are valid.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 100000
+>>
+Rule 98 (Check first dimension greater than zero.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+>>
+Rule 99 (If elementwise affine, limit the dimensions)
+{v_1 : tensor, v_2 : bool} |= if v_2 = false then shape(v_1,0) < 5000
+>>
+Rule 100 (If not floating point tensor, check if it will be a very small range and cause overflow.)
+{v_1 : tensor} |= if dtype_(v_1) < 7 then shape(v_1, 0) < 200
+>>
+Rule 101 (If dimension one is large, set the next dim to be sane amount to reduce dimension overflow)
+{v_1 : tensor} |= if shape(v_1, 1) > 1000 then shape(v_1, 2) < 100
+>>
+Rule 102 (If a certain dimensions is a massive number and the other is a negative number.)
+{v_1 : list(int)} |= (∃i ∈ [0, v_1.len-1] : v_1[i] < -1) ∨ (∃i ∈ [0, v_1.len-1] : v_1[i] > 2000000000)
+>>
+Rule 103 (Too prevent memory allocation problems set a upper limit on shape.)
+{v_1 : tensor} |= shape(v_1, 0) < 1000000000
+>>
+Rule 104 (Dimensions should not exceed this otherwise, the allocation is impossible)
+{v_1 : tensor} |= ndim(v_1) < 9
+>>
+Rule 106 (The normalized shape must not be a large number.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 10000000
+>>
+Rule 107 (Dimensions cant be over 10,000 or memory issues might occur with higher levels.)
+{v_1 : tensor} |= shape(v_1, 0) < 10000
+>>
+Rule 109 (Make sure epsilon > 0)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 110 (normalized_shape list can not consist of more than six items, else memory error could occur.)
+{v_1 : list(int)} |= v_1.len < 6
+>>
+Rule 111 (Shape constraints for storage calculation overflows)
+{v_1 : tensor} |= shape(v_1, 0) < 100 ∧ shape(v_1, 1) < 50 ∧ ndim(v_1) < 4
+>>
+Rule 112 (normalized shape must be less than 2000 for SymIntArrayRef)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 2000
+>>
+Rule 114 (If input tensor has 0 dimensions, the normalized must also have no dimension)
+{v_1 : tensor, v_2 : list(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+>>
+Rule 115 (If input has a 5 then limit number of dimensions, also force smaller than machine numbers to prevent odd behavior)
+{v_1 : tensor, v_2 : float} |= if shape(v_1, 0) = 5 then v_2 < 1e-7
+>>
+Rule 116 (check its one of the valid shapes)
+{v_1 : tensor} |= dtype_(v_1) < 11 ∧ dtype_(v_1) > 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 117 (Check if list is empty)
+{v_1 : list(int)} |= if v_1.len = 0 then false
+>>
+Rule 118 (If dimension shape on axis zero has certain value, the dimesion has to be below a certain size to avoid memory errors.)
+{v_1 : tensor} |= if shape(v_1, 0) = 1 then ndim(v_1) < 7
+>>
+Rule 119 (If dimension shape axis one has certain value the shape dimensions will need to be a below amount of numbers.)
+{v_1 : tensor} |= if shape(v_1, 1) = 5 then ndim(v_1) < 3
+>>
+Rule 120 (The shape on the dimensions can't be negative.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≥ 0
+>>
+Rule 121 (Normal Shape is over the max the code breaks and cannot run due to the amount of bytes.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 15000000
+>>
+Rule 122 (If less than some values then certain conditoins have to be avoided with memory and size.)
+{v_1 : list(int)} |= if v_1.len > 2 then v_1.len < 5
+>>
+Rule 123 (If the input tensor is valid.)
+{v_1 : tensor} |= ndim(v_1) < 8
+>>
+Rule 124 (Dimension should avoid some conditions to ensure they're are valid)
+{v_1 : tensor} |= if shape(v_1, 2) = 500 then shape(v_1, 3) < 100
+>>
+Rule 125 (If its floating point, then certain actions occur with memory and size)
+{v_1 : tensor} |= if dtype_(v_1) > 6 then shape(v_1, 1) < 4000
+>>
+Rule 126 (if element_wise affine, limit the size as element affine operations might cause out of memory exception.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, 0) < 1000
+>>
+Rule 127 (Ensure that dimensions shape are not too insane.)
+{v_1 : tensor} |= shape(v_1, 0) < 500000
+>>
+Rule 128 (Number of dimensions of input must not be too high.)
+{v_1 : tensor} |= ndim(v_1) < 10
+>>
+Rule 129 (Ensure its float tensor)
+{v_1 : tensor} |= dtype_(v_1) > 6 ∧ dtype_(v_1) < 9
+>>
+Rule 130 (If second dimension does not exist prevent out of bounds error.)
+{v_1 : tensor} |= if ndim(v_1) < 2 then true else shape(v_1, 1) > 0
+>>
+Rule 132 (The total number of values has to be greater than some minimum.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 100000000
+>>
+Rule 133 (If it exceeds the max amount then it will likely cause problems.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len-1] : v_1[i] < 200000000
+>>
+Rule 135 (Prevent shape from being an odd negative number.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) ≠ -600184529
+>>
+Rule 136 (If number of dimensions is high, smaller shape for axis zero.)
+{v_1 : tensor} |= if ndim(v_1) > 4 then shape(v_1, 0) < 500
+>>
+Rule 137 (Make sure to set the minimum value in a list so it doesn't become a small, small value when used.)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len-1] : v_1[i] < 10000000
+>>
+Rule 138 (limit max for a dimension)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 1500000000
+>>
+Rule 141 (Limit how high it can grow)
+{v_1 : tensor} |= if ndim(v_1) < 4 then shape(v_1, 2) < 500
+>>
+Rule 143 (limit epsilon if its not above floating point, and enforce conditions.)
+{v_1 : float, v_2 : tensor} |= if dtype_(v_2) > 7 then v_1 < 20
+>>
+Rule 144 (If the number of dimension is equal to 0 which is unusual the tensor should then only consist of real values.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) < 9
+>>
+Rule 147 (If it overflows from a large amount enforce conditions.)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len-1] : v_1[i] < 20000
+>>
+Rule 149 (normalized_shape must have certain upper value to be computed)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len-1] : v_1[i] < 5000000
+>>
+Rule 150 (If shape axis 2 or 3 exceed, the amount of values becomes greater and problems will arise.)
+{v_1 : tensor} |= if ndim(v_1) > 3 then shape(v_1, 3) < 500
+>>
+Rule 151 (Limit number of elements can not be above.)
+{v_1 : tensor} |= shape(v_1, 0) < 100000
+>>
+Rule 152 (Prevent tensor shape from allocating too much memory from numbers.)
+{v_1 : tensor} |= shape(v_1, 1) < 100000
+>>
+Rule 153 (Force some amount of data for dimensions for processing.)
+{v_1 : list(int)} |= if v_1.len > 0 then v_1[0] > -1
+>>
+Rule 154 (Limit the dimensions)
+{v_1 : tensor} |= ndim(v_1) < 7
+>>
+Rule 155 (if not high dimensions limit shapes)
+{v_1 : tensor} |= if ndim(v_1) < 5 then shape(v_1, 0) < 1000
+>>
+Rule 156 (Shape dimension must adhere to floating points.)
+{v_1 : tensor} |= dtype_(v_1) > 6
+>>
+Rule 157 (normalize shape is checked)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len-1] : v_1[i] < 500000
+>>
+Rule 158 (Check if dimension, set upper and lower for it based on value.)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 2) < 500 else shape(v_1, 0) < 500
+>>
+Rule 159 (Limit is to much to keep from breaking memory. This prevents an exploit with memory to make it crash, causing issues in builds.)
+{v_1 : tensor} |= if shape(v_1, 1) < 30 then shape(v_1, 0) < 100000
+>>
+Rule 160 (Check tensor dimension shapes and set limits based on a float.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) < 8 then v_2 < 50
+>>
+Rule 161 (Limit shape but if this is exceeded then what happens, well to prevent something else to break limit the next condition.)
+{v_1 : list(int)} |= if v_1.len > 0 then v_1[0] < 100000
+>>
+Rule 162 (Shape conditions for certain edge situations to ensure values)
+{v_1 : tensor} |= shape(v_1, 0) < 50000
+>>
+Rule 164 (Number for prevent allocations and memory errors, prevent crashes.)
+{v_1 : list(int)} |= if v_1.len > 1 then v_1[1] > 150000
+>>
+Rule 165 (Check what happens during high number, then prevent conditions with other if it does.)
+{v_1 : list(int)} |= if v_1.len > 4 then ∀i ∈ [0, v_1.len-1] : v_1[i] < 10000
+>>
+Rule 166 (If the dimension isnt too high, if they high we need to restrict values to not cause to many overflow or prevent situations.)
+{v_1 : tensor} |= if ndim(v_1) < 3 then shape(v_1, 1) < 500 else shape(v_1,0) < 100
+>>
+Rule 168 (For large tensors limit memory by enforcing certain variables when other shapes come into play.)
+{v_1 : tensor} |= if shape(v_1, 2) < 200 then shape(v_1, 1) > 150
+>>
+Rule 169 (If the tensor exceeds what occurs we should prevent it.)
+{v_1 : tensor} |= if ndim(v_1) > 5 then shape(v_1, 3) < 16
+>>
+Rule 170 (A value to limit the number based on dimension.)
+{v_1 : tensor, v_2 : float} |= if ndim(v_1) = 5 then v_2 < 1000

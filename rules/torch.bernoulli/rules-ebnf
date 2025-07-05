@@ -1,39 +1,84 @@
 >>
-Rule 1 (input tensor should contain probability values between 0 and 1, and should be of floating point dtype)
-{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+Rule 1 (input tensor dtype must be floating point)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
 >>
-Rule 2 (If out tensor is given, its shape must match the input tensor, and its dtype must be integral)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)) ∧ (0 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)
+Rule 2 (input tensor values must be between 0 and 1 inclusive)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 1) - 1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
 >>
-Rule 3 (If bernoulli is called with a probability p, p must be between 0 and 1)
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1
+Rule 3 (output tensor must have the same shape as the input tensor, if provided)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 4 (The output tensor has values 0 or 1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (min(v_1) = 0 ∧ max(v_1) = 1) ∨ (min(v_1) = 0 ∧ max(v_1) = 0) ∨ (min(v_1) = 1 ∧ max(v_1) = 1)
+Rule 4 (Probability value must be in range [0,1] if using single probability argument)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
 >>
-Rule 5 (if a probability 'p' is given instead of a tensor, it must be a float)
-{v_1 : float ⊎ tensor} |= if dtype_(v_1) = 13 then true else if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then false
+Rule 5 (If input is Char type, it throws an error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1
 >>
-Rule 6 (If input and out tensors are provided, the input must be floating point and out must be integral)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (0 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) else (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+Rule 6 (input tensor dtype is not a boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 7 (If bernoulli is called with a tensor, the elements must be of floating type.)
-{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+Rule 7 (input tensor probability values are within the valid range)
+{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
 >>
-Rule 8 (The shape of input and output tensor should match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 8 (If out is provided, its dtype should be integral.)
+{v_1 : tensor} |= (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) ∨ (6 <= dtype_(v_1) ∧ dtype_(v_1) <=8)
 >>
-Rule 9 (If bernoulli is called with probability value 'p', and out is specified, then shape of out must match the shape of a 0-dimensional tensor)
-{v_2 : tensor} |= ndim(v_2) = 0
+Rule 9 (input and out dtypes must be compatible)
+{v_1 : tensor, v_2 : tensor} |= (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ ((1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5) ∨ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8))
 >>
-Rule 10 (The output tensor must have integral dtype if it is provided)
-{v_1 : tensor} |= (0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5)
+Rule 10 (input tensor probability values are valid)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (∀j ∈ [0, shape(v_1, i) - 1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)
 >>
-Rule 11 (If input is floating type and out is specified, then dtype of out must be boolean or integral)
-{v_1 : tensor, v_2 : tensor} |= (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (0 <= dtype_(v_2) ∧ dtype_(v_2) <= 5)
+Rule 15 (Check for correct argument types when input is tensor and a single probability float is provided)
+{v_1 : tensor, v_2 : float} |= (ndim(v_1) ≥ 0) ∧ (v_2 ≥ 0 ∧ v_2 ≤ 1)
 >>
-Rule 12 (If input is a tensor and out is also a tensor, then their sizes should match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (shape(v_1,0) = shape(v_2, 0))
+Rule 17 (Check for correct argument types, a single float probability must be between 0 and 1)
+{v_1 : float} |= (v_1 ≥ 0) ∧ (v_1 ≤ 1)
 >>
-Rule 13 (If input is a tensor, it must be non-empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 18 (The input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 28 (Check for correct argument types.)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= if (v_2 = 0.5) then (v_2 ≥ 0) ∧ (v_2 ≤ 1) else ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 29 (Check for correct argument types.)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= if v_2 = 0.5 then (v_2 ≥ 0) ∧ (v_2 ≤ 1) else if ndim(v_1) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
+>>
+Rule 30 (Check for correct argument types.)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= if v_2 < 2 then (v_2 ≥ 0) ∧ (v_2 ≤ 1) else if ndim(v_1) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
+>>
+Rule 33 (Check that the input tensor is valid and if out is provided, its shape is compatible)
+{v_1 : tensor, v_2 : tensor} |=  ndim(v_1) > 0 ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 34 (Check for valid input and output tensors, preventing various errors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 35 (Check for valid input and compatible output tensors, and valid probability range)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8) ∧ (min(v_1) >= 0 ∧ max(v_1) <= 1) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 37 (Combined check for argument validity)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)) ∧ if v_2 = 0.5 then (v_2 ≥ 0 ∧ v_2 ≤ 1) else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 38 (Combined check for argument validity)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)) ∧ if v_2 > -10 then (v_2 ≥ 0 ∧ v_2 ≤ 1) else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 39 (Combined check for argument validity, addressing TypeError and ValueError)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)) ∧ if (v_2 < -10) then true else if v_2 > -10 then (v_2 ≥ 0 ∧ v_2 ≤ 1) else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 40 (Combined check for argument validity, addressing TypeError and ValueError, handling different cases)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)) ∧ if v_2 > -10 ∧ v_2 < 2 then (v_2 ≥ 0 ∧ v_2 ≤ 1) else if v_2 > -10 then true else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 41 (Combined check for argument validity, addressing TypeError and ValueError, general case)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1)) ∧ if v_2 < -10 then true else if (v_2 > -10) ∧ (v_2 < 2) then (v_2 ≥ 0 ∧ v_2 ≤ 1) else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 42 (Comprehensive check for argument validity, addressing all known errors)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1) ∧ (dtype_(v_1) ≠ 1)) ∧ if (v_2 < -10) then true else if (v_2 > -10) ∧ (v_2 < 2) then (v_2 ≥ 0 ∧ v_2 ≤ 1) else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 43 (Combined validation for all known error conditions)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1) ∧ (dtype_(v_1) ≠ 1)) ∧ if v_2 < -10 then true else if (v_2 > -10) ∧ (v_2 < 2) then (v_2 ≥ 0 ∧ v_2 ≤ 1) else ((dtype_(v_1) = dtype_(v_2)) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 44 (Comprehensive validation, handling TypeError, ValueError, and RuntimeError)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1) ∧ (dtype_(v_1) ≠ 1)) ∧ if (v_2 < -10) then true else if (v_2 > -10) ∧ (v_2 < 2) then (v_2 ≥ 0 ∧ v_2 ≤ 1) else ((dtype_(v_1) = dtype_(v_2)) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 45 (Comprehensive validity check for robust error prevention)
+{v_1 : tensor, v_2 : float ⊎ tensor} |= ((ndim(v_1) > 0) ∧ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (min(v_1) ≥ 0 ∧ max(v_1) ≤ 1) ∧ (dtype_(v_1) ≠ 1)) ∧ if v_2 < -10 then true else if (v_2 > -10) ∧ (v_2 < 2) then (v_2 ≥ 0 ∧ v_2 ≤ 1) else ((1 <= dtype_(v_2) ∧ dtype_(v_2) <=5) ∨ (6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8)) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))

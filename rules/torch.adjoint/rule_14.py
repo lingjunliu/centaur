@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor has ndim=2, then its dimensions must be smaller than 1024 for efficient computation. (Rule 14)
+# check that the product of the last two dimensions is not zero (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 1024, Select(v["arg1_shape"], 1) < 1024), False)) if n else
-          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 1024, Select(v["arg1_shape"], 1) < 1024), False))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) * Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 1) * Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor has complex dtype, the real part of fill_value should be greater than -100 (Rule 4)
+# if requires_grad is true, then input should be float or complex (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), True, False)) if n else
-          If((Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)), True, False))
+    s.add(Not(If(v["arg2_value"] == True, Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False)) if n else
+          If(v["arg2_value"] == True, Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False))
 )
 
-def rule_4_func(arg1, solver=None, neg=False):
+def rule_4_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, bool):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_dtype': arg1_dtype})
+        rule_4(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_4(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

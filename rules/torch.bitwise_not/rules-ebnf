@@ -1,69 +1,150 @@
 >>
-Rule 1 (input tensor must be of integral or Boolean types)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 1 (input tensor must be of integral or Boolean types - suppressing complex type)
+{v_1 : tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
 >>
-Rule 2 (output tensor, if provided, must have the same dtype as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 2 (input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 3 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 3 (input tensor must be of integral or Boolean types - suppressing float type)
+{v_1 : tensor} |= dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "float64"
 >>
-Rule 4 (if an output tensor is provided, its shape must match the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 4 (out tensor should have the same dtype as input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2.len > 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (the input and out tensors have the same shape if out tensor exists.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ ndim(v_1) = ndim(v_2)
+Rule 5 (input tensor must be of integral or Boolean types - bool case)
+{v_1 : tensor} |= if dtype_(v_1) = "bool" then true else min(v_1) = min(v_1)
 >>
-Rule 6 (If output tensor exists, the number of elements should be equal to the input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∃i ∈ [0, 0] : shape(v_1, i) = shape(v_1, i))
+Rule 6 (input tensor must be of integral or Boolean types - int case, prevent char)
+{v_1 : tensor} |= dtype_(v_1) ≠ "str"
 >>
-Rule 7 (If the input tensor is boolean, its elements must be boolean values)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∨ min(v_1) = 1) ∧ (max(v_1) = 0 ∨ max(v_1) = 1)
+Rule 8 (input tensor must be of integral or Boolean types)
+{v_1 : tensor} |= dtype_(v_1) = "bool" ∨ dtype_(v_1) = "int" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8"
 >>
-Rule 8 (If an out tensor is provided, its dtype must be compatible with the input tensor's dtype)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_1) = dtype_(v_2))
+Rule 9 (out tensor, if provided, must have compatible shape with input tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2.len > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 9 (If the input is a boolean tensor, all values should be either true or false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 11 (check input to prevent numpy array, require it to be a tensor with at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 10 (If the input tensor is an integer tensor, its values should be within the range of the dtype)
-{v_1 : tensor} |= if dtype_(v_1) > 0 ∧ dtype_(v_1) < 6 then true
+Rule 12 (Suppress Char type by excluding it)
+{v_1: tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype"
 >>
-Rule 11 (Input tensor cannot be string dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 13 (Check if out tensor dtype is compatible with input tensor, preventing Char)
+{v_1 : tensor, v_2 : tensor} |= if v_2.len > 0 then dtype_(v_2) ≠ "str" ∧ dtype_(v_2) = dtype_(v_1)
 >>
-Rule 12 (Input tensor cannot be of floating point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 14 (Ensure integral or boolean type by excluding complex and floating-point types)
+{v_1 : tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "float64"
 >>
-Rule 13 (Input tensor cannot be a dtype tensor)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 16 (if input dtype is boolean)
+{v_1: tensor} |= if dtype_(v_1) = "bool" then true else min(v_1) = min(v_1)
 >>
-Rule 14 (The input tensor v_1 should have positive dimension sizes)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 17 (out tensor, if provided, must have integer or boolean dtype)
+{v_2 : tensor} |= if v_2.len > 0 then (dtype_(v_2) = "bool" ∨ dtype_(v_2) = "int" ∨ dtype_(v_2) = "np.int8" ∨ dtype_(v_2) = "np.int16" ∨ dtype_(v_2) = "np.int32" ∨ dtype_(v_2) = "np.int64" ∨ dtype_(v_2) = "np.uint8")
 >>
-Rule 15 (If both input and output tensors are provided, their dtypes should match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 18 (input tensor must have a valid dtype for bitwise_not)
+{v_1 : tensor} |= dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8"
 >>
-Rule 16 (The input tensor v_1 should not be complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 19 (input cannot be of Char dtype)
+{v_1: tensor} |= dtype_(v_1) ≠ "str"
 >>
-Rule 17 (If an out tensor is provided, it should be a tensor and not other types.)
-{v_2 : tensor} |= ndim(v_2) ≥ 0
+Rule 20 (input cannot be complex)
+{v_1: tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
 >>
-Rule 18 (Input tensor cannot be float16, float32, or float64 datatype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
+Rule 22 (input is not a character tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype"
 >>
-Rule 19 (If out is specified, check that the dtype of v_2 is within the allowed types )
-{v_2 : tensor} |= if ndim(v_2) > 0 then (dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+Rule 23 (input tensor cannot be of Double dtype to suppress char error)
+{v_1: tensor} |= dtype_(v_1) ≠ "np.float64"
 >>
-Rule 20 (If an out tensor is provided, it should have sizes greater than zero)
-{v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 24 (If out is given, input and out should have the same shape)
+{v_1 : tensor, v_2: tensor} |= if v_2.len > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 21 (if output tensor is provided, it must have sizes >=0 )
-{v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0)
+Rule 25 (Preventing Char type by ensuring the input tensor is an int or bool tensor)
+{v_1: tensor} |= dtype_(v_1) = "int" ∨ dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8"
 >>
-Rule 22 (If output tensor is given, shape of output tensor must be same or broadcastable with input tensor.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2))
+Rule 27 (Ensuring no float tensor is passed)
+{v_1: tensor} |= dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "float64"
 >>
-Rule 23 (Bitwise not operation on boolean tensor, all values should be 1 after operation. The operation is same as logical_not.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then true
+Rule 28 (input cannot be dtype)
+{v_1: tensor} |= dtype_(v_1) ≠ "dtype"
+>>
+Rule 29 (Preventing Char dtype by requiring integral or boolean types)
+{v_1: tensor} |= dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "int"
+>>
+Rule 31 (If out tensor exists, ensure its dtype is compatible)
+{v_2: tensor} |= if v_2.len > 0 then (dtype_(v_2) = "bool" ∨ dtype_(v_2) = "np.int8" ∨ dtype_(v_2) = "np.int16" ∨ dtype_(v_2) = "np.int32" ∨ dtype_(v_2) = "np.int64" ∨ dtype_(v_2) = "np.uint8" ∨ dtype_(v_2) = "int")
+>>
+Rule 33 (Input tensor must be a tensor and must have a valid dtype)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ (dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "int")
+>>
+Rule 36 (check for compatibility of input dtype for bitwise not, no floats or complexes)
+{v_1 : tensor} |= dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "float64" ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 38 (Must be integral or boolean type)
+{v_1: tensor} |= (dtype_(v_1) = "bool") ∨ (dtype_(v_1) = "int") ∨ (dtype_(v_1) = "np.int8") ∨ (dtype_(v_1) = "np.int16") ∨ (dtype_(v_1) = "np.int32") ∨ (dtype_(v_1) = "np.int64") ∨ (dtype_(v_1) = "np.uint8")
+>>
+Rule 41 (Input is a valid tensor)
+{v_1: tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype"
+>>
+Rule 42 (Out tensor if present must be same type as input and same dimensions)
+{v_1 : tensor, v_2: tensor} |= if v_2.len > 0 then (dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 44 (Ensure that the input is not of type 'Char' or 'Double' when 'Bool' is expected)
+{v_1 : tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "np.float64"
+>>
+Rule 45 (If out tensor exists it must be a tensor)
+{v_2: tensor} |= if v_2.len > 0 then ndim(v_2) ≥ 0
+>>
+Rule 46 (Suppressing char and double for Bool expected error)
+{v_1: tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "np.float64"
+>>
+Rule 48 (The input tensor must have either integer or boolean type)
+{v_1 : tensor} |= (dtype_(v_1) = "bool") ∨ (dtype_(v_1) = "int") ∨ (dtype_(v_1) = "np.int8") ∨ (dtype_(v_1) = "np.int16") ∨ (dtype_(v_1) = "np.int32") ∨ (dtype_(v_1) = "np.int64") ∨ (dtype_(v_1) = "np.uint8")
+>>
+Rule 50 (Suppress the Char error)
+{v_1: tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype" ∧ dtype_(v_1) ≠ "np.float64"
+>>
+Rule 52 (Ensuring input is a tensor of correct type - suppressing char)
+{v_1 : tensor} |= dtype_(v_1) ≠ "str" ∧ ndim(v_1) ≥ 0
+>>
+Rule 53 (Ensure input is Tensor with Correct Dtype, suppress Char)
+{v_1 : tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ "str"
+>>
+Rule 55 (Input is a valid tensor of a valid dtype (non-complex))
+{v_1 : tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 57 (Ensure is not float and char)
+{v_1 : tensor} |= dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "float64" ∧ dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype"
+>>
+Rule 59 (No complex, float, char or dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "float64" ∧ dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype"
+>>
+Rule 60 (If there is an output, then the output should be a tensor)
+{v_2 : tensor} |= if v_2.len > 0 then ndim(v_2) ≥ 0
+>>
+Rule 62 (To avoid char or type errors)
+{v_1: tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype" ∧ dtype_(v_1) ≠ "np.float64" ∧ dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32"
+>>
+Rule 65 (Suppressing incorrect dtypes all at once)
+{v_1: tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype" ∧ dtype_(v_1) ≠ "np.float64" ∧ dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 67 (To ensure correct input)
+{v_1:tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 68 (Suppresses char, double and dtype errors)
+{v_1: tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "np.float64" ∧ dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "dtype"
+>>
+Rule 70 (Avoid 'ComplexFloat' and 'Char')
+{v_1: tensor} |= dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype"
+>>
+Rule 74 (Ensures tensor and not complex type)
+{v_1: tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 77 (Requires input and prevents types leading to errors)
+{v_1: tensor} |= ndim(v_1) ≥ 0 ∧ dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype" ∧ dtype_(v_1) ≠ "np.float64" ∧ dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 80 (No string and no complex dtypes)
+{v_1: tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 82 (Prevents bad types)
+{v_1 : tensor} |= dtype_(v_1) ≠ "str" ∧ dtype_(v_1) ≠ "dtype" ∧ dtype_(v_1) ≠ "np.float64" ∧ dtype_(v_1) ≠ "float16" ∧ dtype_(v_1) ≠ "float32" ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128" ∧ dtype_(v_1) ≠ "bool"

@@ -1,63 +1,138 @@
 >>
-Rule 1 (input and other tensors must have compatible dtypes for multiplication)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (Tensors must have compatible shapes for multiplication)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1)
 >>
-Rule 2 (input and other tensors should have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if ndim(v_1) - i - 1 ≥ 0 ∧ ndim(v_2) - i - 1 ≥ 0 then (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1)
+Rule 5 (Output tensor dtype must be able to accommodate the result of multiplication - complex * float to complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 8) then dtype_(v_3) = 10
 >>
-Rule 3 (input and other tensors must have a number of dimensions less than or equal to a limit)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 8 ∧ ndim(v_2) ≤ 8
+Rule 6 (Output tensor dtype must be able to accommodate the result of multiplication - complex * int to complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 5) then dtype_(v_3) = 10
 >>
-Rule 4 (if input is complex, other must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 7 (Output tensor dtype must be able to accommodate the result of multiplication - complex * float to complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 8) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
 >>
-Rule 5 (input and other tensors must have at least one dimension)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+Rule 8 (Output tensor dtype must be able to accommodate the result of multiplication - complex * int to complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
 >>
-Rule 6 (If one tensor is boolean, the other must also be boolean.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0
+Rule 9 (Tensors must have compatible sizes at non-singleton dimensions)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ ((shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_2, ndim(v_2) - i - 1) = 1))
 >>
-Rule 7 (The number of elements in at least one dimension must be positive)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_2) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 11 (if v_1 is complex and v_2 is float then v_3 (out) must be complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
 >>
-Rule 8 (If the first tensor is a scalar, the second one must not be a boolean)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then dtype_(v_2) ≠ 0
+Rule 12 (If v_1 is complex and v_2 is int then v_3 (out) must be complex)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
 >>
-Rule 9 (If the first tensor is complex, the second one must be a number.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ ndim(v_2) = 0)
+Rule 13 (v_1's dim 1 size should be the same as v_2's dim 0 size)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 0 then shape(v_1,1) = shape(v_2,0)
 >>
-Rule 10 (If one tensor is a scalar and the other is not, the scalar tensor must have a compatible type)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0 ∧ ndim(v_2) > 0) then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 0) else if (ndim(v_2) = 0 ∧ ndim(v_1) > 0) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 0)
+Rule 16 (Tensors must have the same size at dimension 1 if ndim is greater than 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1,1) = shape(v_2,1)
 >>
-Rule 11 (If one of the tensors is of integer type, the other should not be a complex type)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11) else if (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) then (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11)
+Rule 17 (Tensors must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else false
 >>
-Rule 12 (If the first tensor is a float, the second must not be bool)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) then dtype_(v_2) ≠ 0
+Rule 18 (If v_1 is complex and v_2 is float then v_3 (out) must be complex or compatible)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6) then ((dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ ((dtype_(v_1) = 10 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8)))
 >>
-Rule 13 (If the first tensor is bool, the second tensor should have a single element.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1) ∨ (ndim(v_2) = 2 ∧ shape(v_2, 0) = 1 ∧ shape(v_2, 1) = 1))
+Rule 19 (If v_1 is complex and v_2 is int then v_3 (out) must be complex or compatible)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) then ((dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ ((dtype_(v_1) = 10 ∧ dtype_(v_2) = 1 ∧ dtype_(v_3) = 1) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 2 ∧ dtype_(v_3) = 2) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 3 ∧ dtype_(v_3) = 3) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 4 ∧ dtype_(v_3) = 4) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 5 ∧ dtype_(v_3) = 5) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 1 ∧ dtype_(v_3) = 1) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 2 ∧ dtype_(v_3) = 2) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 3 ∧ dtype_(v_3) = 3) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 4 ∧ dtype_(v_3) = 4) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 5 ∧ dtype_(v_3) = 5)))
 >>
-Rule 14 (If one of the tensors is complex, then both must be complex, float, or integer tensors)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) else if (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+Rule 20 (Tensors v_1 and v_2 must have compatible sizes at dimension 1 if their ndims are greater than 1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then (shape(v_1,1) = shape(v_2,1) ∨ shape(v_1,1) = 1 ∨ shape(v_2,1) = 1)
 >>
-Rule 15 (If v_1 is float16/float32/float64/complex64/complex128, then v_2 must be a number or the same type as v_1)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 ∨ ndim(v_2) = 0
+Rule 21 (Check if v_1 has size 0 at dim 0, if so return true)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) ≠ 0
 >>
-Rule 16 (If one of the tensors has a size of zero on at least one dimension, the result of the multiplication is likely to be a tensor with at least one dimension with zero size.)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) then true
+Rule 22 (If v_1 is complex and v_2 is float then v_3 (out) must be complex or compatible)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6) then ((dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8))
 >>
-Rule 17 (if one tensor is complex, the other tensor must have matching complex type or be a float/int.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9) else if dtype_(v_1) = 11 then (dtype_(v_2) = 11 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9) else if dtype_(v_2) = 10 then (dtype_(v_1) = 10 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) else if dtype_(v_2) = 11 then (dtype_(v_1) = 11 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
+Rule 23 (If v_1 is complex and v_2 is int then v_3 (out) must be complex or compatible)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5) then ((dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 1 ∧ dtype_(v_3) = 1) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 2 ∧ dtype_(v_3) = 2) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 3 ∧ dtype_(v_3) = 3) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 4 ∧ dtype_(v_3) = 4) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 5 ∧ dtype_(v_3) = 5) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 1 ∧ dtype_(v_3) = 1) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 2 ∧ dtype_(v_3) = 2) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 3 ∧ dtype_(v_3) = 3) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 4 ∧ dtype_(v_3) = 4) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 5 ∧ dtype_(v_3) = 5))
 >>
-Rule 18 (If any dimension in either of the tensor is very large, the result might overflow)
-{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) -1 else 0] : shape(v_1, i) > 1000000) ∨ (∃i ∈ [0, if ndim(v_2) > 0 then ndim(v_2) - 1 else 0] : shape(v_2, i) > 1000000)
+Rule 24 (Tensors v_1 and v_2 must have compatible sizes at non-singleton dimensions)
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_2) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1)
 >>
-Rule 19 (If one of the tensor is of bool dtype, then the other tensor must be scalar of int/float/bool, or be a tensor of bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then ((ndim(v_2) = 0) ∨ dtype_(v_2) = 0 ∨ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9) else if dtype_(v_2) = 0 then ((ndim(v_1) = 0) ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9)
+Rule 25 (Check tensor v_1 and v_2 if one has size 0 at dim 0, if so the other one should have too or has dim 0)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
 >>
-Rule 20 (For high precision, if one of tensors if float64/complex128 the other must have at least float32/complex64 )
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 11 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) else if dtype_(v_2) = 9 ∨ dtype_(v_2) = 11 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+Rule 26 (If v_1 is complex and v_2 is float then v_3 (out) must be complex or compatible. Refined.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7) then dtype_(v_3) = 10 else if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 8) then dtype_(v_3) = 10 else if (dtype_(v_1) = 11) ∧ (dtype_(v_2) = 7) then dtype_(v_3) = 11 else if (dtype_(v_1) = 11) ∧ (dtype_(v_2) = 8) then dtype_(v_3) = 11
 >>
-Rule 21 (If the tensors are not scalar, then their number of elements must be greater than 0.)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (ndim(v_2) = 0 ∨ ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 27 (If v_1 is complex and v_2 is int then v_3 (out) must be complex or compatible. Refined.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 1) then dtype_(v_3) = 10 else if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 2) then dtype_(v_3) = 10 else if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 3) then dtype_(v_3) = 10 else if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 4) then dtype_(v_3) = 10 else if (dtype_(v_1) = 10) ∧ (dtype_(v_2) = 5) then dtype_(v_3) = 10 else if (dtype_(v_1) = 11) ∧ (dtype_(v_2) = 1) then dtype_(v_3) = 11 else if (dtype_(v_1) = 11) ∧ (dtype_(v_2) = 2) then dtype_(v_3) = 11 else if (dtype_(v_1) = 11) ∧ (dtype_(v_2) = 3) then dtype_(v_3) = 11 else if (dtype_(v_1) = 11) ∧ (dtype_(v_2) = 4) then dtype_(v_3) = 11 else if (dtype_(v_1) = 11) ∧ (dtype_(v_2) = 5) then dtype_(v_3) = 11
+>>
+Rule 28 (Tensors v_1 and v_2 must have compatible sizes at non-singleton dimension 1. Relaxed.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then (shape(v_1,1) = shape(v_2,1))
+>>
+Rule 33 (If shape 0 at dim 2 for v1 and ndim >2 then shape must be zero at dim 2 for v2)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then if shape(v_1, 2) = 0 then shape(v_2, 2) = 0
+>>
+Rule 34 (If v_1 is complex and v_2 is not complex then v_3 (out) must be complex.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
+>>
+Rule 35 (Check that if v1 has shape 0 at any dim, then v2 has shape 0)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : if (ndim(v_1) - i - 1 ≥ 0 ∧ shape(v_1, ndim(v_1) - i - 1) = 0) then (ndim(v_2) - i - 1 < 0 ∨ shape(v_2, ndim(v_2) - i - 1) = 0)
+>>
+Rule 36 (If dim 2 of v_1 is not 1, then dim 2 of v_2 must match dim 2 of v_1)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then if shape(v_1, 2) ≠ 1 then shape(v_2, 2) = shape(v_1, 2)
+>>
+Rule 38 (Shape of tensors must match at non-singleton dimension 2)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then (shape(v_1, 2) = shape(v_2, 2) ∨ shape(v_1, 2) = 1 ∨ shape(v_2, 2) = 1)
+>>
+Rule 42 (v_1 ndim should be same as v_2 ndim)
+{v_1 : tensor, v_2 : tensor} |=  ndim(v_1) = ndim(v_2)
+>>
+Rule 43 (If v_1 is complex and v_2 is not complex then v_3 (out) must be complex.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ((dtype_(v_2) ≠ 10) ∧ (dtype_(v_2) ≠ 11)) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
+>>
+Rule 45 (Shapes match at dimension 0)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 47 (If v_1's dim 0 does not match with v_2's dim 2 then result will be error.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 2 then shape(v_1, 0) = shape(v_2, 2)
+>>
+Rule 50 (If shapes do not match at a dimension, then shape for v_1 at that dimension must equal shape for v_2 at dimension 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 2 then if shape(v_1, 0) ≠ shape(v_2, 2) then shape(v_1, 0) = shape(v_2, 1)
+>>
+Rule 51 (If dims do not match then the dimensions must match for broadcasting)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) ≠ ndim(v_2) then ∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1]: (shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 52 (If v_1 is complex and v_2 is not complex then v_3 (out) must be complex, OR output and v2 have same type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ((dtype_(v_2) ≠ 10) ∧ (dtype_(v_2) ≠ 11)) then ((dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ (dtype_(v_2) = dtype_(v_3)))
+>>
+Rule 53 (If shapes do not match at a dimension, and dim exists, then shape for v_1 at that dimension must equal shape for v_2 at dimension 1, or at least one of the dimensions are 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 2 then if shape(v_1, 0) ≠ shape(v_2, 2) then (shape(v_1, 0) = shape(v_2, 1) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 2) = 1)
+>>
+Rule 55 (If v_1 is complex and v_2 is not complex then v_3 (out) must be complex, OR the dtypes should be compatible)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ((dtype_(v_2) ≠ 10) ∧ (dtype_(v_2) ≠ 11)) then ((dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8) ∨ (dtype_(v_1) = 10 ∧ 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5 ∧ 1 <= dtype_(v_3) ∧ dtype_(v_3) <=5) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 7 ∧ dtype_(v_3) = 7) ∨ (dtype_(v_1) = 11 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8)∨ (dtype_(v_1) = 11 ∧ 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5 ∧ 1 <= dtype_(v_3) ∧ dtype_(v_3) <=5))
+>>
+Rule 57 (Check if dim 2 is broadcastable)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then (shape(v_1, 2) = shape(v_2, 2) ∨ shape(v_1, 2) = 1 ∨ shape(v_2, 2) = 1)
+>>
+Rule 59 (Check if dim 2 is broadcastable OR dim 0 and dim 1 have matching shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then ((shape(v_1, 2) = shape(v_2, 2) ∨ shape(v_1, 2) = 1 ∨ shape(v_2, 2) = 1) ∨ (shape(v_1,0) = shape(v_2,1)))
+>>
+Rule 60 (if dim 2 of v1 is 1 then every thing is ok)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 2) = 1
+>>
+Rule 62 (v_1 and v_2 dimension 2 shape should be the same)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then shape(v_1, 2) = shape(v_2, 2)
+>>
+Rule 63 (v_2 shape should match v_3 if dims are more than 1)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 1 ∧ ndim(v_3) > 1 then shape(v_2, 1) = shape(v_3, 0)
+>>
+Rule 64 (If v_1 is complex and v_2 is not complex then v_3 (out) must be complex, OR the dtypes should be compatible - Cleaned)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ((dtype_(v_2) ≠ 10) ∧ (dtype_(v_2) ≠ 11)) then ((dtype_(v_3) = 10 ∨ dtype_(v_3) = 11) ∨ (dtype_(v_3) = dtype_(v_2)))
+>>
+Rule 65 (Shape should be same if there are dimensions)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 67 (If v_1 is complex and v_2 is not complex then v_3 (out) must be complex, OR the dtypes should be compatible - Cleaned)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ((dtype_(v_2) ≠ 10) ∧ (dtype_(v_2) ≠ 11)) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11 ∨ dtype_(v_3) = dtype_(v_2))
+>>
+Rule 69 (If a tensor dim equals 0 for v1 then any other tensor's respective dimension should also be 0, or respective dimension should not exist)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1]: if (ndim(v_1) - i - 1 >= 0 ∧ shape(v_1, ndim(v_1) - i - 1) = 0) then (ndim(v_2) - i - 1 < 0 ∨ shape(v_2, ndim(v_2) - i - 1) = 0)
+>>
+Rule 71 (v1 and v2 should have same shape or the tensors should be broadcastable)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# promotion of different int types. (Rule 13)
+# If type1 is bool, type2 must be bool, int8, int16, int32, int64, uint8, float16, float32, float64, complex64, complex128 (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(And((And(1 <= v["arg1_value"], v["arg1_value"] <= 4)), (And(1 <= v["arg2_value"], v["arg2_value"] <= 4))), And(And(And(v["arg1_value"] >= 1, v["arg1_value"] <= 4), v["arg2_value"] >= 1), v["arg2_value"] <= 4), False)) if n else
-          If(And((And(1 <= v["arg1_value"], v["arg1_value"] <= 4)), (And(1 <= v["arg2_value"], v["arg2_value"] <= 4))), And(And(And(v["arg1_value"] >= 1, v["arg1_value"] <= 4), v["arg2_value"] >= 1), v["arg2_value"] <= 4), False))
+    s.add(Not(If(v["arg1_value"] == 0, Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 1), v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False)) if n else
+          If(v["arg1_value"] == 0, Or(Or(Or(Or(Or(Or(Or(Or(Or(Or(v["arg2_value"] == 0, v["arg2_value"] == 1), v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4), v["arg2_value"] == 5), v["arg2_value"] == 6), v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10), False))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

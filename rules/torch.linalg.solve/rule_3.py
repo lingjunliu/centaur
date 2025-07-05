@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# A and B must be floating point or complex tensors (Rule 3)
+# Input tensor A and B must be a floating point or complex tensor (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 11)))) if n else
-          And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 11))))
+    s.add(Not(And((And(7 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (And(7 <= v["arg2_dtype"], v["arg2_dtype"] <= 10)))) if n else
+          And((And(7 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (And(7 <= v["arg2_dtype"], v["arg2_dtype"] <= 10))))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

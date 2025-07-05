@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor A must have a floating point or complex dtype (Rule 3)
+# Input tensor A should not contain infs or NaNs (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 11, True, False))))))) if n else
-          If(v["arg1_dtype"] == 6, True, If(v["arg1_dtype"] == 7, True, If(v["arg1_dtype"] == 8, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 11, True, False)))))))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), And([Implies(j < (Select(v["arg1_shape"], i) - 1 + 1), And((Select(v["arg1_range"], 0) > -10000000000.0), (Select(v["arg1_range"], 1) < 10000000000.0))) for j in range(6)])) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), And([Implies(j < (Select(v["arg1_shape"], i) - 1 + 1), And((Select(v["arg1_range"], 0) > -10000000000.0), (Select(v["arg1_range"], 1) < 10000000000.0))) for j in range(6)])) for i in range(6)]))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):
@@ -22,15 +22,21 @@ def rule_3_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 3
-        rule_3(solver, {'arg1_dtype': arg1_dtype})
+        rule_3(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_3(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_3(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range'], 'arg1_shape': arg1['shape']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# check if the shape of input tensor is not too large to prevent overflow (Rule 4)
+# The input tensor A must have at least 2 dimensions. (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 1000), Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 1000)) if n else
-          And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 1000), Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 1000))
+    s.add(Not(v["arg1_ndim"] > 1) if n else
+          v["arg1_ndim"] > 1)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_4_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_4(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_4(solver, {'arg1_ndim': arg1['ndim']}, neg)

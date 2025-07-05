@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input and output tensors must have the same number of dimensions if out is not None (Rule 14)
+# input should have at least one dimension if prepend is used (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == v["arg2_ndim"]) if n else
-          v["arg1_ndim"] == v["arg2_ndim"])
+    s.add(Not(If(v["arg2_ndim"] > 0, v["arg1_ndim"] > 0, False)) if n else
+          If(v["arg2_ndim"] > 0, v["arg1_ndim"] > 0, False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

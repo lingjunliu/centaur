@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if dim0 and dim1 are not within the range, set them to 0 (Rule 15)
+# The absolute values of dim0 and dim1 should not exceed the maximum possible dimension index (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(Or((0 - v["arg1_ndim"]) > v["arg2_value"], v["arg2_value"] >= v["arg1_ndim"]), And(v["arg2_value"] == 0, If(Or((0 - v["arg1_ndim"]) > v["arg3_value"], v["arg3_value"] >= v["arg1_ndim"]), v["arg3_value"] == 0, False)), False)) if n else
-          If(Or((0 - v["arg1_ndim"]) > v["arg2_value"], v["arg2_value"] >= v["arg1_ndim"]), And(v["arg2_value"] == 0, If(Or((0 - v["arg1_ndim"]) > v["arg3_value"], v["arg3_value"] >= v["arg1_ndim"]), v["arg3_value"] == 0, False)), False))
+    s.add(Not(And((If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) < v["arg1_ndim"], (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])) < v["arg1_ndim"])) if n else
+          And((If(v["arg2_value"] < 0, (0 - v["arg2_value"]), v["arg2_value"])) < v["arg1_ndim"], (If(v["arg3_value"] < 0, (0 - v["arg3_value"]), v["arg3_value"])) < v["arg1_ndim"]))
 )
 
 def rule_15_func(arg1, arg2, arg3, solver=None, neg=False):

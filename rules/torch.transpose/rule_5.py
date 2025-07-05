@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor has only two dimensions, dim0 and dim1 must be different (Rule 5)
+# dim0 and dim1 must be non-negative if tensor has more than two dimensions (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_value"] != v["arg3_value"], False)) if n else
-          If(v["arg1_ndim"] == 2, v["arg2_value"] != v["arg3_value"], False))
+    s.add(Not(If(v["arg1_ndim"] > 2, And(v["arg2_value"] >= 0, v["arg3_value"] >= 0), False)) if n else
+          If(v["arg1_ndim"] > 2, And(v["arg2_value"] >= 0, v["arg3_value"] >= 0), False))
 )
 
 def rule_5_func(arg1, arg2, arg3, solver=None, neg=False):

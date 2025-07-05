@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# dtype should not be bool or string (Rule 3)
+# The dtype cannot be a floating point or complex dtype (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] != 0, v["arg1_value"] != 11)) if n else
-          And(v["arg1_value"] != 0, v["arg1_value"] != 11))
+    s.add(Not(And(And(And(And(v["arg1_value"] != 6, v["arg1_value"] != 7), v["arg1_value"] != 8), v["arg1_value"] != 9), v["arg1_value"] != 10)) if n else
+          And(And(And(And(v["arg1_value"] != 6, v["arg1_value"] != 7), v["arg1_value"] != 8), v["arg1_value"] != 9), v["arg1_value"] != 10))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

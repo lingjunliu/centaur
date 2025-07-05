@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# bias size should match the first dimension of weight (Rule 2)
+# input1 and input2 dimensions must be valid (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] == 3, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))) if n else
-          And(And(v["arg1_ndim"] == 3, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)))
+    s.add(Not(And(And(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg2_shape"], v["arg2_ndim"] - 1) > 0)) if n else
+          And(And(And(v["arg1_ndim"] >= 1, v["arg2_ndim"] >= 1), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg2_shape"], v["arg2_ndim"] - 1) > 0))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

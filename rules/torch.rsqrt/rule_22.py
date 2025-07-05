@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor is real-valued, the output cannot be a complex number. (Rule 22)
+# The output dtype should be greater or equal to the input dtype, to avoid casting errors (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or((v["arg1_dtype"] == 6), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8)), (If(v["arg2_ndim"] > 0, (And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10)), False)), False)) if n else
-          If(Or(Or((v["arg1_dtype"] == 6), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8)), (If(v["arg2_ndim"] > 0, (And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10)), False)), False))
+    s.add(Not(If(v["arg2_ndim"] > 0, v["arg2_dtype"] >= v["arg1_dtype"], False)) if n else
+          If(v["arg2_ndim"] > 0, v["arg2_dtype"] >= v["arg1_dtype"], False))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_22_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_22(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_22(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

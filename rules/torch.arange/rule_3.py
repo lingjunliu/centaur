@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# dtype of out parameter must match inferred dtype (Rule 3)
+# dtype Int does not match dtype of out parameter (Double (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_value"]) if n else
-          v["arg1_dtype"] == v["arg2_value"])
+    s.add(Not(v["arg1_dtype"] != v["arg2_value"]) if n else
+          v["arg1_dtype"] != v["arg2_value"])
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

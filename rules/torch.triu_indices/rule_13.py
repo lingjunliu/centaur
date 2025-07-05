@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The indices should be ints (Rule 13)
+# row * col can't cause overflow (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"])) if n else
-          And(v["arg1_value"] == v["arg1_value"], v["arg2_value"] == v["arg2_value"]))
+    s.add(Not(v["arg1_value"] < 2147483647 / v["arg2_value"]) if n else
+          v["arg1_value"] < 2147483647 / v["arg2_value"])
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

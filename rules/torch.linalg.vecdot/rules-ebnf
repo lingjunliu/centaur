@@ -1,45 +1,144 @@
 >>
-Rule 1 (x and y should have the same dtype, and out should be None or a tensor with the same dtype as x and y)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ str} |= dtype_(v_1) = dtype_(v_2) ∧ (v_3 = "none" ∨ dtype_(v_1) = dtype_(v_3))
+Rule 1 (x and y should have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (x and y should have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float16" ∧ dtype_(v_2) = "float16") ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float64") ∨ (dtype_(v_1) = "complex64" ∧ dtype_(v_2) = "complex64") ∨ (dtype_(v_1) = "complex128" ∧ dtype_(v_2) = "complex128") ∨ (dtype_(v_1) = "float16" ∧ dtype_(v_2) = "float32") ∨ (dtype_(v_1) = "float32" ∧ dtype_(v_2) = "float16")
+Rule 2 (out should have dtype float if x is float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
 >>
-Rule 3 (x and y shapes are compatible for broadcasting along dim)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= (ndim(v_1) = ndim(v_2)) ∧ (-1 * ndim(v_1) ≤ v_3 ∧ v_3 ≤ ndim(v_1) - 1)
+Rule 3 (x should be floating point or complex)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6
 >>
-Rule 4 (x and y must have floating point or complex dtype)
-{v_1 : tensor, v_2 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11)
+Rule 4 (out should be a tensor)
+{v_2 : tensor} |= ndim(v_2) ≥ 0
 >>
-Rule 5 (The last dimension of x and y should be the same)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1)
+Rule 6 (x and y have same shape along dim)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) = shape(v_2, v_3)
 >>
-Rule 6 (if out is provided, it must have a floating point or complex dtype)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+Rule 7 (x and y dimensions should be compatible)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 7 (if out is provided, its shape must be broadcastable with the result of vecdot(x,y,dim))
-{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Rule 8 (output tensor should be of floating or complex type)
+{v_4 : tensor} |= dtype_(v_4) = 7 ∨ dtype_(v_4) = 8 ∨ dtype_(v_4) = 9 ∨ dtype_(v_4) = 10 ∨ dtype_(v_4) = 6
 >>
-Rule 8 (x and y should have at least one dimension)
+Rule 9 (x and y have at least one dimension)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
 >>
-Rule 9 (out, if provided, has one less dimension than input tensors)
-{v_1 : tensor, v_2 : tensor ⊎ str, v_3 : tensor} |= (v_2 = "none") ∨ (ndim(v_3) = ndim(v_1) - 1)
+Rule 10 (dim should be an integer and within valid range)
+{v_1 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 10 (If out is not None, its shape must be compatible with the result's shape after reduction along dim.)
-{v_1 : tensor, v_2 : int, v_3 : tensor ⊎ str} |= (v_3 = "none") ∨ (∀i ∈ [0, ndim(v_1) - 2] : if i < v_2 then shape(v_1, i) = shape(v_3, i) else shape(v_1, i + 1) = shape(v_3, i))
+Rule 11 (x and y have same shape along dim, and dim within valid range)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ shape(v_1, v_3) = shape(v_2, v_3)
 >>
-Rule 11 (x and y shapes are broadcastable)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∨ (ndim(v_1) > ndim(v_2) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i) ∨ shape(v_2, i) = 1) ∨ (ndim(v_2) > ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i) ∨ shape(v_1, i) = 1)
+Rule 12 (dim should be an integer and within valid range)
+{v_1 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ ndim(v_1) > 0
 >>
-Rule 12 (If `dim` is provided, it must be an integer and a valid dimension for reduction)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 13 (if output is given, it must have same dtype as input x when x is float)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_4) = 7
 >>
-Rule 13 (Output must be a Tensor, if provided.)
-{v_1 : tensor ⊎ str} |= (v_1 = "none") ∨ (dtype_(v_1) = dtype_(v_1))
+Rule 14 (if output is given, it must have same dtype as input x when x is double)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_4) = 8
 >>
-Rule 14 (If `out` is provided, the last dimension of x must equal the last dimension of `out` if `dim` != -1.)
-{v_1 : tensor, v_2 : int, v_3 : tensor ⊎ str} |= (v_3 = "none") ∨ (v_2 = -1) ∨ (shape(v_1, ndim(v_1) - 1) = shape(v_3, ndim(v_3) -1))
+Rule 18 (if x is half, out should be half)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_4) = 6
 >>
-Rule 15 (x and y must have same number of elements if dim is None.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 19 (if x is complex64, out should be complex64)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_4) = 9
+>>
+Rule 25 (if x is complex128, out should be complex128)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_4) = 10
+>>
+Rule 33 (If out is provided, its shape should be compatible with reduced x)
+{v_1 : tensor, v_4 : tensor} |= ndim(v_4) = ndim(v_1) - 1
+>>
+Rule 34 (x and y have same shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) = shape(v_2, 0)
+>>
+Rule 35 (If output is given, it must be a tensor)
+{v_4 : tensor} |= ndim(v_4) >=0
+>>
+Rule 37 (if output is given and x is float, out should be float, if double, double, and so on for all supported dtypes)
+{v_1 : tensor, v_4 : tensor} |= (dtype_(v_1) = 6 ∧ dtype_(v_4) = 6) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_4) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_4) = 8) ∨ (dtype_(v_1) = 9 ∧ dtype_(v_4) = 9) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_4) = 10)
+>>
+Rule 41 (x and y should have floating or complex dtype)
+{v_1: tensor, v_2:tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 44 (If out is provided, and dim is specified, out has one less dimension than input.)
+{v_1 : tensor, v_4 : tensor, v_3 : int} |= if v_3 ≠ -1 then ndim(v_4) = ndim(v_1) - 1
+>>
+Rule 54 (dtype of out should match input if it's specified.)
+{v_1 : tensor, v_4 : tensor} |= if ndim(v_4) > 0 then dtype_(v_1) = dtype_(v_4)
+>>
+Rule 60 (x and y need to have same shape if dim is -1)
+{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 = -1 then ndim(v_1) = ndim(v_2)
+>>
+Rule 66 (if x is complex128, y also should be complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
+>>
+Rule 72 (the 'out' tensor's dtype should be float if x is float32)
+{v_1: tensor, v_4: tensor} |= if dtype_(v_1) = 7 then dtype_(v_4) = 7
+>>
+Rule 78 (x and y have same last dimension)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_2, ndim(v_2)-1)
+>>
+Rule 84 (x, y should be tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >=0 ∧ ndim(v_2) >=0
+>>
+Rule 86 (if output is given and x is bfloat16, out should be bfloat16)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 15 then dtype_(v_4) = 15
+>>
+Rule 88 (If x is complex, then y should be complex too)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 89 (If x is not complex, then y also should not be complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+>>
+Rule 90 (output and input should have the same dimension if dim is default(-1))
+{v_1 : tensor, v_4 : tensor, v_3: int} |= if v_3 = -1 then ndim(v_1) = ndim(v_4) + 1
+>>
+Rule 96 (if x is double, y should be double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+>>
+Rule 98 (if x is np.float16, y must be np.float16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+>>
+Rule 99 (If x is complex, then y should be complex too, or vice versa)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 100 (If x is an integer type, then error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 108 (if x is bfloat16, y must be bfloat16 and also out must be bfloat16)
+{v_1 : tensor, v_2 : tensor, v_4 : tensor} |= if dtype_(v_1) = 15 then dtype_(v_2) = 15 ∧ dtype_(v_4) = 15
+>>
+Rule 111 (If out is provided, the dtype must be float if x is float and has same dimension)
+{v_1 : tensor, v_4 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_4) = 7 ∧ ndim(v_1) = ndim(v_4) + 1
+>>
+Rule 113 (if x is np.float16, y must be np.float16 and also out must be np.float16)
+{v_1 : tensor, v_2 : tensor, v_4 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∧ dtype_(v_4) = 6
+>>
+Rule 114 (If x is complex, then y should be complex too, or vice versa. Additionally both dimension should be same)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ ndim(v_1) = ndim(v_2) else if (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) = ndim(v_2)
+>>
+Rule 116 (If out is provided, the dtype must be double if x is double, and dimensions must align)
+{v_1 : tensor, v_4 : tensor, v_3: int} |= if dtype_(v_1) = 8 then dtype_(v_4) = 8 ∧ (if v_3 = -1 then ndim(v_1) = ndim(v_4) + 1)
+>>
+Rule 118 (if x is np.float16, y must be np.float16 and also out must be np.float16, ndim should be same)
+{v_1 : tensor, v_2 : tensor, v_4 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∧ dtype_(v_4) = 6 ∧ ndim(v_1) = ndim(v_2)
+>>
+Rule 120 (If x is an integer or boolean type, throw typeError)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 123 (if x is np.float16, y must be np.float16 and also out must be np.float16, ndim should be same and y should not be integer)
+{v_1 : tensor, v_2 : tensor, v_4 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∧ dtype_(v_4) = 6 ∧ ndim(v_1) = ndim(v_2) ∧ (dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5)
+>>
+Rule 125 (If x is an integer or boolean type, throw typeError for both x and y)
+{v_1 : tensor, v_2: tensor} |= (dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5) ∧ (dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5)
+>>
+Rule 126 (If out is provided, the dtype must be double if x is double, and dimensions must align. Plus dim should be valid dimension.)
+{v_1 : tensor, v_4 : tensor, v_3: int} |= if dtype_(v_1) = 8 then dtype_(v_4) = 8 ∧ (if v_3 = -1 then ndim(v_1) = ndim(v_4) + 1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
+>>
+Rule 130 (If x is an integer or boolean type, throw typeError for both x and y. Also check out type and dim of out)
+{v_1 : tensor, v_2: tensor, v_4: tensor} |= (dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5) ∧ (dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5) ∧ ndim(v_4) >=0
+>>
+Rule 131 (If out is provided, the dtype must be double if x is double, and dimensions must align, and y must not be string or int)
+{v_1 : tensor, v_4 : tensor, v_3: int, v_2: tensor} |= if dtype_(v_1) = 8 then dtype_(v_4) = 8 ∧ (if v_3 = -1 then ndim(v_1) = ndim(v_4) + 1) ∧ v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ (dtype_(v_2) ≠ 11 ∧ (dtype_(v_2) < 1 ∨ dtype_(v_2) > 5))

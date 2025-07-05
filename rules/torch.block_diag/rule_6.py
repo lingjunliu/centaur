@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if an input tensor has dimension 0, it must have size 1 (Rule 6)
+# Check if the tensor is a 2D tensor with positive dimensions (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg1_shape"], 0) == 1, False)) if n else
-          If(v["arg1_ndim"] == 0, Select(v["arg1_shape"], 0) == 1, False))
+    s.add(Not(And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0)) if n else
+          And(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) > 0), Select(v["arg1_shape"], 1) > 0))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

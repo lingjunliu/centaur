@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The output of adaptive_max_pool1d will have the specified output_size in its last dimension (Rule 14)
+# If the input tensor has 2 dimensions, output size should be smaller than the last dimension (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == v["arg2_value"]) if n else
-          Select(v["arg1_shape"], v["arg1_ndim"] - 1) == v["arg2_value"])
+    s.add(Not(If(v["arg1_ndim"] == 2, v["arg2_value"] <= Select(v["arg1_shape"], 1), False)) if n else
+          If(v["arg1_ndim"] == 2, v["arg2_value"] <= Select(v["arg1_shape"], 1), False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

@@ -1,60 +1,69 @@
 >>
-Rule 1 (upscale_factor should be positive and input tensor dimension should be greater than or equal to 3)
-{v_1 : int, v_2 : tensor} |= v_1 > 0 ∧ ndim(v_2) ≥ 3
+Rule 1 (Input tensor should have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
 >>
-Rule 2 (upscale_factor should be a factor of the channel dimension squared)
-{v_1 : int, v_2 : tensor} |= shape(v_2, 1) = (v_1 * v_1) * (shape(v_2, 1) / (v_1 * v_1))
+Rule 2 (Upscale factor should be a positive integer)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 3 (Output height and width are upscale_factor times the input height and width.)
-{v_1 : int, v_2 : tensor} |= shape(v_2, 2) = shape(v_2, 2) / v_1 * v_1 ∧ shape(v_2, 3) = shape(v_2, 3) / v_1 * v_1
+Rule 3 (Channel dimension of input tensor should be divisible by the square of upscale factor)
+{v_1 : tensor, v_2 : int} |= shape(v_1, -3) / (v_2 * v_2) = shape(v_1, -3) / (v_2 * v_2)
 >>
-Rule 4 (channel dimension must equal upscale_factor squared times some integer)
-{v_1 : int, v_2 : tensor} |= ∃k ∈ [0, shape(v_2, 1)] : shape(v_2, 1) = (v_1 * v_1) * k
+Rule 6 (Input channels must be divisible by upscale_factor squared)
+{v_1 : tensor, v_2 : int} |= shape(v_1, -3) = (shape(v_1, -3) / (v_2 * v_2)) * (v_2 * v_2)
 >>
-Rule 5 (input tensor's height and width must be positive)
-{v_1 : tensor} |= shape(v_1, 2) > 0 ∧ shape(v_1, 3) > 0
+Rule 9 (Channel dimension should be perfectly divisible by upscale factor squared)
+{v_1 : tensor, v_2 : int} |= shape(v_1, -3) ≥ v_2 * v_2 ∧ shape(v_1, -3) = (shape(v_1, -3) / (v_2 * v_2)) * (v_2 * v_2)
 >>
-Rule 6 (upscale_factor should not be too large, preventing huge output sizes)
-{v_1 : int, v_2 : tensor} |= v_1 ≤ 1024 ∧ shape(v_2, 2) * v_1 ≤ 65536 ∧ shape(v_2, 3) * v_1 ≤ 65536
+Rule 10 (Upscale factor must be a non-zero integer)
+{v_1 : int} |= v_1 ≠ 0 ∧ v_1 = (v_1 / 1) * 1
 >>
-Rule 7 (The product of height and width should not overflow)
-{v_1 : tensor} |= shape(v_1, 2) * shape(v_1, 3) < 2147483647
+Rule 12 (Upscale factor should not be too large compared to the input dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, -2) ∧ v_2 ≤ shape(v_1, -1)
 >>
-Rule 8 (input tensor should have at least one batch dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 14 (Height and Width dimensions must be greater than zero)
+{v_1 : tensor} |= shape(v_1, -2) > 0 ∧ shape(v_1, -1) > 0
 >>
-Rule 9 (input height and width cannot be zero)
-{v_1 : tensor} |= shape(v_1, 2) ≠ 0 ∧ shape(v_1, 3) ≠ 0
+Rule 18 (Upscale factor should be reasonable compared to input size)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, -2) + shape(v_2, -1)
 >>
-Rule 10 (If a batch dimension is provided, the channel dimension must be the second one)
-{v_1 : tensor} |= if ndim(v_1) > 3 then true else shape(v_1, 1) > 0
+Rule 20 (Ensure upscale factor is not excessively large relative to channel size)
+{v_1 : tensor, v_2 : int} |= v_2 * v_2 ≤ shape(v_1, -3)
 >>
-Rule 11 (If a batch dimension is provided, the channel dimension must exist)
-{v_1 : tensor} |= if ndim(v_1) > 3 then shape(v_1, 1) > 0
+Rule 21 (Channel dimension must be a multiple of upscale factor squared)
+{v_1 : tensor, v_2 : int} |= ∃i ∈ [1, shape(v_1, -3)] : shape(v_1, -3) = (v_2 * v_2) * i ∧ v_2 > 0 ∧ ndim(v_1) ≥ 3
 >>
-Rule 12 (The height and width dimensions cannot be too large after upscaling)
-{v_1 : int, v_2 : tensor} |= shape(v_2, 2) * v_1 < 10000 ∧ shape(v_2, 3) * v_1 < 10000
+Rule 22 (Upscale factor must not result in excessively large output dimensions)
+{v_1 : tensor, v_2 : int} |= shape(v_1, -2) * v_2 < 10000 ∧ shape(v_1, -1) * v_2 < 10000
 >>
-Rule 13 (The area (height * width) should not overflow after upscaling)
-{v_1 : int, v_2 : tensor} |= (shape(v_2, 2) * v_1) * (shape(v_2, 3) * v_1) < 100000000
+Rule 27 (Channel dimension is an integer multiple of the upscale factor squared)
+{v_1 : tensor, v_2 : int} |= ∃k ∈ [1, shape(v_1, -3)] : shape(v_1, -3) = (v_2 * v_2) * k ∧ ndim(v_1) ≥ 3 ∧ v_2 > 0
 >>
-Rule 14 (The area (height * width) should not overflow after upscaling, preventing excessively large memory allocation)
-{v_1 : int, v_2 : tensor} |= if shape(v_2, 2) > 0 ∧ shape(v_2, 3) > 0 then (shape(v_2, 2) * v_1) * (shape(v_2, 3) * v_1) < 100000000
+Rule 28 (Upscale factor is not zero and input is a tensor with at least three dimensions.)
+{v_1 : tensor, v_2 : int} |= v_2 ≠ 0 ∧ ndim(v_1) ≥ 3
 >>
-Rule 15 (upscale_factor must be small enough that the output dimensions fit within the representable range of int64)
-{v_1 : int, v_2 : tensor} |= shape(v_2, 2) < 9223372036854775807 / v_1 ∧ shape(v_2, 3) < 9223372036854775807 / v_1
+Rule 32 (Check if upscale_factor is positive and tensor has required dimensions)
+{v_1 : int, v_2 : tensor} |= v_1 > 0 ∧ ndim(v_2) >= 3
 >>
-Rule 16 (channel dimension must be greater than zero)
-{v_1 : tensor} |= shape(v_1, 1) > 0
+Rule 33 (The input should be a tensor with at least 3 dimensions and upscale_factor should be positive.)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) ≥ 3 ∧ v_2 > 0
 >>
-Rule 17 (upscale_factor should be less than square root of maximum value of int64)
-{v_1 : int} |= v_1 < 3037000499
+Rule 36 (Upscale Factor must be an Integer and Greater than Zero)
+{v_1 : int} |= v_1 > 0 ∧ v_1 = (v_1 / 1) * 1
 >>
-Rule 18 (Upscale factor must not make the total number of channels excessively small)
-{v_1 : int, v_2 : tensor} |= shape(v_2, 1) > (v_1 * v_1) / 2
+Rule 44 (Upscale factor should be a positive Integer Number)
+{v_1: float} |= v_1 > 0 ∧ v_1 = (v_1 / 1) * 1
 >>
-Rule 19 (upscale_factor squared must be less than channel dimension to prevent division by zero)
-{v_1 : int, v_2 : tensor} |= v_1 * v_1 ≤ shape(v_2, 1)
+Rule 48 (The Upscale factor must be a positive integer)
+{v_1: int} |= v_1 > 0 ∧ v_1 = (v_1 / 1) * 1
 >>
-Rule 20 (if upscale_factor is 1, then height and width remains the same.)
-{v_1 : int, v_2 : tensor} |= if v_1 = 1 then shape(v_2, 2) = shape(v_2, 2) ∧ shape(v_2, 3) = shape(v_2, 3)
+Rule 50 (Upscale must be positive integer value)
+{v_1 : float} |= v_1 > 0 ∧ v_1 = (v_1 / 1) * 1
+>>
+Rule 52 (Positive Integer upscale factor)
+{v_1 : int ⊎ float} |= v_1 > 0 ∧ v_1 = (v_1 / 1) * 1
+>>
+Rule 60 (Positive Integer Type Enforcement on upscale factor.)
+{v_1: int ⊎ float} |= v_1 > 0 ∧ v_1 = (v_1 / 1) * 1
+>>
+Rule 63 (For valid upscale and channel, tensor needs to have 3 dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 > 1 then ndim(v_1) ≥ 3

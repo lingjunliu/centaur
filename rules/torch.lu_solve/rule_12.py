@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# b should have at least 2 dimensions (Rule 12)
+# LU_data should have at least 2 dimensions (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] >= 2) if n else

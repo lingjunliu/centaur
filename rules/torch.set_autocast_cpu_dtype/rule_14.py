@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If v_1 is float32, the minimum value of the first dimension of v_2 must be greater than -10 and less than 10 (Rule 14)
+# If high_precision is true, then autocast_cpu_dtype should be float16 (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 7, And(Select(v["arg2_range"], 0) > -10, Select(v["arg2_range"], 0) < 10), False)) if n else
-          If(v["arg1_value"] == 7, And(Select(v["arg2_range"], 0) > -10, Select(v["arg2_range"], 0) < 10), False))
+    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] == 6, False)) if n else
+          If(v["arg1_value"] == True, v["arg2_value"] == 6, False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,24 @@ def rule_14_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_value = Bool('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_14(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)
+        rule_14(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

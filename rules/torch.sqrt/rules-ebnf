@@ -1,66 +1,114 @@
 >>
-Rule 1 (input tensor for sqrt should have a floating-point or complex dtype if out tensor is not specified or has a compatible dtype)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then true else if dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 then true else false
+Rule 1 (input tensor's dtype should be float or complex for sqrt)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 2 (input tensor for sqrt must have non-negative real values if its dtype is a real number type.)
-{v_1 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then ∀i ∈ [0, shape(v_1, 0) -1] : min(v_1) ≥ 0
+Rule 2 (output tensor's dtype should be able to accommodate the result of sqrt on input tensor's dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 9 then dtype_(v_2) = 10
 >>
-Rule 3 (If an output tensor is specified, its shape should be compatible with the input tensor.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 3 (output tensor must have the same shape as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 4 (If out tensor is specified, it should have the same or compatible dtype with the input tensor.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else false)
+Rule 4 (If output tensor is provided, its dtype must be able to hold the result of sqrt of input tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
 >>
-Rule 5 (If the input tensor has complex dtype then output tensor also should have complex dtype.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11))
+Rule 5 (If output tensor is provided, it should have the same dimension as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 6 (The output tensor's dtype should be able to accommodate the sqrt of the input tensor's values, otherwise a cast error can occur)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 1 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 5
+Rule 6 (If output tensor is provided, its shape must match the input tensor's shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 7 (If input is integer type, then the output tensor, if given, must be float or complex.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 8 (If input tensor is integer type, it should be non-negative)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) ≥ 0
 >>
-Rule 8 (If the input tensor has negative values and a real-valued dtype, the output will contain NaN values. If a custom output tensor is provided, ensure it can represent NaN.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ min(v_1) < 0 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 10 (if the input is a complex tensor, the output must also be a complex tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 9 (For complex input, if out is provided its dtype should be complex, and if any element in v1 is NaN or inf, v2 should also be NaN or inf)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)
+Rule 12 (If the input tensor is of integer type, then the output tensor dtype must be of float or complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 10 (If the input tensor's dtype is bool, then the output tensor must also be bool.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (if dtype_(v_1) = 0 then dtype_(v_2) = 0)
+Rule 13 (If the input tensor's values are negative, then the output tensor dtype must be complex)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 11 (The number of elements in the output tensor should be equal to the number of elements in the input tensor if an output tensor is provided.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∃i ∈ [0, ndim(v_1) -1] : shape(v_1, i) > 0) ∧ (∃j ∈ [0, ndim(v_2) -1] : shape(v_2, j) > 0)
+Rule 14 (If an out tensor is specified, it cannot have a small integer dtype.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then false else if dtype_(v_1) = 2 then false
 >>
-Rule 12 (if input tensor is a quantized tensor then the output tensor should be a quantized tensor.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if (dtype_(v_1) = 12) then (dtype_(v_2) = 12)
+Rule 18 (If the out tensor is provided and the input is complex, the out tensor must also be complex)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 13 (If an out tensor is provided, ensure that the operation is performed in-place only if the output tensor is the same tensor as the input.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then v_1 = v_2
+Rule 21 (If the out tensor is provided and the input is of floating point type, the out tensor cannot be of integer type)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) then if (dtype_(v_2) = 1) ∨ (dtype_(v_2) = 2) ∨ (dtype_(v_2) = 3) ∨ (dtype_(v_2) = 4) ∨ (dtype_(v_2) = 5) ∨ (dtype_(v_2) = 6) then false
 >>
-Rule 14 (if the input is a scalar tensor, the output should also be a scalar tensor.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then (if ndim(v_2) > 0 then ndim(v_2) = 0)
+Rule 24 (The output tensor must have at least the same precision as the input tensor if the input tensor is real)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
 >>
-Rule 15 (if input is uint8, out cannot be int8, int16, int32, int64)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if (dtype_(v_1) = 5) then (dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4)
+Rule 25 (If the out tensor is provided and the input is of floating point type, then the output tensor must be of floating-point type with at least the precision as input.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) else if (dtype_(v_1) = 8) then (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) else if (dtype_(v_1) = 9) then (dtype_(v_2) = 9)
 >>
-Rule 16 (If input tensor is float16 and out tensor is given, out tensor should also be float16)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) = 6
+Rule 30 (if input has negative values and out is specified, out must be complex)
+{v_1 : tensor, v_2: tensor} |= if min(v_1) < 0 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 17 (If the output tensor is provided, its data layout must be C-contiguous or F-contiguous to be compatible with the sqrt operation)
-{v_2 : tensor} |= if ndim(v_2) > 0 then true
+Rule 37 (If the out tensor is provided, then if the input tensor's dtype is float16, float32 or float64 and all input values are non-negative, then the output tensor's dtype is not int8 or int16.)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) ∧ (min(v_1) ≥ 0) then (dtype_(v_2) ≠ 1) ∧ (dtype_(v_2) ≠ 2)
 >>
-Rule 18 (If the output tensor is provided, the number of dimensions should be less than or equal to 5)
-{v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_2) ≤ 5
+Rule 40 (If the input is complex and out is specified, the out must also be complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 19 (If input tensor has complex type, output tensor should exist)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then ndim(v_2) > 0
+Rule 41 (If the out tensor is provided, and if the input tensor's dtype is float16, float32 or float64 and if all input values are non-negative, then the output tensor's dtype cannot be int8 or int16.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) then if min(v_1) ≥ 0 then (dtype_(v_2) ≠ 1) ∧ (dtype_(v_2) ≠ 2)
 >>
-Rule 20 (if input is bool and an output is provided, the out tensor must also be bool.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0) then (if ndim(v_2) > 0 then (dtype_(v_2) = 0))
+Rule 42 (If the input is complex and out is specified, the output should also have a floating or complex type with at least equal precision)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
 >>
-Rule 21 (If input tensor has dtype float64, the output tensor, if given, must have dtype float64 or complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then (if ndim(v_2) > 0 then (dtype_(v_2) = 8 ∨ dtype_(v_2) = 11))
+Rule 43 (If the out tensor is provided, and the input tensor is float or complex and non-negative, then the out tensor's dtype should not be short.)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (min(v_1) ≥ 0) then (dtype_(v_2) ≠ 1) ∧ (dtype_(v_2) ≠ 2)
 >>
-Rule 22 (If a complex tensor is provided, any NaN values will result in NaN in the output)
-{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then true
+Rule 44 (If the input tensor is complex, and an out tensor is specified, it must be complex of at least equal precision)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+>>
+Rule 45 (If the out tensor is provided, and the input tensor is float or complex, if all values are non-negative, the output dtype must allow a float or complex number)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (min(v_1) ≥ 0) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 47 (If the out tensor is provided, and the input tensor is float or complex, and its minimum value is non-negative, then the out tensor must be float or complex with at least equal precision)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) ∧ (min(v_1) ≥ 0) then if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+>>
+Rule 48 (If the input tensor contains negative values and the out tensor is provided, then the out tensor should be a complex type with at least float precision)
+{v_1 : tensor, v_2 : tensor} |= if (min(v_1) < 0) then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 49 (If out is provided, and if input is float16, float32, float64, or complex64 or complex128, and if all input elements are non-negative, then out must be a float or complex of sufficient precision to avoid overflow or underflow)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) ≥ 0 then if (dtype_(v_1) = 7) then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if (dtype_(v_1) = 8) then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if (dtype_(v_1) = 9) then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if (dtype_(v_1) = 10) then dtype_(v_2) = 10
+>>
+Rule 51 (If the out tensor is provided and the input is float or complex, then the out tensor's dtype should be a float or complex of sufficient precision to handle the output values)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 7) then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if (dtype_(v_1) = 8) then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if (dtype_(v_1) = 9) then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if (dtype_(v_1) = 10) then dtype_(v_2) = 10
+>>
+Rule 54 (If input has non-negative values, out cannot be short.)
+{v_1: tensor, v_2:tensor} |= if min(v_1) ≥ 0 then (dtype_(v_2) ≠ 1) ∧ (dtype_(v_2) ≠ 2)
+>>
+Rule 55 (If out is provided, and input has non-negative values and is real, then out cannot be short.)
+{v_1: tensor, v_2:tensor} |= if (min(v_1) ≥ 0) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) then (dtype_(v_2) ≠ 1) ∧ (dtype_(v_2) ≠ 2)
+>>
+Rule 56 (If the input is complex, and out is provided, the out must be complex of at least same precision)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9) then (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) else if (dtype_(v_1) = 10) then (dtype_(v_2) = 10)
+>>
+Rule 58 (If input contains negative elements and out is specified, the out must be complex)
+{v_1 : tensor, v_2 : tensor} |= if (min(v_1) < 0) then (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10)
+>>
+Rule 59 (If out is provided and input is non-negative float or complex, out's dtype must be at least float16 to prevent underflow/overflow)
+{v_1: tensor, v_2: tensor} |= if (min(v_1) ≥ 0) ∧ ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) then (dtype_(v_2) ≥ 6) ∧ (dtype_(v_2) ≤ 10)
+>>
+Rule 61 (If out is provided, and input is non-negative float or complex, out's dtype must be at least float16)
+{v_1: tensor, v_2: tensor} |= if (min(v_1) ≥ 0) ∧ ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) then (dtype_(v_2) ≥ 6)
+>>
+Rule 63 (If out is provided and input is non-negative float or complex, out's dtype must be at least float16)
+{v_1: tensor, v_2: tensor} |= if (min(v_1) ≥ 0) ∧ ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)) then ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10))
+>>
+Rule 64 (If the output tensor is specified and the input tensor has negative values, then the output tensor should be a complex type with at least float32 precision)
+{v_1 : tensor, v_2 : tensor} |= if (min(v_1) < 0) then ((dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10))
+>>
+Rule 67 (If out is provided and input is a real tensor type and has non-negative values, the out tensor must have a dtype capable of storing real numbers accurately)
+{v_1: tensor, v_2: tensor} |= if (min(v_1) ≥ 0) ∧ ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) then ((dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10))
+>>
+Rule 69 (If out is provided and input is a real tensor with all non-negative values, then out's dtype must be float16 or higher)
+{v_1: tensor, v_2: tensor} |= if (min(v_1) ≥ 0) ∧ ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9)) then ((dtype_(v_2) ≥ 6) ∧ (dtype_(v_2) ≤ 8)) ∨ (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10)
+>>
+Rule 72 (If the input is real and out is complex, then the input must have negative values)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_2) = 9) ∨ (dtype_(v_2) = 10) then min(v_1) < 0

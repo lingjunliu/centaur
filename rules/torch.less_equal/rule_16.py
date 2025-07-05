@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensors have the same number of dimensions and different shapes, then there must exist one index where they are equal or one of the shapes at that index is one. (Rule 16)
+# The size of tensor a must match the size of tensor b at non-singleton dimension, or broadcasting is possible (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == v["arg2_ndim"], (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) != Select(v["arg2_shape"], i)) for i in range(6)]))), (Or([And(i < (v["arg1_ndim"] - 1 + 1), Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)) for i in range(6)])), False)) if n else
-          If(And(v["arg1_ndim"] == v["arg2_ndim"], (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) != Select(v["arg2_shape"], i)) for i in range(6)]))), (Or([And(i < (v["arg1_ndim"] - 1 + 1), Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1)) for i in range(6)])), False))
+    s.add(Not(If(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1))) for i in range(6)]), And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), Or(Or(Or(Or(v["arg1_ndim"] - i - 1 < 0, v["arg2_ndim"] - i - 1 < 0), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1))) for i in range(6)])))) if n else
+          If(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1))) for i in range(6)]), And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), Or(Or(Or(Or(v["arg1_ndim"] - i - 1 < 0, v["arg2_ndim"] - i - 1 < 0), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1), Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1))) for i in range(6)]))))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

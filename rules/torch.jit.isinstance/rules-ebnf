@@ -1,3 +1,66 @@
 >>
-Rule 1 (obj and target_type should have compatible types)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = v_2 then true else false
+Rule 2 (target_type cannot be a primitive type other than bool, int, or str)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 11
+>>
+Rule 11 (dtype variable can be an integer between 0 and 12)
+{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+>>
+Rule 12 (string variable should be one of the allowed values)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
+>>
+Rule 13 (if the first element of a tuple is int, then all the elements of a tuple must be int)
+{v_1 : tuple(int ⊎ str)} |= if v_1[0] = 1 then ∀i ∈ [0, v_1.len - 1] : v_1[i] = 1 else ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0
+>>
+Rule 14 (If the argument is a List, then the elements of the List must be of the same type.)
+{v_1 : list(int ⊎ str)} |= if v_1[0] = 1 then ∀i ∈ [0, v_1.len - 1] : v_1[i] = 1 else ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0
+>>
+Rule 18 (if the first element of a tuple is int, then all the elements of a tuple must be int)
+{v_1 : tuple(int ⊎ str)} |= if v_1[0] = 0 then ∀i ∈ [1, v_1.len - 1] : v_1[i] = 0 else ∀i ∈ [1, v_1.len - 1] : v_1[i] = 1
+>>
+Rule 19 (If the argument is a List, then the elements of the List must be of the same type.)
+{v_1 : list(int ⊎ str)} |= if v_1[0] = 0 then ∀i ∈ [1, v_1.len - 1] : v_1[i] = 0 else ∀i ∈ [1, v_1.len - 1] : v_1[i] = 1
+>>
+Rule 23 (List of ints should have all elements greater than 0)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 24 (String must not be empty)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 28 (List of ints should have all elements greater than 0, if the list is not empty.)
+{v_1 : list(int)} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : v_1[i] > 0)
+>>
+Rule 31 (List of tensors must have tensors with the same dtype if the list is not empty)
+{v_1 : list(tensor)} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : dtype_(v_1) = dtype_(v_1))
+>>
+Rule 32 (Tuple of tensors must have tensors with the same number of dimensions if tuple is not empty)
+{v_1 : tuple(tensor)} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : ndim(v_1) = ndim(v_1))
+>>
+Rule 34 (String variable cannot be none)
+{v_1 : str} |= v_1 ≠ "none"
+>>
+Rule 35 (If the first element of a list is tensor, all other elements must be tensor of the same type)
+{v_1 : list(tensor)} |= ∀i ∈ [0, v_1.len - 1] : dtype_(v_1) = dtype_(v_1)
+>>
+Rule 36 (List of tensors must have tensors with the same dtype if the list is not empty and contains tensors)
+{v_1 : list(tensor)} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : ndim(v_1) > 0) ∧ (∀i ∈ [0, v_1.len - 1] : dtype_(v_1) = dtype_(v_1))
+>>
+Rule 37 (Tuple of tensors must have tensors with the same number of dimensions if tuple is not empty)
+{v_1 : tuple(tensor)} |= if v_1.len > 0 then (∃i ∈ [0, v_1.len - 1] : ndim(v_1) > 0) ∧ (∀i ∈ [0, v_1.len - 1] : ndim(v_1) = ndim(v_1))
+>>
+Rule 38 (If a List contains tensors, the tensors cannot be of complex type.)
+{v_1 : list(tensor)} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+>>
+Rule 40 (A tuple should contain at least one element)
+{v_1 : tuple(int ⊎ tensor ⊎ str)} |= v_1.len > 0
+>>
+Rule 44 (target_type variable cannot be a tensor with more than 5 dimensions.)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 54 (target_type variable cannot be of complex type)
+{v_1 : dtype} |= v_1 ≠ 9 ∧ v_1 ≠ 10
+>>
+Rule 70 (A tuple can not contain a mix of tensors and primitives, and string is a primitive here. The primitive must be of number)
+{v_1 : tuple(tensor ⊎ int ⊎ float)} |= if v_1.len > 0 then true
+>>
+Rule 85 (If the target_type is a list of int, the value of the int should be 0 <= int <=12)
+{v_1 : list(int)} |= if v_1.len > 0 then (∀i ∈ [0, v_1.len - 1] : 0 ≤ v_1[i] ∧ v_1[i] ≤ 12)

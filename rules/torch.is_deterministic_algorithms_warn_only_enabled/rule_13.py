@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The Deterministic algorithms flag is affected if a list has a length greater than 0 (Rule 13)
+# If a list contains more than 5 elements, the deterministic algorithms warn only is enabled, otherwise it is not (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] > 0) if n else
-          v["arg1_length"] > 0)
+    s.add(Not(If(v["arg1_length"] > 5, True, False)) if n else
+          If(v["arg1_length"] > 5, True, False))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

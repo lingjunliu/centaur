@@ -5,37 +5,33 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# List of integers must have length equal to the number of dimensions in tensor (Rule 6)
+# crow_indices_copy only takes one positional argument, which must be a tensor with non-negative values (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_length"] == v["arg1_ndim"]) if n else
-          v["arg2_length"] == v["arg1_ndim"])
+    s.add(Not(Select(v["arg1_range"], 0) >= 0) if n else
+          Select(v["arg1_range"], 0) >= 0)
 )
 
-def rule_6_func(arg1, arg2, solver=None, neg=False):
+def rule_6_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_length = Int('arg2_length')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_length == len(arg2))
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 6
-        rule_6(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length})
+        rule_6(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_6(solver, {'arg1_ndim': arg1['ndim'], 'arg2_length': arg2['length']}, neg)
+        rule_6(solver, {'arg1_range': arg1['range']}, neg)

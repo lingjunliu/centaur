@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if axis0 or axis1 are equal to -1, the ndim of the input should be greater or equal to 1 (Rule 12)
+# axis0 and axis1 must be valid and within the range of dimensions (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_value"] == -1, v["arg3_value"] == -1), v["arg1_ndim"] >= 1, False)) if n else
-          If(Or(v["arg2_value"] == -1, v["arg3_value"] == -1), v["arg1_ndim"] >= 1, False))
+    s.add(Not(And(And(And(And(v["arg1_ndim"] > 0, v["arg2_value"] >= (0 - v["arg1_ndim"])), v["arg2_value"] < v["arg1_ndim"]), v["arg3_value"] >= (0 - v["arg1_ndim"])), v["arg3_value"] < v["arg1_ndim"])) if n else
+          And(And(And(And(v["arg1_ndim"] > 0, v["arg2_value"] >= (0 - v["arg1_ndim"])), v["arg2_value"] < v["arg1_ndim"]), v["arg3_value"] >= (0 - v["arg1_ndim"])), v["arg3_value"] < v["arg1_ndim"]))
 )
 
 def rule_12_func(arg1, arg2, arg3, solver=None, neg=False):

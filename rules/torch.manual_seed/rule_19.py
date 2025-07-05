@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Negative seed is always not equal to 0 (Rule 19)
+# seed is int and can't be greater than max 64 bit integer (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] < 0, v["arg1_value"] != 0, False)) if n else
-          If(v["arg1_value"] < 0, v["arg1_value"] != 0, False))
+    s.add(Not(v["arg1_value"] <= 9223372036854775807) if n else
+          v["arg1_value"] <= 9223372036854775807)
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

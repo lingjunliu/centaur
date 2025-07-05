@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if one input has N and D dimensions, and other has D, then it is okay (Rule 19)
+# Input tensors must have the same size along dimension D, for (N,D (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(Or((And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))), (And(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 1))))) if n else
-          Or((And(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0))), (And(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 1)))))
+    s.add(Not(If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), True, If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 2), False, If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), False, False))))) if n else
+          If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 1), If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), True, If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 2), False, If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), False, False)))))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

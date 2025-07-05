@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input is complex, target should also be complex. (Rule 13)
+# input and target tensors should have compatible dtypes (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 11), And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 11), False)) if n else
-          If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 11), And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 11), False))
+    s.add(Not(And(And((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), Or((Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)))), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10)))) if n else
+          And(And((Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), Or((Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)))), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

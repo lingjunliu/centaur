@@ -1,21 +1,141 @@
 >>
-Rule 1 (torch.nn.ModuleDict.values requires no input parameters but a dummy variable needs to be present in the binding.)
+Rule 1 (ModuleDict's values must be iterable)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 2 (The dtype of a ModuleDict's values should be specified as either a string or an int)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12
+>>
+Rule 3 (The ModuleDict values must have a specified shape)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 4 (The ModuleDict values must have a number of dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 5 (Minimum values inside ModuleDict values should be smaller than or equal to Maximum values)
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+>>
+Rule 6 (ModuleDict values cannot be an empty string)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 7 (Boolean values in ModuleDict values must be either true or false)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 2 (torch.nn.ModuleDict.values requires no input parameters but a dummy int needs to be used.)
-{v_1 : int} |= v_1 > -100 ∧ v_1 < 100
+Rule 8 (The length of tuple ModuleDict values should be valid for indexing)
+{v_1 : tuple(int), v_2 : int} |= v_2 ≥ 0 ∧ v_2 < v_1.len
 >>
-Rule 3 (torch.nn.ModuleDict.values trivially satisfies the grammar needs variable for validation)
-{v_1 : str} |= v_1 = "ii" ∨ v_1 = "none"
+Rule 9 (tensor's dtype must be valid)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 12 ∨ dtype_(v_1) = 13
 >>
-Rule 4 (torch.nn.ModuleDict.values requires a float to validate grammar)
-{v_1 : float} |= v_1 > -1.0 ∧ v_1 < 1.0
+Rule 11 (ModuleDict value's tensor should have non-negative shapes)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 5 (torch.nn.ModuleDict.values function validates grammar with dtype.)
-{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2
+Rule 12 (If a ModuleDict value is a tensor, its number of dimension should be smaller than a maximum value)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) ≤ v_2
 >>
-Rule 6 (torch.nn.ModuleDict.values function validates grammar with a tuple of ints.)
-{v_1 : tuple(int)} |= v_1.len = 0 ∨ v_1.len = 1
+Rule 13 (String ModuleDict values cannot be a special character)
+{v_1 : str} |= v_1 ≠ "\0"
 >>
-Rule 7 (torch.nn.ModuleDict.values requires a list of ints for validation purposes)
-{v_1 : list(int)} |= v_1.len < 2
+Rule 14 (ModuleDict values should have a consistent shape across tensors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
+>>
+Rule 15 (ModuleDict's values as tensors must have positive dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 16 (ModuleDict's values as strings should not be one of the restricted values.)
+{v_1 : str} |= v_1 ≠ "none" ∧ v_1 ≠ "mean" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "constant" ∧ v_1 ≠ "tanh"
+>>
+Rule 17 (ModuleDict's values as tuples should have a defined length)
+{v_1 : tuple(int ⊎ float ⊎ str ⊎ bool ⊎ dtype)} |= v_1.len > 0
+>>
+Rule 20 (The values in ModuleDict which are tuples of tensors must have at least one element.)
+{v_1 : tuple(tensor)} |= v_1.len > 0
+>>
+Rule 22 (If a tensor's dimension is available, it must satisfy a certain size threshold.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then shape(v_1, 0) > v_2
+>>
+Rule 24 (ModuleDict Values which are tensors should contain non-NAN values)
+{v_1 : tensor} |= min(v_1) ≠ max(v_1)
+>>
+Rule 25 (If a ModuleDict.values contains tuples, and if its length is greater than zero, then all tuples should have the same length.)
+{v_1 : tuple(int), v_2 : tuple(int)} |= if v_1.len > 0 ∧ v_2.len > 0 then v_1.len = v_2.len
+>>
+Rule 26 (If there are multiple tensors within the ModuleDict values, their combined memory usage should not exceed some arbitrary limit.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 0) * shape(v_1, 1) + shape(v_2, 0) * shape(v_2, 1) < v_3
+>>
+Rule 28 (If ModuleDict.values contains a tuple of integers, each element should be a valid dimension index.)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+>>
+Rule 29 (If the ModuleDict values include at least two tensors, make sure they dont have conflicting data types)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = 13 ∧ dtype_(v_2) ≠ 13) ∨ (dtype_(v_2) = 13 ∧ dtype_(v_1) ≠ 13)
+>>
+Rule 30 (If a ModuleDict.value is a str, make sure the number of characters is less than 50.)
+{v_1: str} |= v_1.len < 50
+>>
+Rule 32 (Tuple in ModuleDict Values must not have a length exceeding 10)
+{v_1: tuple(int)} |= v_1.len < 10
+>>
+Rule 33 (List of strings ModuleDict.values has a length smaller than an arbitrary number)
+{v_1: list(str), v_2: int} |= v_1.len < v_2
+>>
+Rule 34 (If a tensor in ModuleDict.values has at least 2 dimensions, then first and second dimension must satisfy this equation.)
+{v_1: tensor, v_2: int} |= if ndim(v_1) ≥ 2 then shape(v_1, 0) + v_2 = shape(v_1, 1)
+>>
+Rule 36 (ModuleDict.value tensor shape should not exceed a certain value if the number of dimension is above some threshold.)
+{v_1 : tensor, v_2: int} |= if ndim(v_1) > 2 then shape(v_1, 0) < v_2
+>>
+Rule 38 (For a ModuleDict value which is a tuple of integers, each value must be positive)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 40 (ModuleDict.value tensor shape should not exceed a certain value if the number of dimension is above some threshold.)
+{v_1 : tensor, v_2: int} |= if ndim(v_1) > 2 then (shape(v_1, 0) < v_2)
+>>
+Rule 46 (if the shape of a tensor in ModuleDict.values is greater than a threshold, the minimum must be greater than another threshold)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1, 0) > v_2 then (min(v_1) > v_3)
+>>
+Rule 49 (If a ModuleDict.value is a string, it must be one of the allowed strings, or it must have length 0)
+{v_1 : str} |= (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh") ∨ v_1.len = 0
+>>
+Rule 50 (The ModuleDict values should have shapes that can be divided by 2 for tensors if the dimension is greater than two.)
+{v_1: tensor} |= if ndim(v_1) > 2 then (shape(v_1, 0) / 2 = 0)
+>>
+Rule 57 (Check string ModuleDict values are not one of the disallowed strings when their length is nonzero.)
+{v_1 : str} |= if v_1.len > 0 then (v_1 ≠ "none" ∧ v_1 ≠ "mean" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max" ∧ v_1 ≠ "constant" ∧ v_1 ≠ "tanh")
+>>
+Rule 58 (The ModuleDict values should have shapes that can be divided by 2 for tensors if the dimension is greater than two and the shape is nonzero.)
+{v_1: tensor} |= if ndim(v_1) > 2 ∧ shape(v_1, 0) > 0 then (shape(v_1, 0) / 2 = 0)
+>>
+Rule 62 (if the shape of a tensor in ModuleDict.values is greater than a threshold, the minimum must be greater than another threshold, and it is float type)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1, 0) > v_2 ∧ dtype_(v_1) = 7 then (min(v_1) > v_3)
+>>
+Rule 65 (if the shape of a tensor in ModuleDict.values is greater than a threshold, the minimum must be greater than another threshold, and it is float type, and dimensions are all positive)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1, 0) > v_2 ∧ dtype_(v_1) = 7 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (min(v_1) > v_3)
+>>
+Rule 69 (if the shape of a tensor in ModuleDict.values is greater than a threshold, the minimum must be greater than another threshold, and it is float type, and dimensions are all positive. Additionally min cannot be max to suppress division by zero)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1, 0) > v_2 ∧ dtype_(v_1) = 7 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (min(v_1) > v_3 ∧ min(v_1) ≠ max(v_1))
+>>
+Rule 70 (If a tuple of tensors is a ModuleDict value, the length of the tuple must not be greater than five)
+{v_1: tuple(tensor)} |= v_1.len ≤ 5
+>>
+Rule 73 (ModuleDict values, if they are lists of strings, then either the list must be empty or the strings must be valid. In the latter case we enforce same strings.)
+{v_1 : list(str)} |= (v_1.len = 0) ∨ (∀i ∈ [0, v_1.len -1]: v_1[0] = v_1[i] ∧ (v_1[i] = "ii" ∨ v_1[i] = "ii->i" ∨ v_1[i] = "i,j->ij" ∨ v_1[i] = "bij,bjk->bik" ∨ v_1[i] = "...ij->...ji" ∨ v_1[i] = "bn,anm,bm->ba" ∨ v_1[i] = "none" ∨ v_1[i] = "mean" ∨ v_1[i] = "sum" ∨ v_1[i] = "max" ∨ v_1[i] = "constant" ∨ v_1[i] = "tanh"))
+>>
+Rule 74 (if the shape of a tensor in ModuleDict.values is greater than a threshold, the minimum must be greater than another threshold, and it is float type, and dimensions are all positive. Additionally min cannot be max to suppress division by zero and all dimensions must exceed some threshold.)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1, 0) > v_2 ∧ dtype_(v_1) = 7 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (min(v_1) > v_3 ∧ min(v_1) ≠ max(v_1) ∧ (∀k ∈ [0, ndim(v_1)-1]: shape(v_1,k) > 1))
+>>
+Rule 77 (If a ModuleDict.value is a string and a second value is an integer, the string's length must not exceed the given integer if the string is not "")
+{v_1: str, v_2: int} |= if v_1 ≠ "" then v_1.len ≤ v_2
+>>
+Rule 82 (if the shape of a tensor in ModuleDict.values is greater than a threshold, the minimum must be greater than another threshold, and it is float type, and dimensions are all positive. Additionally min cannot be max to suppress division by zero and all dimensions must exceed some threshold. If its not true, just return true if the dimension > 3)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1, 0) > v_2 ∧ dtype_(v_1) = 7 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (min(v_1) > v_3 ∧ min(v_1) ≠ max(v_1) ∧ (∀k ∈ [0, ndim(v_1)-1]: shape(v_1,k) > 1)) else if ndim(v_1) > 3 then true else false
+>>
+Rule 85 (If a ModuleDict.value is a string and a second value is an integer, the string's length must not exceed the given integer if the string is not "". Furthermore the int must be smaller than 1000)
+{v_1: str, v_2: int} |= if v_1 ≠ "" then v_1.len ≤ v_2 ∧ v_2 < 1000
+>>
+Rule 86 (if the shape of a tensor in ModuleDict.values is greater than a threshold, the minimum must be greater than another threshold, and it is float type, and dimensions are all positive. Additionally min cannot be max to suppress division by zero and all dimensions must exceed some threshold. If its not true, just return true if the dimension > 3 and v2 < 100)
+{v_1 : tensor, v_2 : int, v_3: int} |= if shape(v_1, 0) > v_2 ∧ dtype_(v_1) = 7 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then (min(v_1) > v_3 ∧ min(v_1) ≠ max(v_1) ∧ (∀k ∈ [0, ndim(v_1)-1]: shape(v_1,k) > 1)) else if ndim(v_1) > 3 ∧ v_2 < 100 then true else false
+>>
+Rule 89 (If a ModuleDict.value is a string and a second value is an integer, the string's length must not exceed the given integer if the string is not "" and v2 must be positive)
+{v_1: str, v_2: int} |= if v_1 ≠ "" then v_1.len ≤ v_2 ∧ v_2 > 0
+>>
+Rule 97 (If a ModuleDict.value is a string and a second value is an integer, the string's length must not exceed the given integer if the string is not "" and v2 must be positive. Additionally string cannot exceed certain length and be from certain list.)
+{v_1: str, v_2: int} |= if v_1 ≠ "" then v_1.len ≤ v_2 ∧ v_2 > 0 ∧ v_1.len < 100 ∧ (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh")

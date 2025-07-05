@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is complex type, it must be complex64 or complex128 (Rule 8)
+# Input tensor's dtype must not be np.int8, np.int16, np.int32, np.int64, np.uint8 to prevent char error (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 11, False, False)))) if n else
-          If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 9, True, If(v["arg1_dtype"] == 11, False, False))))
+    s.add(Not(Or(v["arg1_dtype"] > 5, v["arg1_dtype"] < 1)) if n else
+          Or(v["arg1_dtype"] > 5, v["arg1_dtype"] < 1))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

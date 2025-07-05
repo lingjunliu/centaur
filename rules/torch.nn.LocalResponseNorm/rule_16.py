@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor should not be a quantized tensor. (Rule 16)
+# Input tensor's data type should not be Half, to avoid "avg_pool3d_out_frame" not implemented error (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else
-          And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))
+    s.add(Not(v["arg1_dtype"] != 6) if n else
+          v["arg1_dtype"] != 6)
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

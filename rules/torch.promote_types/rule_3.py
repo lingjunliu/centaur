@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# promoting bool to other types will result in int or float (Rule 3)
+# If type2 is bool, type1 cannot be complex (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_value"] == 0, v["arg2_value"] == 0), Or((And(v["arg1_value"] > 0, v["arg1_value"] < 9)), (And(v["arg2_value"] > 0, v["arg2_value"] < 9))), False)) if n else
-          If(Or(v["arg1_value"] == 0, v["arg2_value"] == 0), Or((And(v["arg1_value"] > 0, v["arg1_value"] < 9)), (And(v["arg2_value"] > 0, v["arg2_value"] < 9))), False))
+    s.add(Not(If(v["arg2_value"] == 0, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False)) if n else
+          If(v["arg2_value"] == 0, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If elementwise_affine is True, then bias must also be True (Rule 18)
+# prevent storage size overflow for large shapes - single dimension case (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] == True, False)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] == True, False))
+    s.add(Not(v["arg1_value"] < 20000) if n else
+          v["arg1_value"] < 20000)
 )
 
-def rule_18_func(arg1, arg2, solver=None, neg=False):
+def rule_18_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
-            return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_18(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_18(solver, {'arg1_value': arg1['value']}, neg)

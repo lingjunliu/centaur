@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor has only nan values, isinf should return a tensor of all false (Rule 16)
+# The result tensor will have the same shape as input tensor (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(And(Select(v["arg1_range"], 0) != Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) != Select(v["arg1_range"], 1)), True, False)) if n else
-          If(And(Select(v["arg1_range"], 0) != Select(v["arg1_range"], 0), Select(v["arg1_range"], 1) != Select(v["arg1_range"], 1)), True, False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)]))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):
@@ -22,16 +22,18 @@ def rule_16_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_range': arg1_range})
+        rule_16(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_range': arg1['range']}, neg)
+        rule_16(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)

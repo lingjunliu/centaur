@@ -1,60 +1,114 @@
 >>
-Rule 1 (output tensor's dtype should be the same as input tensor's dtype when provided)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (output tensor dtype should be able to accommodate the input tensor dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) ≥ dtype_(v_1)
 >>
-Rule 2 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 2 (input tensor should have a floating point or complex dtype to prevent overflow during asinh calculation)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 3 (If output tensor is provided, its shape must match the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 4 (Input tensor's dtype should be float or complex)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 5 (if out tensor is specified, it should have floating point or complex dtype)
-{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
->>
-Rule 6 (The output tensor, if specified, should have same dtype as input tensor)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = dtype_(v_2) then true else false
->>
-Rule 7 (If input tensor has complex dtype, the output tensor must have the same complex dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
->>
-Rule 8 (if input is float16, output must be float16 if specified)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
->>
-Rule 9 (The output tensor, if provided, must have the same shape as the input tensor)
+Rule 3 (output tensor and input tensor should have the same shape)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 10 (if input is a complex number, the output has to be complex number as well if specified)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 4 (output tensor's dtype should be at least float to accommodate potential large asinh values if input is float16 or higher)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8 else if dtype_(v_1) = 9 then dtype_(v_2) ≥ 9 else if dtype_(v_1) = 10 then dtype_(v_2) ≥ 10
 >>
-Rule 11 (if input is float32, output must be float32 if specified)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+Rule 5 (output tensor should be of floating or complex type)
+{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 12 (if input is float64, output must be float64 if specified)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 6 (if the input tensor is of integer type, the output tensor's dtype should be float32, float64, complex64 or complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 13 (if input is complex64, output must be complex64 if specified)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then dtype_(v_2) = 9
+Rule 7 (The output tensor's dtype should be greater than or equal to the input tensor's dtype if input is not complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 9 then dtype_(v_2) ≥ dtype_(v_1) else dtype_(v_2) ≥ dtype_(v_1)
 >>
-Rule 14 (if input is complex128, output must be complex128 if specified)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 8 (If the input tensor is of type int8, int16, int32 or int64, then output tensor should have at least float32 precision.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) then dtype_(v_2) ≥ 7
 >>
-Rule 15 (The output tensor's dtype should be at least as precise as the input tensor's dtype if the output tensor is given)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)) ∨ (dtype_(v_1) = 7 ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 9 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)) ∨ (dtype_(v_1) = 10 ∧ dtype_(v_2) = 10) then true else false
+Rule 9 (output tensor's dtype must be able to represent the result of asinh operation on input tensor, preventing possible overflow/underflow)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) ≤ 4 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 5 then dtype_(v_2) ≥ 7
 >>
-Rule 16 (The output tensor, if provided and if input tensor is complex, needs to have a complex dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 9 then dtype_(v_2) ≥ 9
+Rule 10 (If output tensor's dtype is short (np.int16, index 2), input tensor's dtype must be small enough to avoid overflow during type casting)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) < 7
 >>
-Rule 17 (If input is a float tensor, and output tensor is given then the output needs to be at least float16 if specified)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≤ 8 then dtype_(v_2) ≥ 6
+Rule 11 (If out is provided, its dtype should be able to contain the result of asinh(input))
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 2 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 3 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 4 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 5 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8 else if dtype_(v_1) = 9 then dtype_(v_2) ≥ 9 else if dtype_(v_1) = 10 then dtype_(v_2) ≥ 10
 >>
-Rule 18 (If the input tensor is a complex type, and the out tensor is also specified, the out tensor cannot be only float16, it can be complex or greater floating precision)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 9 then (dtype_(v_2) ≥ 9 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 12 (If output tensor's dtype is int, input tensor's dtype should not be float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) < 6 then dtype_(v_1) < 6
 >>
-Rule 19 (If the input tensor has a floating point dtype, and the out tensor is specified, then the output dtype cannot be an integer)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 6 ∧ dtype_(v_1) <=8 then dtype_(v_2) < 6
+Rule 13 (The output tensor must have enough bits to store the result, consider float64 if input is large)
+{v_1 : tensor, v_2 : tensor} |= if max(v_1) > 100 then dtype_(v_2) = 8
 >>
-Rule 20 (If the input tensor has a floating point type, then the out tensor if specified, can have same precision or higher precision.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if dtype_(v_1) = 7 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if dtype_(v_1) = 8 then dtype_(v_2) = 8
+Rule 14 (If input tensor is int, the output tensor can't be int8 or uint8.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then (dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 5)
+>>
+Rule 15 (If the input tensor's dtype is integer, the output tensor should be floating or complex datatypes)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then (dtype_(v_2) > 6)
+>>
+Rule 17 (If the input tensor's data type is int, then the output tensor needs to be at least float32)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) < 6 then dtype_(v_2) ≥ 7
+>>
+Rule 19 (If the output tensor's data type is short (2), then the input tensor's data type must be int8, int16 or uint8.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5)
+>>
+Rule 21 (If the input is a float tensor, the output can't be an integer tensor with less than 32 bits)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) > 6 then dtype_(v_2) > 6
+>>
+Rule 23 (If output tensor dtype is short, input tensor dtype cannot be float or complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) < 9
+>>
+Rule 24 (If output tensor dtype is short, input tensor must be int8, int16, int32, int64 or uint8)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≤ 5
+>>
+Rule 25 (If the output tensor has Short type, input tensor cannot be Float16, Float32, or Float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8)
+>>
+Rule 26 (If the output tensor's type is Short, input tensor values must be small enough to fit within the Short range)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then max(v_1) < 32767 ∧ min(v_1) > -32768
+>>
+Rule 28 (When the desired output type is Short, ensure that the input tensor contains data types that are inherently convertible to Short without loss of information.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 5)
+>>
+Rule 29 (If output is of type Short, input values' absolute value must be small enough)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then max(v_1) < 5 ∧ min(v_1) > -5
+>>
+Rule 30 (If the input tensor is float16, float32, float64, complex64, complex128 the output tensor should not be Short )
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) > 5 then dtype_(v_2) ≠ 2
+>>
+Rule 31 (If the output tensor is Short, then the input tensor can only be of type Int8, Int16, Int32, Int64 or UInt8 and its values must be in the range [-32768, 32767] to avoid overflow.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ max(v_1) ≤ 32767 ∧ min(v_1) ≥ -32768
+>>
+Rule 32 (If the output tensor is Short, the input tensor cannot be a floating-point number.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) < 6
+>>
+Rule 33 (If output tensor is of type Short, then the input tensor can only contain values such that their asinh result falls within the Short range (approx. -5 to 5).)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then min(v_1) > -5 ∧ max(v_1) < 5
+>>
+Rule 34 (If the output tensor is Short, avoid casting from floating-point input tensors due to potential precision loss.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) < 6
+>>
+Rule 35 (If the intended output is Short, ensure input values are small enough such that their hyperbolic arcsine transformation doesn't lead to values that exceed Short's capacity.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 2 then min(v_1) > -3 ∧ max(v_1) < 3
+>>
+Rule 36 (Output should not be Short if Input is Float or Complex, since asinh can increase the value and overflow Short)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) < 7
+>>
+Rule 38 (If output tensor is intended to be Short, then restrict input data to integer types where conversion to Short is well-defined, such that there is no truncation)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 41 (When casting to Short, limit the range of the input based on the asinh function's output.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then min(v_1) ≥ -3 ∧ max(v_1) ≤ 3
+>>
+Rule 43 (If output is Short, input must be an integer.)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) < 6
+>>
+Rule 44 (If the target output is Short, make sure that the result can be safely cast from the input)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 2 then (dtype_(v_1) ≤ 5 ∧ dtype_(v_1) ≠ 0)
+>>
+Rule 45 (Ensure that when casting to `Short`, no information is lost due to the limited range.  Input values should be small enough)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_2) = 2 then min(v_1) > -4 ∧ max(v_1) < 4
+>>
+Rule 47 (Prevent overflow by ensuring input isn't too large if converting to Short)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 2 then min(v_1) ≥ -3 ∧ max(v_1) ≤ 3
+>>
+Rule 50 (If the output is a `Short` tensor, the input tensor should be an integer to avoid any implicit casting)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_2) = 2 then dtype_(v_1) ≤ 5

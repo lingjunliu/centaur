@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The offset must be representable as int32 (Rule 4)
+# Ensure positive offset to avoid indexing issues and prevent potential underflow (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And(-2147483648 <= v["arg1_value"], v["arg1_value"] <= 2147483647)) if n else
-          And(-2147483648 <= v["arg1_value"], v["arg1_value"] <= 2147483647))
+    s.add(Not(v["arg1_value"] > -10000) if n else
+          v["arg1_value"] > -10000)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

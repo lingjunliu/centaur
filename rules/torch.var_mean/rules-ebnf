@@ -1,45 +1,117 @@
 >>
-Rule 1 (correction should be a non-negative integer)
+Rule 1 (correction must be a non-negative integer)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 2 (dim should be non-negative if it's an integer and input tensor's ndim > 0)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ 0
->>
-Rule 3 (if dim is a tuple, all elements must be non-negative)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
->>
-Rule 4 (if dim is an int, it should be a valid dimension of input tensor)
-{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
->>
-Rule 5 (keepdim must be a boolean)
+Rule 2 (keepdim must be a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 6 (if out is provided, it should have the same dtype as input)
+Rule 3 (If dim is an integer, it should be non-negative and less than the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 4 (If dim is a tuple of integers, each integer should be non-negative and less than the number of dimensions of the input tensor, and all values must be distinct)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len > 0 ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+>>
+Rule 13 (The input tensor should have at least one dimension if dim is an integer or tuple)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 14 (If the dim is None, the input tensor must not be empty)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 22 (ndim of input should be less than a threshold)
+{v_1 : tensor} |= ndim(v_1) < 6
+>>
+Rule 25 (If the dim is None, correction can only be 0 or 1)
+{v_1 : int} |= v_1 = 0 ∨ v_1 = 1
+>>
+Rule 26 (If the tensor has only one element, the dimension parameter does not matter)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1)
+>>
+Rule 34 (Input tensor must have floating or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 48 (If dim is a list, the input tensor's dimensions must match the list length)
+{v_1 : tensor, v_2 : list(int)} |= ndim(v_1) = v_2.len
+>>
+Rule 53 (If dim is a list of integers, it must contain unique values)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 54 (If dim is a list of integers, and keepdim is true, then the length of dim must not exceed the number of dimensions of the input tensor)
+{v_1 : list(int), v_2 : bool, v_3 : tensor} |= if v_2 = true then v_1.len ≤ ndim(v_3)
+>>
+Rule 59 (If out is specified, it must have the same dtype as input)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 7 (if dim is a tuple, no element can appear more than once)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 63 (If dim is a list of integers, the values must be within the range of dimensions of the input tensor)
+{v_1 : list(int), v_2 : tensor} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ (0 - ndim(v_2)) ∧ v_1[i] < ndim(v_2)
 >>
-Rule 8 (if keepdim is true, the output tensor will have same number of dimensions as input)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) = ndim(v_1)
+Rule 64 (If out is specified, it must have the same dtype as input and the same shape as the output)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(int)} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) = v_3.len ∧ ∀i ∈ [0, v_3.len - 1] : shape(v_1, i) = v_3[i]
 >>
-Rule 9 (if input is empty tensor, then output should also be empty)
-{v_1 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 65 (Input and output tensors must have the same shape when keepdim is true)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 10 (If dim is None, output tensor has ndim 0)
-{v_1 : tensor, v_2 : int ⊎ tuple(int) ⊎ str} |= if v_2 = "none" then ndim(v_1) = 0
+Rule 73 (If input is a complex type, then correction must be 0)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = 0
 >>
-Rule 11 (if correction is provided, it should be smaller than the number of elements in the specified dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 ≤ shape(v_1, v_2)
+Rule 79 (If input is 0 dimensional, correction must be 0)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = 0
 >>
-Rule 12 (If dim is None, then correction should be smaller than the total number of elements in the tensor)
-{v_1 : int, v_2 : str} |= if v_2 = "none" then v_1 ≥ 0
+Rule 84 (If the `dim` argument is a list, the list's length must be less than the number of dimensions of the tensor)
+{v_1: tensor, v_2: list(int)} |= v_2.len < ndim(v_1) + 1
 >>
-Rule 13 (If out is provided, the output shape must be broadcastable from the input shape after reduction)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
+Rule 89 (If input is a complex type and correction != 0 then throw an error)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then if v_2 != 0 then false
 >>
-Rule 14 (The input tensor should have a valid dtype for var_mean, i.e. float or complex)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 91 (If out parameter is specified, its shape must be the expected shape)
+{v_1 : tensor, v_2 : tensor, v_3 : list(int)} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_2, i) = v_3[i])
 >>
-Rule 15 (If out is provided, then out must be of type tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 92 (if `dim` is a tuple and correction is not 0, throw an error)
+{v_1 : tuple(int), v_2 : int} |= if v_1.len > 0 then if v_2 != 0 then false
+>>
+Rule 94 (If the input is a bool tensor and correction isn't 0, throw error)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 0 then if v_2 != 0 then false
+>>
+Rule 97 (if `dim` is a tuple and correction is not 0, throw an error)
+{v_1 : tuple(int), v_2 : int} |= if v_1.len > 0 then if v_2 ≠ 0 then false
+>>
+Rule 98 (If the input is a bool tensor and correction isn't 0, throw error)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 0 then if v_2 ≠ 0 then false
+>>
+Rule 99 (if keepdim is true, output dimensions must be >= input dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_2) ≥ ndim(v_1)
+>>
+Rule 104 (if dim is a tuple, must be non empty)
+{v_1 : tuple(int)} |= v_1.len ≥ 0
+>>
+Rule 108 (if keepdim is true, output dimensions must be >= input dimensions)
+{v_1 : tensor, v_2 : int , v_3 : bool} |= if v_3 = true then ndim(v_1) >= v_2
+>>
+Rule 109 (If dim is an integer, it must be in the valid range )
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 111 (If out parameter is specified and dim is none, its shape must be same as input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) else false
+>>
+Rule 121 (If out parameter is specified, its shape must be the expected output shape based on dim, keepdim, and input shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) > 0
+>>
+Rule 123 (If keepdim is true, and dim is specified, then output dimensions must be same or greater than input dimensions)
+{v_1 : tensor, v_2: int , v_3: bool} |= if v_3 = true then ndim(v_1) >= v_2
+>>
+Rule 126 (If out parameter is specified, its number of dimensions must be same as that of input)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 129 (If dim is an integer, it must be in the valid range )
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1) else false
+>>
+Rule 133 (If dim is an integer, it must be less than ndim of tensor)
+{v_1: tensor, v_2: int} |= v_2 < ndim(v_1)
+>>
+Rule 134 (If dim is a tuple, the values in that tuple must be smaller than the dimension of the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1) )
+>>
+Rule 136 (If out parameter is specified, its number of dimensions must match that of input if keepdim is false)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = false then ndim(v_1) = ndim(v_2) + 1
+>>
+Rule 139 (if `dim` is a tuple parameter and is specified, then it should have some element)
+{v_1 : tuple(int)} |= v_1.len >= 0

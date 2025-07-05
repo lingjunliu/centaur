@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input has complex64/128 dtype, then the real/imaginary parts should be representable by corresponding float/double. (Rule 18)
+# If the dtype is float16, the values should be in representable range to avoid overflow and underflow (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, (And(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38)), If(v["arg1_dtype"] == 10, (And(Select(v["arg1_range"], 0) > -1.7976931348623157E+308, Select(v["arg1_range"], 1) < 1.7976931348623157E+308)), False))) if n else
-          If(v["arg1_dtype"] == 9, (And(Select(v["arg1_range"], 0) > -3.4028235e+38, Select(v["arg1_range"], 1) < 3.4028235e+38)), If(v["arg1_dtype"] == 10, (And(Select(v["arg1_range"], 0) > -1.7976931348623157E+308, Select(v["arg1_range"], 1) < 1.7976931348623157E+308)), False)))
+    s.add(Not(If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -65500, Select(v["arg1_range"], 1) < 65500), False)) if n else
+          If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -65500, Select(v["arg1_range"], 1) < 65500), False))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# offset affects final shape, if offset=0 and input dim=1 then output will be square with shape[0] (Rule 8)
+# Prevent excessively large input tensor dimensions and offset to avoid overflow (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_value"] == 0, v["arg1_ndim"] == 1), Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 0), False)) if n else
-          If(And(v["arg2_value"] == 0, v["arg1_ndim"] == 1), Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 0), False))
+    s.add(Not(And(And(Select(v["arg1_shape"], 0) < 1000, v["arg1_ndim"] < 5), v["arg2_value"] < 1000)) if n else
+          And(And(Select(v["arg1_shape"], 0) < 1000, v["arg1_ndim"] < 5), v["arg2_value"] < 1000))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

@@ -5,44 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If v_1 is set to float32, then v_2 * v_3 must be less than 1000, where v_2 and v_3 are tensor dimension lengths (Rule 18)
+# if a tensor is given as input it must have float16 dtype if high precision is enabled (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 7, Select(v["arg2_shape"], 0) * Select(v["arg3_shape"], 0) < 1000, False)) if n else
-          If(v["arg1_value"] == 7, Select(v["arg2_shape"], 0) * Select(v["arg3_shape"], 0) < 1000, False))
+    s.add(Not(If(v["arg2_value"] == True, v["arg1_dtype"] == 6, False)) if n else
+          If(v["arg2_value"] == True, v["arg1_dtype"] == 6, False))
 )
 
-def rule_18_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_18_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
-        if not isinstance(arg3, np.ndarray):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        for i in range(arg3.ndim):
-            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_value': arg1_value, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape})
+        rule_18(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape']}, neg)
+        rule_18(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

@@ -1,57 +1,75 @@
 >>
-Rule 1 (The length of dims tuple must equal the number of dimensions in the input tensor, and no duplicate dims are allowed)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+Rule 1 (The length of dims must match the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len
 >>
-Rule 2 (The elements in dims tuple should be valid dimension indices of the input tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1)
+Rule 2 (Dimensions in the permutation tuple must be within the valid range for the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -1 * ndim(v_1) ∧ v_2[i] ≤ ndim(v_1) -1
 >>
-Rule 3 (The permuted shape of the input tensor based on dims tuple should have positive dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, v_2[i]) > 0
+Rule 3 (Dimensions must be unique)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 4 (The dims tuple should contain unique integers representing valid dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len = ndim(v_1) ∧ ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < ndim(v_1) ∧ (∀j ∈ [i+1, v_2.len-1] : v_2[i] ≠ v_2[j]))
+Rule 4 (dims must not be empty)
+{v_1: tuple(int)} |= v_1.len > 0
 >>
-Rule 5 (if the input tensor has a dimension of size 1, it can be permuted to any position in the output)
-{v_1 : tensor, v_2 : tuple(int)} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 ∧ ∀j ∈ [0, v_2.len - 1] : if v_2[j] = i then true
+Rule 5 (input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (The product of the dimensions of the input tensor should equal the product of the dimensions of the permuted tensor. This assumes no dimension is zero.)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀j ∈ [0, v_2.len - 1] : shape(v_1, v_2[j]) > 0)
+Rule 7 (dimension must be a positive integer)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 7 (After permuting, the total number of elements should stay the same)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ (min(v_1) = min(v_1))
+Rule 9 (Check that all elements in dims tuple are integers)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1]: true
 >>
-Rule 8 (The dtype of the tensor should remain unchanged.)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+Rule 10 (Each element of the dimensions tuple must be an integer)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : true
 >>
-Rule 9 (If all dimensions of the input tensor are equal, then any permutation is allowed)
-{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_1, i + 1)) ∧ ndim(v_1) = v_2.len
+Rule 11 (If dims is empty, then input must be 0-dimensional)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len = 0 then ndim(v_1) = 0
 >>
-Rule 10 (if the dims tuple is an identity permutation, then the output should be identical to the input)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ (∀i ∈ [0, ndim(v_1) - 1] : v_2[i] = i)
+Rule 13 (The elements in dims tuple must be within a certain range )
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -101 ∧ v_1[i] < 101
 >>
-Rule 11 (The tensor cannot have more than 32 dimensions.)
+Rule 14 (The input tensor should not have a dimension size of zero.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 15 (The length of dims must be less than or equal to a certain number)
+{v_1 : tuple(int)} |= v_1.len ≤ 32
+>>
+Rule 17 (The number of dimensions of the tensor must be within a reasonable range)
 {v_1 : tensor} |= ndim(v_1) ≤ 32
 >>
-Rule 12 (If the tensor is a sparse tensor, it should still be valid after permutation)
-{v_1 : tensor, v_2 : tuple(int)} |= if "sparse_coo" = "sparse_coo" then ndim(v_1) = v_2.len
+Rule 18 (The length of the dims tuple should also be within a reasonable range.)
+{v_1 : tuple(int)} |= 0 ≤ v_1.len ∧ v_1.len ≤ 32
 >>
-Rule 13 (If the input tensor has zero dimensions, then the dims tuple must be empty)
+Rule 19 (If the input tensor is 0 dimensional, then the dims tuple must be empty.)
 {v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
 >>
-Rule 14 (If the input has only one dimension, the dims tuple must be (0).)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 1 ∧ v_2[0] = 0
+Rule 27 (If input is a sparse COO tensor then it has at least one dimension.)
+{v_1 : tensor} |= ndim(v_1) >= 1
 >>
-Rule 15 (The `dims` tuple must contain all the dimensions of the original tensor, and the tuple elements must be integers)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ (∀i ∈ [0, v_2.len -1 ] : v_2[i] = 0 ∨ v_2[i] = 1 ∨ v_2[i] = 2 ∨ v_2[i] = 3 ∨ v_2[i] = 4 ∨ v_2[i] = 5 ∨ v_2[i] = 6 ∨ v_2[i] = 7 ∨ v_2[i] = 8 ∨ v_2[i] = 9)
+Rule 29 (The dimensions specified in the tuple must be less than the maximum number of allowed dimensions.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1024
 >>
-Rule 16 (The sum of the elements in dims tuple equals sum of [0, ..., ndim(v_1) - 1]. Note: this rule likely doesn't work)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ (∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, v_2.len - 1] : v_2[j] = i)
+Rule 31 (All dimensions specified in the tuple must be valid indices)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
 >>
-Rule 17 (dims tuple must contain every number from 0 to ndim(v_1)-1 exactly once)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, ndim(v_1)-1] : ∃j ∈ [0, v_2.len -1] : v_2[j] = i ∧  ∀j ∈ [0, v_2.len - 1] : ∃i ∈ [0, ndim(v_1) - 1] : v_2[j] = i
+Rule 33 (All dimensions specified in the tuple must be valid indices)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1) ∧ if v_2[i] > 0 then true
 >>
-Rule 18 (If the tensor's shape contains a 0, then the permuted dimensions should still produce a shape that contains 0 in the corresponding position.)
-{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∃i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) = 0 then shape(v_1, v_2[i]) = 0
+Rule 36 (The dimensions specified in the tuple must be valid and unique)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1) ∧  ∀j ∈ [i+1, v_2.len -1] : v_2[i] ≠ v_2[j]
 >>
-Rule 19 (dims should not be empty if the tensor has more than 0 dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > 0 then v_2.len > -1
+Rule 37 (The dimensions specified in the tuple must be valid and unique, but also must not result in an empty tensor.)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1) ∧  ∀j ∈ [i+1, v_2.len -1] : v_2[i] ≠ v_2[j] ∧ true
+>>
+Rule 38 (The dimensions specified in the tuple must be valid, unique and respect the existing dimensions of the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1) ∧  ∀j ∈ [i+1, v_2.len -1] : v_2[i] ≠ v_2[j] ∧ v_2.len = ndim(v_1)
+>>
+Rule 39 (The dimensions specified in the tuple must be valid, unique, respect the existing dimensions of the tensor and be non-negative if input is not sparse.)
+{v_1 : tensor, v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1) ∧  ∀j ∈ [i+1, v_2.len -1] : v_2[i] ≠ v_2[j] ∧ v_2.len = ndim(v_1))
+>>
+Rule 40 (The dimensions specified in the tuple must be valid, unique, and respect the existing dimensions of the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len = ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)) ∧  (∀i ∈ [0, v_2.len -1] : ∀j ∈ [i+1, v_2.len -1] : v_2[i] ≠ v_2[j])
+>>
+Rule 41 (The dimensions specified in the tuple must be valid, unique, and respect the existing dimensions of the tensor, while also making sure that the length of the tuple is at least 1 if ndim is not 0)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) ≠ 0 then v_2.len ≥ 1 ∧ (v_2.len = ndim(v_1)) ∧ (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)) ∧  (∀i ∈ [0, v_2.len -1] : ∀j ∈ [i+1, v_2.len -1] : v_2[i] ≠ v_2[j])

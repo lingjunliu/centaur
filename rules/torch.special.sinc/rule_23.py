@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If out tensor exists, its dtype should be compatible with float (Rule 23)
+# if input is quantized, output should also be quantized (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
-          Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
+    s.add(Not(If(v["arg1_dtype"] == 1, False, False)) if n else
+          If(v["arg1_dtype"] == 1, False, False))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

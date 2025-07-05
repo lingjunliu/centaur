@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# matrix and vector cannot have np.dtype as their dtype (Rule 21)
+# input and vec can't both be boolean type tensors to avoid errors in computation (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 12, v["arg2_dtype"] != 12)) if n else
-          And(v["arg1_dtype"] != 12, v["arg2_dtype"] != 12))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 0, False)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 0, False))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

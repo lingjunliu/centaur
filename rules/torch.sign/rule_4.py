@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor is bool then out tensor must be bool if provided (Rule 4)
+# if out is provided, input and out tensor types should match if input is not complex (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, False)) if n else
-          If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, False))
+    s.add(Not(If(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11), v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
+          If(And(v["arg1_dtype"] != 10, v["arg1_dtype"] != 11), v["arg1_dtype"] == v["arg2_dtype"], False))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

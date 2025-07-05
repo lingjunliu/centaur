@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Minimum value in the tensor should be less than maximum value (Rule 8)
+# input tensor should have non-zero elements (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1))
+    s.add(Not(Select(v["arg1_range"], 0) != Select(v["arg1_range"], 1)) if n else
+          Select(v["arg1_range"], 0) != Select(v["arg1_range"], 1))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

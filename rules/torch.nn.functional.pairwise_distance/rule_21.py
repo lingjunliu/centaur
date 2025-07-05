@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If x1 and x2 have different shapes, x1 and x2 cannot have ndim=0 (Rule 21)
+# The tensors must have compatible sizes to compute the pairwise distance (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) != Select(v["arg2_shape"], 0), And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), False)) if n else
-          If(Select(v["arg1_shape"], 0) != Select(v["arg2_shape"], 0), And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), False))
+    s.add(Not(If(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1))) for i in range(6)]), False)) if n else
+          If(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), (Or(Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg1_shape"], i) == 1), Select(v["arg2_shape"], i) == 1))) for i in range(6)]), False))
 )
 
 def rule_21_func(arg1, arg2, solver=None, neg=False):

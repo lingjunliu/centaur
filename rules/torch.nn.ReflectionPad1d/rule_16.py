@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input tensor is 2D, the sum of padding left and right cannot exceed the width of the tensor (Rule 16)
+# Check padding left is less than the dimension (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 1), False)) if n else
-          If(v["arg1_ndim"] == 2, Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], 1), False))
+    s.add(Not(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 1)) if n else
+          Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 1))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

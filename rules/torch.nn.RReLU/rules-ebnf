@@ -2,59 +2,131 @@
 Rule 1 (lower bound should be less than or equal to the upper bound)
 {v_1 : float, v_2 : float} |= v_1 ≤ v_2
 >>
-Rule 2 (inplace should be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 2 (lower bound and upper bound should be within a reasonable range, avoiding overflow)
+{v_1 : float, v_2 : float} |= v_1 > -1000000.0 ∧ v_2 < 1000000.0
 >>
-Rule 3 (input tensor should not be Half type)
+Rule 3 (dtype should not be Half (float16), suppress RuntimeError: "rrelu_with_noise_out_cpu" not implemented for 'Half')
 {v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 4 (if inplace is true, input tensor must be float or int type)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 4 (inplace should be a boolean value)
+{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
 >>
-Rule 5 (lower and upper bounds should be finite numbers)
-{v_1 : float, v_2 : float} |= min(v_1, 0) ≠ -1/0 ∧ min(v_2, 0) ≠ -1/0 ∧ max(v_1, 0) ≠ 1/0 ∧ max(v_2, 0) ≠ 1/0
+Rule 5 (lower bound should not be too small, to avoid potential underflow)
+{v_1 : float} |= v_1 > -1.0
 >>
-Rule 6 (shape of input tensor and output tensor should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 6 (upper bound should not be too large, to avoid potential overflow)
+{v_1 : float} |= v_1 < 1.0
 >>
-Rule 7 (If inplace is true, then the input tensor's dtype must be either float16, float32, or float64)
-{v_1 : dtype, v_2 : bool} |= if v_2 = true then v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+Rule 7 (Prevent overflow by ensuring the sum of lower and upper bounds is within a representable range)
+{v_1 : float, v_2 : float} |= v_1 + v_2 < 1000.0 ∧ v_1 + v_2 > -1000.0
 >>
-Rule 8 (Lower and upper bound must be greater than -1 and less than 1)
-{v_1 : float, v_2 : float} |= -1 < v_1 ∧ v_1 < 1 ∧ -1 < v_2 ∧ v_2 < 1
+Rule 9 (lower bound should be non-negative if upper bound is non-negative, avoiding large negative values for 'a')
+{v_1 : float, v_2 : float} |= if v_2 ≥ 0 then v_1 ≥ 0
 >>
-Rule 9 (if inplace is true then input and output should be the same tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then v_1 = v_2
+Rule 11 (Avoid potential issues with extremely small upper bounds close to zero)
+{v_1 : float} |= v_1 > 0.000001
 >>
-Rule 10 (If lower bound is 0, then upper bound must also be 0 to ensure no noise)
+Rule 12 (If inplace is true, the input tensor's dtype should be float32 or float64 to ensure stability and avoid unexpected behavior.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 13 (Lower bound and upper bound should be finite numbers)
+{v_1 : float, v_2 : float} |= (v_1 > -1000000000.0 ∧ v_1 < 1000000000.0) ∧ (v_2 > -1000000000.0 ∧ v_2 < 1000000000.0)
+>>
+Rule 14 (Lower bound should not be NaN)
+{v_1 : float} |= v_1 = v_1
+>>
+Rule 16 (The difference between from (lower) and numeric_limits<T>::max() should not overflow, to prevent potential issues.)
+{v_1 : float, v_2 : dtype} |= if v_2 = 7 then v_1 > -3.4028235e+38 else if v_2 = 8 then v_1 > -1.7976931348623157e+308
+>>
+Rule 17 (Upper bound should be a reasonable value to avoid very large 'a' values that could lead to instability or overflow.)
+{v_1 : float} |= v_1 < 100.0
+>>
+Rule 18 (If the lower bound is negative, ensure it's not excessively negative to prevent underflow issues during 'a' sampling.)
+{v_1 : float} |= if v_1 < 0 then v_1 > -100.0
+>>
+Rule 19 (If the upper bound is close to 0, the lower bound shouldn't be significantly negative, as 'a' would be close to 0.)
+{v_1 : float, v_2 : float} |= if v_2 < 0.01 then v_1 > -0.1
+>>
+Rule 20 (The upper bound must be positive to allow a positive range of 'a' values if the lower bound is 0.)
+{v_1 : float, v_2 : float} |= if v_1 = 0 then v_2 > 0
+>>
+Rule 22 (Avoid identical lower and upper bounds as it reduces the benefits of randomization)
+{v_1 : float, v_2 : float} |= v_1 ≠ v_2
+>>
+Rule 23 (Upper bound must be less than a maximum safe value given the tensor's dtype to prevent overflows.)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 then v_2 < 3.4e38 else if dtype_(v_1) = 8 then v_2 < 1.8e308
+>>
+Rule 24 (The difference between the upper and lower bounds should be small enough to avoid extreme values for 'a')
+{v_1 : float, v_2 : float} |= v_2 - v_1 < 100.0
+>>
+Rule 25 (If lower bound is greater than zero, then upper bound should also be significantly greater than zero)
+{v_1: float, v_2: float} |= if v_1 > 0 then v_2 > 0.01
+>>
+Rule 26 (It's unsafe if inplace=True when input tensor is complex)
+{v_1: tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10)
+>>
+Rule 28 (If both the lower and upper bounds are zero, the module effectively becomes a ReLU.)
 {v_1 : float, v_2 : float} |= if v_1 = 0 then v_2 = 0
 >>
-Rule 11 (If the input tensor dtype is complex, then lower and upper bounds must be complex type)
-{v_1 : dtype} |= if v_1 = 10 ∨ v_1 = 11 then true
+Rule 31 (The upper bound and lower bound can not be infinite simultaneously.)
+{v_1 : float, v_2 : float} |=  (v_1 ≠ -1.7976931348623157e+308) ∨ (v_2 ≠ 1.7976931348623157e+308)
 >>
-Rule 12 (Quantized tensors not supported)
-{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+Rule 32 (To prevent the 'from' value exceeding the maximum value that can be subtracted without underflow based on the dtype)
+{v_1: float, v_2: dtype} |= if v_2 = 7 then v_1 > -3.4028235e+38 else if v_2 = 8 then v_1 > -1.7976931348623157e+308
 >>
-Rule 13 (If lower bound is negative, upper bound must be positive)
-{v_1 : float, v_2 : float} |= if v_1 < 0 then v_2 > 0
+Rule 33 (if inplace is True, then v_1 is not complex128 to avoid "rrelu_with_noise_out_cpu" not implemented for 'ComplexDouble')
+{v_1: tensor, v_2: bool} |= if v_2 = true then (dtype_(v_1) ≠ 10)
 >>
-Rule 14 (The shape of the input tensor should be a valid shape)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 34 (if inplace is True and dtype is float16, it's unsafe, avoid it.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) ≠ 6
 >>
-Rule 15 (If lower bound is positive, lower bound and upper bound should not be infinity)
-{v_1 : float} |= if v_1 > 0 then max(v_1, 0) ≠ 1/0
+Rule 35 (If inplace is True, the maximum value that can be represented by the data type T must be large enough to avoid overflows during the subtraction - from <= std::numeric_limits<T>::max())
+{v_1: float, v_2: dtype, v_3 : bool} |= if v_3=true then (if v_2 = 7 then v_1 > -3.4028235e+38 else if v_2=8 then v_1 > -1.7976931348623157e+308)
 >>
-Rule 16 (the input tensor must have numerical dtype.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 36 (To prevent potential instability during the random 'a' sampling process, upper and lower should be relatively close)
+{v_1 : float, v_2: float} |= v_2 - v_1 < 1
 >>
-Rule 17 (if lower bound is positive, then the tensor values should be positive)
-{v_1 : float, v_2 : tensor} |= if v_1 > 0 then min(v_2) > 0
+Rule 37 (When lower equals upper, avoid inplace=True as it offers no advantages)
+{v_1 : float, v_2 : float, v_3 : bool} |= if v_1 = v_2 then v_3 = false
 >>
-Rule 18 (If lower bound is non-zero, the maximum value of tensor should be bigger than lower bound)
-{v_1 : float, v_2 : tensor} |= if v_1 ≠ 0 then max(v_2) > v_1
+Rule 38 (Prevent lower being a NaN when upper is not)
+{v_1: float, v_2: float} |= if v_2 = v_2 then v_1 = v_1
 >>
-Rule 19 (If the input tensor requires grad, then inplace = False)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = false
+Rule 39 (Prevent upper being a NaN when lower is not)
+{v_1: float, v_2: float} |= if v_1 = v_1 then v_2 = v_2
 >>
-Rule 20 (The element type of the input tensor has to be real)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 40 (if lower is positive infinity, upper should also be positive infinity.)
+{v_1: float, v_2: float} |= if v_1 = 1.7976931348623157e+308 then v_2 = 1.7976931348623157e+308
+>>
+Rule 41 (if upper is negative infinity, lower should be negative infinity as well)
+{v_1: float, v_2: float} |= if v_2 = -1.7976931348623157e+308 then v_1 = -1.7976931348623157e+308
+>>
+Rule 42 (If the dtype is float16, the range between upper and lower should be narrow to prevent issues related to precision)
+{v_1: float, v_2: float, v_3: dtype} |= if v_3 = 6 then v_2 - v_1 < 10
+>>
+Rule 43 (If lower bound is negative, the tensor should be of floating-point dtype)
+{v_1: float, v_2: tensor} |= if v_1 < 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 44 (If upper bound is negative, the tensor should be of floating-point dtype.)
+{v_1 : float, v_2 : tensor} |= if v_1 < 0 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 47 (The maximum value must be positive and less than a reasonable upper limit to avoid overflows.)
+{v_1: float} |= v_1 > 0 ∧ v_1 < 1.7976931348623157e+308
+>>
+Rule 49 (prevent upper from exceeding the max value that upper can take, to prevent exceeding the range)
+{v_1 : dtype, v_2 : float} |= if v_1 = 7 then v_2 < 3.4028235e+38 else if v_1 = 8 then v_2 < 1.7976931348623157e+308
+>>
+Rule 50 (prevent the lower bound from being greater than the maximum that the Half data type can represent.)
+{v_1 : dtype, v_2 : float} |= if v_1 = 6 then v_2 < 65500
+>>
+Rule 52 (The upper bound cannot exceed the maximum value that the Half data type can represent.)
+{v_1 : dtype, v_2 : float} |= if v_1 = 6 then v_2 < 6.5504e+04
+>>
+Rule 54 (if the tensor data type is float16, the upper bound must be less than 6.5504e+04 to avoid overflow.)
+{v_1 : dtype, v_2 : float} |= if v_1 = 6 then v_2 < 6.5504E+04
+>>
+Rule 55 (If the tensor data type is float16, then lower cannot be greater than 6.5504E+04)
+{v_1: dtype, v_2 : float} |= if v_1=6 then v_2 ≤ 6.5504E+04
+>>
+Rule 56 (If the tensor data type is float16, then the lower cannot be greater than 6.5504E+04)
+{v_1 : dtype, v_2 : float} |= if v_1 = 6 then v_2 ≤ 65504.0

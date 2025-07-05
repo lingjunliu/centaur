@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The shape of input tensor should be small enough (Rule 10)
+# input tensor must be square matrices, if ndim > 1 and dimensions are greater than 0 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 1, And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 2048, Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 2048), False)) if n else
-          If(v["arg1_ndim"] > 1, And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 2048, Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 2048), False))
+    s.add(Not(If(And(And(v["arg1_ndim"] > 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), False)) if n else
+          If(And(And(v["arg1_ndim"] > 1, Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), False))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

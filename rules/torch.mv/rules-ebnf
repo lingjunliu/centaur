@@ -1,63 +1,357 @@
 >>
-Rule 1 (input matrix and vector should have compatible shapes for matrix-vector multiplication)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0)
+Rule 1 (input must be a matrix, vec must be a vector)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 1
 >>
-Rule 2 (output tensor, if provided, must have compatible shape and dtype with the result)
-{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ v_3 then true else ndim(v_3) = 1 ∧ shape(v_1, 0) = shape(v_3, 0) ∧ dtype_(v_1) = dtype_(v_3)
+Rule 3 (size mismatch: input and vec dimensions must align for matrix-vector multiplication)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 3 (input matrix and vector must have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 4 (output tensor's dtype should match the input tensors')
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1) ∧ dtype_(v_3) = dtype_(v_2)
 >>
-Rule 4 (the output tensor, if provided, should have the same dtype as the input tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ v_3 then true else dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_3)
+Rule 5 (input and vec should have the same scalar type.  Allowing Half(7) and Float(8) as example)
+{v_1 : tensor, v_2 : tensor} |=  (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
 >>
-Rule 5 (input and vec tensors should not have zero dimensions)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_2, 0) > 0
+Rule 6 (out argument must be a Tensor, checking ndim as a proxy)
+{v_3 : tensor} |= ndim(v_3) ≥ 0
 >>
-Rule 6 (if output tensor is provided, its dtype should be float or complex)
-{v_3 : tensor} |= if v_3 ≠ v_3 then true else 6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 10
+Rule 8 (check for positive dimensions of the matrix)
+{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 7 (if output is provided, its dtype should be at least as precise as input's dtype)
-{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ v_3 then true else if dtype_(v_1) = 6 then dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else if dtype_(v_1) = 7 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else if dtype_(v_1) = 8 then dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else if dtype_(v_1) = 9 then dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 else if dtype_(v_1) = 10 then  dtype_(v_3) = 10
+Rule 9 (check for positive dimension of the vector)
+{v_2: tensor} |= shape(v_2, 0) > 0
 >>
-Rule 8 (input matrix and vector should have floating point or complex dtype)
-{v_1 : tensor, v_2 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 ∧ 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10
+Rule 11 (Enforce that out is optional and does not allow None (expressed as 0 size tensor in context))
+{v_3: tensor} |= shape(v_3,0) > 0
 >>
-Rule 9 (the output tensor, if provided, cannot be bool or str)
-{v_3 : tensor} |= if v_3 ≠ v_3 then true else dtype_(v_3) ≠ 0 ∧ dtype_(v_3) ≠ 11
+Rule 15 (output tensor's dtype should match the input tensors')
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_3) = dtype_(v_1)
 >>
-Rule 10 (input tensor and vec cannot be bool)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Rule 16 (input and vec should have the same scalar type.  Allowing Half(7) and Float(8) as example)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else false
 >>
-Rule 11 (if the output tensor is provided, its shape and dtype must match the expected result shape and dtype)
-{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ v_3 then true else shape(v_3, 0) = shape(v_1, 0) ∧ dtype_(v_3) = dtype_(v_1)
+Rule 18 (shape of the out tensor must be appropriate for the multiplication result.  If input is n x m, out must be n)
+{v_1 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_3, 0)
 >>
-Rule 12 (input matrix should have at least two dimensions, and vector should have at least one)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 1
+Rule 21 (input and vec can't both be boolean type tensors to avoid errors in computation)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) ≠ 0
 >>
-Rule 13 (if the vec tensor's dtype is half, then the input tensor should also be half)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 6 then dtype_(v_1) = 6
+Rule 22 (size of vec cannot be zero)
+{v_2 : tensor} |= shape(v_2, 0) ≠ 0
 >>
-Rule 14 (input matrix and vector can't be strings)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
+Rule 23 (If input is 1xN, vec cannot be 0)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 1 then if ndim(v_1) = 2 then shape(v_2, 0) ≠ 0
 >>
-Rule 15 (at least one of the input and vec should have a floating point dtype)
-{v_1 : tensor, v_2 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∨ (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) ∨ (9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10)
+Rule 25 (Output dtype cannot be bool)
+{v_3: tensor} |= dtype_(v_3) ≠ 0
 >>
-Rule 16 (If input matrix or vector is complex, the other must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10) then (9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10) else if (9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10) then (9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
+Rule 26 (If input is complex, output must be complex)
+{v_1: tensor, v_3: tensor} |= if dtype_(v_1) = 10 then dtype_(v_3) = 10 else if dtype_(v_1) = 11 then dtype_(v_3) = 11
 >>
-Rule 17 (if input has dtype half, vec cannot have dtype double)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 8
+Rule 27 (If input is half, output must be half)
+{v_1: tensor, v_3: tensor} |= if dtype_(v_1) = 7 then dtype_(v_3) = 7
 >>
-Rule 18 (if input has dtype half, vec cannot have dtype float or double)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8
+Rule 29 (If input's dtype is int, then the output's dtype should also be int)
+{v_1: tensor, v_3: tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then (1 <= dtype_(v_3) ∧ dtype_(v_3) <= 5)
 >>
-Rule 19 (vec must be a vector, so it must have size)
+Rule 32 (Output dtype should be float if input is float)
+{v_1: tensor, v_3: tensor} |= if dtype_(v_1) = 8 then dtype_(v_3) = 8
+>>
+Rule 36 (The product of the matrix dimensions must be greater than zero)
+{v_1: tensor} |= shape(v_1, 0) * shape(v_1, 1) > 0
+>>
+Rule 37 (If input's dtype is int, then the output's dtype should also be int or float)
+{v_1: tensor, v_3: tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then (1 <= dtype_(v_3) ∧ dtype_(v_3) <= 8)
+>>
+Rule 38 (Check if the output tensor is a 1D tensor)
+{v_3: tensor} |= ndim(v_3) = 1
+>>
+Rule 39 (If the input is int, then the output cannot be bool)
+{v_1: tensor, v_3: tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then dtype_(v_3) != 0
+>>
+Rule 40 (Check vec's dimension, if input is not 2D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ 2 then ndim(v_2) = 1
+>>
+Rule 41 (If input is a matrix (2D), check vec size compatibility)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 42 (If out is provided and the input is float32, out should be float32)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_3) = 8
+>>
+Rule 43 (Check that input and vec are of compatible dtypes. Only float/float or double/double are allowed)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8)
+>>
+Rule 46 (If both inputs are integers then the output should be an integer)
+{v_1: tensor, v_2: tensor, v_3:tensor} |= if (1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5) ∧ (1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5) then (1 <= dtype_(v_3) ∧ dtype_(v_3) <= 5)
+>>
+Rule 52 (If vec is float and out exists, then out cannot be int)
+{v_2: tensor, v_3: tensor} |= if dtype_(v_2) = 8 then if (1 <= dtype_(v_3) ∧ dtype_(v_3) <=5 ) then false
+>>
+Rule 54 (If vector's dimension is zero, function execution is wrong)
 {v_2 : tensor} |= shape(v_2, 0) > 0
 >>
-Rule 20 (input matrix cannot have more than 2 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≤ 2
+Rule 55 (If the input tensor's 1st dimension is zero, function execution is wrong)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 21 (matrix and vector cannot have np.dtype as their dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 12
+Rule 56 (if the input tensor's 2nd dimension is zero, function execution is wrong)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) > 0
+>>
+Rule 57 (If the output tensor exists, its dimension must be more than 0)
+{v_3 : tensor} |= ndim(v_3) > 0
+>>
+Rule 58 (The number of dimensions of the input tensor must be less than 3)
+{v_1: tensor} |= ndim(v_1) < 3
+>>
+Rule 59 (The shape of the vector tensor must be less than 10 to avoid large calculations)
+{v_2: tensor} |= shape(v_2, 0) < 10
+>>
+Rule 60 (Dtype_ of the input must be less than 10)
+{v_1: tensor} |= dtype_(v_1) < 10
+>>
+Rule 61 (If the number of dimensions of the output is 1, then the shape of the output must also be less than 10)
+{v_3: tensor} |= if ndim(v_3) = 1 then shape(v_3, 0) < 10
+>>
+Rule 62 (vec must have at least one element)
+{v_2: tensor} |= shape(v_2,0) > 0
+>>
+Rule 63 (input must have at least one element in each dimension)
+{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1,0) > 0 else if ndim(v_1) = 2 then shape(v_1,0) > 0 ∧ shape(v_1,1) > 0
+>>
+Rule 64 (The maximum value of the input tensor must be greater than the minimum value.)
+{v_1: tensor} |= max(v_1) > min(v_1)
+>>
+Rule 65 (The input cannot have bool dtype)
+{v_1:tensor} |= dtype_(v_1) != 0
+>>
+Rule 66 (The input and vector cannot both be empty)
+{v_1:tensor, v_2: tensor} |= shape(v_1,0) + shape(v_2,0) > 0
+>>
+Rule 68 (Input needs to have at least one element)
+{v_1:tensor} |= min(v_1) > -10000
+>>
+Rule 69 (Vec needs to have positive values)
+{v_2: tensor} |= min(v_2) >= 0
+>>
+Rule 70 (The minimum value of input must be less than 10000)
+{v_1: tensor} |= min(v_1) < 10000
+>>
+Rule 71 (Output must have positive values)
+{v_3: tensor} |= if shape(v_3,0) > 0 then min(v_3) >= 0
+>>
+Rule 72 (If input is float, vec should also be float)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+>>
+Rule 73 (The product of dimensions needs to be a positive number)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) > 0 else shape(v_1,0) > 0
+>>
+Rule 74 (out is tensor of floats)
+{v_3: tensor} |= 6 <= dtype_(v_3) ∧ dtype_(v_3) <= 8
+>>
+Rule 75 (If the number of elements in vector is greater than 5 then min must be less than 10)
+{v_2: tensor} |= if shape(v_2, 0) > 5 then min(v_2) < 10
+>>
+Rule 76 (Input can't have extremely small values)
+{v_1: tensor} |= min(v_1) > -1000
+>>
+Rule 77 (Vec needs to have a limited maximum value)
+{v_2: tensor} |= max(v_2) < 1000
+>>
+Rule 79 (The maximum value of input must be less than a reasonable amount)
+{v_1: tensor} |= max(v_1) < 1000
+>>
+Rule 80 (if vec max is less than min then there is something wrong)
+{v_2: tensor} |= max(v_2) > min(v_2)
+>>
+Rule 81 (Input and vec must have a compatible number of elements - simplistic)
+{v_1: tensor, v_2: tensor} |= if shape(v_1,0) > 1 then shape(v_2, 0) > 0
+>>
+Rule 82 (Out must have values within a reasonable range)
+{v_3: tensor} |= if shape(v_3,0) > 0 then max(v_3) < 1000
+>>
+Rule 83 (input should have dimensions but should also be less than some range.)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1,0) * shape(v_1,1) < 1000 else shape(v_1, 0) < 1000
+>>
+Rule 84 (minimum of output cannot be greater than 1000.)
+{v_3: tensor} |= if shape(v_3,0) > 0 then min(v_3) < 1000
+>>
+Rule 86 (minimum of vec can't be very large or there are problems.)
+{v_2: tensor} |= min(v_2) < 1000
+>>
+Rule 87 (If input has one dimension, max should be less than 10000)
+{v_1: tensor} |= if ndim(v_1) = 1 then max(v_1) < 10000
+>>
+Rule 88 (The sum of dimensions needs to be valid)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) + shape(v_1, 1) > 0 else shape(v_1, 0) > 0
+>>
+Rule 90 (The number of elements needs to conform between vector and matrix but add something to shape of matrix to compare)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 then shape(v_2, 0) < shape(v_1,1) + 100
+>>
+Rule 91 (Minimum of vec needs to be greater than -1000 if vector has elements)
+{v_2: tensor} |= if shape(v_2,0) > 0 then min(v_2) > -1000
+>>
+Rule 93 (the maximum and minimum need to conform for out if shape is ok)
+{v_3: tensor} |= if shape(v_3, 0) > 0 then max(v_3) > min(v_3)
+>>
+Rule 94 (The product of dimensions needs to be valid, with a bound)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 100000 else shape(v_1, 0) < 100000
+>>
+Rule 95 (If vec has more than 10 elements the mean needs to less than some value)
+{v_2: tensor} |= if shape(v_2, 0) > 10 then max(v_2) < 500
+>>
+Rule 96 (If the vector has only a small amount of elements the vector needs to be positive)
+{v_2: tensor} |= if shape(v_2,0) < 2 then min(v_2) >= 0
+>>
+Rule 97 (The number of dimensions of output has to be a small number)
+{v_3: tensor} |= ndim(v_3) < 5
+>>
+Rule 98 (Out range can't be empty)
+{v_3: tensor} |= if shape(v_3,0) > 0 then shape(v_3,0) > 0
+>>
+Rule 99 (If the output's dtype is float then the input's dtype needs to be valid)
+{v_1: tensor, v_3: tensor} |= if dtype_(v_3) = 8 then dtype_(v_1) >= 0
+>>
+Rule 100 (Mean of input must be more than small value if it is single dimension)
+{v_1: tensor} |= if ndim(v_1) = 1 then max(v_1) > -1000
+>>
+Rule 101 (The minimum and maximum needs to conform for out if shape is ok but different constraints)
+{v_3: tensor} |= if shape(v_3, 0) > 0 then max(v_3) > min(v_3) -100
+>>
+Rule 102 (The number of elements needs to conform between vector and matrix but add shape dimension and compare if there)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 then shape(v_2, 0) < shape(v_1,0) + 100
+>>
+Rule 106 (Suppress "expected scalar type Half but found Float")
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+>>
+Rule 107 (Suppress "mv(): argument 'out' must be Tensor, not float")
+{v_3 : tensor} |= ndim(v_3) >= 0
+>>
+Rule 108 (Suppress "RuntimeError: size mismatch, got input (2), mat (2x3), vec (0)" part 2)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 then shape(v_2,0) > 0
+>>
+Rule 109 (Only compare dtypes of v1 and v3)
+{v_1: tensor, v_3: tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 110 (Avoid the size mismatch problem, check shapes.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) = shape(v_2,0)
+>>
+Rule 111 (make sure output has shape.)
+{v_3: tensor} |= if ndim(v_3) > 0 then shape(v_3,0) > 0
+>>
+Rule 112 (Avoid matrix @ vector error - input shape (1,1) is problematic)
+{v_1 : tensor} |= if shape(v_1, 0) = 1 then shape(v_1, 1) > 1
+>>
+Rule 115 (Prevent Half/Float mismatch - ensure both tensors have same dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8
+>>
+Rule 117 (If the input is single dimension it needs to have shape>0 )
+{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1,0) > 0
+>>
+Rule 118 (If the vector is not empty its maximum must be positive)
+{v_2: tensor} |= if shape(v_2,0) > 0 then max(v_2) > 0
+>>
+Rule 119 (Only allow single dimensions output if it has elements)
+{v_3: tensor} |= if ndim(v_3) = 1 then shape(v_3,0) > 0
+>>
+Rule 120 (Dtype of the input to be more than zero)
+{v_1: tensor} |= dtype_(v_1) > 0
+>>
+Rule 122 (Check vec has at least one element (prevents size mismatch related to vec) - different constraint)
+{v_2 : tensor} |= max(v_2) > -10000
+>>
+Rule 123 (Check if input and vec have same dtype to supress half/float erorr)
+{v_1 : tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 124 (If the vector has only a small amount of elements the vector needs to be positive - vary value)
+{v_2: tensor} |= if shape(v_2,0) < 3 then min(v_2) >= 0
+>>
+Rule 125 (Output has positive max)
+{v_3: tensor} |= if ndim(v_3) > 0 then max(v_3) > 0
+>>
+Rule 126 (Enforce some bounds on dimension)
+{v_1: tensor} |= if ndim(v_1) < 3 then shape(v_1,0) < 100
+>>
+Rule 127 (Enforce both cannot have 0 shape.)
+{v_1: tensor, v_2: tensor} |= shape(v_1,0) + shape(v_2,0) > 0
+>>
+Rule 128 (Dtype of vec has to be greater than 0 to have a valide type)
+{v_2: tensor} |= dtype_(v_2) > 0
+>>
+Rule 129 (Avoid matrix @ vector error - input shape (1,1) is problematic ALTERNATIVE)
+{v_1 : tensor} |= if ndim(v_1) = 2 then if shape(v_1, 0) = 1 then shape(v_1, 1) ≠ 1
+>>
+Rule 134 (Enforce some bounds on dimension - altered)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1,0) * shape(v_1, 1) < 10000
+>>
+Rule 137 (Avoid matrix @ vector error - input shape (1,1) is problematic ALTERNATIVE-2)
+{v_1 : tensor} |= if ndim(v_1) = 2 then if shape(v_1, 0) = 1 then if shape(v_1, 1) = 1 then false
+>>
+Rule 138 (Check vec has at least one element (prevents size mismatch related to vec) - new constraint max < 100000)
+{v_2 : tensor} |= max(v_2) < 100000
+>>
+Rule 139 (Check if input and vec have same dtype to suppress half/float erorr with a float constraint)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) > 6 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 140 (Prevent TypeError: out must be Tensor with shape check)
+{v_3 : tensor} |= shape(v_3, 0) > -1
+>>
+Rule 141 (If the vector has a dimension it has a dimension less than limit)
+{v_2: tensor} |= if ndim(v_2) > 0 then ndim(v_2) < 2
+>>
+Rule 142 (Output does not have really large values)
+{v_3: tensor} |= if ndim(v_3) > 0 then max(v_3) < 100000
+>>
+Rule 143 (Enforce bounds on a dimension with smaller limit)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1,0) * shape(v_1, 1) < 1000
+>>
+Rule 144 (Enforce one dimensions in the valid dimensions)
+{v_1: tensor, v_2: tensor} |= (ndim(v_1) > 0) ∧ (ndim(v_2) > 0)
+>>
+Rule 145 (Minimum is small number)
+{v_2: tensor} |= min(v_2) < 10000
+>>
+Rule 146 (Avoid matrix @ vector error - input shape (1,1) is problematic ALTERNATIVE-3)
+{v_1 : tensor} |= if ndim(v_1) = 2 then if shape(v_1, 0) = 1 then shape(v_1, 1) > 10
+>>
+Rule 147 (Prevent size mismatch got input (2) by comparing that ndim1 is greater than one.)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 148 (Check the dimension of vector to have more than zero for preventing size mismatch)
+{v_2 : tensor} |= if ndim(v_2) >= 1 then shape(v_2, 0) > 0
+>>
+Rule 149 (Prevent TypeError: out must be Tensor by requiring shape)
+{v_3 : tensor} |= shape(v_3,0) > -1
+>>
+Rule 150 (Ensure if you do not have small numbers you have large numbers)
+{v_2: tensor} |= if shape(v_2,0) < 3 then max(v_2) > 100
+>>
+Rule 152 (Maximum dimension must be some value.)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1,0) * shape(v_1, 1) < 1000000
+>>
+Rule 153 (Force some dtypes for outputs.)
+{v_3: tensor} |= 7 <= dtype_(v_3) ∧ dtype_(v_3) <= 8
+>>
+Rule 155 (If the input has dimension zero the shape must be okay to avoid vector + matrix erorr.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then shape(v_1, 0) < 1
+>>
+Rule 156 (Size mismatch will occur if max is negative so block)
+{v_2 : tensor} |= max(v_2) > -1
+>>
+Rule 157 (If has an output, then you must have dimensions.)
+{v_3 : tensor} |= ndim(v_3) > -1
+>>
+Rule 158 (If you have float32 then enforce if ouput dimensions are greater than zero its floats.)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 8 then if ndim(v_3) > 0 then dtype_(v_3) = 8
+>>
+Rule 159 (The number of elements needs to conform between vector and matrix but add a shape dimension and compare)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 then shape(v_2, 0) < shape(v_1,0) + 10
+>>
+Rule 160 (Vector can not have too small of min value.)
+{v_2: tensor} |= if ndim(v_2) > 0 then min(v_2) > -10000
+>>
+Rule 161 (The dtype of the matrix can not be of type bool for input matrix.)
+{v_1: tensor} |= dtype_(v_1) != 0
+>>
+Rule 163 (Dtype of vector should be in range if single dimension.)
+{v_2: tensor} |= if ndim(v_2) = 1 then 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 8
+>>
+Rule 171 (Input and output can not have mismatched number of elements for size mismatch fix parser error in the other)
+{v_1: tensor, v_3: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = shape(v_3, 0) else if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_3, 0)

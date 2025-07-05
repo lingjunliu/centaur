@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor is 1D, its shape must be greater than zero (Rule 6)
+# Check the shape of a 2D tensor to be at least 2x2 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, False)) if n else
-          If(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) > 0, False))
+    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) >= 2, Select(v["arg1_shape"], 1) >= 2), False)) if n else
+          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) >= 2, Select(v["arg1_shape"], 1) >= 2), False))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

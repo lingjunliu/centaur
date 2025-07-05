@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor has ndim 0, it means that it contains only one element which can be a number (Rule 13)
+# Input tensor must have a floating-point dtype or complex dtype to avoid 'mish_cpu' error, excluding Char. (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, Or([And(i < (9 + 1), v["arg1_dtype"] == i) for i in range(6)]), False)) if n else
-          If(v["arg1_ndim"] == 0, Or([And(i < (9 + 1), v["arg1_dtype"] == i) for i in range(6)]), False))
+    s.add(Not((And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 11))) if n else
+          (And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 11)))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):
@@ -22,17 +22,15 @@ def rule_13_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim})
+        rule_13(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim']}, neg)
+        rule_13(solver, {'arg1_dtype': arg1['dtype']}, neg)

@@ -1,66 +1,75 @@
 >>
-Rule 1 (input and target tensors must have the same shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 2 (eps should be non-negative when log_input is false)
-{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 ≥ 0
->>
-Rule 3 (reduction must be one of the allowed strings)
+Rule 2 (reduction should be one of the allowed values to avoid ValueError)
 {v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 4 (target tensor should have non-negative values)
-{v_1 : tensor} |= min(v_1) ≥ 0
->>
-Rule 5 (input tensor should be a floating point type)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 6 (if full is true, target tensor should have non-negative integer values)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1]: ∀j ∈ [0, shape(v_2, i) -1]: v_2[i] ≥ 0 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
->>
-Rule 7 (if log_input is false, input tensor should be non-negative)
-{v_1 : bool, v_2 : tensor} |= if v_1 = false then min(v_2) ≥ 0
->>
-Rule 8 (If full is true, target tensor should not have a zero shape)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
->>
-Rule 9 (dtype of input and target tensors must be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 10 (if log_input is True, no constraint on input tensor)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then true else min(v_2) ≥ 0
->>
-Rule 11 (input and target dimensions should both be greater than zero)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
->>
-Rule 12 (input tensor should be non-empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 13 (eps must be greater than or equal to zero)
+Rule 3 (eps should be non-negative)
 {v_1 : float} |= v_1 ≥ 0
 >>
-Rule 14 (if log_input is true, any value is acceptable for input tensor)
-{v_1 : bool} |= if v_1 = true then true
+Rule 9 (If log_input is false, eps should be provided to prevent log(0))
+{v_1 : bool, v_2 : float} |= if v_1 = false then v_2 > 0
 >>
-Rule 15 (if full is True, target tensor should have same dtype as input tensor)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then dtype_(v_2) = dtype_(v_3)
+Rule 14 (input and target tensors should have compatible sizes to avoid size mismatch RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
 >>
-Rule 16 (input tensor values should be finite numbers)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) -1]: v_1[i] ≠ "inf" ∧ v_1[i] ≠ "-inf" ∧ v_1[i] ≠ "nan"
+Rule 18 (input tensor should have floating point dtype)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
 >>
-Rule 17 (reduction is only valid when input and target have same ndim)
-{v_1 : str, v_2 : tensor, v_3 : tensor} |= (v_1 = "none") ∨ (ndim(v_2) = ndim(v_3))
+Rule 24 (input and target tensors must have same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 18 (if reduction is none then no further reduction is done)
-{v_1 : str} |= if v_1 = "none" then true
+Rule 29 (input and target tensors must have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0 ∧ ∀j ∈ [0, ndim(v_2) - 1]: shape(v_2, j) > 0  ∧  (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) * (if i = ndim(v_1)-1 then 1 else shape(v_1, i+1))) = (∀j ∈ [0, ndim(v_2) - 1]: shape(v_2, j) * (if j = ndim(v_2)-1 then 1 else shape(v_2, j+1)))
 >>
-Rule 19 (if full is true then the target tensor must be of integer type)
-{v_1: bool, v_2: tensor} |= if v_1 = true then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 34 (input tensor values should be non-negative if log_input is true)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, ndim(v_1) - 1]: ∀j ∈ [0, shape(v_1, i) -1]: v_1[j] ≥ 0
 >>
-Rule 20 (eps must be smaller than the maximum float value)
-{v_1 : float} |= v_1 < 3.402823e+38
+Rule 35 (input and target tensors should have compatible sizes to avoid size mismatch RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else false
 >>
-Rule 21 (If input is log scale, it should have the same number of dimensions as the target)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 = true then ndim(v_2) = ndim(v_3)
+Rule 41 (input and target tensors should have compatible sizes to avoid size mismatch RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else ndim(v_1) = 0 ∨ ndim(v_2) = 0
 >>
-Rule 22 (If full is False, calculation of Stirling approximation is not required)
-{v_1 : bool} |= if v_1 = false then true
+Rule 45 (if full is true, target tensor should be of floating point type)
+{v_1: bool, v_2: tensor} |= if v_1 = true then 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+>>
+Rule 54 (If log_input is false, input values should be greater than -eps to prevent log(0))
+{v_1: tensor, v_2: bool, v_3: float} |= if v_2 = false then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] > (0 - v_3)
+>>
+Rule 59 (input and target should have same shape)
+{v_1: tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 65 (input and target have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (min(v_1) > 0) ∧ (min(v_2) > 0)
+>>
+Rule 66 (input and target tensors should have compatible sizes to avoid size mismatch RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 69 (If log_input is false, input values should be greater than -eps to prevent log(0))
+{v_1: tensor, v_2: bool, v_3: float} |= if v_2 = false then (min(v_1) > (0 - v_3))
+>>
+Rule 75 (target values should be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 76 (input and target tensors should have compatible sizes to avoid size mismatch RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 91 (The number of elements in input and target tensors must be the same)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 96 (if full is true, target tensor should be of floating point type with non-negative values)
+{v_1: bool, v_2: tensor} |= if v_1 = true then (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∧ min(v_2) >= 0
+>>
+Rule 97 (input and target tensors should have compatible sizes to avoid size mismatch RuntimeError)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 101 (If log_input is false, eps should be positive and input > -eps)
+{v_1: tensor, v_2: bool, v_3: float} |= if v_2 = false then (v_3 > 0) ∧ (min(v_1) > (0 - v_3))
+>>
+Rule 112 (The number of elements in input and target tensors must be the the same)
+{v_1: tensor, v_2: tensor} |= min(v_1) >= 0 ∧ min(v_2) >= 0
+>>
+Rule 117 (input and target values must be non-negative)
+{v_1: tensor, v_2: tensor} |= (min(v_1) >= 0) ∧ (min(v_2) >= 0)
+>>
+Rule 127 (input and target values must be non-negative, and have same shape)
+{v_1: tensor, v_2: tensor} |= (min(v_1) >= 0) ∧ (min(v_2) >= 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))

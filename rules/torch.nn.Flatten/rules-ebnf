@@ -1,69 +1,138 @@
 >>
-Rule 1 (start_dim should not come after end_dim)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2
->>
-Rule 2 (start_dim and end_dim should be within the valid range of dimensions for a given tensor)
-{v_1 : tensor, v_2 : int, v_3 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ (0 - ndim(v_1)) ≤ v_3 ∧ v_3 < ndim(v_1)
->>
-Rule 3 (If start_dim is 0, then the product of dimensions from start_dim to end_dim should be less than max int)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 then ∀i ∈ [v_2, v_3] : shape(v_1, i) > 0
->>
-Rule 4 (start_dim and end_dim should be valid indices for a tensor with at least one dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ (0 - ndim(v_1)) ≤ v_3 ∧ v_3 < ndim(v_1)
->>
-Rule 5 (If the input tensor has only one dimension, then start_dim and end_dim must be 0)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 1 then v_2 = 0 ∧ v_3 = 0
->>
-Rule 6 (If end_dim is -1, it represents the last dimension, which must be a valid index.)
-{v_1 : tensor, v_2 : int} |= if v_2 = -1 then ndim(v_1) > 0
->>
-Rule 7 (If start_dim is not 0, the tensor must have more than 0 dimensions)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ 0 then ndim(v_1) > 0
->>
-Rule 8 (If the tensor has a dimension size of 0, flattening it will result in a 0 size tensor)
-{v_1 : tensor, v_2 : int, v_3 : int} |= ∃i ∈ [v_2, v_3] : shape(v_1, i) = 0 ∨ ∀i ∈ [v_2, v_3] : i ≥ 0 ∧ i < ndim(v_1)
->>
-Rule 9 (The end_dim can not exceed the number of dimensions of the tensor minus 1)
+Rule 1 (start_dim must be less than the number of dimensions of the input tensor)
 {v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 10 (If start_dim is non-negative, end_dim must also be non-negative if it's not -1)
-{v_1 : int, v_2 : int} |= if v_1 ≥ 0 then v_2 ≥ 0 ∨ v_2 = -1
+Rule 2 (end_dim must be less than the number of dimensions of the input tensor)
+{v_1 : tensor, v_3 : int} |= v_3 < ndim(v_1)
 >>
-Rule 11 (If the end_dim is less than 0, then the absolute value of end_dim should be less than or equal to the number of dimensions)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - v_2) ≤ ndim(v_1)
+Rule 5 (start_dim must be less than or equal to end_dim)
+{v_2 : int, v_3 : int} |= v_2 ≤ v_3
 >>
-Rule 12 (If end_dim is specified as -1, which represents the last dimension, then start_dim must be less than the number of dimensions.)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 = -1 then v_2 < ndim(v_1)
+Rule 6 (if start_dim is negative, it should be converted to its positive equivalent for comparison.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then (v_2 + ndim(v_1)) ≤ v_3
 >>
-Rule 13 (If start_dim is specified as zero, then the maximum value that end_dim can be is the number of dimension minus one)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 then v_3 < ndim(v_1)
+Rule 7 (if end_dim is negative, it should be converted to its positive equivalent for comparison.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 then v_2 ≤ (v_3 + ndim(v_1))
 >>
-Rule 14 (start_dim must be greater or equal to negative number of dimension)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2
+Rule 8 (start_dim must be greater than or equal to negative ndim of the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 + ndim(v_1) ≥ 0
 >>
-Rule 15 (If end_dim is positive, it must be less than ndim.)
-{v_1: tensor, v_2: int} |= if v_2 > 0 then v_2 < ndim(v_1)
+Rule 9 (end_dim must be greater than or equal to negative ndim of the tensor)
+{v_1 : tensor, v_3 : int} |= v_3 + ndim(v_1) ≥ 0
 >>
-Rule 16 (If start_dim is 0 and end_dim is -1, the product of all dimensions must be positive)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = 0 ∧ v_3 = -1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 10 (if start_dim is negative, it should be converted to its positive equivalent for comparison.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then (v_2 + ndim(v_1)) ≤ v_3 else v_2 ≤ v_3
 >>
-Rule 17 (If the number of dimensions is greater than zero, then end_dim should be less than number of dimensions and greater than or equal to negative number of dimensions)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 11 (if end_dim is negative, it should be converted to its positive equivalent for comparison.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 then v_2 ≤ (v_3 + ndim(v_1)) else v_2 ≤ v_3
 >>
-Rule 18 (If start_dim is negative, it must be a valid negative index for the number of dimensions in the tensor.)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - ndim(v_1)) ≤ v_2
+Rule 15 (start_dim must be less than or equal to end_dim, accounting for negative indices.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then if v_3 < 0 then (v_2 + ndim(v_1)) ≤ (v_3 + ndim(v_1)) else (v_2 + ndim(v_1)) ≤ v_3 else if v_3 < 0 then v_2 ≤ (v_3 + ndim(v_1)) else v_2 ≤ v_3
 >>
-Rule 19 (The tensor must have a valid shape, which is that all shape dimensions have positive values and are of integer type.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 16 (The number of dimensions should be greater than zero to allow flattening.)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 20 (The start_dim must be less than ndim if end_dim is not -1)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ -1 then v_2 < ndim(v_1)
+Rule 17 (start_dim and end_dim must both be within the allowed range for the tensor's dimensions.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)) ∧ (0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1))
 >>
-Rule 21 (If start_dim is greater than or equal to 0, then end_dim must be valid either in +ve indexing style or -1 for last dim)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ 0 then (v_3 = -1) ∨ (v_3 ≥ 0 ∧ v_3 < ndim(v_1))
+Rule 20 (start_dim and end_dim must both be within the allowed range for the tensor's dimensions, and ndim must be positive)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)) ∧ (0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1))
 >>
-Rule 22 (For negative start_dim, relationship with end_dim)
-{v_2: int, v_3:int} |= if v_2 < 0 then if v_3 = -1 then true else if v_3 >= 0 then false else v_2 <= v_3
+Rule 21 (start_dim must be less than or equal to end_dim, accounting for negative indices, using min/max functions)
+{v_1 : tensor, v_2 : int, v_3 : int} |= min(v_2, v_2 + ndim(v_1)) <= max(v_3, v_3 + ndim(v_1))
 >>
-Rule 23 (if start_dim > 0, check that end_dim is valid)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > 0 then (v_3 < ndim(v_1))
+Rule 22 (start_dim and end_dim must both be within the allowed range for the tensor's dimensions, and start_dim <= end_dim.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)) ∧ (0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1)) ∧ v_2 ≤ v_3
+>>
+Rule 23 (If ndim of tensor equals 1, start_dim and end_dim must be zero)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 1 then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 24 (start_dim and end_dim must both be within the allowed range for the tensor's dimensions, and start_dim <= end_dim, and ndim must be positive)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)) ∧ (0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1)) ∧ v_2 ≤ v_3
+>>
+Rule 25 (If ndim of tensor equals 1, then start_dim must equal end_dim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 1 then v_2 = v_3
+>>
+Rule 26 (The absolute value of start_dim must be less than or equal to the number of dimensions.)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then 0 - v_2 ≤ ndim(v_1) else v_2 ≤ ndim(v_1)
+>>
+Rule 27 (The absolute value of end_dim must be less than or equal to the number of dimensions.)
+{v_1 : tensor, v_3 : int} |= if v_3 < 0 then 0 - v_3 ≤ ndim(v_1) else v_3 ≤ ndim(v_1)
+>>
+Rule 28 (start_dim and end_dim must both be within the allowed range for the tensor's dimensions, and start_dim <= end_dim, and ndim must be positive, combining the checks.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ 0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1) ∧ v_2 ≤ v_3)
+>>
+Rule 29 (If the absolute value of end_dim is greater than ndim, then end_dim should effectively be clipped to ndim -1)
+{v_1 : tensor, v_3 : int} |= if (v_3 < 0 ∧ 0 - v_3 > ndim(v_1)) ∨ (v_3 ≥ 0 ∧ v_3 ≥ ndim(v_1)) then v_3 = ndim(v_1) -1
+>>
+Rule 30 (If the absolute value of start_dim is greater than ndim, then start_dim should effectively be clipped to 0)
+{v_1 : tensor, v_2 : int} |= if (v_2 < 0 ∧ 0 - v_2 > ndim(v_1)) ∨ (v_2 ≥ 0 ∧ v_2 ≥ ndim(v_1)) then v_2 = 0
+>>
+Rule 35 (start_dim should be less than or equal to end_dim, taking into account negative indices)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≤ (if v_3 < 0 then v_3 + ndim(v_1) else v_3) else v_2 ≤ v_3
+>>
+Rule 36 (If ndim is zero, both start and end dim must be set to zero)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 0 then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 37 (Combining all range checks and >0 ndim)
+{v_1 : tensor, v_2 : int, v_3 : int} |=  ndim(v_1) > 0 ∧ (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)) ∧ (0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1))
+>>
+Rule 38 (start_dim should be less than or equal to end_dim, even if negative)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 + ndim(v_1) ≤ v_3 + ndim(v_1)
+>>
+Rule 42 (If absolute value of start_dim or end_dim is > ndim, the smaller value should be used)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if (0-v_2) > ndim(v_1) ∨ (0-v_3) > ndim(v_1) then min(v_2,v_3) ≤ ndim(v_1)
+>>
+Rule 43 (All range checks, start <= end)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)) ∧ (0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1)) ∧ (v_2 + ndim(v_1) ≤ v_3 + ndim(v_1))
+>>
+Rule 44 (Enforce start_dim and end_dim being 0, when ndim == 0)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) = 0 then v_2=0 ∧ v_3=0
+>>
+Rule 45 (All range checks, start <= end)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ 0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1)) ∧ (v_2 + ndim(v_1) ≤ v_3 + ndim(v_1))
+>>
+Rule 46 (If absolute value of start_dim or end_dim are out of range, they will both be set to zero.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if (0-v_2) > ndim(v_1) ∨ (0-v_3) > ndim(v_1) ∨ v_2 > ndim(v_1) ∨ v_3 > ndim(v_1) then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 49 (If start_dim or end_dim are out of range, set them to a valid default)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < (0 - ndim(v_1)) then v_2 = (0 - ndim(v_1)) else if v_2 > (ndim(v_1)-1) then v_2 = (ndim(v_1)-1) ∧ if v_3 < (0 - ndim(v_1)) then v_3 = (0 - ndim(v_1)) else if  v_3 > (ndim(v_1)-1) then v_3 = (ndim(v_1)-1)
+>>
+Rule 50 (All checks)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ 0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1) ∧ v_2 + ndim(v_1) ≤ v_3 + ndim(v_1))
+>>
+Rule 51 (If start_dim or end_dim are out of range, make the other also be the same, valid value)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < (0 - ndim(v_1)) ∨ v_2 > (ndim(v_1)-1) then v_3 = v_2 else if  v_3 < (0 - ndim(v_1)) ∨ v_3 > (ndim(v_1)-1) then v_2=v_3
+>>
+Rule 56 (Check for cases when dimensions are within range but start_dim > end_dim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if (0 - ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1) ∧ 0 - ndim(v_1) ≤ v_3 ∧ v_3 < ndim(v_1)) ∧ v_2 > v_3 then false
+>>
+Rule 60 (All checks, negative index consideration)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (if v_2 < 0 then 0 <= v_2 + ndim(v_1) else 0 <= v_2 ∧ v_2 < ndim(v_1)) ∧ (if v_3 < 0 then 0 <= v_3 + ndim(v_1) else 0 <= v_3 ∧ v_3 < ndim(v_1)) ∧ (v_2 + ndim(v_1) ≤ v_3 + ndim(v_1))
+>>
+Rule 67 (Requires -ndim <= start_dim <= end_dim < ndim, enforcing valid range and order)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (0 - ndim(v_1)) <= v_2 ∧ v_2 <= v_3 ∧ v_3 < ndim(v_1)
+>>
+Rule 69 (Requires valid dimensions, accounts for negative indexing, start <= end, and also ensures that the input has dimensions to begin with)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1)) <= v_2 ∧ (v_2 < ndim(v_1)) ∧ (0 - ndim(v_1)) <= v_3 ∧ (v_3 < ndim(v_1)) ∧ (v_2 + ndim(v_1) <= v_3 + ndim(v_1))
+>>
+Rule 72 (If start_dim or end_dim are out of range, set both to zero)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < (0 - ndim(v_1)) ∨ v_2 > (ndim(v_1)-1) ∨ v_3 < (0 - ndim(v_1)) ∨ v_3 > (ndim(v_1)-1) then v_2 = 0 ∧ v_3 = 0
+>>
+Rule 73 (Requires valid range and start <= end)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) <= v_2 ∧ v_2 < ndim(v_1) ∧ 0 - ndim(v_1) <= v_3 ∧ v_3 < ndim(v_1) ∧ (v_2 + ndim(v_1) <= v_3 + ndim(v_1)))
+>>
+Rule 76 (If start_dim or end_dim are out of range, set both to a safe value (0) and enforces valid range + start <= end)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 < (0 - ndim(v_1)) ∨ v_2 > (ndim(v_1)-1) ∨ v_3 < (0 - ndim(v_1)) ∨ v_3 > (ndim(v_1)-1) then v_2 = 0 ∧ v_3 = 0 else ndim(v_1) > 0 ∧ (0 - ndim(v_1) <= v_2 ∧ v_2 < ndim(v_1) ∧ 0 - ndim(v_1) <= v_3 ∧ v_3 < ndim(v_1) ∧ (v_2 + ndim(v_1) <= v_3 + ndim(v_1)))
+>>
+Rule 78 (All range checks and setting 0 if out of bound)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (if v_2 < (0 - ndim(v_1)) ∨ v_2 > (ndim(v_1)-1) ∨ v_3 < (0 - ndim(v_1)) ∨ v_3 > (ndim(v_1)-1) then v_2 = 0 ∧ v_3 = 0 else (ndim(v_1) > 0 ∧ (0 - ndim(v_1) <= v_2 ∧ v_2 < ndim(v_1) ∧ 0 - ndim(v_1) <= v_3 ∧ v_3 < ndim(v_1))))
+>>
+Rule 79 (Enforce start <= end range, using if)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 + ndim(v_1) <= v_3 + ndim(v_1) then true else false
+>>
+Rule 80 (combines range, ordering)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ (0 - ndim(v_1) <= v_2 ∧ v_2 < ndim(v_1) ∧ 0 - ndim(v_1) <= v_3 ∧ v_3 < ndim(v_1) ∧ (v_2 <= v_3))
+>>
+Rule 82 (All checks)
+{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) > 0) ∧ ((0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)) ∧ ((0 - ndim(v_1)) <= v_3 ∧ v_3 < ndim(v_1)) ∧ (v_2 <= v_3)

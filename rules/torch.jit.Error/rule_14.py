@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The minimum value of tensor v_1 should be less than or equal to the maximum value of tensor v_1 (Rule 14)
+# The length of tuple v_1 should be a positive even number (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1))
+    s.add(Not(And(v["arg1_length"] > 0, Or([And(i < (0 + 1), v["arg1_length"] == 2 * (i + 1)) for i in range(6)]))) if n else
+          And(v["arg1_length"] > 0, Or([And(i < (0 + 1), v["arg1_length"] == 2 * (i + 1)) for i in range(6)])))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -17,21 +17,20 @@ def rule_14_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_range': arg1_range})
+        rule_14(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_range': arg1['range']}, neg)
+        rule_14(solver, {'arg1_length': arg1['length']}, neg)

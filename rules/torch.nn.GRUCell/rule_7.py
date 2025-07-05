@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# weight_ih shape[1] should equal input_size (Rule 7)
+# Shape of weight_hh should be (3*hidden_size, hidden_size (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) == v["arg2_value"]) if n else
-          Select(v["arg1_shape"], 1) == v["arg2_value"])
+    s.add(Not(And((Select(v["arg1_shape"], 0) == 3 * v["arg2_value"]), (Select(v["arg1_shape"], 1) == v["arg2_value"]))) if n else
+          And((Select(v["arg1_shape"], 0) == 3 * v["arg2_value"]), (Select(v["arg1_shape"], 1) == v["arg2_value"])))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

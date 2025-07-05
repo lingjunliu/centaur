@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input and out are specified, the storage type should be the same (Rule 17)
+# if input is int16, out can not be int8, bool (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] != 11, True, If(v["arg2_dtype"] != 11, True, False))) if n else
-          If(v["arg1_dtype"] != 11, True, If(v["arg2_dtype"] != 11, True, False)))
+    s.add(Not(If(v["arg1_dtype"] == 2, And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 0), False)) if n else
+          If(v["arg1_dtype"] == 2, And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 0), False))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

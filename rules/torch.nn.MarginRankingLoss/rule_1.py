@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input tensors should have the same shape or be scalars, and target should have the same shape as inputs (Rule 1)
+# input tensors should have the same size if not scalar (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(Or((And(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg3_ndim"] == 0)), (And(And(And(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), v["arg3_ndim"] == 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)), Select(v["arg1_shape"], 0) == Select(v["arg3_shape"], 0))))) if n else
-          Or((And(And(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), v["arg3_ndim"] == 0)), (And(And(And(And(v["arg1_ndim"] == 1, v["arg2_ndim"] == 1), v["arg3_ndim"] == 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)), Select(v["arg1_shape"], 0) == Select(v["arg3_shape"], 0)))))
+    s.add(Not(If(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0), And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg2_shape"], 0) == Select(v["arg3_shape"], 0)), False)) if n else
+          If(And(And(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0), v["arg3_ndim"] > 0), And(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), Select(v["arg2_shape"], 0) == Select(v["arg3_shape"], 0)), False))
 )
 
 def rule_1_func(arg1, arg2, arg3, solver=None, neg=False):

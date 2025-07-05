@@ -1,66 +1,108 @@
 >>
-Rule 1 (lower bound should be less than or equal to upper bound for torch.clip)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+Rule 1 (output dtype cannot be smaller than input dtype to prevent overflow)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.int8" then v_2 ≠ "bool" ∧ if dtype_(v_1) = "np.int16" then v_2 ≠ "bool" ∧ v_2 ≠ "np.int8" ∧ if dtype_(v_1) = "np.int32" then v_2 ≠ "bool" ∧ v_2 ≠ "np.int8" ∧ v_2 ≠ "np.int16" ∧ if dtype_(v_1) = "np.int64" then v_2 ≠ "bool" ∧ v_2 ≠ "np.int8" ∧ v_2 ≠ "np.int16" ∧ v_2 ≠ "np.int32"
 >>
-Rule 2 (if min is defined, the data type of the tensor should be compatible with the min value)
-{v_1 : tensor, v_2 : int ⊎ float} |= if v_2 ≠ none then if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then 1 <= v_2 ∧ v_2 <= 5 else if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 then 6 <= v_2 ∧ v_2 <= 8
+Rule 2 (input tensor cannot be of complex type)
+{v_1 : tensor} |= dtype_(v_1) ≠ "np.complex64" ∧ dtype_(v_1) ≠ "np.complex128"
 >>
-Rule 3 (if max is defined, the data type of the tensor should be compatible with the max value)
-{v_1 : tensor, v_3 : int ⊎ float} |= if v_3 ≠ none then if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then 1 <= v_3 ∧ v_3 <= 5 else if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 then 6 <= v_3 ∧ v_3 <= 8
+Rule 3 (min value must be less than or equal to max value)
+{v_1 : float, v_2 : float} |= v_1 ≤ v_2
 >>
-Rule 4 (Dtype of the min and max should be the same)
-{v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_2 ≠ none ∧ v_3 ≠ none then true
+Rule 4 (min value must be less than or equal to max value)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2
 >>
-Rule 5 (If the dtype of the input is int8, then the min and max values have to be representable by int8)
-{v_1 : tensor, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if dtype_(v_1) = 1 then -128 ≤ v_2 ∧ v_3 ≤ 127
+Rule 5 (input tensor and min/max values must have compatible data types to avoid casting issues)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = "np.float16" then v_2 ≥ -65504 ∧ v_2 ≤ 65504
 >>
-Rule 6 (If the dtype of the input is uint8, then the min and max values have to be representable by uint8)
-{v_1 : tensor, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if dtype_(v_1) = 6 then 0 ≤ v_2 ∧ v_3 ≤ 255
+Rule 6 (min value can't be infinity or NaN if input tensor is of a type that can't represent them)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = "np.float16" then v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_2 ≠ "nan"
 >>
-Rule 7 (If the dtype of the input is int16, then the min and max values have to be representable by int16)
-{v_1 : tensor, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if dtype_(v_1) = 2 then -32768 ≤ v_2 ∧ v_3 ≤ 32767
+Rule 15 (min value can't be infinity or NaN if input tensor is of float16 type)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = "np.float16" then v_2 ≠ ("inf") ∧ v_2 ≠ ("-inf") ∧ v_2 ≠ ("nan")
 >>
-Rule 8 (If the dtype of the input is int32, then the min and max values have to be representable by int32)
-{v_1 : tensor, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if dtype_(v_1) = 3 then -2147483648 ≤ v_2 ∧ v_3 ≤ 2147483647
+Rule 17 (Prevent overflow: If input is int8, output should not be bool. More generally avoids downcasting.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.int8" then v_2 ≠ "bool"
 >>
-Rule 9 (If the dtype of the input is int64, then the min and max values have to be representable by int64)
-{v_1 : tensor, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if dtype_(v_1) = 4 then -9223372036854775808 ≤ v_2 ∧ v_3 ≤ 9223372036854775807
+Rule 21 (Prevent overflow during cast to float16: min value must be within the float16 range)
+{v_1 : float} |= v_1 ≥ -65504 ∧ v_1 ≤ 65504
 >>
-Rule 10 (If the dtype of the input is float16, it should be handled)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then true
+Rule 23 (Prevent non-representable values in float16: min value cannot be inf, -inf or nan if output is float16)
+{v_1 : dtype, v_2 : float} |= if v_1 = "np.float16" then v_2 ≠ ("inf") ∧ v_2 ≠ ("-inf") ∧ v_2 ≠ ("nan")
 >>
-Rule 11 (If the dtype of the input is float32, it should be handled)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then true
+Rule 25 (Prevent downcasting from float to int when providing only min or only max)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.float32" then v_2 ≠ "np.int8" ∧ v_2 ≠ "np.int16" ∧ v_2 ≠ "np.int32" ∧ v_2 ≠ "np.int64"
 >>
-Rule 12 (If the dtype of the input is float64, it should be handled)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true
+Rule 27 (If min is provided, max must be greater or equal to it (float case))
+{v_1 : float, v_2 : float} |= v_2 ≥ v_1
 >>
-Rule 13 (The lower bound should be compatible with the data type of input tensor)
-{v_1 : tensor, v_2 : int ⊎ float} |=  if v_2 ≠ none then if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then true else if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 then true
+Rule 28 (If min is provided, max must be greater or equal to it (int case))
+{v_1 : int, v_2 : int} |= v_2 ≥ v_1
 >>
-Rule 14 (The upper bound should be compatible with the data type of input tensor)
-{v_1 : tensor, v_3 : int ⊎ float} |= if v_3 ≠ none then if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then true else if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 then true
+Rule 32 (Output type cannot be narrower than input type when clipping)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.int8" then v_2 ≠ "bool" ∧ if dtype_(v_1) = "np.int16" then v_2 ≠ "bool" ∧ v_2 ≠ "np.int8" ∧ if dtype_(v_1) = "np.int32" then v_2 ≠ "bool" ∧ v_2 ≠ "np.int8" ∧ v_2 ≠ "np.int16"
 >>
-Rule 15 (If the dtype of the input is complex64, then the min and max values have to be complex numbers)
-{v_1 : tensor} |= if dtype_(v_1) = 10 then true
+Rule 33 (If the tensor is int, output should not be bool)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.int64" then v_2 ≠ "bool"
 >>
-Rule 16 (If the dtype of the input is complex128, then the min and max values have to be complex numbers)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then true
+Rule 40 (Prevent non-representable values in float16 for min)
+{v_1 : dtype, v_2 : float} |= if v_1 = "np.float16" then v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_2 ≠ "nan"
 >>
-Rule 17 (if min is not none, it should be a number)
-{v_1 : int ⊎ float} |= if v_1 ≠ none then true
+Rule 47 (If the input type is quantized, output must be quantized)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.uint8" then v_2 = "np.uint8"
 >>
-Rule 18 (if min is not none, then the max value is also not none.)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= if v_1 ≠ none then v_2 ≠ none
+Rule 50 (If the input type is int, the output should not be boolean.)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = "np.int8" then v_2 ≠ "bool"
 >>
-Rule 19 (if max is not none, then the min value is also not none.)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= if v_2 ≠ none then v_1 ≠ none
+Rule 57 (If the output type is int8, make sure the input is also an integer with appropriate size to prevent underflow)
+{v_1: tensor, v_2: dtype} |= if v_2 = "np.int8" then (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64")
 >>
-Rule 20 (if min is none, then max must be none)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= if v_1 = none then v_2 = none
+Rule 62 (The output type cannot be half if the input type cannot be represented as half)
+{v_1 : tensor} |= if dtype_(v_1) = "np.float64" then false
 >>
-Rule 21 (if max is none, then min must be none)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= if v_2 = none then v_1 = none
+Rule 63 (The input type must be supported)
+{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
 >>
-Rule 22 (If the input tensor has a complex dtype, min and max must be complex or None)
-{v_1 : tensor, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (v_2 = none ∨ v_3 = none) ∨ true
+Rule 64 (Min must not be greater than Max when both are int)
+{v_1 : int, v_2 : int} |= v_1 <= v_2
+>>
+Rule 68 (The output type must be float16 if the input tensor's data type is float16 and min or max value is given)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.float16" then v_2 = "np.float16"
+>>
+Rule 70 (output dtype can not be a boolean type if input tensor is integer type)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.int32" then v_2 ≠ "bool"
+>>
+Rule 77 (If dtype is float16, then value should be within the limits)
+{v_1 : float} |= v_1 >= -65504 ∧ v_1 <= 65504
+>>
+Rule 81 (Prevent non-representable values in float16 for min or max value if used)
+{v_1 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf" ∧ v_1 ≠ "nan"
+>>
+Rule 82 (To prevent incompatible type cast if min value is provided, output dtype should not be signed char if the input is float.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.float32" then v_2 ≠ "np.int8"
+>>
+Rule 83 (output dtype should not be boolean type if input tensor is integer type)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = "np.int32" then v_2 ≠ "bool"
+>>
+Rule 87 (The input type must be representable as half type.)
+{v_1: tensor} |= if dtype_(v_1) = "np.float64" then false
+>>
+Rule 93 (If input can't be half, then output cannot be half)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.float64" then v_2 ≠ "np.float16"
+>>
+Rule 94 (Prevent non-representable values for Float16)
+{v_1 : dtype, v_2: float} |= if v_1 = "np.float16" then v_2 ≠ "inf" ∧ v_2 ≠ "-inf" ∧ v_2 ≠ "nan"
+>>
+Rule 104 (Output tensor cannot be type half if input is double)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = "np.float64" then v_2 ≠ "np.float16"
+>>
+Rule 106 (The value for float16 data type should be within limits)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = "np.float16" then v_2 >= -65504 ∧ v_2 <= 65504
+>>
+Rule 117 (output dtype can't be half if value exceeds the limits of half)
+{v_1 : dtype, v_2 : float} |= if v_1 = "np.float16" then v_2 >= -65504 ∧ v_2 <= 65504 else True
+>>
+Rule 118 (The data type of the min/max input should not be bool if the output data type is integer.)
+{v_1 : dtype, v_2 : dtype} |= if v_2 = "np.int8" ∨ v_2 = "np.int16" ∨ v_2 = "np.int32" ∨ v_2 = "np.int64" then v_1 ≠ "bool"
+>>
+Rule 136 (The input data type and output data type should not be different for int8)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = "np.int8" then v_2 = "np.int8"

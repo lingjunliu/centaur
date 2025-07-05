@@ -1,60 +1,75 @@
 >>
-Rule 1 (If both inputs are tensors, their shapes must be compatible for comparison)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1) = shape(v_2) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0
+Rule 1 (Tensors must have the same size at non-singleton dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
 >>
-Rule 2 (If comparing a tensor with numerical dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 3 (input tensor must not have ComplexDouble dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 3 (If comparing two tensors, ensure their element types are comparable)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0) ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10)
+Rule 4 (input tensor and other tensor should have same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 4 (If comparing a tensor and a number, the tensor cannot be bool type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 10 (Tensors must have the same size at non-singleton dimensions or one of them must be singleton)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
 >>
-Rule 5 (If comparing tensors of more than 0 dimension, the total number of elements must match or one of the tensor is 1 dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = shape(v_2, i)) ∨ ndim(v_1) = 1 ∨ ndim(v_2) = 1
+Rule 11 (input tensor must not have ComplexDouble dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 6 (If comparing a tensor and a number, the tensor's dtype cannot be complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 13 (Tensors must have the same size at non-singleton dimensions or one of them must be singleton)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else ndim(v_1) = 0 ∨ ndim(v_2) = 0
 >>
-Rule 7 (If comparing two tensors, their dtypes should be compatible for comparison.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then dtype_(v_2) < 6 else if dtype_(v_1) < 9 then dtype_(v_2) < 9
+Rule 15 (if other is a tensor, input tensor should have compatible dtype with other)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) ∨ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 8 (If comparing tensors with different number of dimensions, ensure the smaller tensor can be broadcasted.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i + (ndim(v_2) - ndim(v_1))) else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i + (ndim(v_1) - ndim(v_2)))
+Rule 18 (if other is a tensor, input tensor should have compatible dtype with other)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) < 6) ∧ (dtype_(v_2) < 6) ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)
 >>
-Rule 9 (When comparing a tensor with a number, the number should be within the range of representable values for the tensor's dtype)
-{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 1 then -128 ≤ v_2 ∧ v_2 ≤ 127 else if dtype_(v_1) = 2 then -32768 ≤ v_2 ∧ v_2 ≤ 32767
+Rule 19 (out must be a Tensor or None)
+{v_3: tensor ⊎ str} |= if v_3 = "none" then true else ndim(v_3) ≥ 0
 >>
-Rule 10 (If comparing two tensors, neither of them can have a string dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 11
+Rule 20 (Tensors must have compatible shapes for comparison)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 1) ∧ (∃i ∈ [0, ndim(v_2)-1]: shape(v_2, i) > 1)
 >>
-Rule 11 (When comparing two tensors, if one is a scalar, the other should have compatible broadcastable shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_2) = 0 then true
+Rule 26 (if other is a tensor, input and other tensors must have compatible dtypes)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (dtype_(v_1) < 9 ∧ dtype_(v_2) < 9)
 >>
-Rule 12 (Comparing tensors should happen in a dimension-wise fashion, where 1 is broadcastable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 ≥ 0 ∧ ndim(v_2) - i - 1 ≥ 0 then (shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1))
+Rule 29 (If other is a tensor, input and other tensors must have compatible dtypes)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) < 9 ∧ dtype_(v_2) < 9) ∨ (if dtype_(v_1) ≥ 9 then false) ∧ (if dtype_(v_2) >= 9 then false)
 >>
-Rule 13 (If comparing a tensor and a number, and the tensor's dtype is bool, the number must be 0 or 1)
-{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 0 then v_2 = 0 ∨ v_2 = 1
+Rule 32 (If other is a tensor, input and other tensors must have compatible dtypes. At least both should be numerical)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) < 9 ∧ dtype_(v_2) < 9
 >>
-Rule 14 (If one tensor has dimension of 1, the product of the other dimensions must equal the element in tensor dimension)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = (if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) else 1) else if ndim(v_2) = 1 then shape(v_2, 0) = (if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) else 1)
+Rule 38 (If other is a tensor, input and other tensors must have compatible dtypes. At least both should be numerical. If one is bool, other must also be bool)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) < 9 ∧ dtype_(v_2) < 9) ∨ (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0)
 >>
-Rule 15 (If comparing two tensors, if the tensors are of the same dimensions, they must contain compatible shapes.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Rule 58 (If out is specified, input and out must have the same shape and dtype)
+{v_1: tensor, v_3: tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i) ∧ dtype_(v_1) = dtype_(v_3)
 >>
-Rule 16 (If comparing a tensor and a number and the tensor is complex the number has to be a complex too)
-{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 61 (out tensor must not have ComplexDouble dtype)
+{v_3 : tensor} |= dtype_(v_3) ≠ 10 ∧ dtype_(v_3) ≠ 11
 >>
-Rule 17 (If comparing a number, that number has a compatible dtype selected from list)
-{v_1: dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12
+Rule 65 (Tensors must have broadcastable shapes - simplified)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ true
 >>
-Rule 18 (If comparing tensors, and tensors are bool dtype, then bool comparison is allowed)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 then true
+Rule 70 (other input must not be a ComplexDouble dtype)
+{v_2 : tensor} |= dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
 >>
-Rule 19 (If tensor and number are compared, tensor should have floating point type if number is a float)
-{v_1: tensor, v_2: float} |= if v_2 > 0 then 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8 else if v_2 < 0 then 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
+Rule 73 (Tensors must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
 >>
-Rule 20 (If comparing tensors, and one is scalar, then the other has to be either scalar or a tensor with more than one element.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_2) = 0 then true else if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 1) then true else false
+Rule 79 (input and other tensor must not have ComplexDouble dtype)
+{v_1 : tensor, v_2: tensor} |= (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) ∧ (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11)
+>>
+Rule 81 (either both are numerical or both are boolean)
+{v_1 : tensor, v_2: tensor} |= (dtype_(v_1) < 9 ∧ dtype_(v_2) < 9) ∨ (dtype_(v_1) = 0 ∧ dtype_(v_2) = 0)
+>>
+Rule 84 (Input should not be complex dtype.)
+{v_1 : tensor} |= dtype_(v_1) < 10
+>>
+Rule 87 (Output must be a valid tensor)
+{v_3 : tensor} |= dtype_(v_3) < 10
+>>
+Rule 89 (Either both are numerical or both are boolean - simpler)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) * dtype_(v_2) = 0 ∨ dtype_(v_1) * dtype_(v_2) > 0
+>>
+Rule 96 (All Tensors involved must not have a complex dtype.)
+{v_1:tensor} |= dtype_(v_1) < 10

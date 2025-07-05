@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is a complex number, then the real part must be greater or equal to zero (Rule 12)
+# input tensor's dtype must be within a specific range (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, False))
+    s.add(Not(And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 9)) if n else
+          And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 9))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

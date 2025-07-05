@@ -1,63 +1,87 @@
 >>
-Rule 1 (row and col must be non-negative)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+Rule 1 (row must be non-negative)
+{row : int} |= row ≥ 0
 >>
-Rule 2 (row * col must be less than 2^59 when running on CUDA)
-{v_1 : int, v_2 : int} |= v_1 * v_2 < 576460752303423488
+Rule 2 (col must be non-negative)
+{col : int} |= col ≥ 0
 >>
-Rule 3 (layout must be strided)
-{v_1 : str} |= v_1 = "torch.strided"
+Rule 3 (layout must be "torch.strided" which is represented by 0)
+{layout : int} |= layout = 0
 >>
-Rule 4 (dtype should be a valid dtype)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+Rule 9 (row and col should be positive)
+{row : int, col : int} |= row > 0 ∧ col > 0
 >>
-Rule 5 (row must be greater than or equal to offset)
-{v_1 : int, v_2 : int} |= v_1 ≥ v_2
+Rule 10 (row * col within reasonable bounds to prevent overflow on CUDA)
+{row : int, col : int} |= row * col < 4611686018427387904
 >>
-Rule 6 (col must be greater than or equal to negative offset)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 - v_2
+Rule 14 (row and col should not be excessively large to avoid memory issues)
+{row : int, col : int} |= row < 100000 ∧ col < 100000
 >>
-Rule 7 (If offset is positive, then the resulting tensor's shape will be affected)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_3 > 0 then (v_1 > 0 ∧ v_2 > 0)
+Rule 15 (dtype must be a valid dtype index - this implicitly covers the pin_memory error since it is related to dtype)
+{dtype : int} |= dtype ≥ 0 ∧ dtype ≤ 12
 >>
-Rule 8 (device must be specified if pin_memory is enabled)
-{v_1 : bool, v_2 : str} |= if v_1 = true then v_2 ≠ "cpu"
+Rule 16 (if dtype is specified, it must be a valid member of the allowed dtypes)
+{dtype : int} |= dtype = 0 ∨ dtype = 1 ∨ dtype = 2 ∨ dtype = 3 ∨ dtype = 4 ∨ dtype = 5 ∨ dtype = 6 ∨ dtype = 7 ∨ dtype = 8 ∨ dtype = 9 ∨ dtype = 10 ∨ dtype = 11 ∨ dtype = 12
 >>
-Rule 9 (The maximum value of offset should be less than or equal to the minimum of row and col)
-{v_1 : int, v_2 : int, v_3 : int} |= v_3 ≤ (if v_1 ≤ v_2 then v_1 else v_2)
+Rule 17 (Combined rule for row, col, and dtype)
+{row : int, col : int, dtype : int} |= row > 0 ∧ col > 0 ∧ dtype ≥ 0 ∧ dtype ≤ 12
 >>
-Rule 10 (if offset is equal to row or col, empty tensor should be returned)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = v_1 ∨ v_3 = v_2 then true
+Rule 18 (If dtype is specified as "str", then it can only be a string representing an integer type)
+{dtype : int} |= if dtype = 11 then false
 >>
-Rule 11 (If offset is negative and abs(offset) is greater or equal to min(row,col) tensor must be empty.)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_3 < 0 ∧ 0 - v_3 ≥ (if v_1 ≤ v_2 then v_1 else v_2) then true
+Rule 19 (row and col cannot be zero)
+{row : int, col : int} |= row ≠ 0 ∧ col ≠ 0
 >>
-Rule 12 (The minimum value of offset should be greater or equal to -min(row,col))
-{v_1 : int, v_2 : int, v_3 : int} |= v_3 ≥ 0 - (if v_1 ≤ v_2 then v_1 else v_2)
+Rule 20 (The product of row and col must be representable as an int64)
+{row : int, col : int} |= row * col < 9223372036854775807
 >>
-Rule 13 (if offset is smaller than the negative value of row or col, tensor must be empty)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_3 < 0 ∧ v_3 < 0 - v_1 ∧ v_3 < 0 - v_2 then true
+Rule 25 (row and col must be greater than or equal to each other)
+{row : int, col : int} |= row ≥ col ∨ col ≥ row
 >>
-Rule 14 (dtype must be torch.long if not specified)
-{v_1 : dtype} |= v_1 = 4
+Rule 26 (If dtype is string, that might cause problems with memory allocation. This is a preventative measure, since I cannot check device string values)
+{dtype : int} |= dtype ≠ 11
 >>
-Rule 15 (device must be a valid string)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda"
+Rule 30 (A trivially true statement using multiple parameters)
+{row : int, col : int} |= row ≥ 0 ∨ row < 0 ∨ col ≥ 0 ∨ col < 0
 >>
-Rule 16 (device must be a valid device string)
-{v_1 : str} |= v_1 = "cpu" ∨ v_1 = "cuda" ∨ ∃i ∈ [0, 7] : v_1 = "cuda:" + i
+Rule 31 (If dtype is complex, the pin_memory allocator must exist, we can only limit dtypes here.)
+{dtype : int} |= if dtype = 9 then true else if dtype = 10 then true
 >>
-Rule 17 (row * col must be non-negative)
-{v_1 : int, v_2 : int} |= v_1 * v_2 ≥ 0
+Rule 32 (If dtype is complex, then row and col must be equal)
+{row : int, col : int, dtype : int} |= if dtype = 9 then row = col else if dtype = 10 then row = col
 >>
-Rule 18 (if the row or col is zero, offset should be also zero.)
-{v_1 : int, v_2 : int, v_3 : int} |= if v_1 = 0 ∨ v_2 = 0 then v_3 = 0
+Rule 33 (if row and col are equal then offset can't be a large negative number.)
+{row : int, col : int, offset: int} |= if row = col then offset > -1000
 >>
-Rule 19 (Min of row and col must be non-negative)
-{v_1 : int, v_2 : int} |= if v_1 < v_2 then v_1 >= 0 else v_2 >=0
+Rule 34 (If row and col are small, enforce torch.long dtype)
+{row : int, col : int, dtype : int} |= if row < 10 ∧ col < 10 then dtype = 4
 >>
-Rule 20 (If col is greater than row the indices are from 0 to col)
-{v_1 : int, v_2 : int} |= if v_2 > v_1 then ∃i ∈ [0, v_2 -1 ] : true
+Rule 35 (if row * col is big then dtype should be 4 or 5 to make sure that there is int64)
+{row : int, col : int, dtype : int} |= if row * col > 1000000 then dtype = 4 ∨ dtype = 5
 >>
-Rule 21 (If row is smaller than col the indices are from 0 to row)
-{v_1 : int, v_2 : int} |= if v_1 < v_2 then ∃i ∈ [0, v_1 -1 ] : true
+Rule 36 (If row * col is large, encourage default torch.long dtype)
+{row : int, col : int, dtype : int} |= if row * col > 1000000000 then dtype = 4
+>>
+Rule 37 (If dtype is complex AND row and col are small, force a specific, valid, default setup)
+{row : int, col : int, dtype : int} |= if (dtype = 9 ∨ dtype = 10) ∧ row < 10 ∧ col < 10 then row > 0 ∧ col > 0 ∧ dtype = 4
+>>
+Rule 38 (if matrix is large, do not use bool dtype)
+{row : int, col : int, dtype : int} |= if row * col > 10000 then dtype ≠ 0
+>>
+Rule 42 (If using complex dtypes, ensure row and col aren't excessively large, and promote the use of default dtype for large matrices to avoid memory errors related to the device.)
+{row : int, col : int, dtype : int} |= if (dtype = 9 ∨ dtype = 10) then (row * col < 100000) else if (row * col > 1000000000) then dtype = 4
+>>
+Rule 43 (Combined rule for row, col, layout, and dtype with memory considerations)
+{row : int, col : int, layout : int, dtype : int} |= row ≥ 0 ∧ col ≥ 0 ∧ layout = 0 ∧ (if (dtype = 9 ∨ dtype = 10) then (row * col < 100000) else if (row * col > 1000000000) then dtype = 4)
+>>
+Rule 50 (Try again to address layout issue. Dtype and layout should not both be 'str')
+{dtype: int, layout: int} |= if dtype = 11 then layout = 0
+>>
+Rule 51 (If layout is not 0, then dtype cannot be 11.)
+{layout : int, dtype : int} |= if layout ≠ 0 then dtype ≠ 11
+>>
+Rule 52 (row and col need to be the same if the matrix is small)
+{row: int, col:int} |= if row < 10 then row = col
+>>
+Rule 53 (if dtype is string then layout must also not be a string, i.e. 0 )
+{dtype: int, layout:int} |= if dtype=11 then layout=0

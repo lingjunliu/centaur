@@ -1,54 +1,144 @@
 >>
-Rule 1 (negative_slope should be non-negative when inplace is true)
-{v_2 : float, v_3 : bool} |= if v_3 = true then v_2 ≥ 0
->>
-Rule 2 (input dtype cannot be char)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
->>
-Rule 3 (inplace parameter can only be true if input tensor is not complex)
-{v_1 : tensor, v_3 : bool} |= if v_3 = true then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
->>
-Rule 4 (negative slope value must be finite)
-{v_2 : float} |= v_2 < 10000000000 ∧ v_2 > -10000000000
->>
-Rule 5 (input tensor cannot have bool dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
->>
-Rule 6 (if negative slope is zero, leaky relu is same as relu)
-{v_2 : float} |= if v_2 = 0.0 then true
->>
-Rule 7 (if inplace is true, input tensor must be float or double)
-{v_1 : tensor, v_3 : bool} |= if v_3 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
->>
-Rule 8 (If negative_slope is not specified, it will default to 0.01, which must be positive)
-{v_2 : float} |= v_2 > -10000000000
->>
-Rule 9 (If inplace is false, any dtype is permissible)
-{v_3 : bool} |= if v_3 = false then true
->>
-Rule 10 (negative_slope is a scalar value. If input dtype is integer, then negative_slope has to be zero.)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) < 6 then v_2 = 0.0
->>
-Rule 11 (If inplace is true, the input tensor must be contiguous)
-{v_3 : bool} |= if v_3 = true then true
->>
-Rule 12 (If inplace is true and input is float16, it should have supported device.)
-{v_1 : tensor, v_3 : bool} |= if v_3 = true ∧ dtype_(v_1) = 6 then true
->>
-Rule 13 (The negative_slope parameter must be of the same dtype as the input tensor if input tensor is float type.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then true else if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true
->>
-Rule 14 (If input is quantized, then the negative_slope must be zero.)
-{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then v_2 = 0.0
->>
-Rule 15 (The input cannot be a quantized tensor if inplace is true.)
-{v_1 : tensor, v_3 : bool} |= if v_3 = true then dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 5
->>
-Rule 16 (Negative slope should be between -1 and 1)
-{v_2: float} |= -1 ≤ v_2 ∧ v_2 ≤ 1
->>
-Rule 17 (input tensor must be 0 dimension or more)
+Rule 1 (input must be a tensor)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 18 (if negative slope is very large, output may explode)
-{v_2 : float} |= v_2 < 1000
+Rule 4 (negative_slope should be non-negative)
+{v_2 : float} |= v_2 ≥ 0
+>>
+Rule 5 (negative_slope should be less than 1)
+{v_2 : float} |= v_2 ≤ 1
+>>
+Rule 6 (input tensor's dtype should not be Char (represented by the index 0 in the type list))
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 11 (if inplace is true, input must be a floating point tensor)
+{v_1 : tensor, v_3 : bool} |= if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 16 (input tensor has more than 0 dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 17 (input must be a tensor and its dtype should not be Char, and if inplace is true, input must be a floating point tensor)
+{v_1 : tensor, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 18 (negative_slope should be between 0 and 1)
+{v_2 : float} |= 0 ≤ v_2 ∧ v_2 ≤ 1
+>>
+Rule 22 (input must be a tensor and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1
+>>
+Rule 24 (negative slope is greater than the minimum element of the input)
+{v_1 : tensor, v_2 : float} |= v_2 > min(v_1)
+>>
+Rule 25 (shape of input tensor should be less than 100)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100
+>>
+Rule 30 (if input tensor is int type, inplace should be false)
+{v_1 : tensor, v_3 : bool} |= if dtype_(v_1) < 6 then v_3 = false
+>>
+Rule 32 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100
+>>
+Rule 34 (check the rank of the input tensor is less than 5)
+{v_1 : tensor} |= ndim(v_1) < 5
+>>
+Rule 35 (negative slope can not be infinity or NaN)
+{v_2 : float} |= v_2 ≠ "inf" ∧ v_2 ≠ "nan"
+>>
+Rule 36 (input tensor should have positive values)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 37 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5
+>>
+Rule 41 (check if the number of elements in the input is within a reasonable range)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000
+>>
+Rule 42 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false)
+>>
+Rule 46 (check that negative slope is not none)
+{v_2 : float} |= v_2 ≠ none
+>>
+Rule 47 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false, negative slope can not be infinity or NaN, input tensor should have positive values, check if the number of elements in the input is within a reasonable range)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false) ∧ v_2 ≠ "inf" ∧ v_2 ≠ "nan" ∧ min(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000)
+>>
+Rule 50 (negative slope should be less than the max element of the input)
+{v_1: tensor, v_2: float} |= v_2 < max(v_1)
+>>
+Rule 53 (input tensor requires grad is false when inplace is true)
+{v_3 : bool} |= if v_3 then false
+>>
+Rule 57 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false, negative slope can not be infinity or NaN, input tensor should have positive values, check if the number of elements in the input is within a reasonable range and negative slope should be less than the max element of the input)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false) ∧ v_2 ≠ "inf" ∧ v_2 ≠ "nan" ∧ min(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000) ∧ v_2 < max(v_1)
+>>
+Rule 60 (if the negative slope is greater than 0.1 the dtype of input should be high precision)
+{v_1 : tensor, v_2 : float} |= if v_2 > 0.1 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 61 (if input contains NaN then negative slope should be 0)
+{v_1: tensor, v_2: float} |= if ∃i ∈ [0, ndim(v_1) - 1] : (max(v_1) = "nan") then v_2 = 0
+>>
+Rule 63 (input tensor requires grad is false when inplace is true)
+{v_1: tensor, v_3 : bool} |= if v_3 then (if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then false)
+>>
+Rule 67 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false, negative slope can not be infinity or NaN, input tensor should have positive values, check if the number of elements in the input is within a reasonable range and negative slope should be less than the max element of the input. Also negative slope influences high precision tensor, and NaN input leads to zero negative slope)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false) ∧ v_2 ≠ "inf" ∧ v_2 ≠ "nan" ∧ min(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000) ∧ v_2 < max(v_1) ∧ (if v_2 > 0.1 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ (if ∃i ∈ [0, ndim(v_1) - 1] : (max(v_1) = "nan") then v_2 = 0)
+>>
+Rule 70 (If input is complex number, inplace must be false)
+{v_1: tensor, v_3: bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_3 = false
+>>
+Rule 71 (if negative_slope equals 1, input can not contain value 0)
+{v_1: tensor, v_2: float} |= if v_2 = 1 then min(v_1) > 0
+>>
+Rule 72 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false, negative slope can not be infinity or NaN, input tensor should have positive values, check if the number of elements in the input is within a reasonable range and negative slope should be less than the max element of the input. Also negative slope influences high precision tensor, and NaN input leads to zero negative slope. For inplace being true, it requires grad being false.)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false) ∧ v_2 ≠ "inf" ∧ v_2 ≠ "nan" ∧ min(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000) ∧ v_2 < max(v_1) ∧ (if v_2 > 0.1 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ (if ∃i ∈ [0, ndim(v_1) - 1] : (max(v_1) = "nan") then v_2 = 0) ∧ (if v_3 then false)
+>>
+Rule 75 (if the input's shape is zero, then the minimum value should also be zero)
+{v_1: tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then min(v_1) = 0
+>>
+Rule 79 (input requires grad is false when its dtype is int)
+{v_1 : tensor} |= if dtype_(v_1) < 6 then false
+>>
+Rule 81 (check if the input tensor has non-zero elements)
+{v_1: tensor} |= max(v_1) > 0 ∨ min(v_1) < 0
+>>
+Rule 82 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false, negative slope can not be infinity or NaN, input tensor should have positive values, check if the number of elements in the input is within a reasonable range and negative slope should be less than the max element of the input. Also negative slope influences high precision tensor, and NaN input leads to zero negative slope, complex number requires inplace to be false, and certain negative slope values influence input value )
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false) ∧ v_2 ≠ "inf" ∧ v_2 ≠ "nan" ∧ min(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000) ∧ v_2 < max(v_1) ∧ (if v_2 > 0.1 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ (if ∃i ∈ [0, ndim(v_1) - 1] : (max(v_1) = "nan") then v_2 = 0) ∧ (if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_3 = false) ∧ (if v_2 = 1 then min(v_1) > 0)
+>>
+Rule 87 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false, negative slope can not be infinity or NaN, input tensor should have positive elements at least one of them, check if the number of elements in the input is within a reasonable range and negative slope should be less than the max element of the input. Also negative slope influences high precision tensor, and NaN input leads to zero negative slope, complex number requires inplace to be false, and certain negative slope values influence input value and if inplace requires false and int type )
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false) ∧ v_2 ≠ "inf" ∧ v_2 ≠ "nan" ∧ (max(v_1) > 0 ∨ min(v_1) < 0) ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000) ∧ v_2 < max(v_1) ∧ (if v_2 > 0.1 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ (if ∃i ∈ [0, ndim(v_1) - 1] : (max(v_1) = "nan") then v_2 = 0) ∧ (if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_3 = false) ∧ (if v_2 = 1 then min(v_1) > 0) ∧ (if v_3 then false) ∧ (if dtype_(v_1) < 6 then false)
+>>
+Rule 89 (Check if the max value of input is less than inf)
+{v_1 : tensor} |= max(v_1) ≠ "inf"
+>>
+Rule 90 (Check if the minimum value of input is more than -inf)
+{v_1 : tensor} |= min(v_1) ≠ "-inf"
+>>
+Rule 91 (negative slope should have a finite value)
+{v_2: float} |= v_2 < "inf" ∧ v_2 > "-inf"
+>>
+Rule 92 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false, negative slope can not be infinity or NaN, input tensor should have positive elements at least one of them, check if the number of elements in the input is within a reasonable range and negative slope should be less than the max element of the input. Also negative slope influences high precision tensor, and NaN input leads to zero negative slope, complex number requires inplace to be false, and certain negative slope values influence input value and if inplace requires false and int type and input must be contiguous, input should have finite range)
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false) ∧ v_2 ≠ "inf" ∧ v_2 ≠ "nan" ∧ (max(v_1) > 0 ∨ min(v_1) < 0) ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000) ∧ v_2 < max(v_1) ∧ (if v_2 > 0.1 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ (if ∃i ∈ [0, ndim(v_1) - 1] : (max(v_1) = "nan") then v_2 = 0) ∧ (if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_3 = false) ∧ (if v_2 = 1 then min(v_1) > 0) ∧ (if v_3 then false) ∧ (if dtype_(v_1) < 6 then false)  ∧ max(v_1) ≠ "inf" ∧ min(v_1) ≠ "-inf"
+>>
+Rule 94 (negative slope should be greater than or equal to -1 and less than or equal to 1)
+{v_2: float} |= v_2 ≥ -1 ∧ v_2 ≤ 1
+>>
+Rule 97 (input must be a tensor, and its dtype should not be Char, and if inplace is true, input must be a floating point tensor, negative_slope should be between 0 and 1, negative slope is greater than the minimum element of the input, and the shape should be valid, and also check the rank of the input tensor is less than 5, and if input tensor is integer type, inplace must be false, negative slope can not be infinity or NaN, input tensor should have positive elements at least one of them, check if the number of elements in the input is within a reasonable range and negative slope should be less than the max element of the input. Also negative slope influences high precision tensor, and NaN input leads to zero negative slope, complex number requires inplace to be false, and certain negative slope values influence input value and if inplace requires false and int type, and it should have some shape )
+{v_1 : tensor, v_2 : float, v_3 : bool} |= dtype_(v_1) ≠ 0 ∧ (if v_3 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ 0 ≤ v_2 ∧ v_2 ≤ 1 ∧ v_2 > min(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 100 ∧ ndim(v_1) < 5 ∧ (if dtype_(v_1) < 6 then v_3 = false) ∧ v_2 ≠ "inf" ∧ v_2 ≠ "nan" ∧ (max(v_1) > 0 ∨ min(v_1) < 0) ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000) ∧ v_2 < max(v_1) ∧ (if v_2 > 0.1 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)) ∧ (if ∃i ∈ [0, ndim(v_1) - 1] : (max(v_1) = "nan") then v_2 = 0) ∧ (if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_3 = false) ∧ (if v_2 = 1 then min(v_1) > 0) ∧ (if v_3 then false) ∧ (if dtype_(v_1) < 6 then false) ∧ ndim(v_1) > 0
+>>
+Rule 98 (negative slope should have a finite value and between -1 and 1)
+{v_2: float} |= v_2 < "inf" ∧ v_2 > "-inf" ∧ v_2 ≥ -1 ∧ v_2 ≤ 1
+>>
+Rule 99 (the input requires_grad should be false, when the negative slope is zero)
+{v_2 : float} |= if v_2 = 0 then false
+>>
+Rule 100 (Input should be a 2D tensor)
+{v_1: tensor} |= ndim(v_1) = 2
+>>
+Rule 101 (Input should be a 3D tensor)
+{v_1: tensor} |= ndim(v_1) = 3
+>>
+Rule 105 (if negative slope is not 0, then there should be negative values in the input)
+{v_1: tensor, v_2: float} |= if v_2 ≠ 0 then min(v_1) < 0
+>>
+Rule 106 (input should be a multiple of 8 when the dtype is float16 to use cuda core)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) / 8 = 0)

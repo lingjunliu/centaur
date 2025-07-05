@@ -1,57 +1,126 @@
 >>
-Rule 1 (result type must be compatible with the input tensor's data type)
-{v_1 : tensor, v_2 : dtype} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then 1 ≤ v_2 ∧ v_2 ≤ 5 else if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then 6 ≤ v_2 ∧ v_2 ≤ 8 else if 9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then 9 ≤ v_2 ∧ v_2 ≤ 10 else false
+Rule 1 (output tensor dtype cannot be smaller than input tensor dtype)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = 0 ∧ v_2 = 1) ∨ (dtype_(v_1) = 0 ∧ v_2 = 2) ∨ (dtype_(v_1) = 0 ∧ v_2 = 3) ∨ (dtype_(v_1) = 0 ∧ v_2 = 4) ∨ (dtype_(v_1) = 0 ∧ v_2 = 5) ∨ (dtype_(v_1) = 1 ∧ v_2 = 2) ∨ (dtype_(v_1) = 1 ∧ v_2 = 3) ∨ (dtype_(v_1) = 1 ∧ v_2 = 4) ∨ (dtype_(v_1) = 1 ∧ v_2 = 5) ∨ (dtype_(v_1) = 2 ∧ v_2 = 3) ∨ (dtype_(v_1) = 2 ∧ v_2 = 4) ∨ (dtype_(v_1) = 2 ∧ v_2 = 5) ∨ (dtype_(v_1) = 6 ∧ v_2 = 0) ∨ (dtype_(v_1) = 6 ∧ v_2 = 1) ∨ (dtype_(v_1) = 6 ∧ v_2 = 2) ∨ (dtype_(v_1) = 6 ∧ v_2 = 3) ∨ (dtype_(v_1) = 6 ∧ v_2 = 4) ∨ (dtype_(v_1) = 6 ∧ v_2 = 5) ∨ (dtype_(v_1) = 7 ∧ v_2 = 0) ∨ (dtype_(v_1) = 7 ∧ v_2 = 1) ∨ (dtype_(v_1) = 7 ∧ v_2 = 2) ∨ (dtype_(v_1) = 7 ∧ v_2 = 3) ∨ (dtype_(v_1) = 7 ∧ v_2 = 4) ∨ (dtype_(v_1) = 7 ∧ v_2 = 5)
 >>
-Rule 2 (If the output tensor is provided, its shape must be compatible with the input tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 2 (output tensor dtype can't be char if input is float)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 ≠ 12
 >>
-Rule 3 (The input tensor must have floating-point or complex dtype.)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 4 (The desired output dtype cannot be character)
+{v_1 : dtype} |= v_1 ≠ 12
 >>
-Rule 4 (If 'out' tensor is provided, its dtype must be floating-point or complex)
-{v_1 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then true else false
+Rule 5 (If specified, output dtype must be compatible with float input)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then (v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
 >>
-Rule 5 (If the input tensor has complex dtype, the output tensor should also have complex dtype.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 6 (If input is float32, output must be at least float32 if specified)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 ≥ 7
 >>
-Rule 6 (Input tensor cannot have boolean dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 7 (The output dtype should be a float type when input is a float type)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 6
 >>
-Rule 7 (If the input tensor has a sub-normal value, then the operation is allowed.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) < 1
+Rule 8 (Output dtype should not be character, or input should not be float)
+{v_1 : tensor, v_2 : dtype} |= v_2 ≠ 12 ∨ dtype_(v_1) ≠ 7
 >>
-Rule 8 (If the input and output tensors are the same, they must have floating-point or complex dtype.)
-{v_1 : tensor, v_2 : tensor} |= if v_1 = v_2 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 9 (If input is of type float, output dtype must be of type float or complex)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10
 >>
-Rule 9 (if result dtype is float64 then operation is valid.)
-{v_1 : dtype} |= if v_1 = 8 then true else false
+Rule 10 (If input tensor's dtype is not float, the output dtype must not be character either.)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) ≠ 7 then v_2 ≠ 12
 >>
-Rule 10 (If output dtype is specified, it should be compatible with the input tensor's dtype, promoting if necessary.)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) < v_2 then true else false
+Rule 11 (If input is not float, then output dtype must not be float if specified)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) ≠ 7 then v_2 ≠ 7 ∧ v_2 ≠ 8 ∧ v_2 ≠ 6
 >>
-Rule 11 (If grad_input is True then backward op is valid only when input tensor requires grad.)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 12 (If input tensor is of type float16, the output dtype should be at least float16)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 6 then v_2 ≥ 6
 >>
-Rule 12 (if input tensor is quantized, output tensor must also be quantized)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) > 10 then dtype_(v_2) > 10
+Rule 13 (If the input dtype is float64, the output dtype has to be at least float64.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 8 then v_2 ≥ 8
 >>
-Rule 13 (If output dtype is complex64, input dtype must be complex64 or compatible.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 9 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 14 (If the desired output dtype is character, then input dtype must be character.)
+{v_1: tensor, v_2: dtype} |= if v_2 = 12 then dtype_(v_1) = 12
 >>
-Rule 14 (If output dtype is complex128, input dtype must be complex128 or complex64 or compatible float types.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 10 then dtype_(v_1) = 10 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 15 (If output dtype is explicitly specified, it cannot be char when input is not char)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 12 then dtype_(v_1) = 12
 >>
-Rule 15 (If output dtype is specified as an integer type then the operation is not valid.)
-{v_1 : dtype} |= if 1 <= v_1 ∧ v_1 <= 5 then false
+Rule 18 (If the desired output dtype is char, the input's dtype must be char.)
+{v_1: tensor, v_2: dtype} |= (v_2 = 12) ∨ (dtype_(v_1) ≠ 7 ∧ v_2 ≠ 12)
 >>
-Rule 16 (If autograd is enabled then input tensor is of type float or complex)
-{v_1 : tensor} |= if exists_autograd then (6 <= dtype_(v_1) ∧ dtype_(v_1) <= 10)
+Rule 21 (The desired dtype should be char only when input tensor dtype is Char.)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = 12 ∧ dtype_(v_1) = 12) ∨ (v_2 ≠ 12)
 >>
-Rule 17 (The input tensor cannot be quantized.)
-{v_1 : tensor} |= if dtype_(v_1) > 10 then false
+Rule 22 (If output dtype is specified, input dtype must either be char or the specified output dtype should not be char)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = 12 ∧ dtype_(v_1) = 12) ∨ (v_2 ≠ 12) ∨ (dtype_(v_1) = 7)
 >>
-Rule 18 (input tensor must have at least one element.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+Rule 23 (output dtype must be float if input is float; otherwise output dtype is char if specified char)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8) else (if v_2 = 12 then dtype_(v_1) = 12)
 >>
-Rule 19 (If the output tensor has a different dtype than the input tensor, then promotion to a higher precision type should happen.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < dtype_(v_2) then true else false
+Rule 24 (If input is not float then specified output cannot be float or if input is float then output must be float.)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) ≠ 7 ∧ (v_2 ≠ 6 ∧ v_2 ≠ 7 ∧ v_2 ≠ 8)) ∨ (dtype_(v_1) = 7 ∧ (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8))
+>>
+Rule 26 (If input is float then specified output must be at least float, and if input is not float then output must not be char if specified)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then v_2 ≥ 6 else v_2 ≠ 12
+>>
+Rule 27 (If input is not float, specified output should not be float, else specified output must be float or complex.)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) ≠ 7 ∧ v_2 < 6) ∨ (dtype_(v_1) = 7 ∧ (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10))
+>>
+Rule 28 (If input is not float, the specified output cannot be float or input is float, then output is at least float16.)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) ≠ 7) ∧ (v_2 < 6) ∨ (dtype_(v_1) = 7) ∧ (v_2 ≥ 6)
+>>
+Rule 29 (Output must be at least as precise as the input, and Char is not allowed.)
+{v_1: tensor, v_2: dtype} |= (dtype_(v_1) = 0 ∧ v_2 > 0 ∧ v_2 < 12) ∨ (dtype_(v_1) = 1 ∧ v_2 > 1 ∧ v_2 < 12) ∨ (dtype_(v_1) = 2 ∧ v_2 > 2 ∧ v_2 < 12) ∨ (dtype_(v_1) = 3 ∧ v_2 > 3 ∧ v_2 < 12) ∨ (dtype_(v_1) = 4 ∧ v_2 > 4 ∧ v_2 < 12) ∨ (dtype_(v_1) = 6 ∧ v_2 > 5 ∧ v_2 < 12) ∨ (dtype_(v_1) = 7 ∧ v_2 > 6 ∧ v_2 < 12) ∨ (dtype_(v_1) = 8 ∧ v_2 > 7 ∧ v_2 < 12)
+>>
+Rule 30 (If you specify a dtype, it should be Char if the input is Char, otherwise it should not be Char or the input should be at least float)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 12 then dtype_(v_1) = 12 else if dtype_(v_1) < 6 then v_2 < 12 else dtype_(v_1) > 5
+>>
+Rule 31 (Specified output dtype should be valid for input dtype.)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 7) then (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) else (if v_2 = 12 then (dtype_(v_1) = 12))
+>>
+Rule 32 (If you specify a dtype, it should be Char if the input is Char, otherwise the output should be at least Float16)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = 12 ∧ dtype_(v_1) = 12) ∨ (dtype_(v_1) ≠ 12 ∧ v_2 ≥ 6)
+>>
+Rule 33 (If the specified output is char, input must be char. If the input is float, the output must be at least float16. Otherwise, the specified output can be any type other than char.)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = 12 ∧ dtype_(v_1) = 12) ∨ (dtype_(v_1) = 7 ∧ v_2 ≥ 6) ∨ (v_2 ≠ 12 ∧ dtype_(v_1) ≠ 7)
+>>
+Rule 34 (Must be Char if explicitly asked for, at least Float16 otherwise)
+{v_1: tensor, v_2: dtype} |= if v_2 = 12 then dtype_(v_1) = 12 else v_2 ≥ 6
+>>
+Rule 35 (If you specify a dtype, it should be Char if the input is Char. If the input is Float, the output must be Float or Complex.)
+{v_1: tensor, v_2: dtype} |= (if v_2 = 12 then dtype_(v_1) = 12 else if dtype_(v_1) = 7 then v_2 > 5 ∧ v_2 < 11)
+>>
+Rule 36 (Output must be at least as precise as the input, if the user does not specify the output. Char is disallowed.)
+{v_1: tensor, v_2: dtype} |= if v_2 = 12 then false else if dtype_(v_1) = 0 then v_2 > 0 ∧ v_2 < 12 else if dtype_(v_1) = 1 then v_2 > 1 ∧ v_2 < 12 else if dtype_(v_1) = 2 then v_2 > 2 ∧ v_2 < 12 else if dtype_(v_1) = 3 then v_2 > 3 ∧ v_2 < 12 else if dtype_(v_1) = 4 then v_2 > 4 ∧ v_2 < 12 else if dtype_(v_1) = 6 then v_2 > 5 ∧ v_2 < 12 else if dtype_(v_1) = 7 then v_2 > 6 ∧ v_2 < 12 else if dtype_(v_1) = 8 then v_2 > 7 ∧ v_2 < 12
+>>
+Rule 37 (Output must be at least as precise as the input, if you specify the output and it is not Char. The Char type is allowed only if the input is Char.)
+{v_1: tensor, v_2: dtype} |= if v_2 = 12 then dtype_(v_1) = 12 else if dtype_(v_1) < 6 then v_2 < 12 else if dtype_(v_1) > 5 then v_2 ≥ 6
+>>
+Rule 38 (Char can only be explicitly asked for or be the output if the input is also Char. A float requires at least float16, unless we're talking about char)
+{v_1: tensor, v_2: dtype} |= if v_2 = 12 then dtype_(v_1) = 12 else if (dtype_(v_1) = 7) then (v_2 ≥ 6)
+>>
+Rule 39 (If user wants Char as the output dtype the input must be Char, If the input type is Float the output must be float/complex)
+{v_1: tensor, v_2: dtype} |= if v_2 = 12 then dtype_(v_1) = 12 else if dtype_(v_1) = 7 then v_2 > 5 ∧ v_2 < 11
+>>
+Rule 40 (If user specifies an output dtype of char, the input dtype must be char; if the output is float, the input must be float or complex)
+{v_1: tensor, v_2: dtype} |= (v_2 = 12 ∧ dtype_(v_1) = 12) ∨ (v_2 < 12 ∧ dtype_(v_1) > 5 )
+>>
+Rule 41 (The explicitly desired output dtype cannot be character if the input dtype is not character, it needs to be at least float.)
+{v_1: tensor, v_2: dtype} |= (dtype_(v_1) = 12 ∧ v_2 = 12) ∨ (dtype_(v_1) ≠ 12 ∧ v_2 ≥ 6)
+>>
+Rule 42 (Char can only be the output dtype if the input dtype is char, or the input should be at least float16 if you want to cast.)
+{v_1: tensor, v_2: dtype} |= (dtype_(v_1) = 12 ∧ v_2 = 12) ∨ (dtype_(v_1) > 5 ∧ v_2 < 12)
+>>
+Rule 43 (For casting, it must either be Char -> Char or not Char -> >= Float16.)
+{v_1: tensor, v_2: dtype} |= (dtype_(v_1) = 12 ∧ v_2 = 12) ∨ (dtype_(v_1) < 12 ∧ v_2 ≥ 6)
+>>
+Rule 44 (Char only allowed if specified, and if so, the input must also be Char; Float types should output at least Float16 or higher.)
+{v_1: tensor, v_2: dtype} |= if v_2 = 12 then dtype_(v_1) = 12 else v_2 > 5
+>>
+Rule 45 (Output should not be Char if input is not Char, and if input is float it must have at least float16 or higher and if not specified then it cannot be less than float16 )
+{v_1: tensor, v_2: dtype} |= (dtype_(v_1) = 12 ∧ v_2 = 12) ∨ ((dtype_(v_1) < 12) ∧ (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 13))
+>>
+Rule 46 (Only allowed to specify dtype as Char if input is Char, and must preserve float precision)
+{v_1: tensor, v_2: dtype} |= (dtype_(v_1) = 12 ∧ v_2 = 12) ∨ (if dtype_(v_1) = 6 then v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 else if dtype_(v_1) = 7 then v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 else if dtype_(v_1) = 8 then v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
+>>
+Rule 47 (Input type must be char if you want char output, and If input is Float or Complex then any specified output dtype has to be Float16 or higher )
+{v_1: tensor, v_2: dtype} |= (if v_2 = 12 then (dtype_(v_1) = 12) else (if dtype_(v_1) > 5 then (v_2 > 5 ∧ v_2 < 12)))
+>>
+Rule 48 (Cannot explicitly cast to Char if it wasnt already Char, and must preserve float type precisions)
+{v_1: tensor, v_2: dtype} |= (dtype_(v_1) = 12 ∧ v_2 = 12) ∨ (if (dtype_(v_1) = 6) then (v_2=6 ∨ v_2=7 ∨ v_2=8 ∨ v_2=9 ∨ v_2=10) else (if (dtype_(v_1) = 7) then (v_2=7 ∨ v_2=8 ∨ v_2=9 ∨ v_2=10) else (if (dtype_(v_1) = 8) then (v_2=8 ∨ v_2=9 ∨ v_2=10))))

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The start_dim must be less than ndim if end_dim is not -1 (Rule 20)
+# start_dim and end_dim must both be within the allowed range for the tensor's dimensions, and ndim must be positive (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] != -1, v["arg2_value"] < v["arg1_ndim"], False)) if n else
-          If(v["arg3_value"] != -1, v["arg2_value"] < v["arg1_ndim"], False))
+    s.add(Not(And(And(v["arg1_ndim"] > 0, (And(0 - v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))), (And(0 - v["arg1_ndim"] <= v["arg3_value"], v["arg3_value"] < v["arg1_ndim"])))) if n else
+          And(And(v["arg1_ndim"] > 0, (And(0 - v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))), (And(0 - v["arg1_ndim"] <= v["arg3_value"], v["arg3_value"] < v["arg1_ndim"]))))
 )
 
 def rule_20_func(arg1, arg2, arg3, solver=None, neg=False):

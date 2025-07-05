@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor is a boolean tensor, the maximum value must be either zero or one. (Rule 16)
+# If dtype of tensor is int, then its minimum element should be greater than -255 (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, Or(Select(v["arg1_range"], 1) == 0, Select(v["arg1_range"], 1) == 1), False)) if n else
-          If(v["arg1_dtype"] == 0, Or(Select(v["arg1_range"], 1) == 0, Select(v["arg1_range"], 1) == 1), False))
+    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), Select(v["arg1_range"], 0) > -255, False)) if n else
+          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), Select(v["arg1_range"], 0) > -255, False))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

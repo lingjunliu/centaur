@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Check if the shape of the input tensor is a valid tuple (Rule 5)
+# tensor cannot be an empty tensor (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 1) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 1) for i in range(6)]))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

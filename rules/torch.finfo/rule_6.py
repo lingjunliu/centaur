@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dtype is complex64 or complex128, this implies a tensor of that dtype (Rule 6)
+# Input dtype must not be bool, str, or a complex type (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 9, True, If(v["arg1_value"] == 10, True, False))) if n else
-          If(v["arg1_value"] == 9, True, If(v["arg1_value"] == 10, True, False)))
+    s.add(Not(And(And(And(v["arg1_value"] != 0, v["arg1_value"] != 11), v["arg1_value"] != 9), v["arg1_value"] != 10)) if n else
+          And(And(And(v["arg1_value"] != 0, v["arg1_value"] != 11), v["arg1_value"] != 9), v["arg1_value"] != 10))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

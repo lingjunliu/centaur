@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If output dtype is complex128, input dtype must be complex128 or complex64 or compatible float types. (Rule 14)
+# If the desired output dtype is character, then input dtype must be character. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 10, Or(Or(Or(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 9), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False)) if n else
-          If(v["arg2_value"] == 10, Or(Or(Or(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 9), v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False))
+    s.add(Not(If(v["arg2_value"] == 12, v["arg1_dtype"] == 12, False)) if n else
+          If(v["arg2_value"] == 12, v["arg1_dtype"] == 12, False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

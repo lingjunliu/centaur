@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If tensor is 2D, then first dimension must greater than second dimension (Rule 14)
+# If tensor has ndim > 0 then each dimension should be greater than 0. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) >= Select(v["arg1_shape"], 1), False)) if n else
-          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) >= Select(v["arg1_shape"], 1), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False)) if n else
+          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

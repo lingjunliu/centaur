@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input is of type complex128 or complex64, then its real and imaginary parts have to be finite values. (Rule 19)
+# Ensure tensors of integer types are not used (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 9), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 9), True, False))
+    s.add(Not(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else
+          And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

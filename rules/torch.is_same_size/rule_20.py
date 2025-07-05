@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.is_same_size, requires all dimensions of both tensors to be greater than 0 if they are not empty (Rule 20)
+# if the product of shapes of tensor 1 is not zero, then product of shapes of tensor 2 should not be zero (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(And((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0)), And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)]))), False)) if n else
-          If(And((v["arg1_ndim"] > 0), (v["arg2_ndim"] > 0)), And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)]))), False))
+    s.add(Not((If((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)])), False))) if n else
+          (If((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)])), False)))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

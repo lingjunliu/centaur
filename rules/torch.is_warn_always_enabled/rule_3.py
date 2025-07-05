@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Since the API returns a boolean, it can be either true or false. (Rule 3)
+# Dummy boolean parameter must be true (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"], (v["arg1_value"] == False))) if n else
-          Or(v["arg1_value"], (v["arg1_value"] == False)))
+    s.add(Not(v["arg1_value"] == True) if n else
+          v["arg1_value"] == True)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If one of input or other is scalar, and the other one is tensor then the scalar should have compatible dtype. (Rule 11)
+# input and other tensors must have the same shape if condition is not a scalar (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] == 0, (If(And(1 <= v["arg3_dtype"], v["arg3_dtype"] <= 5), And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), If(And(6 <= v["arg3_dtype"], v["arg3_dtype"] <= 8), And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), False))), If(v["arg3_ndim"] == 0, (If(And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5), And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), False))), False))) if n else
-          If(v["arg2_ndim"] == 0, (If(And(1 <= v["arg3_dtype"], v["arg3_dtype"] <= 5), And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), If(And(6 <= v["arg3_dtype"], v["arg3_dtype"] <= 8), And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), False))), If(v["arg3_ndim"] == 0, (If(And(1 <= v["arg2_dtype"], v["arg2_dtype"] <= 5), And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), If(And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), False))), False)))
+    s.add(Not(If(v["arg1_ndim"] > 0, Select(v["arg2_shape"], 0) == Select(v["arg3_shape"], 0), False)) if n else
+          If(v["arg1_ndim"] > 0, Select(v["arg2_shape"], 0) == Select(v["arg3_shape"], 0), False))
 )
 
 def rule_11_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,23 +28,21 @@ def rule_11_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_dtype = Int('arg2_dtype')
-        arg3_ndim = Int('arg3_ndim')
-        arg3_dtype = Int('arg3_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg3_shape = Array('arg3_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_ndim == arg3.ndim)
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        for i in range(arg3.ndim):
+            arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim, 'arg3_dtype': arg3_dtype, 'arg3_ndim': arg3_ndim})
+        rule_11(solver, {'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim'], 'arg3_dtype': arg3['dtype'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_11(solver, {'arg1_ndim': arg1['ndim'], 'arg2_shape': arg2['shape'], 'arg3_shape': arg3['shape']}, neg)

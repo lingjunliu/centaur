@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Setting number of interop threads v_1 affects tensor v_2 minimum value (Rule 9)
+# Check if input int is greater than a float (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 1, Select(v["arg2_range"], 0) > -100, False)) if n else
-          If(v["arg1_value"] > 1, Select(v["arg2_range"], 0) > -100, False))
+    s.add(Not(v["arg1_value"] > v["arg2_value"]) if n else
+          v["arg1_value"] > v["arg2_value"])
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):
@@ -20,23 +20,22 @@ def rule_9_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg2_value = Real('arg2_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_value': arg1_value, 'arg2_range': arg2_range})
+        rule_9(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_value': arg1['value'], 'arg2_range': arg2['range']}, neg)
+        rule_9(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

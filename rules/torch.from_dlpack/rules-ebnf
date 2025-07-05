@@ -1,63 +1,93 @@
 >>
-Rule 1 (input tensor to from_dlpack should have non-zero dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 2 (from_dlpack requires the input tensor to have at least one element if the number of dimensions is greater than zero)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 3 (dtype of input tensor should be a valid dtype)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 12
->>
-Rule 4 (input tensor should have positive shape values along its dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 5 (If input tensor v_1 is a bool tensor, all values must be true or false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∧ max(v_1) = 1)
->>
-Rule 6 (If the input tensor v_1 is complex, the real and imaginary parts should be finite)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > -10000000000 ∧ max(v_1) < 10000000000
->>
-Rule 7 (If input is a str type, then its values should be selected from the defined string list.)
-{v_1 : tensor} |= if dtype_(v_1) = 11 then (min(v_1) = "ii" ∨ min(v_1) = "ii->i" ∨ min(v_1) = "i,j->ij" ∨ min(v_1) = "bij,bjk->bik" ∨ min(v_1) = "...ij->...ji" ∨ min(v_1) = "bn,anm,bm->ba" ∨ min(v_1) = "none" ∨ min(v_1) = "mean" ∨ min(v_1) = "sum" ∨ min(v_1) = "max" ∨ min(v_1) = "constant" ∨ min(v_1) = "tanh")
->>
-Rule 8 (If input tensor has more than 2 dimensions, then its last two dimensions should be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
->>
-Rule 9 (The minimum value of the input tensor should be less than or equal to the maximum value of the tensor)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
->>
-Rule 10 (If input tensor is an integer type, then its value should be within the range of int64)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then min(v_1) ≥ -9223372036854775808 ∧ max(v_1) ≤ 9223372036854775807
->>
-Rule 11 (If the input tensor is uint8 then max value should be less than or equal to 255 and min value should be greater or equal to 0)
-{v_1 : tensor} |= if dtype_(v_1) = 5 then min(v_1) ≥ 0 ∧ max(v_1) ≤ 255
->>
-Rule 12 (If the input tensor has a shape of (1,), the minimum value must be less than or equal to the maximum value)
-{v_1 : tensor} |= if ndim(v_1) = 1 ∧ shape(v_1, 0) = 1 then min(v_1) ≤ max(v_1)
->>
-Rule 13 (If the input tensor is float16, then the minimum value must be greater than or equal to -65504 and the maximum value must be less than or equal to 65504)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ -65504 ∧ max(v_1) ≤ 65504
->>
-Rule 14 (If input tensor dtype is not supported, throw an error)
-{v_1 : tensor} |= dtype_(v_1) ≠ 13
->>
-Rule 15 (If the input tensor v_1 is of type np.int8, then all values must be within the range [-128, 127])
-{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -128 ∧ max(v_1) ≤ 127
->>
-Rule 16 (If input tensor has one or more dimensions the product of all its dimensions must not be zero)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) = false
->>
-Rule 17 (If the input tensor has only one dimension, its shape must be greater than zero.)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
->>
-Rule 18 (The shape of input tensor should not exceed 2^31 - 1, which is the maximum value of int32)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
->>
-Rule 19 (If the input tensor v_1 is of type np.int16, then all values must be within the range [-32768, 32767])
-{v_1 : tensor} |= if dtype_(v_1) = 2 then min(v_1) ≥ -32768 ∧ max(v_1) ≤ 32767
->>
-Rule 20 (The shape of the input tensor should be non-empty (not an empty tuple))
+Rule 1 (ext_tensor should be a tensor with ndim >= 0)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 21 (If the tensor v_1 has a specified dtype, then that dtype needs to be valid as well)
-{v_1 : tensor} |= if dtype_(v_1) = 12 then true
+Rule 2 (ext_tensor should be a tensor with at least one element when number of dimensions is greater than zero)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) > 0
+>>
+Rule 3 (ext_tensor dtype should not be string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 4 (ext_tensor should have more than one dimension)
+{v_1 : tensor} |= ndim(v_1) > 1
+>>
+Rule 5 (the size of dimension 0 should be greater than 10)
+{v_1 : tensor} |= shape(v_1, 0) > 10
+>>
+Rule 6 (tensor must be of float type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 7 (ext_tensor should be a bool type)
+{v_1 : tensor} |= dtype_(v_1) = 0
+>>
+Rule 8 (ext_tensor should be an int8 or uint8 type)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5
+>>
+Rule 9 (the sum of all dimension sizes should be positive)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 10 (ext_tensor's dtype is complex and imaginary part is non-zero)
+{v_1 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 12 (ext_tensor's shape is a square matrix )
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 13 (ext_tensor's ndim is 1 and its length is a prime number)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [2, shape(v_1, 0) - 1] : ∃j ∈ [2, shape(v_1, 0) - 1] : i * j ≠ shape(v_1, 0))
+>>
+Rule 14 (ext_tensor's ndim is 1 and its length is a prime number)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [2, shape(v_1, 0) - 1] : ∃j ∈ [2, shape(v_1, 0) - 1] : (i * j) = shape(v_1, 0)) = false
+>>
+Rule 15 (ext_tensor's ndim is 1 and its length is a prime number)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (∀i ∈ [2, shape(v_1, 0) - 1] : ∃j ∈ [2, shape(v_1, 0) - 1] : (i * j) = shape(v_1, 0)) = false ∧ shape(v_1, 0) > 1
+>>
+Rule 18 (ext_tensor's ndim is 1 and its length is a prime number)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (if ∃i ∈ [2, shape(v_1, 0) - 1] : ∃j ∈ [2, shape(v_1, 0) - 1] : (i * j) = shape(v_1, 0) then false) ∧ shape(v_1, 0) > 1
+>>
+Rule 19 (ext_tensor's ndim is 1 and its length is a prime number)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ (if ∃i ∈ [2, shape(v_1, 0) - 1] : ∃j ∈ [2, shape(v_1, 0) - 1] : (i * j) = shape(v_1, 0) then false) ∧ shape(v_1, 0) > 1 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 20 (ext_tensor's shape along each dimension must be less than 100)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100
+>>
+Rule 21 (ext_tensor is 3D and the dimensions are decreasing)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 0) > shape(v_1, 1) ∧ shape(v_1, 1) > shape(v_1, 2)
+>>
+Rule 22 (If the dtype is bool, all elements must be true or all elements must be false.)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = max(v_1))
+>>
+Rule 24 (If tensor is complex, real and imaginary parts should have same average magnitude.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) + max(v_1) = 0
+>>
+Rule 25 (If the tensor is complex, the max value is less than 100)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 100
+>>
+Rule 26 (If the tensor is a string, it has to be in the specified list of strings.)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
+>>
+Rule 27 (If the tensor is a dtype, it should be a valid dtype.)
+{v_1 : tensor} |= if dtype_(v_1) = 12 then v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+>>
+Rule 28 (If the tensor is a list, the length should be less than 100)
+{v_1 : tensor} |= if dtype_(v_1) = 12 then true else if dtype_(v_1) = 11 then true else if dtype_(v_1) = 0 then true else if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else shape(v_1, 0) < 100
+>>
+Rule 29 (If the ext_tensor is an int, it should be greater than 5)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then max(v_1) > 5
+>>
+Rule 30 (If the ext_tensor is of float type, the minimum should be less than maximum.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≤ max(v_1)
+>>
+Rule 31 (If the tensor's number of dimensions is equal to 2, then the shape of dimension 0 should be equal to the shape of dimension 1)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 32 (if the tensor has more than one dimension, the minimum value should be less than the maximum value.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then min(v_1) < max(v_1)
+>>
+Rule 33 (If the first element of shape is greater than 10, then the minimum of the tensor should be greater than 0.)
+{v_1 : tensor} |= if shape(v_1, 0) > 10 then min(v_1) > 0
+>>
+Rule 50 (If the sum of shape is even, the min value of tensor should be even)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) ∧ 1) = 0 then (min(v_1) ∧ 1) = 0
+>>
+Rule 51 (If the sum of shape is even, the min value of tensor should be even)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : (if shape(v_1,i) > 0 then if shape(v_1,i) - 2 ≥ 0 then if shape(v_1,i) - 4 ≥ 0 then true else false else false else false) then (if min(v_1) > 0 then if min(v_1) - 2 ≥ 0 then if min(v_1) - 4 ≥ 0 then true else false else false else false )

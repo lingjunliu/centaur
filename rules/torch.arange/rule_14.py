@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The size of output tensor should be positive (Rule 14)
+# start < end when step > 0 (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not((v["arg2_value"] - v["arg1_value"]) / v["arg3_value"] > 0) if n else
-          (v["arg2_value"] - v["arg1_value"]) / v["arg3_value"] > 0)
+    s.add(Not(If(v["arg3_value"] > 0, v["arg1_value"] < v["arg2_value"], False)) if n else
+          If(v["arg3_value"] > 0, v["arg1_value"] < v["arg2_value"], False))
 )
 
 def rule_14_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Constraining relationship between list of types and boolean (Rule 7)
+# torch.is_anomaly_check_nan_enabled takes no arguments, using a dummy int parameter (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], v["arg1_length"] > 0, v["arg1_length"] == 0)) if n else
-          If(v["arg2_value"], v["arg1_length"] > 0, v["arg1_length"] == 0))
+    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
+          v["arg1_value"] == v["arg1_value"])
 )
 
-def rule_7_func(arg1, arg2, solver=None, neg=False):
+def rule_7_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
-            return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
-        arg2_value = Bool('arg2_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_length': arg1_length, 'arg2_value': arg2_value})
+        rule_7(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_length': arg1['length'], 'arg2_value': arg2['value']}, neg)
+        rule_7(solver, {'arg1_value': arg1['value']}, neg)

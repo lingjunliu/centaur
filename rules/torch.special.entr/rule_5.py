@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor contains negative values, then the minimum value is negative infinity (Rule 5)
+# input tensor must have floating point or integer dtype to be compatible for entr (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 0) < 0, Select(v["arg1_range"], 0) == -1 / 0, False)) if n else
-          If(Select(v["arg1_range"], 0) < 0, Select(v["arg1_range"], 0) == -1 / 0, False))
+    s.add(Not(Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))) if n else
+          Or((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5)), (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8))))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_5_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_range': arg1_range})
+        rule_5(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_range': arg1['range']}, neg)
+        rule_5(solver, {'arg1_dtype': arg1['dtype']}, neg)

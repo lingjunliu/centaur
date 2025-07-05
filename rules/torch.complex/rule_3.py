@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if real tensor is float32, out tensor must be complex64, and if real tensor is float64, out tensor must be complex128 (Rule 3)
+# out dtype must be complex64 when inputs are float32 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 11, False))) if n else
-          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 9, v["arg2_dtype"] == 11, False)))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 9, False)) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 9, False))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

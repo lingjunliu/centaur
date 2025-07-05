@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input tensor's number of elements must be positive (Rule 15)
+# Check if the tensor is a multi-dimensional tensor with at least two rows. (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
+    s.add(Not(And(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 0) >= 2)) if n else
+          And(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 0) >= 2))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

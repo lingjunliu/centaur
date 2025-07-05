@@ -5,16 +5,17 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input1 is a 1D tensor, then the target tensor must have values of 1 or -1. (Rule 10)
+# input1 and input2 and target must not be boolean tensors if subtraction is involved (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 1, (And(Select(v["arg2_range"], 0) == -1, Select(v["arg2_range"], 1) == 1)), False)) if n else
-          If(v["arg1_ndim"] == 1, (And(Select(v["arg2_range"], 0) == -1, Select(v["arg2_range"], 1) == 1)), False))
+    s.add(Not(And(And((v["arg1_dtype"] != 0), (v["arg2_dtype"] != 0)), (v["arg3_dtype"] != 0))) if n else
+          And(And((v["arg1_dtype"] != 0), (v["arg2_dtype"] != 0)), (v["arg3_dtype"] != 0)))
 )
 
-def rule_10_func(arg1, arg2, solver=None, neg=False):
+def rule_10_func(arg1, arg2, arg3, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -22,21 +23,24 @@ def rule_10_func(arg1, arg2, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
+        if not isinstance(arg3, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
+        arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_ndim': arg1_ndim, 'arg2_range': arg2_range})
+        rule_10(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_ndim': arg1['ndim'], 'arg2_range': arg2['range']}, neg)
+        rule_10(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_dtype': arg3['dtype']}, neg)

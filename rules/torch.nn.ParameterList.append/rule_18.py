@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# value to append must be a tensor of dimension no more than 5 (Rule 18)
+# If a list, length must be less than some max length (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] <= 5) if n else
-          v["arg1_ndim"] <= 5)
+    s.add(Not(v["arg1_length"] < 1000) if n else
+          v["arg1_length"] < 1000)
 )
 
 def rule_18_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_18_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_ndim': arg1_ndim})
+        rule_18(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_18(solver, {'arg1_length': arg1['length']}, neg)

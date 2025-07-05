@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If groups is greater than channel size, then groups should be equal to channel size (Rule 15)
+# Number of groups must be greater than 0, and the number of channels must be exactly divisible by the number of groups (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > Select(v["arg1_shape"], 1), v["arg2_value"] == Select(v["arg1_shape"], 1), False)) if n else
-          If(v["arg2_value"] > Select(v["arg1_shape"], 1), v["arg2_value"] == Select(v["arg1_shape"], 1), False))
+    s.add(Not(And(v["arg2_value"] > 0, (Select(v["arg1_shape"], 1) / v["arg2_value"]) * v["arg2_value"] == Select(v["arg1_shape"], 1))) if n else
+          And(v["arg2_value"] > 0, (Select(v["arg1_shape"], 1) / v["arg2_value"]) * v["arg2_value"] == Select(v["arg1_shape"], 1)))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

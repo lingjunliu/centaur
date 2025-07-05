@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# trapz input x must have the same size as y along dim (Rule 1)
+# y and x must have the same length along the specified dimension if x is provided (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"])) if n else

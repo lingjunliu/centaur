@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# device_ids should not be a single element list. (Rule 18)
+# Module must be a Module type - represented as tensor for our purposes (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] > 1) if n else
-          v["arg1_length"] > 1)
+    s.add(Not(v["arg1_ndim"] >= 0) if n else
+          v["arg1_ndim"] >= 0)
 )
 
 def rule_18_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_18_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_length': arg1_length})
+        rule_18(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_length': arg1['length']}, neg)
+        rule_18(solver, {'arg1_ndim': arg1['ndim']}, neg)

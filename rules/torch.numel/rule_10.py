@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# number of element in the tensor must be greater than 0 (Rule 10)
+# If number of dimensions is greater than 0 and size along any dimension is zero, then the total number of elements is zero. (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))) if n else
-          (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])))
+    s.add(Not(If(And(v["arg1_ndim"] > 0, (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]))), True, False)) if n else
+          If(And(v["arg1_ndim"] > 0, (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)]))), True, False))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Number of interop threads v_1 has to be less than a constant v_2 if the dtype of the tensor v_3 is smaller than float32 (Rule 14)
+# Check to ensure the input integer is between a lower bound and upper bound represented by floats (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_dtype"] < 7, v["arg1_value"] < v["arg2_value"], False)) if n else
-          If(v["arg3_dtype"] < 7, v["arg1_value"] < v["arg2_value"], False))
+    s.add(Not(And(v["arg2_value"] <= v["arg1_value"], v["arg1_value"] <= v["arg3_value"])) if n else
+          And(v["arg2_value"] <= v["arg1_value"], v["arg1_value"] <= v["arg3_value"]))
 )
 
 def rule_14_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -21,26 +21,26 @@ def rule_14_func(arg1, arg2, arg3, solver=None, neg=False):
     if not solver:
         if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, (float, np.floating)):
             return False
-        if not isinstance(arg3, np.ndarray):
+        if not isinstance(arg3, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_value = Int('arg1_value')
-        arg2_value = Int('arg2_value')
-        arg3_dtype = Int('arg3_dtype')
+        arg2_value = Real('arg2_value')
+        arg3_value = Real('arg3_value')
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == int(arg2))
-        solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
+        solver.add(arg2_value == arg2)
+        solver.add(arg3_value == arg3)
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_dtype': arg3_dtype})
+        rule_14(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_dtype': arg3['dtype']}, neg)
+        rule_14(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Ensure matrix has reasonable condition number to avoid precision issues (Rule 9)
+# A must be batches of square matrices, but they are 0 by 86 matrices (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_ndim"] >= 2, Select(v["arg1_range"], 1) / Select(v["arg1_range"], 0) < 1000000)) if n else
-          And(v["arg1_ndim"] >= 2, Select(v["arg1_range"], 1) / Select(v["arg1_range"], 0) < 1000000))
+    s.add(Not(Or(v["arg1_ndim"] < 2, (And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) != 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1))))) if n else
+          Or(v["arg1_ndim"] < 2, (And(Select(v["arg1_shape"], v["arg1_ndim"] - 2) != 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg1_shape"], v["arg1_ndim"] - 1)))))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -23,17 +23,17 @@ def rule_9_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_ndim': arg1_ndim, 'arg1_range': arg1_range})
+        rule_9(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_ndim': arg1['ndim'], 'arg1_range': arg1['range']}, neg)
+        rule_9(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)

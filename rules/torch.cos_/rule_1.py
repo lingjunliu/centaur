@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# output dtype should be able to accommodate input tensor's dtype (Rule 1)
+# Input tensor dtype should be float or complex when output dtype is char (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_value"] != 6, False)) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_value"] != 6, False))
+    s.add(Not(If(v["arg2_value"] == 1, Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False)) if n else
+          If(v["arg2_value"] == 1, Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor dtype is complex, then lower and upper bounds must be complex type (Rule 11)
+# Avoid potential issues with extremely small upper bounds close to zero (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_value"] == 10, v["arg1_value"] == 11), True, False)) if n else
-          If(Or(v["arg1_value"] == 10, v["arg1_value"] == 11), True, False))
+    s.add(Not(v["arg1_value"] > 0.000001) if n else
+          v["arg1_value"] > 0.000001)
 )
 
 def rule_11_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_11_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 11
         rule_11(solver, {'arg1_value': arg1_value})

@@ -1,72 +1,180 @@
 >>
-Rule 1 (input must be a tensor)
+Rule 1 (Input tensor must have floating point or complex dtype if requires_grad is true to avoid gradient errors.)
+{v_1 : tensor, v_2 : bool} |= (v_2 = false) ∨ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+>>
+Rule 2 (Input must be a tensor.)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 2 (dtype can be None or a valid dtype)
-{v_1 : tensor, v_2 : dtype ⊎ str} |= (v_2 = "none") ∨ (dtype_(v_1) = v_2)
+Rule 4 (Check if the input tensor has at least one element to avoid empty tensor issues)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 3 (requires_grad is a boolean)
-{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+Rule 5 (The input tensor's datatype must be a valid one, represented by the number 0-12, inclusive, from the given list of types.)
+{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
 >>
-Rule 4 (if requires_grad is true, dtype must be floating point or complex)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 8 (Memory format must be a valid string.)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "preserve_format"
 >>
-Rule 5 (shape of input tensor is same as shape of output tensor)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 11 (If dtype is provided, it must be a valid dtype index)
+{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
 >>
-Rule 6 (if input tensor has a particular dimension size then another tensor must have the same dimension size)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > v_3 ∧ ndim(v_2) > v_3 then shape(v_1, v_3) = shape(v_2, v_3)
+Rule 12 (The layout should not be a specific string value.)
+{v_1: str} |= v_1 ≠ "strided"
 >>
-Rule 7 (if input is int type then other variable cannot be string)
-{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then v_2 = "none"
+Rule 13 (Requires_grad must be a boolean value.)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 8 (memory_format is string and valid value)
-{v_1 : str} |= (v_1 = "preserve_format") ∨ (v_1 = "contiguous_format") ∨ (v_1 = "channels_last")
+Rule 14 (Shape of input tensor must be positive to avoid zero-sized tensors.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 9 (If dtype is specified, it must be a valid dtype)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+Rule 15 (If requires_grad is enabled, the number of dimensions should be less than a certain number)
+{v_1: tensor, v_2: bool} |= (v_2 = false) ∨ (ndim(v_1) < 5)
 >>
-Rule 10 (If the input's dtype is complex, then requires_grad should be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = false
+Rule 16 (Dtype of input tensor and provided dtype should be same type. For example, both should be integer or both should be float)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) < 6 ∧ v_2 < 6) ∨ (dtype_(v_1) ≥ 6 ∧ v_2 ≥ 6)
 >>
-Rule 11 (If input has dtype int8, int16, int32 or int64 then output's dtype can not be boolean)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_2 ≠ 0
+Rule 17 (The shape of the input tensor should not exceed a certain limit.)
+{v_1: tensor} |= shape(v_1, 0) < 1000
 >>
-Rule 12 (If input has dtype bool, then output's dtype must also be bool)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 = 0
+Rule 18 (Memory format can only be "preserve_format".)
+{v_1 : str} |= v_1 = "preserve_format"
 >>
-Rule 13 (input tensor's dtype cannot be string type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 19 (Input tensor must have at least one dimension.)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 14 (If dtype is specified, it should be compatible with the input tensor)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 12 then true else dtype_(v_1) = 12
+Rule 21 (Dtype of input tensor and provided dtype should be same type if dtype is provided. For example, both should be integer or both should be float)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 12 then ((dtype_(v_1) < 6 ∧ v_2 < 6) ∨ (dtype_(v_1) ≥ 6 ∧ v_2 ≥ 6))
 >>
-Rule 15 (memory_format can be 'torch.preserve_format', 'torch.contiguous_format' or 'torch.channels_last')
-{v_1 : str} |= v_1 = "torch.preserve_format" ∨ v_1 = "torch.contiguous_format" ∨ v_1 = "torch.channels_last"
+Rule 22 (The shape of the input tensor should not exceed a certain limit.)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 1000
 >>
-Rule 16 (if dtype is none, output's dtype should be same as input tensor's dtype)
-{v_1 : tensor, v_2 : str, v_3 : dtype} |= if v_2 = "none" then dtype_(v_1) = v_3
+Rule 23 (Memory format can only be "preserve_format" or None.)
+{v_1 : str} |= v_1 = "preserve_format" ∨ v_1 = "none"
 >>
-Rule 17 (If layout is specified, it should be a valid layout)
-{v_1 : str} |= v_1 = "strided" ∨ v_1 = "sparse_coo" ∨ v_1 = "none"
+Rule 24 (Input tensor must have at least one dimension and no dimension should be negative)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 18 (if input is complex type then output tensor should be complex type)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = 9 ∨ v_2 = 10
+Rule 25 (If requires_grad is specified, the input tensor must be floating point or complex)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 19 (If device is specified, then dtype needs to be specified)
-{v_1: str, v_2 : dtype} |= if v_1 ≠ "none" then v_2 ≠ 12
+Rule 27 (If requires_grad is true, then the minimum value of the tensor must be greater than a certain limit)
+{v_1: tensor, v_2: bool} |= if v_2 then min(v_1) > -1000
 >>
-Rule 20 (if input tensor has a small number of elements, then output cannot require gradients)
-{v_1 : tensor, v_2 : bool} |= if (shape(v_1, 0) * shape(v_1, 1) < 10) then v_2 = false
+Rule 28 (The dtype of input tensor must be within a certain range)
+{v_1: tensor} |= dtype_(v_1) >= 0 ∧ dtype_(v_1) <= 12
 >>
-Rule 21 (layout can be none or a valid layout string, and if specified, ndim of input must be > 0)
-{v_1 : tensor, v_2 : str} |= (v_2 = "none") ∨ (v_2 = "strided" ∧ ndim(v_1) > 0) ∨ (v_2 = "sparse_coo" ∧ ndim(v_1) > 0)
+Rule 32 (Check the range of dimensions if the input tensor requires gradient calculation.)
+{v_1: tensor, v_2: bool} |= if v_2 then (ndim(v_1) > 0 ∧ ndim(v_1) <= 5)
 >>
-Rule 22 (if device is not none, layout also cannot be none)
-{v_1 : str, v_2 : str} |= if v_1 ≠ "none" then v_2 ≠ "none"
+Rule 34 (Shape of input tensor should not be too large.)
+{v_1 : tensor} |= shape(v_1, 0) < 2048
 >>
-Rule 23 (If layout is sparse_coo, then dtype needs to be int64)
-{v_1: str, v_2 : dtype} |= if v_1 = "sparse_coo" then v_2 = 4
+Rule 35 (The input tensor's shape must be consistent to prevent errors.)
+{v_1 : tensor} |= ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 24 (memory_format must be preserve_format, contiguous_format or channels_last string, and ndim of the input must be 2 or 3 if channels_last is specified)
-{v_1 : str, v_2 : tensor} |= (v_1 = "torch.preserve_format") ∨ (v_1 = "torch.contiguous_format") ∨ (v_1 = "torch.channels_last" ∧ (ndim(v_2) = 2 ∨ ndim(v_2) = 3))
+Rule 37 (If requires_grad is enabled, the input tensor's dtype must support gradients)
+{v_1: tensor, v_2: bool} |= if v_2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+>>
+Rule 38 (If input tensor has dimension greater than 0 and its datatype is integer type, dtype should be in range of 1 to 5.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) > 0 ∧ dtype_(v_1) < 6)
+>>
+Rule 39 (Shape of input tensor can not have dimension of size zero)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 40 (Tensor with requires_grad=True can not have a large number of dimensions.)
+{v_1 : tensor, v_2 : bool} |= if v_2 then ndim(v_1) < 6
+>>
+Rule 41 (If requires_grad is enabled, the input tensor's dtype must support gradients. Disallow int, uint.)
+{v_1: tensor, v_2: bool} |= if v_2 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 43 (Shape of input tensor can not have large values to prevent overflow)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 4096
+>>
+Rule 44 (Memory format must be specified correctly)
+{v_1: str} |= v_1 = "preserve_format" ∨ v_1 = "none"
+>>
+Rule 47 (Check that the input tensor has valid dimensions (no negative or excessively large dimensions to avoid memory errors).)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 4096
+>>
+Rule 54 (If a dtype is specified, ensure that it is within the valid bounds of our type list)
+{v_1 : dtype} |= 0 <= v_1 ∧ v_1 <=12
+>>
+Rule 56 (Check the layout is equal to "strided".)
+{v_1: str} |= v_1 = "strided"
+>>
+Rule 58 (Input must be tensor.)
+{v_1 : tensor} |= ndim(v_1) >= 0
+>>
+Rule 59 (If dtype is specified, ensure it is a valid dtype index.)
+{v_1: dtype} |= 0 <= v_1 ∧ v_1 <= 12
+>>
+Rule 62 (If requires_grad is enabled, then data type must be a floating or complex type.)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) > 5)
+>>
+Rule 65 (The input tensor should not have dimensions larger than a limit if dtype is int)
+{v_1:tensor} |= if dtype_(v_1) < 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+>>
+Rule 69 (If requires_grad is enabled, then data type must be a floating or complex type. Disallow int, uint, bool.)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) > 5 ∧ dtype_(v_1) < 12)
+>>
+Rule 70 (If requires_grad is enabled, then ensure there is at least one element to compute gradient)
+{v_1: tensor, v_2: bool} |= if v_2 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 71 (If specified, dtype must be a valid dtype option)
+{v_1 : dtype} |= 0 <= v_1 ∧ v_1 <= 12
+>>
+Rule 74 (If the user enables requires_grad, the type should be float or complex)
+{v_1: tensor, v_2: bool} |= if v_2 then dtype_(v_1) > 5 ∧ dtype_(v_1) < 12
+>>
+Rule 75 (The input shape should not be too large to prevent OOM)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 4096
+>>
+Rule 79 (requires_grad=True requires a floating or complex input tensor type, and ndim must be > 0)
+{v_1: tensor, v_2: bool} |= if v_2 then dtype_(v_1) > 5 ∧ dtype_(v_1) < 12 ∧ ndim(v_1) > 0
+>>
+Rule 80 (Input tensor can not have too many dimensions)
+{v_1: tensor, v_2: bool} |= if v_2 then ndim(v_1) < 6
+>>
+Rule 86 (If a valid dtype is not provided, dtype should be the default dtype, or inferred from input)
+{v_1: dtype, v_2: tensor} |= if v_1 = 12 then true else dtype_(v_2) = v_1
+>>
+Rule 90 (If the 'input' has type integer, make sure the shape is small to prevent overflow)
+{v_1: tensor} |= if dtype_(v_1) < 6 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+>>
+Rule 94 (If requires_grad is True, then input must be of floating point or complex type. Additionally dimensions should be not too big, also that at least one element should exist)
+{v_1: tensor, v_2: bool} |= if v_2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 4096 ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 95 (The maximum value of input should not be too large to prevent overflow. Only for integer types)
+{v_1: tensor} |= if dtype_(v_1) < 6 then max(v_1) < 10000
+>>
+Rule 99 (Avoid gradient errors requires grad enabled but not float or complex, and avoid having > 6 dimensions)
+{v_1: tensor, v_2: bool} |= if v_2 then (dtype_(v_1) > 5 ∧ dtype_(v_1) < 12) ∧ ndim(v_1) < 6
+>>
+Rule 104 (If requires_grad is set to True, the underlying data type must be floating or complex, and the dimensions can't be too large.)
+{v_1: tensor, v_2: bool} |= if v_2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 105 (Check that the layout is not tanh.)
+{v_1: str} |= v_1 ≠ "tanh"
+>>
+Rule 109 (If requires_grad = True, then make sure tensor is float or complex, and not a large number of dimensions to avoid memory problems)
+{v_1: tensor, v_2: bool} |= if v_2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ndim(v_1) < 6
+>>
+Rule 113 (Ensure the `input` is a proper tensor with valid shape.)
+{v_1 : tensor} |= ndim(v_1) >= 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 115 (Make sure layout cannot be any of the reduction functions. Only "strided" is supported)
+{v_1: str} |= v_1 ≠ "mean" ∧ v_1 ≠ "sum" ∧ v_1 ≠ "max"
+>>
+Rule 120 (Layout must be a valid, recognized layout)
+{v_1: str} |= v_1 = "strided" ∨ v_1 = "sparse_coo"
+>>
+Rule 124 (requires_grad=True => dtype is float or complex, and tensor shape can’t have dimensions that are too big. )
+{v_1: tensor, v_2: bool} |= if v_2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 4096
+>>
+Rule 125 (layout can not use tanh)
+{v_1 : str} |= v_1 ≠ "tanh"
+>>
+Rule 130 (Check shape of tensor is valid and not exceeding a limitation when inputing boolean type tensors to avoid errors)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100
+>>
+Rule 140 (The maximum element in the tensor can not be more than the max possible number for float16)
+{v_1: tensor} |= max(v_1) < 65500

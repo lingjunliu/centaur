@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# logaddexp does not support string type tensors (Rule 13)
+# if other is half, input must be half or float (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 11, v["arg2_dtype"] != 11)) if n else
-          And(v["arg1_dtype"] != 11, v["arg2_dtype"] != 11))
+    s.add(Not(If(v["arg2_dtype"] == 6, Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False)) if n else
+          If(v["arg2_dtype"] == 6, Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

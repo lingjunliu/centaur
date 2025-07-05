@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input is float64, output must be float64 if specified (Rule 12)
+# If output tensor's dtype is int, input tensor's dtype should not be float (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, False)) if n else
-          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, False))
+    s.add(Not(If(v["arg2_dtype"] < 6, v["arg1_dtype"] < 6, False)) if n else
+          If(v["arg2_dtype"] < 6, v["arg1_dtype"] < 6, False))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if one tensor has only a single element (scalar (Rule 12)
+# Tensors must have the same total number of elements (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or((v["arg1_ndim"] == 0), (And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 1))), Or((v["arg2_ndim"] == 0), (And(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == 1))), False)) if n else
-          If(Or((v["arg1_ndim"] == 0), (And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 1))), Or((v["arg2_ndim"] == 0), (And(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == 1))), False))
+    s.add(Not(If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, And(And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)]))), (If(v["arg1_ndim"] == v["arg2_ndim"], True, False))))) if n else
+          If(Or(v["arg1_ndim"] == 0, v["arg2_ndim"] == 0), True, And(And((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), (And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)]))), (If(v["arg1_ndim"] == v["arg2_ndim"], True, False)))))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

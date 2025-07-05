@@ -1,54 +1,177 @@
 >>
-Rule 1 (input tensor elements for acosh should be greater than or equal to 1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 1
+Rule 1 (input tensor values must be greater than or equal to 1)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 1
 >>
-Rule 2 (output tensor dtype must match input tensor dtype if provided)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 2 (output tensor's dtype must be compatible with input tensor's dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
 >>
-Rule 3 (if out tensor is specified, it should have same number of dimensions as input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2)
->>
-Rule 4 (If the out tensor is provided, its shape should be the same as the input tensor.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 5 (If output tensor is provided, ensure its dtype can accommodate float results)
-{v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
->>
-Rule 6 (Input tensor's dtype should be float or complex)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
->>
-Rule 7 (If output tensor is provided, it must have a floating point or complex dtype)
-{v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
->>
-Rule 8 (If the input is complex, the out tensor should also be complex if provided.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (ndim(v_2) = 0 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
->>
-Rule 9 (If input tensor is complex, output must be complex or be absent)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then ndim(v_2) = 0 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
->>
-Rule 10 (The input tensor cannot be boolean type)
+Rule 3 (input tensor cannot be of bool type)
 {v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 11 (If input tensor is of type float16, out tensor must have a floating-point type greater than or equal to float16, or be absent.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (ndim(v_2) = 0 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 4 (if out is defined, it must have the same shape as the input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 12 (Either input or output tensor should be float32)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_2) = 7 ∨ ndim(v_2) = 0
+Rule 5 (out tensor's dtype must be able to accommodate the result of acosh of the input tensor's dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
 >>
-Rule 13 (If output tensor is provided and input is of type float64, then output must also be of type float64)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then (ndim(v_2) = 0 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 6 (input tensor must have a floating point or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 14 (If input tensor has complex64 type, then output if specified should also be complex64 or complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 then (ndim(v_2) = 0 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 7 (If out is provided, its dtype must be at least as precise as the input's dtype to avoid potential casting errors)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) ≥ 6 else if dtype_(v_1) = 7 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 8 then dtype_(v_2) ≥ 8 else if dtype_(v_1) = 9 then dtype_(v_2) ≥ 9 else if dtype_(v_1) = 10 then dtype_(v_2) ≥ 10
 >>
-Rule 15 (If input tensor has complex128 type, then output tensor, if specified, must also be complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then (ndim(v_2) = 0 ∨ dtype_(v_2) = 10)
+Rule 8 (The output tensor's dtype must be a float or complex type if the input is a float or complex type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
 >>
-Rule 16 (If output tensor is specified, and input tensor is not contiguous, then the output should have the same shape as the input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 9 (If out is provided, its dtype must be a float type of sufficient precision if the input is float.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 8 then dtype_(v_2) = 8
 >>
-Rule 17 (If output tensor is specified, its number of elements must be greater than 0)
-{v_2 : tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+Rule 11 (The `out` tensor, if provided, must not have Short dtype)
+{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) ≠ 2
 >>
-Rule 18 (If input tensor is float32, out tensor must not be an integer type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then (ndim(v_2) = 0 ∨ (dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5))
+Rule 12 (if out is specified, its dtype cannot be int8, int16, int32, int64, uint8)
+{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 13 (If the out tensor is provided, and the input is float16, then the out tensor must have at least float16 precision)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) ≥ 6
+>>
+Rule 14 (If the input is of float16 or float32 dtype, the output can not be of int8, int16, int32, int64, uint8 dtype when out is provided)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5
+>>
+Rule 15 (If the input tensor is a complex number, out must also be a complex number)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 17 (If `out` is provided, its dtype must be at least float32.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) ≥ 7
+>>
+Rule 18 (If out is provided, and input's dtype is a floating type, the out tensor cannot have an integer dtype)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) < 6
+>>
+Rule 19 (If out is provided, and the input is of any integer dtype, then the out tensor must have dtype float32 or float64 or complex64 or complex128)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 20 (If out is provided, and input's dtype is float16 or float32 dtype, then out tensor must be at least float32)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 then dtype_(v_2) ≥ 7
+>>
+Rule 21 (If out is specified, it can't be bool dtype.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) ≠ 0
+>>
+Rule 22 (out tensor, if given, cannot be of type bool if input tensor is numerical)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 10 then dtype_(v_2) ≠ 0
+>>
+Rule 24 (If out is provided and input is any numerical dtype, the out tensor cannot be of a narrower numerical type like int8,int16)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 10 then dtype_(v_2) > 2
+>>
+Rule 26 (If `out` tensor is provided, its dtype cannot be smaller than `float32` if input is a numerical tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 10 then dtype_(v_2) ≥ 7
+>>
+Rule 27 (If out is provided, its dtype must be at least as precise as float32 and cannot be bool)
+{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) > 0 ∧ dtype_(v_1) ≥ 7
+>>
+Rule 29 (If out tensor is specified, and the input tensor is integer, the output tensor must be a float or complex type)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) < 6 then dtype_(v_2) > 6
+>>
+Rule 30 (Enforce float type)
+{v_1: tensor} |=  dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 31 (The out tensor, if provided, must have the same number of elements as input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 33 (If input is an integer type, the output should be at least float32)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) < 6 then dtype_(v_2) ≥ 7
+>>
+Rule 34 (out is not of short type)
+{v_1: tensor} |= if ndim(v_1) > 0 then dtype_(v_1) != 2
+>>
+Rule 35 (if input values are outside domain (less than 1), results might not be accurate)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] >= 1
+>>
+Rule 36 (All float tensors are valid, provided we are not giving 'out')
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 37 (If out is specified and input is float16, output needs to be at least float32 to avoid errors)
+{v_1: tensor, v_2:tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) > 6
+>>
+Rule 38 (For reasonable calculation the input is non-empty)
+{v_1: tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 39 (Input and output should align in sizes if out is given.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 42 (if input tensor is of float16 type, the out parameter must be at least of float32 type)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) > 6
+>>
+Rule 46 (the domain is >=1)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1,0)-1] : v_1[i] ≥ 1
+>>
+Rule 47 (if input is float16 and 'out' tensor provided, 'out' tensor needs to be at least float32 precision.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7
+>>
+Rule 48 (the values in the input tensor should follow the domain of acosh which is greater than or equal to one)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0)-1] : v_1[i] ≥ 1
+>>
+Rule 50 (Input must be a float or complex tensor to enable acosh function)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+>>
+Rule 51 (if out is float16 but specified, then input is guaranteed float as float16 can take the output, so needs float 32 minimum.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) != 6 ∨ dtype_(v_2) ≥ 7
+>>
+Rule 53 (input value domain acosh)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1,0) -1] : v_1[i] ≥ 1
+>>
+Rule 57 (the smallest value inside tensor shoud greater or equal 1 as it is the domain of function)
+{v_1: tensor} |= min(v_1) ≥ 1
+>>
+Rule 59 (Avoid possible data loss: If input is fp16, 'out' must be fp32 or higher if specified)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) > 6
+>>
+Rule 60 (input tensor cannot be bool)
+{v_1: tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 64 (out needs float32 if and only if out and fp16)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 67 (If float16 then output precision at least 32)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7
+>>
+Rule 68 (If the out tensor is specified, its dtype must allow conversion from float)
+{v_1: tensor} |= if ndim(v_1) > 0 then dtype_(v_1) > 1
+>>
+Rule 70 (If out is specified and it is a float, its bit width at least matches input’s)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 8 then dtype_(v_2) = 8
+>>
+Rule 71 (All values should at least equal to 1 or higher values)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] ≥ 1
+>>
+Rule 72 (If `out` is given then, it is not a bool tensor.)
+{v_1: tensor} |= if ndim(v_1) > 0 then dtype_(v_1) > 0
+>>
+Rule 74 (If 'out' is provided, and input values needs to be real and not imaginary to prevent errors)
+{v_1: tensor, v_2:tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
+>>
+Rule 75 (For all tensor values within the tensor need to satisfy function)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) -1] : v_1[i] ≥ 1
+>>
+Rule 76 (Input values need to follow the domain acosh cannot be bool to have values)
+{v_1 : tensor} |= dtype_(v_1) > 0
+>>
+Rule 78 (The data type of the input tensor must be suitable for acosh, i.e. must be real values if out is given.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
+>>
+Rule 80 (if input tensor element is less than the domain to store to valid memory locations)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0)-1] : v_1[i] ≥ 1
+>>
+Rule 82 (If 'out' is given cannot be Short type to store for float)
+{v_1: tensor} |= if ndim(v_1) > 0 then dtype_(v_1) ≠ 2
+>>
+Rule 83 (When 'out' provided and 'input' tensor is a float16, it requires output to be greater than 32, but cannot be a Bool tensor)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 6 then dtype_(v_2) ≥ 7 ∧ dtype_(v_2) > 0
+>>
+Rule 87 (If it is not float or integer the function acosh isn't relevant.)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 88 (The value must always bigger)
+{v_1: tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 1
+>>
+Rule 91 (Needs Real Number only.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If decimals is negative, it should be small enough to avoid overflow (Rule 9)
+# decimals must be a non-negative integer (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] < 0, v["arg1_value"] >= -10, False)) if n else
-          If(v["arg1_value"] < 0, v["arg1_value"] >= -10, False))
+    s.add(Not(And(v["arg1_value"] >= -100, v["arg1_value"] <= 100)) if n else
+          And(v["arg1_value"] >= -100, v["arg1_value"] <= 100))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

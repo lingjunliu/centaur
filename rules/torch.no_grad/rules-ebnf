@@ -1,54 +1,585 @@
 >>
-Rule 1 (torch.no_grad doesn't accept parameters, using a dummy variable in a tautology.)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 2 (Check if a boolean variable is true to enable gradient calculation)
+{v_1 : bool} |= if v_1 then v_1 = true else v_1 = false
 >>
-Rule 2 (torch.no_grad doesn't accept parameters, so any int value is acceptable when compared with itself)
-{v_1 : int} |= v_1 = v_1
+Rule 3 (Check if a tensor is empty before applying no_grad)
+{v_1 : tensor} |= shape(v_1) > 0
 >>
-Rule 3 (torch.no_grad doesn't accept parameters, using a dummy tensor and checking its dimension is non-negative.)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 4 (torch.no_grad doesn't accept parameters, using a dummy string and checking it is not empty.)
-{v_1 : str} |= v_1 ≠ ""
->>
-Rule 5 (torch.no_grad doesn't accept parameters, using a dummy dtype and checking that it is a valid dtype: between 0 and 12)
-{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
->>
-Rule 6 (torch.no_grad doesn't accept parameters, using a dummy list and checking it has non-negative length.)
-{v_1 : list(int)} |= v_1.len ≥ 0
->>
-Rule 7 (torch.no_grad doesn't accept parameters, using a dummy tuple and checking it has a non-negative length.)
-{v_1 : tuple(int)} |= v_1.len ≥ 0
->>
-Rule 8 (torch.no_grad doesn't accept parameters, using a dummy float and checking that it is equal to itself.)
-{v_1 : float} |= v_1 = v_1
->>
-Rule 9 (torch.no_grad doesn't accept parameters, using a dummy int and checking if it is greater than or equal to zero.)
+Rule 4 (int cannot be negative if used for indexing dimensions)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 10 (torch.no_grad doesn't accept parameters, using a dummy bool variable)
-{v_1 : bool} |= if v_1 then true
+Rule 5 (String indicating reduction type must be one of allowed values)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max"
 >>
-Rule 11 (torch.no_grad doesn't accept parameters. Use union type.)
-{v_1: int ⊎ float} |= v_1 ≥ v_1 ∨ v_1 ≤ v_1
+Rule 6 (Compare the number of dimensions between two tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 >>
-Rule 12 (torch.no_grad doesn't accept parameters, requiring a variable of type string to be equal to itself)
-{v_1 : str} |= v_1 = v_1
+Rule 8 (If a float is close to zero then gradient calculation is skipped)
+{v_1 : float} |= if v_1 < 0.0000001 then v_1 = 0.0 else v_1 = v_1
 >>
-Rule 13 (torch.no_grad doesn't accept parameters. Requires a variable of type dtype to be greater or equal to itself.)
-{v_1: dtype} |= v_1 ≥ v_1
+Rule 9 (Check that tensor's element data type should be float to apply no_grad)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 14 (torch.no_grad doesn't accept parameters, so a number is always a number greater or equal than itself.)
-{v_1 : float} |= v_1 ≥ v_1
+Rule 10 (Check if tensor is of certain shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
 >>
-Rule 15 (torch.no_grad, using number, and checking it against a constant)
-{v_1: float} |= v_1 > -1000000
+Rule 11 (Check if a boolean variable is false to disable gradient calculation)
+{v_1 : bool} |= if v_1 then v_1 = false else v_1 = true
 >>
-Rule 16 (torch.no_grad, using a tensor variable)
-{v_1 : tensor} |= ∃i ∈ [0, 0] : ndim(v_1) ≥ 0
+Rule 12 (Verify that the input tensor has more than zero elements.)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 17 (torch.no_grad doesn't accept parameters; requires string variable is within the allowed list.)
+Rule 13 (Check that the string isn't empty)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 14 (Dimension must be smaller or equal to 3)
+{v_1 : int} |= v_1 ≤ 3
+>>
+Rule 15 (A Float can be positive)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 16 (Check that tensor is not complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 17 (A list size should be less than 10)
+{v_1 : list(int)} |= v_1.len < 10
+>>
+Rule 18 (tensor's ndim is less than 5)
+{v_1 : tensor} |= ndim(v_1) < 5
+>>
+Rule 19 (Data type is of type float32 or float 64)
+{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8
+>>
+Rule 20 (Tuple size should be one or two)
+{v_1 : tuple(int)} |= v_1.len = 1 ∨ v_1.len = 2
+>>
+Rule 21 (Check if a boolean is true or false)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 22 (A string's length should be more than zero)
+{v_1 : str} |= v_1.len > 0
+>>
+Rule 23 (A number must be less than max value.)
+{v_1 : int} |= v_1 < 10000
+>>
+Rule 24 (Checking if a float is a valid number (not NaN or inf))
+{v_1 : float} |= v_1 > -100000000.0 ∧ v_1 < 100000000.0
+>>
+Rule 25 (Check for compatible dtype when using no_grad)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+>>
+Rule 26 (List size is greater than 0)
+{v_1 : list(int)} |= v_1.len > 0
+>>
+Rule 27 (Tensor dimension less than the provided integer)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) < v_2
+>>
+Rule 28 (Float number should not be close to one)
+{v_1 : float} |= v_1 < 0.9 ∨ v_1 > 1.1
+>>
+Rule 29 (Check that two integer values are not same)
+{v_1 : int, v_2 : int} |= v_1 ≠ v_2
+>>
+Rule 30 (Check that tensor values are smaller than some value)
+{v_1 : tensor, v_2 : float} |= max(v_1) < v_2
+>>
+Rule 31 (If a condition is true and a tensor's dtype is an integer, then a comparison holds.)
+{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3) then v_3 > 0
+>>
+Rule 32 (Check if the tensor's values are not infinite)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0 ∧ min(v_1) > -1000000 ∧ max(v_1) < 1000000
+>>
+Rule 33 (A float should be smaller than a given value)
+{v_1 : float, v_2 : float} |= v_1 < v_2
+>>
+Rule 34 (String value should be an element in predefined list)
 {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
 >>
-Rule 18 (torch.no_grad - using tensor, checking shape 0 exists)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_1, i)
+Rule 35 (Tensor should not have zero size in any dimension.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 36 (The tensor's dimension is between one and four)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 4
+>>
+Rule 37 (Check if two tensors have the same data type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 38 (A list of floats must be greater than zero)
+{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 39 (if tensor's shape is a tuple then it must be same as the dimension size.)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len
+>>
+Rule 40 (Check if an integer and float are unequal)
+{v_1 : int, v_2 : float} |= v_1 ≠ v_2
+>>
+Rule 41 (Checking if two tensors share a same dimension.)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, v_3) = shape(v_2, v_3)
+>>
+Rule 42 (The length of tuple should less than tensor's dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len < ndim(v_1)
+>>
+Rule 43 (The given integer is within range of data types)
+{v_1 : int} |= v_1 ≥ 1 ∧ v_1 ≤ 13
+>>
+Rule 44 (Check String is not none)
+{v_1 : str} |= v_1 ≠ "none"
+>>
+Rule 45 (Check if dimensions of tensor is not zero before applying no_grad)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 46 (Check that a float variable is positive infinity)
+{v_1 : float} |= v_1 > 100000000000.0
+>>
+Rule 47 (Check if the specified element of a list is zero.)
+{v_1 : list(int), v_2 : int} |= if v_2 < v_1.len then v_1[v_2] = 0 else false = true
+>>
+Rule 48 (Checking list elements of same type)
+{v_1 : list(int), v_2 : list(int)} |= v_1.len = v_2.len
+>>
+Rule 49 (If a tensor's min value is more than an Integer)
+{v_1 : tensor, v_2 : int} |= min(v_1) > v_2
+>>
+Rule 50 (Check If the Data type is Complex)
+{v_1 : dtype} |= v_1 = 10 ∨ v_1 = 11
+>>
+Rule 51 (The string should have the format like 'i,j->ji')
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = ">"
+>>
+Rule 52 (If the first value of tuple is greater then the second value)
+{v_1 : tuple(int)} |= if v_1[0] > v_1[1] then true else false
+>>
+Rule 53 (The value of two float variable must be same)
+{v_1 : float, v_2 : float} |= v_1 = v_2
+>>
+Rule 54 (The two tensors must not have the same dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≠ ndim(v_2)
+>>
+Rule 55 (The dtype must be of integer type (less or equal to 5))
+{v_1 : dtype} |= v_1 ≤ 5
+>>
+Rule 56 (The values of list cannot be a negative number.)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
+>>
+Rule 57 (The shape of a Tensor must be non zero)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) ≠ 0
+>>
+Rule 58 (The dimension size of a tensor must be smaller than a constant)
+{v_1 : tensor} |= ndim(v_1) < 10
+>>
+Rule 60 (Tuple elements should be less than 10)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 10
+>>
+Rule 61 (The string should contain only lowercase character)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ "a" ∧ v_1[i] ≤ "z"
+>>
+Rule 62 (Check If Tuple Size is less than 4)
+{v_1 : tuple(int)} |= v_1.len < 4
+>>
+Rule 63 (The data type Should not be a string)
+{v_1 : dtype} |= v_1 ≠ 12
+>>
+Rule 64 (The minimum value of Tensor cannot be negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 65 (Integer Value is Between a Range)
+{v_1 : int, v_2 : int} |= v_1 > 10 ∧ v_1 < v_2
+>>
+Rule 67 (Length of list and tensor must be same)
+{v_1 : list(int), v_2 : tensor} |= v_1.len = shape(v_2, 0)
+>>
+Rule 68 (Two tensors should have same shape in the first dimension.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 69 (If a float is not null then assign zero)
+{v_1 : float} |= if v_1 ≠ 0.0 then v_1 = 0.0 else v_1 = v_1
+>>
+Rule 70 (Check Tensor shape and apply operation only with valid shape)
+{v_1 : tensor} |= if shape(v_1, 0) > 1 then shape(v_1, 0) = 0 else shape(v_1, 0) = 1
+>>
+Rule 71 (String Length should be less than some size)
+{v_1 : str} |= v_1.len < 20
+>>
+Rule 72 (If given int v1 is greater than v2)
+{v_1 : int, v_2 : int} |= if v_1 > v_2 then v_1 > v_2 else false
+>>
+Rule 73 (Check for tensor value equal to zero)
+{v_1 : tensor} |= if min(v_1) = 0 then true else false
+>>
+Rule 74 (Tuple Length must be Equal to 2)
+{v_1 : tuple(int)} |= v_1.len = 2
+>>
+Rule 75 (Check the Data type value and type int)
+{v_1 : dtype, v_2 : int} |= v_1 = v_2
+>>
+Rule 76 (Apply only with specific List size)
+{v_1 : list(int)} |= if v_1.len = 2 then v_1.len = 2 else v_1.len = 0
+>>
+Rule 77 (Check if two float values are not equal)
+{v_1 : float, v_2 : float} |= v_1 ≠ v_2
+>>
+Rule 78 (Check The Tensor dimension is 2)
+{v_1 : tensor} |= ndim(v_1) = 2
+>>
+Rule 79 (Two strings Should be same when no gradient is ON)
+{v_1 : str, v_2 : str} |= v_1 = v_2
+>>
+Rule 80 (Apply action on only if int range is met)
+{v_1 : int} |= if v_1 > 0 ∧ v_1 < 5 then v_1 = v_1 else v_1 = 0
+>>
+Rule 81 (If String is Empty then operation fails.)
+{v_1 : str} |= if v_1.len = 0 then v_1 = "" else v_1 = v_1
+>>
+Rule 82 (Check tensor has some positive values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ min(v_1) > 0
+>>
+Rule 83 (Int number should be less than others)
+{v_1 : int, v_2 : int} |= v_1 < v_2
+>>
+Rule 84 (List size should be between 1 and 5)
+{v_1 : list(int)} |= v_1.len > 1 ∧ v_1.len < 5
+>>
+Rule 85 (Tuple should not contain same element.)
+{v_1 : tuple(int)} |= v_1[0] ≠ v_1[1]
+>>
+Rule 86 (Two float elements Should sum to some value)
+{v_1 : float, v_2 : float} |= v_1 + v_2 > 0
+>>
+Rule 87 (Check for same dtypes and sizes)
+{v_1 : dtype, v_2 : dtype} |= v_1 = v_2
+>>
+Rule 88 (Tensor dimension sizes Should be in specified sizes)
+{v_1 : tensor} |= if ndim(v_1) > 5 then ndim(v_1) = 0 else ndim(v_1) = ndim(v_1)
+>>
+Rule 89 (String value is none or tanh)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "tanh"
+>>
+Rule 90 (Tensor min value is less than integer value)
+{v_1 : tensor, v_2 : int} |= min(v_1) < v_2
+>>
+Rule 91 (Tensor can only be bool if a condition is met)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 0 else dtype_(v_1) ≠ 0
+>>
+Rule 92 (If string has correct format and tuple's first value is positive then allow action.)
+{v_1 : str, v_2 : tuple(int)} |= if v_1 = "ii->i" ∧ v_2[0] > 0 then true else false
+>>
+Rule 93 (Value of int can be only 1 if action is true)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 = 1 else v_1 = 0
+>>
+Rule 94 (If Float Value is > 10 and less than 20 the condition must be satisfied.)
+{v_1 : float} |= if v_1 > 10 ∧ v_1 < 20 then v_1 > 10 ∧ v_1 < 20 else v_1 = v_1
+>>
+Rule 95 (Apply only if list size is equal to the tensor dimension)
+{v_1 : list(int), v_2 : tensor} |= v_1.len = ndim(v_2)
+>>
+Rule 97 (Tuple's values must be greater than 100 when no_grad is on.)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 100
+>>
+Rule 98 (Only Float and integer can be applied with no_grad)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 99 (Dtype Must be greater than specific Int)
+{v_1 : dtype, v_2 : int} |= v_1 > v_2
+>>
+Rule 100 (If String Length has more than 1 character, should not equal max)
+{v_1 : str} |= if v_1.len > 1 then v_1 ≠ "max" else v_1 = v_1
+>>
+Rule 101 (String can be only one type when the other parameter condition must satisfied)
+{v_1 : str, v_2 : float} |= if v_2 > 0 then v_1 = "tanh" else v_1 = "none"
+>>
+Rule 102 (if two float values multiplication is zero with no gradient)
+{v_1 : float, v_2 : float} |= v_1 * v_2 = 0
+>>
+Rule 103 (Int variable size should greater than given Integer value)
+{v_1 : int} |= v_1 > 1000
+>>
+Rule 104 (Check Only List elements can be only 0)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = 0
+>>
+Rule 105 (Tensor shape must be a square number)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ if shape(v_1, i) * shape(v_1, i) > 0 then true else false
+>>
+Rule 106 (Check Tuple with integer number)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : if v_1[i] < 0 then v_1[i] = 0 else v_1[i] = v_1[i]
+>>
+Rule 108 (The shape of a tensor must be 1)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 1
+>>
+Rule 109 (DType can be only float in no_grad mode.)
+{v_1 : dtype} |= v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 6
+>>
+Rule 110 (The number of Tensors must be less than 3)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) + ndim(v_2) + ndim(v_3) < 3
+>>
+Rule 111 (String variable should contain only valid chars.)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "a" ∧ v_1[i] ≤ "z") ∨ (v_1[i] ≥ "0" ∧ v_1[i] ≤ "9") ∨ v_1[i] = ">" ∨ v_1[i] = "," ∨ v_1[i] = "-"
+>>
+Rule 113 (Data Type should not be boolean type)
+{v_1 : dtype} |= v_1 ≠ 0
+>>
+Rule 114 (Tensor min val must be less than or equals to Max val )
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+>>
+Rule 116 (Int var should less than 100 only when no_grad)
+{v_1 : int} |= if v_1 < 100 then v_1 < 100 else false
+>>
+Rule 117 (List should contain only data with min and max values)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > min(v_1) ∧ v_1[i] < max(v_1)
+>>
+Rule 118 (Tensor should be smaller size than other tensor if used for operation)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) < ndim(v_2)
+>>
+Rule 119 (Float value can be only zero)
+{v_1 : float} |= v_1 = 0.0
+>>
+Rule 120 (If Dtype is float 64, can not be used in some operations with no_grad.)
+{v_1 : dtype} |= v_1 ≠ 8
+>>
+Rule 121 (If A Tensor is of Float and Value is > 100 then action only can applied)
+{v_1 : tensor, v_2 : float} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 > 100 else false
+>>
+Rule 122 (If String Length is only 2 or 3, then do operation with it)
+{v_1 : str} |= if v_1.len = 2 ∨ v_1.len = 3 then v_1 = v_1 else v_1 = "none"
+>>
+Rule 123 (Data must be a valid format and dimension.)
+{v_1 : int} |= v_1 > -100 ∧ v_1 < 100
+>>
+Rule 124 (A boolean cannot equal float)
+{v_1 : bool, v_2 : float} |= if v_1 = true then v_2 ≠ 1.0 else v_2 ≠ 0.0
+>>
+Rule 125 (If Tuple is of size, and sum to 0 under no_grad mode)
+{v_1 : tuple(int)} |= v_1[0] + v_1[1] = 0
+>>
+Rule 126 (Check list of element if zero then cannot be further called operation)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : if v_1[i] = 0 then true else false
+>>
+Rule 127 (If Tensor minimum is equals to max then operation applied here.)
+{v_1 : tensor} |= min(v_1) = max(v_1)
+>>
+Rule 128 (String and number size can only equal 5.)
+{v_1 : str, v_2 : int} |= v_1.len = 5 ∧ v_2 = 5
+>>
+Rule 129 (The Data type must equal 1)
+{v_1 : dtype} |= v_1 = 1
+>>
+Rule 130 (If Tensor is 1 then all must be zero.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
+>>
+Rule 131 (String must be a combination of valid strings only.)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik"
+>>
+Rule 133 (If value is boolean then has some operation with number.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0 else v_2 < 0
+>>
+Rule 134 (if tensor shape and max of the given tensor are same, then operation continues)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) = max(v_1) then true else false
+>>
+Rule 135 (Dtype must be between some types to be allowed under no_grad)
+{v_1 : dtype} |= v_1 > 5 ∧ v_1 < 9
+>>
+Rule 136 (The Length of tuple is zero.)
+{v_1 : tuple(int)} |= v_1.len = 0
+>>
+Rule 137 (A list with maximum elements value )
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 138 (If tensor has all zero values)
+{v_1 : tensor} |= min(v_1) = 0 ∧ max(v_1) = 0
+>>
+Rule 139 (Number cannot be zero if operation enabled.)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 140 (Tensors must be equal to each other.)
+{v_1 : tensor, v_2 : tensor} |= v_1 = v_2
+>>
+Rule 141 (Tensor Should be greater than 0 to be part of that Action.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 142 (if value can only less than zero then specific actions will do with it)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > -1 else v_2 < -1
+>>
+Rule 143 ( If Tensor is > 0 and float greater than 100.)
+{v_1 : tensor, v_2 : float} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then v_2 > 100 else v_2 = 0.0
+>>
+Rule 144 (Dtype can only work with int)
+{v_1 : dtype} |= v_1 ≥ 1 ∧ v_1 ≤ 5
+>>
+Rule 145 (Tuple is Empty then Operation fails.)
+{v_1 : tuple(int)} |= if v_1.len = 0 then false
+>>
+Rule 146 (check for the shape and tensor size before action)
+{v_1 : tensor} |= if shape(v_1, 0) > 2 ∧ shape(v_1, 1) < 5 then shape(v_1, 0) > 2 ∧ shape(v_1, 1) < 5 else false
+>>
+Rule 147 (Strings must be different with each others while under nograd)
+{v_1 : str, v_2 : str} |= v_1 ≠ v_2
+>>
+Rule 148 (List only accept numbers then the action can perform only)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≠ 0
+>>
+Rule 149 (Data type cannot contains more 1)
+{v_1 : dtype} |= v_1 < 2
+>>
+Rule 150 (Integer Should greater than given data type.)
+{v_1 : int, v_2 : dtype} |= if v_2 = 1 then v_1 > 1 else v_1 > 0
+>>
+Rule 151 (Cannot use string equal to max when using no_grad)
+{v_1 : str} |= v_1 ≠ "max"
+>>
+Rule 152 (Float number between some values)
+{v_1 : float} |= v_1 > 0.000001 ∧ v_1 < 10000000.0
+>>
+Rule 153 (If values are booleans then condition only runs under no_grad.)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true else v_2 = false
+>>
+Rule 154 (if all values must be grater then max then valid action is happen)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) > max(v_1) then true else false
+>>
+Rule 155 (Value in the Dtype must be a specific element.)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 5
+>>
+Rule 156 (if Tuple size must be less than or equal to zero, than action will happen.)
+{v_1 : tuple(int)} |= if v_1.len ≤ 0 then true else false
+>>
+Rule 157 (list of values must be only bigger than other.)
+{v_1 : list(int), v_2 : int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > v_2
+>>
+Rule 158 (Tensor Min Cannot same as Number size under that action.)
+{v_1 : tensor, v_2 : int} |= min(v_1) ≠ v_2
+>>
+Rule 159 (if string must greater than 5 chars, condition failed.)
+{v_1 : str} |= if v_1.len > 5 then false
+>>
+Rule 160 (Dtypes value should equal Float16 while using no_grad action.)
+{v_1 : tensor} |= dtype_(v_1) = 6
+>>
+Rule 161 (Str Value must be Constant Under no_grad function.)
+{v_1 : str} |= v_1 = "constant"
+>>
+Rule 162 (Float values cannot be same as Int, while performing calculation with nograd.)
+{v_1 : float, v_2 : int} |= v_1 ≠ v_2
+>>
+Rule 163 (If value has any True inside it is can operate that.)
+{v_1 : bool} |= ∃i ∈ [0, 1] : if v_1 = true then v_1 = true else v_1 = false
+>>
+Rule 164 (If tensor shape must be equals to list then action.)
+{v_1 : tensor, v_2 : list(float)} |= if shape(v_1, 0) = v_2.len then true else false
+>>
+Rule 165 (Dtype Cannot contain more than value 10 under no_grad)
+{v_1 : dtype} |= v_1 ≤ 10
+>>
+Rule 166 (tuple Size must be equal 3 then apply that to next action in no_grad.)
+{v_1 : tuple(int)} |= if v_1.len = 3 then v_1.len = 3 else false
+>>
+Rule 167 (Length of list has to be less than Tensor Dimension to be valid)
+{v_1 : list(int), v_2 : tensor} |= v_1.len < ndim(v_2)
+>>
+Rule 168 (While using no gradient tensors min and max must be equal value with condition)
+{v_1 : tensor} |= if min(v_1) > max(v_1) then false
+>>
+Rule 169 (Int Value must in a specic range that under No grad function can do calculations.)
+{v_1 : int} |= v_1 > 1 ∧ v_1 < 100
+>>
+Rule 170 (Tensor dtypes should be integer under no_grad then certain Action happens.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_1) = 1 else false
+>>
+Rule 171 (If string equals none return False and stop calculation.)
+{v_1 : str} |= if v_1 = "none" then false
+>>
+Rule 172 (For Float operations minimum Value is that number.)
+{v_1 : float} |= if v_1 < 0 then v_1 = 0 else v_1 = v_1
+>>
+Rule 173 (boolean check can only happen between int and boolean.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 = 1 else v_2 = 0
+>>
+Rule 174 (All list value can be added and equals to the tensor dimension size.)
+{v_1 : tensor, v_2 : list(int)} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = v_2.len
+>>
+Rule 175 (Dtype values should not be complex to work under no grad.)
+{v_1 : dtype} |= v_1 < 10
+>>
+Rule 176 (Tuple value must be greater that some specific integer to operate it.)
+{v_1 : tuple(int), v_2 : int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > v_2
+>>
+Rule 177 (if tensor values are different it cannot work under no grad function.)
+{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
+>>
+Rule 178 (The String cannot be this name to start the action, because its an edge case under no_grad mode.)
+{v_1 : str} |= v_1 ≠ "tanh"
+>>
+Rule 179 (int if not Zero can applied gradient under it.)
+{v_1 : int} |= if v_1 = 0 then false
+>>
+Rule 180 (Tensordim sizes are not same then not same calculation.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then false
+>>
+Rule 181 (If All char are upper in String than under it certain Action is performed.)
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] ≥ "A" ∧ v_1[i] ≤ "Z")
+>>
+Rule 182 (For Float Values there are certain rule for under no_grad environment.)
+{v_1 : float, v_2 : float} |= v_1 + v_2 > 1000
+>>
+Rule 183 (Tensor needs to have shape for under next operations.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+>>
+Rule 184 (If bool condition and number 0 than operation allowed.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 = 0 else v_2 = 1
+>>
+Rule 187 (if Tuple's minimum and maximum are valid with the given dimension then enabled, if not then pass.)
+{v_1 : tuple(int), v_2 : tensor} |= if min(v_1) < ndim(v_2) ∧ max(v_1) < ndim(v_2) then true else false
+>>
+Rule 188 (If all tensor values equals 10 then operation will operate that with no grad action.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 10
+>>
+Rule 189 (If String is null under no_grad skip it.)
+{v_1 : str} |= if v_1.len = 0 then false
+>>
+Rule 190 (If Two Tensors minimum is same then do other Action.)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = min(v_2) then true else false
+>>
+Rule 191 (if String Char not in certain group skip this and return false, while no grad)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = ">" ∨ v_1[i] = "," ∨ v_1[i] = "b" ∨ v_1[i] = "k" ∨ v_1[i] = "n" ∨ v_1[i] = "m" ∨ v_1[i] = "a"
+>>
+Rule 192 (If Float is Greater or less than a Number than cannot continue, with no gradient under.)
+{v_1 : float, v_2 : int} |= v_1 ≥ v_2 ∧ v_1 ≤ v_2
+>>
+Rule 193 (if bool value equals some value under certain time can use)
+{v_1 : bool} |= if v_1 = true then v_1 = true else v_1 = false
+>>
+Rule 194 (If all values in Tensor >0 , then return action.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > 0
+>>
+Rule 195 (if Dtype value can be only between integer value, then enabled.)
+{v_1 : dtype, v_2 : int} |= if v_2 < 10 then v_1 = v_2 else v_1 = 0
+>>
+Rule 196 (if the Tuple is not 1 size, the skip it and not perform this action)
+{v_1 : tuple(int)} |= v_1.len ≠ 1
+>>
+Rule 197 (If the List size can only be great than number then certain action happen with list.)
+{v_1 : list(int), v_2 : int} |= v_1.len > v_2
+>>
+Rule 198 (if the Shape of The Tensor is not same. under certain operation.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) ≠ shape(v_2, 0) then true else false
+>>
+Rule 199 (Under no grad all tensor min should be same that with all shape value.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = min(v_1)
+>>
+Rule 200 (The tensor dtype must only be float)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 201 (If string contains character "a" and "b" only action is allowed )
+{v_1 : str} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = "a" ∨ v_1[i] = "b"
+>>
+Rule 202 (If Tensor min is negative value then assign zero to it then no_grad can work.)
+{v_1 : tensor} |= if min(v_1) < 0 then min(v_1) = 0 else min(v_1) = min(v_1)
+>>
+Rule 203 (If float value, than only can applied to max values)
+{v_1 : float} |= if v_1 = max(v_1) then v_1 = v_1 else v_1 = 0.0
+>>
+Rule 207 (Tensor dimension size cannot be greater than 1)
+{v_1 : tensor} |= ndim(v_1) < 2
+>>
+Rule 208 (If tuple value is the correct dimensions shape than proceed operations.)
+{v_1 : tuple(int), v_2 : tensor} |= if v_1.len = ndim(v_2) then true else false
+>>
+Rule 209 ( If Tensor values >0 then condition success else cannot proceed)
+{v_1 : tensor, v_2 : bool} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then v_2 = true else v_2 = false

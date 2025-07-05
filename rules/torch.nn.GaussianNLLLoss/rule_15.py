@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Dtype of input, target and var should be float or complex (Rule 15)
+# If input and target are complex, var cannot be int or float (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And(And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 11))), (And(6 <= v["arg3_dtype"], v["arg3_dtype"] <= 11)))) if n else
-          And(And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 11)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 11))), (And(6 <= v["arg3_dtype"], v["arg3_dtype"] <= 11))))
+    s.add(Not(If(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))), (Or(v["arg3_dtype"] == 9, v["arg3_dtype"] == 10)), False)) if n else
+          If(And((Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10)), (Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10))), (Or(v["arg3_dtype"] == 9, v["arg3_dtype"] == 10)), False))
 )
 
 def rule_15_func(arg1, arg2, arg3, solver=None, neg=False):

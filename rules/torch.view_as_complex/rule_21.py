@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor has more than 0 dimensions, then check if any of the dimension is zero. It shouldn't happen if the dtype is float32/float64 and last dimension is 2. (Rule 21)
+# Tensor must have more than one dimension or shape requirement doesn't make sense (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(v["arg1_ndim"] > 0, Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 2), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False)) if n else
-          If(And(And(v["arg1_ndim"] > 0, Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 2), And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))
+    s.add(Not(Or((v["arg1_ndim"] > 1), (Select(v["arg1_shape"], 0) == 2))) if n else
+          Or((v["arg1_ndim"] > 1), (Select(v["arg1_shape"], 0) == 2)))
 )
 
 def rule_21_func(arg1, solver=None, neg=False):
@@ -24,18 +24,16 @@ def rule_21_func(arg1, solver=None, neg=False):
         solver = Solver()
         arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_dtype': arg1_dtype, 'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_21(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_dtype': arg1['dtype'], 'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_21(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)

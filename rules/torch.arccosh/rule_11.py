@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor is quantized, the output tensor, if provided, must also be quantized (Rule 11)
+# If the input tensor is int, the output tensor should at least be float (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < 12, True, v["arg2_dtype"] < 12)) if n else
-          If(v["arg1_dtype"] < 12, True, v["arg2_dtype"] < 12))
+    s.add(Not(If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), Or(Or(Or(Or((v["arg2_dtype"] == 6), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), False)) if n else
+          If(Or(Or(Or(Or((v["arg1_dtype"] == 1), (v["arg1_dtype"] == 2)), (v["arg1_dtype"] == 3)), (v["arg1_dtype"] == 4)), (v["arg1_dtype"] == 5)), Or(Or(Or(Or((v["arg2_dtype"] == 6), (v["arg2_dtype"] == 7)), (v["arg2_dtype"] == 8)), (v["arg2_dtype"] == 9)), (v["arg2_dtype"] == 10)), False))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input is complex128, output must be complex128 if specified (Rule 14)
+# If input tensor is int, the output tensor can't be int8 or uint8. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))
+    s.add(Not(If(v["arg1_dtype"] < 6, (And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 5)), False)) if n else
+          If(v["arg1_dtype"] < 6, (And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 5)), False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

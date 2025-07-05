@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor's dtype is float16 and output tensor is given, its dtype can not be complex64/128 (Rule 18)
+# if input tensor has np.int32, np.int64, then output tensor has at least np.float32. (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), False)) if n else
-          If(v["arg1_dtype"] == 6, And(v["arg2_dtype"] != 9, v["arg2_dtype"] != 10), False))
+    s.add(Not(If(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), v["arg2_dtype"] >= 7, False)) if n else
+          If(Or(v["arg1_dtype"] == 3, v["arg1_dtype"] == 4), v["arg2_dtype"] >= 7, False))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

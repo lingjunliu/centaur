@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if dimension is negative, index should be within shape bounds starting from the end (Rule 3)
+# index should be within the tensor's size along the dimension (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg3_value"] < 0, v["arg3_value"] >= (0 - v["arg1_ndim"])), And(v["arg2_value"] >= 0, v["arg2_value"] < Select(v["arg1_shape"], v["arg1_ndim"] + v["arg3_value"])), False)) if n else
-          If(And(v["arg3_value"] < 0, v["arg3_value"] >= (0 - v["arg1_ndim"])), And(v["arg2_value"] >= 0, v["arg2_value"] < Select(v["arg1_shape"], v["arg1_ndim"] + v["arg3_value"])), False))
+    s.add(Not(And(And(v["arg1_ndim"] > 0, v["arg3_value"] >= 0), v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"]))) if n else
+          And(And(v["arg1_ndim"] > 0, v["arg3_value"] >= 0), v["arg3_value"] < Select(v["arg1_shape"], v["arg2_value"])))
 )
 
 def rule_3_func(arg1, arg2, arg3, solver=None, neg=False):

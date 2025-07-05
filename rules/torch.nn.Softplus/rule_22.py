@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If beta is very large, threshold must also be very large (Rule 22)
+# If input tensor contains very large negative values, threshold must be large enough (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] > 1000, v["arg2_value"] > 1000, False)) if n else
-          If(v["arg1_value"] > 1000, v["arg2_value"] > 1000, False))
+    s.add(Not(If(Select(v["arg1_range"], 0) < -50, v["arg2_value"] > 10, False)) if n else
+          If(Select(v["arg1_range"], 0) < -50, v["arg2_value"] > 10, False))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,25 @@ def rule_22_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
         arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_22(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_22(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)

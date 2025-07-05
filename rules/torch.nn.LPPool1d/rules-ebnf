@@ -1,63 +1,153 @@
 >>
-Rule 1 (kernel_size and stride should be greater than zero)
+Rule 1 (kernel_size and stride must be positive integers)
 {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 2 (Input tensor should have 2 or 3 dimensions)
+Rule 2 (kernel_size must be a positive integer)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 3 (input tensor must have 2 or 3 dimensions)
 {v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
 >>
-Rule 3 (When ceil_mode is true, the output size should be greater than or equal to the floor of output size)
-{v_1 : int, v_2 : int, v_3 : bool, v_4 : int} |= if v_3 then (v_4 >= (v_1 - v_2)/v_2 + 1)
+Rule 4 (stride should not be zero)
+{v_1 : int} |= v_1 ≠ 0
 >>
-Rule 4 (Kernel size should be smaller or equal to the input length when input is 2D tensor.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then v_2 <= shape(v_1, 1)
+Rule 5 (kernel_size should be smaller than input size)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) > 0 ∧ v_2 < shape(v_1, ndim(v_1) - 1)
 >>
-Rule 5 (Kernel size should be smaller or equal to the input length when input is 3D tensor.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 <= shape(v_1, 2)
+Rule 6 (ceil_mode is a boolean value)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 6 (Kernel size cannot be negative)
-{v_1 : int} |= v_1 >= 0
+Rule 7 (kernel_size and stride are equal when stride is none)
+{v_1 : int, v_2 : int} |= v_1 = v_2
 >>
-Rule 7 (When stride is not given, it defaults to kernel_size)
-{v_1 : int, v_2 : int} |= if v_2 = 0 then v_2 = v_1
+Rule 8 (input tensor's last dimension size is large enough relative to kernel size and stride)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, ndim(v_1) - 1) - v_2 ≥ 0 ∧ (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 ≥ -1
 >>
-Rule 8 (Output length should be non-negative)
-{v_1 : int, v_2 : int, v_3: int} |= (v_1 - v_2)/v_3 + 1 >= 0
+Rule 10 (kernel size is less than a maximum value)
+{v_1 : int} |= v_1 < 10000
 >>
-Rule 9 (If stride is larger than kernel size, some input elements will be skipped.)
-{v_1 : int, v_2 : int} |= if v_2 > v_1 then true
+Rule 12 (prevent zero division when calculating output size with float type)
+{v_1 : float} |= v_1 ≠ 0.0
 >>
-Rule 10 (If input is 2D, number of channels C must be greater than 0)
-{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0
+Rule 13 (kernel_size is not negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 11 (If input is 3D, number of channels C must be greater than 0)
-{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) > 0
+Rule 15 (input last dimension must be greater than or equal to kernel size)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2
 >>
-Rule 12 (The last dimension of input tensor should be larger than kernel size)
-{v_1: tensor, v_2: int} |= shape(v_1, ndim(v_1)-1) ≥ v_2
+Rule 16 (kernel size should not be extremely large compared to the input size)
+{v_1: tensor, v_2: int} |= shape(v_1, ndim(v_1) - 1) / v_2 > 0.01
 >>
-Rule 13 (The L_in must be larger than kernel_size - stride.)
-{v_1: tensor, v_2: int, v_3: int} |= shape(v_1, ndim(v_1)-1) >= v_2 -v_3
+Rule 17 (stride should not be extremely large compared to kernel size)
+{v_1: int, v_2: int} |=  v_1 / v_2 < 100
 >>
-Rule 14 (The L_out must be smaller or equal to the L_in)
-{v_1: tensor, v_2: int} |= if ndim(v_1) = 2 then true else if ndim(v_1) = 3 then shape(v_1, 2) >= shape(v_1, 2) - v_2
+Rule 18 (input size and kernel size should allow for a non-negative output size)
+{v_1 : tensor, v_2 : int, v_3: int} |= (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 + 1 > 0
 >>
-Rule 15 (When stride equals kernel size, L_in must be divisible by stride (without ceil mode), L_in and stride are int)
-{v_1: int, v_2: int, v_3: bool} |= if v_3 then true else (v_1 / v_2) * v_2 = v_1
+Rule 19 (kernel_size must be greater than 0 if stride is 1)
+{v_1 : int, v_2 : int} |= if v_2 = 1 then v_1 > 0
 >>
-Rule 16 (When kernel size equals the length of L_in, the L_out becomes 1.)
-{v_1: tensor, v_2: int} |= if shape(v_1, ndim(v_1)-1) = v_2 then true
+Rule 20 (Prevent large memory allocation by limiting the product of input dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048 ∧ (if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 1000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 1000000)
 >>
-Rule 17 (When kernel size = 1, output size equals to input size.)
-{v_1: tensor} |= if shape(v_1, ndim(v_1) -1) > 0 then true
+Rule 21 (stride must be less than or equal to the kernel size)
+{v_1 : int, v_2 : int} |= v_2 ≤ v_1
 >>
-Rule 18 (The channel number C must be an integer and greater than 0.)
-{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) -1 ] : shape(v_1, i) > 0
+Rule 22 (kernel size should not exceed the max int value)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 19 (Kernel size must be integer type)
-{v_1 : int ⊎ float} |= v_1 = v_1
+Rule 24 (Input channels must be greater than zero to avoid allocation error)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 20 (The last dimension of input tensor must be non-negative)
-{v_1 : tensor} |= shape(v_1, ndim(v_1)-1) ≥ 0
+Rule 27 (The difference of input size and kernel size must be small enough to avoid overflow)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1)-1) - v_2 < 2147483647
 >>
-Rule 21 (If the input is a 3D tensor, its shape should be N x C x L_in, where N, C and L_in are positive integers)
-{v_1: tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+Rule 28 (Kernel size must be small enough to avoid integer overflow during calculation)
+{v_1: int} |= v_1 * v_1 < 2147483647
+>>
+Rule 31 (Kernel size must be small enough to avoid integer overflow during calculation)
+{v_1: int} |= v_1 < 46340
+>>
+Rule 32 (Check for valid dtype for calculations)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 33 (Check output size is not too small)
+{v_1 : tensor, v_2: int, v_3: int} |= (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 + 1 > -100000
+>>
+Rule 34 (Check for NaN values in kernel_size)
+{v_1: float} |= v_1 = v_1
+>>
+Rule 35 (Kernel size must be positive and smaller than a maximum value)
+{v_1 : int} |= 0 < v_1 ∧ v_1 < 10000
+>>
+Rule 36 (Input tensor's length must be large enough to produce a meaningful output)
+{v_1 : tensor, v_2: int, v_3: int} |= shape(v_1, ndim(v_1)-1) > v_2 * v_3
+>>
+Rule 37 (The kernel size should not be larger than the maximum possible output size)
+{v_1 : int} |= v_1 < 1000000
+>>
+Rule 38 (Stride should not lead to extremely small output)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1)-1) - v_2) / v_3 > -1000
+>>
+Rule 39 (Kernel size must be representable as a float without overflow)
+{v_1 : int} |= v_1 < 16777216
+>>
+Rule 42 (Input tensor must not have half-precision dtype to avoid overflow)
+{v_1: tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 43 (Calculated output length should be greater than 0)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 + 1 > 0 else shape(v_1, ndim(v_1) - 1) - v_2 + 1 > 0
+>>
+Rule 46 (The output size should be an integer)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) - ((shape(v_1, ndim(v_1) - 1) - v_2) / v_3) * v_3 = 0 else (shape(v_1, ndim(v_1) - 1) - v_2) - ((shape(v_1, ndim(v_1) - 1) - v_2) / 1) * 1= 0
+>>
+Rule 48 (The output size should be an integer, avoiding mod operator)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) = ((shape(v_1, ndim(v_1) - 1) - v_2) / v_3) * v_3 else (shape(v_1, ndim(v_1) - 1) - v_2) = ((shape(v_1, ndim(v_1) - 1) - v_2) / 1) * 1
+>>
+Rule 49 (The output size should be an integer by checking integer division)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) = ((shape(v_1, ndim(v_1) - 1) - v_2) / v_3) * v_3 else (shape(v_1, ndim(v_1) - 1) - v_2) = ((shape(v_1, ndim(v_1) - 2) - v_2) / 1) * 1
+>>
+Rule 50 (The output size should be an integer by checking that division doesn't change value)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) = ((shape(v_1, ndim(v_1) - 1) - v_2) / v_3) * v_3  ∨ (((shape(v_1, ndim(v_1) - 1) - v_2) / v_3) * v_3 = shape(v_1, ndim(v_1) - 1) - v_2)
+>>
+Rule 55 (The output size should be an integer. Requires output to be castable to int.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then ∃x ∈ [0, 1000]: ((shape(v_1, ndim(v_1) - 1) - v_2) / v_3) = x else ∃x ∈ [0, 1000]: ((shape(v_1, ndim(v_1) - 1) - v_2) / 1) = x
+>>
+Rule 56 (The output size should not be a very large negative number)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 + 1 > -1000000 else (shape(v_1, ndim(v_1) - 1) - v_2) / 1 + 1 > -1000000
+>>
+Rule 57 (The output size should not be a very large negative number in any dimension of the output tensor, considering at least 2 dim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) ≥ 2 then if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 + 1 > -10000 else (shape(v_1, ndim(v_1) - 1) - v_2) / 1 + 1 > -10000
+>>
+Rule 58 (The output size should not be a very large negative number, simplified and dimension agnostic)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 > -10000 else (shape(v_1, ndim(v_1) - 1) - v_2) > -10000
+>>
+Rule 59 (The combination of input size, kernel_size, and stride should not lead to an extremely small output size, avoid division)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, ndim(v_1) - 1) - v_2 > -10000 then shape(v_1, ndim(v_1) - 1) - v_2 > -10000 else if v_3 ≠ 0 then true else shape(v_1, ndim(v_1) - 1) - v_2 > -10000
+>>
+Rule 60 (The combination of input size, kernel_size, and stride should result in a reasonable output size, accounting for zero stride)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ 0 then (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 > -10000 else (shape(v_1, ndim(v_1) - 1) - v_2) > -100000
+>>
+Rule 62 (The combination of input size and kernel_size should not lead to input size is too small RuntimeError)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) - v_2 > -100000
+>>
+Rule 63 (The last dimension of the input tensor must be sufficiently large relative to the kernel size)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) > v_2 - 100000
+>>
+Rule 65 (The input size must be large enough to result in a non-empty output)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2 ∧ v_3 > 0 ∧ (shape(v_1, ndim(v_1) - 1) - v_2) / v_3 + 1 > 0
+>>
+Rule 66 (The input size must be large enough to result in a non-negative output with the formula.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2 ∧ ((shape(v_1, ndim(v_1) - 1) - v_2) / v_3 + 1) >= 0
+>>
+Rule 67 (The input size must be large enough to result in a non-negative output with valid division)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2 ∧ v_3 > 0 ∧ ((shape(v_1, ndim(v_1) - 1) - v_2) / v_3 + 1) ≥ 0
+>>
+Rule 68 (Input size and kernel size are compatible)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) ≥ v_2 ∧ v_2 ≥ 0
+>>
+Rule 69 (Kernel size should be within a reasonable bound to prevent allocation errors)
+{v_1 : int} |= v_1 < 100000000
+>>
+Rule 71 (The last dimension of the input tensor cannot be extremely negative.)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 1) > -1000

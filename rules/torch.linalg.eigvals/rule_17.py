@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The two last dimensions of A should have same value greater than 0 (Rule 17)
+# Check for valid square matrix dimensions and ensure positive dimensions to prevent zero-sized matrices (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(And(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2))) if n else
-          And(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0, Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)))
+    s.add(Not(And(And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0)) if n else
+          And(And(And(v["arg1_ndim"] >= 2, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg1_shape"], v["arg1_ndim"] - 2)), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

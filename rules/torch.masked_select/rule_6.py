@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input and mask have the same shape, then they are broadcastable (Rule 6)
+# If the input tensor has a dimension of size a, the mask tensor must have a dimension of size a or 1 in the same position. Simplified version, ensuring at least sizes match if ndims are the same. (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_ndim"] == v["arg2_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), False)) if n else
-          If((v["arg1_ndim"] == v["arg2_ndim"]), (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])), False))
+    s.add(Not(If(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg2_shape"], i) == 1)) for i in range(6)]), False)) if n else
+          If(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), Select(v["arg2_shape"], i) == 1)) for i in range(6)]), False))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

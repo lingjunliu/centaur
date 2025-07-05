@@ -1,57 +1,96 @@
 >>
-Rule 1 (input tensor of sqrt_ must have a floating-point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 1 (Input tensor dtype cannot be cast to char.)
+{v_1 : tensor} |= dtype_(v_1) ≠ "Char"
 >>
-Rule 2 (input tensor of sqrt_ must have non-negative values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0
+Rule 2 (Input argument must be a tensor.)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 3 (input tensor of sqrt_ should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 3 (Input tensor must be of floating-point or complex dtype to avoid casting issues to char)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
 >>
-Rule 4 (The size of the input tensor should not be empty.)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 12 (Input argument must be a tensor.)
+{v_1 : dtype} |= v_1 = "tensor"
 >>
-Rule 5 (If input dtype is integer, it should be int32 or int64)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+Rule 14 (Check the input is a tensor by checking if it has a shape. If it doesn't, it's not a tensor.)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
 >>
-Rule 6 (For complex input, the real part of any element must be non-negative)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ 0
+Rule 15 (Input tensor must be of floating-point or complex dtype to avoid casting issues to char)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = "float16" ∨ v_2 = "float32" ∨ v_2 = "float64" ∨ v_2 = "complex64" ∨ v_2 = "complex128") ∧ dtype_(v_1) = v_2
 >>
-Rule 7 (If input dtype is bool, then an error will be raised because it can't be casted to float)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then false
+Rule 16 (Check the input is a tensor)
+{v_1 : tensor ⊎ float} |= if dtype_(v_1) = "tensor" then true else false
 >>
-Rule 8 (If the dtype is complex, the imaginary part should be zero, since sqrt_ returns a real tensor)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1, 0) - 1] : max(v_1) = min(v_1)
+Rule 18 (Check that the argument is of tensor type)
+{v_1 : tensor ⊎ float, v_2 : bool} |= if dtype_(v_1) = "tensor" then v_2 = true else v_2 = false
 >>
-Rule 9 (input tensor should not have inf values if dtype is float)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∃i ∈ [0, shape(v_1, 0) - 1] : max(v_1) ≠ "inf"
+Rule 19 (Check input tensor to be float or complex to avoid casting to char error)
+{v_1 : tensor} |= (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128")
 >>
-Rule 10 (If input tensor is of type float16, then no error should be raised but the result will be float32)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then true
+Rule 20 (Check input to be of type tensor)
+{v_1 : tensor ⊎ float ⊎ int} |= if (dtype_(v_1) = "float") ∨ (dtype_(v_1) = "int") then false
 >>
-Rule 11 (if minimum value is negative, it will cause nan value in output tensor)
-{v_1 : tensor} |= if min(v_1) < 0 then ∃i ∈ [0, shape(v_1, 0) - 1] : true
+Rule 24 (Input must be a tensor, not a numpy.float64)
+{v_1 : tensor ⊎ float} |= dtype_(v_1) = "tensor"
 >>
-Rule 12 (check that all elements in a tensor are real if dtype is complex)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1,0)-1] : ∃j ∈ [0, shape(v_1,0)-1]: v_1[i]=v_1[j]
+Rule 25 (Check input tensor to be float or complex to avoid casting to char error)
+{v_1 : tensor, v_2 : dtype} |= (v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") ∨ (v_2 = "complex64") ∨ (v_2 = "complex128") ∧ dtype_(v_1) = v_2
 >>
-Rule 13 (if a dimension is zero, then all elements will be zero after calculation)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then min(v_1) = 0 ∧ max(v_1) = 0
+Rule 32 (Check that the input is NOT a numpy float64)
+{v_1 : tensor ⊎ float} |= (dtype_(v_1) ≠ "float")
 >>
-Rule 14 (if input tensor contains nan values it will cause nan values in output tensor)
-{v_1 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : max(v_1) = "nan" then ∃i ∈ [0, shape(v_1, 0) - 1] : max(v_1) = "nan"
+Rule 33 (Check input to avoid casting issues from Float to Char.)
+{v_1 : tensor} |= (dtype_(v_1) ≠ "int8") ∧ (dtype_(v_1) ≠ "int16") ∧ (dtype_(v_1) ≠ "int32") ∧ (dtype_(v_1) ≠ "int64") ∧ (dtype_(v_1) ≠ "uint8")
 >>
-Rule 15 (If input tensor is complex, it's conjugate symmetric)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∀i ∈ [0, shape(v_1, 0) - 1] : ∀j ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[j]
+Rule 34 (Check the argument is a tensor)
+{v_1 : tensor ⊎ float} |= (dtype_(v_1) = "tensor")
 >>
-Rule 16 (The input tensor shouldn't contain negative infinity if dtype is float)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∃i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≠ "-inf"
+Rule 36 (Check the argument is a tensor and is not numpy.float64)
+{v_1 : tensor ⊎ float} |= if (dtype_(v_1) = "tensor") then true else false
 >>
-Rule 17 (if input tensor contains zero values it won't cause issue in output, unlike log)
-{v_1 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : min(v_1) = 0 then true
+Rule 39 (Check input to avoid casting issues from Float to Char.)
+{v_1 : tensor, v_2 : dtype} |= (v_2 ≠ "int8") ∧ (v_2 ≠ "int16") ∧ (v_2 ≠ "int32") ∧ (v_2 ≠ "int64") ∧ (v_2 ≠ "uint8") ∧ dtype_(v_1) = v_2
 >>
-Rule 18 (if input tensor is complex, all values should be non-negative)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≥ 0
+Rule 46 (The argument must have properties associated with a tensor)
+{v_1 : tensor ⊎ float} |= ndim(v_1) ≥ 0
 >>
-Rule 19 (sqrt_ should throw an error when input is uint8)
-{v_1 : tensor} |= if dtype_(v_1) = 5 then false
+Rule 50 (Ensure the input is a tensor by checking the properties)
+{v_1 : tensor ⊎ float} |= if ndim(v_1) ≥ 0 then true else false
+>>
+Rule 54 (Ensure that if the first argument is float, returns false.)
+{v_1: tensor ⊎ float} |= if dtype_(v_1) = "float" then false
+>>
+Rule 55 (Check input tensor to be float or complex to avoid casting to char error)
+{v_1 : tensor, v_2 : dtype} |= ((v_2 = "float16") ∨ (v_2 = "float32") ∨ (v_2 = "float64") ∨ (v_2 = "complex64") ∨ (v_2 = "complex128")) ∧ (dtype_(v_1) = v_2)
+>>
+Rule 62 (Ensure that if the first argument has more than one dimension so is not float/numpy number, returns true.)
+{v_1: tensor ⊎ float} |= ndim(v_1) > 0
+>>
+Rule 64 (Ensure that the input has a dimension so is a tensor)
+{v_1 : tensor ⊎ float} |= if ndim(v_1) > -1 then true else false
+>>
+Rule 66 (Ensure the argument passed has a property so is a tensor and not just a float)
+{v_1: tensor ⊎ float} |= if shape(v_1, 0) ≥ 0 then true else false
+>>
+Rule 68 (Ensure the argument is not a numpy.float64)
+{v_1: tensor ⊎ float} |= (dtype_(v_1) ≠ "float")
+>>
+Rule 70 (Ensure that if the first argument is a numpy.float64, returns false.)
+{v_1: tensor ⊎ float} |= if (dtype_(v_1) = "float") then false
+>>
+Rule 74 (Ensure argument is a tensor using dimension property)
+{v_1 : tensor ⊎ float} |= if ndim(v_1) < 0 then false
+>>
+Rule 76 (Check the argument is a tensor)
+{v_1 : tensor ⊎ float} |= if shape(v_1, 0) > -1 then true else false
+>>
+Rule 78 (Ensure argument is a tensor by checking the properties again, to suppress numpy array errors)
+{v_1: tensor ⊎ float} |= if min(v_1) ≥ 0 then true else false
+>>
+Rule 80 (Check argument's dtype is not the troublesome type to suppress the numpy array error.)
+{v_1: tensor ⊎ float, v_2: dtype} |= (dtype_(v_1) ≠ "float") ∧ v_2 = dtype_(v_1)
+>>
+Rule 82 (Check argument's ndim is greater than zero to ensure the numpy array error is handled.)
+{v_1: tensor ⊎ float, v_2: dtype} |= if (dtype_(v_1) = "float") then false else (ndim(v_1) > 0) ∧ v_2 = dtype_(v_1)
+>>
+Rule 84 (If input is not a tensor, throw error by always outputting false regardless of its dtype)
+{v_1: tensor ⊎ float} |= if (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128") then true else false

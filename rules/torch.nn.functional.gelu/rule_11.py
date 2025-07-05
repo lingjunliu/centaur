@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input tensor has valid dtype for GELU (Rule 11)
+# input tensor should have a supported dtype (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(And(v["arg1_dtype"] != 12, v["arg1_dtype"] != 0), v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else
-          And(And(And(And(And(And(v["arg1_dtype"] != 12, v["arg1_dtype"] != 0), v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))
+    s.add(Not(And(And(And(And(And(v["arg1_dtype"] != 11, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5)) if n else
+          And(And(And(And(And(v["arg1_dtype"] != 11, v["arg1_dtype"] != 1), v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

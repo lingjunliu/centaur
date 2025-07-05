@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is a float tensor, and output tensor is given then the output needs to be at least float16 if specified (Rule 17)
+# If the input tensor's data type is int, then the output tensor needs to be at least float32 (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] <= 8, v["arg2_dtype"] >= 6, False)) if n else
-          If(v["arg1_dtype"] <= 8, v["arg2_dtype"] >= 6, False))
+    s.add(Not(If(v["arg1_dtype"] < 6, v["arg2_dtype"] >= 7, False)) if n else
+          If(v["arg1_dtype"] < 6, v["arg2_dtype"] >= 7, False))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

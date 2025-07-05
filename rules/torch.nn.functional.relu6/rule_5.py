@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# maximum value of input tensor must be greater than or equal to 0 (Rule 5)
+# tensor elements must be within a reasonable range (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 1) >= 0) if n else
-          Select(v["arg1_range"], 1) >= 0)
+    s.add(Not(And(Select(v["arg1_range"], 0) < 1000, Select(v["arg1_range"], 1) > -1000)) if n else
+          And(Select(v["arg1_range"], 0) < 1000, Select(v["arg1_range"], 1) > -1000))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

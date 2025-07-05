@@ -1,39 +1,168 @@
 >>
-Rule 1 (num_features should be positive)
+Rule 1 (num_features must be greater than 0 to avoid negative dimension error.)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 2 (eps should be non-negative)
-{v_1 : float} |= v_1 ≥ 0
+Rule 2 (affine must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 3 (affine and track_running_stats interaction)
-{v_1 : bool, v_2 : bool} |= if v_1 = false then v_2 = false
->>
-Rule 4 (input tensor must be 2 or 3 dimensional)
-{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
->>
-Rule 5 (num_features must match the channel dimension of the input tensor)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_2, 1) = v_1 else if ndim(v_2) = 3 then shape(v_2, 1) = v_1 else false
->>
-Rule 6 (momentum must be between 0 and 1 inclusive)
+Rule 4 (momentum must be a float between 0 and 1 inclusive or None, represented as an int or float in this context)
 {v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
 >>
-Rule 7 (num_features must be a valid int)
-{v_1 : int} |= v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647
+Rule 5 (input tensor must be at least 2D)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 8 (If input is 2D, num_features must be equal to the number of input features)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 1) = v_2
+Rule 6 (eps must be a non-negative float)
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 9 (If input is 3D, num_features must be equal to the number of input channels)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then shape(v_1, 1) = v_2
+Rule 8 (preventing potential allocation errors by ensuring input tensor dimensions are reasonably sized)
+{v_1 : tensor} |= shape(v_1, 0) < 1000000 ∧ shape(v_1, 1) < 1000000
 >>
-Rule 10 (No negative dimensions in input tensor)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 9 (If affine is true, the dimensions of input must be compatible with num_features)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then shape(v_1, 1) = v_2
 >>
-Rule 11 (Dtype of input tensor must be float or complex)
+Rule 10 (Input tensor should have a floating point dtype when gradients are required)
 {v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 12 (eps must be greater than 0 to avoid division by zero)
-{v_1 : float} |= v_1 > 0
+Rule 11 (num_features must be reasonably sized to avoid storage overflow.)
+{v_1 : int} |= v_1 < 1000000
 >>
-Rule 13 (If track_running_stats is True, num_features must be greater than 0)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 0
+Rule 13 (eps must be a reasonable small positive float)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
+>>
+Rule 14 (If track_running_stats is true, num_features must be a positive integer)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 > 0
+>>
+Rule 16 (Avoid very large tensor sizes that lead to memory allocation issues)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 100000000
+>>
+Rule 17 (shape of input tensor should be representable as concrete integers, thus prevent symbolic integers)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 18 (if input is 3D then shape along the 2nd dimension i.e. channel dimension should match num_features)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then shape(v_1, 1) = v_2
+>>
+Rule 19 (track_running_stats and affine have to be boolean simultaneously)
+{v_1 : bool, v_2 : bool} |= v_1 = true ∨ v_1 = false ∧ v_2 = true ∨ v_2 = false
+>>
+Rule 21 (eps should not be too close to zero to avoid division by zero)
+{v_1 : float} |= v_1 > 1e-10
+>>
+Rule 22 (Avoid extremely small values of momentum, which could lead to instability)
+{v_1 : float} |= v_1 > 1e-6
+>>
+Rule 23 (input tensor dimension must be compatible to num_features)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 1) = v_2 else if ndim(v_1) = 3 then shape(v_1, 1) = v_2
+>>
+Rule 26 (Data type of input tensor and learnable parameters have to be same if affine is True.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 27 (input tensor must be a floating point number to prevent "batch_norm" not implemented for 'Char')
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+>>
+Rule 28 (Prevent potential storage overflow for large input sizes)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 2000000000
+>>
+Rule 29 (if input is 2D or 3D then shape along the 1st dimension i.e. channel dimension should be small enough to avoid storage overflow)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) < 100000 else if ndim(v_1) = 3 then shape(v_1, 1) < 100000
+>>
+Rule 33 (Momentum should be a float between 0 and 1)
+{v_1 : float} |= v_1 < 1 ∧ v_1 > 0
+>>
+Rule 34 (eps should be small enough for numerical stability.)
+{v_1 : float} |= v_1 < 0.1
+>>
+Rule 35 (Number of features must be less than the maximum integer.)
+{v_1 : int} |= v_1 < 2147483647
+>>
+Rule 36 (Shape of the input tensor must be less than the maximum integer to avoid overflow.)
+{v_1 : tensor} |= shape(v_1,0) < 2147483647
+>>
+Rule 37 (num_features must be positive and less than maximum integer)
+{v_1 : int} |= v_1 > 0 ∧ v_1 < 2147483647
+>>
+Rule 38 (eps should be a small positive float value)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 0.1
+>>
+Rule 39 (if input is 2D then number of channels must be same as num_features)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1,1) = v_2
+>>
+Rule 40 (The product of num_features and batch size should be within the limit to prevent storage overflow)
+{v_1: int, v_2 : tensor} |= v_1 * shape(v_2, 0) < 2000000000
+>>
+Rule 41 (eps cannot be zero)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 42 (the input tensor needs to have compatible datatype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 43 (If input tensor requires grad, then its dtype must be a floating point number)
+{v_1 : tensor} |= if shape(v_1, 0) > 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 44 (If input is 3D then num_features must be a valid number)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then v_2 > 0
+>>
+Rule 46 (If input is 3D and tracking running stats, then number of channels must be same as num_features)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if ndim(v_1) = 3 ∧ v_3 = true then shape(v_1,1) = v_2
+>>
+Rule 47 (If affine is False and track_running_stats is False then num_features is not important)
+{v_1 : int, v_2 : bool, v_3 : bool} |= if v_2 = false ∧ v_3 = false then true else v_1 > 0
+>>
+Rule 48 (If affine is False, num_features is useless.)
+{v_1 : int, v_2 : bool} |= if v_2 = false then true else v_1 > 0
+>>
+Rule 50 (If input is 2D then the number of channels should not exceed the maximum possible value)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) < 1000000
+>>
+Rule 51 (If input is 3D then the number of channels should not exceed the maximum possible value)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) < 1000000
+>>
+Rule 52 (If num_features is given, the input tensor cannot have char type.)
+{v_1: tensor, v_2 : int} |= if v_2 > 0 then dtype_(v_1) ≠ 11
+>>
+Rule 53 (eps cannot be too large, or else data will be over-normalized)
+{v_1 : float} |= v_1 < 1
+>>
+Rule 55 (The first dimension of the input should be smaller than a reasonable number to prevent overflow)
+{v_1 : tensor} |= shape(v_1,0) < 100000000
+>>
+Rule 56 (If num_features is 0, then track_running_stats must be False.)
+{v_1 : int, v_2 : bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 57 (if num_features < 0, the program would crash. Therefore, num_features must be positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 58 (num_features should not exceed the first dimension of the input tensor if the input is 2D)
+{v_1: int, v_2 : tensor} |= if ndim(v_2) = 2 then v_1 <= shape(v_2, 1)
+>>
+Rule 59 (if track_running_stats is true, the number of features should be smaller than a threshold to avoid memory issues)
+{v_1: int, v_2: bool} |= if v_2 = true then v_1 < 1000000
+>>
+Rule 60 (If the input tensor's shape[1] (channel) and shape[2] are both large then memory allocation fails)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) * shape(v_1, 2) < 10000000
+>>
+Rule 61 (If the number of features is greater than zero, the input tensor should not be a char tensor)
+{v_1: int, v_2: tensor} |= if v_1 > 0 then dtype_(v_2) ≠ 11
+>>
+Rule 62 (If track_running_stats is True, then the input tensor dtype should not be char)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) ≠ 11
+>>
+Rule 64 (num_features must be a reasonable number)
+{v_1: int} |= v_1 < 1000000
+>>
+Rule 65 (If affine is True and input tensor is given, the channel dimension must match num_features)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true ∧ ndim(v_1) = 2 then shape(v_1, 1) = v_2 else if v_3 = true ∧ ndim(v_1) = 3 then shape(v_1, 1) = v_2
+>>
+Rule 66 (if affine is false, then num_features has no meaning)
+{v_1 : int, v_2: bool} |= if v_2 = false then true else v_1 > 0
+>>
+Rule 67 (if num_features is given, it must be smaller than the first dimension of the input tensor * sequence length)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 3 then v_1 ≤ shape(v_2, 1) * shape(v_2, 2) else if ndim(v_2) = 2 then v_1 <= shape(v_2, 1)
+>>
+Rule 68 (If input is a 2D tensor and track_running_stats is True, then number of features cannot be larger than the first dimension of the input tensor)
+{v_1 : int, v_2 : tensor, v_3 : bool} |= if v_3 = true ∧ ndim(v_2) = 2 then v_1 ≤ shape(v_2, 0)
+>>
+Rule 69 (eps should be small enough that it does not cause numerical instability issues in fp16)
+{v_1: float} |= v_1 > 1e-8
+>>
+Rule 70 (If affine is true, num_features must be less than 16384, a limit determined empirically)
+{v_1 : int, v_2 : bool} |= if v_2 = true then v_1 < 16384

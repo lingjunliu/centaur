@@ -1,33 +1,36 @@
 >>
-Rule 1 (If dim is an integer, it must be within the valid dimension range of the input tensor.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then 0 ≤ v_2 + ndim(v_1) ∧ v_2 < ndim(v_1)
+Rule 1 (input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 2 (If dim is a list of integers, each element must be within the valid dimension range of the input tensor and no duplicates are allowed)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] + ndim(v_1) ∧ v_2[i] < ndim(v_1) ∧ (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Rule 4 (Dimension should be within the valid range)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 3 (If the dimension to be squeezed has size 1, it is valid.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 ∧ v_2 < ndim(v_1) then shape(v_1, v_2) = 1 else if v_2 < 0 ∧ v_2 + ndim(v_1) ≥ 0 then shape(v_1, v_2 + ndim(v_1)) = 1
+Rule 5 (Dimensions in tuple should not appear multiple times)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
 >>
-Rule 4 (If dim is a tuple of integers, each element must be a valid dimension of the input tensor, and the tuple cannot contain duplicate dimension indices.)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : if ndim(v_1) > 0 then 0 ≤ v_2[i] + ndim(v_1) ∧ v_2[i] < ndim(v_1) ∧ (∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j])
->>
-Rule 5 (If dim is a tuple of integers, each dimension to be squeezed should have size 1)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : if 0 ≤ v_2[i] + ndim(v_1) ∧ v_2[i] < ndim(v_1) then shape(v_1, v_2[i]) = 1 else if v_2[i] < 0 ∧ v_2[i] + ndim(v_1) ≥ 0 then shape(v_1, v_2[i] + ndim(v_1)) = 1
->>
-Rule 6 (The dimensions in dim (list/tuple) should not have duplicates and should all be valid)
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i+1, v_2.len - 1] : v_2[i] ≠ v_2[j]) ∧ (∀i ∈ [0, v_2.len - 1] : if ndim(v_1) > 0 then 0 ≤ v_2[i] + ndim(v_1) ∧ v_2[i] < ndim(v_1))
->>
-Rule 7 (If dim is not given, all dimensions of size 1 are squeezed)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
->>
-Rule 8 (The dtype of input tensor must be one of the supported dtypes.)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
->>
-Rule 9 (If dim is given as a list/tuple, the length of the dimension list/tuple should be less or equal than the ndim of input tensor)
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= v_2.len ≤ ndim(v_1)
->>
-Rule 10 (When dim is specified, input tensor must have at least one dimension.)
+Rule 10 (Input tensor's dimension should be greater than 0)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 11 (Dimension indices cannot be repeated in the dim list/tuple, and all dimensions should be valid)
-{v_1 : list(int) ⊎ tuple(int)} |= if v_1.len > 1 then ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 12 (Input tensor must be a tensor, not other type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 13 (Dimensions in tuple should be within the valid range of the input tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ (0 - ndim(v_1)) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 20 (Input should be a tensor, not a number or string.)
+{v_1 : tensor} |=  (dtype_(v_1) ≠ 11) ∧ (dtype_(v_1) ≠ 12)
+>>
+Rule 21 (Dimensions in tuple must be in the range of -ndim to ndim-1)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] ≥ (0 - ndim(v_1))) ∧ (v_2[i] < ndim(v_1))
+>>
+Rule 26 (If `dim` is an integer, it must be in the valid range)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1))) ∧ (v_2 < ndim(v_1))
+>>
+Rule 29 (If input is a tensor, it cannot be a string.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 46 (The input must be a tensor.)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 63 (Dimensions specified in tuple cannot be repeated)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀k ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[k]

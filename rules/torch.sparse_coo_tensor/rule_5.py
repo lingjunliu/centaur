@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if check_invariants is True, is_coalesced must also be True (Rule 5)
+# If dtype is provided, values must have a compatible dtype. (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, v["arg2_value"] == True, False)) if n else
-          If(v["arg1_value"] == True, v["arg2_value"] == True, False))
+    s.add(Not(v["arg1_dtype"] == v["arg2_value"]) if n else
+          v["arg1_dtype"] == v["arg2_value"])
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_5_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Bool('arg2_value')
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_5(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_5(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

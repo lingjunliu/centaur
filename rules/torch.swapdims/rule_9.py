@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# dim0 or dim1 is less than zero then ndim(v_1 (Rule 9)
+# dim0 and dim1 cannot be equal, unless they are indexing the same dimension from the end (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_value"] < 0, v["arg3_value"] < 0), v["arg1_ndim"] > 0, False)) if n else
-          If(Or(v["arg2_value"] < 0, v["arg3_value"] < 0), v["arg1_ndim"] > 0, False))
+    s.add(Not(Or(v["arg2_value"] != v["arg3_value"], (v["arg2_value"] + v["arg1_ndim"] == v["arg3_value"] + v["arg1_ndim"]))) if n else
+          Or(v["arg2_value"] != v["arg3_value"], (v["arg2_value"] + v["arg1_ndim"] == v["arg3_value"] + v["arg1_ndim"])))
 )
 
 def rule_9_func(arg1, arg2, arg3, solver=None, neg=False):

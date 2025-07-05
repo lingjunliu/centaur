@@ -1,66 +1,108 @@
 >>
-Rule 1 (QFunctional.relu requires a tensor input)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 1 (relu input tensor should not be empty.)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 2 (Check if all dimensions of the tensor are greater than zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (Quantized Relu only supports quantized tensor type)
+{v_1: tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 6
 >>
-Rule 3 (Data type of the tensor is either quantized int8 or quantized uint8)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 5
+Rule 4 (Check that the maximum value is not less than min value)
+{v_1 : tensor} |= max(v_1) ≥ min(v_1)
 >>
-Rule 4 (Minimum value of the tensor must be less than or equal to the maximum)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
->>
-Rule 5 (Tensor cannot have more than 6 dimensions)
-{v_1 : tensor} |= ndim(v_1) ≤ 6
->>
-Rule 6 (Check if the tensor is not empty across all dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
->>
-Rule 7 (If the tensor is 1D, then the shape must be less than 100)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 100
->>
-Rule 8 (Check for tensor with at least two dimensions and the first dimension must be greater than the second dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, 0) > shape(v_1, 1)
->>
-Rule 9 (Check if the minimum value of the tensor is greater than or equal to 0)
+Rule 6 (Ensure minimum of tensor is not negative after ReLU, which essentially checks if all elements are non-negative initially)
 {v_1 : tensor} |= min(v_1) ≥ 0
 >>
-Rule 10 (If a tensor has two dimensions, ensure the second dimension isn't excessively large.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) < 2048
+Rule 7 (Quantized Relu input tensor must have a quantized dtype)
+{v_1: tensor} |= dtype_(v_1) = 6
 >>
-Rule 11 (If tensor has ndim > 2, the last two dimensions must have a maximum dimension of 100.)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1)-1) < 100 ∧ shape(v_1, ndim(v_1)-2) < 100
+Rule 9 (Quantized Relu input tensor must have a quantized dtype and at least one dimension)
+{v_1: tensor} |= dtype_(v_1) = 6 ∧ ndim(v_1) > 0
 >>
-Rule 12 (The tensor must have the minimum value equal to 0)
-{v_1 : tensor} |= min(v_1) = 0
+Rule 10 (If the dtype is quantized, the minimum value should be less or equal to 0)
+{v_1: tensor} |= if dtype_(v_1) = 6 then min(v_1) ≤ 0
 >>
-Rule 13 (Ensure that a tensor with more than one dimension has its first dimension greater than 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 1
+Rule 11 (Ensure shape of tensor is not equal to zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 14 (If a tensor's dtype is quantized (1 or 5), its maximum value should be less than or equal to 255)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then max(v_1) ≤ 255
+Rule 12 (If the tensor has more than one dimension, the first dimension is not zero)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 0) > 0
 >>
-Rule 15 (Check if shape of Tensor is power of 2)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∃k ∈ [0, 10] : shape(v_1, i) = 2 * k
+Rule 14 (If the dtype is quantized, the minimum value should be less or equal to 0, or the shape is zero)
+{v_1: tensor} |= if dtype_(v_1) = 6 then min(v_1) ≤ 0 ∨ shape(v_1,0) = 0
 >>
-Rule 16 (Ensure Tensor has Maximum value greater than or equal to zero)
-{v_1 : tensor} |= max(v_1) ≥ 0
+Rule 15 (The shape of the tensor should always be positive.)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 17 (Require the max of the tensor to be less than or equal to zero)
-{v_1 : tensor} |= max(v_1) ≤ 0
+Rule 16 (If the tensor is a scalar, then the maximum should be greater or equal to the minimum)
+{v_1: tensor} |= if ndim(v_1) = 0 then max(v_1) ≥ min(v_1)
 >>
-Rule 18 (Check that the size of the tensor is less than a limit.)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 512 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 512
+Rule 17 (Quantized Relu input tensor must have at least one dimension and its shape must be positive.)
+{v_1: tensor} |= ndim(v_1) > 0 ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 19 (Check if tensor has at least 1 dimension, but less than 5)
-{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) < 5
+Rule 19 (The maximum of the tensor should be greater or equal to 0.)
+{v_1: tensor} |= max(v_1) ≥ 0
 >>
-Rule 20 (When the tensor is 3D, enforce that the sum of the dimensions is greater than 10.)
-{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) + shape(v_1, 1) + shape(v_1, 2) > 10
+Rule 21 (Quantized Relu input tensor's dtype must be quantized, and the shape must be positive if ndim > 0)
+{v_1: tensor} |= dtype_(v_1) = 6 ∧ (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0))
 >>
-Rule 21 (Check that the quantized tensor's maximum representable value is > 0)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then max(v_1) > 0
+Rule 23 (If the dtype is quantized, and the tensor has any element, ensure the max value is greater than min value)
+{v_1: tensor} |= if dtype_(v_1) = 6 ∧ ndim(v_1) > 0 then max(v_1) ≥ min(v_1)
 >>
-Rule 22 (If the tensor is more than 2D then the second dimension must be > 5)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 1) > 5
+Rule 26 (If the dtype is quantized, and the tensor has at least one dimension, ensure all elements are non-negative or zero )
+{v_1: tensor} |= if dtype_(v_1) = 6 ∧ ndim(v_1) > 0 then min(v_1) ≥ 0
+>>
+Rule 27 (If the dtype is quantized, scale must be non-negative)
+{v_1: tensor} |= if dtype_(v_1) = 6 then shape(v_1, 0) ≥ 0
+>>
+Rule 28 (If the tensor is empty, then it is valid)
+{v_1: tensor} |= if ndim(v_1) = 0 then true
+>>
+Rule 31 (If the dtype is not quantized, it's valid)
+{v_1: tensor} |= if dtype_(v_1) ≠ 6 then true
+>>
+Rule 32 (Ensure tensor has positive shapes)
+{v_1: tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 34 (If the dtype is quantized, and the tensor has at least one dimension, ensure all elements are non-negative or zero.)
+{v_1: tensor} |= if dtype_(v_1) = 6 then min(v_1) ≥ 0
+>>
+Rule 37 (The relu tensor must have quantized data type if ndim > 0)
+{v_1: tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = 6
+>>
+Rule 38 (If dtype is quantized, the min value should be zero)
+{v_1: tensor} |= if dtype_(v_1) = 6 then min(v_1) = 0
+>>
+Rule 39 (Ensure shape is positive)
+{v_1: tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ndim(v_1) = 0
+>>
+Rule 42 (If the dtype is quantized, then the shape of tensor must be greater than zero)
+{v_1: tensor} |= if dtype_(v_1) = 6 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 44 (The maximum value of the quantized tensor must be greater than or equal to zero.)
+{v_1: tensor} |= if dtype_(v_1) = 6 then max(v_1) ≥ 0
+>>
+Rule 46 (If the tensor is empty (ndim == 0) the rule is trivially satisfied.)
+{v_1: tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) ≠ 0
+>>
+Rule 51 (Quantized tensors should have a non-zero shape along all dimensions if ndim >0.)
+{v_1: tensor} |= if dtype_(v_1) = 6 ∧ ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 52 (Tensors should have positive dimension lengths if dimension present.)
+{v_1: tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (ndim(v_1) = 0)
+>>
+Rule 53 (ReLU tensor data type validity depends on dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = 6
+>>
+Rule 58 (The input must be a valid tensor)
+{v_1: tensor} |= ndim(v_1) >= 0
+>>
+Rule 60 (If max value is quantized it should be greater than or equal to zero)
+{v_1: tensor} |= if dtype_(v_1) = 6 then max(v_1) >= 0
+>>
+Rule 63 (A ReLU tensor must have a data type.)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 65 (The tensor needs to have at least two dimensions)
+{v_1 : tensor} |=  ndim(v_1) >= 2
+>>
+Rule 67 (If not a quantized data type it is a valid tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6

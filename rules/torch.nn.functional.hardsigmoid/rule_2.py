@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# inplace parameter must be a boolean (Rule 2)
+# inplace parameter must be a boolean value (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
-          Or(v["arg1_value"] == True, v["arg1_value"] == False))
+    s.add(Not(Or((v["arg1_value"] == True), (v["arg1_value"] == False))) if n else
+          Or((v["arg1_value"] == True), (v["arg1_value"] == False)))
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

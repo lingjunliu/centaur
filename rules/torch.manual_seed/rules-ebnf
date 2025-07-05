@@ -1,75 +1,105 @@
 >>
-Rule 1 (seed must be within the specified range)
-{v_1 : int} |= -9223372036854775808 ≤ v_1 ∧ v_1 ≤ 18446744073709551615
+Rule 1 (seed value should be within the inclusive range [-0x8000_0000_0000_0000, 0xffff_ffff_ffff_ffff])
+{v_1 : int} |= v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 18446744073709551615
 >>
-Rule 2 (seed is an integer)
-{v_1 : int ⊎ float} |= if v_1 = v_1 then true else false
+Rule 4 (seed value is of integer type)
+{v_1 : int ⊎ float} |= if v_1 > 0 then v_1 = (v_1 / 1) * 1 else v_1 = (v_1 / 1) * 1
 >>
-Rule 3 (seed can be represented by int32)
-{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647 ∨ v_1 > 2147483647 ∧ v_1 ≤ 18446744073709551615
+Rule 6 (if seed is negative it's remapped using the formula)
+{v_1 : int} |= if v_1 < 0 then v_1 + 18446744073709551616 ≥ 0
 >>
-Rule 4 (seed must not be a string)
-{v_1 : int ⊎ str} |= if v_1 = "hello" then false
+Rule 11 (seed value must be of type int. Disallow float)
+{v_1 : int ⊎ float} |= if v_1 = (v_1 / 1) * 1 then true else false
 >>
-Rule 5 (seed should not be a tensor)
-{v_1 : int ⊎ tensor} |= if ndim(v_1) > 0 then false
+Rule 12 (if seed is negative, remapped value is still within allowed range)
+{v_1 : int} |= if v_1 < 0 then v_1 + 18446744073709551616 ≤ 18446744073709551615
 >>
-Rule 6 (If seed is float, it should be representable as integer)
-{v_1 : int ⊎ float} |= if v_1 > -9223372036854775808.0 ∧ v_1 < 9223372036854775807.0 then true else if v_1 = v_1 then false
+Rule 13 (seed value can only be an integer, not a union of int and float)
+{v_1 : int ⊎ float} |= if v_1 > -9223372036854775808 ∧ v_1 < 9223372036854775807 then true else false
 >>
-Rule 7 (seed is not a boolean)
-{v_1 : int ⊎ bool} |= if v_1 = true then false
+Rule 14 (seed value is within the valid range after potential remapping)
+{v_1 : int} |= if v_1 < 0 then v_1 + 18446744073709551616 ≥ -9223372036854775808 ∧ v_1 + 18446744073709551616 ≤ 18446744073709551615 else v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 18446744073709551615
 >>
-Rule 8 (If seed is smaller than 0, it will be remapped to positive by adding to 0xffff_ffff_ffff_ffff)
-{v_1 : int} |= if v_1 < 0 then 18446744073709551615 + v_1 ≥ 0
+Rule 15 (seed must be an integer, and remapping for negative values preserves its integer nature)
+{v_1 : int ⊎ float} |= if v_1 < 0 then (v_1 + 18446744073709551616) = ((v_1 + 18446744073709551616) / 1) * 1 else v_1 = (v_1 / 1) * 1
 >>
-Rule 9 (Negative seed should not lead to overflow during remapping)
-{v_1 : int} |= if v_1 < 0 then v_1 > -18446744073709551616
+Rule 17 (Seed type can only be int, not an np.int8)
+{v_1 : int} |= if v_1 > -129 ∧ v_1 < 128 then true
 >>
-Rule 10 (If a seed is near the upper bound, then adding any value should result in greater value)
-{v_1 : int} |= if v_1 > 18446744073709551610 then v_1 + 1 > v_1
+Rule 19 (seed is int and can't be greater than max 64 bit integer)
+{v_1 : int} |= v_1 ≤ 9223372036854775807
 >>
-Rule 11 (check if the datatype of input tensor is integer when seed is provided)
-{v_1 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then true else false
+Rule 20 (seed is int and can't be less than min 64 bit integer)
+{v_1 : int} |= v_1 ≥ -9223372036854775808
 >>
-Rule 12 (seed is not a dtype)
-{v_1 : int ⊎ dtype} |= if v_1 = 0 then false
+Rule 21 (seed is valid if it's within 64 bit integer range or its remapped version is)
+{v_1 : int} |= (v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 9223372036854775807) ∨ (v_1 < 0 ∧ (v_1 + 18446744073709551616) ≥ -9223372036854775808 ∧ (v_1 + 18446744073709551616) ≤ 9223372036854775807) ∨ (v_1 >= 0 ∧ (v_1) ≥ -9223372036854775808 ∧ (v_1) <= 9223372036854775807)
 >>
-Rule 13 (The seed value should not result in the integer overflow)
-{v_1 : int} |= v_1 < 9223372036854775807 ∧ v_1 > -9223372036854775808
+Rule 22 (seed value is int and within unsigned 64 bit range)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 18446744073709551615
 >>
-Rule 14 (A float value should not be infinite)
-{v_1 : float} |= if v_1 * 0 = 0 then true else false
+Rule 23 (seed must be within both signed and unsigned range)
+{v_1 : int} |= v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 9223372036854775807 ∧ v_1 ≥ 0 ∧ v_1 ≤ 18446744073709551615
 >>
-Rule 15 (The absolute value of a seed is equal to the square root of its square)
-{v_1 : int ⊎ float} |= if v_1 < 0 then -1 * v_1 = (v_1 * v_1) / v_1 else v_1 = (v_1 * v_1) / v_1
+Rule 24 (seed value should not be within float16 range)
+{v_1: int} |= v_1 < -65504 ∨ v_1 > 65504
 >>
-Rule 16 (Seed should be finite)
-{v_1 : int ⊎ float} |= ∃ i ∈ [0, 0] : (v_1 + i) = (v_1 + i)
+Rule 25 (seed can only be of type int)
+{v_1 : int ⊎ float ⊎ bool ⊎ str ⊎ tensor ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= if v_1 = (v_1/1)*1 then true else false
 >>
-Rule 17 (seed is a number or zero)
-{v_1 : int ⊎ float} |= v_1 = 0 ∨ v_1 > 0 ∨ v_1 < 0
+Rule 26 (seed is valid only if it's an integer, not something else)
+{v_1 : int ⊎ float ⊎ bool ⊎ str ⊎ tensor ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= if (v_1 / 1)*1 = v_1 then if v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 18446744073709551615 then true else false else false
 >>
-Rule 18 (Seed value if zero should return same output)
-{v_1: int ⊎ float} |= if v_1 = 0 then v_1=0
+Rule 27 (seed is int and is greater than -1 or its remapped version is)
+{v_1 : int} |= v_1 > -1 ∨ (v_1 + 18446744073709551616) > -1
 >>
-Rule 19 (Negative seed is always not equal to 0)
-{v_1: int } |= if v_1 < 0 then v_1 ≠ 0
+Rule 30 (Seed is valid if it is within the range [-(2**63), (2**64)-1] OR is a negative value which when remapped with the formula, falls in the range [0, (2**64)-1])
+{v_1 : int} |= (v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 18446744073709551615) ∨ (v_1 < 0 ∧ (v_1 + 18446744073709551616) ≥ 0 ∧ (v_1 + 18446744073709551616) <= 18446744073709551615)
 >>
-Rule 20 (seed as bool should result in a deterministic behavior)
-{v_1 : bool} |= if v_1 = true then true else false
+Rule 31 (Seed must be a 64-bit integer, and not a smaller integer such as a 32-bit integer)
+{v_1 : int} |= if v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647 then false
 >>
-Rule 21 (positive seed should be equal to its absolute value)
-{v_1: int ⊎ float} |= if v_1 > 0 then v_1 = v_1
+Rule 32 (If the value is negative, then its remapped value is always positive)
+{v_1 : int} |= if v_1 < 0 then v_1 + 18446744073709551616 > 0
 >>
-Rule 22 (if seed can be divided with 2, then it is an even number)
-{v_1: int ⊎ float} |= if v_1 / 2 = v_1 / 2 then true else false
+Rule 33 (Negative numbers should not be used as seed)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 23 (Seed will be cast to int64 internally)
-{v_1 : float ⊎ int} |= if v_1 > -9223372036854775808 ∧ v_1 < 9223372036854775807 then true else false
+Rule 34 (If a negative seed is used, check that the formula avoids overflow by being small enough, using max)
+{v_1: int} |= if v_1 < 0 then v_1 + 18446744073709551615 < 18446744073709551615
 >>
-Rule 24 (Seed is not a list)
-{v_1 : int ⊎ list(int)} |= if v_1.len > 0 then false
+Rule 35 (if a number is in a tuple, and used as seed, it has to be integer)
+{v_1 : tuple(int ⊎ float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] = (v_1[i] / 1) * 1
 >>
-Rule 25 (if seed can be divided with 3, then it should satisfy the condition)
-{v_1: int ⊎ float} |= if v_1 / 3 = v_1 /3 then true else false
+Rule 36 (Seed must be an integer and within range [-2^63, (2^64)-1] after the formula is applied)
+{v_1 : int} |= (v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 18446744073709551615)
+>>
+Rule 39 (the seed is of integer type)
+{v_1 : int ⊎ float ⊎ bool ⊎ str ⊎ tensor ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= if v_1 = (v_1 / 1) * 1 then (v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 18446744073709551615) else false
+>>
+Rule 42 (If seed is provided as a tensor, the values in the tensor must be in the range, where v_1 is the tensor.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (min(v_1) ≥ -9223372036854775808 ∧ max(v_1) ≤ 18446744073709551615)
+>>
+Rule 43 (The seed must be a positive number or zero, given the remapping process)
+{v_1: int} |= (v_1 ≥ 0) ∨ (v_1 + 18446744073709551616 ≥ 0)
+>>
+Rule 47 (if seed is tensor and the elements are int, then they should be within a limit to avoid overflow)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) ≥ -9223372036854775808 ∧ max(v_1) ≤ 18446744073709551615
+>>
+Rule 48 (The seed value must be valid, given it is either a signed int64, or is transformed to unsigned int64.)
+{v_1 : int} |= if (v_1 < 0) then (v_1 + 18446744073709551616) ≥ 0 ∧ (v_1 + 18446744073709551616) ≤ 18446744073709551615 else (v_1 ≥ 0 ∧ v_1 ≤ 18446744073709551615)
+>>
+Rule 49 (The seed should be zero, or should be within range after applying the transformation if negative)
+{v_1 : int} |= (v_1 = 0) ∨ (v_1 + 18446744073709551616 ≥ 0 ∧ v_1 < 0) ∨ (v_1 > 0 ∧ v_1 ≤ 18446744073709551615)
+>>
+Rule 50 (If we see an integer, and it's in signed 64-bit, check that after adding 2^64, we are still within valid range to prevent potential overflow)
+{v_1 : int} |= if v_1 < 0 then (v_1 + 18446744073709551616) ≤ 18446744073709551615
+>>
+Rule 51 (If we see a negative integer, its mapping via formula should be a non-negative integer that is small enough so that the whole seed value can be represented as an int.)
+{v_1 : int} |= if v_1 < 0 then (v_1 + 18446744073709551616 ≥ 0 ∧ v_1 + 18446744073709551616 ≤ 18446744073709551615)
+>>
+Rule 52 (If int type, either v_1 is between [0, (2**64)-1], or if v_1 is negative, then v_1 + 2**64 has to be >=0.)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 18446744073709551615 ∨ (v_1 + 18446744073709551616) ≥ 0
+>>
+Rule 53 (the seed must be in the range [-2^63, 2^63-1] or [0, 2^64-1])
+{v_1: int} |= (v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 9223372036854775807) ∨ (v_1 ≥ 0 ∧ v_1 ≤ 18446744073709551615)

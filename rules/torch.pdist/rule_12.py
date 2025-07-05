@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The number of elements in each row should be the same (Rule 12)
+# input tensor's dimension should be 2, p should be non-negative, and input tensor's dtype should not be float16 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Select(v["arg1_shape"], 1) == Select(v["arg1_shape"], 1)) for i in range(6)])) if n else
-          And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Select(v["arg1_shape"], 1) == Select(v["arg1_shape"], 1)) for i in range(6)]))
+    s.add(Not(And(And(v["arg1_ndim"] == 2, v["arg2_value"] >= 0), v["arg1_dtype"] != 6)) if n else
+          And(And(v["arg1_ndim"] == 2, v["arg2_value"] >= 0), v["arg1_dtype"] != 6))
 )
 
-def rule_12_func(arg1, solver=None, neg=False):
+def rule_12_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_shape': arg1_shape})
+        rule_12(solver, {'arg1_ndim': arg1_ndim, 'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_shape': arg1['shape']}, neg)
+        rule_12(solver, {'arg1_ndim': arg1['ndim'], 'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

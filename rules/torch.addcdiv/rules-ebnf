@@ -1,66 +1,63 @@
 >>
-Rule 1 (input, tensor1 and tensor2 should have the same number of dimensions)
+Rule 2 (out argument must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 5 (input, tensor1 and tensor2 must have same dtype, if value is not specified)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 23 (value must be an integer if input tensors are integer types)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int ⊎ float} |= if dtype_(v_1) < 6 ∧ dtype_(v_2) < 6 ∧ dtype_(v_3) < 6 then v_4 = (0 + v_4)
+>>
+Rule 24 (value must be a float if input tensors are float types)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int ⊎ float} |= if dtype_(v_1) > 6 ∨ dtype_(v_2) > 6 ∨ dtype_(v_3) > 6 then v_4 = (0.0 + v_4)
+>>
+Rule 26 (input, tensor1, and tensor2 must be broadcastable, simplified)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ (ndim(v_2) = ndim(v_3))
+>>
+Rule 30 (tensor1 and tensor2 shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 31 (input and out must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 33 (value must be an integer if input is int type)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) < 6 then v_2 = (0 + v_2)
+>>
+Rule 34 (value must be a float if input is float type)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) > 6 then v_2 = (0.0 + v_2)
+>>
+Rule 41 (input, tensor1, tensor2 must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
+>>
+Rule 43 (value must be an integer if input is int type, and float if float type)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) < 6 then v_2 = (0 + v_2) else v_2 = (0.0 + v_2)
+>>
+Rule 47 (input, tensor1, tensor2 must have broadcastable shapes - simplified)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0
+>>
+Rule 52 (if input and out are given, they must have compatible shape - ndim must agree)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 55 (out must be a tensor)
+{v_1 : tensor} |= ndim(v_1) >= 0
+>>
+Rule 56 (tensor1 and tensor2 must have shapes that can be broadcast together)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 0 ∧ ndim(v_2) ≥ 0
+>>
+Rule 60 (value must be an integer if input is int type, and float if float type - correct one)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) < 6 then (v_2 + 0) = v_2 else (v_2 + 0.0) = v_2
+>>
+Rule 61 (out must be a tensor - checking the type directly)
+{v_1 : tensor} |= dtype_(v_1) > 0
+>>
+Rule 71 (tensor1 and tensor2 must have same shape to be divided - strictly)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 74 (tensor1 and tensor2 must have same shape to be divided - strictly)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 92 (tensor1 and tensor2 must have same shape to apply division or broadcastable to same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 98 (input tensors must have the same number of dimensions for element-wise op)
 {v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3)
->>
-Rule 2 (value should be an integer if the input tensors are integer types)
-{v_1 : tensor, v_4 : int ⊎ float} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then (v_4 = 0 ∨ v_4 = 1 ∨ v_4 = 2 ∨ v_4 = 3 ∨ v_4 = 4 ∨ v_4 = 5)
->>
-Rule 3 (if input is float, then value should be float)
-{v_1 : tensor, v_4 : int ⊎ float} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (v_4 > -1000 ∧ v_4 < 1000)
->>
-Rule 4 (tensor1 and tensor2 should have the same dtype)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
->>
-Rule 5 (if tensor1 and tensor2 have integer dtype, value should be an integer)
-{v_2 : tensor, v_3 : tensor, v_4 : int ⊎ float} |= if (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5) ∧ (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5) then (v_4 = 0 ∨ v_4 = 1 ∨ v_4 = 2 ∨ v_4 = 3 ∨ v_4 = 4 ∨ v_4 = 5)
->>
-Rule 6 (if tensor1 is complex, then tensor2 should also be complex)
-{v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then (dtype_(v_3) = 10 ∨ dtype_(v_3) = 11)
->>
-Rule 7 (If tensor1 or tensor2 is a bool, input should also be a bool.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) = 0 ∨ dtype_(v_3) = 0) then dtype_(v_1) = 0
->>
-Rule 8 (If input is a complex number, then value should be a float)
-{v_1 : tensor, v_4 : int ⊎ float} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) then (v_4 > -1000 ∧ v_4 < 1000)
->>
-Rule 9 (If input, tensor1 and tensor2 are float16, value should be float16)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int ⊎ float} |= if (dtype_(v_1) = 6) ∧ (dtype_(v_2) = 6) ∧ (dtype_(v_3) = 6) then (v_4 > -1000 ∧ v_4 < 1000)
->>
-Rule 10 (If input is a bfloat16, tensor1 and tensor2 should be bfloat16)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 13) then (dtype_(v_2) = 13 ∧ dtype_(v_3) = 13)
->>
-Rule 11 (tensor1 and tensor2 should have same shape)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
->>
-Rule 12 (If value is a float and tensor1/tensor2 is int, input has to be float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int ⊎ float} |= if (dtype_(v_2) < 6 ∨ dtype_(v_3) < 6) ∧ (v_4 > -1000 ∧ v_4 < 1000) then dtype_(v_1) > 5
->>
-Rule 13 (If input is a complex64, tensor1 and tensor2 should be complex64)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 9) then (dtype_(v_2) = 9 ∧ dtype_(v_3) = 9)
->>
-Rule 14 (value should be greater than 0)
-{v_4 : int ⊎ float} |= v_4 > 0
->>
-Rule 15 (dtype of tensor1 and tensor2 cannot be boolean)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) ≠ 0 ∧ dtype_(v_3) ≠ 0
->>
-Rule 16 (if input is complex128, tensor1 and tensor2 should be complex128)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 11) then (dtype_(v_2) = 11 ∧ dtype_(v_3) = 11)
->>
-Rule 17 (at least one of the tensors should have more than 1 dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) > 1 ∨ ndim(v_2) > 1 ∨ ndim(v_3) > 1
->>
-Rule 18 (If tensor1 has dtype int8, tensor2's dtype should be from int8 to int64.)
-{v_2 : tensor, v_3 : tensor} |= if (dtype_(v_2) = 1) then (dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5)
->>
-Rule 19 (Value should not be too large)
-{v_4 : int ⊎ float} |= v_4 < 1000000 ∧ v_4 > -1000000
->>
-Rule 20 (tensor1 and tensor2 dimensions cannot be zero)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ if ndim(v_3) > 0 then (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0)
->>
-Rule 21 (If value is zero, all tensors need to have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int ⊎ float} |= if v_4 = 0 then (dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3))
->>
-Rule 22 (If value is not an integer, input, tensor1 and tensor2 should be of float type or complex type)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : int ⊎ float} |= if (v_4 > -1000 ∧ v_4 < 1000) then (dtype_(v_1) > 5 ∧ dtype_(v_2) > 5 ∧ dtype_(v_3) > 5)

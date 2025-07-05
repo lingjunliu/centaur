@@ -5,39 +5,33 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if the output tensor is specified, its dtype must match the input tensor's dtype if the input is integer, and float32/64 if the input is float (Rule 21)
+# Check if product of all dimensions is less than max int to prevent overflow - considering only cases when all dimensions > 0 (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, (If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), v["arg2_dtype"] == v["arg1_dtype"], (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)))), False)) if n else
-          If(v["arg2_ndim"] > 0, (If(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 5), v["arg2_dtype"] == v["arg1_dtype"], (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)))), False))
+    s.add(Not(If((And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0)), (Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 2147483647), False)) if n else
+          If((And(And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 1) > 0), Select(v["arg1_shape"], 2) > 0)), (Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2) < 2147483647), False))
 )
 
-def rule_21_func(arg1, arg2, solver=None, neg=False):
+def rule_21_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_21(solver, {'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_21(solver, {'arg1_shape': arg1['shape']}, neg)

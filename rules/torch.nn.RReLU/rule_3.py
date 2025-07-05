@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input tensor should not be Half type (Rule 3)
+# dtype should not be Half (float16 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
     s.add(Not(v["arg1_dtype"] != 6) if n else

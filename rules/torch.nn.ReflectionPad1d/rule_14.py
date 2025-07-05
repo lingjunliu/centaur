@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If padding is a tuple and input tensor is 2D, the padded width should be less than or equal to 1000 (Rule 14)
+# Tuple padding size should be less than or equal to twice the input dimension -1, W (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) <= 1000, False)) if n else
-          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) <= 1000, False))
+    s.add(Not(Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) <= 2 * Select(v["arg1_shape"], v["arg1_ndim"] - 1)) if n else
+          Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) <= 2 * Select(v["arg1_shape"], v["arg1_ndim"] - 1))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

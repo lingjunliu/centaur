@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.is_autocast_cpu_enabled API has no parameters. Introduce a dummy tuple of ints with length constraint. (Rule 5)
+# torch.is_autocast_cpu_enabled implicitly returns v_1 which should be a boolean (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] <= 5) if n else
-          v["arg1_length"] <= 5)
+    s.add(Not(If(v["arg1_value"], True, False)) if n else
+          If(v["arg1_value"], True, False))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_5_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 5
-        rule_5(solver, {'arg1_length': arg1_length})
+        rule_5(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_5(solver, {'arg1_length': arg1['length']}, neg)
+        rule_5(solver, {'arg1_value': arg1['value']}, neg)

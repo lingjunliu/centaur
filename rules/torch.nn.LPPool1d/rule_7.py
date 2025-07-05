@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# When stride is not given, it defaults to kernel_size (Rule 7)
+# kernel_size and stride are equal when stride is none (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == 0, v["arg2_value"] == v["arg1_value"], False)) if n else
-          If(v["arg2_value"] == 0, v["arg2_value"] == v["arg1_value"], False))
+    s.add(Not(v["arg1_value"] == v["arg2_value"]) if n else
+          v["arg1_value"] == v["arg2_value"])
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

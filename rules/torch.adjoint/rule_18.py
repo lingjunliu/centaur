@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# adjoint of tensor with ndim > 2 keeps the shape for batch dimensions (Rule 18)
+# if ndim > 2, ensure batch dims are valid and last two are valid matrix dims (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, And([Implies(i < (v["arg1_ndim"] - 3 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)]), False)) if n else
-          If(v["arg1_ndim"] > 2, And([Implies(i < (v["arg1_ndim"] - 3 + 1), Select(v["arg1_shape"], i) == Select(v["arg1_shape"], i)) for i in range(6)]), False))
+    s.add(Not(If(v["arg1_ndim"] > 2, And(And((And([Implies(i < (v["arg1_ndim"] - 3 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), False)) if n else
+          If(v["arg1_ndim"] > 2, And(And((And([Implies(i < (v["arg1_ndim"] - 3 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), Select(v["arg1_shape"], v["arg1_ndim"] - 1) > 0), Select(v["arg1_shape"], v["arg1_ndim"] - 2) > 0), False))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is integer and out is provided, out must be at least float32. (Rule 20)
+# Prevent casting error: result type Float can't be cast to the desired output type Short - If out is provided and its type is Short, then input must be a Short, Half, BFloat16, or a Complex type (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), If(v["arg2_dtype"] != none, Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), False), False)) if n else
-          If(Or(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), v["arg1_dtype"] == 5), If(v["arg2_dtype"] != none, Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), False), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, Or(Or(Or((v["arg1_dtype"] == 2), (v["arg1_dtype"] == 6)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10)), False)) if n else
+          If(v["arg2_dtype"] == 2, Or(Or(Or((v["arg1_dtype"] == 2), (v["arg1_dtype"] == 6)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10)), False))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

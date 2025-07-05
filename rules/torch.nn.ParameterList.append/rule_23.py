@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# value to append must be a tensor, and if its maximum value is negative, its minimum must also be negative (Rule 23)
+# If a tuple, the maximum number of elements it can contain is a constant (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_range"], 1) < 0, Select(v["arg1_range"], 0) < 0, False)) if n else
-          If(Select(v["arg1_range"], 1) < 0, Select(v["arg1_range"], 0) < 0, False))
+    s.add(Not(v["arg1_length"] < 100) if n else
+          v["arg1_length"] < 100)
 )
 
 def rule_23_func(arg1, solver=None, neg=False):
@@ -17,21 +17,20 @@ def rule_23_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not ((isinstance(arg1, tuple) and all(isinstance(e, (float, np.floating)) for e in arg1)) or (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)) or (isinstance(arg1, tuple) and all(isinstance(e, str) for e in arg1)) or (isinstance(arg1, tuple) and all(isinstance(e, bool) for e in arg1))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_range': arg1_range})
+        rule_23(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_range': arg1['range']}, neg)
+        rule_23(solver, {'arg1_length': arg1['length']}, neg)

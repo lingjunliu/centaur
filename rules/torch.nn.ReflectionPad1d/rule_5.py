@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the padding is a tuple, the values in the tuple must be less than the width of the input tensor. (Rule 5)
+# Padding size should be less than the corresponding input dimension when padding is a tuple (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], 1), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], 1)), If(v["arg1_ndim"] == 3, And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], 2), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], 2)), False))) if n else
-          If(v["arg1_ndim"] == 2, And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], 1), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], 1)), If(v["arg1_ndim"] == 3, And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], 2), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], 2)), False)))
+    s.add(Not(And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 1))) if n else
+          And(Select(v["arg2_values"], 0) < Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 0), Select(v["arg2_values"], 1) < Select(v["arg1_shape"], v["arg1_ndim"] - 1) + Select(v["arg2_values"], 1)))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

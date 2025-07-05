@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# weight tensor should be defined either for all classes or no classes (Rule 2)
+# Weight tensor size check (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], 1), False)) if n else
-          If(v["arg2_ndim"] > 0, Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], 1), False))
+    s.add(Not(Or((v["arg2_ndim"] == 0), (Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], 1)))) if n else
+          Or((v["arg2_ndim"] == 0), (Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], 1))))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

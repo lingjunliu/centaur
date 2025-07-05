@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# bool and bool promotion results to bool (Rule 9)
+# If type2 is string, type1 cannot be complex (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0, If(v["arg2_value"] == 0, True, False), If(v["arg2_value"] == 0, False, False))) if n else
-          If(v["arg1_value"] == 0, If(v["arg2_value"] == 0, True, False), If(v["arg2_value"] == 0, False, False)))
+    s.add(Not(If(v["arg2_value"] == 11, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False)) if n else
+          If(v["arg2_value"] == 11, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

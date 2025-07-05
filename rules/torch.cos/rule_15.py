@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The input tensor cannot be bool type (Rule 15)
+# Out tensor's dtype must not be smaller than int16, if it exists (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(v["arg1_dtype"] >= 2) if n else
+          v["arg1_dtype"] >= 2)
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

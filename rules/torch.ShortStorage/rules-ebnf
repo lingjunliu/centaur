@@ -1,66 +1,138 @@
 >>
-Rule 1 (The offset parameter should be a non-negative integer.)
+Rule 1 (Preventing negative allocation size by checking if the size is non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 2 (The length parameter must be a positive integer.)
-{v_1 : int} |= v_1 > 0
+Rule 2 (Check to prevent a large size that may lead to negative ptrdiff_t during allocation)
+{v_1 : int} |= v_1 < 2147483647
 >>
-Rule 3 (The product of shape dimensions of a tensor must be less than or equal to max value of int32)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (if ndim(v_1) = 0 then 1 else (if ndim(v_1) = 1 then shape(v_1, 0) else (if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) else (if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) else (if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) else 2147483647))))) ≤ 2147483647
+Rule 3 (Size must be a reasonable positive value)
+{v_1 : int} |= 0 < v_1 ∧ v_1 < 1000000000
 >>
-Rule 4 (If given a fill value, it should be convertible to the ShortStorage's dtype.)
-{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 2 then -32768 ≤ v_2 ∧ v_2 ≤ 32767
+Rule 4 (Ensuring size is not an extremely large number)
+{v_1 : int} |= v_1 < 4294967295
 >>
-Rule 5 (If the storage is not shared, the new storage size must be greater than or equal to zero.)
-{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 ≥ 0
+Rule 5 (Check that the requested size is not excessively large compared to available memory.  This is a heuristic.)
+{v_1 : int} |= v_1 < 1000000000 ∧ v_1 > -1
 >>
-Rule 6 (The given size must be an integer, and if a dimension is specified, it should be within the tensor's dimensions.)
-{v_1 : int, v_2 : tensor} |= if v_1 < ndim(v_2) then true else false
+Rule 6 (Size should be representable as a signed 32-bit integer to avoid overflow in calculations)
+{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647
 >>
-Rule 7 (If a size is provided, it must be a non-empty tuple.)
-{v_1 : tuple(int)} |= v_1.len > 0
+Rule 7 (The absolute value of size is less than a certain threshold to avoid overflow in signed calculations used internally)
+{v_1 : int} |= if v_1 < 0 then -1 * v_1 < 2147483647 else v_1 < 2147483647
 >>
-Rule 8 (If the size is explicitly given, the provided number of elements must be within the allowed range for short tensors given the offset.)
-{v_1 : int, v_2 : int} |= (v_1 + v_2) ≤ 2147483647
+Rule 8 (Check that the requested size times the size of short is not too big to fit in memory)
+{v_1 : int} |= v_1 * 2 < 2147483647
 >>
-Rule 9 (When creating a ShortStorage from another storage, the source storage must have a valid size.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 9 (Size should be small enough to be safely multiplied by other size parameters without integer overflow)
+{v_1: int} |= v_1 < 1073741823
 >>
-Rule 10 (When using the 'share_memory' option, both ShortStorages must have the same data type.)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then dtype_(v_1) = dtype_(v_2)
+Rule 10 (Size should not cause an overflow when multiplied by element size and number of elements.)
+{v_1 : int} |= v_1 < 536870911
 >>
-Rule 11 (If sizes are passed directly, the resulting storage size must fit within the maximum ShortStorage size.)
-{v_1 : int} |= v_1 <= 2147483647
+Rule 11 (The size multiplied by other dimension sizes cannot cause an overflow.)
+{v_1: int, v_2: int} |= v_1 * v_2 < 2147483647
 >>
-Rule 12 (When a ShortStorage is created from a sequence, the elements of the sequence must be convertible to short integers.)
-{v_1 : list(int ⊎ float)} |= ∀i ∈ [0, v_1.len - 1] : -32768 ≤ v_1[i] ∧ v_1[i] ≤ 32767
+Rule 12 (Size is not close to the maximum representable value to avoid issues with allocations)
+{v_1: int} |= v_1 < 2000000000
 >>
-Rule 13 (When providing a size tuple, the product of the dimensions must fit within the maximum storage size.)
-{v_1 : tuple(int)} |= (if v_1.len = 0 then 1 else (if v_1.len = 1 then v_1[0] else (if v_1.len = 2 then v_1[0] * v_1[1] else (if v_1.len = 3 then v_1[0] * v_1[1] * v_1[2] else (if v_1.len = 4 then v_1[0] * v_1[1] * v_1[2] * v_1[3] else 2147483647))))) <= 2147483647
+Rule 13 (Size cannot be excessively large, considering the memory limits of the system)
+{v_1: int} |= v_1 < 1500000000
 >>
-Rule 14 (When constructing from another ShortStorage, the other ShortStorage should have elements that fall within the range of a short.)
-{v_1 : tensor} |= if dtype_(v_1) = 2 then min(v_1) >= -32768 ∧ max(v_1) <= 32767
+Rule 14 (The size, when multiplied by the element size, should be reasonable, not exceeding a safe memory limit)
+{v_1: int} |= v_1 * 2 < 3221225472
 >>
-Rule 15 (When constructing a storage from a buffer, the offset must be within the bounds of the buffer.)
-{v_1 : int, v_2 : int} |= v_1 >= 0 ∧ v_1 <= v_2
+Rule 16 (Checking for overflow with a long tensor using 'if' statement)
+{v_1 : int, v_2 : int} |= if v_1 > 0 ∧ v_2 > 0 then v_1 * v_2 < 9223372036854775807
 >>
-Rule 16 (When constructing a storage from a buffer, the size plus the offset must be less than or equal to the buffer's size.)
-{v_1 : int, v_2 : int, v_3 : int} |= (v_1 + v_2) ≤ v_3 ∧ v_1 >=0 ∧ v_2 >= 0
+Rule 20 (Check that size calculation won't cause an integer overflow, accounting for potential negative sizes with a large absolute value, and using a function call.)
+{v_1: int, v_2 : int} |= if v_1 < 0 then (if v_2 < 0 then true else min(v_1) < 2147483647 / max(v_2) ) else (if v_2 < 0 then true else v_1 < 2147483647 / max(v_2) )
 >>
-Rule 17 (When constructing from a memory format tensor, the number of elements shouldn't be larger than max int.)
-{v_1 : tensor} |= shape(v_1, 0) <= 2147483647
+Rule 21 (Check that size calculation won't cause an integer overflow, accounting for potential negative sizes with a large absolute value, and avoiding division)
+{v_1: int, v_2 : int} |= if v_1 < 0 then (if v_2 < 0 then true else (min(v_1) * max(v_2)) > -2147483647 ) else (if v_2 < 0 then true else (v_1 * max(v_2)) < 2147483647 )
 >>
-Rule 18 (The size of the short storage must be a valid int or long dtype.)
-{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
+Rule 23 (Another variation of enforcing maximum storage size avoiding duplication with prior rules, different bound.)
+{v_1 : int} |= v_1 < 1610612736
 >>
-Rule 19 (The new and old sizes must be non-negative.)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0
+Rule 24 (Yet another way to express the size check, using a different upper bound and accounting for potential multiplication)
+{v_1 : int} |= v_1 < 1073741823
 >>
-Rule 20 (If there is a storage offset, it shouldn't be larger than the requested size.)
-{v_1 : int, v_2 : int} |= v_1 <= v_2
+Rule 25 (Ensure size, element size, and num elements are within bounds.)
+{v_1 : int, v_2 : int} |= v_1 * v_2 < 1073741823 ∧ v_1 > 0 ∧ v_2 > 0
 >>
-Rule 21 (If constructing the short storage from another storage and providing a size, that size must be smaller than the size of the initial storage.)
-{v_1 : tensor, v_2 : int} |= v_2 <= shape(v_1, 0)
+Rule 26 (Ensure size, element size, and num elements are within bounds using if statements)
+{v_1 : int, v_2 : int} |= if v_1 > 0 ∧ v_2 > 0 then v_1 * v_2 < 1073741823
 >>
-Rule 22 (If constructing from another ShortStorage with an offset, the offset must be less than or equal to the other ShortStorage's size.)
-{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, 0)
+Rule 27 (Check size to stay within memory limits)
+{v_1 : int} |= v_1 < 500000000
+>>
+Rule 28 (Combining non-negativity and reasonable size)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 1073741823
+>>
+Rule 29 (Check size against a power of 2)
+{v_1 : int} |= v_1 < 8388608
+>>
+Rule 30 (The product with element size has to be positive and has to be less than int max)
+{v_1: int} |= v_1 * 2 > 0 ∧ v_1*2 < 2147483647
+>>
+Rule 31 (Combine non-negative check with a more conservative size limit to prevent allocation errors.)
+{v_1 : int} |= v_1 ≥ 0 ∧ v_1 < 268435456
+>>
+Rule 32 (Check non-negativity and a strict size limit.)
+{v_1 : int} |= v_1 >= 0 ∧ v_1 <= 134217728
+>>
+Rule 33 (Stricter check with power of 2 and being non-negative)
+{v_1 : int} |= v_1 >= 0 ∧ v_1 <= 67108864
+>>
+Rule 34 (Size based on maximum number of elements)
+{v_1: int} |= v_1 < 1048576
+>>
+Rule 35 (Checking for smaller maximum value of ShortStorage and checking to avoid overflow on addition)
+{v_1 : int} |= v_1 < 32767 ∧ v_1 + 10000 < 32767
+>>
+Rule 36 (Check max value and overflow with multiple parameters, more complex arithmetic.  Assuming element size = 2)
+{v_1: int, v_2: int} |= v_1 * 2 + v_2 < 2147483647 ∧ v_1 >= 0 ∧ v_2 >=0
+>>
+Rule 37 (Check overflow with multiplication and a fixed element size, using an if-then structure.)
+{v_1: int, v_2: int} |= if v_1 > 0 ∧ v_2 > 0 then v_1 * 2 + v_2 < 2147483647
+>>
+Rule 38 (Checking with larger int.)
+{v_1 : int, v_2 : int} |= v_1 * 2 + v_2 < 9223372036854775807 ∧ v_1 > 0 ∧ v_2 >0
+>>
+Rule 39 (Using and/or instead of if-then)
+{v_1 : int, v_2 : int} |= (v_1 > 0 ∧ v_2 > 0) ∧ (v_1 * 2 + v_2 < 2147483647)
+>>
+Rule 41 (Check for potential integer overflow when multiplying with element size, again using ShortStorage with only v_1)
+{v_1: int} |= v_1 > -1 ∧ v_1 < 2147483647 /2
+>>
+Rule 42 (Check to prevent large allocations, setting an arbitrary upper bound and requiring positive value, 1GB limit)
+{v_1: int} |= v_1 < 536870912 ∧ v_1 > 0
+>>
+Rule 43 (Checking size to avoid signed integer overflow and be within acceptable range)
+{v_1: int} |= v_1 > 0 ∧ v_1 < 1073741823
+>>
+Rule 44 (Check for overflow condition using maximum shape of ShortStorage and check to avoid addition overflow)
+{v_1: int} |= v_1 < 32767 ∧ 32767 - v_1 > 10
+>>
+Rule 45 (Avoid negative ptrdiff_t calculation.)
+{v_1 : int, v_2: int} |= v_1 - v_2 > -2147483647
+>>
+Rule 46 (check non negative and check to avoid large allocations)
+{v_1 : int} |= v_1 >= 0 ∧ v_1 < 1000000
+>>
+Rule 47 (Check a smaller limit and also check overflow issue by addition)
+{v_1 : int} |= v_1 >= 0 ∧ v_1 < 10000 ∧ v_1 + 1 < 2147483647
+>>
+Rule 48 (Check small allocation that ptrdiff_t can hold a negative and it has to be within range)
+{v_1 : int} |= v_1 > -1 ∧ v_1 < 10
+>>
+Rule 49 (check two dimensions to avoid overflow and make sure they are positive)
+{v_1: int, v_2: int} |= v_1 >= 0 ∧ v_2 >= 0 ∧ (v_1 * v_2)/2  < 1073741823
+>>
+Rule 50 (Check smaller memory limit with ShortStorage)
+{v_1 : int} |= v_1 > -1 ∧ v_1 < 32768
+>>
+Rule 51 (More detailed limit, to help avoid overflow in pointer calculations)
+{v_1: int} |= v_1 > -1 ∧ v_1 < 262144
+>>
+Rule 52 (Use a 64-bit check to prevent integer overflow issues, but requiring greater precision than int)
+{v_1: float} |= v_1 > -1 ∧ v_1 < 9223372036854775807 / 2

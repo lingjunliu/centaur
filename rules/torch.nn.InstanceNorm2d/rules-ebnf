@@ -2,59 +2,137 @@
 Rule 1 (num_features must be positive)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 2 (eps should be non-negative)
-{v_1 : float} |= v_1 ≥ 0
+Rule 2 (eps should be a small positive float to avoid division by zero)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
 >>
-Rule 3 (input tensor must be 3D or 4D)
+Rule 3 (momentum should be a float between 0 and 1 inclusive)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 4 (input tensor dimension must be either 3 or 4)
 {v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
 >>
-Rule 4 (If input is 3D, num_features must equal the first dimension)
+Rule 5 (if affine is True, num_features should be positive)
+{v_1 : bool, v_2 : int} |= if v_1 then v_2 > 0
+>>
+Rule 6 (input tensor's channel dimension must match num_features)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 1) = v_2
+>>
+Rule 7 (affine is boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 9 (num_features must be less than a large value to avoid memory issues)
+{v_1 : int} |= v_1 < 10000
+>>
+Rule 10 (input tensor's dtype should be a float)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 11 (input tensor's dimensions must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 12 (eps should not be zero)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 14 (If track_running_stats is false, momentum shouldn't affect anything)
+{v_1 : bool, v_2 : float} |= if v_1 then true else v_2 ≥ 0 ∧ v_2 ≤ 1
+>>
+Rule 15 (input tensor's elements cannot be character)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 16 (eps cannot be negative)
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 17 (If input is 3D, num_features should match the first dimension)
 {v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 then shape(v_1, 0) = v_2
 >>
-Rule 5 (If input is 4D, num_features must equal the second dimension)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 4 then shape(v_1, 1) = v_2
+Rule 18 (The shape of the input tensor should not cause a storage size overflow)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 2000000000
 >>
-Rule 6 (momentum should be between 0 and 1 inclusive)
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1
+Rule 19 (The second dimension of the input tensor should not be negative)
+{v_1 : tensor} |= shape(v_1, 1) > 0
 >>
-Rule 7 (affine or track_running_stats must be true)
-{v_1 : bool, v_2 : bool} |= v_1 ∨ v_2
+Rule 20 (if running mean is tracked, number of elements must align with number of features)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 then shape(v_1, 1) = v_2
 >>
-Rule 8 (Input tensor dtype should be float)
+Rule 21 (if track_running_stats is false, running statistics should be disregarded)
+{v_1 : bool} |= if v_1 then true
+>>
+Rule 22 (num_features should be an integer, not a float)
+{v_1 : int ⊎ float} |= if v_1 > 0 then true else false
+>>
+Rule 23 (if num_features is negative, should throw an error)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 24 (Input tensor should have compatible data type)
 {v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 9 (running_mean should contain num_features elements)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
+Rule 25 (num_features and input channel number must be non-zero.)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) > 0 ∧ v_2 > 0
 >>
-Rule 10 (If track_running_stats is True, running_mean must be a tensor)
-{v_1 : bool, v_2 : tensor} |= if v_1 then ndim(v_2) = 1
+Rule 26 (The input tensor must be a 3D or 4D tensor to be compatible)
+{v_1: tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
 >>
-Rule 11 (If affine is True, gamma and beta must be tensors)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 then ndim(v_2) = 1 ∧ ndim(v_3) = 1
+Rule 27 (The number of features cannot be too large.)
+{v_1 : int} |= v_1 < 2048
 >>
-Rule 12 (If affine is True, gamma and beta must have num_features elements)
-{v_1 : bool, v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_1 then shape(v_2, 0) = v_4 ∧ shape(v_3, 0) = v_4
+Rule 28 (For 4D input, the channel dim cannot be negative)
+{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) > 0
 >>
-Rule 13 (If affine is True and using running stats, gamma and beta dtypes must match input dtype)
-{v_1 : bool, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if v_1 then dtype_(v_2) = dtype_(v_4) ∧ dtype_(v_3) = dtype_(v_4)
+Rule 29 (Input tensor's values must be in a reasonable range to avoid overflow)
+{v_1 : tensor} |= min(v_1) > -10000 ∧ max(v_1) < 10000
 >>
-Rule 14 (If track_running_stats is True, running_var must have num_features elements)
+Rule 30 (The input should not cause sym int problems)
+{v_1: tensor} |= shape(v_1, 0) < 100000 ∧ shape(v_1, 1) < 100000
+>>
+Rule 31 (momentum should not be a very small number.)
+{v_1: float} |= v_1 > 0.000000001
+>>
+Rule 32 (If affine is set, then gamma and beta must have correct shape)
 {v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 then shape(v_2, 0) = v_3
 >>
-Rule 15 (If track_running_stats is True, running_var must be a tensor of floats)
-{v_1 : bool, v_2 : tensor} |= if v_1 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6)
+Rule 34 (Check channel dimension against running_mean if tracking_running_stats)
+{v_1: tensor, v_2: bool} |= if v_2 then shape(v_1, 1) > 0
 >>
-Rule 16 (If track_running_stats is True, and using affine, gamma dtype matches input tensor dtype)
-{v_1 : bool, v_2 : bool, v_3 : tensor, v_4 : tensor} |= if v_1 ∧ v_2 then dtype_(v_3) = dtype_(v_4)
+Rule 35 (channel dimension alignment)
+{v_1: tensor, v_2: int} |= shape(v_1, 1) = v_2
 >>
-Rule 17 (If using running_stats, the input tensor dtype and running_mean dtype must match)
-{v_1 : bool, v_2 : tensor, v_3 : tensor} |= if v_1 then dtype_(v_2) = dtype_(v_3)
+Rule 37 (If 3D input, channel should align with num_features)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 3 then shape(v_1, 0) = v_2
 >>
-Rule 18 (If using running_stats, the input tensor dtype and running_var dtype must match; and using affine, gamma and beta dtype must match with input tensor dtype)
-{v_1 : bool, v_2 : tensor, v_3 : tensor, v_4 : bool, v_5 : tensor, v_6 : tensor} |= if v_1 then (dtype_(v_2) = dtype_(v_3)) ∧ if v_4 then (dtype_(v_5) = dtype_(v_2) ∧ dtype_(v_6) = dtype_(v_2))
+Rule 38 (track_running_stats being true means you have the same # of elements as number of features.)
+{v_1: bool, v_2: tensor, v_3 : int} |= if v_1 then shape(v_2, 0) = v_3
 >>
-Rule 19 (num_features must be int and greater than zero)
-{v_1: int} |= v_1 > 0
+Rule 40 (Check all input sizes are smaller than storage size cap.)
+{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1,0) * shape(v_1,1) * shape(v_1,2) * shape(v_1,3) < 1073741824 else if ndim(v_1) = 3 then shape(v_1,0) * shape(v_1,1) * shape(v_1,2) < 1073741824
 >>
-Rule 20 (If affine is True and input tensor is provided, num_features must equal the last dimension of gamma)
-{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 then shape(v_2, ndim(v_2) - 1) = v_3
+Rule 41 (Check all input sizes are smaller than storage size cap.)
+{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1,0) * shape(v_1,1) * shape(v_1,2) * shape(v_1,3) < 1073741824 else if ndim(v_1) = 3 then shape(v_1,0) * shape(v_1,1) * shape(v_1,2) < 1073741824 else if ndim(v_1) = 2 then shape(v_1,0) * shape(v_1,1) < 1073741824 else shape(v_1, 0) < 1073741824
+>>
+Rule 42 (Check all input sizes are smaller than storage size cap.)
+{v_1: tensor} |= if ndim(v_1) = 4 then shape(v_1,0) * shape(v_1,1) * shape(v_1,2) * shape(v_1,3) < 1073741824 else if ndim(v_1) = 3 then shape(v_1,0) * shape(v_1,1) * shape(v_1,2) < 1073741824 else if ndim(v_1) = 2 then shape(v_1,0) * shape(v_1,1) < 1073741824 else if ndim(v_1) = 1 then shape(v_1, 0) < 1073741824
+>>
+Rule 43 (Ensure that num_features is positive to align with other params.)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 4 then v_1 > 0 else if ndim(v_2) = 3 then v_1 > 0
+>>
+Rule 44 (if affine is true and track_running_stats is true, make sure the parameters align in dim)
+{v_1 : bool, v_2: bool, v_3: tensor, v_4: int} |= if v_1 ∧ v_2 then shape(v_3, 0) = v_4
+>>
+Rule 45 (check that num_features is int)
+{v_1: int ⊎ float} |= if v_1 = 0 then false
+>>
+Rule 46 (check that num_features is a non-zero integer.)
+{v_1: int ⊎ float} |= (v_1 > 0) ∧ (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 > 5)
+>>
+Rule 47 (Check that the combination of track_running_stats and affine are reasonable)
+{v_1 : bool, v_2 : bool, v_3 : int} |= if v_1 ∧ v_2 then v_3 > 0
+>>
+Rule 51 (num_features must match input channel if affine is false.)
+{v_1: tensor, v_2: int, v_3: bool} |= if v_3 = false then shape(v_1, 1) = v_2
+>>
+Rule 52 (if num_features is not matching input's channel number)
+{v_1: tensor, v_2: int, v_3: bool} |= if v_3 = false then v_2 = shape(v_1, 1)
+>>
+Rule 54 (If track_running_stats then mean needs to be 1D tensor and have right dim size)
+{v_1: int, v_2: bool, v_3: tensor} |= if v_2 then ndim(v_3) = 1 ∧ shape(v_3, 0) = v_1
+>>
+Rule 56 (If track_running_stats is True then mean dtype should be one of the float types)
+{v_1: tensor, v_2: bool} |= if v_2 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8

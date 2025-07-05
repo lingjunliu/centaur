@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The length of the tuple v_1 should be greater than int v_2. (Rule 15)
+# Shape value at dimension v_2 of tensor v_1 should be greater than 1 (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_length"] > v["arg2_value"]) if n else
-          v["arg1_length"] > v["arg2_value"])
+    s.add(Not(Select(v["arg1_shape"], v["arg2_value"]) > 1) if n else
+          Select(v["arg1_shape"], v["arg2_value"]) > 1)
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,25 @@ def rule_15_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+        if not isinstance(arg1, np.ndarray):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_length = Int('arg1_length')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_length == len(arg1))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_length': arg1_length, 'arg2_value': arg2_value})
+        rule_15(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_length': arg1['length'], 'arg2_value': arg2['value']}, neg)
+        rule_15(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# promoting uint8 with int results in larger int type (Rule 11)
+# If type1 is string, type2 must not be bool, int8, int16, int32, int64, uint8 (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 5, If(Or(v["arg2_value"] < 1, v["arg2_value"] > 4), True, False), If(v["arg2_value"] == 5, If(Or(v["arg1_value"] < 1, v["arg1_value"] > 4), True, False), False))) if n else
-          If(v["arg1_value"] == 5, If(Or(v["arg2_value"] < 1, v["arg2_value"] > 4), True, False), If(v["arg2_value"] == 5, If(Or(v["arg1_value"] < 1, v["arg1_value"] > 4), True, False), False)))
+    s.add(Not(If(v["arg1_value"] == 11, And(And(And(And(And(v["arg2_value"] != 0, v["arg2_value"] != 1), v["arg2_value"] != 2), v["arg2_value"] != 3), v["arg2_value"] != 4), v["arg2_value"] != 5), False)) if n else
+          If(v["arg1_value"] == 11, And(And(And(And(And(v["arg2_value"] != 0, v["arg2_value"] != 1), v["arg2_value"] != 2), v["arg2_value"] != 3), v["arg2_value"] != 4), v["arg2_value"] != 5), False))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

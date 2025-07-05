@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor must be 2D or 3D (Rule 2)
+# If padding is a tuple, its length must be 2 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] == 2, v["arg1_ndim"] == 3)) if n else
-          Or(v["arg1_ndim"] == 2, v["arg1_ndim"] == 3))
+    s.add(Not(v["arg1_length"] == 2) if n else
+          v["arg1_length"] == 2)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_2_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_length = Int('arg1_length')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_length == len(arg1))
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_ndim': arg1_ndim})
+        rule_2(solver, {'arg1_length': arg1_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_2(solver, {'arg1_length': arg1['length']}, neg)

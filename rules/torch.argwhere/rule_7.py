@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input tensor can't be of string type (Rule 7)
+# number of dimensions of the input tensor is less than 6 (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 11) if n else
-          v["arg1_dtype"] != 11)
+    s.add(Not(v["arg1_ndim"] < 6) if n else
+          v["arg1_ndim"] < 6)
 )
 
 def rule_7_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_7_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
 
         # Constraints for rule 7
-        rule_7(solver, {'arg1_dtype': arg1_dtype})
+        rule_7(solver, {'arg1_ndim': arg1_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_7(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_7(solver, {'arg1_ndim': arg1['ndim']}, neg)

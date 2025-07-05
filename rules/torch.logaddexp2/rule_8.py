@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if the data type of the first tensor is float16, then the data type of the second tensor must be less than or equal to float32 (Rule 8)
+# input and other tensors should have floating-point dtypes (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] <= 7, False)) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_dtype"] <= 7, False))
+    s.add(Not(And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8)))) if n else
+          And((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8))))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

@@ -1,60 +1,174 @@
 >>
-Rule 1 (input tensor should be 2D or 3D)
+Rule 1 (Input tensor must be 2D or 3D)
 {v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
 >>
 Rule 2 (kernel_size must be greater than zero)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 3 (padding must be non-negative and less than or equal to kernel_size / 2)
-{v_1 : int, v_2 : int} |= v_1 ≥ 0 ∧ v_1 ≤ v_2 / 2
+Rule 3 (padding must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 4 (If return_indices is true, the input tensor's dtype must be floating point)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 5 (padding should be at most half of kernel size)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2 / 2
 >>
-Rule 5 (If stride is None, it should be equal to kernel_size)
-{v_1 : int ⊎ str, v_2 : int} |= if v_1 = "none" then v_1 = v_2
+Rule 10 (kernel_size must be greater than zero)
+{v_1 : tuple(int)} |= v_1.len = 1 ∧ v_1[0] > 0
 >>
-Rule 6 (If kernel_size is a tuple, it should contain only one element)
-{v_1 : tuple(int)} |= v_1.len = 1
+Rule 16 (kernel_size must be greater than dilation)
+{v_1 : int, v_2 : int} |= v_1 > v_2
 >>
-Rule 7 (If ceil_mode is true, the input tensor's last dimension must be greater than or equal to the kernel size)
-{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then shape(v_2, ndim(v_2) - 1) ≥ v_3
+Rule 18 (Input tensor must be 2D or 3D, and kernel size must be smaller than the input size.)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 2 ∨ ndim(v_1) = 3) ∧ (shape(v_1, ndim(v_1)-1) > v_2)
 >>
-Rule 8 (If the input is 2D, the batch size should be optional, meaning the first dimension's size can be anything. If the input is 3D, the batch size must exist, meaning first dimension must be greater than 0)
-{v_1 : tensor} |= if ndim(v_1) = 2 then true else if ndim(v_1) = 3 then shape(v_1, 0) > 0 else false
+Rule 21 (Input tensor must be 2D or 3D, and kernel size must be smaller than the input size.)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 2 ∨ ndim(v_1) = 3) ∧ (shape(v_1, if ndim(v_1) = 2 then 1 else 2) > v_2)
 >>
-Rule 9 (If stride is a tuple, its element must be greater than zero)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 22 (Check data type of input tensor to avoid Char type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
 >>
-Rule 10 (If padding is non-zero, the input tensor's last dimension size should be greater than padding * 2)
-{v_1 : int, v_2 : tensor} |= if v_1 > 0 then shape(v_2, ndim(v_2) - 1) > v_1 * 2
+Rule 23 (If stride is none, kernel size and stride should be equal)
+{v_1 : int, v_2 : int} |= v_1 = v_2
 >>
-Rule 11 (The data type of the input tensor should not be Char)
+Rule 25 (Data type of input tensor should be a valid number)
 {v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 12 (If stride is not None, the stride should be greater than 0)
-{v_1 : int ⊎ str} |= if v_1 ≠ "none" then v_1 > 0
+Rule 26 (Padding and kernel_size cannot be negative)
+{v_1 : int, v_2: int} |= v_1 >= 0 ∧ v_2 >=0
 >>
-Rule 13 (If kernel_size is not an int, then it has to be a tuple.)
-{v_1 : int ⊎ tuple(int)} |= if v_1 < 100000 then true else v_1.len = 1
+Rule 28 (Padding and kernel_size cannot be negative)
+{v_1 : int, v_2: int} |= v_1 ≥ 0 ∧ v_2 ≥ 0
 >>
-Rule 14 (If dilation is not 1, the input tensor's shape should be large enough to accommodate it.)
-{v_1 : int, v_2 : tensor, v_3 : int} |= if v_1 ≠ 1 then shape(v_2, ndim(v_2)-1) > v_3
+Rule 31 (Input tensor's datatype should be one of valid datatypes)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 15 (If ceil_mode is false, the output size calculation should be valid.)
-{v_1 : bool, v_2 : tensor, v_3 : int, v_4 : int, v_5 : int} |= if v_1 = false then (shape(v_2, ndim(v_2)-1) + 2 * v_4 - v_3 * (v_5 -1) - 1) > 0
+Rule 33 (Padding and kernel_size must be non-negative and padding should be less than or equal to half of the kernel size)
+{v_1 : int, v_2: int} |= v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ v_1 ≤ v_2 / 2
 >>
-Rule 16 (If return_indices is True, then the output must be used in max_unpool1d)
-{v_1: bool} |= if v_1 = true then true
+Rule 36 (The kernel size must be less than or equal to the input size)
+{v_1 : int, v_2 : tensor} |= v_1 ≤ shape(v_2, if ndim(v_2) = 2 then 1 else 2)
 >>
-Rule 17 (If the input tensor is 3D and has a batch dimension, that batch dimension has to be consistent across multiple inputs)
-{v_1 : tensor, v_2: tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then shape(v_1, 0) = shape(v_2, 0)
+Rule 42 (kernel_size and dilation must be positive)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 18 (If dilation is not 1, it must be a positive integer)
-{v_1 : int} |= if v_1 ≠ 1 then v_1 > 0
+Rule 43 (If pad is larger than half of the effective kernel size it will return an error, requires dilation)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 <= (v_2 + (v_3 - 1)) / 2
 >>
-Rule 19 (The input should not be a boolean tensor.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 44 (The effective kernel size should be less than or equal to the input size)
+{v_1 : int, v_2 : int, v_3 : tensor} |= (v_1 + (v_2 - 1)) <= shape(v_3, if ndim(v_3) = 2 then 1 else 2)
 >>
-Rule 20 (if kernel_size is a tuple, its element must be a positive integer)
-{v_1 : tuple(int)} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 45 (If pad is larger than half of the effective kernel size it will return an error, requires dilation, kernel size, and padding)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≤ (v_2 + (v_3 - 1)) / 2
+>>
+Rule 50 (The effective kernel size should be less than or equal to the input size and kernel size must be non-zero)
+{v_1 : int, v_2 : int, v_3 : tensor} |= (v_1 + (v_2 - 1)) <= shape(v_3, if ndim(v_3) = 2 then 1 else 2) ∧ v_1 > 0
+>>
+Rule 51 (Allocating very large memory is not allowed.)
+{v_1 : int} |= v_1 < 10000000000
+>>
+Rule 52 (Memory allocation should not exceed a reasonable limit and ensure kernel size is valid)
+{v_1 : int} |= v_1 < 10000000000 ∧ v_1 > 0
+>>
+Rule 53 (Effective kernel size should be smaller or equal to the input, dilation must be greater than 0)
+{v_1 : int, v_2 : tensor, v_3: int} |= v_3 > 0 ∧ (v_1 + (v_3 - 1)) <= shape(v_2, if ndim(v_2) = 2 then 1 else 2)
+>>
+Rule 54 (Allocated tensor size should not cause OOM error)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1,1) * (if ndim(v_1) = 3 then shape(v_1,2) else 1)  < 1000000000
+>>
+Rule 55 (Dilation must be positive and padding must be non-negative)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 >= 0
+>>
+Rule 56 (Padding should not cause invalid computed output size, and stride must be greater than zero)
+{v_1 : int, v_2 : int, v_3 : tensor, v_4 : int} |= (shape(v_3, if ndim(v_3) = 2 then 1 else 2) + 2 * v_1 - (v_2 + (v_4 -1))) > 0
+>>
+Rule 57 (The effective kernel size should be less than or equal to the input, and padding must be non-negative.)
+{v_1 : int, v_2 : tensor, v_3: int} |= (v_1 + (v_3 - 1)) <= shape(v_2, if ndim(v_2) = 2 then 1 else 2)
+>>
+Rule 58 (Kernel_size * input_channel * input_width <= max allowed memory.)
+{v_1 : int, v_2 : tensor} |= v_1 * shape(v_2, 0) * shape(v_2, if ndim(v_2) = 2 then 1 else 2) < 2000000000
+>>
+Rule 59 (Padding and kernel size must be in reasonable range)
+{v_1 : int, v_2 : int} |= v_1 < 10000 ∧ v_2 < 10000
+>>
+Rule 60 (Kernel size should be smaller or equal to input tensor dimension size to avoid runtime error, requires kernel size, dilation, input shape)
+{v_1 : int, v_2: int, v_3 : tensor} |= (v_1 + (v_2 - 1)) <= shape(v_3, if ndim(v_3) = 2 then 1 else 2)
+>>
+Rule 63 (Kernel size should be smaller or equal to input tensor dimension size to avoid runtime error, requires kernel size, dilation, input shape AND kernel size must be positive)
+{v_1 : int, v_2: int, v_3 : tensor} |= (v_1 + (v_2 - 1)) <= shape(v_3, if ndim(v_3) = 2 then 1 else 2) ∧ v_1 > 0
+>>
+Rule 64 (Input tensor must be of floating point type)
+{v_1: tensor} |= 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
+>>
+Rule 65 (Padding and Kernel Size are within reasonable bounds to prevent OOM errors)
+{v_1 : int, v_2 : int, v_3: tensor} |= v_1 < 10000 ∧ v_2 < 10000 ∧ shape(v_3, if ndim(v_3) = 2 then 1 else 2) < 10000
+>>
+Rule 67 (The dimension of the input tensor must be either 2 or 3 to avoid runtime errors)
+{v_1: tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
+>>
+Rule 68 (Padding and Kernel Size are limited to reasonable bounds to avoid MemoryError, and stride must be positive)
+{v_1 : int, v_2 : int, v_3: int} |= v_1 < 10000 ∧ v_2 < 10000 ∧ v_3 > 0
+>>
+Rule 70 (Input must be a valid tensor (2D or 3D) and kernel size must be positive to proceed.)
+{v_1 : tensor, v_2: int} |= (ndim(v_1) = 2 ∨ ndim(v_1) = 3) ∧ v_2 > 0
+>>
+Rule 72 (The kernel size, dilation, and input size should be such that output size remains non-negative)
+{v_1 : int, v_2: int, v_3 : tensor} |= shape(v_3, if ndim(v_3) = 2 then 1 else 2) > (v_1 + (v_2 - 1))
+>>
+Rule 73 (The input must be a valid tensor (2D or 3D), kernel size must be positive to proceed, and dilation should be greater than 0.)
+{v_1 : tensor, v_2: int, v_3: int} |= (ndim(v_1) = 2 ∨ ndim(v_1) = 3) ∧ v_2 > 0 ∧ v_3 > 0
+>>
+Rule 76 (The data type of the tensor should be either floating-point or integer)
+{v_1: tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
+>>
+Rule 77 (Padding and Kernel Size are limited to reasonable values related to avoid MemoryError, needs input tensor)
+{v_1 : int, v_2 : tensor} |= v_1 < 10000 ∧ shape(v_2, if ndim(v_2) = 2 then 1 else 2) < 10000
+>>
+Rule 78 (The output shape of the input tensor to be valid given kernel and padding)
+{v_1 : int, v_2: tensor, v_3: int} |= (shape(v_2, if ndim(v_2) = 2 then 1 else 2) + 2 * v_1 - v_3) > 0
+>>
+Rule 79 (Tensor dimension should be valid to proceed.)
+{v_1: tensor, v_2: int} |= ndim(v_1) >= 2 ∧ ndim(v_1) <=3 ∧ v_2 > 0
+>>
+Rule 80 (Padding should be valid based on Kernel and dilation)
+{v_1 : int, v_2 : int, v_3: int} |= v_1 <= (v_2 + (v_3 - 1)) / 2
+>>
+Rule 82 (Size parameters should be non negative to proceed with computation)
+{v_1 : int, v_2: int} |= v_1 >= 0 ∧ v_2 >= 0
+>>
+Rule 83 (Padding should be valid based on Kernel, dilation, and input to avoid runtime size issues.)
+{v_1 : int, v_2 : int, v_3: int, v_4: tensor} |= v_1 <= (v_2 + (v_3 - 1)) / 2 ∧ shape(v_4, if ndim(v_4) = 2 then 1 else 2) > 0
+>>
+Rule 84 (Size parameters should be non negative and kernel should be positive and less than input size)
+{v_1 : int, v_2: int, v_3: tensor} |= v_1 >= 0 ∧ v_2 >= 0 ∧ v_1 < shape(v_3, if ndim(v_3) = 2 then 1 else 2)
+>>
+Rule 85 (Data type of the input tensor should be a number)
+{v_1: tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 11
+>>
+Rule 87 (Kernel size & Dilation valid combination.)
+{v_1: int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 88 (Valid combination of input, padding, kernel, dilation values should produce valid outputs.)
+{v_1: int, v_2 : int, v_3: int, v_4: tensor} |= shape(v_4, if ndim(v_4) = 2 then 1 else 2) + 2 * v_1 - (v_2 + (v_3 - 1)) > 0
+>>
+Rule 89 (Padding should be valid)
+{v_1 : int, v_2 : int} |= v_1 >= 0 ∧ v_1 <= v_2 / 2
+>>
+Rule 90 (Check for CUDA OOM error)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) * shape(v_1, (if ndim(v_1) = 2 then 1 else 2)) * v_2 < 2000000000
+>>
+Rule 91 (Effective Kernel Size Valid for Tensor)
+{v_1: int, v_2 : int, v_3: tensor} |= shape(v_3, if ndim(v_3) = 2 then 1 else 2) >= v_2 + (v_1 - 1)
+>>
+Rule 93 (Dilation Must be greater than 0)
+{v_1: int} |= v_1 > 0
+>>
+Rule 94 (If stride is None, kernel size and stride size should be equal)
+{v_1: int, v_2 : int, v_3: bool} |= if v_3 = true then v_1 = v_2
+>>
+Rule 95 (Padding value to be correct value)
+{v_1 : int, v_2: int} |= v_1 >= 0 ∧ v_1 <= v_2 / 2
+>>
+Rule 96 (Check for valid Kernel and Input size)
+{v_1: int, v_2 : int, v_3: tensor} |= shape(v_3, if ndim(v_3) = 2 then 1 else 2) >= (v_2 + (v_1 - 1))
+>>
+Rule 97 (Valid data type, the implementation doesn't support char type tensor.)
+{v_1: tensor} |= dtype_(v_1) ≠ 12

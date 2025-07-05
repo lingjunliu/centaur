@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the output tensor's dtype is specified then the input dtype cannot be greater than output dtype. (Rule 26)
+# If the output is provided, input and output should either both be float or both be complex, corrected syntax (Rule 26)
 
 rule_26 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] <= v["arg2_dtype"]) if n else
-          v["arg1_dtype"] <= v["arg2_dtype"])
+    s.add(Not(If((And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 8)), (And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), If((And(v["arg2_dtype"] >= 9, v["arg2_dtype"] <= 11)), (And(v["arg1_dtype"] >= 9, v["arg1_dtype"] <= 11)), False))) if n else
+          If((And(v["arg2_dtype"] >= 6, v["arg2_dtype"] <= 8)), (And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8)), If((And(v["arg2_dtype"] >= 9, v["arg2_dtype"] <= 11)), (And(v["arg1_dtype"] >= 9, v["arg1_dtype"] <= 11)), False)))
 )
 
 def rule_26_func(arg1, arg2, solver=None, neg=False):

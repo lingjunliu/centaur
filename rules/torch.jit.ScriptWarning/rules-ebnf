@@ -1,84 +1,411 @@
 >>
-Rule 1 (dtype_ of a tensor should be an integer within a specific range)
-{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+Rule 1 (warning about a large tensor)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
 >>
-Rule 2 (If a tensor has more than one dimension, then its shape at dimension 0 is greater than a certain value)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > 1 ∧ shape(v_1, 0) > v_2
+Rule 2 (warning if number of dimensions is greater than 5)
+{v_1 : tensor} |= ndim(v_1) < 5
 >>
-Rule 3 (If string is equal to "tanh", then a tensor must have float16, float32, or float64 dtype)
-{v_1 : str, v_2 : tensor} |= if v_1 = "tanh" then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 3 (warning if a boolean tensor contains only True values)
+{v_1 : tensor} |= (dtype_(v_1) = 0) ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0)
 >>
-Rule 4 (If the number of dimensions of the tensor is greater than zero, then the minimum value of the tensor must be smaller than its maximum value)
-{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) < max(v_1)
+Rule 4 (warning about small integer value)
+{v_1 : int} |= v_1 > 10
 >>
-Rule 5 (If the input is "bij,bjk->bik", the number of dimensions of the tensor should be equal to 3.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "bij,bjk->bik" then ndim(v_2) = 3
+Rule 5 (warning about usage of float16, which may cause precision issues)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 6 (If string is equal to "...ij->...ji", then the number of dimensions of the tensor should be greater than or equal to 2)
-{v_1 : str, v_2 : tensor} |= if v_1 = "...ij->...ji" then ndim(v_2) ≥ 2
+Rule 6 (warning about specific string value)
+{v_1 : str} |= v_1 ≠ "none"
 >>
-Rule 7 (If a string variable is "none", then another float variable should be 0)
-{v_1 : str, v_2 : float} |= if v_1 = "none" then v_2 = 0.0
+Rule 7 (warning when two tensors have the same shape, indicating potential redundancy)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 8 (If a tensor has only one dimension, its shape in that dimension must be greater than an integer value)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then shape(v_1, 0) > v_2
+Rule 8 (warning if a tensor is a scalar)
+{v_1 : tensor} |= ndim(v_1) ≠ 0
 >>
-Rule 9 (The shape of a tensor in the first dimension should be greater or equal than the length of a list)
-{v_1 : tensor, v_2 : list(int)} |= shape(v_1, 0) ≥ v_2.len
+Rule 9 (warning if maximum value is smaller than minimum value)
+{v_1 : tensor} |= max(v_1) > min(v_1)
 >>
-Rule 10 (If string is "mean" or "sum" or "max", a tensor's dimension must be greater than zero.)
-{v_1 : str, v_2 : tensor} |= if v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" then ndim(v_2) > 0
+Rule 10 (warning about a list having a single element)
+{v_1 : list(int)} |= v_1.len > 1
 >>
-Rule 11 (If a boolean variable is true, a tensor's dimension must be greater than zero.)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then ndim(v_2) > 0
+Rule 11 (warning if a tensor's dimensions are all equal to 1, might indicate a constant)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1
 >>
-Rule 12 (If a string is "constant", then a float value must be equal to 1.0 or greater)
-{v_1 : str, v_2 : float} |= if v_1 = "constant" then v_2 ≥ 1.0
+Rule 12 (warning if a string is very long)
+{v_1 : str} |= v_1.len < 200
 >>
-Rule 13 (A tensor with ndim greater than zero should have dtype equal to either float32 or float64)
-{v_1 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 14 (warning if a tensor has a dimension of size 0)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
 >>
-Rule 14 (if a dtype is np.dtype then ndim of the tensor should be zero)
-{v_1 : dtype, v_2 : tensor} |= if v_1 = 13 then ndim(v_2) = 0
+Rule 15 (warning when using float64 and it is not necessary)
+{v_1 : tensor, v_2 : bool} |= (dtype_(v_1) = 8) ∧ v_2 = false
 >>
-Rule 15 (If one tensor is of type int32 or less and another tensor is of float32 or greater then they should not be equal)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≤ 3) ∧ (dtype_(v_2) ≥ 7) then v_1 ≠ v_2
+Rule 16 (warning if a tuple has more than 5 elements)
+{v_1 : tuple(int)} |= v_1.len < 6
 >>
-Rule 16 (If string is "bn,anm,bm->ba", then the number of dimensions of the tensor should be equal to 3)
-{v_1 : str, v_2 : tensor} |= if v_1 = "bn,anm,bm->ba" then ndim(v_2) = 3
+Rule 17 (warning about a potential performance bottleneck due to a small tensor size.)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (shape(v_1, 0) < 10)
 >>
-Rule 17 (If the dtype of a tensor is a complex number (10 or 11), then its dimension must be greater than zero)
-{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then ndim(v_1) > 0
+Rule 18 (warning when int is used for indexing but the shape dimension is large)
+{v_1 : int, v_2 : tensor} |= v_1 > 10000 ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 100000)
 >>
-Rule 18 (If two tensors both have dimension greater than 1, the shape of the first dimension should be equal)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, 0) = shape(v_2, 0)
+Rule 21 (warning if a list contains a zero value)
+{v_1 : list(int)} |=  (∃i ∈ [0, v_1.len - 1] : v_1[i] = 0) = false
 >>
-Rule 19 (The length of a list of string needs to be smaller than the shape of a tensor at dimension 0)
-{v_1 : tensor, v_2 : list(str)} |= v_2.len < shape(v_1, 0)
+Rule 22 (warning if a tensor has a dimension of size 0)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) = true
 >>
-Rule 20 (If a tensor has more than 2 dimension, then the shape in first dimension and second dimension should not be same)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, 0) ≠ shape(v_1, 1)
+Rule 27 (warning if a tensor of bool contains only false values)
+{v_1 : tensor} |= (dtype_(v_1) = 0) ∧ (∃i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0) = false
 >>
-Rule 21 (If one tensor has bool dtype then another tensor should have the same shape at 0th dimension)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then shape(v_1, 0) = shape(v_2, 0)
+Rule 28 (warning about a tensor with negative shape)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 0) = false
 >>
-Rule 22 (Shape of tensor at dimension 0 should be less than 1000)
-{v_1 : tensor} |= shape(v_1, 0) < 1000
+Rule 29 (warning when using tanh activation function)
+{v_1 : str} |= v_1 = "tanh"
 >>
-Rule 23 (If string equals to "ii->i", then the tensor must have dimension 2)
-{v_1 : str, v_2 : tensor} |= if v_1 = "ii->i" then ndim(v_2) = 2
+Rule 30 (warning if the shape of a tensor is too big)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1000000
 >>
-Rule 24 (If string equals "i,j->ij", then tensor should be 2 dimensions or more)
-{v_1 : str, v_2 : tensor} |= if v_1 = "i,j->ij" then ndim(v_2) ≥ 2
+Rule 31 (warning if a list's length exceeds a limit)
+{v_1 : list(int)} |= v_1.len > 100
 >>
-Rule 25 (If tensor has dtype "bool", then its min value should be either true or false.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then min(v_1) = true ∨ min(v_1) = false
+Rule 32 (warning about dtype possibly causing overflow)
+{v_1 : tensor, v_2 : int} |= dtype_(v_1) = v_2 ∧ v_2 < 5
 >>
-Rule 26 (If a tensor has dimension 1 and dtype is int, its max value is less than 100)
-{v_1 : tensor} |= if ndim(v_1) = 1 ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then max(v_1) < 100
+Rule 33 (warning if string value equals to an inappropriate value)
+{v_1 : str} |= v_1 = "ii->i"
 >>
-Rule 27 (A tensor should have a shape at dimension 0 smaller than the maximum value of another tensor with int64 dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 5 then shape(v_1, 0) < max(v_2)
+Rule 34 (warning for tensors with dimension size 1, excluding the last dimension)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = 1
 >>
-Rule 28 (If the dtype of one tensor is smaller than 5, the other tensor's dtype must be smaller than 9.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 5 then dtype_(v_2) < 9
+Rule 35 (warning about tuple of size one)
+{v_1 : tuple(int)} |= v_1.len > 1
+>>
+Rule 36 (warning if a tensor has a very large number of elements)
+{v_1 : tensor} |= (shape(v_1,0) * shape(v_1,1)) > 1000000 ∧ ndim(v_1) = 2
+>>
+Rule 38 (warning if a list contains duplicate elements)
+{v_1 : list(int)} |= (∃i ∈ [0, v_1.len - 2] : ∃j ∈ [i+1, v_1.len - 1] : v_1[i] = v_1[j])
+>>
+Rule 39 (warning regarding large float values)
+{v_1 : float} |= v_1 > 100000.0
+>>
+Rule 40 (warning if string is empty)
+{v_1 : str} |= v_1.len = 0
+>>
+Rule 41 (warning against zero-sized tensor dimension)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) = false
+>>
+Rule 45 (warning if a boolean value is true, but some condition is false)
+{v_1 : bool, v_2 : tensor} |= v_1 = true ∧ ndim(v_2) < 2
+>>
+Rule 46 (warning if all elements in a list are the same)
+{v_1 : list(int)} |= ∀i ∈ [1, v_1.len -1 ] : v_1[0] = v_1[i]
+>>
+Rule 47 (warning if tensor's data type is integer and minimum value is negative)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) < 0 else false
+>>
+Rule 48 (warning when using sum with large tensors)
+{v_1: tensor, v_2: str} |= (v_2 = "sum") ∧ (shape(v_1, 0) * shape(v_1, 1) > 1000000) ∧ ndim(v_1) = 2
+>>
+Rule 49 (warning if the shape of a tensor is one)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 1
+>>
+Rule 55 (warning related to very small tensors)
+{v_1: tensor} |= ndim(v_1) > 0 ∧ (shape(v_1, 0) * shape(v_1, 1) < 4) ∧ ndim(v_1) = 2
+>>
+Rule 56 (warning involving string comparison with potential typos)
+{v_1: str} |= v_1 = "mean" ∨ v_1 = "max" ∨ v_1 = "sum"
+>>
+Rule 57 (warning if the input tensor has a large amount of float16 values)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∧ shape(v_1, 0) > 5000
+>>
+Rule 58 (warning about int64 on CPU might be slow)
+{v_1 : tensor} |= dtype_(v_1) = 4
+>>
+Rule 59 (warning when constant string value is used)
+{v_1 : str} |= v_1 = "constant"
+>>
+Rule 60 (warning related to very small tensors when using max)
+{v_1: tensor, v_2: str} |= ndim(v_1) > 0 ∧ (shape(v_1, 0) * shape(v_1, 1) < 4) ∧ ndim(v_1) = 2 ∧ v_2 = "max"
+>>
+Rule 61 (warning involving division by a small float)
+{v_1 : float} |= v_1 > -0.0001 ∧ v_1 < 0.0001 ∧ v_1 ≠ 0.0
+>>
+Rule 62 (warning if the input tensor has a large amount of float64 values and the boolean is true)
+{v_1 : tensor, v_2: bool} |= dtype_(v_1) = 8 ∧ shape(v_1, 0) > 5000 ∧ v_2 = true
+>>
+Rule 63 (warning if the string's value can potentially cause vulnerability)
+{v_1: str} |= v_1 = "bij,bjk->bik" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "i,j->ij"
+>>
+Rule 64 (warning about a tensor of floats being compared against zero)
+{v_1: tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∧ (min(v_1) < 0.00001 ∧ max(v_1) > -0.00001)
+>>
+Rule 65 (warning regarding potentially invalid tensor operation given its shape)
+{v_1: tensor} |= ndim(v_1) = 3 ∧ (shape(v_1, 0) > 1000) ∧ (shape(v_1, 1) > 1000)
+>>
+Rule 66 (warning if the input list is very short and almost empty)
+{v_1: list(int)} |= v_1.len < 3
+>>
+Rule 67 (warning about very large dimension difference)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) - ndim(v_2) > 5 ∨ ndim(v_2) - ndim(v_1) > 5
+>>
+Rule 68 (warning if boolean parameter is false with some specific data type)
+{v_1: bool, v_2: tensor} |= v_1 = false ∧ (dtype_(v_2) = 7)
+>>
+Rule 69 (warning if using small learning rate)
+{v_1: float} |= v_1 < 0.000001 ∧ v_1 > 0
+>>
+Rule 70 (warning related to specific shape combination and dtype)
+{v_1: tensor} |= (ndim(v_1) = 2) ∧ (shape(v_1, 0) = 1) ∧ (shape(v_1, 1) = 1) ∧ (dtype_(v_1) = 0)
+>>
+Rule 71 (warning for division with same numbers)
+{v_1: float, v_2: float} |= v_2 ≠ 0.0 ∧ v_1 = v_2
+>>
+Rule 72 (warning related to using small values and int data type)
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5 ∧ (max(v_1) < 10))
+>>
+Rule 73 (warning for tensors with a single element which can cause issues in further computations)
+{v_1: tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) = 1 ∧ shape(v_1,0) = 1) ∨ (ndim(v_1) = 2 ∧ shape(v_1, 0) = 1 ∧ shape(v_1,1) = 1)
+>>
+Rule 74 (warning against potentially misused "none" string)
+{v_1: str, v_2: int} |= v_1 = "none" ∧ v_2 > 5
+>>
+Rule 75 (warning if number of dimension equals to one and first shape equals to zero)
+{v_1: tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 0
+>>
+Rule 76 (warning when applying tanh activation with a data type other than float32 or float64)
+{v_1: str, v_2: tensor} |= v_1 = "tanh" ∧ (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8)
+>>
+Rule 77 (warning related to large constant number)
+{v_1 : float} |= v_1 > 1000000000.0 ∨ v_1 < -1000000000.0
+>>
+Rule 78 (warning if the shape of the input tensor is too large, potentially leading to memory issues)
+{v_1 : tensor} |= (shape(v_1, 0) > 2048) ∧ (shape(v_1, 1) > 2048) ∧ (ndim(v_1) = 2)
+>>
+Rule 79 (warning related to potential underflow when dealing with float data type)
+{v_1: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ max(v_1) < 0.0000000001
+>>
+Rule 80 (warning related to a high value on a boolean type tensor)
+{v_1: tensor} |= dtype_(v_1) = 0 ∧ max(v_1) > 1
+>>
+Rule 81 (warning when using "ii" for einsum on a tensor with dimension size greater than 2)
+{v_1: str, v_2: tensor} |= v_1 = "ii" ∧ ndim(v_2) > 2
+>>
+Rule 82 (warning if a list of floats contains very small values)
+{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 0.0000001 ∧ v_1[i] > -0.0000001
+>>
+Rule 83 (warning against complex types with a large number of dimensions)
+{v_1 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) > 3
+>>
+Rule 84 (warning for using small tuple size in conv operation)
+{v_1: tuple(int)} |= v_1.len = 2 ∧ (v_1[0] < 3 ∨ v_1[1] < 3)
+>>
+Rule 85 (warning related to a small shape size on a specific dtype)
+{v_1: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ shape(v_1, 0) < 2
+>>
+Rule 86 (warning when using complex numbers on large tensors)
+{v_1 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (shape(v_1, 0) * shape(v_1, 1) > 10000)
+>>
+Rule 87 (warning related to data type and small numbers)
+{v_1: tensor, v_2: float} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ v_2 < 0.00001
+>>
+Rule 88 (warning if a tuple is very long with multiple elements of same value)
+{v_1: tuple(int)} |= v_1.len > 7
+>>
+Rule 89 (warning related to the use of string max if the shape is small)
+{v_1: str, v_2: tensor} |= v_1 = "max" ∧ shape(v_2,0) * shape(v_2, 1) < 100 ∧ ndim(v_2) = 2
+>>
+Rule 90 (warning for using small tuple size in adaptive pooling operation)
+{v_1: tuple(int)} |= v_1.len = 2 ∧ (v_1[0] < 2 ∨ v_1[1] < 2)
+>>
+Rule 91 (warning related to large numbers that could cause overflow)
+{v_1: tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2) ∧ max(v_1) > 32767
+>>
+Rule 92 (warning about a potential dimension size mismatch)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 3 ∧ shape(v_1, 1) ≠ shape(v_2, 1)
+>>
+Rule 93 (warning when the first element in a list is 0)
+{v_1 : list(int)} |= v_1.len > 0 ∧ v_1[0] = 0
+>>
+Rule 94 (warning related to the use of the 'constant' string, potentially replaceable with an efficient implementation)
+{v_1: str} |= v_1 = "constant"
+>>
+Rule 95 (warning when using large tuple sizes might indicate inefficiency in the model)
+{v_1 : tuple(int)} |= v_1.len > 4 ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] < 10)
+>>
+Rule 96 (warning when using a float with a very large tensor)
+{v_1 : float, v_2 : tensor} |= shape(v_2, 0) > 10000 ∧ shape(v_2, 1) > 10000 ∧ v_1 < 10
+>>
+Rule 97 (warning for using tanh with large dimensions)
+{v_1: str, v_2: tensor} |= v_1 = "tanh" ∧ shape(v_2, 0) > 1000
+>>
+Rule 98 (warning related to large string size and complex data type usage)
+{v_1: str, v_2: tensor} |= v_1.len > 200 ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 99 (warning if bool is true with tensor containing integer type that is not trainable)
+{v_1: bool, v_2: tensor} |= v_1 = true ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 100 (warning involving string comparison with potentially dangerous operation)
+{v_1: str} |= v_1 = "bij,bjk->bik" ∨ v_1 = "bn,anm,bm->ba"
+>>
+Rule 101 (warning if a small boolean value is false along with very large value tensor)
+{v_1: bool, v_2: tensor} |= v_1 = false ∧ (shape(v_2, 0) * shape(v_2, 1) > 1000000)
+>>
+Rule 102 (warning on usage of "ii" contraction for a tensor dimension size of one)
+{v_1: str, v_2: tensor} |= (v_1 = "ii") ∧ (shape(v_2, 0) = 1)
+>>
+Rule 103 (warning when the boolean tensor has low amount of true)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∧ max(v_1) < 1
+>>
+Rule 104 (warning related to "tanh" function, if input has large values that might cause gradient issues)
+{v_1: str, v_2: tensor} |= v_1 = "tanh" ∧ min(v_2) < -5 ∨ max(v_2) > 5
+>>
+Rule 105 (warning if there are too many 1s in a boolean tensor, indicating potential redundancy)
+{v_1 : tensor} |= (dtype_(v_1) = 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ min(v_1) = 1
+>>
+Rule 106 (warning about potential precision loss with float16, along with other conditions)
+{v_1: tensor, v_2: int} |= dtype_(v_1) = 6 ∧ v_2 > 1000
+>>
+Rule 107 (warning regarding large negative value if the tensor dtype is uint8)
+{v_1 : tensor} |= (dtype_(v_1) = 5) ∧ min(v_1) < 0
+>>
+Rule 108 (warning if a tensor has a batch size of 1 and the rest are large, suggesting possible misuse of batching)
+{v_1 : tensor} |= (ndim(v_1) = 4) ∧ (shape(v_1, 0) = 1) ∧ (shape(v_1, 1) > 100) ∧ (shape(v_1, 2) > 100) ∧ (shape(v_1, 3) > 100)
+>>
+Rule 109 (warning if the string value isn't in the valid einsum ops)
+{v_1 : str} |= v_1 ≠ "ii" ∧ v_1 ≠ "ii->i" ∧ v_1 ≠ "i,j->ij" ∧ v_1 ≠ "bij,bjk->bik" ∧ v_1 ≠ "...ij->...ji" ∧ v_1 ≠ "bn,anm,bm->ba"
+>>
+Rule 110 (warning related to too many dimensions in list)
+{v_1 : list(int)} |= v_1.len > 10
+>>
+Rule 111 (warning involving multiplication operation when the datatype is boolean)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = 0 ∧ dtype_(v_2) = 0
+>>
+Rule 112 (warning when the size is greater than zero in a tuple dimension.)
+{v_1: tuple(int)} |= (v_1.len > 0) ∧ (∀i ∈ [0, v_1.len - 1] : v_1[i] > 2000)
+>>
+Rule 113 (warning when input and output size in linear layer is same and potentially redundant)
+{v_1: tensor, v_2: tensor} |= (shape(v_1, 1) = shape(v_2, 0)) ∧ (ndim(v_1) = 2) ∧ (ndim(v_2) = 2)
+>>
+Rule 114 (warning when a floating point tensor min max differ too less which can cause stability)
+{v_1: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ ((max(v_1) - min(v_1)) < 0.00001)
+>>
+Rule 115 (warning when the first dimension of a tensor is significantly larger than the others and can create inefficient code)
+{v_1: tensor} |= (ndim(v_1) > 1) ∧ (shape(v_1, 0) > 1000) ∧ (∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) < 100)
+>>
+Rule 116 (warning involving small float and a specific large tensor size with potential overflow)
+{v_1: float, v_2: tensor} |= (v_1 < 0.0001) ∧ (shape(v_2, 0) * shape(v_2, 1) > 1000000) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3)
+>>
+Rule 117 (warning when there's a single element tensor on an operation like mean)
+{v_1: str, v_2: tensor} |= (v_1 = "mean") ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1) ∨ (ndim(v_2) = 2 ∧ shape(v_2, 0) = 1 ∧ shape(v_2, 1) = 1))
+>>
+Rule 118 (warning if string value is used in a reduction operation when it's just an identity)
+{v_1: str, v_2: tensor} |= ((v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "mean")) ∧ (ndim(v_2) = 0 ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = 1) ∨ (ndim(v_2) = 2 ∧ shape(v_2, 0) = 1 ∧ shape(v_2, 1) = 1))
+>>
+Rule 119 (warning related to the large tuple used as kernel size)
+{v_1: tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 50 ∧ v_1[1] > 50
+>>
+Rule 120 (warning related to usage of "constant" and smaller values tensors)
+{v_1 : str, v_2 : tensor} |= (v_1 = "constant") ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∧ (max(v_2) < 100)
+>>
+Rule 121 (warning related to a potentially very small value float)
+{v_1 : float} |= v_1 > -0.000000000001 ∧ v_1 < 0.000000000001 ∧ v_1 ≠ 0.0
+>>
+Rule 122 (warning related to large string values and the potential for long runtime)
+{v_1: str} |= v_1.len > 500
+>>
+Rule 123 (warning if there is integer type tensors of less than 3 dimensions and shape size less than 5 )
+{v_1: tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (ndim(v_1) < 3) ∧ (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 5)
+>>
+Rule 124 (warning involving potential usage for complex number on GPU devices given dimension size)
+{v_1: tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (ndim(v_1) = 2) ∧ (shape(v_1, 0) > 1000) ∧ (shape(v_1, 1) > 1000)
+>>
+Rule 125 (warning if a float tensor contains only one unique value and is very large)
+{v_1: tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ max(v_1) = min(v_1) ∧ (shape(v_1, 0) * shape(v_1, 1) > 100000)
+>>
+Rule 126 (warning about using a small number as step value that might lead to infinite loop in numerical computation or related)
+{v_1 : float} |= v_1 < 0.00000001 ∧ v_1 > 0
+>>
+Rule 127 (warning on the usage of einsum string if the input size doesn't match number of dimension)
+{v_1: str, v_2: tensor} |= (v_1 = "ii") ∧ (ndim(v_2) ≠ 2)
+>>
+Rule 128 (warning related to potential very large numbers in long tensors can cause slowdown and related problems)
+{v_1: tensor} |= (dtype_(v_1) = 4) ∧ (max(v_1) > 1000000000)
+>>
+Rule 129 (warning if tensor of float 16 are on a GPU, or CUDA is unavailable as this datat type performs better if GPU is unavailable.)
+{v_1: tensor, v_2: bool} |= dtype_(v_1) = 6 ∧ v_2 = false
+>>
+Rule 130 (warning about tuple of size one which have only same value, it should be changed)
+{v_1: tuple(int)} |= (v_1.len = 2) ∧ (v_1[0] = v_1[1])
+>>
+Rule 131 (warning when a large integer values are used and complex data type is used)
+{v_1: tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (max(v_1) > 10000) ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+>>
+Rule 132 (warning if string has lots of space characters and not characters values and related )
+{v_1: str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = " " ∧ v_1.len > 100
+>>
+Rule 133 (warning on usage of large shapes on tensors if we are doing operations related to float 16 datatypes.)
+{v_1: tensor} |= dtype_(v_1) = 6 ∧ shape(v_1, 0) > 2000 ∧ shape(v_1, 1) > 2000
+>>
+Rule 134 (warning when a smaller maximum float 16 is used , there can be instability or more potential issues.)
+{v_1: tensor} |= dtype_(v_1) = 6 ∧ max(v_1) < 100.0
+>>
+Rule 135 (warning if using small integer values with potential division by zero )
+{v_1: int} |= v_1 < 2 ∧ v_1 > -2
+>>
+Rule 136 (warning related to smaller value tensors when the large float numbers occur if there is underflow or overflow for calculations.)
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (max(v_1) > 1000000000) ∧ (shape(v_1, 0) < 10)
+>>
+Rule 137 (warning on the usage of large value when a boolean datatypes is not equal. )
+{v_1: tensor, v_2: bool} |= dtype_(v_1) = 0 ∧ max(v_1) > 100 ∧ v_2 = false
+>>
+Rule 138 (warning if we have small data value type and string is not non which could be an issue.)
+{v_1: str, v_2: tensor} |= v_1 ≠ "none" ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2)
+>>
+Rule 139 (warning where a potentially long computation can occur with specific large tensor)
+{v_1: tensor} |= (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) > 50000000) ∧ ndim(v_1) = 3
+>>
+Rule 140 (warning when the number is near to int range and float/double datatypes that is close to it.)
+{v_1: tensor, v_2: float} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 > 2147483647 ∨ v_2 < -2147483648)
+>>
+Rule 141 (warning related to division function happening with float 16 datatypes and that is near zero which may lead to numerical issues or slow code. )
+{v_1: tensor, v_2: float} |= (dtype_(v_1) = 6) ∧ (v_2 > -0.00001 ∧ v_2 < 0.00001)
+>>
+Rule 142 (warning to prevent usage of einsum with very long name values causing performance related issues.)
+{v_1: str} |= v_1.len > 20
+>>
+Rule 143 (warning when a smaller dimension is used for tensors more than size three. where smaller operation that are not efficient are used as result.)
+{v_1: tensor} |= ndim(v_1) > 3 ∧ shape(v_1,0) < 3
+>>
+Rule 144 (warning when boolean types values are more frequently used on reduction based functions.)
+{v_1: str, v_2: tensor} |= ((v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "mean")) ∧ (dtype_(v_2) = 0)
+>>
+Rule 145 (warning when small number is used and small integer number used.)
+{v_1: float, v_2: tensor} |= (v_1 > 0 ∧ v_1 < 0.1) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5)
+>>
+Rule 146 (warning related to potential issues or vulnerabilities when string value are not available.)
+{v_1: str} |= v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba"
+>>
+Rule 147 (warning when all the element in a list is greater than tensor shape and if that happens can lead to illegal memory access)
+{v_1: list(int), v_2: tensor} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] > shape(v_2, 0)) ∧ ndim(v_2) = 1
+>>
+Rule 148 (warning if int64 data type is use and shape length is long then can create performance issue)
+{v_1: tensor} |= dtype_(v_1) = 4 ∧ shape(v_1, 0) > 10000
+>>
+Rule 149 (warning if tensors and the operation mean are happening at a very low datatypes because some may cause numerical unstable issues and other stuff with smaller number for float points. )
+{v_1: str, v_2: tensor} |= (v_1 = "mean") ∧ (dtype_(v_2) = 6)
+>>
+Rule 150 (warning involving "...ij->...ji" string transformation when dimensions size are large)
+{v_1: str, v_2: tensor} |= (v_1 = "...ij->...ji") ∧ (shape(v_2, 0) * shape(v_2, 1) > 10000)
+>>
+Rule 151 (warning related to using float data type small when doing convolution or more efficient way can be use instead.)
+{v_1: tensor} |= ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) ∧ (min(v_1) > -1 ∧ max(v_1) < 1)
+>>
+Rule 152 (warning when we use sum on batch with smaller image size but the size are not a large number and may create slower optimization codes and implementation.)
+{v_1: str, v_2: tensor} |= (v_1 = "sum") ∧ (shape(v_2, 0) < 32) ∧ (shape(v_2, 1) < 32) ∧ (ndim(v_2) = 4)
+>>
+Rule 153 (warning when all the shape of the tensor equals one, there may be different or more efficient implemtations.)
+{v_1: tensor} |= (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 1)

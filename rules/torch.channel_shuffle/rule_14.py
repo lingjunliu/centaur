@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If groups is equal to channel then the only change is possible in last two dimenstions. (Rule 14)
+# input tensor's shape is valid for group size (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == Select(v["arg1_shape"], 1), (v["arg1_ndim"] == 4), False)) if n else
-          If(v["arg2_value"] == Select(v["arg1_shape"], 1), (v["arg1_ndim"] == 4), False))
+    s.add(Not(If(v["arg1_ndim"] > 2, (And(v["arg2_value"] > 0, Or([And(k < (Select(v["arg1_shape"], 1) + 1), Select(v["arg1_shape"], 1) == v["arg2_value"] * k) for k in range(6)]))), False)) if n else
+          If(v["arg1_ndim"] > 2, (And(v["arg2_value"] > 0, Or([And(k < (Select(v["arg1_shape"], 1) + 1), Select(v["arg1_shape"], 1) == v["arg2_value"] * k) for k in range(6)]))), False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

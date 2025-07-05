@@ -1,45 +1,147 @@
 >>
-Rule 1 (input tensor must have floating point or complex dtype)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 1 (Input tensor must have floating point or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 2 (dim must be non-negative if it is an integer)
-{v_1 : int} |= v_1 ≥ 0
+Rule 6 (nansum does not support complex inputs)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 3 (If dim is a tuple, all elements should be non-negative and less than the number of dimensions of the input tensor)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 7 (Dimension dim should be a non-negative integer)
+{v_2 : int} |= v_2 ≥ 0
 >>
-Rule 4 (If dim is an integer, it must be within the valid range of dimensions for the input tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then ndim(v_1) + v_2 ≥ 0 else v_2 < ndim(v_1)
+Rule 8 (Dtype should be in specified types)
+{v_4 : dtype} |= v_4 = 7 ∨ v_4 = 8 ∨ v_4 = 9 ∨ v_4 = 10
 >>
-Rule 5 (If dim is None (represented by 0), keepdim has no effect)
-{v_1 : bool, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then v_1 = false
+Rule 10 (Input tensor should have at least one element when dim is None and the input is not complex)
+{v_1 : tensor, v_2 : int ⊎ tuple(int)} |= if v_2 = 0 then ndim(v_1) > 0
 >>
-Rule 6 (dtype parameter should match input if specified)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 0 then dtype_(v_1) = v_2
+Rule 12 (Valid dimension index)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 7 (The output tensor 'out' must have the same dtype as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 13 (Tuple of dimension indices should not have duplicate values)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
 >>
-Rule 8 (keepdim must be boolean value.)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 14 (Integral/Bool input tensor not supported)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
 >>
-Rule 9 (If dim appears multiple times in the list of dims, it throws an error.)
-{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+Rule 17 (Dtype should be in specified types if provided)
+{v_4 : dtype} |= v_4 = 7 ∨ v_4 = 8 ∨ v_4 = 9 ∨ v_4 = 10 ∨ v_4 = 12
 >>
-Rule 10 (If the input tensor contains only NaN values in a reduced dimension, the output should be NaN.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 18 (Input tensor should have dimension greater than 0 if dtype is not complex)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then ndim(v_1) > 0
 >>
-Rule 11 (If dim is a tuple, it cannot be an empty tuple.)
-{v_1 : tuple(int)} |= v_1.len > 0
+Rule 26 (If input is complex, output dtype must also be complex)
+{v_1 : tensor, v_4 : dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_4 = 9 ∨ v_4 = 10
 >>
-Rule 12 (if dtype is specified, it must be floating point or complex)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+Rule 28 (Input tensor must be floating point or complex to avoid type error)
+{v_1 : tensor} |= dtype_(v_1) > 6 ∧ dtype_(v_1) < 11
 >>
-Rule 13 (The input cannot be a Char dtype.)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 30 (The input tensor must be of floating-point or complex dtype.)
+{v_1 : tensor} |= dtype_(v_1) ≥ 7 ∧ dtype_(v_1) ≤ 10
 >>
-Rule 14 (The output tensor should have the same number of dimensions as the input tensor if keepdim is true, otherwise it should have fewer dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ndim(v_1) = ndim(v_2) else ndim(v_2) < ndim(v_1)
+Rule 35 (Dimension index must be within range to prevent IndexError)
+{v_1 : tensor, v_2 : int} |= v_2 + ndim(v_1) ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 15 (if dim is an integer, its absolute value cannot exceed number of dimensions)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then 0 ≤ ndim(v_1) + v_2 else v_2 < ndim(v_1)
+Rule 37 (Dimension index must be within range to prevent IndexError)
+{v_1 : tensor, v_2 : int} |= 0 ≤ v_2 + ndim(v_1) ∧ v_2 < ndim(v_1)
+>>
+Rule 40 (Ensure input is not an integer or boolean tensor to avoid TypeError)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) > 5
+>>
+Rule 41 (Dimension cannot be greater than or equal to the number of dimensions to prevent IndexError)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 42 (No duplicate values in dim tuple. Tuple length must be greater than zero)
+{v_2 : tuple(int)} |= v_2.len > 0 ∧ ∀i ∈ [0, v_2.len - 1] : ∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j]
+>>
+Rule 43 (Input data type is either floating point or complex, or output type is a string. Avoid type error on nansum)
+{v_1 : tensor, v_4 : dtype} |= (dtype_(v_1) > 6 ∧ dtype_(v_1) < 11) ∨ v_4 = 11
+>>
+Rule 48 (Prevent 'got Char' error: Ensure input's dtype is not string)
+{v_1: tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 50 (Prevent duplicate dim error: Ensure unique dimension indices)
+{v_2: tuple(int)} |= ∀i ∈ [0, if v_2.len > 1 then v_2.len - 1 else 0] : ∃j ∈ [0, if v_2.len > 1 then v_2.len -1 else 0] : i = j ∨ v_2[i] ≠ v_2[j]
+>>
+Rule 51 (Prevent integral type error: Input dimension must be greater or equal than 1 )
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 53 (Prevent IndexError: Number of dimensions should be positive)
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 55 (Prevent integral type error: Input data type must be either float or complex number )
+{v_1: tensor} |= dtype_(v_1) > 6
+>>
+Rule 56 (Prevent 'got Char' error: Ensure input's dtype is larger than int64)
+{v_1: tensor} |= dtype_(v_1) > 4
+>>
+Rule 58 (Prevent duplicate dim error: Ensure no two consecutive dimensions are the same)
+{v_2: tuple(int)} |= ∀i ∈ [0, if v_2.len > 1 then v_2.len - 2 else 0] : v_2[i] ≠ v_2[i+1]
+>>
+Rule 60 (Prevent 'got Char' error: Check if tensor v_1 has a floating point representation available)
+{v_1: tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4
+>>
+Rule 61 (Prevent IndexError: Check if at least one dimension exists, shape at 0 > 0)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 62 (Prevent duplicate dim error: Check for a valid tuple length given shape)
+{v_2: tuple(int), v_1: tensor} |= v_2.len ≤ ndim(v_1)
+>>
+Rule 63 (Prevent integral type error: Check if it is not of bool type)
+{v_1: tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 64 (Prevent 'got Char' error: Ensure input tensor has elements that can be represented as float32)
+{v_1: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2
+>>
+Rule 65 (Prevent IndexError: Require at least one shape dimension)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+>>
+Rule 66 (Prevent duplicate dim error: Dimension tuple can't reduce elements that are the same as number of dimensions)
+{v_2: tuple(int), v_1:tensor} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≠ ndim(v_1)
+>>
+Rule 67 (Prevent integral type error: Ensure the minimum element of the tensor can be represented as a float)
+{v_1: tensor} |= min(v_1) > -1000000
+>>
+Rule 69 (Prevent IndexError: A zero dimension is not allowed if dim argument is given)
+{v_1: tensor, v_2: int ⊎ tuple(int)} |= if v_2 ≠ 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 70 (Prevent duplicate dim error: Elements in dimension tuple are all different in the tensor)
+{v_2: tuple(int), v_1 : tensor} |= ∀i ∈ [0, if v_2.len > 1 then v_2.len - 2 else 0] : v_2[i] + 1 < ndim(v_1) ∧ v_2[i] < ndim(v_1)
+>>
+Rule 71 (Prevent integral type error: Ensure the maximum element of the tensor is less than a huge number.)
+{v_1: tensor} |= max(v_1) < 100000000
+>>
+Rule 72 (Prevent 'got Char' error: Tensor must not be of string or bool type.)
+{v_1: tensor} |= dtype_(v_1) > 0 ∧ dtype_(v_1) < 7
+>>
+Rule 73 (Prevent IndexError: Tensor must have more than one element, if dim is provided.)
+{v_1: tensor, v_2: int ⊎ tuple(int)} |= if v_2 ≠ 0 then shape(v_1, 0) > 1
+>>
+Rule 74 (Prevent duplicate dim error: Number of unique entries in dimension tuple should be same as its length.)
+{v_2: tuple(int)} |= if v_2.len > 0 then ∃i ∈ [0, v_2.len -1]: v_2[i] ≥ 0
+>>
+Rule 76 (Prevent 'got Char' error: Tensor must not be of string or bool or int8/16/32/64 type.)
+{v_1: tensor} |= dtype_(v_1) > 5
+>>
+Rule 78 (Prevent duplicate dim error: Dimension tuple cannot have the same values.)
+{v_2: tuple(int)} |= if v_2.len > 0 then ∀i ∈ [0, v_2.len - 1]: ∃j ∈ [i + 1, v_2.len - 1]: v_2[i] ≠ v_2[j]
+>>
+Rule 79 (Prevent integral type error: The minimum and maximum value cannot be an integer)
+{v_1: tensor} |= min(v_1) > 0 ∨ max(v_1) < 0
+>>
+Rule 80 (Prevent 'got Char' error: There must exist at least one dimension where the dtype is not a string)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: dtype_(v_1) ≠ 11
+>>
+Rule 81 (Prevent IndexError: Either dim is None, or at least one shape element must be positive)
+{v_1: tensor, v_2: int ⊎ tuple(int)} |= v_2 = 0 ∨ (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0)
+>>
+Rule 82 (Prevent duplicate dim error: Check all elements in the dimension tuple are of integer type and different from 11)
+{v_2: tuple(int)} |= ∀i ∈ [0, v_2.len - 1]: ∃ j ∈ [0, v_2.len-1]: v_2[i] = v_2[j]
+>>
+Rule 83 (Prevent integral type error: Tensor should contain element less than 0 )
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 1000000
+>>
+Rule 85 (Prevent IndexError: shape of a tensor has at least two dimensions if a dimension parameter specified.)
+{v_1: tensor, v_2: int ⊎ tuple(int)} |= if v_2 ≠ 0 then ndim(v_1) > 1
+>>
+Rule 87 (Prevent integral type error: The variance of the tensor must be greater than -1)
+{v_1: tensor} |=  min(v_1) > -1

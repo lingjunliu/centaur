@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# quant_max and quant_min must have different values. (Rule 19)
+# zero_point must be less than or equal to quant_max + 1 to avoid off-by-one errors (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != v["arg2_value"]) if n else
-          v["arg1_value"] != v["arg2_value"])
+    s.add(Not(v["arg1_value"] <= v["arg2_value"] + 1) if n else
+          v["arg1_value"] <= v["arg2_value"] + 1)
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

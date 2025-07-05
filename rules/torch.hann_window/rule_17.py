@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if periodic is true and window_length is greater than 1, then the value of the first element is near 0 (Rule 17)
+# Enforce valid dtypes when periodic is True (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_value"] == True, v["arg1_value"] > 1), True, False)) if n else
-          If(And(v["arg2_value"] == True, v["arg1_value"] > 1), True, False))
+    s.add(Not(If(v["arg2_value"] == True, (Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8)), False)) if n else
+          If(v["arg2_value"] == True, (Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8)), False))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):
@@ -18,7 +18,7 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
         if not isinstance(arg2, bool):
             return False
@@ -29,7 +29,7 @@ def rule_17_func(arg1, arg2, solver=None, neg=False):
         arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 17

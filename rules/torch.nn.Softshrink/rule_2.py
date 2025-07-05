@@ -8,8 +8,8 @@ from z3 import *
 # input must be a tensor (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] >= 0) if n else
-          v["arg1_ndim"] >= 0)
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

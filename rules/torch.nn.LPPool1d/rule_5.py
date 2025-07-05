@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Kernel size should be smaller or equal to the input length when input is 3D tensor. (Rule 5)
+# kernel_size should be smaller than input size (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, v["arg2_value"] <= Select(v["arg1_shape"], 2), False)) if n else
-          If(v["arg1_ndim"] == 3, v["arg2_value"] <= Select(v["arg1_shape"], 2), False))
+    s.add(Not(And(v["arg1_ndim"] > 0, v["arg2_value"] < Select(v["arg1_shape"], v["arg1_ndim"] - 1))) if n else
+          And(v["arg1_ndim"] > 0, v["arg2_value"] < Select(v["arg1_shape"], v["arg1_ndim"] - 1)))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

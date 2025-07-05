@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor is sparse, it should be possible to return a view (Rule 9)
+# dimension should exist within the tensor's shape (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 12, True, False)) if n else
-          If(v["arg1_dtype"] == 12, True, False))
+    s.add(Not(v["arg2_value"] < v["arg1_ndim"]) if n else
+          v["arg2_value"] < v["arg1_ndim"])
 )
 
-def rule_9_func(arg1, solver=None, neg=False):
+def rule_9_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_dtype': arg1_dtype})
+        rule_9(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_9(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

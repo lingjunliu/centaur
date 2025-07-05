@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.iinfo API parameter should be a valid dtype (Rule 1)
+# `iinfo`'s input type should be an integer dtype (0,1,2,3,4,5 (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(Or(Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4), v["arg1_value"] == 5)) if n else

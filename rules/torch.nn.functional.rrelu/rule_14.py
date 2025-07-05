@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The minimum value of the tensor should not be less than the minimum float value for the datatype (Rule 14)
+# Input tensor should not be of Byte type expressed as a combination of checks. (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) >= -65504, If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) >= -3.4028235e+38, If(v["arg1_dtype"] == 8, Select(v["arg1_range"], 0) >= -1.7976931348623157e+308, False)))) if n else
-          If(v["arg1_dtype"] == 6, Select(v["arg1_range"], 0) >= -65504, If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) >= -3.4028235e+38, If(v["arg1_dtype"] == 8, Select(v["arg1_range"], 0) >= -1.7976931348623157e+308, False))))
+    s.add(Not(Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 4)) if n else
+          Or(v["arg1_dtype"] < 1, v["arg1_dtype"] > 4))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -23,17 +23,14 @@ def rule_14_func(arg1, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_14(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_14(solver, {'arg1_dtype': arg1['dtype']}, neg)

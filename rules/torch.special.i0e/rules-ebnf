@@ -1,60 +1,93 @@
 >>
-Rule 1 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 2 (input tensor must not be complex double)
+{input : tensor} |= dtype_(input) ≠ "complex128"
 >>
-Rule 2 (input tensor should have a floating-point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 3 (input tensor must not be complex64)
+{input : tensor} |= dtype_(input) ≠ "complex64"
 >>
-Rule 3 (all elements of the input tensor should be finite)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) -1] : min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf"
+Rule 4 (Optional output tensor must have same dtype as input tensor if given)
+{input : tensor, out : tensor} |= if out ≠ none then dtype_(input) = dtype_(out)
 >>
-Rule 4 (Shape of the input tensor must be valid, i.e., all shape values must be non-negative)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 5 (Optional output tensor must have same shape as input tensor if given)
+{input : tensor, out : tensor} |= if out ≠ none then ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)
 >>
-Rule 5 (The minimum value of the input tensor must be less than or equal to the maximum value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 6 (input tensor must have at least one dimension if out is specified)
+{input : tensor, out : tensor} |= if out ≠ none then ndim(input) ≥ 1
 >>
-Rule 6 (If the input tensor is empty, the output should also be an empty tensor with the same shape.)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+Rule 7 (If out is provided it must have same number of dimensions as input)
+{input : tensor, out : tensor} |= if out ≠ none then ndim(input) = ndim(out)
 >>
-Rule 7 (If any element of the tensor is NaN, then the output should also be NaN)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : max(v_1) = "nan"
+Rule 9 (Input cannot be a boolean tensor)
+{input : tensor} |= dtype_(input) ≠ "bool"
 >>
-Rule 8 (If the input tensor contains infinity, the output should also contain infinity.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : max(v_1) = "inf" ∨ min(v_1) = "-inf"
+Rule 10 (Input tensor must have a valid dtype)
+{input : tensor} |= dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "int"
 >>
-Rule 9 (The out tensor, if provided, must have the same shape and dtype as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ dtype_(v_1) = dtype_(v_2)
+Rule 11 (input tensor must have float, int or complex type if out is not specified)
+{input : tensor} |= dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "int" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128"
 >>
-Rule 10 (The input tensor should not have more than 5 dimensions, as the computation can become unstable)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 12 (input tensor must have float or int type if out is specified and out has float or int type)
+{input : tensor, out: tensor} |= if dtype_(out) = "float16" ∨ dtype_(out) = "float32" ∨ dtype_(out) = "float64" ∨ dtype_(out) = "int" then dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "int"
 >>
-Rule 11 (Input tensor values should be within reasonable bounds to prevent overflow during computation)
-{v_1 : tensor} |= min(v_1) > -100 ∧ max(v_1) < 100
+Rule 13 (input tensor must have complex type if out is specified and out has complex type)
+{input : tensor, out: tensor} |= if dtype_(out) = "complex64" ∨ dtype_(out) = "complex128" then dtype_(input) = "complex64" ∨ dtype_(input) = "complex128"
 >>
-Rule 12 (If input is a complex tensor, then it should be C64 or C128)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else if dtype_(v_1) > 8 then false
+Rule 14 (If the out tensor is specified, its dtype must be the same or "stronger" than input)
+{input : tensor, out : tensor} |= if out ≠ none then (dtype_(input) = "float16" ∧ dtype_(out) = "float16") ∨ (dtype_(input) = "float16" ∧ dtype_(out) = "float32") ∨ (dtype_(input) = "float16" ∧ dtype_(out) = "float64") ∨ (dtype_(input) = "float32" ∧ dtype_(out) = "float32") ∨ (dtype_(input) = "float32" ∧ dtype_(out) = "float64") ∨ (dtype_(input) = "float64" ∧ dtype_(out) = "float64") ∨ (dtype_(input) = "int" ∧ dtype_(out) = "int") ∨  (dtype_(input) = "complex64" ∧ dtype_(out) = "complex64") ∨ (dtype_(input) = "complex64" ∧ dtype_(out) = "complex128") ∨ (dtype_(input) = "complex128" ∧ dtype_(out) = "complex128")
 >>
-Rule 13 (Input tensor should have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 15 (Input must have at least one element.)
+{input : tensor} |= ∃i ∈ [0, ndim(input) - 1] : shape(input, i) > 0
 >>
-Rule 14 (if input is empty, then dtype must be preserved)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true
+Rule 16 (If out is provided it must have compatible dtype with input)
+{input : tensor, out : tensor} |= if out ≠ none then (dtype_(input) = "float16" ∧ dtype_(out) = "float16") ∨ (dtype_(input) = "float32" ∧ dtype_(out) = "float32") ∨ (dtype_(input) = "float64" ∧ dtype_(out) = "float64") ∨ (dtype_(input) = "complex64" ∧ dtype_(out) = "complex64") ∨ (dtype_(input) = "complex128" ∧ dtype_(out) = "complex128")
 >>
-Rule 15 (if the input tensor has a dimension of size 1, that dimension should be preserved in the output)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if (shape(v_1, i) = 1) then true
+Rule 17 (Out should not be int or bool when input is float)
+{input : tensor, out : tensor} |= if out ≠ none then (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64") ∧ (dtype_(out) ≠ "int" ∧ dtype_(out) ≠ "bool")
 >>
-Rule 16 (If the input tensor's dtype is float16, the min and max values should not be too large)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -50 ∧ max(v_1) < 50
+Rule 18 (Input tensor must not have zero dimensions)
+{input : tensor} |= ndim(input) > 0
 >>
-Rule 17 (If the input tensor's dtype is complex, then its conjugate should not be equal to itself (i.e. not real))
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 23 (When out is not none, the types are valid)
+{input: tensor, out: tensor} |= if out ≠ none then (dtype_(input) = "float16" ∧ dtype_(out) = "float16") ∨ (dtype_(input) = "float32" ∧ dtype_(out) = "float32") ∨ (dtype_(input) = "float64" ∧ dtype_(out) = "float64") ∨ (dtype_(input) = "complex64" ∧ dtype_(out) = "complex64") ∨ (dtype_(input) = "complex128" ∧ dtype_(out) = "complex128")
 >>
-Rule 18 (If an out tensor is provided, its shape must be compatible with the input tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 24 (Input tensor must be of a valid dtype)
+{input : tensor} |= dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128"
 >>
-Rule 19 (If an out tensor is provided, and the input requires grad, the out tensor must also require grad)
-{v_1 : tensor, v_2 : tensor} |= if min(v_1) > -100 then min(v_2) > -100
+Rule 30 (If out is specified, input and out tensors must have the same dtype or casting is allowed)
+{input: tensor, out: tensor} |= if out ≠ none then (dtype_(input) = dtype_(out)) ∨ (dtype_(input) = "float16" ∧ (dtype_(out) = "float32" ∨ dtype_(out) = "float64")) ∨ (dtype_(input) = "float32" ∧ dtype_(out) = "float64") ∨ (dtype_(input) = "complex64" ∧ dtype_(out) = "complex128")
 >>
-Rule 20 (If any of the input dimension has size 0, then the min/max of the input tensor does not matter.)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true
+Rule 33 (If out is specified, input and out must be of compatible dtypes, otherwise, input must be float or complex)
+{input: tensor, out: tensor} |= if out ≠ none then (dtype_(input) = dtype_(out)) ∨ (dtype_(input) = "float16" ∧ (dtype_(out) = "float32" ∨ dtype_(out) = "float64")) ∨ (dtype_(input) = "float32" ∧ dtype_(out) = "float64") ∨ (dtype_(input) = "complex64" ∧ dtype_(out) = "complex128") else (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64" ∨ dtype_(input) = "complex128")
+>>
+Rule 35 (Input tensor must be of valid dtype, and not complex128)
+{input : tensor} |= (dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64")
+>>
+Rule 38 (Input must be a tensor with dtype of float16, float32, float64, complex64)
+{input : tensor} |= dtype_(input) = "float16" ∨ dtype_(input) = "float32" ∨ dtype_(input) = "float64" ∨ dtype_(input) = "complex64"
+>>
+Rule 42 (If out is specified, input and out must be of the same dtype or it casts safely)
+{input: tensor, out: tensor} |= if out ≠ none then (dtype_(input) = dtype_(out)) ∨ ((dtype_(input) = "float16") ∧ (dtype_(out) = "float32" ∨ dtype_(out) = "float64")) ∨ ((dtype_(input) = "float32") ∧ (dtype_(out) = "float64")) ∨ ((dtype_(input) = "complex64") ∧ (dtype_(out) = "complex128"))
+>>
+Rule 43 (If out is specified, input must have compatible shape)
+{input: tensor, out: tensor} |= if out ≠ none then ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)
+>>
+Rule 49 (If out is specified, and if casting is necessary, then out must be float64)
+{input: tensor, out: tensor} |= if out ≠ none then if dtype_(input) ≠ dtype_(out) then dtype_(out) = "float64" ∨ dtype_(out) = "complex128"
+>>
+Rule 54 (If out is specified, out must have the same dtype of input or out has higher percision)
+{input: tensor, out: tensor} |= if out ≠ none then dtype_(input) = dtype_(out) ∨ ((dtype_(input) = "float16") ∧ (dtype_(out) = "float32" ∨ dtype_(out) = "float64")) ∨ ((dtype_(input) = "float32") ∧ (dtype_(out) = "float64")) ∨ ((dtype_(input) = "complex64") ∧ (dtype_(out) = "complex128"))
+>>
+Rule 58 (if out is not none, shape of out must match shape of input to avoid shape mismatch error during assignment)
+{input : tensor, out: tensor} |= if out ≠ none then ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)
+>>
+Rule 63 (If out is specified, the output tensor must have same dtype as the input tensor or be a higher precision version.)
+{input : tensor, out: tensor} |= if out ≠ none then (dtype_(input) = dtype_(out)) ∨ ((dtype_(input) = "float16") ∧ (dtype_(out) = "float32" ∨ dtype_(out) = "float64")) ∨ ((dtype_(input) = "float32") ∧ (dtype_(out) = "float64")) ∨ ((dtype_(input) = "complex64") ∧ (dtype_(out) = "complex128"))
+>>
+Rule 69 (If an output tensor is specified, it must have a compatible data type with the input tensor. Allowed casting.)
+{input : tensor, out : tensor} |= if out ≠ none then (dtype_(input) = dtype_(out)) ∨ ((dtype_(input) = "float16") ∧ (dtype_(out) = "float32" ∨ dtype_(out) = "float64")) ∨ ((dtype_(input) = "float32") ∧ (dtype_(out) = "float64")) ∨ ((dtype_(input) = "complex64") ∧ (dtype_(out) = "complex128"))
+>>
+Rule 82 (Input tensor should be of supported type)
+{input: tensor} |= dtype_(input) ≠ "complex128"
+>>
+Rule 97 (If out is given, it should have same dtype and shape with input to prevent unexpected results.)
+{input : tensor, out : tensor} |= if out ≠ none then dtype_(input) = dtype_(out) ∧ ∀i ∈ [0, ndim(input) - 1] : shape(input, i) = shape(out, i)

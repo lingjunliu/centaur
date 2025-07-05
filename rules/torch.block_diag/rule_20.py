@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Tensors with 2 dimensions should have their shapes less than 100 (Rule 20)
+# Check that the shape of the tensor is a valid tuple (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 100, Select(v["arg1_shape"], 1) < 100), False)) if n else
-          If(v["arg1_ndim"] == 2, And(Select(v["arg1_shape"], 0) < 100, Select(v["arg1_shape"], 1) < 100), False))
+    s.add(Not(And(v["arg1_ndim"] >= 0, (If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False)))) if n else
+          And(v["arg1_ndim"] >= 0, (If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

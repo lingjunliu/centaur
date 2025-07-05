@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The new size should have the same number of dimensions as the original size. (Rule 2)
+# The number of sizes provided must be greater or equal to the number of dimensions in the tensor (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] == v["arg2_length"]) if n else
-          v["arg1_ndim"] == v["arg2_length"])
+    s.add(Not(v["arg2_length"] >= v["arg1_ndim"]) if n else
+          v["arg2_length"] >= v["arg1_ndim"])
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

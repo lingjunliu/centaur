@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# keepdim must be a boolean (Rule 6)
+# The keepdim parameter should be a boolean (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
     s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else

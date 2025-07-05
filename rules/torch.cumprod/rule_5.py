@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if output dtype is complex, input must also be complex (Rule 5)
+# input tensor's dtype should not be a boolean when dtype is not specified. (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False)) if n else
-          If(Or(v["arg2_value"] == 9, v["arg2_value"] == 10), Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), False))
+    s.add(Not(Or(v["arg1_dtype"] != 0, v["arg2_value"] != 0)) if n else
+          Or(v["arg1_dtype"] != 0, v["arg2_value"] != 0))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# When kernel size equals the length of L_in, the L_out becomes 1. (Rule 16)
+# kernel size should not be extremely large compared to the input size (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == v["arg2_value"], True, False)) if n else
-          If(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == v["arg2_value"], True, False))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) / v["arg2_value"] > 0.01) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 1) / v["arg2_value"] > 0.01)
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

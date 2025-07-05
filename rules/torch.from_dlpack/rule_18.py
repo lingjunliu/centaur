@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The shape of input tensor should not exceed 2^31 - 1, which is the maximum value of int32 (Rule 18)
+# ext_tensor's ndim is 1 and its length is a prime number (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 2147483647) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 2147483647) for i in range(6)]))
+    s.add(Not(And(And(v["arg1_ndim"] == 1, (If(Or([And(i < (Select(v["arg1_shape"], 0) - 1 + 1), Or([And(j < (Select(v["arg1_shape"], 0) - 1 + 1), (i * j) == Select(v["arg1_shape"], 0)) for j in range(6)])) for i in range(6)]), False, False))), Select(v["arg1_shape"], 0) > 1)) if n else
+          And(And(v["arg1_ndim"] == 1, (If(Or([And(i < (Select(v["arg1_shape"], 0) - 1 + 1), Or([And(j < (Select(v["arg1_shape"], 0) - 1 + 1), (i * j) == Select(v["arg1_shape"], 0)) for j in range(6)])) for i in range(6)]), False, False))), Select(v["arg1_shape"], 0) > 1))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

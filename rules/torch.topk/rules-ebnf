@@ -1,63 +1,60 @@
 >>
-Rule 1 (k must be within the valid range of the input tensor size along the specified dimension, default last dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 = -1 then v_2 ≤ shape(v_1, ndim(v_1) - 1) ∧ v_2 > 0 else v_2 ≤ shape(v_1, v_3) ∧ v_2 > 0
+Rule 1 (k must be within the valid range for topk)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ v_2 ≤ shape(v_1, ndim(v_1) - 1)
 >>
-Rule 2 (dimension should be within the valid range)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 2 (dim must be within the valid range for topk)
+{v_1 : tensor, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 3 (input tensor dimension should be larger than 0)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 3 (out must be a tuple of two tensors)
+{v_6 : tuple(tensor)} |= v_6.len = 2
 >>
-Rule 4 (k must be a positive integer)
-{v_1 : int} |= v_1 > 0
+Rule 5 (k must be a positive integer)
+{v_2 : int} |= v_2 > 0
 >>
-Rule 5 (dtype of the output tensor should be same as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 26 (k must be smaller than the size of the dimension dim)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 < shape(v_1, if v_3 = none then ndim(v_1)-1 else v_3)
 >>
-Rule 6 (if dim is None then dim = ndim(input) - 1)
-{v_1 : tensor, v_2 : int} |= if v_2 = -2 then v_2 = ndim(v_1) -1
+Rule 30 (k must be smaller than the size of the dimension dim)
+{v_1 : tensor, v_2 : int, v_3 : int ⊎ str} |= v_2 < shape(v_1, if v_3 = "none" then ndim(v_1)-1 else v_3)
 >>
-Rule 7 (input tensor must have a defined shape for given dimension)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+Rule 33 (k must be smaller than the size of the dimension dim)
+{v_1 : tensor, v_2 : int, v_3 : int ⊎ str} |= if v_3 = "none" then v_2 < shape(v_1, ndim(v_1)-1) else v_2 < shape(v_1, v_3)
 >>
-Rule 8 (k must be less or equal to the size of the specified dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, v_3)
+Rule 34 (The dim argument should be a valid dimension)
+{v_1 : tensor, v_3 : int} |= v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)
 >>
-Rule 9 (If dim is None, use the last dimension for topk)
-{v_1 : tensor, v_2 : int} |= if v_2 = -2 then true else v_2 < ndim(v_1)
+Rule 37 (k must be smaller or equal to the size of the last dimension of input)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, ndim(v_1) - 1)
 >>
-Rule 10 (k must be less or equal to the size of the last dimension if dim is None)
-{v_1 : tensor, v_2 : int} |= if v_2 = -2 then v_1.len ≥ v_2
+Rule 52 (k must be within the range of the given dimension)
+{v_1 : tensor, v_2 : int} |= v_2 > 0 ∧ v_2 ≤ shape(v_1, ndim(v_1)-1)
 >>
-Rule 11 (k cannot be larger than the number of elements in the input tensor if dim is None)
-{v_1 : tensor, v_2 : int} |= if v_2 = -2 then v_2 ≤ shape(v_1, ndim(v_1)-1)
+Rule 58 (k must be positive and not larger than the size of the specified dimension of input)
+{v_1 : tensor, v_2 : int, v_3: int} |= v_2 > 0 ∧ v_2 <= shape(v_1, v_3)
 >>
-Rule 12 (If dimension is specified, k cannot be larger than the size of that dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ -2 then v_2 ≤ shape(v_1, v_3)
+Rule 62 (k must be positive and not larger than the size of the specified dimension of input if dim is specified)
+{v_1 : tensor, v_2 : int, v_3: int} |= if (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) then (v_2 > 0 ∧ v_2 <= shape(v_1, v_3))
 >>
-Rule 13 (output tensors have the same dimension as the input tensor)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 63 (k must be positive and not larger than the size of the specified dimension of input if dim is specified)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then v_2 > 0 ∧ v_2 ≤ shape(v_1, v_3)
 >>
-Rule 14 (Output tensor shape at dimension dim equals k)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ -2 then shape(v_1,v_3) = v_2
+Rule 64 (If dim is none, k must be positive and not larger than the size of the last dimension of input)
+{v_1 : tensor, v_2 : int, v_3: str} |= if v_3 = "none" then v_2 > 0 ∧ v_2 <= shape(v_1, ndim(v_1)-1)
 >>
-Rule 15 (If largest is false, then return smallest k elements)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 66 (k must be positive and not larger than the size of the specified dimension of input when dim is valid)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then v_2 > 0 ∧ v_2 <= shape(v_1, v_3)
 >>
-Rule 16 (If sorted is True then elements will be sorted.)
-{v_1 : bool, v_2 : tensor, v_3 : int} |= if v_1 = true then ∀i ∈ [1, v_3-1]: v_2[i-1] ≥ v_2[i]
+Rule 69 (k must be positive and not larger than the size of the last dimension if dim is not specified, or the specified dimension of the tensor)
+{v_1 : tensor, v_2 : int, v_3: int ⊎ str} |= if v_3 = "none" then v_2 > 0 ∧ v_2 <= shape(v_1, ndim(v_1)-1) else if v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then v_2 > 0 ∧ v_2 <= shape(v_1, v_3)
 >>
-Rule 17 (If dimension is None, the output tensor shape is the same except the last dimension.)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -2 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 2]: shape(v_1, i) = shape(v_2, i)
+Rule 71 (The first argument must be a tensor)
+{v_1 : tensor ⊎ int ⊎ float} |= dtype_(v_1) = dtype_(v_1)
 >>
-Rule 18 (The output tensor along a specified dimension has size k)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ -2 then shape(v_1, v_3) = v_2
+Rule 74 (k must be smaller or equal than the number of elements in the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 <= shape(v_1, v_3)
 >>
-Rule 19 (Output tensor of indices should have LongTensor dtype.)
-{v_1 : tensor} |= dtype_(v_1) = 4
+Rule 78 (k must be smaller or equal than the number of elements in the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 >= (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) then v_2 <= shape(v_1, v_3)
 >>
-Rule 20 (k must be less than the number of elements in the input tensor along dim)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≠ -2 then v_2 ≤ shape(v_1, v_3) else v_2 ≤ shape(v_1, ndim(v_1)-1)
->>
-Rule 21 (If dimension is specified as None, then use the last dimension)
-{v_1 : tensor, v_2 : int} |= if v_2 = -2 then true else (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 79 (The first argument must be a tensor)
+{v_1 : tensor ⊎ int ⊎ float} |= if dtype_(v_1) = dtype_(v_1) then true else false

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# out tensor should have the same dtype as input tensor if dtype is int8, int16, int32, int64, uint8, float16, float32, float64, complex64, complex128 if it is provided (Rule 10)
+# if out is float64 then input should be float64 (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] != 0, v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(v["arg1_dtype"] != 0, v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(If(v["arg2_dtype"] == 8, v["arg1_dtype"] == 8, False)) if n else
+          If(v["arg2_dtype"] == 8, v["arg1_dtype"] == 8, False))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

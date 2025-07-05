@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Promoting different float types will result in larger float type. (Rule 18)
+# If type1 is uint8 and type2 is complex, it is not allowed (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(And((And(6 <= v["arg1_value"], v["arg1_value"] <= 8)), (And(6 <= v["arg2_value"], v["arg2_value"] <= 8))), And(And(And(v["arg1_value"] >= 6, v["arg1_value"] <= 8), v["arg2_value"] >= 6), v["arg2_value"] <= 8), False)) if n else
-          If(And((And(6 <= v["arg1_value"], v["arg1_value"] <= 8)), (And(6 <= v["arg2_value"], v["arg2_value"] <= 8))), And(And(And(v["arg1_value"] >= 6, v["arg1_value"] <= 8), v["arg2_value"] >= 6), v["arg2_value"] <= 8), False))
+    s.add(Not(If(v["arg1_value"] == 5, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False)) if n else
+          If(v["arg1_value"] == 5, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

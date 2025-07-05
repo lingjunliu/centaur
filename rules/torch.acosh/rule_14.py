@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor has complex64 type, then output if specified should also be complex64 or complex128 (Rule 14)
+# If the input is of float16 or float32 dtype, the output can not be of int8, int16, int32, int64, uint8 dtype when out is provided (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 9, (Or(Or(v["arg2_ndim"] == 0, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False)) if n else
-          If(v["arg1_dtype"] == 9, (Or(Or(v["arg2_ndim"] == 0, v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(v["arg2_ndim"] > 0, If(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), And(And(And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5), False), False)) if n else
+          If(v["arg2_ndim"] > 0, If(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), And(And(And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5), False), False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_14_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_14(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_14(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

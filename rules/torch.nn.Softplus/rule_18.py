@@ -5,43 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# beta and threshold should be close if the tensor is small (Rule 18)
+# threshold should be larger than beta (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 0) < 10, And((v["arg2_value"] - v["arg3_value"]) < 10, (v["arg3_value"] - v["arg2_value"]) < 10), And(v["arg2_value"] > 0, v["arg3_value"] > 0))) if n else
-          If(Select(v["arg1_shape"], 0) < 10, And((v["arg2_value"] - v["arg3_value"]) < 10, (v["arg3_value"] - v["arg2_value"]) < 10), And(v["arg2_value"] > 0, v["arg3_value"] > 0)))
+    s.add(Not(v["arg2_value"] > v["arg1_value"]) if n else
+          v["arg2_value"] > v["arg1_value"])
 )
 
-def rule_18_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_18_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
         if not isinstance(arg2, (float, np.floating)):
-            return False
-        if not isinstance(arg3, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_value = Real('arg1_value')
         arg2_value = Real('arg2_value')
-        arg3_value = Real('arg3_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_value == arg1)
         solver.add(arg2_value == arg2)
-        solver.add(arg3_value == arg3)
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_18(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

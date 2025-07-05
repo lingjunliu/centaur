@@ -1,60 +1,126 @@
 >>
-Rule 1 (Dimensionality of source should match input when both are not scalars, index should be a Long tensor, and dtype should match between input and source)
-{v_1 : tensor, v_3 : tensor, v_4 : tensor} |= if ndim(v_1) ≠ 0 ∧ ndim(v_4) ≠ 0 then ndim(v_4) = ndim(v_1) ∧ dtype_(v_3) = 5 ∧ dtype_(v_1) = dtype_(v_4)
+Rule 1 (Source and destination tensors must have matching dimensionality when not scalars)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_3) = 0) ∨ (ndim(v_1) = ndim(v_3))
 >>
-Rule 2 (The size of the index tensor should match the source tensor along the specified dimension)
-{v_2 : int, v_3 : tensor, v_4 : tensor} |= shape(v_3, 0) = shape(v_4, v_2)
+Rule 4 (Index must be within the bounds of the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= (min(v_3) ≥ 0) ∧ (max(v_3) < shape(v_1, v_2))
 >>
-Rule 3 (The specified dimension should be within the valid range for the input tensor's dimensions.)
-{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+Rule 6 (Dimension must be a non-negative integer)
+{v_2: int} |= v_2 ≥ 0
 >>
-Rule 4 (Index tensor should have dtype int64)
-{v_3 : tensor} |= dtype_(v_3) = 5
+Rule 7 (Source must be a tensor)
+{v_3: tensor} |= ndim(v_3) ≥ 0
 >>
-Rule 5 (self and source expected to have the same dtype)
-{v_1 : tensor, v_4 : tensor} |= dtype_(v_1) = dtype_(v_4)
+Rule 8 (Index must be a tensor)
+{v_2: tensor} |= ndim(v_2) ≥ 0
 >>
-Rule 6 (The index should be a 1D tensor)
+Rule 9 (Input tensor is not empty)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 12 (Index tensor must have long (int64) dtype (type 5))
+{v_2 : tensor} |= dtype_(v_2) = 5
+>>
+Rule 13 (Input and source tensors must have the same dtype)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 20 (index tensor must have the same number of dimensions as the target dimension in the input tensor)
+{v_3: tensor} |= ndim(v_3) = 1
+>>
+Rule 21 (Source and destination tensors must have matching dimensionality when source or destination is not a scalar)
+{v_1 : tensor, v_3 : tensor} |= if (ndim(v_1) = 0) ∨ (ndim(v_3) = 0) then true else ndim(v_1) = ndim(v_3)
+>>
+Rule 23 (Input and source tensors must have the same dtype, or input tensor is bool)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3) ∨ dtype_(v_1) = 0
+>>
+Rule 24 (Index values must be within the valid range for the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] ≥ 0 ∧ v_3[i] < shape(v_1, v_2)
+>>
+Rule 25 (Dimension must be within the valid range)
+{v_1 : tensor, v_2 : int} |= (0 ≤ v_2) ∧ (v_2 < ndim(v_1))
+>>
+Rule 26 (Source tensor cannot be bool if input is not bool)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 0 then true else dtype_(v_3) ≠ 0
+>>
+Rule 27 (The size of index should be smaller than input)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) <= shape(v_1, 0)
+>>
+Rule 30 (Index values must be within the valid range for the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3,0) - 1] : v_3[i] ≥ 0 ∧ v_3[i] < shape(v_1, v_2)
+>>
+Rule 34 (Index tensor must have long (int64) dtype)
+{v_2 : tensor} |= dtype_(v_2) = 4
+>>
+Rule 35 (Index values must be non-negative)
+{v_3 : tensor} |= min(v_3) >= 0
+>>
+Rule 36 (Index values must be within the shape of the input tensor)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= max(v_3) < shape(v_1, v_2)
+>>
+Rule 37 (Source and destination tensors must have the same shape (excluding the dimension dim))
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_1, i) = shape(v_3, i)
+>>
+Rule 39 (Index tensor must be one dimensional)
 {v_3 : tensor} |= ndim(v_3) = 1
 >>
-Rule 7 (index values must be within the bounds of the dimension being indexed)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) < shape(v_1, v_2)
+Rule 41 (Index tensor must have long (int64) dtype)
+{v_3 : tensor} |= dtype_(v_3) = 4
 >>
-Rule 8 (If input is a scalar, source must also be a scalar)
-{v_1 : tensor, v_4 : tensor} |= if ndim(v_1) = 0 then ndim(v_4) = 0
+Rule 46 (Dimension must be valid)
+{v_1 : tensor, v_2 : int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 9 (The number of elements in the index tensor must be less or equal to the size of the dimension we are indexing.)
+Rule 48 (input and source tensors must have same dtype or input is bool)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 0 then true else dtype_(v_1) = dtype_(v_3)
+>>
+Rule 49 (When source and input aren't scalar, they must have same dimensions)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_3) = 0 then true else ndim(v_1) = ndim(v_3)
+>>
+Rule 51 (Index values must be within the shape of the dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3,0) - 1] : v_3[i] < shape(v_1, v_2)
+>>
+Rule 59 (shape of index should not be greater than shape of tensor in dimension dim.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= shape(v_3, 0) <= shape(v_1, v_2)
+>>
+Rule 61 (Destination and source dimensionality must match)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3)
+>>
+Rule 66 (Destination and source dimensionality must match if they are not scalars.)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_3) = 0) ∨ (ndim(v_1) = ndim(v_3))
+>>
+Rule 67 (Index should not be out of bounds)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3,0) - 1] : v_3[i] >=0 ∧ v_3[i] < shape(v_1, v_2)
+>>
+Rule 75 (Check that the index values are valid.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3,0) - 1] : v_3[i] < shape(v_1, v_2) ∧ v_3[i] >= 0
+>>
+Rule 90 (The source and destination should have the same shape except at dimension dim)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i = v_2 then true else shape(v_1, i) = shape(v_3, i)
+>>
+Rule 96 (The source and destination need to have same dtype or source is bool)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_3) = 0 then true else dtype_(v_1) = dtype_(v_3)
+>>
+Rule 97 (The index must be a vector (1 dimension).)
+{v_2 : tensor} |= ndim(v_2) = 1
+>>
+Rule 101 (The dimension values need to be non negative)
+{v_2 : tensor} |= min(v_2) >= 0
+>>
+Rule 103 (All the index needs to be valid access into dim)
+{v_1 : tensor, v_2 : int, v_3:tensor} |= ∀i ∈ [0, shape(v_3, 0)-1] : v_3[i] < shape(v_1, v_2) ∧ v_3[i] >= 0
+>>
+Rule 106 (Index dimension size should be smaller than the input size at given dim)
 {v_1 : tensor, v_2 : int, v_3 : tensor} |= shape(v_3, 0) ≤ shape(v_1, v_2)
 >>
-Rule 10 (The dimension specified should exist.)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else v_2 ≥ (0 - ndim(v_1))
+Rule 110 (Each element in index tensor must be within the range of the input tensor dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= ∀i ∈ [0, shape(v_3, 0) - 1] : v_3[i] < shape(v_1, v_2) ∧ v_3[i] >= 0
 >>
-Rule 11 (If the input tensor is empty, the source tensor must also be empty.)
-{v_1 : tensor, v_4 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃i ∈ [0, ndim(v_4) - 1] : shape(v_4, i) = 0)
+Rule 114 (Source and destination tensors must have the same shape if they are not scalars, excluding the dimension dim.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_3) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : if i = v_2 then true else shape(v_1, i) = shape(v_3, i)
 >>
-Rule 12 (The index tensor should not be empty)
-{v_3 : tensor} |= ∃i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0
+Rule 116 (Each element in index tensor must be non negative, if source isn't bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then true else min(v_2) >= 0
 >>
-Rule 13 (If the dimension to copy along is negative, convert to the corresponding positive dimension.)
-{v_2 : int} |= if v_2 < 0 then true else v_2 = v_2
+Rule 118 (Input and source tensors should have same dtype.)
+{v_1 : tensor, v_3: tensor} |= dtype_(v_1) = dtype_(v_3)
 >>
-Rule 14 (The dimension of the source should be the same as the dimension of the input tensor except on the given dimension)
-{v_1 : tensor, v_2 : int, v_4 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_1, i) = shape(v_4, i)
->>
-Rule 15 (The number of dimensions of input and source tensors should be consistent if they are not scalars.)
-{v_1 : tensor, v_4 : tensor} |= if ndim(v_1) ≠ 0 ∧ ndim(v_4) ≠ 0 then ndim(v_1) = ndim(v_4)
->>
-Rule 16 (The source tensor shape should be the same as the input tensor shape if the index tensor is not provided)
-{v_1 : tensor, v_4 : tensor} |= if v_3 = v_3 then shape(v_1,0) = shape(v_4,0)
->>
-Rule 17 (if index tensor is given, then source.shape[dim] must equal index.shape[0])
-{v_2 : int, v_3 : tensor, v_4 : tensor} |= shape(v_4, v_2) = shape(v_3, 0)
->>
-Rule 18 (If input and source are both tensors and have the same number of dimensions, and index tensor is provided, the shapes should be the same other than on the copied dimension.)
-{v_1 : tensor, v_2 : int, v_4 : tensor} |= if ndim(v_1) = ndim(v_4) then (∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_2 then shape(v_1, i) = shape(v_4, i))
->>
-Rule 19 (When using a negative dimension, its absolute value must be less than or equal to the number of dimensions of the input tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - v_2) ≤ ndim(v_1)
->>
-Rule 20 (If the input and source are scalars, their dtypes should be the same.)
-{v_1 : tensor, v_4 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_4) = 0 then dtype_(v_1) = dtype_(v_4)
+Rule 120 (Source and destination tensors must have the same shape if they are not scalars, excluding the dimension dim.)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= if (ndim(v_1) = 0) ∨ (ndim(v_3) = 0) then true else ∀i ∈ [0, ndim(v_1) - 1] : if i = v_2 then true else shape(v_1, i) = shape(v_3, i)

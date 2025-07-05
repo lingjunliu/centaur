@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor must not have dtype of string or dtype object (Rule 8)
+# Input tensor must not have complex dtype expressed with < (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 12, v["arg1_dtype"] != 13)) if n else
-          And(v["arg1_dtype"] != 12, v["arg1_dtype"] != 13))
+    s.add(Not(v["arg1_dtype"] < 9) if n else
+          v["arg1_dtype"] < 9)
 )
 
 def rule_8_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is bfloat16, input values should be in a valid range (Rule 14)
+# The values in the input tensor must be such that gammaln is defined. Input values should not be negative integers (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -3.3895313878605775e+38, Select(v["arg1_range"], 1) < 3.3895313878605775e+38), False)) if n else
-          If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) > -3.3895313878605775e+38, Select(v["arg1_range"], 1) < 3.3895313878605775e+38), False))
+    s.add(Not(And([Implies(i < (5 + 1), Or(v["arg1_dtype"] != i, Select(v["arg1_range"], 0) > -1)) for i in range(6)])) if n else
+          And([Implies(i < (5 + 1), Or(v["arg1_dtype"] != i, Select(v["arg1_range"], 0) > -1)) for i in range(6)]))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

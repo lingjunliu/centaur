@@ -1,48 +1,90 @@
 >>
-Rule 1 (input tensor for bitwise_left_shift must be of integral type)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
+Rule 1 (input tensor should have integral type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 2 (input and other tensors for bitwise_left_shift must have compatible shapes for broadcasting)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2) ∨ ndim(v_2) ≥ ndim(v_1)
+Rule 2 (other tensor should have integral type)
+{v_2 : tensor} |= dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
 >>
-Rule 3 (if other is a scalar, it must be non-negative for left bit shift)
-{v_1 : tensor, v_2 : int ⊎ float} |= if ndim(v_1) > 0 then true else v_2 ≥ 0
+Rule 5 (input and output tensors should not be the same)
+{v_1 : tensor, v_3 : tensor} |= v_1 ≠ v_3
 >>
-Rule 4 (If other is scalar, it should be less than the number of bits in the input dtype)
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then v_2 < 8 else if dtype_(v_1) = 2 then v_2 < 8 else if dtype_(v_1) = 3 then v_2 < 16 else if dtype_(v_1) = 4 then v_2 < 32 else if dtype_(v_1) = 5 then v_2 < 64 else if dtype_(v_1) = 6 then v_2 < 8
+Rule 6 (other value should be non-negative)
+{v_2 : int} |= v_2 ≥ 0
 >>
-Rule 5 (If input and other are tensors, their dtypes should be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 7 (number of bits shifted should not exceed the bit width of the input tensor's dtype)
+{v_1 : tensor, v_2 : int} |= (dtype_(v_1) = 1 ∧ v_2 < 8) ∧ (dtype_(v_1) = 2 ∧ v_2 < 16) ∧ (dtype_(v_1) = 3 ∧ v_2 < 32) ∧ (dtype_(v_1) = 4 ∧ v_2 < 64) ∧ (dtype_(v_1) = 5 ∧ v_2 < 8)
 >>
-Rule 6 (if other is a tensor, its elements must be non-negative)
-{v_2 : tensor} |= if ndim(v_2) > 0 then min(v_2) ≥ 0
+Rule 8 (input tensor's dimension should be less than or equal to 8)
+{v_1 : tensor} |= ndim(v_1) ≤ 8
 >>
-Rule 7 (If the input is a scalar number, the 'other' tensor must have an integer dtype.)
-{v_2 : tensor} |= dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6
+Rule 9 (other tensor's dimension should be less than or equal to 8)
+{v_2 : tensor} |= ndim(v_2) ≤ 8
 >>
-Rule 8 (The output tensor's dtype should be the same as the input tensor's dtype)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+Rule 10 (output tensor's dimension should be less than or equal to 8)
+{v_3 : tensor} |= ndim(v_3) ≤ 8
 >>
-Rule 9 (If input is a scalar, the output tensor shape should be the same as other tensor.)
-{v_2 : tensor, v_3 : tensor} |= ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+Rule 13 (output tensor's dtype should be able to accommodate the result - half case)
+{v_3 : tensor} |= dtype_(v_3) ≠ 6
 >>
-Rule 10 (If other is a scalar number, it must be a valid shift amount for the input dtype (not exceeding bit width))
-{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then v_2 < 8 ∧ v_2 ≥ 0 else if dtype_(v_1) = 2 then v_2 < 8 ∧ v_2 ≥ 0 else if dtype_(v_1) = 3 then v_2 < 16 ∧ v_2 ≥ 0 else if dtype_(v_1) = 4 then v_2 < 32 ∧ v_2 ≥ 0 else if dtype_(v_1) = 5 then v_2 < 64 ∧ v_2 ≥ 0 else if dtype_(v_1) = 6 then v_2 < 8 ∧ v_2 ≥ 0
+Rule 14 (input and other tensors should have the same size at non-singleton dimensions - simplified)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
 >>
-Rule 11 (If an out tensor is provided, its shape must be compatible with the broadcasted shape of input and other.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_3) ≥ ndim(v_1) ∨ ndim(v_3) ≥ ndim(v_2)
+Rule 17 (number of bits shifted should not exceed the bit width of the input tensor's dtype)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then v_2 < 8 else if dtype_(v_1) = 2 then v_2 < 16 else if dtype_(v_1) = 3 then v_2 < 32 else if dtype_(v_1) = 4 then v_2 < 64 else if dtype_(v_1) = 5 then v_2 < 8
 >>
-Rule 12 (If 'other' is a tensor and 'input' is a scalar number, 'other' cannot be bool)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0
+Rule 21 (input tensor must have an integer dtype)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
 >>
-Rule 13 (Placeholder rule because overflow is complex to validate)
-{v_1 : tensor} |= min(v_1) ≥ -100000000
+Rule 22 (other tensor must have an integer dtype)
+{v_2 : tensor} |= 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5
 >>
-Rule 14 (If other is a tensor, its values should not be greater than bits of input dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then max(v_2) < 8 else if dtype_(v_1) = 2 then max(v_2) < 8 else if dtype_(v_1) = 3 then max(v_2) < 16 else if dtype_(v_1) = 4 then max(v_2) < 32 else if dtype_(v_1) = 5 then max(v_2) < 64 else if dtype_(v_1) = 6 then max(v_2) < 8
+Rule 25 (Ensure scalar other is also integral)
+{v_2 : float ⊎ int} |= if v_2 > 0 then true else false
 >>
-Rule 15 (If out is specified, it should have integral type)
-{v_3 : tensor} |= dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∨ dtype_(v_3) = 6
+Rule 27 (other value should be less than bit width for int8)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 1 then v_2 < 8
 >>
-Rule 16 (The number of bits to shift by should be less than the number of bits in the smallest input dtype if upcasting occurs.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) < dtype_(v_2)) then max(v_2) < 8 else max(v_2) < 8
+Rule 28 (other value should be less than bit width for int16)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 2 then v_2 < 16
+>>
+Rule 29 (other value should be less than bit width for int32)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 3 then v_2 < 32
+>>
+Rule 30 (other value should be less than bit width for int64)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 4 then v_2 < 64
+>>
+Rule 43 (input and other tensors should have compatible shapes for broadcasting or be scalars - revised)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 44 (other is an integer and bit shift amount)
+{v_1 : tensor, v_2 : int} |= (dtype_(v_1) = 1 ∧ v_2 < 8) ∨ (dtype_(v_1) = 2 ∧ v_2 < 16) ∨ (dtype_(v_1) = 3 ∧ v_2 < 32) ∨ (dtype_(v_1) = 4 ∧ v_2 < 64) ∨ (dtype_(v_1) = 5 ∧ v_2 < 8)
+>>
+Rule 45 (if input is half, then raise exception)
+{v_1: tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 56 (check the shift number is valid if it's a single int)
+{v_1: tensor, v_2: int} |= (dtype_(v_1) = 1 ∧ v_2 < 8) ∨ (dtype_(v_1) = 2 ∧ v_2 < 16) ∨ (dtype_(v_1) = 3 ∧ v_2 < 32) ∨ (dtype_(v_1) = 4 ∧ v_2 < 64) ∨ (dtype_(v_1) = 5 ∧ v_2 < 8) ∨ true
+>>
+Rule 61 (input and other tensors should have compatible shapes for broadcasting or be scalars - revised)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 67 (input and other tensors should have compatible shapes for broadcasting or be scalars - revised)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, (if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2)) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)))
+>>
+Rule 73 (input and other tensors should have compatible shapes for broadcasting or be scalars - refined)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, (if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2)) - 1] : ((shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1))))
+>>
+Rule 75 (input tensor cannot be of Half type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 79 (input and other tensors should have compatible shapes for broadcasting or be scalars - simplified again)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, (if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2)) - 1] : ((shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)))
+>>
+Rule 121 (input and other tensors should have compatible shapes for broadcasting or be scalars - try again and try to find a valid grammar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ((shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1))))
+>>
+Rule 123 (input cannot be half precision - take 3 too to prevent casting)
+{v_1: tensor, v_3 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_3) ≠ 6
+>>
+Rule 127 (input and other tensors should have compatible shapes for broadcasting or be scalars - try again and try to find a valid grammar - simplified)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : ((shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)))

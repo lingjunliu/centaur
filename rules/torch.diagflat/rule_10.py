@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor is empty, the result tensor will be 2D (Rule 10)
+# Restrict dimension values to avoid storage overflow (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])), v["arg1_ndim"] == 2, False)) if n else
-          If((Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])), v["arg1_ndim"] == 2, False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000000) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000000) for i in range(6)]))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

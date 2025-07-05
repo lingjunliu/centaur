@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is complex, end must also be complex. (Rule 11)
+# end tensor should have a floating-point dtype if input is double to address "Found dtype Double but expected Float" (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False))) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False)))
+    s.add(Not(If(v["arg1_dtype"] == 8, And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), False)) if n else
+          If(v["arg1_dtype"] == 8, And(6 <= v["arg2_dtype"], v["arg2_dtype"] <= 8), False))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

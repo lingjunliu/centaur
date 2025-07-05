@@ -5,35 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the parameter's dtype is integer, then it should be within the range of int64 (Rule 4)
+# Parameter tensor must be of floating point or complex dtype if requires_grad is not explicitly set to false (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), False)) if n else
-          If(Or(Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 3), v["arg1_dtype"] == 4), And(Select(v["arg1_range"], 0) >= -9223372036854775808, Select(v["arg1_range"], 1) <= 9223372036854775807), False))
+    s.add(Not(If(v["arg2_value"] == True, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (v["arg1_dtype"] >= 0))) if n else
+          If(v["arg2_value"] == True, (And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)), (v["arg1_dtype"] >= 0)))
 )
 
-def rule_4_func(arg1, solver=None, neg=False):
+def rule_4_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, bool):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 4
-        rule_4(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_4(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_4(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_4(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

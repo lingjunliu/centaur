@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# threshold must be greater than beta (Rule 3)
+# beta and threshold must be compatible, and neither may be infinite or NaN. (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg2_value"] > v["arg1_value"]) if n else
-          v["arg2_value"] > v["arg1_value"])
+    s.add(Not(And((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), (And(v["arg1_value"] < 100000, v["arg2_value"] < 100000)))) if n else
+          And((And(v["arg1_value"] > 0, v["arg2_value"] > 0)), (And(v["arg1_value"] < 100000, v["arg2_value"] < 100000))))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

@@ -1,66 +1,90 @@
 >>
-Rule 1 (tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 2 (tensor shape elements are integers)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 3 (check the dtype of input tensor to see if it is supported)
+Rule 2 (Tensor must have a valid dtype)
 {v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 4 (min value of tensor is less than max value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 3 (Tensor should have non-negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 5 (tensor cannot have negative shape)
+Rule 4 (Tensor dimension should be less than or equal to 5)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 5 (The tensor should have more than 0 dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 6 (If the data type is int, the max value must be within the limit)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then max(v_1) ≤ 127 else if dtype_(v_1) = 2 then max(v_1) ≤ 32767 else if dtype_(v_1) = 3 then max(v_1) ≤ 2147483647
+>>
+Rule 7 (The tensor should not have NaN values)
 {v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 6 (at least one shape should be greater than 1 for non-scalar tensor)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 8 (The tensor should have at least one element)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 7 (if tensor has more than one dimension, it must have more than one element)
-{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 10 (If it's a complex number tensor, both real and imaginary parts should be finite)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
 >>
-Rule 8 (a tensor can have a boolean dtype)
-{v_1 : tensor} |= dtype_(v_1) = 0
+Rule 11 (If it's a boolean tensor, all values must be either true or false)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then true
 >>
-Rule 9 (A tensor whose shape is a tuple cannot be indexed out of range)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else v_2 ≥ (0 - ndim(v_1))
+Rule 12 (If tensor dtype is bool, then the values should be either true or false)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 10 (Tensors must have one of the valid dtypes)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 13 (If tensor has a dimension of size 0, then the number of dimensions should be greater than or equal to 1)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then ndim(v_1) ≥ 1
 >>
-Rule 11 (a tensor with specific shape)
-{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) ≥ 0
+Rule 14 (If tensor is of type string, it should contain valid strings)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then true
 >>
-Rule 12 (A tensor with at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) >= 1
+Rule 17 (If the tensor's dtype is not a number, the number of dimensions is zero)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then ndim(v_1) = 0
 >>
-Rule 13 (Dtype cannot be a list)
-{v_1 : tensor} |= dtype_(v_1) ≠ 12
+Rule 18 (if a tensor has dimension > 0, then the sum of the dimensions should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 14 (if tensor is a bool tensor, it can only contain true or false values)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, ndim(v_1)-1] : min(v_1) = false ∧ max(v_1) = true
+Rule 21 (If a tensor has less than 3 dimensions, the elements must all be positive)
+{v_1 : tensor} |= if ndim(v_1) < 3 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
 >>
-Rule 15 (check the minimum shape)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 22 (A boolean tensor is either all true or all false, if not empty)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0 )
 >>
-Rule 16 (check the minimum element of tensor)
-{v_1 : tensor} |= min(v_1) ≠ 11
+Rule 23 (If the tensor has a dimension of size 1, it can be broadcast)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) then true
 >>
-Rule 17 (at least one element within a tensor has a maximum value)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : max(v_1) ≥ shape(v_1, i)
+Rule 24 (A tensor has at least one dimension or dtype is string.)
+{v_1 : tensor} |= (ndim(v_1) ≥ 1) ∨ (dtype_(v_1) = 11)
 >>
-Rule 18 (if tensor is a complex tensor, then min and max cannot be none)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≠ "none" ∧ max(v_1) ≠ "none"
+Rule 25 (For complex tensors, the real and imaginary parts should have the same shape)
+{v_1 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then true
 >>
-Rule 19 (shape of the tensor should not be "none")
-{v_1 : tensor} |= shape(v_1, 0) ≠ "none"
+Rule 26 (if the dtype is dtype (12), then it is valid)
+{v_1 : tensor} |= if (dtype_(v_1) = 12) then true
 >>
-Rule 20 (if tensor is empty, the max value can not be other than none)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then max(v_1) = "none"
+Rule 27 (if the tensor has a valid dtype, check valid range)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 11 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 21 (if tensor has one dimension, it should have shape > 0)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+Rule 28 (A Tensor should have a defined data type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 13
 >>
-Rule 22 (if tensor is empty, the min value can not be other than none)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then min(v_1) = "none"
+Rule 30 (a tensor needs to have shape defined)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 31 (For floating point tensors, verify that its value is not infinite.)
+{v_1 : tensor} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then true
+>>
+Rule 32 (If the number of dimensions is greater than 0 then the product of the dimension sizes should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) > 0 then true
+>>
+Rule 35 (If a tensor's dtype is a dtype_, its index must be between 0-12)
+{v_1 : tensor} |= if dtype_(v_1) = 12 then true
+>>
+Rule 36 (A Tensor must have dimension size of each dimension >0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 40 (If the tensor requires grad, it needs to be a floating point type or complex type)
+{v_1 : tensor} |= if true then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 41 (If it is half-precision tensor, it should be supported by the hardware.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then true
+>>
+Rule 48 (If it is an integer type ensure the value is within the bounds for that integer)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true

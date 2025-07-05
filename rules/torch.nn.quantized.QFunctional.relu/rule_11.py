@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If tensor has ndim > 2, the last two dimensions must have a maximum dimension of 100. (Rule 11)
+# Ensure shape of tensor is not equal to zero (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 100, Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 100), False)) if n else
-          If(v["arg1_ndim"] > 2, And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 100, Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 100), False))
+    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

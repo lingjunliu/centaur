@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input and mat2 must be tensors and two-dimensional matrices (Rule 1)
+# input and mat2 must be matrices (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2)) if n else

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dtype is complex64, the API should return finfo for complex64 (Rule 20)
+# The input has to be of type dtype. If it is not of a floating point type, raise TypeError (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 9, True, False)) if n else
-          If(v["arg1_value"] == 9, True, False))
+    s.add(Not(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8)) if n else
+          Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8))
 )
 
 def rule_20_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor is complex, the other tensor must be an integer or have the same complex type (Rule 17)
+# input and output dtypes must be compatible (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == v["arg1_dtype"]), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(Or(Or(Or(Or(v["arg2_dtype"] == 1, v["arg2_dtype"] == 2), v["arg2_dtype"] == 3), v["arg2_dtype"] == 4), v["arg2_dtype"] == 5), v["arg2_dtype"] == v["arg1_dtype"]), False))
+    s.add(Not(If((v["arg1_dtype"] == 7), (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))), If((v["arg1_dtype"] == 8), (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))), If((v["arg1_dtype"] == 9), (Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))), If((v["arg1_dtype"] == 10), (Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))), v["arg1_dtype"] == v["arg2_dtype"]))))) if n else
+          If((v["arg1_dtype"] == 7), (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))), If((v["arg1_dtype"] == 8), (Or((v["arg2_dtype"] == 7), (v["arg2_dtype"] == 8))), If((v["arg1_dtype"] == 9), (Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))), If((v["arg1_dtype"] == 10), (Or((v["arg2_dtype"] == 9), (v["arg2_dtype"] == 10))), v["arg1_dtype"] == v["arg2_dtype"])))))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

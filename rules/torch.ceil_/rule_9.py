@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If 'out' is provided, dtype must be floating point (Rule 9)
+# Input tensor's dtype must be numerical and not boolean (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)) if n else
-          Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8))
+    s.add(Not(And(And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 11), v["arg1_dtype"] != 0)) if n else
+          And(And(v["arg1_dtype"] > 0, v["arg1_dtype"] < 11), v["arg1_dtype"] != 0))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):

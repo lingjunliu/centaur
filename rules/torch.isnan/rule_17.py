@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If tensor has at least one NaN, then result of isnan should have at least one true value (Rule 17)
+# Tensor must have at least one element to check for NaN, implying ndim > 0. (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), True == True) for i in range(6)])) if n else
-          Or([And(i < (v["arg1_ndim"] - 1 + 1), True == True) for i in range(6)]))
+    s.add(Not(v["arg1_ndim"] > 0) if n else
+          v["arg1_ndim"] > 0)
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

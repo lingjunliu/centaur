@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor is a complex type, the output tensor must also be a complex type. (Rule 4)
+# input tensor must have a floating-point dtype to avoid casting error, output must also be float (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] >= 9, v["arg2_dtype"] >= 9, False)) if n else
-          If(v["arg1_dtype"] >= 9, v["arg2_dtype"] >= 9, False))
+    s.add(Not(And((And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 9)), (And(v["arg2_dtype"] > 5, v["arg2_dtype"] < 9)))) if n else
+          And((And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 9)), (And(v["arg2_dtype"] > 5, v["arg2_dtype"] < 9))))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

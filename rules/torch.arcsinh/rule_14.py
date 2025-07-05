@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor is half-precision float16, then the output tensor should also be at least half-precision float16 (Rule 14)
+# Prevent casting error: result type Float can't be cast to the desired output type Short - If output tensor is provided, and it is of type Short, input must also be at least as high-precision as Short, or a higher precision type (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, If(v["arg2_dtype"] != none, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), False), False)) if n else
-          If(v["arg1_dtype"] == 6, If(v["arg2_dtype"] != none, Or(Or(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10), False), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, v["arg1_dtype"] >= 2, False)) if n else
+          If(v["arg2_dtype"] == 2, v["arg1_dtype"] >= 2, False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

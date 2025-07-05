@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The second last dimension of b and LU_data must be equal. (Rule 6)
+# Pivots size check against LU_data (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg2_shape"], v["arg2_ndim"] - 2)) if n else
-          Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg2_shape"], v["arg2_ndim"] - 2))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 1)) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 1))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

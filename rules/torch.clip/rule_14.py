@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If min is provided, it must be less than or equal to all elements in the 'max' tensor if 'max' is also a tensor (Rule 14)
+# min and max cannot be both None - needs some value to trigger the clip, using a different approach (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, Select(v["arg2_range"], 0) >= v["arg1_value"], False)) if n else
-          If(v["arg2_ndim"] > 0, Select(v["arg2_range"], 0) >= v["arg1_value"], False))
+    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] != 0, False)) if n else
+          If(v["arg1_value"] == 0, v["arg2_value"] != 0, False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):
@@ -18,25 +18,20 @@ def rule_14_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (float, np.floating)) or (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool))):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg2_ndim = Int('arg2_ndim')
-        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg2_ndim == arg2.ndim)
-        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
-        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg2_range': arg2_range})
+        rule_14(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim'], 'arg2_range': arg2['range']}, neg)
+        rule_14(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

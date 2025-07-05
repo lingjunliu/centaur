@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If step is negative, end must be smaller than start (Rule 4)
+# Step size cannot be too large compared to end - start (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] < 0, v["arg2_value"] < v["arg1_value"], False)) if n else
-          If(v["arg3_value"] < 0, v["arg2_value"] < v["arg1_value"], False))
+    s.add(Not(And((v["arg2_value"] - v["arg1_value"]) / v["arg3_value"] > -10000, (v["arg2_value"] - v["arg1_value"]) / v["arg3_value"] < 10000)) if n else
+          And((v["arg2_value"] - v["arg1_value"]) / v["arg3_value"] > -10000, (v["arg2_value"] - v["arg1_value"]) / v["arg3_value"] < 10000))
 )
 
 def rule_4_func(arg1, arg2, arg3, solver=None, neg=False):

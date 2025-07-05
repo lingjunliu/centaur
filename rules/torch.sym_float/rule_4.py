@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input is a tensor, then all dimensions must be greater or equal to 1 (Rule 4)
+# Input tensor must be a scalar (0-dimensional (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 1) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) >= 1) for i in range(6)]))
+    s.add(Not(Or(Or(v["arg1_ndim"] == 0, (And(v["arg1_ndim"] > 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]))))), (And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 1)))) if n else
+          Or(Or(v["arg1_ndim"] == 0, (And(v["arg1_ndim"] > 0, (And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 1) for i in range(6)]))))), (And(v["arg1_ndim"] == 1, Select(v["arg1_shape"], 0) == 1))))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

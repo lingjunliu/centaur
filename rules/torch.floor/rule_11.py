@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor is complex type, then output tensor should also be complex and same precision (Rule 11)
+# If input tensor is float16, float32 then the output tensor must have the same dtype (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False))) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg1_dtype"] == 11, v["arg2_dtype"] == 11, False)))
+    s.add(Not(If(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
+          If(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == v["arg2_dtype"], False))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

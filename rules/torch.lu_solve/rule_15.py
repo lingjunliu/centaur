@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If LU_pivots is 1D, then its last dimension should be equal to the second last dimension of LU_data. (Rule 15)
+# The m dimension of LU_data and LU_pivots should be equal. (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), False)) if n else
-          If(v["arg2_ndim"] == 1, Select(v["arg2_shape"], 0) == Select(v["arg1_shape"], v["arg1_ndim"] - 2), False))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg2_shape"], v["arg2_ndim"] - 1)) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg2_shape"], v["arg2_ndim"] - 1))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

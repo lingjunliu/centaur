@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.abs_ API requires the input to be a tensor and its dtype should be numerical (Rule 2)
+# input tensor is not boolean (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 11)), (v["arg1_dtype"] != 12))) if n else
-          And(And((v["arg1_dtype"] != 0), (v["arg1_dtype"] != 11)), (v["arg1_dtype"] != 12)))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

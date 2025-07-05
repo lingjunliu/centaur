@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the padding is a tuple with dimension length 6 and input tensor's dimension is 5, then the padding length cannot be greater than two times of each corresponding input dimension (Rule 10)
+# Check dimension size after applying padding (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 5, v["arg2_length"] == 6), And(And(And(And(And(Select(v["arg2_values"], 0) <= 2 * Select(v["arg1_shape"], 2), Select(v["arg2_values"], 1) <= 2 * Select(v["arg1_shape"], 2)), Select(v["arg2_values"], 2) <= 2 * Select(v["arg1_shape"], 3)), Select(v["arg2_values"], 3) <= 2 * Select(v["arg1_shape"], 3)), Select(v["arg2_values"], 4) <= 2 * Select(v["arg1_shape"], 4)), Select(v["arg2_values"], 5) <= 2 * Select(v["arg1_shape"], 4)), False)) if n else
-          If(And(v["arg1_ndim"] == 5, v["arg2_length"] == 6), And(And(And(And(And(Select(v["arg2_values"], 0) <= 2 * Select(v["arg1_shape"], 2), Select(v["arg2_values"], 1) <= 2 * Select(v["arg1_shape"], 2)), Select(v["arg2_values"], 2) <= 2 * Select(v["arg1_shape"], 3)), Select(v["arg2_values"], 3) <= 2 * Select(v["arg1_shape"], 3)), Select(v["arg2_values"], 4) <= 2 * Select(v["arg1_shape"], 4)), Select(v["arg2_values"], 5) <= 2 * Select(v["arg1_shape"], 4)), False))
+    s.add(Not(If(v["arg2_length"] == 6, And(And(Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) > 0, Select(v["arg1_shape"], 3) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) > 0), Select(v["arg1_shape"], 4) + Select(v["arg2_values"], 4) + Select(v["arg2_values"], 5) > 0), False)) if n else
+          If(v["arg2_length"] == 6, And(And(Select(v["arg1_shape"], 2) + Select(v["arg2_values"], 0) + Select(v["arg2_values"], 1) > 0, Select(v["arg1_shape"], 3) + Select(v["arg2_values"], 2) + Select(v["arg2_values"], 3) > 0), Select(v["arg1_shape"], 4) + Select(v["arg2_values"], 4) + Select(v["arg2_values"], 5) > 0), False))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):
@@ -25,13 +25,11 @@ def rule_10_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_length = Int('arg2_length')
         arg2_values = Array('arg2_values', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_length == len(arg2))
@@ -39,9 +37,9 @@ def rule_10_func(arg1, arg2, solver=None, neg=False):
             arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_10(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_10(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)

@@ -1,54 +1,96 @@
 >>
-Rule 1 (torch.spmm API parameters: `mat1` must be a matrix (2D tensor) and `mat2` must be a matrix)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2
+Rule 1 (mat1 and mat2 shapes can be multiplied)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 2 (torch.spmm API parameters: `mat1`'s column dimension should be equal to `mat2`'s row dimension)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
+Rule 2 (mat2 must be a matrix)
+{v_1 : tensor} |= ndim(v_1) = 2
 >>
-Rule 3 (torch.spmm API parameters: data types of `mat1` and `mat2` should be the same)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 4 (torch.spmm API parameters: `mat1` should be sparse.)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : ∃j ∈ [0, shape(v_1, 1) - 1] : min(v_1) = 0
->>
-Rule 5 (torch.spmm API parameters: `mat2` should not be sparse.)
-{v_1 : tensor} |= min(v_1) > 0
->>
-Rule 6 (torch.spmm API parameters: The resulting matrix's row dimension should be equal to `mat1`'s row dimension)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 7 (torch.spmm API parameters: The resulting matrix's column dimension should be equal to `mat2`'s column dimension)
-{v_1 : tensor} |= shape(v_1, 1) > 0
->>
-Rule 8 (torch.spmm API parameters: both input tensors should have floating point dtypes)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6) ∨ (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
->>
-Rule 9 (torch.spmm API parameters: If `mat1` is a `torch.float16` tensor, `mat2` must also be a `torch.float16` tensor.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
->>
-Rule 10 (torch.spmm API parameters: At least one of the dimensions of the sparse matrix should be greater than 0)
-{v_1 : tensor} |= shape(v_1, 0) > 0 ∨ shape(v_1, 1) > 0
->>
-Rule 11 (torch.spmm API parameters: The output matrix must be dense)
-{v_1 : tensor, v_2 : tensor} |= ∃k ∈ [0, shape(v_1, 0) - 1] : ∃l ∈ [0, shape(v_2, 1) - 1]: true
->>
-Rule 12 (torch.spmm API parameters: Elements of mat2 cannot be NaN)
-{v_1 : tensor} |= max(v_1) ≠ max(v_1)
->>
-Rule 13 (torch.spmm API parameters: If mat1's dtype is complex, mat2's dtype must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
->>
-Rule 14 (torch.spmm API parameters: mat1 and mat2's dtypes must be supported (float16, float32, float64, complex64, complex128))
+Rule 5 (mat1 and mat2 have compatible dtypes for multiplication)
 {v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
 >>
-Rule 15 (torch.spmm API parameters: Number of dimensions of input matrices should not be greater than 2)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 2 ∧ ndim(v_2) ≤ 2
+Rule 7 (mat1 is a matrix with appropriate dimensions)
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 16 (torch.spmm API parameters: the shape of the result must be representable, i.e. the product of the dimensions must fit in memory)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) * shape(v_2, 1) < 2147483647
+Rule 8 (mat1 and mat2 shapes are compatible for multiplication - stricter version)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1,0) > 0 ∧ shape(v_2,1) > 0
 >>
-Rule 17 (torch.spmm API parameters: `mat1` must have non-negative indices)
-{v_1 : tensor} |= min(v_1) >= 0
+Rule 11 (mat1 and mat2 are matrices, and mat1 has compatible dtype)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
 >>
-Rule 18 (torch.spmm API parameters: If `mat1` is a complex type, then `mat2` cannot be an integer)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5)
+Rule 12 (mat1 and mat2 dimensions and dtypes are compatible for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 13 (Check that mat1 and mat2 can be multiplied, and mat2 is not empty)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 14 (mat2 must have floating point type.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 15 (Matrix multiplication compatible shapes and floating-point dtypes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 17 (Check matrix multiplication possibility and require float or complex type for mat1)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 20 (Mat2 must be a matrix with float or complex dtype)
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 23 (mat1 and mat2 can be multiplied with positive dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 24 (Mat2 needs to have two dimensions and appropriate dtype.)
+{v_1: tensor} |= ndim(v_1) = 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 25 (Dimensions of mat1 and mat2 should permit matrix multiplication with positive shape and requires that mat2 has floating or complex type.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_2, 1) > 0 ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 26 (Ensure mat2 is a matrix with non-zero dimensions)
+{v_1: tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 27 (Shapes of mat1 and mat2 are valid for multiplication and mat1 and mat2 are not empty)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ ∀i ∈ [0, 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, 1] : shape(v_2, i) > 0
+>>
+Rule 29 (Shapes of mat1 and mat2 should be valid for multiplication, mat1, mat2 are not empty and mat2 has compatible type)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ ∀i ∈ [0, 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, 1] : shape(v_2, i) > 0 ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 31 (Check compatibility of dimensions for matmul and mat2 has positive dimensions and valid type)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0 ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 33 (mat1 and mat2 can be multiplied and the resulting matrix isn't empty)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 35 (mat1 and mat2 are valid matrices for multiplication and mat1's type is valid)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 0) > 0 ∧ shape(v_2, 1) > 0 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 37 (Matrix dimensions are OK and mat1 has non-zero elements)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ min(v_1) ≠ max(v_1)
+>>
+Rule 41 (matmul possible, and mat2 type check)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 42 (Matrix check on mat2)
+{v_1: tensor} |= ndim(v_1) = 2
+>>
+Rule 45 (Matrix multiplication with float/complex numbers and valid sizes.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 47 (Check matmul compatibility, type and that the dimensions are not zero)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10) ∧ shape(v_1, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 56 (make sure mat2 is of proper size, and dtype.)
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 57 (Dimensions check and check mat1 and mat2 dtype. They should either both be float, or complex)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10))
+>>
+Rule 59 (Matrix multiplcation requires that mat1 and mat2 needs to be of proper size, and of compatible type (either float or complex))
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 67 (Matmul should be OK to perform considering dimensions + types + size are positive)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ shape(v_1, 0) > 0 ∧ shape(v_2, 1) > 0 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 69 (Check dimensions and ensure mat1 and mat2 has at least one element)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ (max(v_1) ≠ min(v_1)) ∧ (max(v_2) ≠ min(v_2))
+>>
+Rule 71 (Shape and dimensions for matmul + types of tensors are float or complex)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0) ∧ ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) ∨ ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)))

@@ -1,36 +1,132 @@
 >>
-Rule 1 (torch.nn.quantized.QFunctional.mul requires two tensor inputs)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+Rule 2 (Check if the scale values are positive floats)
+{v_1: float, v_2: float} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 2 (torch.nn.quantized.QFunctional.mul requires input tensors to have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 4 (Check if the dtypes are the same)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 3 (For torch.nn.quantized.QFunctional.mul, the shapes of the input tensors must be broadcastable.)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (if ndim(v_1) - i - 1 < 0 then true else if ndim(v_2) - i - 1 < 0 then true else shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1) ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1)
+Rule 6 (Ensure at least one of the tensors has a non-zero number of elements)
+{v_1: tensor, v_2: tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 4 (If one of the inputs is a scalar, the other input must be a tensor)
-{v_1 : tensor, v_2 : tensor ⊎ int ⊎ float} |= (ndim(v_1) = 0 ∧ ndim(v_2) > 0) ∨ (ndim(v_1) > 0 ∧ (v_2 = v_2)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0)
+Rule 7 (Scale must be positive number)
+{v_1: float} |= v_1 > 0
 >>
-Rule 5 (torch.nn.quantized.QFunctional.mul requires at least one of the inputs to be a quantized tensor.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6) ∨ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 6)
+Rule 10 (Ensure zero point is within the valid range for the data type)
+{v_1: int, v_2: dtype} |= (v_2 = 1 ∧ -128 ≤ v_1 ∧ v_1 ≤ 127) ∨ (v_2 = 5 ∧ 0 ≤ v_1 ∧ v_1 ≤ 255)
 >>
-Rule 6 (If one of the inputs is a scalar, then the output tensor must have the same dtype as the other tensor)
-{v_1 : tensor, v_2 : tensor ⊎ int ⊎ float} |= if ndim(v_1) = 0 then dtype_(v_1) = dtype_(v_2)
+Rule 11 (Check if the first tensor is not empty)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 7 (For torch.nn.quantized.QFunctional.mul, if v_2 is a float or int, v_1 has to be a tensor.)
-{v_1 : tensor ⊎ int ⊎ float, v_2 : int ⊎ float} |= if (v_2 = v_2) then (v_1 = v_1)
+Rule 14 (Scale values must be non-negative)
+{v_1: float} |= v_1 ≥ 0
 >>
-Rule 8 (torch.nn.quantized.QFunctional.mul tensors' shape[-1] > 1)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) > 1 ∧ shape(v_2, ndim(v_2) - 1) > 1
+Rule 15 (Ensure zero point is within a reasonable range)
+{v_1: int} |= -2048 ≤ v_1 ∧ v_1 ≤ 2047
 >>
-Rule 9 (At least one tensor should be 2D or more)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∨ ndim(v_2) ≥ 2
+Rule 16 (If any dimension is zero, the product should be zero)
+{v_1: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then min(v_1) = 0
 >>
-Rule 10 (If one input is quantized the other input should have same scale and zero_point as the quantized input)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6) then (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 6)
+Rule 17 (Ensure that the dtypes are valid)
+{v_1: dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6
 >>
-Rule 11 (If v1 is quantized then v2 cannot be bool type)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6) then (dtype_(v_2) ≠ 0)
+Rule 20 (If a tensor has only one element, it should match zero point)
+{v_1: tensor, v_2: int} |= if ndim(v_1) = 0 then v_1 = v_2
 >>
-Rule 12 (If v1 is quantized then v2 cannot be complex type)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6) then (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10)
+Rule 23 (Check that the quantization parameters are valid for the dtype.)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then 0 ≤ v_2 ∧ v_2 ≤ 255 else if dtype_(v_1) = 1 then -128 ≤ v_2 ∧ v_2 ≤ 127
+>>
+Rule 24 (When quantize is false, scale and zero_point must be default.)
+{v_1: bool, v_2: float, v_3: int} |= if v_1 = false then v_2 = 1.0 ∧ v_3 = 0
+>>
+Rule 28 (If zero_point is specified, it must be a representable integer for the specified dtype)
+{v_1: int, v_2: dtype} |= (v_2 = 5 ∧ 0 ≤ v_1 ∧ v_1 ≤ 255) ∨ (v_2 = 1 ∧ -128 ≤ v_1 ∧ v_1 ≤ 127)
+>>
+Rule 29 (If quantize is enabled, the scale must be a positive number)
+{v_1: bool, v_2: float} |= if v_1 = true then v_2 > 0
+>>
+Rule 30 (If quantize is enabled, the zero point must be a valid integer)
+{v_1: bool, v_2: int, v_3: dtype} |= if v_1 = true then (v_3 = 5 ∧ 0 ≤ v_2 ∧ v_2 ≤ 255) ∨ (v_3 = 1 ∧ -128 ≤ v_2 ∧ v_2 ≤ 127)
+>>
+Rule 31 (Check that the scale is a finite number)
+{v_1: float} |= min(v_1) ≠ "inf" ∧ max(v_1) ≠ "-inf"
+>>
+Rule 32 (Check the zero point is not NaN)
+{v_1: int} |= v_1 = v_1
+>>
+Rule 33 (If ReLU fusion is enabled, then scale and zero_point should be specified.)
+{v_1 : bool, v_2 : float, v_3 : int} |= if v_1 = true then v_2 ≠ 1.0 ∧ v_3 ≠ 0
+>>
+Rule 36 (If the output dtype is given, it must be a quantized dtype)
+{v_1: dtype} |= v_1 = 1 ∨ v_1 = 5
+>>
+Rule 40 (The resulting scale must be a valid positive float)
+{v_1 : float, v_2 : float} |= v_1 * v_2 > 0
+>>
+Rule 41 (If given q_dtype, scale and zero_point must also be passed in)
+{v_1 : dtype, v_2:float, v_3:int} |= if v_1 = 1 ∨ v_1 = 5 then true else v_2 = 1.0 ∧ v_3 = 0
+>>
+Rule 42 (If the inputs are quantized, the output should also have a valid quantized dtype)
+{v_1: tensor, v_2: tensor, v_3: dtype} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 5) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 5) then (v_3 = 1 ∨ v_3 = 5)
+>>
+Rule 43 (If the output dtype is provided, make sure the output parameters are correctly passed too.)
+{v_1: dtype, v_2: float, v_3: int} |= if v_1 = 1 ∨ v_1 = 5 then v_2 > 0 ∧ -128 ≤ v_3 ∧ v_3 ≤ 255
+>>
+Rule 49 (If the q_dtype is specified and quantized value is not default, then parameters should be well defined)
+{v_1: dtype, v_2: float, v_3: int} |= if v_1 = 1 ∨ v_1 = 5 then v_2 > 0 ∧ (v_3 >= -128 ∧ v_3 <=127)
+>>
+Rule 51 (If the q_dtype is specified, out_scale, and out_zero_point should be valid for that dtype)
+{v_1: dtype, v_2: float, v_3: int} |= if v_1 = 1 then v_2 > 0 ∧ (v_3 >= -128 ∧ v_3 <=127) else if v_1 = 5 then v_2 > 0 ∧ (v_3 >= 0 ∧ v_3 <= 255)
+>>
+Rule 54 (Enforce range restrictions on zero_point depending on the dtype)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 5 then (v_2 >= 0 ∧ v_2 <= 255) else if dtype_(v_1) = 1 then (v_2 >= -128 ∧ v_2 <= 127)
+>>
+Rule 57 (When using a quantized data type, check the output scale and zero point)
+{v_1: dtype, v_2: float, v_3: int} |= (v_1 = 5 ∧ v_2 > 0 ∧ v_3 ≥ 0 ∧ v_3 ≤ 255) ∨ (v_1 = 1 ∧ v_2 > 0 ∧ v_3 ≥ -128 ∧ v_3 ≤ 127) ∨ (v_1 ≠ 1 ∧ v_1 ≠ 5)
+>>
+Rule 59 (If scale is specified then make sure parameters are properly restricted)
+{v_1: float, v_2: int, v_3: dtype} |= if v_3 = 1 then (v_2 >= -128 ∧ v_2 <= 127) ∧ (v_1 > 0) else if v_3 = 5 then (v_2 >= 0 ∧ v_2 <= 255) ∧ (v_1 > 0)
+>>
+Rule 62 (if using the quantized data type check it satisfy this condition)
+{v_1: dtype, v_2: float, v_3:int} |= if v_1 = 5 then (v_2 > 0) ∧ (v_3 >= 0 ∧ v_3 <= 255) else if v_1 = 1 then (v_2 > 0) ∧ (v_3 >= -128 ∧ v_3 <= 127)
+>>
+Rule 64 (Verify if out_scale and out_zero_point are appropriate for the provided output data type)
+{v_1: dtype, v_2: float, v_3: int} |= if v_1 = 5 then (v_2 > 0) ∧ (v_3 >= 0 ∧ v_3 <= 255) else if v_1 = 1 then (v_2 > 0) ∧ (v_3 >= -128 ∧ v_3 <= 127)
+>>
+Rule 66 (If q_dtype is specified then out_scale and out_zero_point should be correct)
+{v_1:dtype, v_2:float, v_3:int} |= if v_1 = 5 then (v_2 > 0) ∧ (v_3 >= 0 ∧ v_3 <= 255) else if v_1 = 1 then (v_2 > 0) ∧ (v_3 >= -128 ∧ v_3 <= 127)
+>>
+Rule 68 (if using the quantized data type, then the output parameters must follow the correct constraints)
+{v_1: dtype, v_2: float, v_3: int} |= if v_1 = 5 then (v_2 > 0) ∧ (v_3 ≥ 0 ∧ v_3 ≤ 255) else if v_1 = 1 then (v_2 > 0) ∧ (v_3 ≥ -128 ∧ v_3 ≤ 127)
+>>
+Rule 69 (Ensure that scale is positive and zero_point is within range based on the dtype)
+{v_1: dtype, v_2: float, v_3: int} |= (v_1 = 5 ∧ v_2 > 0 ∧ 0 ≤ v_3 ∧ v_3 ≤ 255) ∨ (v_1 = 1 ∧ v_2 > 0 ∧ -128 ≤ v_3 ∧ v_3 ≤ 127) ∨ (v_1 ≠ 1 ∧ v_1 ≠ 5)
+>>
+Rule 70 (The zero point should be within the valid range for the corresponding data type.)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 1 then -128 ≤ v_2 ∧ v_2 ≤ 127 else if dtype_(v_1) = 5 then 0 ≤ v_2 ∧ v_2 ≤ 255
+>>
+Rule 72 (if dtype is quantized type then the out scale should be greater than zero)
+{v_1: dtype, v_2: float} |= if v_1 = 1 ∨ v_1 = 5 then v_2 > 0
+>>
+Rule 73 (if the dtype is a quantized type then the zero_point should between -128~127 for int8 and 0~255 for uint8)
+{v_1:dtype, v_2: int} |= if v_1 = 1 then v_2 >= -128 ∧ v_2 <= 127 else if v_1 = 5 then v_2 >= 0 ∧ v_2 <= 255
+>>
+Rule 74 (If we want to fuse relu then we must specify quantized data type)
+{v_1: bool, v_2: dtype} |= if v_1 = true then v_2 = 1 ∨ v_2 = 5
+>>
+Rule 75 (If using a quantized data type then scale cannot be default, otherwise output range will be incorrect)
+{v_1: dtype, v_2: float} |= if v_1 = 1 ∨ v_1 = 5 then v_2 ≠ 1.0
+>>
+Rule 76 (If using a quantized data type then zero_point cannot be default, otherwise output range will be incorrect)
+{v_1: dtype, v_2: int} |= if v_1 = 1 ∨ v_1 = 5 then v_2 ≠ 0
+>>
+Rule 78 (If ReLU fusion is enabled, the out_scale must be positive)
+{v_1: bool, v_2: float} |= if v_1 then v_2 > 0
+>>
+Rule 79 (If ReLU fusion is enabled, the out_zero_point must be a valid quantized value)
+{v_1: bool, v_2: dtype, v_3: int} |= if v_1 then (v_2 = 1 ∧ -128 ≤ v_3 ∧ v_3 ≤ 127) ∨ (v_2 = 5 ∧ 0 ≤ v_3 ∧ v_3 ≤ 255)
+>>
+Rule 83 (If using a quantized data type and ReLU is not fused, the output scale must be 1.0 and the zero point must be 0.)
+{v_1: dtype, v_2: bool, v_3: float, v_4:int} |= if v_1 = 1 ∨ v_1 = 5 then if v_2 = false then v_3 = 1.0 ∧ v_4 = 0
+>>
+Rule 84 (If using a quantized data type and ReLU is not fused, the output scale must be 1.0 and the zero point must be 0.)
+{v_1: dtype, v_2: bool, v_3: float, v_4: int} |= if v_1 = 1 ∨ v_1 = 5 then if v_2 = false then v_3 = 1.0 ∧ v_4 = 0

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# number of channels must be divisible by groups (Rule 2)
+# the number of channels must be divisible by the number of groups (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 1) / v["arg2_value"] == (Select(v["arg1_shape"], 1) / v["arg2_value"])) if n else
-          Select(v["arg1_shape"], 1) / v["arg2_value"] == (Select(v["arg1_shape"], 1) / v["arg2_value"]))
+    s.add(Not(Select(v["arg1_shape"], 1) / v["arg2_value"] == Select(v["arg1_shape"], 1) / v["arg2_value"]) if n else
+          Select(v["arg1_shape"], 1) / v["arg2_value"] == Select(v["arg1_shape"], 1) / v["arg2_value"])
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

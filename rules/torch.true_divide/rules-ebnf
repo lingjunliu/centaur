@@ -1,63 +1,57 @@
 >>
-Rule 1 (output tensor dtype should be compatible with input tensors' dtypes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 10 then dtype_(v_1) = 10 ∧ dtype_(v_2) = 10
+Rule 3 (dividend and divisor should have the same dtype to avoid unexpected casting)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (tensor shapes must be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)] : (if (ndim(v_1) - i - 1) ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = (if (ndim(v_2) - i - 1) ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) ∨ (if (ndim(v_1) - i - 1) ≥ 0 then shape(v_1, ndim(v_1) - i - 1) else 1) = 1 ∨ (if (ndim(v_2) - i - 1) ≥ 0 then shape(v_2, ndim(v_2) - i - 1) else 1) = 1
+Rule 4 (dividend should have larger or equal dimensions than divisor, for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
 >>
-Rule 3 (if one of the input tensors is complex, the other must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 7 (if one tensor is complex, the other should be as well, to prevent casting errors)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128" then dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128"
 >>
-Rule 4 (if divisor's dimension is greater than dividend's, then divisor's leading dimensions must be 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > ndim(v_1) then ∀i ∈ [0, ndim(v_2) - ndim(v_1) - 1] : shape(v_2, i) = 1
+Rule 8 (if dividend's dtype is float64, divisor's dtype should not be complex128)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float64" then dtype_(v_2) ≠ "complex128"
 >>
-Rule 5 (if divisor is a scalar, it should not be zero)
-{v_2 : tensor} |= if ndim(v_2) = 0 then min(v_2) ≠ 0 ∧ max(v_2) ≠ 0
+Rule 9 (dividend shape must be greater than or equal to divisor when broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > ndim(v_1) then false
 >>
-Rule 6 (Output tensor dtype should be float or complex if input tensor dtype is integer)
-{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9 ∨ dtype_(v_3) = 10 ∨ dtype_(v_3) = 11
+Rule 11 (if one tensor is complex, the other should be as well, to prevent casting errors)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128" then dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128" else if dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128" then dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
 >>
-Rule 7 (if dividend is bool, divisor should not be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+Rule 15 (if one tensor is complex, the other should be as well, to prevent casting errors)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128") then (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") else if (dtype_(v_2) = "complex64" ∨ dtype_(v_2) = "complex128") then (dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128")
 >>
-Rule 8 (if either tensor is complex, the output tensor must be complex)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 then dtype_(v_3) = 10 ∨ dtype_(v_3) = 11
+Rule 17 (the number of dimensions of the divisor cannot exceed dividend)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) ≤ ndim(v_1)
 >>
-Rule 9 (if divisor is bool, dividend should not be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+Rule 22 (If dividend is bool, divisor also should be bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) = "bool"
 >>
-Rule 10 (if either tensor is a 0-dimensional bool, the other tensor must not be complex)
-{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 0 ∧ dtype_(v_1) = 0) ∨ (ndim(v_2) = 0 ∧ dtype_(v_2) = 0) then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+Rule 27 (divisor should not be a zero tensor)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 11 (if dividend is integer, divisor should not be bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) ≠ 0
+Rule 32 (dividend should be able to be divided by divisor's type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = "int" then dtype_(v_1) ≠ "bool"
 >>
-Rule 12 (if divisor is integer, the output must not be bool)
-{v_2 : tensor, v_3 : tensor} |= if dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 then dtype_(v_3) ≠ 0
+Rule 36 (both tensors cannot be boolean. If dividend is bool, divisor also should be bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "bool" then dtype_(v_2) = "bool" else if dtype_(v_2) = "bool" then dtype_(v_1) = "bool"
 >>
-Rule 13 (if dividend's dtype is uint8, divisor's dtype must not be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+Rule 41 (both tensors cannot be boolean. If one is bool, then another should be bool)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "bool" ∧ dtype_(v_2) = "bool") ∨ ((dtype_(v_1) ≠ "bool") ∧ (dtype_(v_2) ≠ "bool"))
 >>
-Rule 14 (if either tensor has a complex dtype, then the other should not be bool or integer)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 then dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5
+Rule 42 (the shape of divisor cannot be zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 15 (if the output's dtype is int, divisor and dividend must both be integers)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 1 ∨ dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 ∨ dtype_(v_3) = 5 ∨ dtype_(v_3) = 6 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∧ dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6
+Rule 47 (avoid division by zero)
+{v_1 : tensor} |= min(v_1) ≠ 0
 >>
-Rule 16 (if dividend's dtype is float16, divisor's dtype must be float16, float32, float64 or complex64, complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 51 (If one is bool, then another should be bool or both shouldn't be bool)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "bool" ∧ dtype_(v_2) = "bool") ∨ (dtype_(v_1) ≠ "bool" ∧ dtype_(v_2) ≠ "bool")
 >>
-Rule 17 (If the divisor is complex, the dividend must be either float, or complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 52 (divisor should not have zero in its elements)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ 0
 >>
-Rule 18 (If divisor's type is float and dividend's is int, the divisor must be at least float32 to ensure precision.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9) then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9
+Rule 57 (the minimum value of the divisor tensor cannot be zero)
+{v_1 : tensor} |= min(v_1) > 0
 >>
-Rule 19 (If dividend's type is int and divisor's is float, the output must be float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9) then dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 ∨ dtype_(v_3) = 9
->>
-Rule 20 (if the dividend is complex128, the divisor cannot be bool, int or float16.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5 ∧ dtype_(v_2) ≠ 7
->>
-Rule 21 (if out is provided, it should be a tensor)
-{v_3 : tensor} |= ndim(v_3) ≥ 0
+Rule 77 (divisor tensor should not have zero elements)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ 0.0

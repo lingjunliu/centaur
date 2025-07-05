@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.enable_grad accepts a boolean variable and returns the same variable (Rule 14)
+# If tensor's elements are not NaN (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_value"] == True, v["arg1_value"] == False)) if n else
-          Or(v["arg1_value"] == True, v["arg1_value"] == False))
+    s.add(Not(And(Select(v["arg1_range"], 0) > -1000000000000.0, Select(v["arg1_range"], 1) < 1000000000000.0)) if n else
+          And(Select(v["arg1_range"], 0) > -1000000000000.0, Select(v["arg1_range"], 1) < 1000000000000.0))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):
@@ -17,20 +17,21 @@ def rule_14_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_value': arg1_value})
+        rule_14(solver, {'arg1_range': arg1_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_value': arg1['value']}, neg)
+        rule_14(solver, {'arg1_range': arg1['range']}, neg)

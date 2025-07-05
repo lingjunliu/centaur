@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is int, end must also be int. (Rule 10)
+# input tensor should have a floating-point dtype if end is double to address "expected dtype double for `end` but got dtype float" (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, If(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, False)))))) if n else
-          If(v["arg1_dtype"] == 1, v["arg2_dtype"] == 1, If(v["arg1_dtype"] == 2, v["arg2_dtype"] == 2, If(v["arg1_dtype"] == 3, v["arg2_dtype"] == 3, If(v["arg1_dtype"] == 4, v["arg2_dtype"] == 4, If(v["arg1_dtype"] == 5, v["arg2_dtype"] == 5, False))))))
+    s.add(Not(If(v["arg2_dtype"] == 8, And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), False)) if n else
+          If(v["arg2_dtype"] == 8, And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), False))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

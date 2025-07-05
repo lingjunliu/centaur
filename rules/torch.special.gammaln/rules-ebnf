@@ -1,69 +1,108 @@
 >>
-Rule 1 (input tensor must have floating point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 1 (input tensor must have float or double dtype to avoid casting errors)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 2 (minimum value of input tensor must be greater than zero)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 2 (input tensor must not be complex to avoid unimplemented error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 3 (all elements of input must be non-NaN)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) = min(v_1)
+Rule 3 (input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 4 (if input is complex, then imaginary part of input should be zero)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) = max(v_1)
+Rule 4 (input tensor must have a floating point or integer dtype to be castable)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 5 (if input is float16, input values should be in a valid range)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65500 ∧ max(v_1) < 65500
+Rule 7 (if output tensor is provided, its dtype must be compatible with float or double)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 6 (shape of input tensor should not be too large)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000000
+Rule 8 (if out is specified, its shape must match the input shape)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 7 (if input has dtype float64 or complex128, min/max should not be infinite)
-{v_1 : tensor} |= if dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 then min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf"
+Rule 9 (if out is specified, its dtype must be the same as the input dtype or a valid casting target)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then dtype_(v_2) = dtype_(v_1) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 8)
 >>
-Rule 8 (If input is quantized, scale must be positive.)
-{v_1 : tensor} |= if dtype_(v_1) = 12 then min(v_1) > 0
+Rule 10 (input tensor must be of floating point type if out tensor is of floating point type)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 9 (If input tensor is empty, the result should be -inf)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true
+Rule 11 (if out is provided, ensure it's not of type bool)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then dtype_(v_2) ≠ 0
 >>
-Rule 10 (if input is float or double, then the absolute value of input should be less than upper bound to prevent overflow)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then max(v_1) < 171.0 else if dtype_(v_1) = 8 then max(v_1) < 171.0
+Rule 12 (input tensor's values should be within a reasonable range for gammaln)
+{v_1 : tensor} |= min(v_1) > -100 ∧ max(v_1) < 100
 >>
-Rule 11 (input tensor should not have dimension size greater than int64 max value.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 9223372036854775807
+Rule 13 (If the output tensor is provided, it should not be an integer type that is smaller than float)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5
 >>
-Rule 12 (If input is float, then absolute value of all input elements must be representable by float.)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then min(v_1) > -3.4028235e+38 ∧ max(v_1) < 3.4028235e+38
+Rule 14 (The values in the input tensor must be such that gammaln is defined. Input values should not be negative integers)
+{v_1 : tensor} |= ∀i ∈ [1,5]: dtype_(v_1) ≠ i ∨ min(v_1) > -1
 >>
-Rule 13 (input tensor should not have inf and nan simultaneously)
-{v_1 : tensor} |= min(v_1) ≠ "-inf" ∨ max(v_1) = max(v_1)
+Rule 15 (if input is integer, all its values must be positive, because the Gamma function is not defined for zero and negative integers)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) > 0
 >>
-Rule 14 (If input is bfloat16, input values should be in a valid range)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -3.3895313878605775e+38 ∧ max(v_1) < 3.3895313878605775e+38
+Rule 16 (If input is float16, float32, or float64, then the values of the input must be such that gammaln is defined)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true
 >>
-Rule 15 (input should have positive elements when dtype is float16, float32, float64)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > 0
+Rule 18 (If the dtype is float16, the values should be in representable range to avoid overflow and underflow)
+{v_1: tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65500 ∧ max(v_1) < 65500
 >>
-Rule 16 (The input tensor cannot contain both positive and negative infinity when dtype is float.)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (min(v_1) ≠ "-inf" ∨ max(v_1) ≠ "inf")
+Rule 19 (If the dtype is float16, the values should be in representable range to avoid overflow and underflow)
+{v_1: tensor} |= if dtype_(v_1) = 6 then (min(v_1) > -65500) ∧ (max(v_1) < 65500)
 >>
-Rule 17 (if input has double dtype, values should be within the range of double)
-{v_1 : tensor} |= if dtype_(v_1) = 8 then min(v_1) > -1.7976931348623157E+308 ∧ max(v_1) < 1.7976931348623157E+308
+Rule 20 (Avoid nan/inf in input tensor if input dtype is float16, float32 or float64)
+{v_1: tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (min(v_1) ≠ "nan") ∧ (max(v_1) ≠ "nan") ∧ (min(v_1) ≠ "inf") ∧ (max(v_1) ≠ "inf")
 >>
-Rule 18 (if input has complex64/128 dtype, then the real/imaginary parts should be representable by corresponding float/double.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then (min(v_1) > -3.4028235e+38 ∧ max(v_1) < 3.4028235e+38) else if dtype_(v_1) = 10 then (min(v_1) > -1.7976931348623157E+308 ∧ max(v_1) < 1.7976931348623157E+308)
+Rule 22 (Avoid nan/inf in input tensor if input dtype is float16, float32 or float64 - stricter version, handling cases where min/max might not catch all)
+{v_1: tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, shape(v_1, 0) -1]: (v_1[i] ≠ "nan") ∧ (v_1[i] ≠ "inf") ∧ (v_1[i] ≠ "-inf")
 >>
-Rule 19 (input tensor dimension should be less than or equal to 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 24 (If input is float16, float32, or float64, and output is specified, ensure that output does not contain NaNs or Infs.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 ≠ v_1) then (min(v_2) ≠ "nan") ∧ (max(v_2) ≠ "nan") ∧ (min(v_2) ≠ "inf") ∧ (max(v_2) ≠ "inf")
 >>
-Rule 20 (input tensor's total number of elements must be less than or equal to int64 max value)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (if ndim(v_1) = 0 then 1 else (if ndim(v_1) = 1 then shape(v_1, 0) else (if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) else (if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) else (if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) else (if ndim(v_1) = 5 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) else 0)))))) ≤ 9223372036854775807
+Rule 25 (If specified, 'out' tensor should have the same device as the 'input' tensor.)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then true
 >>
-Rule 21 (If the input is a complex tensor then it cannot have NaN values)
-{v_1: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) = max(v_1)
+Rule 26 (If specified, 'out' tensor must have floating point or integer dtype)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 22 (input tensor's shape should not be too small)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+Rule 27 (If input dtype is integer (1 to 5), then out cannot be bool (0).)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (v_2 ≠ v_1) then (dtype_(v_2) ≠ 0)
 >>
-Rule 23 (input tensor must have a defined shape, i.e., no dimensions with size -1)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ -1
+Rule 28 (If specified, 'out' must be a tensor)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ v_1 then ndim(v_2) ≥ 0
+>>
+Rule 30 (When out is provided, its memory layout must match the input's to prevent errors.)
+{v_1: tensor, v_2: tensor} |= if v_2 ≠ v_1 then (shape(v_1, 0) = shape(v_2, 0))
+>>
+Rule 31 (Input tensor should have values >=0 if its dtype is floating point (float16, float32, float64) to ensure defined gammaln)
+{v_1: tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≥ 0
+>>
+Rule 32 (Input tensor should have values such that gammaln is defined. Very small values can lead to overflows)
+{v_1: tensor} |= min(v_1) > -1e10
+>>
+Rule 33 (To avoid overflow/underflow, input values for gammaln should be reasonably bounded.)
+{v_1: tensor} |= min(v_1) > -100 ∧ max(v_1) < 100
+>>
+Rule 34 (Input tensor dtype should be able to represent the result of the computation to avoid casting errors - avoid Short)
+{v_1: tensor} |= dtype_(v_1) ≠ 2
+>>
+Rule 35 (To prevent casting issues, input tensor should be a type that can be safely cast to Float)
+{v_1: tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 36 (To prevent casting errors, input tensor's dtype must be float, double, or complex)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 37 (Prevent potential casting errors: input tensor should have a type that can be safely cast to Float, avoid Int8/16/32/64)
+{v_1: tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4
+>>
+Rule 38 (Input tensor should not be of type np.dtype)
+{v_1: tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 40 (The function is not implemented for complex floats)
+{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 41 (The input must be a tensor and not a numpy array)
+{v_1 : tensor} |= dtype_(v_1) ≠ 13
+>>
+Rule 43 (The function is not implemented for complex floats, so it can only be int or float tensors.)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 46 (To prevent the LgammaVMLCPU error, avoid complex input types by explicitly stating which dtypes are allowed)
+{v_1:tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Padding value cannot be greater than or equal to the input width if input is 2D with width of one (Rule 6)
+# Input width after padding must be positive (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) == 1), v["arg2_value"] < 1, False)) if n else
-          If(And(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 1) == 1), v["arg2_value"] < 1, False))
+    s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) + 2 * v["arg2_value"] > 0) if n else
+          Select(v["arg1_shape"], v["arg1_ndim"] - 1) + 2 * v["arg2_value"] > 0)
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

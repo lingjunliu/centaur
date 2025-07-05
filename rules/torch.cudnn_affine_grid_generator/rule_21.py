@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# `torch.cudnn_affine_grid_generator` theta must be a Tensor with required sizes if output_size is none (Rule 21)
+# Check batch size of theta is positive (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(Select(v["arg1_shape"], 1) == 2, True, False)) if n else
-          If(Select(v["arg1_shape"], 1) == 2, True, False))
+    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
+          Select(v["arg1_shape"], 0) > 0)
 )
 
 def rule_21_func(arg1, solver=None, neg=False):

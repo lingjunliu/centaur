@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if inplace is false, then a new tensor is created, and dtype of the new tensor matches the dtype of the original tensor (Rule 22)
+# When inplace is true, input tensor's dtype must be a float type or complex type. (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == False, v["arg1_dtype"] == v["arg1_dtype"], False)) if n else
-          If(v["arg2_value"] == False, v["arg1_dtype"] == v["arg1_dtype"], False))
+    s.add(Not(If(v["arg2_value"] == True, Or((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))), False)) if n else
+          If(v["arg2_value"] == True, Or((And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)), (And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))), False))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):

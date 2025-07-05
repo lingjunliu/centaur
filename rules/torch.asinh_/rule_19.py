@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor's dtype is float64 and output tensor is given, its dtype can not be complex64 (Rule 19)
+# If input tensor has np.float16, output tensor has at least np.float32. (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] != 9, False)) if n else
-          If(v["arg1_dtype"] == 8, v["arg2_dtype"] != 9, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, False)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, False))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

@@ -1,60 +1,234 @@
 >>
-Rule 1 (input and weight tensors in linear function must have the same dtype, weight must be 2D, bias can be either 1D or empty tuple)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ tuple(tensor)} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_2) = 2 ∧ (ndim(v_3) = 1 ∨ ndim(v_3) = 0)
+Rule 1 (input and weight tensors must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (input and weight's last dimension should match when weight is a matrix.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1)-1) = shape(v_2, 1)
+Rule 2 (weight must be a matrix (2-dimensional tensor))
+{v_1 : tensor} |= ndim(v_1) = 2
 >>
-Rule 3 (If bias is present, its shape should match the first dimension of weight when weight is a matrix)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then shape(v_3, 0) = shape(v_2, 0)
+Rule 3 (input tensor must be at least 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 4 (weight cannot be a scalar.)
-{v_2 : tensor} |= ndim(v_2) > 0
->>
-Rule 5 (If weight is a vector, its length should equal the last dimension of the input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
->>
-Rule 6 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 7 (if bias is present, it must be a 1-D tensor)
+Rule 4 (If bias is present, its dimension must be 1)
 {v_3 : tensor} |= ndim(v_3) = 1
 >>
-Rule 8 (Dtype of bias must match dtype of input)
-{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+Rule 5 (If bias is present, its shape must match the output features of weight)
+{v_2 : tensor, v_3 : tensor} |= shape(v_3, 0) = shape(v_2, 0)
 >>
-Rule 9 (If weight is a 2D tensor, the bias must have the same dtype)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 2 then dtype_(v_2) = dtype_(v_3)
+Rule 6 (Shape of weight must be valid for matrix multiplication with input)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, 1)
 >>
-Rule 10 (If bias is a 1D tensor, the weight must be a 2D tensor)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then ndim(v_2) = 2
+Rule 7 (bias should be a tensor or None)
+{v_3 : tensor ⊎ str} |= v_3 = "none" ∨ ndim(v_3) = 1
 >>
-Rule 11 (If bias is an empty tuple, the weight must be a 1D tensor.)
-{v_2 : tensor, v_3 : tuple(tensor)} |= if ndim(v_3) = 0 then ndim(v_2) = 1
+Rule 9 (weight tensor can be either 1D or 2D)
+{v_2 : tensor} |= ndim(v_2) = 1 ∨ ndim(v_2) = 2
 >>
-Rule 12 (When weight is a 2D matrix, its first dimension (out_features) cannot be zero.)
-{v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_2, 0) > 0
+Rule 10 (If weight is 1D, input must be 1D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then ndim(v_1) = 1
 >>
-Rule 13 (When weight is a vector, its length cannot be zero)
-{v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_2, 0) > 0
+Rule 11 (input and weight tensors must have compatible shapes for multiplication)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, 1) ∨ (ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2,0))
 >>
-Rule 14 (If weight is a 1D tensor, the bias must be None)
-{v_2 : tensor, v_3 : tensor ⊎ tuple(tensor)} |= if ndim(v_2) = 1 then ndim(v_3) = 0
+Rule 14 (If bias is present, its dimension must be 1)
+{v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 15 (When weight is a matrix its shape cannot be [0,0])
-{v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+Rule 15 (If bias is present, its shape must match the output features of weight)
+{v_2 : tensor, v_1 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 16 (If input has more than 2 dimensions, weight must be a matrix)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then ndim(v_2) = 2
+Rule 17 (if bias is not none, then it must be a tensor)
+{v_1 : tensor ⊎ str} |= v_1 = "none" ∨ ndim(v_1) ≥ 1
 >>
-Rule 17 (If input is a 1D tensor, weight must be a vector)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1
+Rule 18 (weight dimensions must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 18 (Dtype of weight must be one of the floating point types.)
-{v_2 : tensor} |= dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 21 (input and weight tensors must have compatible shapes for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 1) else if ndim(v_2) = 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) else false
 >>
-Rule 19 (If the input has a batch dimension, the weight must be a matrix.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 then ndim(v_2) = 2
+Rule 22 (If bias is present, its shape must be compatible with the output shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 20 (If weight has a batch dimension, the input must have a batch dimension.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 2 then ndim(v_1) > 2
+Rule 23 (Bias must have positive dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 24 (weight can be 1D or 2D)
+{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
+>>
+Rule 25 (Input can't have dimensions of size 0 unless weight is 1D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then true else ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 26 (If bias is None, then weight can be 1D, otherwise weight must be 2D)
+{v_1 : str, v_2 : tensor} |= if v_1 = "none" then true else ndim(v_2) = 2
+>>
+Rule 27 (If weight is 1D, bias must be None or empty)
+{v_1 : tensor, v_2 : str} |= if ndim(v_1) = 1 then v_2 = "none"
+>>
+Rule 30 (If bias has a shape, it must match weight's output dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 33 (If bias has a shape, it must match weight's output dimension, for 2D weights)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 34 (Input's last dimension and weight's first dimension should be consistent for matrix multiplication if weight is 2D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1)-1) = shape(v_2, 1)
+>>
+Rule 35 (If weight is 1D, input and weight must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 36 (Input's last dimension and weight's first dimension should be consistent for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_2, if ndim(v_2) = 2 then 1 else 0)
+>>
+Rule 38 (Input and weight must have compatible dimension, meaning at least one)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 39 (Weight cannot have a dimension of size zero unless input is empty)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0 then true else ∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) ≠ 0
+>>
+Rule 42 (if weight is 2D, then bias has to be a 1D tensor with the same length as weight's 'out_feature' dimension or be none)
+{v_1 : tensor, v_2 : tensor ⊎ str} |= if ndim(v_1) = 2 then (v_2 = "none" ∨ (ndim(v_2) = 1 ∧ shape(v_2, 0) = shape(v_1, 0)))
+>>
+Rule 44 (If weight is 1D, the input and weight should have same dimension of size 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_1, ndim(v_1)-1) = shape(v_2, 0)
+>>
+Rule 48 (If input has dimension size of zero, weight must either be 1D with dimension size 0, or 2D with in_feature dimension being zero)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0 then (ndim(v_2) = 1 ∧ shape(v_2, 0) = 0) ∨ (ndim(v_2) = 2 ∧ shape(v_2, 1) = 0)
+>>
+Rule 50 (If bias exists, its length must be equal to the first dimension of weight when weight is a 2D tensor)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 ∧ ndim(v_1) > 0 then shape(v_2, 0) = shape(v_1, 0)
+>>
+Rule 51 (If the weight is a vector (1D tensor) its size must match the number of in_features in the input)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 52 (If weight is matrix, its second dimension (in_features) must be positive.)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) > 0
+>>
+Rule 53 (the output length of 2D weight matches the length of bias vector if available.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 54 (If weight is matrix, Input and Weight should have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 55 (If weight is vector, dimensions other than the last dimension of the input must be greater than 0)
+{v_1: tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) > 0
+>>
+Rule 57 (If weight is a matrix (2D tensor), then the last dimension of the input tensor must be equal to the in_features dimension of the weight)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 1)
+>>
+Rule 58 (If bias is present, then its shape must be compatible with the weight's output shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ str} |= if v_3 ≠ "none" then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 60 (If weight is 1D then input has to be 1D also)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 then ndim(v_1) = 1
+>>
+Rule 61 (The bias must be a 1D tensor if available)
+{v_1: tensor} |= ndim(v_1) ≤ 1
+>>
+Rule 63 (The 'out_features' dimension of weight must have positive size when weight is a matrix)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0
+>>
+Rule 64 (if weight is a vector and the input tensor is not empty, the input's last dimension and the weight's dimension size must match)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 65 (the weight must have at least one dimension)
+{v_1: tensor} |= ndim(v_1) >= 1
+>>
+Rule 66 (Weight can't be 0-dimensional)
+{v_1: tensor} |= ndim(v_1) > 0
+>>
+Rule 67 (if weight is a vector and the input tensor is not empty, the input's last dimension and the weight's dimension size must match and input has to be at least 1D)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ ndim(v_1) >= 1
+>>
+Rule 68 (If the weight is a 2D tensor, the input tensor's last dimension must be equal to the 'in_features' of the weight.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1)-1) = shape(v_2, 1)
+>>
+Rule 69 (If there is a bias, the bias's datatype should match the weight)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 72 (If bias is given and weight is 2D, then the output length of weight has to match the length of bias)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) > 0 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 80 (Input and Weight must have compatible dimensions, meaning at least one for both)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) >= 1 ∧ ndim(v_2) >= 1
+>>
+Rule 81 (If there is a bias (i.e. bias is a tensor and not the string "none"), then Input and weight must have the same datatype.)
+{v_1 : tensor, v_2 : tensor, v_3 : str ⊎ tensor} |= if v_3 ≠ "none" then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 83 (If the weight is a matrix, the input must have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then ndim(v_1) >= 1
+>>
+Rule 84 (If the weight is a matrix and input dimension is greater than 1, all dimensions before the last dimension of input have to be non zero.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 ∧ ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) > 0
+>>
+Rule 85 (If weight is a vector and the input tensor is not empty, the input's last dimension and the weight's dimension size must match, and input has to be at least 1D)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 1 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0) ∧ ndim(v_1) >= 1
+>>
+Rule 89 (If weight is 2D, last dimension of input is equal to the first dimension of weight)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 1)
+>>
+Rule 90 (If bias is not None and Weight has dimension 2 then size of the first dimension of the weight should be equal to size of the first dimension of the bias.)
+{v_1: tensor, v_2: str ⊎ tensor} |= if v_2 ≠ "none" ∧ ndim(v_1) = 2 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 94 (If bias is not None, it must be a tensor.)
+{v_1: str ⊎ tensor} |= v_1 = "none" ∨ ndim(v_1) >= 1
+>>
+Rule 95 (Input and weight must have compatible dimensions, i.e., at least one for both)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) >= 1 ∧ ndim(v_2) >= 1
+>>
+Rule 96 (If the weight is a matrix, the input tensor's last dimension must be equal to the 'in_features' of the weight and vice versa)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1)-1) = shape(v_2, 1) else shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
+>>
+Rule 98 (If bias is a tensor, the size of it has to be greater than zero)
+{v_1: str ⊎ tensor} |= if v_1 ≠ "none" then shape(v_1, 0) > 0
+>>
+Rule 99 (When Weight is a 2D tensor, Input and weight must have the same datatype. But when weight is a 1D tensor, it has to have a specific datatype.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then dtype_(v_1) = dtype_(v_2) else dtype_(v_2) = 7
+>>
+Rule 100 (Weight can not have a dimension size of zero.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 103 (When Weight is a 1D tensor, it must have the Float32 datatype (7).)
+{v_1: tensor} |= if ndim(v_1) = 1 then dtype_(v_1) = 7
+>>
+Rule 106 (If the bias is a tensor and its dimension is greater than 0, it must be 1D)
+{v_1: str ⊎ tensor} |= if v_1 ≠ "none" then ndim(v_1) = 1
+>>
+Rule 110 (If there is a bias and weight is 2D, the bias must have the same dtype as the weight.)
+{v_1 : tensor, v_2 : str ⊎ tensor} |= if v_2 ≠ "none" ∧ ndim(v_1) = 2 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 113 (If weight is a vector and input tensor is not empty then Input and weight must have the same datatype.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 115 (If weight is 1D, bias should be 'none' or have dimension size of zero.)
+{v_1 : tensor, v_2: str ⊎ tensor} |= if ndim(v_1) = 1 then v_2 = "none" ∨ ndim(v_2) = 0
+>>
+Rule 118 (If the weight is a 2D tensor, the input tensor's last dimension must be equal to the 'in_features' of the weight and it needs to have at least one element)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1)-1) = shape(v_2, 1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 120 (If Weight and Input are not of same dtype there must be a way to convert them into the same type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 7)
+>>
+Rule 121 (If there is a bias (i.e. bias is a tensor and not the string "none"), the weight dtype can be any except bool)
+{v_1 : tensor, v_2 : str ⊎ tensor} |= if v_2 ≠ "none" then dtype_(v_1) ≠ 0
+>>
+Rule 122 (If the weight is a 2D tensor, the input tensor's last dimension must be equal to the 'in_features' of the weight, while also making sure the input has dimensions)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1)-1) = shape(v_2, 1) ∧ ndim(v_1) > 0
+>>
+Rule 124 (If weight is a matrix, it must be at least 2-dimensional. Otherwise, it must be 1 dimensional.)
+{v_1: tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
+>>
+Rule 125 (If bias is None, weight can be 1D. If bias is a tensor, weight must be 2D)
+{v_1 : tensor, v_2 : str ⊎ tensor} |= if v_2 = "none" then ndim(v_1) = 1 else ndim(v_1) = 2
+>>
+Rule 129 (if weight is 1D, then input must be a tensor with at least 1 dimension)
+{v_1 : tensor, v_2: tensor} |= if ndim(v_1) = 1 then ndim(v_2) > 0
+>>
+Rule 131 (If there is a bias (i.e. bias is a tensor and not the string "none"), the weight dtype can be any except bool, str and list)
+{v_1 : tensor, v_2 : str ⊎ tensor} |= if v_2 ≠ "none" then dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+>>
+Rule 133 (If the weight is a 2D tensor, the input tensor's last dimension must be equal to the 'in_features' of the weight, while also making sure the input is at least 1D, but the weight also must have correct size for all of its dimensions)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, ndim(v_1)-1) = shape(v_2, 1) ∧ ndim(v_1) > 0 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 134 (if weight is a 1D vector and the input is also 1D then they need to have same size.)
+{v_1 : tensor, v_2: tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1,0) = shape(v_2,0)
+>>
+Rule 139 (When the weight is 1D, the input must have the same dtype)
+{v_1 : tensor, v_2: tensor} |= if ndim(v_2) = 1 then dtype_(v_1) = dtype_(v_2)

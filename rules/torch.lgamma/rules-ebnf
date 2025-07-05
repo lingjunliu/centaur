@@ -1,33 +1,132 @@
 >>
-Rule 1 (input and out tensors of lgamma should have compatible dtypes)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 1 (input tensor and output tensor should have compatible dtypes to prevent casting errors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) ≠ 13 ∧ dtype_(v_2) ≠ 12 ∧ (dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 7))
 >>
-Rule 2 (The input tensor should have floating-point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 2 (input tensor should not be a complex type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 9
 >>
-Rule 3 (If an output tensor is provided, its shape must match the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+Rule 3 (Prevent complex float input for which lgamma_vml_cpu is not implemented)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 4 (Input tensor should have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 4 (Ensure output tensor's dtype can accommodate the result of lgamma on input tensor's dtype to prevent casting errors)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 2 then dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 3 then dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 4 then dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 5 then dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 else dtype_(v_2) = 10
 >>
-Rule 5 (The input tensor's values should be such that the gamma function is defined and finite)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+Rule 5 (Output tensor's dtype must be at least as precise as the input tensor's dtype to avoid underflow errors)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 1 then dtype_(v_2) ≠ 1 ∨ dtype_(v_2) ≠ 2 ∨ dtype_(v_2) ≠ 3 else if dtype_(v_1) = 2 then dtype_(v_2) ≠ 1 ∨ dtype_(v_2) ≠ 2 ∨ dtype_(v_2) ≠ 3 else if dtype_(v_1) = 3 then dtype_(v_2) ≠ 1 ∨ dtype_(v_2) ≠ 2 ∨ dtype_(v_2) ≠ 3
 >>
-Rule 6 (If an output tensor is provided, its dtype must be able to accommodate the output of lgamma given the input dtype)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then (if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else dtype_(v_2) = 10)
+Rule 6 (If the input tensor is a floating point type, the output tensor should also be floating point)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 7 (The `out` tensor, if provided, should not alias the `input` tensor.)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ null then v_1 ≠ v_2
+Rule 7 (Prevent output tensor from having a smaller integer dtype than the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 3 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 else if dtype_(v_1) = 4 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3
 >>
-Rule 8 (If `out` tensor is provided, it should be writable)
-{v_2: tensor} |= if v_2 ≠ null then true
+Rule 8 (The output tensor must be able to represent the range of values produced by lgamma, given the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 9 (If an `out` tensor is provided, and its dtype is lower precision than required then a RuntimeError should be thrown.)
-{v_1: tensor, v_2: tensor} |= if v_2 ≠ null then (if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else dtype_(v_2) = 10)
+Rule 9 (Avoid casting errors by ensuring that if the input is an integer tensor, the output is at least float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 10 (The input must be a real tensor, not complex)
+Rule 10 (If the output tensor is specified, its shape should be compatible with the input tensor for elementwise operation)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 11 (If output tensor v_2 is provided, it should have a floating point dtype if input tensor v_1 is int to allow storing fractional results)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 12 (Avoid output tensor overflow by ensuring v_2 dtype is wider than input tensor v_1's dtype if v_1 is integer)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) > 1 else if dtype_(v_1) = 2 then dtype_(v_2) > 2 else if dtype_(v_1) = 3 then dtype_(v_2) > 3 else if dtype_(v_1) = 4 then dtype_(v_2) > 4 else if dtype_(v_1) = 5 then dtype_(v_2) > 5
+>>
+Rule 13 (The input tensor should not have inf or NaN values, especially if the output is a low-precision floating point, to avoid propagating errors)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ max(v_1) < 100000 ∧ min(v_1) > -100000
+>>
+Rule 14 (If the input tensor is of half precision float16, the output tensor should be at least float32)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 15 (If the input is of type int, the output tensor should not be of type bool to avoid undefined behavior)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) < 7 then dtype_(v_2) ≠ 0
+>>
+Rule 16 (The input tensor should have a valid value, i.e., not be inf/NaN, or the result will propagate to the output)
+{v_1 : tensor} |= max(v_1) < 1000000 ∧ min(v_1) > -1000000
+>>
+Rule 17 (Prevent lgamma of negative numbers which results in complex numbers which cause failure)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 19 (If the input tensor is large, the output tensor must be double to avoid precision loss. The shape check is simplified to the first dimension.)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1,0) > 1000 then dtype_(v_2) = 8
+>>
+Rule 21 (Avoid underflow in output by ensuring output has sufficient range)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 22 (Avoid small gamma values due to integer inputs, which lead to a small output range, by making the output type float)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) < 7 then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 23 (If v_2 is specified as output, its dtype must be float if input is int to hold result.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) < 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 24 (Output tensor dtype cannot be short if input tensor contains large integer values)
+{v_1 : tensor, v_2 : tensor} |= if max(v_1) > 100 then dtype_(v_2) ≠ 2
+>>
+Rule 25 (if the input is integer, it shouldn't overflow even after the transformation.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) then dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 26 (output dtype should be large enough to store input if the input is integer)
+{v_1: tensor, v_2 : tensor} |= if dtype_(v_1) < 6 then if dtype_(v_1) = 1 then (dtype_(v_2) > 1) else if dtype_(v_1) = 2 then (dtype_(v_2) > 2) else if dtype_(v_1) = 3 then (dtype_(v_2) > 3) else if dtype_(v_1) = 4 then (dtype_(v_2) > 4) else dtype_(v_2) > 5
+>>
+Rule 27 (if v_2 specified as output, dtype should be large enough to store the lgamma result.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 1 then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 28 (output tensor should be large enough to store if the gamma input is close to zero.)
+{v_1: tensor, v_2: tensor} |= if min(v_1) < 1 then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 29 (If the output tensor is provided, the datatype should be at least float32, especially when the minimum value of the input tensor is less than 1, because the lgamma of values close to 0 can be a large negative number, which would cause integer types to overflow)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 1 then dtype_(v_2) ≥ 7
+>>
+Rule 31 (If the output tensor is explicitly provided, it shouldn't be bool as lgamma function's codomain is real numbers and not bools)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 32 (If input tensor has short dtype, output tensor cannot have int8.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 2 then dtype_(v_2) ≠ 1
+>>
+Rule 33 (If the minimum of input is less than or equal to 0, output cannot be a int tensor, since the value of lgamma is not defined for negative or zero input)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) ≤ 0 then dtype_(v_2) ≥ 7
+>>
+Rule 34 (If input tensor has int16 dtype and min is less than 0, then the output tensor must not be int16 or int8 )
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 ∧ min(v_1) < 0 then dtype_(v_2) > 3 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 35 (If the input tensor has int8, int16, or int32 dtype and also contains negative numbers, the output tensor cannot be int8, int16, int32 because the lgamma function doesn't accept negative inputs)
+{v_1: tensor, v_2: tensor} |= if ((dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3)) ∧ (min(v_1) < 0) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 36 (If input tensor has int32 dtype and min is less than 0, then the output tensor cannot be int8, int16, int32 or int64, since the lgamma function doesn't accept negative inputs. It should be float or double)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 3) ∧ (min(v_1) < 0) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 37 (Output cannot have int dtype if the input has float type)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 38 (Prevent complex numbers in output by restricting the input to positive values)
+{v_1 : tensor} |= ∀x ∈ [0, shape(v_1,0)-1]: v_1[x] > 0
+>>
+Rule 39 (For valid results input values must be greater than 0, check values along all the dimensions.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : ∀x ∈ [0, shape(v_1, i)-1] : v_1[x] > 0
+>>
+Rule 40 (lgamma is not defined for complex numbers)
 {v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
 >>
-Rule 11 (input tensor's dtype cannot be bool, int8, int16, int32, int64, uint8)
-{v_1: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+Rule 41 (dtype of output tensor must be float32 or float64 when input is float16)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 42 (if input is int64 output should be float64)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 5 then (dtype_(v_2) = 8)
+>>
+Rule 43 (if input tensor dtype is integer, the output tensor must be float or double.)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 44 (The output tensor must have the same shape as the input tensor.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 45 (If v_2 is given, data type should allow a large range since it is log scale, disallowing int)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 5) ∨ (dtype_(v_1) = 6) then (dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8)
+>>
+Rule 46 (lgamma requires floating point input)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+>>
+Rule 47 (lgamma is only implemented for float and double, so output cannot be half)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) ≠ 6

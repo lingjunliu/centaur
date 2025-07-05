@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor is complex, then the out tensor must also be complex (Rule 13)
+# Prevent casting error: result type Float can't be cast to the desired output type Short - If output tensor is provided, and it is of type Short, input must be at least as high-precision as Short, or Floating/Complex type  (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), If(v["arg2_dtype"] != none, Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), If(v["arg2_dtype"] != none, Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, Or(Or(Or(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False)) if n else
+          If(v["arg2_dtype"] == 2, Or(Or(Or(Or(Or(v["arg1_dtype"] == 2, v["arg1_dtype"] == 6), v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

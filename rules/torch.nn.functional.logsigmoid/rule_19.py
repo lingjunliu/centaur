@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The input tensor cannot be of type int8, int16, int32, int64. (Rule 19)
+# input tensor cannot be of type Char (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4)) if n else
-          And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4))
+    s.add(Not(If(v["arg1_dtype"] == 11, False, False)) if n else
+          If(v["arg1_dtype"] == 11, False, False))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

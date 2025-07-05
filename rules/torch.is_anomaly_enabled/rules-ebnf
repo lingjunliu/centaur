@@ -1,45 +1,282 @@
 >>
-Rule 1 (torch.is_anomaly_enabled should return a boolean value, if set, the value should be a boolean)
+Rule 1 (is_anomaly_enabled can only be a boolean value)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 2 (dtype of a tensor should be a valid dtype)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
+Rule 2 (an integer parameter must be positive)
+{v_1 : int} |= v_1 > 0
 >>
-Rule 3 (tensor cannot have dimensions greater than 10)
-{v_1 : tensor} |= ndim(v_1) ≤ 10
+Rule 3 (a string parameter must be a non-empty string)
+{v_1 : str} |= v_1 ≠ ""
 >>
-Rule 4 (A list cannot be empty if used as a parameter)
-{v_1 : list(int)} |= v_1.len > 0
+Rule 5 (minimum value of tensor should be less than the maximum value)
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
 >>
-Rule 5 (When set to True, detect anomaly should be enabled.)
-{v_1 : bool} |= if v_1 = true then true = true else false = false
+Rule 6 (tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 6 (Ensure the given tensor has a positive number of elements)
-{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 1)) > 0
+Rule 7 (shape of a tensor dimension should be positive)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ shape(v_1, v_2) > 0
 >>
-Rule 7 (The string value for the mode should be selected from the list.)
+Rule 8 (A float parameter must be within a certain range)
+{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
+>>
+Rule 9 (If a bool parameter is true, then an integer parameter must be greater than 10)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 10
+>>
+Rule 10 (The number of dimensions of one tensor should be equal to the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 11 (The dtype of a tensor must be float32 or float64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 13 (an integer parameter must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 14 (a string parameter must be a valid option from the given list)
 {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
 >>
-Rule 8 (If a tensor is provided as an argument, ensure it's not an empty tensor when anomaly detection is enabled)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) = true
+Rule 16 (tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 9 (If a float tensor is provided, check it contains no NaN values)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (min(v_1) > -10000000000.0) ∧ (max(v_1) < 10000000000.0) = true
+Rule 17 (shape of a tensor dimension should be positive)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1) ∧ shape(v_1, v_2) > 0
 >>
-Rule 10 (The shape of a tensor should be within a reasonable range)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000000
+Rule 22 (A tuple of tensors must have at least two tensors)
+{v_1 : tuple(tensor)} |= v_1.len ≥ 2
 >>
-Rule 11 (A boolean tensor should not contain both True and False values if anomaly detection is enabled for meaningful debugging)
-{v_1: tensor, v_2: bool} |= if v_2 = true then (min(v_1) = max(v_1)) = true
+Rule 23 (The shapes of two tensors should be equal)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 12 (if using a complex number, ensure it has reasonable bounds for debugging anomaly detection)
-{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (min(v_1) > -10000.0) ∧ (max(v_1) < 10000.0) = true
+Rule 24 (List of integer parameter representing indices should not be negative)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 13 (If anomaly detection is enabled, tensors used in operations should have grad_fn defined)
-{v_1: tensor, v_2: bool} |= if v_2 = true then ndim(v_1) ≥ 0 else (ndim(v_1) ≥ 0 ∨ ndim(v_1) < 0)
+Rule 25 (Tuple of integer should be a valid shape)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 14 (Ensure tensors used in matrix multiplications have compatible dtypes to prevent unexpected errors when anomaly detection is enabled.)
-{v_1 : tensor, v_2 : tensor, v_3: bool} |= if v_3 = true then dtype_(v_1) = dtype_(v_2) else (dtype_(v_1) = dtype_(v_2) ∨ dtype_(v_1) ≠ dtype_(v_2))
+Rule 26 (The shape of a tensor's dimension must be less than a maximum value)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1) ∧ shape(v_1, v_2) < 1024
 >>
-Rule 15 (If is_anomaly_enabled is true, ensure that autograd is enabled for the operations)
-{v_2: bool} |= if v_2 = true then true = true else (true = true ∨ false = false)
+Rule 28 (If a boolean value is true, the tensor must have at least one element)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 29 (A list of strings should all be unique)
+{v_1 : list(str)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i + 1, v_1.len - 1] : v_1[i] ≠ v_1[j]
+>>
+Rule 33 (The sum of elements in a list of integers must be positive)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1]:  v_1[i] > 0
+>>
+Rule 34 (If int is greater than 5, then tensor ndim should be 2)
+{v_1 : int, v_2 : tensor} |= if v_1 > 5 then ndim(v_2) = 2
+>>
+Rule 36 (A string must have a minimum length)
+{v_1 : str} |= v_1.len > 3
+>>
+Rule 37 (If a boolean value is true, the tensor must have at least one element)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 38 (A list of integers must have at least one positive element)
+{v_1 : list(int)} |= ∃i ∈ [0, v_1.len - 1]: v_1[i] > 0
+>>
+Rule 39 (A tensor dimension must be less than a certain value)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+>>
+Rule 40 (A tuple of integers must have the same length as a tensor's dimensions)
+{v_1 : tuple(int), v_2 : tensor} |= v_1.len = ndim(v_2)
+>>
+Rule 41 (If the length of a string is greater than 5, an integer must also be greater than 5)
+{v_1 : str, v_2 : int} |= if v_1.len > 5 then v_2 > 5
+>>
+Rule 43 (The tensor shape must be a square matrix)
+{v_1 : tensor} |= ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 51 (The tensor shape can only contain prime numbers)
+{v_1 : tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = 2 ∨ shape(v_1, i) = 3 ∨ shape(v_1, i) = 5 ∨ shape(v_1, i) = 7)
+>>
+Rule 53 (If shape of dimension is greater than 10, then its dtype must be floating number)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) > 10 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 54 (A string cannot be 'none')
+{v_1 : str} |= v_1 ≠ "none"
+>>
+Rule 55 (If a boolean value is true, then type of the tensor must be floating)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 56 (A list of integers must be sorted ascending)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 2]: v_1[i] ≤ v_1[i+1]
+>>
+Rule 57 (A tensor should not have a dimension with size greater than 4096 if a boolean is true.)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 4096
+>>
+Rule 58 (A tuple of integers must all be greater than or equal to a specified integer.)
+{v_1 : tuple(int), v_2 : int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ v_2
+>>
+Rule 59 (A tensor should have a positive minimum value.)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 60 (If the shape on any dimension is 1, then the number of dimension should be greater than 1)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) then ndim(v_1) > 1
+>>
+Rule 63 (A list of integers must be sorted ascending or descending)
+{v_1 : list(int)} |= (∀i ∈ [0, v_1.len - 2]: v_1[i] ≤ v_1[i+1]) ∨ (∀i ∈ [0, v_1.len - 2]: v_1[i] ≥ v_1[i+1])
+>>
+Rule 66 (A tensor should have a positive minimum value or maximum value is less than zero.)
+{v_1 : tensor} |= min(v_1) > 0 ∨ max(v_1) < 0
+>>
+Rule 68 (If the dimension of a tensor is 3, then the dimension must be equal.)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) = shape(v_1, 1) ∧ shape(v_1, 1) = shape(v_1, 2)
+>>
+Rule 70 (The sum of a tuple of ints must be less than the size of a tensor dimension)
+{v_1 : tuple(int), v_2 : tensor, v_3 : int} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0) ∧ (v_3 ≥ 0 ∧ v_3 < ndim(v_2)) ∧ (∃i ∈ [0, v_1.len - 1] : v_1[i] < shape(v_2, v_3))
+>>
+Rule 71 (A tensor must have a shape where dimensions are monotonically increasing)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) ≤ shape(v_1, i+1)
+>>
+Rule 72 (The length of the list must be positive)
+{v_1 : list(int)} |= v_1.len > 0
+>>
+Rule 73 (If the string value is equal to "mean", then the tensor must have more than one dimension)
+{v_1: str, v_2: tensor} |= if v_1 = "mean" then ndim(v_2) > 1
+>>
+Rule 74 (If the dtype of tensor v2 is floating, then shape of v1 cannot be zero)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 75 (The sum of a tuple of ints must be less than the size of a tensor dimension)
+{v_1 : tuple(int), v_2 : tensor, v_3 : int} |= (∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0) ∧ (v_3 ≥ 0 ∧ v_3 < ndim(v_2)) ∧ (v_1.len < shape(v_2, v_3))
+>>
+Rule 76 (A tensor must have a shape where dimensions are monotonically increasing or decreasing)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) ≤ shape(v_1, i+1)) ∨ (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) ≥ shape(v_1, i+1))
+>>
+Rule 77 (The length of the list must be greater than 2)
+{v_1 : list(int)} |= v_1.len > 2
+>>
+Rule 79 (If the tensor has a dimension greater than 1000, then it must have dtype float32)
+{v_1: tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1000) then dtype_(v_1) = 7
+>>
+Rule 84 (If the tensor has a dimension greater than 1000, then it must have dtype float32 or float64)
+{v_1: tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1000) then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 85 (If the shape is a square matrix, the dtype must be int)
+{v_1 : tensor} |= if ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1) then dtype_(v_1) = 3
+>>
+Rule 86 (The product of the shape of a tensor must be greater than 100)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : (∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j)) > 100
+>>
+Rule 87 (If the tensor has a dimension equal to two, the next dimension cannot be 1)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : if shape(v_1, i) = 2 then shape(v_1, i + 1) ≠ 1
+>>
+Rule 88 (If the string value is equal to "tanh", then minimum of the tensor must be greater than -1 and less than 1)
+{v_1: str, v_2: tensor} |= if v_1 = "tanh" then min(v_2) > -1 ∧ min(v_2) < 1
+>>
+Rule 89 (If shape of dimension is less than 10, then its dtype must be integer number)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) < 10 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5)
+>>
+Rule 90 (If minimum value of a tensor is greater than 0 then maximum must be less than 100)
+{v_1 : tensor} |= if min(v_1) > 0 then max(v_1) < 100
+>>
+Rule 91 (The product of the shape of a tensor must be greater than 100 or less than 10)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : (∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j)) > 100) ∨ (∃i ∈ [0, ndim(v_1) - 1] : (∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j)) < 10)
+>>
+Rule 92 (If the tensor has a dimension equal to two, the next dimension cannot be 1 or less than 0)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 2] : if shape(v_1, i) = 2 then shape(v_1, i + 1) ≠ 1 ∧ shape(v_1, i+1) > 0
+>>
+Rule 93 (If the string value is equal to "tanh" or "sum", then minimum of the tensor must be greater than -1 and less than 1)
+{v_1: str, v_2: tensor} |= if v_1 = "tanh" ∨ v_1 = "sum" then min(v_2) > -1 ∧ min(v_2) < 1
+>>
+Rule 94 (If shape of dimension is less than 10, then its dtype must be integer number or string)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) < 10 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 11)
+>>
+Rule 95 (If minimum value of a tensor is greater than 0 then maximum must be less than 100, or the tensor must be 1D)
+{v_1 : tensor} |= if min(v_1) > 0 then (max(v_1) < 100 ∨ ndim(v_1) = 1)
+>>
+Rule 96 (List of int, each element should be smaller than 255)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] < 255
+>>
+Rule 97 (If shape of dimension is less than 10 and greater than 5, then its dtype must be integer number or string)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) < 10 ∧ shape(v_1, v_2) > 5 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 11)
+>>
+Rule 98 (If minimum value of a tensor is greater than 0 then maximum must be less than 100, or the tensor must be 1D, or the max must be a floating-point number)
+{v_1 : tensor} |= if min(v_1) > 0 then (max(v_1) < 100 ∨ ndim(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 99 (List of int, each element should be smaller than 255 or greater than 0)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] < 255) ∨ (v_1[i] > 0)
+>>
+Rule 100 (If boolean value is true, then tensor ndim should be at least 3)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) ≥ 3
+>>
+Rule 101 (Tuple of float, each element should be greater than 0 and less than 1)
+{v_1: tuple(float)} |= ∀i ∈ [0, v_1.len - 1]: v_1[i] > 0 ∧ v_1[i] < 1
+>>
+Rule 102 (Tensor ndim must be less than 5)
+{v_1: tensor} |= ndim(v_1) < 5
+>>
+Rule 103 (If shape of dimension is less than 10 and greater than 5, then its dtype must be integer number or string or bool)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) < 10 ∧ shape(v_1, v_2) > 5 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 0)
+>>
+Rule 104 (If minimum value of a tensor is greater than 0 then maximum must be less than 100, or the tensor must be 1D, or the max must be a floating-point number, or minimum value is less than 10)
+{v_1 : tensor} |= if min(v_1) > 0 then (max(v_1) < 100 ∨ ndim(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ min(v_1) < 10)
+>>
+Rule 105 (List of int, each element should be smaller than 255 or greater than 0 or equals 100)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] < 255) ∨ (v_1[i] > 0) ∨ (v_1[i] = 100)
+>>
+Rule 106 (If boolean value is true, then tensor ndim should be at least 3, or its min should be zero)
+{v_1: bool, v_2: tensor} |= if v_1 = true then (ndim(v_2) ≥ 3 ∨ min(v_2) = 0)
+>>
+Rule 107 (Tuple of float, each element should be greater than 0 and less than 1 or equal to 0.5)
+{v_1: tuple(float)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] > 0 ∧ v_1[i] < 1) ∨ (v_1[i] = 0.5)
+>>
+Rule 108 (Tensor ndim must be less than 5 or tensor dtype is string)
+{v_1: tensor} |= ndim(v_1) < 5 ∨ dtype_(v_1) = 11
+>>
+Rule 109 (If shape of dimension is less than 10 and greater than 5, then its dtype must be integer number or string or bool, or dtype is complex)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) < 10 ∧ shape(v_1, v_2) > 5 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 110 (If minimum value of a tensor is greater than 0 then maximum must be less than 100, or the tensor must be 1D, or the max must be a floating-point number, or minimum value is less than 10 or shape of dimension is 2)
+{v_1 : tensor} |= if min(v_1) > 0 then (max(v_1) < 100 ∨ ndim(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ min(v_1) < 10 ∨ (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 2))
+>>
+Rule 111 (List of int, each element should be smaller than 255 or greater than 0 or equals 100 or equal to -1)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] < 255) ∨ (v_1[i] > 0) ∨ (v_1[i] = 100) ∨ (v_1[i] = -1)
+>>
+Rule 112 (If boolean value is true, then tensor ndim should be at least 3, or its min should be zero, or max is greater than 1000)
+{v_1: bool, v_2: tensor} |= if v_1 = true then (ndim(v_2) ≥ 3 ∨ min(v_2) = 0 ∨ max(v_2) > 1000)
+>>
+Rule 113 (Tuple of float, each element should be greater than 0 and less than 1 or equal to 0.5 or less than -1)
+{v_1: tuple(float)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] > 0 ∧ v_1[i] < 1) ∨ (v_1[i] = 0.5) ∨ (v_1[i] < -1)
+>>
+Rule 114 (Tensor ndim must be less than 5 or tensor dtype is string or tuple length is 3)
+{v_1: tensor, v_2: tuple(int)} |= ndim(v_1) < 5 ∨ dtype_(v_1) = 11 ∨ v_2.len = 3
+>>
+Rule 115 (If shape of dimension is less than 10 and greater than 5, then its dtype must be integer number or string or bool, or dtype is complex, or dtype is float16)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) < 10 ∧ shape(v_1, v_2) > 5 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6)
+>>
+Rule 116 (If minimum value of a tensor is greater than 0 then maximum must be less than 100, or the tensor must be 1D, or the max must be a floating-point number, or minimum value is less than 10 or shape of dimension is 2 or dimension length is less than 4)
+{v_1 : tensor} |= if min(v_1) > 0 then (max(v_1) < 100 ∨ ndim(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ min(v_1) < 10 ∨ (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 2) ∨ ndim(v_1) < 4)
+>>
+Rule 117 (List of int, each element should be smaller than 255 or greater than 0 or equals 100 or equal to -1 or element must be even)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] < 255) ∨ (v_1[i] > 0) ∨ (v_1[i] = 100) ∨ (v_1[i] = -1) ∨ (v_1[i] / 2 = 0)
+>>
+Rule 118 (If boolean value is true, then tensor ndim should be at least 3, or its min should be zero, or max is greater than 1000, or ndim is less than 2)
+{v_1: bool, v_2: tensor} |= if v_1 = true then (ndim(v_2) ≥ 3 ∨ min(v_2) = 0 ∨ max(v_2) > 1000 ∨ ndim(v_2) < 2)
+>>
+Rule 119 (Tuple of float, each element should be greater than 0 and less than 1 or equal to 0.5 or less than -1 or equals 0)
+{v_1: tuple(float)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] > 0 ∧ v_1[i] < 1) ∨ (v_1[i] = 0.5) ∨ (v_1[i] < -1) ∨ (v_1[i] = 0)
+>>
+Rule 120 (Tensor ndim must be less than 5 or tensor dtype is string or tuple length is 3 or dtype must be floating )
+{v_1: tensor, v_2: tuple(int)} |= ndim(v_1) < 5 ∨ dtype_(v_1) = 11 ∨ v_2.len = 3 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 121 (If shape of dimension is less than 10 and greater than 5, then its dtype must be integer number or string or bool, or dtype is complex, or dtype is float16 or shape should not be 7)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) < 10 ∧ shape(v_1, v_2) > 5 then (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 11 ∨ dtype_(v_1) = 0 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6 ∨ shape(v_1, v_2) ≠ 7)
+>>
+Rule 122 (If minimum value of a tensor is greater than 0 then maximum must be less than 100, or the tensor must be 1D, or the max must be a floating-point number, or minimum value is less than 10 or shape of dimension is 2 or dimension length is less than 4 or max is greater than 50)
+{v_1 : tensor} |= if min(v_1) > 0 then (max(v_1) < 100 ∨ ndim(v_1) = 1 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ min(v_1) < 10 ∨ (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 2) ∨ ndim(v_1) < 4 ∨ max(v_1) > 50)
+>>
+Rule 123 (List of int, each element should be smaller than 255 or greater than 0 or equals 100 or equal to -1 or element must be even or greater than 10)
+{v_1: list(int)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] < 255) ∨ (v_1[i] > 0) ∨ (v_1[i] = 100) ∨ (v_1[i] = -1) ∨ (v_1[i] / 2 = 0) ∨ (v_1[i] > 10)
+>>
+Rule 124 (If boolean value is true, then tensor ndim should be at least 3, or its min should be zero, or max is greater than 1000, or ndim is less than 2 or max is less than 200)
+{v_1: bool, v_2: tensor} |= if v_1 = true then (ndim(v_2) ≥ 3 ∨ min(v_2) = 0 ∨ max(v_2) > 1000 ∨ ndim(v_2) < 2 ∨ max(v_2) < 200)
+>>
+Rule 125 (Tuple of float, each element should be greater than 0 and less than 1 or equal to 0.5 or less than -1 or equals 0 or greater than 0.2)
+{v_1: tuple(float)} |= ∀i ∈ [0, v_1.len - 1]: (v_1[i] > 0 ∧ v_1[i] < 1) ∨ (v_1[i] = 0.5) ∨ (v_1[i] < -1) ∨ (v_1[i] = 0) ∨ (v_1[i] > 0.2)
+>>
+Rule 126 (Tensor ndim must be less than 5 or tensor dtype is string or tuple length is 3 or dtype must be floating or tensor has 0 elements)
+{v_1: tensor, v_2: tuple(int)} |= ndim(v_1) < 5 ∨ dtype_(v_1) = 11 ∨ v_2.len = 3 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = 0)

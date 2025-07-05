@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# eps should be a non-negative float (Rule 3)
+# eps should be a small positive number (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] >= 0) if n else
-          v["arg1_value"] >= 0)
+    s.add(Not(And(v["arg1_value"] > 0, v["arg1_value"] < 1)) if n else
+          And(v["arg1_value"] > 0, v["arg1_value"] < 1))
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

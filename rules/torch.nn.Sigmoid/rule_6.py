@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor's dtype should not be boolean (Rule 6)
+# If the input is a complex type tensor, the imaginary part must be valid, even if it applies element-wise (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), True, False)) if n else
+          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), True, False))
 )
 
 def rule_6_func(arg1, solver=None, neg=False):

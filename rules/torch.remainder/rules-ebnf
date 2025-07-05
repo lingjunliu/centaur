@@ -1,27 +1,33 @@
 >>
-Rule 1 (input and other tensors should have broadcasting compatibility)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)
+Rule 1 (Suppressing RuntimeError: The size of tensor a (6) must match the size of tensor b (0) at non-singleton dimension 0 - ensure dimensions match)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 2 (if input is complex, other must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if 9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then 9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10
+Rule 3 (Suppressing RuntimeError: result type ComplexDouble can't be cast to the desired output type Half - prevent complex input tensors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 3 (If input is a scalar, other must be a tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) > 0
+Rule 4 (Suppressing RuntimeError: The size of tensor a (6) must match the size of tensor b (0) at non-singleton dimension 0 - ensure dimensions match or one of the tensors is a scalar)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 4 (If input is a scalar, other must be a tensor with numerical dtype)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+Rule 7 (Suppressing RuntimeError: The size of tensor a (6) must match the size of tensor b (0) at non-singleton dimension 0 - ensure either dimensions match, or one of them is scalar, or they are broadcastable.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
 >>
-Rule 5 (If input is a tensor with bool dtype, other must be a tensor with bool dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+Rule 8 (Suppressing TypeError: remainder() received an invalid combination of arguments - input and other should be of compatible type)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 6 (If input is float tensor, the other cannot be bool tensor)
-{v_1 : tensor, v_2 : tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then dtype_(v_2) ≠ 0
+Rule 9 (Suppressing RuntimeError: result type ComplexDouble can't be cast to the desired output type Half - Ensure neither input nor other are complex.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
 >>
-Rule 7 (If input is an int tensor, other must be an int tensor)
-{v_1 : tensor, v_2 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5
+Rule 15 (Suppressing RuntimeError: result type ComplexDouble can't be cast to the desired output type Half - Ensure neither input nor other has a complex dtype.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10)
 >>
-Rule 8 (If other is a tensor with numerical type, input must be a tensor)
-{v_1 : tensor, v_2 : tensor} |= if 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8 then ndim(v_1) > 0
+Rule 16 (Suppressing RuntimeError: The size of tensor a (6) must match the size of tensor b (0) at non-singleton dimension 0 - shapes are broadcastable or one is scalar)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1))
 >>
-Rule 9 (If other is a tensor with integer dtype, input should be a tensor, and if other is float tensor, input should be a tensor)
-{v_1 : tensor, v_2 : tensor} |= if 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5 then ndim(v_1) > 0 else if 6 <= dtype_(v_2) ∧ dtype_(v_2) <= 8 then ndim(v_1) > 0
+Rule 18 (Suppressing RuntimeError: result type ComplexDouble can't be cast to the desired output type Half - input and other tensors cannot be complex dtypes)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10)
+>>
+Rule 54 (Suppressing RuntimeError: result type ComplexDouble can't be cast to the desired output type Half - input tensor should be a real dtype)
+{v_1: tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 57 (Suppressing RuntimeError: result type ComplexDouble can't be cast to the desired output type Half - input tensor should have real dtype)
+{v_1: tensor} |= dtype_(v_1) < 9 ∨ dtype_(v_1) > 10

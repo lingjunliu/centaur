@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is a BFloat16 tensor, then the output should also be a BFloat16 tensor (Rule 14)
+# If the output tensor is provided and its dtype is boolean, then input tensor dtype should also be boolean (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, False)) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_dtype"] == 6, False))
+    s.add(Not(If(v["arg2_dtype"] == 0, v["arg1_dtype"] == 0, False)) if n else
+          If(v["arg2_dtype"] == 0, v["arg1_dtype"] == 0, False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

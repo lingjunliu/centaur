@@ -1,57 +1,183 @@
 >>
-Rule 1 (dims must be non-negative)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+Rule 1 (Dimensions for tiling must be non-negative)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 2 (number of dimensions in dims should not exceed number of dimensions in input)
-{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≤ ndim(v_1) + v_2.len
+Rule 2 (Product of tile dimensions should not cause integer overflow during storage size calculation)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 0) * v_2[0] < 2147483647 ∧ shape(v_1, 1) * v_2[1] < 2147483647 ∧ ndim(v_1) = v_2.len
 >>
-Rule 3 (If input is 0-dimensional, dims must be a 0-dimensional tuple)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+Rule 3 (The shape of the input tensor should be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 4 (Product of elements in dims must not overflow)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ ∃x ∈ [0, 1000000000]: x=1 ∧ (∀i ∈ [0, v_2.len - 1] : x = x * v_2[i])
+Rule 4 (The product of dimensions after tiling does not exceed maximum integer)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) < 2147483647
 >>
-Rule 5 (If dims is an int, then input must be 1-dimensional)
-{v_1 : tensor} |= if ndim(v_1) = 1 then true else false
+Rule 5 (All dimensions specified in 'dims' should be greater than 0)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0
 >>
-Rule 6 (If input is 1-dimensional, dims must be a 1-dimensional tuple or an int)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then v_2.len = 1
+Rule 6 (The number of dimensions after tiling does not lead to memory overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= v_1.len * v_2.len < 64
 >>
-Rule 7 (If ndim of input tensor is smaller than len of dims, the input tensor is treated as if it were unsqueezed at dimension zero until it has as many dimensions as dims specifies)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then ∃i ∈ [0, v_2.len - ndim(v_1) - 1] : true
+Rule 7 (Total number of elements in the tiled tensor should not overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 2147483647 ∧ (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) < 1000000000
 >>
-Rule 8 (If dims specifies fewer dimensions than input has, then ones are prepended to dims until all dimensions are specified)
-{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len < ndim(v_1) then ∃i ∈ [0, ndim(v_1) - v_2.len - 1] : true
+Rule 8 (Check for extremely large values in dims to prevent memory allocation errors)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 100000
 >>
-Rule 9 (If the new dimension is negative, raise ValueError)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > -1
+Rule 9 (The product of the input tensor's dimensions and the tiling dimensions should not cause a storage overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 0) * v_2[0] < 1000000000000
 >>
-Rule 10 (The shape of the output tensor is shape(input) * dims)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) > v_2.len then ndim(v_1) else v_2.len - 1] : if ndim(v_1) <= i then shape(v_1, 0) = 1 * v_2[i] else if v_2.len <= i then shape(v_1, i) = shape(v_1, i) * 1
+Rule 10 (The dimensions tuple's length should not be excessively large)
+{v_2 : tuple(int)} |= v_2.len < 10
 >>
-Rule 11 (The output tensor's ndim is equal to max(ndim(input), len(dims)))
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > v_2.len then ndim(v_1) = ndim(v_1) else v_2.len = v_2.len
+Rule 11 (The size of the resulting tensor in each dimension should not be too large to avoid memory allocation errors)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) else v_2.len - 1] : shape(v_1, i) * v_2[i] < 10000
 >>
-Rule 12 (if dims is an integer, it should be greater than 0)
-{v_2 : int} |= v_2 > 0
+Rule 12 (The total number of elements should fit within a reasonable bound)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 100000000
 >>
-Rule 13 (If ndim of input tensor > len of dims tuple, pad dims with 1s at the front)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) > v_2.len then ∃i ∈ [0, ndim(v_1) - v_2.len - 1] : v_2[i]=1
+Rule 13 (Ensure the total number of elements after tiling doesn't exceed the maximum representable by the data type)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 0) * v_2[0] < 2147483647 ∧ shape(v_1, 1) * v_2[1] < 2147483647 ∧ shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 2147483647
 >>
-Rule 14 (If ndim of input tensor < len of dims tuple, the input tensor is treated as if it were unsqueezed at dimension zero until it has as many dimensions as dims specifies)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then ∃i ∈ [0, v_2.len - ndim(v_1) - 1] : shape(v_1, 0) = 1
+Rule 14 (Prevent extremely large values in 'dims' causing memory exhaustion)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 10000000
 >>
-Rule 15 (The dims argument specifies the number of repetitions in each dimension, if the size of a dimension in input is zero, the corresponding dim in dims should be 1)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) > v_2.len then ndim(v_1)-1 else v_2.len - 1] : if ndim(v_1) > i then if shape(v_1, i) = 0 then v_2[i] = 1
+Rule 15 (Combined dimensions should not cause overflow during size calculation.)
+{v_1 : tensor, v_2 : tuple(int)} |= shape(v_1, 0) * v_2[0] < 1000000 ∧ shape(v_1, 1) * v_2[1] < 1000000 ∧ shape(v_1, 2) * v_2[2] < 1000000
 >>
-Rule 16 (If a value in dims is zero, the output shape along that axis will be zero)
-{v_1 : tensor, v_2 : tuple(int)} |= if ∃i ∈ [0, v_2.len -1] : v_2[i] = 0 then ∃j ∈ [0, ndim(v_1)-1] : shape(v_1,j) = 0
+Rule 16 (Check if the resulting tensor's dimensions cause a multiplication overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 2147483647 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 2147483647
 >>
-Rule 17 (The dtype of the output tensor is same as the dtype of the input tensor)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+Rule 18 (Guard against dimensions exploding during size calculation)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) < 10000000000
 >>
-Rule 18 (The product of `dims` must be representable as an int64)
-{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > 0 ∧ ∃p ∈ [0, 9223372036854775807] : if v_2.len = 0 then p = 1 else (p = 1 ∧ (∀i ∈ [0, v_2.len-1] : p = p * v_2[i]))
+Rule 19 (Prevent individual tile dimension from being too large)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] < 1000000
 >>
-Rule 19 (If a value in dims is one and input has a shape dimension of zero, that dimensions' value becomes zero in output)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) > v_2.len then ndim(v_1) else v_2.len - 1] : if ndim(v_1) <= i then true else if shape(v_1,i) = 0 ∧ v_2[i]=1 then shape(v_1,i) = 0
+Rule 20 (The total size of the output tensor should not exceed a limit)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 1000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 1000000000
+>>
+Rule 21 (Product of tiling dimensions along existing tensor dimensions avoids memory overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) else v_2.len - 1] : shape(v_1, i) * v_2[i] < 100000000
+>>
+Rule 22 (The dimensions in 'dims' should not be excessively large, preventing overflow)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 2147483
+>>
+Rule 23 (The total size of the output tensor should be within reasonable bounds to prevent memory errors)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 1000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 1000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 1000000000
+>>
+Rule 24 (Combined product of shape and tile dimensions is bounded)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 10000000
+>>
+Rule 25 (Combined size across all dimensions should stay within memory limits)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 2000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 2000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 2000000000 else shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2[0] * v_2[1] * v_2[2] * v_2[3] < 2000000000
+>>
+Rule 26 (The product of tile dimensions in each axis stays within a safe bound)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 500000
+>>
+Rule 27 (Shape of input tensor times tile factor should not overflow int64 limits.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 9223372036854775807 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 9223372036854775807
+>>
+Rule 28 (Total elements shouldn't exceed a representable amount to prevent memory overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 4294967295 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 4294967295 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 4294967295
+>>
+Rule 29 (Each dimension in dims should be small enough)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 20000
+>>
+Rule 30 (Prevent individual dimension * tile count calculation from overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 2000000000
+>>
+Rule 31 (Overall size is bounded to avoid allocation issues)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 10000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 10000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 10000000000
+>>
+Rule 32 (Enforce the individual dimensions after tiling to be reasonable)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 5000000
+>>
+Rule 34 (Each tiling factor multiplied by the original dimension must be less than the maximum value for the datatype)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 2147483647
+>>
+Rule 35 (The total number of elements doesn't overflow the maximum allowed)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) * (shape(v_1, 3) * v_2[3]) < 1000000000000
+>>
+Rule 37 (The total number of elements in the tiled tensor should not be larger than the maximum value of int64 to avoid storage overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 9223372036854775807 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 9223372036854775807 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 9223372036854775807 else shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2[0] * v_2[1] * v_2[2] * v_2[3] < 9223372036854775807
+>>
+Rule 38 (Avoid excessive memory consumption by limiting the product of the dimensions to below a threshold.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) < 1000000000
+>>
+Rule 39 (To prevent potential out-of-memory, tile factors should not be extremely big.)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 50000
+>>
+Rule 40 (Maximum value for tiling factor*shape cannot exceed what the system can handle to prevent allocator errors)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 100000000
+>>
+Rule 41 (Prevent memory allocation issues by ensuring total size calculation won't exceed practical limits.)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) < 1000000000
+>>
+Rule 42 (Limit the size of each tiling factor to avoid very huge tensor sizes)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 10000
+>>
+Rule 44 (Avoid creating tensors with a dimension size of zero to prevent crashes)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] ≠ 0
+>>
+Rule 45 (Prevent overflow during combined shape and tiling dimensions calculation by ensuring it's less than an upper bound)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) else v_2.len - 1] : shape(v_1, i) < 5000 ∨ v_2[i] < 5000
+>>
+Rule 46 (Total number of elements in the final tiled tensor should be less than the maximum permissible)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 2147483647 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 2147483647 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 2147483647 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2[0] * v_2[1] * v_2[2] * v_2[3] < 2147483647
+>>
+Rule 48 (To avoid overflow issues limit overall maximum shape product)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) < 4000000000
+>>
+Rule 49 (Avoid integer overflow for result size calculation)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 2147483647 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 2147483647 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 2147483647 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2[0] * v_2[1] * v_2[2] * v_2[3] < 2147483647 else if ndim(v_1) = 5 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) * v_2[0] * v_2[1] * v_2[2] * v_2[3] * v_2[4] < 2147483647
+>>
+Rule 50 (Avoid exceeding the available memory by limiting individual sizes)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 1000
+>>
+Rule 51 (Combined dimensions avoid overflow due to a more restrained upper bound.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 1000000
+>>
+Rule 52 (The output size must not exceed the addressable memory of the system)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) < 5000000000
+>>
+Rule 55 (Limit potential OOM errors by preventing overly high element counts.)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) * (shape(v_1, 3) * v_2[3]) < 1000000000
+>>
+Rule 56 (Reasonable limits on dimension values)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 5000
+>>
+Rule 58 (Ensure that total size after tiling is reasonable to prevent memory issues and potential crashes during tensor creation.)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) * (shape(v_1, 3) * v_2[3]) < 500000000
+>>
+Rule 59 (Limit each shape dimension times it's corresponding dimension to prevent overflow)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 200000000
+>>
+Rule 60 (Limit the product of dimensions after tiling to a maximum representable value in a system with limited resources.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 4294967295 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 4294967295 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 4294967295 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2[0] * v_2[1] * v_2[2] * v_2[3] < 4294967295 else if ndim(v_1) = 5 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) * v_2[0] * v_2[1] * v_2[2] * v_2[3] * v_2[4] < 4294967295
+>>
+Rule 61 (Avoid causing out-of-memory during allocation by having the shape and dimensions be within reasonable levels. )
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) < 1000000000
+>>
+Rule 63 (Avoid creating extremely large tensor sizes in memory)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 10000000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 10000000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 10000000000 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2[0] * v_2[1] * v_2[2] * v_2[3] < 10000000000 else if ndim(v_1) = 5 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) * v_2[0] * v_2[1] * v_2[2] * v_2[3] * v_2[4] < 10000000000
+>>
+Rule 65 (Individual tiling dimensions shouldn't have too large a value for calculations to succeed.)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 1000000
+>>
+Rule 67 (The cumulative dimensions after tiling should not result in excessively large total memory requirements.)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) * (shape(v_1, 3) * v_2[3]) < 100000000000
+>>
+Rule 68 (Each dimension size after tiling must not be negative)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1) else v_2.len - 1] : shape(v_1, i) * v_2[i] ≥ 0
+>>
+Rule 69 (All the dimensions must be valid and lead to a small memory space to allocate without errors.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 50000
+>>
+Rule 71 (Limit the maximum total element size to handle large cases better)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 1 then shape(v_1, 0) * v_2[0] < 2147483647 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) * v_2[0] * v_2[1] < 2147483647 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * v_2[0] * v_2[1] * v_2[2] < 2147483647 else if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * v_2[0] * v_2[1] * v_2[2] * v_2[3] < 2147483647 else if ndim(v_1) = 5 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) * v_2[0] * v_2[1] * v_2[2] * v_2[3] * v_2[4] < 2147483647 else shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) * shape(v_1, 5) * v_2[0] * v_2[1] * v_2[2] * v_2[3] * v_2[4] * v_2[5] < 2147483647
+>>
+Rule 73 (The shape * tile product of all dimensions must not exceed a maximum representable size for a tensor.)
+{v_1 : tensor, v_2 : tuple(int)} |= (shape(v_1, 0) * v_2[0]) * (shape(v_1, 1) * v_2[1]) * (shape(v_1, 2) * v_2[2]) * (shape(v_1, 3) * v_2[3]) * (shape(v_1, 4) * v_2[4]) < 4294967295
+>>
+Rule 74 (Avoid creating oversized tiles and triggering a storage calculation overflow or out of memory issue by checking max memory usage per dimension.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) < v_2.len then true else ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) * v_2[i] < 2000000

@@ -1,39 +1,36 @@
 >>
-Rule 1 (input tensor dimension size should be non-zero along specified dim, and output needs to be a tuple of tensors)
-{v_1 : tensor, v_2 : int, v_3 : tuple(tensor)} |= (∀i ∈ [0, ndim(v_1) - 1] : if v_2 = i then shape(v_1, i) ≠ 0) ∧ v_3.len = 2
+Rule 1 (If dim is provided, input tensor should not have size 0 along that dimension to avoid RuntimeError)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
 >>
-Rule 2 (output tensors must have the same shape and dtype as input tensor when dim is None)
-{v_1 : tensor, v_2 : tuple(tensor)} |= if ndim(v_1) = ndim(v_2) then (shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_2, 1) = shape(v_1, 0) ∧ dtype_(v_2, 0) = dtype_(v_1) ∧ dtype_(v_2, 1) = dtype_(v_1))
+Rule 5 (If out is a tuple, it should contain two tensors to avoid TypeError)
+{v_3 : tuple(tensor)} |= v_3.len = 2
 >>
-Rule 3 (if dim is not None, then output tensors dimensions are equal to input tensor dimensions minus 1)
-{v_1 : tensor, v_2 : int ⊎ str, v_3 : tuple(tensor)} |= if v_2 ≠ "none" then ndim(v_3) = ndim(v_1) - 1
+Rule 9 (If dim is provided, it must be within the valid range to avoid IndexError. Multiplication is not allowed in the arith_factor, so the negative value is passed directly as a negative number)
+{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 4 (If out is provided, it must be a tuple of two tensors)
-{v_1 : tuple(tensor) ⊎ str} |= if v_1 ≠ "none" then v_1.len = 2
+Rule 14 (If out is provided and it's a tuple, the tuple length must be 2)
+{v_1 : tuple(tensor)} |= v_1.len = 2
 >>
-Rule 5 (if keepdim is True, then dimension of output tensors is equal to dimension of input tensors.)
-{v_1 : tensor, v_2 : bool, v_3 : tuple(tensor)} |= if v_2 = true then ndim(v_3) = ndim(v_1)
+Rule 20 (If dim is None, all dimensions must be non-zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 6 (Output tensors must have the same dtype)
-{v_1 : tuple(tensor)} |= dtype_(v_1, 0) = dtype_(v_1, 1)
+Rule 22 (If dim is provided, it must be within the valid range to avoid IndexError)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 7 (if out is provided, then the data type of output tensors matches the data type of the input tensor)
-{v_1 : tensor, v_2 : tuple(tensor) ⊎ str} |= if v_2 ≠ "none" then (dtype_(v_2, 0) = dtype_(v_1) ∧ dtype_(v_2, 1) = dtype_(v_1))
+Rule 34 (If out is provided, dtype of tensor in the tuple should be the same as the input tensor)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 8 (If out is provided and keepdim is False, then the shape of output tensors has one less dimension compared to the input)
-{v_1 : tensor, v_2 : bool, v_3 : tuple(tensor) ⊎ str} |= if v_3 ≠ "none" ∧ v_2 = false then ndim(v_3) = ndim(v_1) - 1
+Rule 35 (If keepdim is False, the dimension dim should be a valid dimension of input.)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = false then (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 9 (If out is provided, the shapes of output tensors should be broadcastable with input tensor when keepdim is True)
-{v_1 : tensor, v_2 : bool, v_3 : tuple(tensor) ⊎ str} |= if v_3 ≠ "none" ∧ v_2 = true then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_3) then ndim(v_1) - 1 else ndim(v_3) - 1] : (ndim(v_1) - i - 1 < 0) ∨ (ndim(v_3) - i - 1 < 0) ∨ (shape(v_1, ndim(v_1) - i - 1) = 1) ∨ (shape(v_3, ndim(v_3) - i - 1) = 1) ∨ (shape(v_1, ndim(v_1) - i - 1) = shape(v_3, ndim(v_3) - i - 1))
+Rule 44 (If keepdim is True, the output shape at dimension dim should be 1)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then shape(v_1, v_2) = 1
 >>
-Rule 10 (If input contains NaN, then both output tensors should contain NaN)
-{v_1 : tensor, v_2 : tuple(tensor)} |= if ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) -1] : v_1[j] = "nan" then (v_2[0] = "nan" ∧ v_2[1] = "nan")
+Rule 50 (If dim is provided, the dimension should fall into valid range)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 11 (If dim is out of range, then error will raise)
-{v_1 : tensor, v_2 : int} |= if v_2 < -1 * ndim(v_1) ∨ v_2 > ndim(v_1) - 1 then false
+Rule 57 (The two tensors in out should have same data type with the input tensor.)
+{v_1 : tensor, v_2 : tensor, v_3 : tuple(tensor)} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
 >>
-Rule 12 (If input tensor v_1 is a boolean tensor, the output tuple v_2 should be empty)
-{v_1 : tensor, v_2 : tuple(tensor)} |= if dtype_(v_1) = 0 then v_2.len = 0
->>
-Rule 13 (The dimension parameter should be smaller than the number of dimensions if keepdim is False)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = false then v_2 < ndim(v_1)
+Rule 71 (If keepdim is True, the dimension `dim` must be smaller than the number of dimensions in the input tensor to prevent IndexError)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)

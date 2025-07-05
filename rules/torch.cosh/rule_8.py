@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is quantized tensor, output should be quantized tensor with same qparams (Rule 8)
+# If out tensor is provided, it must have floating point type if input tensor is float16 (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 13, v["arg2_dtype"] == 13, False)) if n else
-          If(v["arg1_dtype"] == 13, v["arg2_dtype"] == 13, False))
+    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_dtype"] > 6, False)) if n else
+          If(v["arg1_dtype"] == 6, v["arg2_dtype"] > 6, False))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):

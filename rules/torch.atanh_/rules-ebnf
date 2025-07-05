@@ -1,69 +1,123 @@
 >>
-Rule 1 (atanh_ input must have floating-point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 2 (atanh_ input values should be within the domain [-1, 1])
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
->>
-Rule 3 (input tensor cannot have NaN or inf values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : min(v_1) > -10000000000.0 ∧ max(v_1) < 10000000000.0
->>
-Rule 4 (input tensor must not be empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 5 (result type can't be cast to char)
+Rule 1 (input tensor's dtype should be compatible with result dtype)
 {v_1 : tensor} |= dtype_(v_1) ≠ 1
 >>
-Rule 6 (input tensor dtype should be at least float32 if not complex)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else dtype_(v_1) ≥ 7
+Rule 3 (input tensor's dtype must be float or complex)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
 >>
-Rule 7 (input tensor must have real values if dtype is float)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≥ -1000000000.0 ∧ max(v_1) ≤ 1000000000.0
+Rule 4 (input tensor's dtype should be float or complex to prevent cast error)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 8 (if input has complex dtype then it must be complex64 or complex128)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 5 (input tensor's values must be within range -1 to 1 exclusive)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : min(v_1) > -1 ∧ max(v_1) < 1
 >>
-Rule 9 (atanh_ is not defined for boolean dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 6 (input must be a tensor, not a scalar)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 10 (atanh_ input dimension must be less than 7 to avoid stackoverflow)
-{v_1 : tensor} |= ndim(v_1) < 7
+Rule 8 (Check if all elements in the input tensor are within the valid range of [-1,1])
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] > -1 ∧ v_1[i] < 1
 >>
-Rule 11 (for complex input, real part should be within [-1,1])
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 11 (input tensor elements must be in the range (-1, 1) to avoid domain errors)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : if ndim(v_1) = 1 then v_1[i] > -1 ∧ v_1[i] < 1
 >>
-Rule 12 (atanh_ is not supported for quantized dtypes)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 14 (Input tensor elements must be in range (-1, 1) exclusive)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1,0) - 1] : v_1[i] < 1 ∧ v_1[i] > -1
 >>
-Rule 13 (the result type must be able to accommodate the range of atanh_)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true else if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else false
+Rule 15 (Input tensor elements should be in the range (-1, 1) exclusive)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : (v_1[i] < 1) ∧ (v_1[i] > -1)
 >>
-Rule 14 (atanh input requires values to be within [-1,1], after conversion to float64)
-{v_1 : tensor} |= min(v_1) ≥ -1 ∧ max(v_1) ≤ 1
->>
-Rule 15 (aten::atanh only supports up to complex128)
-{v_1 : tensor} |= dtype_(v_1) ≠ 13
->>
-Rule 16 (aten::atanh input should not have values very close to +1 or -1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] < 0.9999999999) ∧ (v_1[i] > -0.9999999999)
->>
-Rule 17 (atanh requires the input to be finite if float)
-{v_1 : tensor} |= if (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≠ 10000000000) ∧ (v_1[i] ≠ -10000000000)
->>
-Rule 18 (aten::atanh result cannot be represented as int8, int16, uint8)
-{v_1 : tensor} |= (dtype_(v_1) ≠ 1) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 6)
->>
-Rule 19 (aten::atanh input must be a floating point or complex number)
-{v_1 : tensor} |= (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
->>
-Rule 20 (if the input is complex, its magnitude must be <= 1)
-{v_1 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] * v_1[i]) < 1
->>
-Rule 21 (atanh doesn't support bfloat16 dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6
->>
-Rule 22 (aten::atanh values must be in range [-1 + epsilon, 1 - epsilon])
-{v_1 : tensor} |= min(v_1) ≥ -0.999999 ∧ max(v_1) ≤ 0.999999
->>
-Rule 23 (aten::atanh values must be in range (-1, 1))
+Rule 18 (Check the allowed range for the values in the input tensor.)
 {v_1 : tensor} |= min(v_1) > -1 ∧ max(v_1) < 1
+>>
+Rule 19 (Input should be a tensor with one or more dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 22 (Check that each element in the tensor is between -1 and 1 exclusive)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0) - 1] : -1 < v_1[i] ∧ v_1[i] < 1
+>>
+Rule 24 (Check if the input is a tensor with float or complex dtype to avoid cast errors)
+{v_1 : tensor} |= dtype_(v_1) > 6
+>>
+Rule 25 (Check the input tensor to prevent casting errors.)
+{v_1 : tensor} |= 7 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+>>
+Rule 26 (All elements must be between -1 and 1)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -1 ∧ v_1[i] < 1
+>>
+Rule 30 (Elements of input tensor must be between -1 and 1 exclusive to avoid DomainError)
+{v_1 : tensor} |= (min(v_1) > -1) ∧ (max(v_1) < 1)
+>>
+Rule 32 (Input tensor's values must fall within the domain (-1, 1))
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] > -1) ∧ (v_1[i] < 1)
+>>
+Rule 34 (Check if the input tensor has elements between -1 and 1 to avoid domain error)
+{v_1 : tensor} |= (min(v_1) > -1) ∧ (max(v_1) < 1) ∧ (ndim(v_1) > 0)
+>>
+Rule 36 (Check if all elements in the input tensor are in the open interval (-1, 1))
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : -1 < v_1[i] ∧ v_1[i] < 1
+>>
+Rule 41 (The input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 46 (The tensor's values should be in the range (-1, 1) to avoid DomainError, and be a floating or complex type to prevent casting error)
+{v_1 : tensor} |= (min(v_1) > -1) ∧ (max(v_1) < 1) ∧ (dtype_(v_1) > 6)
+>>
+Rule 48 (Check for correct range and dimension)
+{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : -1 < v_1[i] ∧ v_1[i] < 1)
+>>
+Rule 51 (Values of input tensor must be in (-1, 1) and must be a floating or complex type to prevent casting errors/NaN values)
+{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -1 ∧ v_1[i] < 1) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+>>
+Rule 53 (Check allowed value and dtype.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] > -1 ∧ v_1[i] < 1) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+>>
+Rule 54 (Values of input tensor must be in (-1, 1) and must be a floating or complex type to prevent casting errors/NaN values)
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -1 ∧ v_1[i] < 1)
+>>
+Rule 55 (The input must be a tensor and the dtype must be float or complex)
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+>>
+Rule 57 (Values of input tensor must be in (-1, 1) and must be a floating or complex type to prevent casting errors/NaN values)
+{v_1 : tensor} |= (dtype_(v_1) > 6) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -1 ∧ v_1[i] < 1)
+>>
+Rule 59 (The values of elements in the input tensor must be in (-1, 1) to avoid DomainError.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1 ∧ v_1[i] > -1
+>>
+Rule 60 (Check that the input tensor has values between -1 and 1 and float or complex type)
+{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1 ∧ v_1[i] > -1) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+>>
+Rule 61 (Input type should be tensor with dtype float or complex and values in (-1, 1))
+{v_1 : tensor} |= (dtype_(v_1) > 6) ∧ (min(v_1) > -1) ∧ (max(v_1) < 1)
+>>
+Rule 62 (Check the input tensor and its values)
+{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] > -1 ∧ v_1[i] < 1)) ∧ (dtype_(v_1) > 6)
+>>
+Rule 64 (Input values should be within (-1,1))
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1 ∧ v_1[i] > -1
+>>
+Rule 66 (The input tensor must have values in range (-1,1))
+{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1 ∧ v_1[i] > -1)
+>>
+Rule 70 (Input must be a tensor with float/complex dtype and elements between -1 and 1)
+{v_1 : tensor} |= (dtype_(v_1) > 6) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : -1 < v_1[i] ∧ v_1[i] < 1)
+>>
+Rule 71 (Input tensor must be a float or complex type and within the range (-1, 1) to avoid casting and domain errors)
+{v_1 : tensor} |= (dtype_(v_1) > 6) ∧ (∃i ∈ [0, shape(v_1,0) - 1] : (v_1[i] < 1) ∧ (v_1[i] > -1))
+>>
+Rule 72 (Input is a Tensor with float or complex dtype and has values between -1 and 1 exclusive to avoid DomainError)
+{v_1 : tensor} |= (dtype_(v_1) > 6) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1 ∧ v_1[i] > -1)
+>>
+Rule 73 (Check input tensor dtype is float or complex and that all values are in the range (-1, 1))
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (min(v_1) > -1) ∧ (max(v_1) < 1)
+>>
+Rule 75 (Check input is in range and of the right dtype)
+{v_1 : tensor} |= (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > -1 ∧ v_1[i] < 1) ∧ (dtype_(v_1) > 6)
+>>
+Rule 76 (Input must be a tensor with float or complex dtype and all elements should fall in the range (-1, 1) exclusive to avoid domain errors)
+{v_1 : tensor} |= (dtype_(v_1) > 6) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1 ∧ v_1[i] > -1)
+>>
+Rule 77 (Input must be a float or complex tensor with values in (-1, 1))
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] > -1) ∧ (v_1[i] < 1))
+>>
+Rule 79 (Input must have a float or complex dtype AND values must be in range (-1, 1) exclusive)
+{v_1 : tensor} |= (dtype_(v_1) > 6) ∧ (∀i ∈ [0, shape(v_1,0) - 1] : v_1[i] > -1 ∧ v_1[i] < 1)

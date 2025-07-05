@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The batch dimension of input and mat2 must be the same (Rule 4)
+# input and mat2's inner dimensions must match (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
-          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
+    s.add(Not(Select(v["arg1_shape"], 2) == Select(v["arg2_shape"], 1)) if n else
+          Select(v["arg1_shape"], 2) == Select(v["arg2_shape"], 1))
 )
 
 def rule_4_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor is 0-dimensional, its shape must be 1 (Rule 10)
+# If the input tensor's dimension is greater than 2, the multiplication of the first two dimensions should be less than 1000. (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, Select(v["arg1_shape"], 0) == 1, False)) if n else
-          If(v["arg1_ndim"] == 0, Select(v["arg1_shape"], 0) == 1, False))
+    s.add(Not(If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 1000, False)) if n else
+          If(v["arg1_ndim"] > 2, Select(v["arg1_shape"], 0) * Select(v["arg1_shape"], 1) < 1000, False))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

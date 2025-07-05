@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If v_1's dtype is np.int8, then v_2's dtype cannot be float16, float32, float64, complex64, or complex128. (Rule 7)
+# Prevent float64 and float32 mismatch. (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, And(And(And(And(v["arg2_dtype"] != 6, v["arg2_dtype"] != 7), v["arg2_dtype"] != 8), v["arg2_dtype"] != 9), v["arg2_dtype"] != 10), False)) if n else
-          If(v["arg1_dtype"] == 1, And(And(And(And(v["arg2_dtype"] != 6, v["arg2_dtype"] != 7), v["arg2_dtype"] != 8), v["arg2_dtype"] != 9), v["arg2_dtype"] != 10), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, False))) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, False)))
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):

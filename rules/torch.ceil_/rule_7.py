@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is bool, then the API is invalid. (Rule 7)
+# Input tensor must have a dtype that is not bool or complex (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] != 0) if n else
-          v["arg1_dtype"] != 0)
+    s.add(Not(And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 9), v["arg1_dtype"] != 10)) if n else
+          And(And(v["arg1_dtype"] != 0, v["arg1_dtype"] != 9), v["arg1_dtype"] != 10))
 )
 
 def rule_7_func(arg1, solver=None, neg=False):

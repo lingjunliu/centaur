@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dimension index is negative, and tensor is more than 1 dimension, then the index must be greater than or equal to negative number of dimensions (Rule 18)
+# ensure that dimension is within range or tensor is empty (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_ndim"] > 1), (v["arg2_value"] >= (0 - v["arg1_ndim"])), False)) if n else
-          If((v["arg1_ndim"] > 1), (v["arg2_value"] >= (0 - v["arg1_ndim"])), False))
+    s.add(Not(Or((v["arg1_ndim"] == 0), (And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"])))) if n else
+          Or((v["arg1_ndim"] == 0), (And(v["arg2_value"] >= (0 - v["arg1_ndim"]), v["arg2_value"] < v["arg1_ndim"]))))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

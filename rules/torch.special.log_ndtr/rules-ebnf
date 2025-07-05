@@ -1,84 +1,75 @@
 >>
-Rule 1 (input tensor to log_ndtr must be of floating or complex type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 9
+Rule 1 (input tensor should have floating-point dtype to avoid "not implemented" error)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 2 (input tensor to log_ndtr must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 3 (input to log_ndtr should not be bool tensor)
+Rule 2 (input cannot be a boolean)
 {v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 4 (input tensor to log_ndtr must not be Half type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6
+Rule 3 (input tensor must be a tensor and not a numpy array)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 5 (The shape of input tensor should have positive dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 4 (input tensor should have dimension greater than zero)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 6 (The elements of input tensor should not be NaN or inf)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 5 (out tensor should have compatible dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 7 (If input is float16, input values should be in a reasonable range)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -100 ∧ max(v_1) < 100
+Rule 6 (out tensor, if provided, must have the same shape as the input)
+{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ none then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 8 (If input is complex, input should be representable in float64/float32)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then max(v_1) < 1e+8 ∧ min(v_1) > -1e+8 else if dtype_(v_1) = 10 then max(v_1) < 1e+16 ∧ min(v_1) > -1e+16
+Rule 15 (out tensor, if provided, must be a tensor or None)
+{v_2 : tensor ⊎ str} |= v_2 = "none" ∨ ndim(v_2) ≥ 0
 >>
-Rule 9 (If the input is a floating point tensor, then the values should be within the range that the function is well defined)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -100
+Rule 16 (out tensor, if provided, must be a tensor or None)
+{v_2 : tensor ⊎ str} |= if v_2 = "none" then true else ndim(v_2) ≥ 0
 >>
-Rule 10 (The number of elements in input tensor must be less than a limit to avoid overflow)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000 ∧ ndim(v_1) < 5
+Rule 18 (input tensor should be float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 11 (The max value in the tensor should not exceed a certain threshold)
-{v_1 : tensor} |= max(v_1) < 1000000
+Rule 20 (if out is provided, it needs to be float tensor)
+{v_2: tensor ⊎ str} |= if v_2 ≠ "none" then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 12 (The tensor should have values greater than a minimum)
-{v_1 : tensor} |= min(v_1) > -1000000
+Rule 21 (if out is provided, it needs to be float tensor)
+{v_2: tensor ⊎ str} |= if v_2 = "none" then true else (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 13 (If input is a float tensor, it should not contain INF or NAN values)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) ≠ "nan" ∧ max(v_1) ≠ "inf"
+Rule 22 (if out is provided, it needs to have the same dtype as input)
+{v_1: tensor, v_2: tensor ⊎ str} |= if v_2 = "none" then true else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 14 (If input tensor has floating-point dtype then min value must be smaller than max value.)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) < max(v_1)
+Rule 25 (out tensor, if provided, must be a tensor or none)
+{v_2: tensor ⊎ str} |= v_2 = "none" ∨ ndim(v_2) ≥ 0
 >>
-Rule 15 (Input tensor dimension should not exceed a certain threshold)
-{v_1 : tensor} |= ndim(v_1) < 10
+Rule 28 (if out is not none, then it needs to be a tensor)
+{v_2: tensor ⊎ str} |= if v_2 = "none" then true else (ndim(v_2) >=0)
 >>
-Rule 16 (The shape of input tensor along a dimension should not be too large)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+Rule 29 (if out is not none, then it needs to be a tensor)
+{v_2: tensor ⊎ str} |= if v_2 = "none" then true else (ndim(v_2) ≥ 0 )
 >>
-Rule 17 (Dtype of the tensor must be either float, or complex)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 30 (if out is not none, then it needs to be a tensor)
+{v_2: tensor ⊎ str} |= if v_2 = "none" then true else (ndim(v_2) ≥ 0)
 >>
-Rule 18 (The input tensor cannot have any dimension with size 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+Rule 31 (The input tensor must be of floating type (float16, float32, float64))
+{v_1: tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
 >>
-Rule 19 (If a floating point tensor is passed, the values should be finite.)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0 ∧ ∃x ∈ [0, shape(v_1, i) - 1]: (v_1[x] ≠ "inf") ∧ (v_1[x] ≠ "-inf") ∧ (v_1[x] ≠ "nan")
+Rule 32 (Half type tensor is not implemented)
+{v_1: tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 20 (Values in the input tensor must be small enough to prevent overflow errors.)
-{v_1 : tensor} |= max(v_1) < 100
+Rule 34 (input must be a tensor)
+{v_1 : tensor ⊎ float ⊎ int ⊎ bool} |= ndim(v_1) ≥ 0
 >>
-Rule 21 (Input value should be within the domain)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -1e8 ∧ max(v_1) < 1e8 else if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > -1e16 ∧ max(v_1) < 1e16
+Rule 36 (input must be a tensor)
+{v_1 : tensor ⊎ float ⊎ int ⊎ bool} |= v_1 = v_1
 >>
-Rule 22 (For valid computation, standard deviation needs to be positive)
-{v_1 : tensor} |= min(v_1) > 0
+Rule 38 (input must be a tensor)
+{v_1 : tensor ⊎ float ⊎ int ⊎ bool} |= if ndim(v_1) ≥ 0 then true else false
 >>
-Rule 23 (Input value shouldn't be very close to 0 if the type is float16.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) < -0.001 ∨ max(v_1) > 0.001
+Rule 40 (input must be a tensor)
+{v_1 : tensor ⊎ float ⊎ int ⊎ bool} |= if dtype_(v_1) = 13 then false
 >>
-Rule 24 (The standard deviation should be a value less than infinity)
-{v_1 : tensor} |= max(v_1) < "inf"
+Rule 42 (input must be a tensor and not a numpy array)
+{v_1 : tensor ⊎ float ⊎ int ⊎ bool} |= if v_1 = v_1 then true else false
 >>
-Rule 25 (The area of the input tensor should not be extremely small to prevent underflow errors.)
-{v_1 : tensor} |= min(v_1) > -1000
+Rule 51 (input must be a tensor and not a numpy array)
+{v_1 : tensor ⊎ float ⊎ int ⊎ bool} |= if v_1 = 1 then false
 >>
-Rule 26 (The input tensor cannot have extremely large values, which could cause numerical instability.)
-{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) < 1e+8
->>
-Rule 27 (If the input tensor is complex, the imaginary component should be smaller than a certain threshold.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) > -1e4 ∧ max(v_1) < 1e4
->>
-Rule 28 (If the input tensor has a complex dtype, the absolute value should be in a reasonable range.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≥ 0 ∧ max(v_1) < 1e8
+Rule 52 (input must be a tensor and not a numpy array)
+{v_1 : tensor ⊎ float ⊎ int ⊎ bool} |= if dtype_(v_1) = 13 then false else (ndim(v_1) ≥ 0)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if dim is specified, then dim must be an integer and also within the range [-ndim(input (Rule 12)
+# dim should be within the valid range of dimensions of the input tensor, dim can be None (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] != -2147483648, (And(-1 * v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])), False)) if n else
-          If(v["arg2_value"] != -2147483648, (And(-1 * v["arg1_ndim"] <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])), False))
+    s.add(Not(If(v["arg2_value"] == -1, True, And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"]))) if n else
+          If(v["arg2_value"] == -1, True, And((0 - v["arg1_ndim"]) <= v["arg2_value"], v["arg2_value"] < v["arg1_ndim"])))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

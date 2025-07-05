@@ -1,81 +1,45 @@
 >>
-Rule 1 (output tensor shape should be the same as input tensor shape)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 1 (input tensor cannot be of boolean type due to subtraction)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 2 (input tensor should have floating point dtype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 2 (input tensor cannot be of boolean type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1
 >>
-Rule 3 (Input tensor cannot have dimensions of size zero)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 3 (input tensor cannot be of boolean type, preventing subtraction error)
+{v_1 : tensor} |= dtype_(v_1) ≠ "bool"
 >>
-Rule 4 (The minimum value of the input tensor should be a number)
-{v_1 : tensor} |= min(v_1) > -1000 ∧ min(v_1) < 1000
+Rule 4 (Prevent boolean tensors as input)
+{v_1 : tensor} |= if dtype_(v_1) = "bool" then false
 >>
-Rule 5 (If the input tensor is 2D, both dimensions must be greater than 1)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1
+Rule 6 (Input tensor should not be boolean type to avoid subtraction error)
+{v_1 : tensor} |= (dtype_(v_1) = "bool") = false
 >>
-Rule 6 (input tensor has a reasonable number of dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_1) ≤ 5
+Rule 8 (The input tensor's dtype should be either int or float to allow subtraction)
+{v_1 : tensor} |= (dtype_(v_1) = "int") ∨ (dtype_(v_1) = "float")
 >>
-Rule 7 (if input is 1D, it must have at least two elements)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≥ 2
+Rule 9 (The input tensor's dtype should not be bool to avoid subtraction error)
+{v_1 : tensor} |=  (dtype_(v_1) ≠ "bool")
 >>
-Rule 8 (If the input tensor has more than one dimension, the shape of the tensor cannot be (1,1,1,...))
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 1
+Rule 11 (Input tensor must be int or float)
+{v_1 : tensor} |= (dtype_(v_1) = "int") ∨ (dtype_(v_1) = "float") ∨ (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128")
 >>
-Rule 9 (input tensor should have a non-complex dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 14 (Input tensor v_1 should have a dtype that's either int, float or complex.)
+{v_1 : tensor} |= (dtype_(v_1) = "int") ∨ (dtype_(v_1) = "float") ∨ (dtype_(v_1) = "complex64") ∨ (dtype_(v_1) = "complex128") ∨ (dtype_(v_1) = "float16") ∨ (dtype_(v_1) = "float32") ∨ (dtype_(v_1) = "float64")
 >>
-Rule 10 (The max value of the input tensor should be a number)
-{v_1 : tensor} |= max(v_1) > -1000 ∧ max(v_1) < 1000
+Rule 22 (The input tensor should not have a boolean dtype)
+{v_1 : tensor} |= (dtype_(v_1) = 0) = false
 >>
-Rule 11 (if input is scalar, it should be float or int)
-{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 29 (Input tensor must not have boolean type to be compatible with subtraction operations.)
+{v_1 : tensor} |= (dtype_(v_1) ≠ "bool")
 >>
-Rule 12 (If tensor has one element, it must be greater than -1 and less than 1)
-{v_1 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) ∧ ndim(v_1) > 0 then min(v_1) > -1 ∧ max(v_1) < 1
+Rule 31 (The input tensor's dtype should allow element-wise subtraction and not cause a boolean tensor subtraction error)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then false
 >>
-Rule 13 (input tensor must have values that are finite, i.e., not NaN or +/- Inf)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 43 (The element type must not be Boolean, to enable use of `-`.)
+{v_1: tensor} |= if dtype_(v_1) = "bool" then false
 >>
-Rule 14 (The number of dimensions of the input tensor must be less than or equal to 8)
-{v_1 : tensor} |= ndim(v_1) ≤ 8
+Rule 47 (The input to Tanhshrink, v_1, cannot have dtype 'bool' for correct calculation)
+{v_1:tensor} |= dtype_(v_1) ≠ "bool"
 >>
-Rule 15 (If input tensor is empty, then all dimensions should have zero size)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
->>
-Rule 16 (if input tensor's dimension equals one, its shape must not be one)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) ≠ 1
->>
-Rule 17 (The sum of the dimensions' sizes must not exceed a limit)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000)
->>
-Rule 18 (minimum dimension must be less than or equal to the max dimension)
-{v_1 : tensor} |= if ndim(v_1) > 0 then min(v_1) <= max(v_1)
->>
-Rule 19 (Tensor can be 0 dimensional)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
->>
-Rule 20 (The product of all dimension sizes must be less than a limit)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
->>
-Rule 21 (A dimension cannot exceed a maximum value of 2^20)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1048576
->>
-Rule 22 (For integer tensors the minimum and maximum values should be smaller than 100)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then min(v_1) > -100 ∧ max(v_1) < 100
->>
-Rule 23 (If the tensor has a boolean datatype, the values should be 0 or 1)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 24 (tensor elements should be close to zero)
-{v_1 : tensor} |= min(v_1) > -0.1 ∧ max(v_1) < 0.1
->>
-Rule 25 (Input tensor's dimension size should not exceed the int32 limit.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
->>
-Rule 26 (The maximum dimension size must not be a negative number)
-{v_1 : tensor} |= max(v_1) > -1
->>
-Rule 27 (If input is 0 dimensional, shape should not be accessed)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+Rule 49 (Input cannot be a bool tensor, which does not support subtraction)
+{v_1: tensor} |= dtype_(v_1) ≠ "bool"

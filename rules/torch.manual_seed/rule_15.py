@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The absolute value of a seed is equal to the square root of its square (Rule 15)
+# seed must be an integer, and remapping for negative values preserves its integer nature (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] < 0, -1 * v["arg1_value"] == (v["arg1_value"] * v["arg1_value"]) / v["arg1_value"], v["arg1_value"] == (v["arg1_value"] * v["arg1_value"]) / v["arg1_value"])) if n else
-          If(v["arg1_value"] < 0, -1 * v["arg1_value"] == (v["arg1_value"] * v["arg1_value"]) / v["arg1_value"], v["arg1_value"] == (v["arg1_value"] * v["arg1_value"]) / v["arg1_value"]))
+    s.add(Not(If(v["arg1_value"] < 0, (v["arg1_value"] + 18446744073709551616) == ((v["arg1_value"] + 18446744073709551616) / 1) * 1, v["arg1_value"] == (v["arg1_value"] / 1) * 1)) if n else
+          If(v["arg1_value"] < 0, (v["arg1_value"] + 18446744073709551616) == ((v["arg1_value"] + 18446744073709551616) / 1) * 1, v["arg1_value"] == (v["arg1_value"] / 1) * 1))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

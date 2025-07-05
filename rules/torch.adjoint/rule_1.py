@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor must be a matrix or batch of matrices (Rule 1)
+# tensor.adjoint( (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(v["arg1_ndim"] >= 2) if n else

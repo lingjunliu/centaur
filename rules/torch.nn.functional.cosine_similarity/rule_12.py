@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dim is negative, add ndim(x1 (Rule 12)
+# If dim is negative, it should be a valid dimension index (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] < 0, And(v["arg2_value"] + v["arg1_ndim"] >= 0, v["arg2_value"] + v["arg1_ndim"] < v["arg1_ndim"]), False)) if n else
-          If(v["arg2_value"] < 0, And(v["arg2_value"] + v["arg1_ndim"] >= 0, v["arg2_value"] + v["arg1_ndim"] < v["arg1_ndim"]), False))
+    s.add(Not(If(v["arg2_value"] < 0, 0 - v["arg2_value"] <= v["arg1_ndim"], False)) if n else
+          If(v["arg2_value"] < 0, 0 - v["arg2_value"] <= v["arg1_ndim"], False))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

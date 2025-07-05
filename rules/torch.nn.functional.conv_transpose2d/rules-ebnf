@@ -1,75 +1,102 @@
 >>
-Rule 1 (Input tensor should be 3D or 4D)
-{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+Rule 1 (Input tensor should have 3 or 4 dimensions)
+{input : tensor} |= ndim(input) = 3 ∨ ndim(input) = 4
 >>
-Rule 2 (Weight tensor should have at least three dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 3
+Rule 2 (Weight tensor should have at least 3 dimensions)
+{weight : tensor} |= ndim(weight) ≥ 3
 >>
-Rule 4 (Input and weight tensors should have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 3 (Bias should have the correct number of elements, given transposed=1 and weight size)
+{weight : tensor, bias : tensor} |= if ndim(weight) = 4 then (ndim(bias) = 1 ∧ shape(bias, 0) = shape(weight, 1))
 >>
-Rule 7 (groups should be greater than 0)
-{v_1 : int} |= v_1 > 0
+Rule 4 (Input and weight tensors should have the same dtype, considering MKLDNN)
+{input : tensor, weight : tensor} |= dtype_(input) = dtype_(weight)
 >>
-Rule 8 (input channels should be divisible by groups)
-{v_1 : tensor, v_2 : int} |= shape(v_1, 1) / v_2 * v_2 = shape(v_1, 1)
+Rule 5 (Stride should be positive)
+{stride : int ⊎ tuple(int)} |= if stride.len = 2 then (stride[0] > 0 ∧ stride[1] > 0) else stride > 0
 >>
-Rule 11 (Bias tensor size matches expected size based on weight and groups)
-{v_2 : tensor, v_3 : tensor, v_4 : int} |= if v_3 ≠ "none" then shape(v_3, 0) = shape(v_2, 1) / v_4
+Rule 6 (Dilation should be greater than zero)
+{dilation : int ⊎ tuple(int)} |= if dilation.len = 2 then (dilation[0] > 0 ∧ dilation[1] > 0) else dilation > 0
 >>
-Rule 24 (Padding should be non-negative)
-{v_1 : int} |= v_1 ≥ 0
+Rule 7 (Groups should be positive)
+{groups : int} |= groups > 0
 >>
-Rule 37 (Input and weight should have compatible shapes for conv_transpose2d)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= shape(v_1, 1) = shape(v_2, 0) * v_3
+Rule 8 (in_channels should be divisible by groups)
+{input : tensor, weight : tensor, groups : int} |= shape(input, 1) / groups = shape(weight, 0)
 >>
-Rule 45 (Dilation height and width should be greater than zero)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
+Rule 9 (output_padding should not be negative)
+{output_padding : int ⊎ tuple(int)} |= if output_padding.len = 2 then (output_padding[0] ≥ 0 ∧ output_padding[1] ≥ 0) else output_padding ≥ 0
 >>
-Rule 46 (Check that input and weight are not Char type)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_2) ≠ 1
+Rule 10 (Input type and bias type should be the same if bias is present)
+{input : tensor, bias : tensor} |= if bias ≠ none then dtype_(input) = dtype_(bias)
 >>
-Rule 47 (groups is an integer and greater than zero)
-{v_1: int} |= v_1 > 0
+Rule 13 (Dilation must be a single integer or a tuple of length equal to the number of spatial dimensions of the input)
+{dilation : int ⊎ tuple(int), input : tensor} |= if dilation.len = 2 then true else if ndim(input) = 4 then true else false
 >>
-Rule 48 (shape of input dimension 1 should be divisible by groups)
-{v_1: tensor, v_2: int} |= shape(v_1,1) / v_2 * v_2 = shape(v_1, 1)
+Rule 14 (Weight tensor should be float type)
+{weight : tensor} |= dtype_(weight) = 7 ∨ dtype_(weight) = 8
 >>
-Rule 51 (If bias is not None, its shape should match out_channels)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then shape(v_1, 0) = shape(v_2,0)
+Rule 15 (Input tensor should be float type)
+{input : tensor} |= dtype_(input) = 7 ∨ dtype_(input) = 8
 >>
-Rule 55 (If groups is greater than 1, input channels should be divisible by groups)
-{v_1 : tensor, v_2 : int} |= if v_2 > 1 then shape(v_1, 1) / v_2 * v_2 = shape(v_1, 1)
+Rule 22 (Check if groups is a factor of in_channels)
+{input : tensor, groups : int} |= (shape(input, 1) / groups) * groups = shape(input, 1)
 >>
-Rule 61 (If bias is provided, it must be 1D)
-{v_1 : tensor} |= if v_1 ≠ "none" then ndim(v_1) = 1
+Rule 23 (Check if groups is a factor of out_channels/groups in weights)
+{weight : tensor, groups : int} |= (shape(weight, 1) * groups / groups) * groups = shape(weight, 1) * groups
 >>
-Rule 62 (Input and weight tensors should have compatible dtypes - specifically float or double)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 25 (Stride should be int or tuple of ints with length 1 or 2)
+{stride: int ⊎ tuple(int)} |= if stride.len = 1 then true else if stride.len = 2 then true else false
 >>
-Rule 69 (Weight's in_channels must match input's channels if groups = 1)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = 1 then shape(v_2,0) = shape(v_1, 1)
+Rule 26 (Dilation should be a single integer or a tuple of 1 or 2 values to match the convolution dimensions)
+{dilation: int ⊎ tuple(int)} |= if dilation.len = 1 then true else if dilation.len = 2 then true else false
 >>
-Rule 71 (If stride is a tuple, it must have length 2)
-{v_1 : tuple(int)} |= v_1.len = 2
+Rule 28 (Check if groups is a factor of out_channels*groups in weights)
+{weight : tensor, groups : int} |= (shape(weight, 0) / groups) * groups = shape(weight, 0)
 >>
-Rule 75 (Minimum value of input should be smaller than maximum value)
-{v_1 : tensor} |= min(v_1) <= max(v_1)
+Rule 29 (Input should not be Char type)
+{input: tensor} |= dtype_(input) ≠ 1
 >>
-Rule 77 (Bias dimension must be equal to weight's second dimension if bias exists)
-{v_1 : tensor, v_2 : tensor} |= if v_2 ≠ "none" then shape(v_1, 0) = shape(v_2, 1)
+Rule 35 (Check that input and weight have compatible complex dtypes if complex)
+{input: tensor, weight: tensor} |= if dtype_(input) = 10 then dtype_(weight) = 10 else if dtype_(input) = 11 then dtype_(weight) = 11
 >>
-Rule 78 (If input is 3D, then weight must have 3 dimensions, and if input is 4D then weight must have 4 dimensions)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then ndim(v_2) = 3 else if ndim(v_1) = 4 then ndim(v_2) = 4
+Rule 36 (Check dilation height and width are greater than zero)
+{dilation: tuple(int)} |= if dilation.len = 2 then dilation[0] > 0 ∧ dilation[1] > 0
 >>
-Rule 79 (Groups must be less or equal to the number of input channels)
-{v_1: int, v_2: tensor} |= v_1 <= shape(v_2, 1)
+Rule 42 (Groups is a factor of in_channels)
+{input : tensor, groups : int} |= shape(input, 1) = (shape(input, 1) / groups) * groups
 >>
-Rule 84 (If bias is not none then bias shape[0] == weight shape[1] / groups.)
-{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_1 != "none" then shape(v_1,0) = shape(v_2, 1) / v_3
+Rule 43 (Groups is a factor of out_channels in weight)
+{weight : tensor, groups : int} |= shape(weight, 0) = (shape(weight, 0) / groups) * groups
 >>
-Rule 85 (Weight shape 0 must be > 0.)
-{v_1 : tensor} |= shape(v_1,0) > 0
+Rule 50 (Check that input and bias have same complex dtype if applicable)
+{input: tensor, bias: tensor} |= if dtype_(input) = 10 then if bias ≠ none then dtype_(bias) = 10 else if dtype_(input) = 11 then if bias ≠ none then  dtype_(bias) = 11
 >>
-Rule 86 (Weight shape 1 must be > 0.)
-{v_1 : tensor} |= shape(v_1,1) > 0
+Rule 51 (Dilation values should be positive)
+{dilation: int ⊎ tuple(int)} |= if dilation.len = 1 then dilation > 0 else if dilation.len = 2 then dilation[0] > 0 ∧ dilation[1] > 0
+>>
+Rule 52 (Groups is a factor of in_channels)
+{input : tensor, groups : int} |= (shape(input, 1) / groups) = (shape(input, 1) / groups)
+>>
+Rule 53 (Groups is a factor of out_channels in weight)
+{weight : tensor, groups : int} |= (shape(weight, 0) / groups) = (shape(weight, 0) / groups)
+>>
+Rule 55 (Ensure input and bias have same complex dtype if specified and complex)
+{input: tensor, bias: tensor} |= if dtype_(input) = 10 ∨ dtype_(input) = 11 then if bias ≠ none then dtype_(input) = dtype_(bias)
+>>
+Rule 60 (Ensure input and bias have the same complex dtype if both present and complex)
+{input: tensor, bias: tensor} |= if dtype_(input) = 10 ∨ dtype_(input) = 11 then (bias = none ∨ dtype_(input) = dtype_(bias))
+>>
+Rule 61 (Dilation values must be positive)
+{dilation: int ⊎ tuple(int)} |= if dilation.len = 1 then dilation > 0 else if dilation.len = 2 then (dilation[0] > 0 ∧ dilation[1] > 0)
+>>
+Rule 65 (Ensure input and bias have the same complex dtype if both present and complex)
+{input: tensor, bias: tensor} |= if (dtype_(input) = 10 ∨ dtype_(input) = 11) ∧ bias ≠ none then dtype_(input) = dtype_(bias)
+>>
+Rule 97 (Groups is a factor of in_channels for conv_transpose2d)
+{input : tensor, groups : int} |= (shape(input, 1) / groups) = (shape(input, 1) / groups) ∧ (shape(input, 1) / groups) ≥ 1
+>>
+Rule 106 (output_padding values should be non-negative)
+{output_padding: int ⊎ tuple(int)} |= if output_padding.len = 1 then output_padding ≥ 0 else if output_padding.len = 2 then (output_padding[0] ≥ 0 ∧ output_padding[1] ≥ 0)
+>>
+Rule 121 (non-positive groups is not supported)
+{groups: int} |= groups > 0

@@ -5,38 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If inplace is set to false, then at least one element must be within the range [-3,3] (Rule 24)
+# The sum of the dimensions of the input should not exceed some arbitrary number (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == False, Or([And(x < (Select(v["arg1_range"], 1) + 1), And(x >= -3, x <= 3)) for x in range(6)]), False)) if n else
-          If(v["arg2_value"] == False, Or([And(x < (Select(v["arg1_range"], 1) + 1), And(x >= -3, x <= 3)) for x in range(6)]), False))
+    s.add(Not(Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000) for i in range(6)])) if n else
+          Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) < 1000) for i in range(6)]))
 )
 
-def rule_24_func(arg1, arg2, solver=None, neg=False):
+def rule_24_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, bool):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
-        arg2_value = Bool('arg2_value')
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value})
+        rule_24(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_range': arg1['range'], 'arg2_value': arg2['value']}, neg)
+        rule_24(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)

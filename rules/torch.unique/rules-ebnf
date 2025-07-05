@@ -1,24 +1,120 @@
 >>
-Rule 1 (dim should be a non-negative integer if specified)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+Rule 2 (ComplexDouble tensors not supported)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10
 >>
-Rule 2 (if return_inverse is true and dim is specified, then dim should be a valid dimension)
-{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 = true then v_3 ≥ 0 ∧ v_3 < ndim(v_1)
+Rule 6 (Dimension must be within valid range)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 3 (If the input tensor is 0-dimensional, dim must be None.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then false else v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+Rule 8 (Input tensor must have at least one element if return_counts is True)
+{v_1 : tensor, v_2 : bool} |= v_2 = false ∨ (shape(v_1, 0) > 0)
 >>
-Rule 4 (dtype of input tensor should be an integer or a float)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 9 (dim cannot be None if input is empty and return_counts is True)
+{v_1 : tensor, v_2 : bool, v_3 : int} |= (v_2 = false) ∨ (shape(v_1,0) > 0) ∨ (v_3 ≠ -1)
 >>
-Rule 5 (if return_counts is true, then the returned counts tensor must have integer dtype)
-{v_1 : bool} |= if v_1 = true then true
+Rule 10 (return_inverse and return_counts cannot both be true if the tensor is empty)
+{v_1 : tensor, v_2 : bool, v_3 : bool} |= (shape(v_1,0) > 0) ∨ (v_2 = false ∨ v_3 = false)
 >>
-Rule 6 (if return_inverse is true, sorted should be true.)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
+Rule 11 (dimension must not exceed max dimension if input is empty)
+{v_1 : tensor, v_2 : int} |= (shape(v_1, 0) > 0) ∨ (v_2 ≤ 0)
 >>
-Rule 7 (If dim is None, the output tensor is 1D)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
+Rule 12 (If dim is specified, it must be within the valid range)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 8 (If input is empty tensor, any value of dim is acceptable)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+Rule 14 (The dimension must be less than the number of dimensions of the input tensor)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then v_2 < ndim(v_1)
+>>
+Rule 16 (The dim argument should be within the allowed range)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ (v_2 = -1)
+>>
+Rule 17 (Tensor type cannot be a complex type.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 20 (If the dimension is specified, it must fall within range (more concise))
+{v_1 : tensor, v_2 : int} |= (v_2 = -1) ∨ (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+>>
+Rule 22 (If dim is specified and tensor isn't empty, ensure dim is in range)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
+>>
+Rule 24 (If the tensor is of complex type, unique_dim cannot be used)
+{v_1 : tensor, v_2 : int} |= (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) ∨ v_2 = -1
+>>
+Rule 25 (Prevent complex dtype with dimension specified)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = -1
+>>
+Rule 26 (dimension specified should be -1 if the tensor is of complex type.)
+{v_1 : tensor, v_2 : int} |= (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) ∨ (v_2 = -1)
+>>
+Rule 27 (Either dim is None, or dtype is not complex)
+{v_1 : tensor, v_2 : int} |= (v_2 = -1) ∨ (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11)
+>>
+Rule 28 (Complex tensors require dim to be None)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = -1 else (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∨ v_2 = -1)
+>>
+Rule 29 (Either the tensor is not complex, or dim is None)
+{v_1 : tensor, v_2 : int} |= (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11) ∨ (v_2 = -1)
+>>
+Rule 31 (If return_inverse is true, a dimension must be specified)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≠ -1
+>>
+Rule 32 (if return_counts is true, dim should be valid)
+{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 = true then (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∨ v_3 = -1)
+>>
+Rule 33 (If specifying dimension, it's more meaningful to sort)
+{v_1 : int, v_2 : bool} |= if v_1 ≠ -1 then v_2 = true
+>>
+Rule 34 (If return_inverse is true, a dimension should be specified, or the tensor is one-dimensional)
+{v_1 : bool, v_2 : int, v_3 : tensor} |= if v_1 = true then v_2 ≠ -1 ∨ ndim(v_3) = 1
+>>
+Rule 35 (If return_counts is true, dim must be a valid dimension or -1)
+{v_1 : tensor, v_2 : bool, v_3 : int} |= if v_2 = true then (v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1)) ∨ v_3 = -1
+>>
+Rule 38 (Cannot return inverse indices and counts simultaneously when operating on the entire flattened tensor)
+{v_1 : bool, v_2: bool, v_3 : int} |= if v_3 = -1 then (v_1 = false ∨ v_2 = false)
+>>
+Rule 39 (If returning counts, the input tensor must have at least one element)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then shape(v_1, 0) > 0
+>>
+Rule 40 (If specifying dim, return_inverse and return_counts are more relevant)
+{v_1 : int, v_2 : bool, v_3:bool} |= if v_1 ≠ -1 then (v_2 = true ∨ v_3 = true)
+>>
+Rule 41 (Cannot return inverse indices and counts simultaneously when operating on the entire flattened tensor, simplified)
+{v_1 : bool, v_2: bool, v_3 : int} |= (v_3 ≠ -1) ∨ (v_1 = false ∨ v_2 = false)
+>>
+Rule 43 (return_inverse is more useful if you're not sorting)
+{v_1 : bool, v_2 : bool} |= if v_1 = false then v_2 = true
+>>
+Rule 45 (If not sorting, and not specifying a dimension, counts might be more relevant, due to duplicate values)
+{v_1 : bool, v_2 : int, v_3: bool} |= if v_1 = false ∧ v_2 = -1 then v_3 = true
+>>
+Rule 48 (Cannot use dim if dtype complex and requires returning either inverse or counts)
+{v_1 : tensor, v_2 : int, v_3: bool, v_4: bool} |= (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) ∨ (v_2 = -1 ∧ v_3=false ∧ v_4=false)
+>>
+Rule 49 (if NOT sorting and NOT specifying a dimension, counts MUST be included if the number of elements equals to 0 to know the counts of unique elements (it is either 0 or 1))
+{v_1 : tensor, v_2 : bool, v_3 : bool, v_4: int} |= if v_2 = false ∧ v_4 = -1 ∧ shape(v_1,0) = 0 then v_3 = true
+>>
+Rule 51 (If NOT specifying a dimension AND the tensor has shape of 0 at dim 0, return_counts must be false)
+{v_1 : tensor, v_2 : bool, v_3: int} |= if v_3 = -1 ∧ shape(v_1,0) = 0 then v_2 = false
+>>
+Rule 52 (If complex, turning sorted off may be faster to just get the unique elements rather than sorting complex numbers )
+{v_1 : tensor, v_2 : bool} |= (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) ∨ v_2 = false
+>>
+Rule 53 (if return_inverse, then the number of dimension must be larger than 0)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) > 0
+>>
+Rule 55 (If complex and not sorting, and requiring inverse indices, this might take a very long time and should return false )
+{v_1 : tensor, v_2: bool, v_3: bool} |= (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) ∨ (v_2 = false ∨ v_3 = false)
+>>
+Rule 58 (If tensor is empty, turn sorted off)
+{v_1 : tensor, v_2 : bool} |= if shape(v_1, 0) = 0 then v_2 = false
+>>
+Rule 60 (Complex dtypes are discouraged)
+{v_1: tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 61 (Enforce dimension is not out of range)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then v_2 ≥ -1 * ndim(v_1) ∧ v_2 < ndim(v_1)
+>>
+Rule 63 (dimension has to be inside the valid range)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then v_2 + ndim(v_1) ≥ 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 64 (The provided dimension, when added to the number of dimensions, should be non-negative, and less than the number of dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 ≠ -1 then (v_2 + ndim(v_1) ≥ 0) ∧ (v_2 < ndim(v_1))

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor has a dtype of float32 or float64, then it is a valid floating point tensor (Rule 22)
+# Input is a tensor and has a floating point dtype (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 8, v["arg1_dtype"] == 9), True, False))
+    s.add(Not(If((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), True, False)) if n else
+          If((Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), True, False))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):

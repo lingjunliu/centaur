@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Number of threads should be less than or equal to a maximum limit (Rule 2)
+# set_num_threads expects a reasonable integer value (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= 256) if n else
-          v["arg1_value"] <= 256)
+    s.add(Not(v["arg1_value"] < 1024) if n else
+          v["arg1_value"] < 1024)
 )
 
 def rule_2_func(arg1, solver=None, neg=False):

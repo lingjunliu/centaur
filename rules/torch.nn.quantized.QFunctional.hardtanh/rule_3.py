@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# hardtanh min_val and max_val cannot be both zero (Rule 3)
+# check if min value less than max value, type is integer or float (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(Or((v["arg1_value"] == 0), (v["arg2_value"] == 0))) if n else
-          Or((v["arg1_value"] == 0), (v["arg2_value"] == 0)))
+    s.add(Not(v["arg1_value"] < v["arg2_value"]) if n else
+          v["arg1_value"] < v["arg2_value"])
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):
@@ -18,19 +18,15 @@ def rule_3_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
             return False
-        if not isinstance(arg2, (float, np.floating)):
+        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
-        arg2_value = Real('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == arg2)
 
         # Constraints for rule 3
         rule_3(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

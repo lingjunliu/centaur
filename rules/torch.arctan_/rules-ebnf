@@ -1,57 +1,69 @@
 >>
-Rule 1 (input tensor should have floating-point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 1 (Input tensor's dtype must be a floating-point type to prevent casting errors)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 2 (shape of output tensor matches input tensor)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 3 (Input tensor's dtype must be a floating-point or complex type to prevent casting errors)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 3 (output tensor must have the same dtype as the input tensor if the output tensor is provided)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 4 (Check the input type to ensure it is a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 4 (input tensor and output tensor must have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 5 (if input tensor is complex, output tensor must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
->>
-Rule 6 (if the input tensor requires grad, the output tensor also requires grad)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > -1 then shape(v_2,0) > -1
->>
-Rule 7 (if input is quantized, the output should also be quantized)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_2) = 5
->>
-Rule 8 (if input tensor has at least one element, then output tensor must also have at least one element)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then ndim(v_2) > 0
->>
-Rule 9 (minimum value of input tensor is less than or equal to the maximum value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
->>
-Rule 10 (The number of dimensions of the input tensor is less than or equal to 5)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
->>
-Rule 11 (if the input and output tensors are the same, their data types must be compatible)
-{v_1 : tensor, v_2 : tensor} |= if v_1 = v_2 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
->>
-Rule 12 (Input tensor's element values are finite.)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 13 (If output tensor is provided then data type of the input tensor and the output tensor must be the same.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
->>
-Rule 14 (If output tensor is provided, then the input tensor must have at least one element)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 15 (If input is empty tensor output must be empty)
-{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
->>
-Rule 16 (Shape must be within supported limit.)
-{v_1 : tensor} |= shape(v_1, 0) < 2147483647
->>
-Rule 17 (Output Tensor must be the same size or larger than Input Tensor)
-{v_1 : tensor, v_2 : tensor} |= (shape(v_2, 0) ≥ shape(v_1, 0))
->>
-Rule 18 (Number of dimensions of input tensor must be positive.)
+Rule 7 (The input tensor should have at least one dimension.)
 {v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 19 (Dtype must be compatible between input and output based on precision)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 9 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 else if dtype_(v_1) = 10 then dtype_(v_2) = 10
+Rule 8 (The input tensor should not have a boolean dtype.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 9 (Input tensor must not be of string dtype.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 11 (Check if the input dtype can be cast to float. Avoids "result type Float can't be cast to the desired output type Char")
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 12 (The dimension of the input tensor must be greater than 0, and data type should be able to be cast)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 13 (The input must be a tensor, and the data type should be appropriate for arctan (avoids TypeError and RuntimeError))
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 14 (Ensure input tensor has float or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) > 5 ∧ dtype_(v_1) < 11
+>>
+Rule 15 (The input tensor should have a floating-point or complex dtype to avoid potential casting errors.)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6
+>>
+Rule 16 (Input tensor should not be of 'bool', 'int8', 'int16', 'uint8', or 'str' dtype.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 17 (Ensure the input is a tensor and has a compatible dtype.)
+{v_1 : tensor} |= dtype_(v_1) > 5 ∧ dtype_(v_1) < 13
+>>
+Rule 20 (The input tensor needs to have a valid shape and a supported dtype)
+{v_1 : tensor} |= ndim(v_1) ≥ 1 ∧ dtype_(v_1) > 5 ∧ dtype_(v_1) < 13
+>>
+Rule 23 (The input must be a tensor with a floating-point or complex dtype that allows conversion to float. Dtype 3(int32) or 4(int64) cannot be used)
+{v_1 : tensor} |= dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 25 (Input tensor must not have dtype bool, int8, int16, uint8, int32, int64, or str.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 27 (The input must be a tensor with a floating or complex dtype that is not np.uint8)
+{v_1 : tensor} |= dtype_(v_1) > 5 ∧ dtype_(v_1) < 13 ∧ dtype_(v_1) != 5
+>>
+Rule 29 (Input tensor must have ndim > 0 and floating or complex dtype.)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 34 (Enforce that the input is a Tensor and has dtype of float16, float32, float64, complex64 or complex128, and the number of dimensions is at least 1.)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ ndim(v_1) > 0
+>>
+Rule 35 (The input needs to be a tensor and also have a data type that allows the use of arctan)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+>>
+Rule 42 (Input should be a Tensor with a float16, float32, float64, complex64, or complex128 dtype, and not bool, int8, int16, int32, int64, uint8, or str)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 47 (The input must be a Tensor and must have dtype of float16, float32, float64, complex64 or complex128. It cannot have other dtypes as those won't work.)
+{v_1 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 49 (Check tensor input and that dtype 0,1,2,3,4,5,11 is not allowed)
+{v_1 : tensor} |= (dtype_(v_1) ≠ 0) ∧ (dtype_(v_1) ≠ 1) ∧ (dtype_(v_1) ≠ 2) ∧ (dtype_(v_1) ≠ 3) ∧ (dtype_(v_1) ≠ 4) ∧ (dtype_(v_1) ≠ 5) ∧ (dtype_(v_1) ≠ 11)

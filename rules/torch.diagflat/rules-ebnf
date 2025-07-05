@@ -1,39 +1,123 @@
 >>
-Rule 1 (offset value should not exceed a limit determined by input shape)
-{v_1 : tensor, v_2 : int} |= (0 - shape(v_1, 0)) ≤ v_2 ∧ v_2 ≤ shape(v_1, 0)
+Rule 1 (Prevent excessively large tensor input, catching potential allocation overflow)
+{v_1 : tensor} |= shape(v_1, 0) < 10000 ∧ shape(v_1, 1) < 10000
 >>
-Rule 2 (input tensor's dimension should be less than 3)
-{v_1 : tensor} |= ndim(v_1) < 3
+Rule 2 (Restrict the number of dimensions to prevent potential exponential growth in size)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
 >>
-Rule 3 (if input is 2D tensor, its shape[0] should be equal to shape[1])
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
+Rule 3 (Check for integer overflow in dimension calculation.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2000000000
 >>
-Rule 4 (The offset must be representable as int32)
-{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647
+Rule 4 (Ensure positive offset to avoid indexing issues and prevent potential underflow)
+{v_1 : int} |= v_1 > -10000
 >>
-Rule 5 (if input tensor is 1D, the output will be square matrix)
-{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) = shape(v_1, 0)
+Rule 5 (Check if the shape of input tensor is not too large, avoiding storage size overflow)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1)  < 1000000000
 >>
-Rule 6 (if input tensor's dimension is greater than 1, all shape dimensions must be greater than zero)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 6 (Check dimension of tensor does not exceed maximum dimension limit)
+{v_1 : tensor} |= ndim(v_1) < 10
 >>
-Rule 7 (if input tensor is 2D and offset is zero, the output's ndim will be same as the flattened input's ndim)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 ∧ v_2 = 0 then ndim(v_1) = ndim(v_1)
+Rule 7 (The size of each dimension should be positive and not excessively large)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ shape(v_1, i) < 1000000
 >>
-Rule 8 (offset affects final shape, if offset=0 and input dim=1 then output will be square with shape[0])
-{v_1 : tensor, v_2 : int} |= if v_2 = 0 ∧ ndim(v_1) = 1 then shape(v_1, 0) = shape(v_1, 0)
+Rule 8 (Prevent excessively large input tensor dimensions and offset to avoid overflow)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) < 1000 ∧ ndim(v_1) < 5 ∧ v_2 < 1000
 >>
-Rule 9 (If input tensor is 1D, the diagonal elements of output tensor are the same as input tensor)
-{v_1 : tensor} |= if ndim(v_1) = 1 then ∀i ∈ [0, shape(v_1, 0)-1] : true
+Rule 10 (Restrict dimension values to avoid storage overflow)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
 >>
-Rule 10 (If input tensor is empty, the result tensor will be 2D)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then ndim(v_1) = 2
+Rule 11 (Check the number of dimensions to avoid memory allocation issues.)
+{v_1 : tensor} |= ndim(v_1) ≤ 4
 >>
-Rule 11 (Result tensor of diagflat always has dimension 2)
-{v_1 : tensor} |= ndim(v_1) = 2
+Rule 12 (Ensure that the product of all dimensions is within reasonable bounds)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 200000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 200000 else false
 >>
-Rule 12 (The output tensor's dtype is the same as the input tensor's dtype)
-{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+Rule 13 (Limit shape values to avoid calculation overflows)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 5000000
 >>
-Rule 13 (the number of elements in input tensor must be less than a maximum value)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
+Rule 14 (Check input tensor's size to avoid excessive memory allocation)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 100000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 100000 else false
+>>
+Rule 16 (Limit total number of elements in the input tensor to prevent memory errors, using if-then-else correctly)
+{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1,0) * shape(v_1,1)) < 500000 else if ndim(v_1) = 1 then shape(v_1, 0) < 500000 else false
+>>
+Rule 19 (Ensure that the product of all dimensions is within reasonable bounds, using if-then-else)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 200000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 200000
+>>
+Rule 21 (Check input tensor's size to avoid excessive memory allocation, using if-then-else)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 100000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 100000
+>>
+Rule 23 (Restrict tensor dimensions relative to offset, avoiding huge output)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then shape(v_1, 0) + v_2 < 200000 else if ndim(v_1) = 2 then shape(v_1, 0) + shape(v_1,1) + v_2 < 200000
+>>
+Rule 24 (Limit total number of elements based on tensor rank to prevent memory errors)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 1000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 1000000 else if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 1000000
+>>
+Rule 25 (Avoid dimensions which are too dissimilar, potentially leading to overflow)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1,0) / shape(v_1, 1) < 1000 ∧ shape(v_1, 1) / shape(v_1, 0) < 1000
+>>
+Rule 26 (Check for offset exceeding tensor dimensions)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 1 then v_2 < shape(v_1, 0) * 2 else if ndim(v_1) = 2 then v_2 < shape(v_1, 0) * 2 ∧ v_2 < shape(v_1, 1) * 2
+>>
+Rule 33 (restrict offset relative to the dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 < 100000 ∧ if ndim(v_1) = 1 then v_2 < shape(v_1, 0) + 500 else if ndim(v_1) = 2 then v_2 < shape(v_1, 0) + shape(v_1, 1) + 500
+>>
+Rule 34 (Limit dimension count and element size)
+{v_1 : tensor} |= ndim(v_1) < 5 ∧ shape(v_1, if ndim(v_1) > 0 then 0 else 0) < 1000000
+>>
+Rule 35 (Ensure dimensions are somewhat balanced to avoid overflow in later calculations)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1,0) < 10000 ∧ shape(v_1,1) < 10000
+>>
+Rule 38 (restrict offset relative to at least one of the dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 < 100000 ∧ if ndim(v_1) = 1 then v_2 < shape(v_1, 0) + 500 else if ndim(v_1) = 2 then v_2 < shape(v_1, 0) + 500
+>>
+Rule 39 (Combination limit to avoid very large tensors)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) + v_2 < 10 ∧ shape(v_1, if ndim(v_1) > 0 then 0 else 0) * (if ndim(v_1) > 1 then shape(v_1, 1) else 1) < 5000000
+>>
+Rule 43 (restrict offset relative to the sum of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 + shape(v_1, if ndim(v_1) > 0 then 0 else 0) + (if ndim(v_1) > 1 then shape(v_1, 1) else 0) < 200000
+>>
+Rule 44 (limit the product of the shape and offset)
+{v_1 : tensor, v_2 : int} |= v_2 * shape(v_1, if ndim(v_1) > 0 then 0 else 0)  < 5000000
+>>
+Rule 47 (Limit offset and a single dimension without conditionals)
+{v_1 : tensor, v_2 : int} |= v_2 + shape(v_1, 0) < 500000
+>>
+Rule 48 (Restrict the product of offset and a dimension.)
+{v_1 : tensor, v_2 : int} |= v_2 * shape(v_1, 0) < 10000000
+>>
+Rule 49 (Ensure dimension is not too small if offset is large)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) > v_2 / 100
+>>
+Rule 52 (Limit the offset value)
+{v_2 : int} |= v_2 < 2000
+>>
+Rule 53 (Restrict the first dimension's size)
+{v_1 : tensor} |= shape(v_1, 0) < 10000
+>>
+Rule 54 (Limit the offset to be small)
+{v_2 : int} |= v_2 > -1000 ∧ v_2 < 1000
+>>
+Rule 55 (Restrict offset size)
+{v_2 : int} |= v_2 < 10000
+>>
+Rule 56 (Shape should not be zero)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 57 (Limit offset based on shape)
+{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, 0)
+>>
+Rule 59 (Ensure positive shape for the offset)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) > v_2
+>>
+Rule 62 (Relate offset and shape)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) + v_2 < 100000
+>>
+Rule 63 (Ensure shape is significantly larger than the offset)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) > 2 * v_2
+>>
+Rule 64 (limit ratio of shape and offset)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) < 10 * v_2
+>>
+Rule 65 (Limit their addition)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) + v_2 < 200000

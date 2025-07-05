@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor is float32, out tensor must not be an integer type (Rule 18)
+# If out is provided, and input's dtype is a floating type, the out tensor cannot have an integer dtype (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, (Or(v["arg2_ndim"] == 0, (And(And(And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5)))), False)) if n else
-          If(v["arg1_dtype"] == 7, (Or(v["arg2_ndim"] == 0, (And(And(And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5)))), False))
+    s.add(Not(If(v["arg2_ndim"] > 0, If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg2_dtype"] < 6, False), False)) if n else
+          If(v["arg2_ndim"] > 0, If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg2_dtype"] < 6, False), False))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_18_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_18(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_18(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# negative slope value must be finite (Rule 4)
+# negative_slope should be non-negative (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 10000000000, v["arg1_value"] > -10000000000)) if n else
-          And(v["arg1_value"] < 10000000000, v["arg1_value"] > -10000000000))
+    s.add(Not(v["arg1_value"] >= 0) if n else
+          v["arg1_value"] >= 0)
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

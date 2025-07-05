@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensors cannot be bool type. Because when input is boolean, after calculating pointwise log(exp(x (Rule 11)
+# if other is complex, input must be complex or real (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 0, v["arg2_dtype"] != 0)) if n else
-          And(v["arg1_dtype"] != 0, v["arg2_dtype"] != 0))
+    s.add(Not(If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False)) if n else
+          If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

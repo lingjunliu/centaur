@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Output tensor has same data type as input tensor (Rule 18)
+# lambd should be smaller than a threshold to avoid overflow for float16 tensors, otherwise, it should be smaller than the min/max of the tensor (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
-          v["arg1_dtype"] == v["arg2_dtype"])
+    s.add(Not(If(v["arg2_dtype"] == 6, v["arg1_value"] < 100, If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), And(v["arg1_value"] < Select(v["arg2_range"], 0), v["arg1_value"] < Select(v["arg2_range"], 1)), False))) if n else
+          If(v["arg2_dtype"] == 6, v["arg1_value"] < 100, If(Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), And(v["arg1_value"] < Select(v["arg2_range"], 0), v["arg1_value"] < Select(v["arg2_range"], 1)), False)))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,27 @@ def rule_18_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, (float, np.floating)):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
+        arg1_value = Real('arg1_value')
         arg2_dtype = Int('arg2_dtype')
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg1_value == arg1)
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_18(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_range': arg2['range']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If output dtype is specified, it should be compatible with the input tensor's dtype, promoting if necessary. (Rule 10)
+# If input tensor's dtype is not float, the output dtype must not be character either. (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] < v["arg2_value"], True, False)) if n else
-          If(v["arg1_dtype"] < v["arg2_value"], True, False))
+    s.add(Not(If(v["arg1_dtype"] != 7, v["arg2_value"] != 12, False)) if n else
+          If(v["arg1_dtype"] != 7, v["arg2_value"] != 12, False))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

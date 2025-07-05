@@ -1,69 +1,84 @@
 >>
-Rule 1 (index should be valid based on tensor dimension and shape)
-{v_1 : tensor, v_2 : int, v_3 : int} |= v_3 ≥ (0 - ndim(v_1)) ∧ v_3 < ndim(v_1) ∧ if v_3 < 0 then v_2 ≥ 0 ∧ v_2 < shape(v_1, ndim(v_1)+v_3) else v_2 ≥ 0 ∧ v_2 < shape(v_1, v_3)
+Rule 2 (output tensor's dtype must match the expected dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (if dimension is specified, the index must be within shape bounds)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≥ 0 ∧ v_3 < ndim(v_1) then v_2 ≥ 0 ∧ v_2 < shape(v_1, v_3)
+Rule 3 (index should be within the tensor's size along the dimension)
+{v_1 : tensor, v_2 : int, v_3 : int} |= ndim(v_1) > 0 ∧ v_3 ≥ 0 ∧ v_3 < shape(v_1, v_2)
 >>
-Rule 3 (if dimension is negative, index should be within shape bounds starting from the end)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 ∧ v_3 ≥ (0 - ndim(v_1)) then v_2 ≥ 0 ∧ v_2 < shape(v_1, ndim(v_1) + v_3)
+Rule 4 (dimension should be within valid range)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 4 (tensor must have at least one dimension if index/dimension are provided)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 ≥ 0 ∨ v_3 ≥ 0 then ndim(v_1) > 0
+Rule 7 (dimension should be within valid range when selecting from a non-empty tensor)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 5 (dimension should be a valid integer)
-{v_3 : int} |= (v_3 > -1000) ∧ (v_3 < 1000)
+Rule 8 (ensure non-negative index for select operation)
+{v_1 : int} |= v_1 >= 0
 >>
-Rule 6 (if dimension is provided, it should not be greater than the maximum allowed and less than the minimum allowed)
-{v_3 : int} |= v_3 < 100 ∧ v_3 > (0 - 100)
+Rule 9 (dimension should be within valid range)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
 >>
-Rule 7 (if index is provided then the tensor is not empty)
-{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 11 (ensure v_3 is within the bounds defined by v_1's shape at dimension v_2)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 ∧ shape(v_1, v_2) > 0 then v_3 ≥ 0 ∧ v_3 < shape(v_1, v_2)
 >>
-Rule 8 (index cannot exceed the size of the dimension being selected from)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 >= 0 then shape(v_1, v_3) > v_2
+Rule 13 (tensor should not be of zero size)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 9 (when a tensor of size zero is given then index out of range error should occur)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if ndim(v_1) > 0 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 ≥ 0 ∨ v_3 ≥ 0
+Rule 16 (ensure the tensor is not completely empty to avoid index errors)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 10 (if a dimension is specified, its value should be within the valid range)
-{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then (v_3 ≥ (0-ndim(v_1)) ∧ v_3 < ndim(v_1))
+Rule 17 (the output dtype must match the expected input dtype to prevent runtime errors)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
 >>
-Rule 11 (the index cannot be negative when the specified dimension is not the last one)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < ndim(v_1) - 1 ∧ v_3 >=0 then v_2 >= 0
+Rule 18 (ensure that dimension is within range or tensor is empty)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 0) ∨ (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1))
 >>
-Rule 12 (the selected index for negative dimensions cannot exceed its shape bounds)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 then v_2 < shape(v_1, ndim(v_1) + v_3)
+Rule 20 (check that index is within range if tensor is not empty at dimension 0)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) > 0 then v_2 ≥ 0 ∧ v_2 < shape(v_1, 0)
 >>
-Rule 13 (the dimension being indexed must be valid)
-{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1))
+Rule 23 (verify that the output tensor has the correct dtype if input is of floating point type)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_1) = v_2
 >>
-Rule 14 (the selected dimension should not exceed the maximum possible dimension.)
-{v_3 : int} |= v_3 < 2147483647
+Rule 25 (verify that the output tensor has the correct dtype if input is a specific type)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then dtype_(v_1) = v_2
 >>
-Rule 15 (if a dimension is specified, and the tensor has that dimension, the size of that dimension should not be zero)
-{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 ∧ v_3 < ndim(v_1) ∧ v_3 >= (0 - ndim(v_1)) then shape(v_1, v_3) ≠ 0
+Rule 26 (check that index is within range if tensor is not an empty tensor along dimension 0)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 ∧ shape(v_1, 0) > 0 then v_2 ≥ 0 ∧ v_2 < shape(v_1, 0)
 >>
-Rule 16 (Dimension argument cannot be more than number of dimensions in tensor)
-{v_1 : tensor, v_3 : int} |= v_3 < ndim(v_1)
+Rule 32 (check output dtype matches if a specific dtype is targeted)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
 >>
-Rule 17 (For negative dimension indexing, the dimension must be at least -(number of dimensions))
-{v_1 : tensor, v_3 : int} |= if ndim(v_1) > 0 then v_3 >= (0-ndim(v_1))
+Rule 37 (check dtype of output vs the target)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 then dtype_(v_2) = dtype_(v_1)
 >>
-Rule 18 (If dimension index is negative, and tensor is more than 1 dimension, then the index must be greater than or equal to negative number of dimensions)
-{v_1 : tensor, v_3 : int} |= if (ndim(v_1) > 1) then (v_3 >= (0 - ndim(v_1)))
+Rule 41 (Valid index for non-empty 0th dim, otherwise bypass)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 0) ∨ (shape(v_1, 0) = 0) ∨ (v_2 ≥ 0 ∧ v_2 < shape(v_1, 0))
 >>
-Rule 19 (If the index is provided, it needs to be an integer)
-{v_2 : float} |= (v_2 = 0) ∨ (v_2 ≠ 0)
+Rule 43 (Ensure destination tensor has float type when copying from float type source)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
 >>
-Rule 20 (If a dimension is supplied, and it's negative, it must be a valid dimension.)
-{v_1 : tensor, v_3 : int} |= if v_3 < 0 then v_3 ≥ (0 - ndim(v_1))
+Rule 49 (Handle dtype for floating point output copy)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = dtype_(v_1)
 >>
-Rule 21 (If dimension is provided, then dimension needs to be an int.)
-{v_3 : float} |= (v_3 = 0) ∨ (v_3 ≠ 0)
+Rule 64 (Enforce float64 type on new tensors when source is float64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
 >>
-Rule 22 (if a dimension index is supplied, it must be an integer)
-{v_3 : int ⊎ float} |= if v_3 - (0 + v_3) = 0 then true else false
+Rule 70 (Ensure Float64 is used, and copy correctly - works even when no type explicitly targeted)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = dtype_(v_1)
 >>
-Rule 23 (if a index is supplied it needs to be an integer)
-{v_2 : int ⊎ float} |= if v_2 - (0 + v_2) = 0 then true else false
+Rule 74 (Ensure 0th dimension index is valid when tensor has content)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then if shape(v_1, 0) > 0 then v_2 ≥ 0 ∧ v_2 < shape(v_1, 0)
+>>
+Rule 79 (Preserve float64 dtype when creating *new* tensors)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 8 then dtype_(v_2) = dtype_(v_1)
+>>
+Rule 86 (Index is valid for 0th dimension, with shortcut evaluation for corner cases)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 0) ∨ ((ndim(v_1) > 0) ∧ if shape(v_1, 0) > 0 then (v_2 ≥ 0 ∧ v_2 < shape(v_1, 0)))
+>>
+Rule 92 (If tensor has ndim > 0, and 0th dim has size, then 0 <= index < size.)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 0 ∨ ((ndim(v_1) > 0) ∧ if shape(v_1, 0) > 0 then (v_2 ≥ 0 ∧ v_2 < shape(v_1, 0)))
+>>
+Rule 95 (When selecting copy, ensure index in 0th dimension only when that dimension has size.)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) > 0) ∧ if shape(v_1, 0) > 0 then (v_2 ≥ 0 ∧ v_2 < shape(v_1, 0))
+>>
+Rule 110 (Safeguard access within the tensor shape at dimension 0, accounting for potential issues with indexing)
+{v_1 : tensor, v_2 : int} |= (ndim(v_1) = 0) ∨ (ndim(v_1) > 0 ∧ (if shape(v_1, 0) > 0 then v_2 ≥ 0 ∧ v_2 < shape(v_1, 0)))

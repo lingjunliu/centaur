@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The output tensor, if specified, should have same dtype as input tensor (Rule 6)
+# if the input tensor is of integer type, the output tensor's dtype should be float32, float64, complex64 or complex128 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == v["arg2_dtype"], True, False)) if n else
-          If(v["arg1_dtype"] == v["arg2_dtype"], True, False))
+    s.add(Not(If(v["arg1_dtype"] < 6, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False)) if n else
+          If(v["arg1_dtype"] < 6, (Or(Or(Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dim2 equals -2 and input tensor has only one dimension, dim1 and dim2 must not be equal. (Rule 14)
+# input tensor must be at least 1-dimensional and dim1 and dim2 should not be identical (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg3_value"] == -2, v["arg1_ndim"] == 1), v["arg2_value"] != v["arg3_value"], False)) if n else
-          If(And(v["arg3_value"] == -2, v["arg1_ndim"] == 1), v["arg2_value"] != v["arg3_value"], False))
+    s.add(Not(And(v["arg1_ndim"] >= 1, v["arg2_value"] != v["arg3_value"])) if n else
+          And(v["arg1_ndim"] >= 1, v["arg2_value"] != v["arg3_value"]))
 )
 
 def rule_14_func(arg1, arg2, arg3, solver=None, neg=False):

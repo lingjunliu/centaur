@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensors are 3+ dimensional, the sizes of all but the last 2 dimensions must match. (Rule 18)
+# if the product of shapes of tensor 1 is not zero, then product of shapes of tensor 2 should not be zero (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] >= 3, v["arg2_ndim"] >= 3), And([Implies(i < (v["arg1_ndim"] - 3 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False)) if n else
-          If(And(v["arg1_ndim"] >= 3, v["arg2_ndim"] >= 3), And([Implies(i < (v["arg1_ndim"] - 3 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False))
+    s.add(Not(And((If((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), True, False)), (If((And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)])), True, False)))) if n else
+          And((If((And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)])), True, False)), (If((And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) > 0) for i in range(6)])), True, False))))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

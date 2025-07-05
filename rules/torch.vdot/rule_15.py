@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If v_2's dtype is a floating point type, then v_1's dtype must be float16, float32 or float64. (Rule 15)
+# If the first tensor is float32, the second one also has to be float32, otherwise if first tensor is float64, second one has to be float64, otherwise both should not be float. (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False)) if n else
-          If(Or(Or(v["arg2_dtype"] == 6, v["arg2_dtype"] == 7), v["arg2_dtype"] == 8), Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, And((Or(v["arg1_dtype"] < 7, v["arg1_dtype"] > 8)), (Or(v["arg2_dtype"] < 7, v["arg2_dtype"] > 8)))))) if n else
+          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, And((Or(v["arg1_dtype"] < 7, v["arg1_dtype"] > 8)), (Or(v["arg2_dtype"] < 7, v["arg2_dtype"] > 8))))))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

@@ -2,56 +2,212 @@
 Rule 1 (embed_dim and num_heads must be greater than 0)
 {v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
 >>
-Rule 2 (dropout probability should be between 0 and 1 inclusive)
+Rule 3 (dropout probability must be between 0 and 1)
 {v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 3 (If query is batched 3D, key_padding_mask should be None or 2D)
-{v_1 : tensor, v_2 : tensor ⊎ str} |= if ndim(v_1) = 3 then (v_2 = "none" ∨ ndim(v_2) = 2)
+Rule 4 (kdim and vdim must be equal to embed_dim if not None)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_2 ≠ v_1 then v_2 = v_1 ∧ if v_3 ≠ v_1 then v_3 = v_1
 >>
-Rule 4 (kdim and vdim should be equal to embed_dim if they are not None)
-{v_1 : int, v_2 : int ⊎ str, v_3 : int ⊎ str} |= if v_2 ≠ "none" then v_2 = v_1 ∧ if v_3 ≠ "none" then v_3 = v_1
+Rule 5 (key_padding_mask must be a boolean tensor)
+{v_1 : tensor} |= dtype_(v_1) = "bool"
 >>
-Rule 5 (embed_dim must be divisible by num_heads)
-{v_1 : int, v_2 : int} |= v_1 / v_2 * v_2 = v_1
+Rule 6 (attn_mask dtype to be bool or float or to match query dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = "bool" ∨ dtype_(v_1) = "float" ∨ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 6 (attn_mask dtype should be bool or float or match query dtype)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_2) = 0) ∨ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∨ (dtype_(v_2) = dtype_(v_1))
->>
-Rule 7 (key_padding_mask only supports bool and floating types)
-{v_1 : tensor} |= dtype_(v_1) = 0 ∨ (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
->>
-Rule 8 (if batch_first is True, input and output tensors are provided as (batch, seq, feature))
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ndim(v_1) = 3
->>
-Rule 9 (The shape of the 2D attn_mask is (S, S) or (N*num_heads, S, S) )
-{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1)) ∨ (ndim(v_1) = 3 ∧ shape(v_1, 1) = shape(v_1, 2) ∧ shape(v_1, 0) = v_2 * v_3)
->>
-Rule 10 (query should be unbatched 2D or batched 3D tensor)
+Rule 7 (query should be unbatched 2D or batched 3D tensor)
 {v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
 >>
-Rule 11 (If attn_mask is specified, need is_causal hint)
-{v_1 : tensor, v_2 : bool} |= if v_1 ≠ "none" then v_2 = true
+Rule 8 (For batched (3-D) `query`, expected `key_padding_mask` to be `None` or 2-D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then ndim(v_2) = 2
 >>
-Rule 12 (embed_dim cannot be a negative dimension)
-{v_1 : int} |= v_1 > 0
+Rule 9 (RuntimeError: scaled_dot_product_attention_flash_attention: Currently do not support dropout > 0)
+{v_1 : float} |= v_1 ≤ 0
 >>
-Rule 13 (scaled_dot_product_attention_flash_attention: Currently do not support dropout > 0 if flash attention is used)
-{v_1 : float} |= v_1 = 0.0
->>
-Rule 14 (Sizes of tensors must match except in dimension 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∃i ∈ [1, ndim(v_1) -1] : shape(v_1, i) = shape(v_2, i) else false
->>
-Rule 15 (shape of key weights should be (E,E))
-{v_1 : tensor, v_2 : int} |= ndim(v_1) = 2 ∧ shape(v_1, 0) = v_2 ∧ shape(v_1, 1) = v_2
->>
-Rule 16 (The shape of the 2D attn_mask should be (S, S) or (N*num_heads, S, S) and N*num_heads can not be overflow)
-{v_1 : tensor, v_2 : int, v_3 : int} |= (ndim(v_1) = 2 ∧ shape(v_1, 0) = shape(v_1, 1)) ∨ (ndim(v_1) = 3 ∧ shape(v_1, 1) = shape(v_1, 2) ∧ (v_2 * v_3) / v_2 = v_3)
->>
-Rule 17 (Input dtypes must be the same)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
->>
-Rule 18 (batch_first is boolean type)
+Rule 10 (bias is a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 19 (value cannot be converted to type int8_t without overflow)
-{v_1 : int} |= v_1 > -128 ∧ v_1 < 127
+Rule 12 (embed_dim must be divisible by num_heads)
+{v_1 : int, v_2 : int} |= v_1 = (v_1 / v_2) * v_2
+>>
+Rule 21 (embed_dim, kdim and vdim should be positive)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
+>>
+Rule 22 (shapes of key and value should be compatible for attention)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 23 (attn_mask should be of correct shape for given query and key)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_3, 0) ∧ shape(v_2, 1) = shape(v_3, 1)
+>>
+Rule 24 (Check if the key dimension is equal to embed_dim when key and value are not provided)
+{v_1: int, v_2: int} |= v_1 = v_2
+>>
+Rule 25 (attn_mask should be square if query and key are the same)
+{v_1 : tensor, v_2: tensor} |= if shape(v_1, 0) = shape(v_2, 0) then shape(v_1,1) = shape(v_2, 1)
+>>
+Rule 26 (key_padding_mask must have the same length as the key sequence length if key and value are provided.)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 27 (Check for integer overflow)
+{v_1: int} |= v_1 < 2147483647 ∧ v_1 > -2147483648
+>>
+Rule 28 (Check if embed_dim is positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 29 (Check that key and query have compatible dtypes)
+{v_1 : tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 30 (Check that query, key and value dimensions are compatible)
+{v_1 : tensor, v_2: tensor, v_3: tensor} |= shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_2, 2) = shape(v_3, 2)
+>>
+Rule 33 (Check that query, key and value have the same shape on dimension 0)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
+>>
+Rule 34 (Check that attention mask has the correct shape)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, 0) = v_2 ∧ shape(v_1, 1) = v_3
+>>
+Rule 35 (Check if a tensor is a floating point tensor)
+{v_1 : tensor} |= dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float64"
+>>
+Rule 36 (Check for minimum and maximum integer values)
+{v_1 : int} |= v_1 ≥ -32768 ∧ v_1 ≤ 32767
+>>
+Rule 37 (Check the dimensions of key_padding_mask based on batch_first)
+{v_1 : tensor, v_2 : bool, v_3 : tensor} |= if v_2 = true then shape(v_1, 0) = shape(v_3, 0) else shape(v_1, 1) = shape(v_3, 0)
+>>
+Rule 38 (embed_dim must be divisible by num_heads.)
+{v_1: int, v_2: int} |= (v_1 / v_2) * v_2 = v_1
+>>
+Rule 39 (attn_mask needs to be specified if is_causal is set)
+{v_1: bool, v_2: tensor} |= if v_1 = true then ndim(v_2) > 0
+>>
+Rule 40 (key_padding_mask can only be of bool or floating types)
+{v_1: tensor} |= dtype_(v_1) = "bool" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float64"
+>>
+Rule 43 (Value cannot be converted to int8_t without overflow)
+{v_1: int} |= v_1 ≥ -128 ∧ v_1 ≤ 127
+>>
+Rule 46 (Expected sizes of tensors to match except in dimension 0.)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 48 (Check that dtypes are compatible for element-wise operations when input dtypes does not match batch1 and batch2 dtypes)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 49 (Attn_mask needs to be square)
+{v_1: tensor} |= shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 50 (Check that key dimensions are the same)
+{v_1 : int, v_2 : int} |= v_1 = v_2
+>>
+Rule 51 (Query must be 2D or 3D tensor)
+{v_1: tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
+>>
+Rule 52 (attn_mask dtype must be bool or float or match query dtype)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = "bool" ∨ dtype_(v_1) = "float" ∨ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 53 (For 3D query, key_padding_mask must be 2D)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 3 then ndim(v_2) = 2
+>>
+Rule 56 (The shape of the 2D attn_mask is torch.Size([20, 10]), but should be (5, 5))
+{v_1: tensor, v_2: int} |= shape(v_1, 0) = v_2 ∧ shape(v_1, 1) = v_2
+>>
+Rule 59 (If key_padding_mask is not None, its shape matches query's shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) = shape(v_2, 1) else shape(v_1, 0) = shape(v_2, 1)
+>>
+Rule 60 (Check dropout value)
+{v_1 : float} |= v_1 >= 0 ∧ v_1 <= 1
+>>
+Rule 61 (Check for valid dimension for shape function access - Alternative attempt)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 64 (Key and value must have same number of dimensions.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 65 (Value cannot be converted to int8_t without overflow - Improved)
+{v_1: int} |= v_1 > -200 ∧ v_1 < 200
+>>
+Rule 66 (The last dim of key and value must be equal to kdim and vdim respectively.)
+{v_1: tensor, v_2: int} |= shape(v_1, ndim(v_1) - 1) = v_2
+>>
+Rule 67 (Expecting key weights shape of (16, 16), but got torch.Size([16, 0]))
+{v_1: tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 69 (Sizes of tensors must match except in dimension 0.)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [1, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 73 (Embed_dim needs to be positive)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 74 (Check that attn_mask shape is correct)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_3, 1)
+>>
+Rule 76 (The key weights should not be zero)
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 77 (Check that attn_mask shape is correct relative to query, considering potential batch_first)
+{v_1 : tensor, v_2 : tensor, v_3: bool} |= if v_3 = true then shape(v_1, 0) = shape(v_2, 0) else shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 78 (Expected input dtypes must be the same)
+{v_1 : tensor, v_2 : tensor, v_3: tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 79 (Check embed_dim is not negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 81 (Value cannot be converted to type int8_t without overflow - Limiting further)
+{v_1: int} |= v_1 > -100 ∧ v_1 < 100
+>>
+Rule 82 (Attn_mask shape must align with Key's shape (second dimension))
+{v_1 : tensor, v_2 : tensor} |= shape(v_1,1) = shape(v_2, 1)
+>>
+Rule 83 (Key padding mask should have correct dimension)
+{v_1: tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 84 (Check that attn_mask shape is correct relative to Query shape (batch_first))
+{v_1 : tensor, v_2 : tensor, v_3: bool} |= if v_3 = true then shape(v_1, 1) = shape(v_2, 1) else shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 86 (Only bool and floating types are supported for key_padding_mask)
+{v_1 : tensor} |= dtype_(v_1) = "bool" ∨ dtype_(v_1) = "float"
+>>
+Rule 88 (Check that the shapes match apart from the specified dimension)
+{v_1: tensor, v_2: tensor, v_3: int} |= ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_2, i)
+>>
+Rule 89 (The query, key and value all must have the same data type.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 91 (Check to ensure hidden dimension of key and query align with kdim and vdim)
+{v_1: tensor, v_2: tensor, v_3: int} |= shape(v_1,2) = v_3 ∧ shape(v_2, 2) = v_3
+>>
+Rule 92 (Check Attn Mask and Key dimensions compatibility)
+{v_1 : tensor, v_2: tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 93 (Check that all the tensors have floating point dtypes.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64" ∧ dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64" ∧ dtype_(v_3) = "float16" ∨ dtype_(v_3) = "float32" ∨ dtype_(v_3) = "float64"
+>>
+Rule 94 (The key and value must have the same length.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 96 (Ensure the attention mask is of the right shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 98 (Expected attn_mask dtype to be bool or float or to match query dtype)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = "bool" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 100 (The Key dim and Query dim must be the same, to have correct multiplication)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) = shape(v_2, 2)
+>>
+Rule 104 (Trying to create tensor with negative dimension)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 105 (Trying to create tensor with negative dimension)
+{v_1: int} |= v_1 ≥ 0
+>>
+Rule 106 (scale_dot_product_attention doesnt support dropout)
+{v_1 : float} |= v_1 = 0.0
+>>
+Rule 107 (Check shapes are valid - query, key, value)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 2) = shape(v_3, 2)
+>>
+Rule 110 (The shape of the 2D attn_mask must be a square)
+{v_1 : tensor} |= shape(v_1, 0) = shape(v_1, 1)
+>>
+Rule 114 (Ensure query and value have same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)

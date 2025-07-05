@@ -1,48 +1,117 @@
 >>
-Rule 1 (input tensor must be a floating point or complex type)
+Rule 1 (input tensor must be floating point or complex)
 {v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 2 (The dimensions in dim should not appear multiple times)
-{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : (∀j ∈ [i + 1, v_2.len - 1] : v_2[i] ≠ v_2[j])
+Rule 2 (out tensor must have dtype float when input is complex)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 3 (If dim is 'none', then the number of dimensions of the input tensor must be greater than zero)
-{v_1 : tensor, v_2 : str} |= if v_2 = "none" then ndim(v_1) > 0
+Rule 5 (dims should not appear multiple times)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : ∀j ∈ [i+1, v_1.len - 1] : v_1[i] ≠ v_1[j]
 >>
-Rule 4 (If dtype is specified, the input tensor should be convertible without narrowing to the specified dtype)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 7 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) else if v_2 = 8 then (dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) else if v_2 = 9 then dtype_(v_1) = 9
+Rule 6 (dtype should be real for real inputs if specified)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) ∧ (v_2 ≠ 9 ∧ v_2 ≠ 10)
 >>
-Rule 5 (The p parameter can only be 'fro' or 'nuc' if the dimension is specified and the dimension has exactly two entries)
-{v_1 : str, v_2 : list(int)} |= if (v_1 = "fro" ∨ v_1 = "nuc") then v_2.len = 2
+Rule 7 (p='fro' supports any number of dimensions for input tensor)
+{v_1 : tensor, v_2 : str} |= v_2 = "fro" ∧ ndim(v_1) ≥ 1
 >>
-Rule 6 (if p is inf or -inf, input tensor should not be empty)
-{v_1 : tensor, v_2 : float} |= if v_2 = "inf" ∨ v_2 = -1 * "inf" then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 8 (The dtype of the input should be convertible without narrowing to the specified dtype)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 8 then v_2 ≠ 7
 >>
-Rule 7 (If p is 'nuc', dim must be specified and have exactly two dimensions)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "nuc" then v_2.len = 2
+Rule 10 (keepdim must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 8 (If dim is specified, the values must be within the range of ndim(input))
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : -1 * ndim(v_1) <= v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 11 (norm cannot compute inf norm on an empty tensor)
+{v_1 : tensor, v_2 : float} |= shape(v_1,0) > 0 ∨ v_2 ≠ "inf" ∨ v_2 ≠ "-inf"
 >>
-Rule 9 (if dtype is complex, then the input must be complex)
-{v_1 : tensor, v_2 : dtype} |= if v_2 = 9 ∨ v_2 = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 14 (Dimension must be within range of input tensor)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 10 (If p is 'fro' or 'nuc', the input must have exactly two dimensions if dim is not none)
-{v_1 : str, v_2 : tensor} |= if (v_1 = "fro" ∨ v_1 = "nuc") then ndim(v_2) = 2
+Rule 19 (norm cannot compute inf norm on an empty tensor)
+{v_1 : tensor, v_2 : str} |= (shape(v_1,0) > 0) ∨ (v_2 ≠ "inf" ∧ v_2 ≠ "-inf")
 >>
-Rule 11 (If the input is complex, the output dtype should be float if dtype is not specified)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then if v_2 = 0 then true else v_2 = 7
+Rule 20 (p can be 'fro' or 'nuc' for matrix norms)
+{v_1: str} |= v_1 = "fro" ∨ v_1 = "nuc"
 >>
-Rule 12 (The out tensor's dtype must be float if the input tensor is complex and neither dtype nor out is specified)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 7
+Rule 21 (out tensor must have dtype float when input is complex)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 13 (If p is 'fro', dim cannot be a list of three or more dimensions)
-{v_1 : str, v_2 : list(int)} |= if v_1 = "fro" then v_2.len < 3
+Rule 22 (Dimension must be within range of input tensor)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 14 (out tensor must have dtype float if the input tensor is complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 24 (dtype should be real for real inputs if specified)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10) then (v_2 ≠ 9 ∧ v_2 ≠ 10)
 >>
-Rule 15 (If out is specified, it must be a Tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 25 (p='fro' supports any number of dimensions for input tensor)
+{v_1 : tensor, v_2 : str} |= if v_2 = "fro" then ndim(v_1) ≥ 1
 >>
-Rule 16 (the shape of out tensor must be the same as the input if keepdim is true and dim is not none)
-{v_1 : tensor, v_2 : tensor, v_3 : list(int), v_4 : bool} |= if v_4 = true ∧ v_3 ≠ "none" then ∀i ∈ [0, v_3.len - 1] : shape(v_1, v_3[i]) = shape(v_2, v_3[i])
+Rule 27 (If p is 'nuc', dim should be a tuple of size 2)
+{v_1: str, v_2: tuple(int)} |= if v_1 = "nuc" then v_2.len = 2
+>>
+Rule 28 (keepdim is a boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 33 (input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 34 (If p is not 'fro' or 'nuc', dim must be provided)
+{v_1: str, v_2: int ⊎ tuple(int) ⊎ list(int)} |= if v_1 ≠ "fro" ∧ v_1 ≠ "nuc" then v_2 ≠ "none"
+>>
+Rule 35 (The dtype of out tensor must be float if input is complex)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 38 (Input cannot be char)
+{v_1: tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 44 (If p is 'nuc' then dim must be a tuple)
+{v_1 : str, v_2 : tuple(int)} |= if v_1 = "nuc" then v_2.len = 2
+>>
+Rule 48 (String ord only supported for 2D tensors, and Frobenius norm)
+{v_1: tensor, v_2: str} |= (ndim(v_1) = 2 ∧ (v_2 = "fro" ∨ v_2 = "nuc")) ∨ (v_2 = "fro" ∧ ndim(v_1) ≥ 1) ∨ (v_2 ≠ "fro" ∧ v_2 ≠ "nuc")
+>>
+Rule 49 (If p is not 'fro' or 'nuc', need a number.)
+{v_1 : str} |= v_1 = "fro" ∨ v_1 = "nuc" ∨ (v_1 = "inf" ∨ v_1 = "-inf") ∨ (v_1 = "1" ∨ v_1 = "2")
+>>
+Rule 53 (The ord argument is not a supported type)
+{v_1: str, v_2: int ⊎ float} |= (v_1 = "fro") ∨ (v_1 = "nuc") ∨ (v_2 > 0)
+>>
+Rule 54 (The data type of input tensor should be floating point, otherwise need to specify the data type)
+{v_1 : tensor, v_2: dtype} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ (dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 ∧ v_2 ≠ "none")
+>>
+Rule 56 (When input is complex, the output dtype should be float)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (v_2 = 7 ∨ v_2 = 8)
+>>
+Rule 57 (String ord only supported for 2D tensors, Frobenius and Nuclear)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 2 then (v_2 = "fro" ∨ v_2 = "nuc") else (v_2 = "fro" ∨ v_2 = "nuc")
+>>
+Rule 58 (When input is Double, the output dtype should not be Float)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 8 then v_2 ≠ 7
+>>
+Rule 59 (dims should be a tuple or list and not a single number.)
+{v_1: int ⊎ tuple(int) ⊎ list(int)} |= v_1 = "none" ∨ (v_1.len > 1)
+>>
+Rule 60 (The input data type should be real when dtype is specified as a real data type)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (v_2 = 9 ∨ v_2 = 10)
+>>
+Rule 62 (Argument out must be a Tensor)
+{v_1: dtype ⊎ tensor} |= (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10)
+>>
+Rule 64 (If p is 'nuc', dim must not be None)
+{v_1: str, v_2: int ⊎ tuple(int) ⊎ list(int)} |= if v_1 = "nuc" then v_2 ≠ "none"
+>>
+Rule 65 (Argument out must be a Tensor type)
+{v_1 : dtype ⊎ tensor} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 0
+>>
+Rule 67 (If dimension is not None, then the number of dimensions should be smaller than the input's number of dimensions.)
+{v_1: tensor, v_2: int ⊎ tuple(int) ⊎ list(int)} |= if v_2 ≠ "none" then ∀i ∈ [0, v_2.len - 1] : v_2[i] < ndim(v_1)
+>>
+Rule 69 (If dimension is not None, then the values inside the tuple should be ordered.)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 2] : v_1[i] < v_1[i+1]
+>>
+Rule 70 (If the dtype is specified, it needs to be convertible from the input type)
+{v_1: tensor, v_2: dtype} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then true else v_2 = dtype_(v_1)
+>>
+Rule 72 (Order is only 'fro' or 'nuc' for matrix norms and the data type should be floating)
+{v_1: tensor, v_2: str} |= if ndim(v_1) = 2 then (v_2 = "fro" ∨ v_2 = "nuc") ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 73 (The order is not supported for matrix norm other than fro and nuc. However the input tensor is not a matrix)
+{v_1: tensor, v_2: str} |= if ndim(v_1) ≠ 2 then (v_2 = "fro" ∨ v_2 = "nuc")

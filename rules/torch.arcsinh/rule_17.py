@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is a quantized tensor, out tensor must also be a quantized tensor (Rule 17)
+# Prevent casting error: result type Float can't be cast to the desired output type Short - If out is provided and its type is Short, then input can not be Float. (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 12, If(v["arg2_dtype"] != none, v["arg2_dtype"] == 12, False), False)) if n else
-          If(v["arg1_dtype"] == 12, If(v["arg2_dtype"] != none, v["arg2_dtype"] == 12, False), False))
+    s.add(Not(If(v["arg2_dtype"] == 2, v["arg1_dtype"] != 7, False)) if n else
+          If(v["arg2_dtype"] == 2, v["arg1_dtype"] != 7, False))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

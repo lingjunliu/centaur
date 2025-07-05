@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If min_val and max_val are both none, it performs no operation (Rule 18)
+# Compare the shapes of two tensors (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(And((v["arg1_value"] == 6), (v["arg2_value"] == 6))) if n else
-          And((v["arg1_value"] == 6), (v["arg2_value"] == 6)))
+    s.add(Not(Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0)) if n else
+          Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,26 @@ def rule_18_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, str):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
-        arg2_value = String('arg2_value')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
+        rule_18(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)
+        rule_18(solver, {'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)

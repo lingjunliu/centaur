@@ -5,41 +5,35 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If one tensor has bool dtype then another tensor should have the same shape at 0th dimension (Rule 21)
+# warning if a list contains a zero value (Rule 21)
 
 rule_21 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), False)) if n else
-          If(v["arg1_dtype"] == 0, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), False))
+    s.add(Not((Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) == 0) for i in range(6)])) == False) if n else
+          (Or([And(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) == 0) for i in range(6)])) == False)
 )
 
-def rule_21_func(arg1, arg2, solver=None, neg=False):
+def rule_21_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg1, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg1_dtype = Int('arg1_dtype')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_length = Int('arg1_length')
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_length == len(arg1))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
 
         # Constraints for rule 21
-        rule_21(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape})
+        rule_21(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_21(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg2_shape': arg2['shape']}, neg)
+        rule_21(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values']}, neg)

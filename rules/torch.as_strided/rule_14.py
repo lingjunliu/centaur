@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The product of the sizes in the size tuple is less than the maximum integer (Rule 14)
+# Storage size calculation overflow - size elements must be non-negative and product should be within limit (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(And((And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)])), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 2147483647) for i in range(6)])))) if n else
-          And((And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) >= 0) for i in range(6)])), (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 2147483647) for i in range(6)]))))
+    s.add(Not(And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 1000) for i in range(6)])))) for i in range(6)])) if n else
+          And([Implies(i < (v["arg1_length"] - 1 + 1), And(Select(v["arg1_values"], i) >= 0, (And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) < 1000) for i in range(6)])))) for i in range(6)]))
 )
 
 def rule_14_func(arg1, solver=None, neg=False):

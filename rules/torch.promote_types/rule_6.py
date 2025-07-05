@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if one dtype is np.dtype, the other one must be np.dtype too. (Rule 6)
+# If type1 is a complex type, type2 cannot be bool or str (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 12, v["arg2_value"] == 12, If(v["arg2_value"] == 12, v["arg1_value"] == 12, False))) if n else
-          If(v["arg1_value"] == 12, v["arg2_value"] == 12, If(v["arg2_value"] == 12, v["arg1_value"] == 12, False)))
+    s.add(Not(If(Or(v["arg1_value"] == 9, v["arg1_value"] == 10), And(v["arg2_value"] != 0, v["arg2_value"] != 11), False)) if n else
+          If(Or(v["arg1_value"] == 9, v["arg1_value"] == 10), And(v["arg2_value"] != 0, v["arg2_value"] != 11), False))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

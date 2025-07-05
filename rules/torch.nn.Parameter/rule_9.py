@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If parameter requires grad and is complex then it should have complex elements (Rule 9)
+# If requires_grad is true, the parameter must have dtype float16 or float32 or float64 or complex64 or complex128. Otherwise any dtype is permissible (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_value"] == True, (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10))), True, False)) if n else
-          If(And(v["arg2_value"] == True, (Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10))), True, False))
+    s.add(Not(If(v["arg2_value"] == True, (Or(Or(Or(Or((v["arg1_dtype"] == 6), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10))), False)) if n else
+          If(v["arg2_value"] == True, (Or(Or(Or(Or((v["arg1_dtype"] == 6), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10))), False))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

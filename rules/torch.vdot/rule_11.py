@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If v_1 is a tensor of np.float16, then v_2 cannot be integer dtype (1-5 (Rule 11)
+# If the first tensor is float64, the second one also has to be float64. (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(And(And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5), False)) if n else
-          If(v["arg1_dtype"] == 6, And(And(And(And(v["arg2_dtype"] != 1, v["arg2_dtype"] != 2), v["arg2_dtype"] != 3), v["arg2_dtype"] != 4), v["arg2_dtype"] != 5), False))
+    s.add(Not(If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, False)) if n else
+          If(v["arg1_dtype"] == 8, v["arg2_dtype"] == 8, False))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

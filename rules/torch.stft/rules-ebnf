@@ -1,54 +1,90 @@
 >>
-Rule 1 (n_fft must be a positive integer)
+Rule 2 (n_fft must be a positive integer)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 2 (win_length must be less than or equal to n_fft when win_length is not None)
-{v_1 : int, v_2 : int} |= v_2 ≤ v_1
->>
-Rule 3 (pad_mode must be one of the allowed string values)
-{v_1 : str} |= v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" ∨ v_1 = "constant"
->>
-Rule 4 (input tensor must be either 1 or 2 dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
->>
-Rule 5 (If input is real, return_complex must be explicitly given)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 then true
->>
-Rule 6 (Shape of the window tensor must be 1D)
+Rule 5 (window must be 1D if it is a tensor)
 {v_1 : tensor} |= ndim(v_1) = 1
 >>
-Rule 7 (Shape of window tensor must be less than or equal to n_fft)
+Rule 6 (win_length can not be larger than n_fft)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2
+>>
+Rule 7 (pad_mode must be a valid string)
+{v_1 : str} |= v_1 = "reflect" ∨ v_1 = "replicate" ∨ v_1 = "circular" ∨ v_1 = "constant"
+>>
+Rule 8 (input must be a 1D or 2D tensor)
+{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2
+>>
+Rule 12 (hop_length must be positive if specified along with n_fft)
+{v_1 : int, v_2 : int} |= if v_1 > 0 then v_2 > 0
+>>
+Rule 14 (window length is valid relative to n_fft)
 {v_1 : tensor, v_2 : int} |= shape(v_1, 0) ≤ v_2
 >>
-Rule 8 (If onesided is False, n_fft must be greater than 0)
-{v_1 : bool, v_2 : int} |= if v_1 = false then v_2 > 0
+Rule 22 (If window is provided, its length should be win_length)
+{v_1 : tensor, v_2 : int} |= shape(v_1, 0) = v_2
 >>
-Rule 9 (win_length must be greater than 0 if window is not None)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 > 0
+Rule 23 (If center is True, pad_mode must be a valid string)
+{v_1 : bool, v_2 : str} |= if v_1 then (v_2 = "reflect" ∨ v_2 = "replicate" ∨ v_2 = "circular" ∨ v_2 = "constant")
 >>
-Rule 10 (If normalized is True, input tensor dtype must be float)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9
+Rule 24 (If onesided is True, n_fft must be greater than 0)
+{v_1 : bool, v_2 : int} |= if v_1 then v_2 > 0
 >>
-Rule 11 (If input tensor dtype is complex, onesided must be false)
-{v_1 : tensor, v_2 : bool} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then v_2 = false
->>
-Rule 12 (win_length must be less than or equal to input length plus 2 * padding if center is true)
-{v_1 : int, v_2 : int, v_3 : int, v_4 : bool} |= if v_4 = true then v_1 ≤ v_2 + 2 * v_3
->>
-Rule 13 (If center is True, padding length should be non-negative)
-{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≥ 0
->>
-Rule 14 (The input tensor should not be complex if onesided is True)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
->>
-Rule 15 (if return_complex is False, the output tensor will have an extra dimension of size 2)
-{v_1 : bool} |= if v_1 = false then true
->>
-Rule 16 (if input and window are real, default value of onesided is true, and if either is complex, default value is false)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) ∧ (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11) then true else false
->>
-Rule 17 (if input and window are complex, onesided is not possible)
-{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11) then v_3 = false
->>
-Rule 18 (the window's dtype must match that of the input tensor)
+Rule 25 (Ensure window and input tensor has compatible dtypes)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 37 (If win_length is not None, it should be a positive integer)
+{v_1 : int ⊎ str} |= if v_1 ≠ "none" then v_1 > 0
+>>
+Rule 39 (Ensure that win_length is not greater than n_fft, if both are provided as integers.)
+{v_1 : int, v_2 : int} |= if v_1 > 0 ∧ v_2 > 0 then v_1 <= v_2
+>>
+Rule 49 (hop_length, if not None, must be positive and less than or equal to n_fft)
+{v_1 : int ⊎ str, v_2 : int} |= if v_1 ≠ "none" then v_1 > 0 ∧ v_1 ≤ v_2
+>>
+Rule 51 (If a window is provided, it must be a 1D tensor whose length is win_length)
+{v_1 : tensor, v_2 : int ⊎ str} |= if v_2 ≠ "none" then ndim(v_1) = 1 ∧ shape(v_1, 0) = v_2 else ndim(v_1) = 1
+>>
+Rule 55 (Ensure win_length <= n_fft if win_length is an integer)
+{v_1 : int, v_2 : int ⊎ str} |= if v_2 ≠ "none" then v_1 ≤ v_2
+>>
+Rule 61 (n_fft must be a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 62 (If hop_length is not None, it must be a non-negative integer)
+{v_1 : int ⊎ str} |= if v_1 ≠ "none" then v_1 ≥ 0
+>>
+Rule 68 (If hop_length is not None, it must be a non-negative integer, less than or equal to n_fft)
+{v_1 : int ⊎ str, v_2 : int} |= if v_1 ≠ "none" then v_1 ≥ 0 ∧ v_1 ≤ v_2
+>>
+Rule 74 (hop_length must be None or a non-negative integer.)
+{v_1 : int ⊎ str} |= v_1 = "none" ∨ v_1 ≥ 0
+>>
+Rule 76 (If hop_length is provided as int and win_length is provide as int, then hop_length must be <= win_length)
+{v_1 : int, v_2 : int} |= v_1 <= v_2
+>>
+Rule 78 (window, if not None, has to be 1D.)
+{v_1 : tensor ⊎ str} |= v_1 = "none" ∨ ndim(v_1) = 1
+>>
+Rule 98 (If a window tensor is provided, it has to be one dimensional and smaller than or equal to n_fft)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 1 ∧ shape(v_1, 0) ≤ v_2
+>>
+Rule 102 (If hop_length is provided as an int, it must be <= n_fft and positive)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2 ∧ v_1 > 0
+>>
+Rule 107 (Ensure that win_length of window is less than or equal to n_fft)
+{v_1 : tensor, v_2 : int} |= shape(v_1,0) ≤ v_2
+>>
+Rule 109 (If hop_length is an int, it has to be greater than 0 and also less than or equal to n_fft)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_1 ≤ v_2
+>>
+Rule 112 (Ensure win_length of window is less than or equal to n_fft and window is 1D)
+{v_1 : tensor, v_2 : int} |= shape(v_1,0) ≤ v_2 ∧ ndim(v_1) = 1
+>>
+Rule 122 (If hop_length is provided, it has to be an int, and has to be > 0 and <= n_fft)
+{v_1 : int, v_2 : int ⊎ str} |= if v_2 ≠ "none" then v_1 > 0 ∧ v_1 ≤ v_2
+>>
+Rule 125 (If a window tensor is provided, it has to be one dimensional and if win_length is int then its length has to be <= n_fft)
+{v_1 : tensor, v_2 : int ⊎ str} |= if v_2 ≠ "none" then ndim(v_1) = 1 ∧ shape(v_1,0) ≤ v_2 else ndim(v_1) = 1
+>>
+Rule 131 (If a window tensor is provided, it has to be one dimensional, and less than or equal to n_fft)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 1 ∧ shape(v_1,0) ≤ v_2

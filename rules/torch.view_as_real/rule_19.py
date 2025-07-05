@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Only complex tensors are allowed. (Rule 19)
+# If the tensor is not complex, it is invalid (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11)) if n else
-          Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11))
+    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, False)) if n else
+          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, False))
 )
 
 def rule_19_func(arg1, solver=None, neg=False):

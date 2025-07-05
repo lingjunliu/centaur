@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if requires_grad is true, input dtype must be float or complex and not half precision (Rule 22)
+# If requires_grad is true and dtype is provided, dtype must be a floating point or complex type (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"], (And(v["arg1_dtype"] != 6, Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))), False)) if n else
-          If(v["arg2_value"], (And(v["arg1_dtype"] != 6, Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))), False))
+    s.add(Not(If(v["arg1_value"] == True, (And(v["arg2_value"] > 6, v["arg2_value"] < 11)), False)) if n else
+          If(v["arg1_value"] == True, (And(v["arg2_value"] > 6, v["arg2_value"] < 11)), False))
 )
 
 def rule_22_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,24 @@ def rule_22_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, bool):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_value = Bool('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == arg2)
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        rule_22(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)
+        rule_22(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

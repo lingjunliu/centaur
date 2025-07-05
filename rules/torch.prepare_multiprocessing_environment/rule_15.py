@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If multiprocessing environment is setup, rank argument is not greater than 1000 (Rule 15)
+# If timeout is specified then enable_signals must be true (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"], v["arg2_value"] <= 1000, False)) if n else
-          If(v["arg1_value"], v["arg2_value"] <= 1000, False))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] == True, False)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] == True, False))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):
@@ -18,19 +18,17 @@ def rule_15_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
             return False
-        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_value = Int('arg2_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_value == int(arg2))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 15
         rule_15(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

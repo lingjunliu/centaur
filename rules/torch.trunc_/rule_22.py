@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input is a 0-dimensional tensor, the output is also a 0-dimensional tensor (Rule 22)
+# If dtype is bool or complex, then return false, otherwise true (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, v["arg1_ndim"] == 0, False)) if n else
-          If(v["arg1_ndim"] == 0, v["arg1_ndim"] == 0, False))
+    s.add(Not(If(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False, False)) if n else
+          If(Or(Or(v["arg1_dtype"] == 0, v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False, False))
 )
 
 def rule_22_func(arg1, solver=None, neg=False):
@@ -22,15 +22,15 @@ def rule_22_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_ndim': arg1_ndim})
+        rule_22(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_ndim': arg1['ndim']}, neg)
+        rule_22(solver, {'arg1_dtype': arg1['dtype']}, neg)

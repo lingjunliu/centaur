@@ -1,54 +1,84 @@
 >>
-Rule 1 (input1, input2 and target should have the same dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
+Rule 1 (input1 and input2 must have the same dimension to avoid size mismatch)
+{input1 : tensor, input2 : tensor} |= ndim(input1) = ndim(input2)
 >>
-Rule 2 (input1, input2 and target tensors should have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_2) = dtype_(v_3)
+Rule 2 (input1, input2 and target must have the same shape to avoid size mismatch)
+{input1 : tensor, input2 : tensor, target : tensor} |= (ndim(input1) = ndim(input2) ∧ ndim(input2) = ndim(target) ∧  ∀i ∈ [0, ndim(input1) - 1] : shape(input1, i) = shape(input2, i) ∧ shape(input2, i) = shape(target, i))
 >>
-Rule 3 (The shapes of input1, input2, and target should be the same)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
+Rule 3 (reduction must be one of 'none', 'mean', or 'sum')
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
 >>
-Rule 4 (Target values should be either 1 or -1)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 1 ∨ v_1[i] = -1
+Rule 4 (input1, input2, and target must have at least one dimension when margin is provided)
+{input1 : tensor, input2 : tensor, target : tensor} |= ndim(input1) ≥ 1 ∧ ndim(input2) ≥ 1 ∧ ndim(target) ≥ 1
 >>
-Rule 5 (If input1 is empty, input2 and target should also be empty.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then (∃j ∈ [0, ndim(v_2) - 1] : shape(v_2, j) = 0 ∧ ∃k ∈ [0, ndim(v_3) - 1] : shape(v_3, k) = 0)
+Rule 5 (input1 and input2 must have compatible shapes)
+{input1 : tensor, input2 : tensor, target : tensor} |= (ndim(input1) = ndim(input2) ∧ ndim(input1) = ndim(target)) ∧ (shape(input1, 0) = shape(input2, 0) ∧ shape(input1, 0) = shape(target, 0))
 >>
-Rule 6 (margin should be greater than or equal to zero)
-{v_1 : float ⊎ int} |= v_1 ≥ 0
+Rule 6 (The target values must be either 1 or -1)
+{target : tensor} |= ∀i ∈ [0, shape(target, 0) -1]: (target[i] = 1) ∨ (target[i] = -1)
 >>
-Rule 7 (If input1 has dimension greater than zero, then the target dimension zero must have a size greater than zero)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then shape(v_3, 0) > 0
+Rule 7 (input1, input2 and target dimensions should be consistent)
+{input1 : tensor, input2 : tensor, target : tensor} |= ndim(input1) = ndim(input2) ∧ ndim(input2) = ndim(target)
 >>
-Rule 8 (target should contain only 1 or -1 values)
-{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1) ∨ (v_1[i] = -1)
+Rule 8 (reduction must be a valid string value)
+{reduction : str} |= reduction = "none" ∨ reduction = "mean" ∨ reduction = "sum"
 >>
-Rule 9 (If input1 is a scalar, input2 and target should also be scalar)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then (ndim(v_2) = 0 ∧ ndim(v_3) = 0)
+Rule 9 (input1 and input2's specific dimension size must match or be one)
+{input1 : tensor, input2 : tensor, target : tensor} |= ndim(input1) = ndim(input2) ∧ ndim(input1) = ndim(target) ∧ ∀i ∈ [0, ndim(input1) - 1] : (shape(input1, i) = shape(input2, i)) ∨ shape(input1, i) = 1 ∨ shape(input2, i) = 1
 >>
-Rule 10 (If reduction is none, input tensors must have the same shape)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "none" then (ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i))
+Rule 10 (input1, input2 and target should have compatible shapes)
+{input1 : tensor, input2 : tensor, target : tensor} |= ndim(input1) = ndim(input2) ∧ ndim(input1) = ndim(target) ∧ shape(input1, 0) = shape(input2, 0) ∧ shape(input1, 0) = shape(target, 0)
 >>
-Rule 11 (if any dimension of input1 is zero, all dimensions of input1, input2, and target must be zero)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then (∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = 0 ∧ ∀k ∈ [0, ndim(v_2) - 1] : shape(v_2, k) = 0 ∧ ∀l ∈ [0, ndim(v_3) - 1] : shape(v_3, l) = 0)
+Rule 11 (input1's dimension size should not be zero, to avoid size mismatch)
+{input1 : tensor} |= ndim(input1) > 0 ∧ shape(input1, 0) > 0
 >>
-Rule 12 (The length of input1 should be same with length of target)
-{v_1 : tensor, v_3 : tensor} |= shape(v_1, 0) = shape(v_3, 0)
+Rule 12 (input1, input2, and target should have the same shape at dimension 0 to avoid dimension mismatch)
+{input1 : tensor, input2 : tensor, target : tensor} |= shape(input1, 0) = shape(input2, 0) ∧ shape(input1, 0) = shape(target, 0)
 >>
-Rule 13 (The length of input2 should be same with length of target)
-{v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0)
+Rule 13 (reduction should be a valid string, avoid value error)
+{reduction : str} |= reduction = "mean" ∨ reduction = "sum" ∨ reduction = "none"
 >>
-Rule 14 (If input1 is not empty, then input1, input2, and target must have the same number of elements in the first dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1, 0) > 0 then (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0))
+Rule 14 (input1, input2 and target should have consistent dimensions to avoid size mismatch)
+{input1 : tensor, input2 : tensor, target : tensor} |= (ndim(input1) > 0) ∧ (shape(input1, 0) > 0) ∧ (ndim(input2) > 0) ∧ (shape(input2, 0) > 0) ∧ (ndim(target) > 0) ∧ (shape(target, 0) > 0) ∧ (ndim(input1) = ndim(input2)) ∧ (ndim(input1) = ndim(target))
 >>
-Rule 15 (If reduction is 'none' then the output tensor has the same shape as the input tensors)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if v_4 = "none" then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) = shape(v_3, i)
+Rule 18 (All input tensors must have the same shape along the first dimension)
+{input1 : tensor, input2 : tensor, target : tensor} |= shape(input1, 0) = shape(input2, 0) ∧ shape(input2, 0) = shape(target, 0)
 >>
-Rule 16 (If input1, input2 and target are not empty, then they must have the same number of elements in their first dimension.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0 ∧ shape(v_3, 0) > 0 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) = shape(v_3, 0)
+Rule 19 (If the size of input1 at dimension 0 is zero, then the size of input2 and target at dimension 0 must also be zero)
+{input1 : tensor, input2 : tensor, target : tensor} |= if shape(input1, 0) = 0 then shape(input2, 0) = 0 ∧ shape(target, 0) = 0
 >>
-Rule 17 (The shapes of input1 and input2 must be the same.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 31 (All input tensors must have the same shape along dimension 0 to prevent RuntimeError)
+{input1 : tensor, input2 : tensor, target : tensor} |= shape(input1, 0) = shape(input2, 0) ∧ shape(target, 0) = shape(input2, 0)
 >>
-Rule 18 (if reduction is sum or mean, then the output tensor must be a scalar.)
-{v_1 : str} |= if v_1 = "sum" then true else if v_1 = "mean" then true
+Rule 32 (If input1 is empty, input2 and target must also be empty to avoid size mismatch)
+{input1 : tensor, input2 : tensor, target : tensor} |= if (∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0) then (∃j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0) ∧ (∃k ∈ [0, ndim(target) - 1] : shape(target, k) = 0)
+>>
+Rule 36 (If input1 is empty on any dimension, input2 and target must also be empty to avoid the first error)
+{input1 : tensor, input2 : tensor, target : tensor} |= if ∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0 then (∃j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0) ∧ (∃k ∈ [0, ndim(target) - 1] : shape(target, k) = 0)
+>>
+Rule 40 (If input1 has a zero-sized dimension, the rest should as well)
+{input1 : tensor, input2 : tensor, target : tensor} |= if ∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0 then (∀j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0) ∧ (∀k ∈ [0, ndim(target)-1] : shape(target, k) = 0)
+>>
+Rule 48 (If input1 is empty, then input2 and target are empty as well to avoid the size error)
+{input1 : tensor, input2 : tensor, target : tensor} |= if (∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0) then ((∃j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0) ∧ (∃k ∈ [0, ndim(target) - 1] : shape(target, k) = 0))
+>>
+Rule 52 (If input1 has a dimension with size 0, input2 and target must have size 0 on corresponding dimensions.)
+{input1 : tensor, input2 : tensor, target : tensor} |= ∀i ∈ [0, if ndim(input1) ≥ ndim(input2) then ndim(input1) - 1 else ndim(input2) - 1] : (i ≥ ndim(input1) ∨ i ≥ ndim(input2) ∨ i ≥ ndim(target) ∨ (shape(input1, i) = 0 ∧ shape(input2, i) = 0 ∧ shape(target, i) = 0))
+>>
+Rule 54 (Input tensors must have at least one dimension to prevent RuntimeError)
+{input1 : tensor, input2 : tensor, target : tensor} |= ndim(input1) > 0 ∧ ndim(input2) > 0 ∧ ndim(target) > 0
+>>
+Rule 60 (If input1 has a dimension of size 0, then input2 and target must also have a dimension of size 0 to avoid size mismatch)
+{input1 : tensor, input2 : tensor, target : tensor} |= if ∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0 then ∃j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0 ∧ ∃k ∈ [0, ndim(target) - 1] : shape(target, k) = 0
+>>
+Rule 64 (If any of the input tensors has a dimension of size 0, then input2 and target tensors must have a dimension of size 0)
+{input1 : tensor, input2 : tensor, target : tensor} |= if ∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0 then (∃j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0) ∧ (∃l ∈ [0, ndim(target) - 1] : shape(target, l) = 0)
+>>
+Rule 72 (If one of input tensors has shape 0, all the other shapes must be 0)
+{input1 : tensor, input2 : tensor, target : tensor} |= if (∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0) then (∀j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0) ∧ (∀k ∈ [0, ndim(target) - 1] : shape(target, k) = 0)
+>>
+Rule 84 (To avoid the size mismatch error, if any of the input tensors is empty, then all input tensors must be empty.)
+{input1 : tensor, input2 : tensor, target : tensor} |= if ∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0 then (∀j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0) ∧ (∀k ∈ [0, ndim(target) - 1] : shape(target, k) = 0)
+>>
+Rule 100 (To prevent a size mismatch, if any of the input tensors has a dimension with size 0, then all input tensors must have a dimension with size 0)
+{input1 : tensor, input2 : tensor, target : tensor} |= if ∃i ∈ [0, ndim(input1) - 1] : shape(input1, i) = 0 then ((∃j ∈ [0, ndim(input2) - 1] : shape(input2, j) = 0) ∧ (∃k ∈ [0, ndim(target) - 1] : shape(target, k) = 0))

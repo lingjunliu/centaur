@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if start_dim > 0, check that end_dim is valid (Rule 23)
+# If ndim of tensor equals 1, start_dim and end_dim must be zero (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] > 0, (v["arg3_value"] < v["arg1_ndim"]), False)) if n else
-          If(v["arg2_value"] > 0, (v["arg3_value"] < v["arg1_ndim"]), False))
+    s.add(Not(If(v["arg1_ndim"] == 1, And(v["arg2_value"] == 0, v["arg3_value"] == 0), False)) if n else
+          If(v["arg1_ndim"] == 1, And(v["arg2_value"] == 0, v["arg3_value"] == 0), False))
 )
 
 def rule_23_func(arg1, arg2, arg3, solver=None, neg=False):

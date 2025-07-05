@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The data type of the input tensor must be a floating point number if specified output is also a floating point number (Rule 12)
+# If the desired output dtype is str, then the input dtype should not be complex (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg2_value"] == 7, v["arg2_value"] == 8), Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False)) if n else
-          If(Or(v["arg2_value"] == 7, v["arg2_value"] == 8), Or(Or(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10), False))
+    s.add(Not(Or((v["arg2_value"] != 11), (And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)))) if n else
+          Or((v["arg2_value"] != 11), (And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

@@ -1,51 +1,102 @@
 >>
-Rule 1 (narrow_copy API parameters should satisfy dimension range and start/length bounds)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1 ∧ shape(v_1, v_2) + v_3 ≥ v_4 ∧ v_4 ≥ 0 ∧ v_3 ≤ shape(v_1, v_2)
+Rule 1 (dim must be within the valid range of dimensions)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 2 (start + length should not exceed the dimension size)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= shape(v_1, v_2) ≥ 0 ∧ v_3 + v_4 ≤ shape(v_1, v_2)
+Rule 3 (start + length must not exceed the dimension size)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_3 + v_4 ≤ shape(v_1, v_2)
 >>
-Rule 3 (length must be weakly positive)
+Rule 4 (length must be weakly positive)
 {v_4 : int} |= v_4 ≥ 0
 >>
-Rule 4 (dimension should be a valid dimension of the tensor)
-{v_1 : tensor, v_2 : int} |= -1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
->>
-Rule 5 (start must be within the valid range for the given dimension)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 then v_3 ≥ (0 - shape(v_1, v_2)) else v_3 < shape(v_1, v_2)
->>
-Rule 6 (if dim is negative, then start + dim_size should be greater than or equal to length, and start should be less than or equal to zero)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_2 < 0 then (v_3 + shape(v_1, v_2)) ≥ v_4 ∧ v_3 ≤ 0
->>
-Rule 7 (if dim is non-negative, then start must be non-negative)
-{v_2 : int, v_3 : int} |= if v_2 ≥ 0 then v_3 ≥ 0
->>
-Rule 8 (if dim is negative, access the dimension using negative indexing)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then shape(v_1, ndim(v_1) + v_2) ≥ 0
->>
-Rule 9 (Start + Length Can Be Less Than or Equal to Zero When Start is Negative, Otherwise the Result is an Empty Tensor in The Specified Dimension)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_3 < 0 then (v_3 + v_4 + shape(v_1, v_2)) ≤ 0
->>
-Rule 10 (If Length Is Zero, Then The Function Returns an Empty Tensor Along The Specified Dimension )
-{v_4 : int} |= if v_4 = 0 then true else false ∨ v_4 > 0
->>
-Rule 11 (dtype of input tensor should be int or float )
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
->>
-Rule 12 (If Length Is Zero and Start is Negative, Start should at least large enough to avoid out of range issues with negative indices)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_4 = 0 ∧ v_3 < 0 then v_3 + shape(v_1, v_2) ≥ 0
->>
-Rule 13 (If Length is greater then zero and Start plus length is larger then shape of dimension, the maximum of the dimension value should be taken.)
-{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_4 > 0 then (v_3 + v_4) ≤ shape(v_1, v_2) ∨ (v_3 + v_4) > shape(v_1, v_2)
->>
-Rule 14 (If dim is a valid dimension index )
-{v_1 : tensor, v_2 : int} |= ∃i ∈ [0, ndim(v_1) - 1] : v_2 = i ∨ ∃i ∈ [0, ndim(v_1) - 1]: v_2 = (0 - (i + 1))
->>
-Rule 15 (If the resulting length after narrow is 0, the dimension shape must have at least length 1)
-{v_1 : tensor, v_2 : int, v_4 : int} |= if v_4 = 0 then shape(v_1, v_2) ≥ 1
->>
-Rule 16 (The dimension has to be smaller than the number of dimensions of the tensor)
+Rule 9 (dim must be a valid dimension index for the input tensor)
 {v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
 >>
-Rule 17 (Start parameter has to be int)
-{v_3 : int} |= v_3 = v_3
+Rule 10 (start must be within the allowed range, taking dimension size into consideration, non-negative start)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≥ 0 then v_3 < shape(v_1, v_2) else false
+>>
+Rule 11 (Negative start must be within the allowed range of the specified dimension.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 then v_3 ≥ (0 - shape(v_1, v_2))
+>>
+Rule 13 (dim is non-negative)
+{v_2 : int} |= v_2 ≥ 0
+>>
+Rule 15 (Valid range check)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_3 ≥ 0 then (v_3 < shape(v_1, v_2) ∧ v_3 + v_4 ≤ shape(v_1, v_2)) else if v_3 < 0 then (v_3 ≥ (0 - shape(v_1, v_2)) ∧ v_3 + v_4 ≤ shape(v_1,v_2))
+>>
+Rule 18 (Ensuring start is within bounds, considering positive starts)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 ≥ 0 then v_3 < shape(v_1, v_2)
+>>
+Rule 19 (Ensuring negative start values are acceptable)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_3 < 0 then (v_3 + shape(v_1, v_2)) ≥ 0
+>>
+Rule 20 (start and length combined constraints)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 21 (Combining dimension and start constraints, positive start)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 < ndim(v_1) ∧ if v_3 ≥ 0 then v_3 < shape(v_1, v_2)
+>>
+Rule 22 (Combining dimension and start constraints, negative start)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 < ndim(v_1) ∧ if v_3 < 0 then (v_3 + shape(v_1, v_2)) ≥ 0
+>>
+Rule 23 (Full constraint, including start, length and dimension.)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 < ndim(v_1) ∧ (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 25 (Dimension within range, considering total dimensions of the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 27 (Dimension within range, with combined start and length check.)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ if v_3 < 0 then (v_3 + shape(v_1, v_2)) ≥ 0 ∧ (v_3 + v_4) ≤ shape(v_1, v_2) else v_3 < shape(v_1, v_2) ∧ (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 29 (Combined validation for dimension, start, length, accounting for negative indexing)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_4 ≥ 0 ∧ if v_3 < 0 then (v_3 + shape(v_1, v_2)) ≥ 0 ∧ (v_3 + v_4) ≤ shape(v_1, v_2) else v_3 < shape(v_1, v_2) ∧ (v_3 + v_4) ≤ shape(v_1, v_2)
+>>
+Rule 31 (Dimension within valid range)
+{v_1 : tensor, v_2 : int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 32 (Length must be weakly positive)
+{v_4 : int} |= v_4 >= 0
+>>
+Rule 33 (Checking for positive start)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_3 >= 0 then v_3 < shape(v_1, v_2) ∧ (v_3 + v_4) <= shape(v_1, v_2)
+>>
+Rule 34 (Checking for negative start)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= if v_3 < 0 then (v_3 + shape(v_1, v_2)) >= 0 ∧ (v_3 + v_4) <= shape(v_1, v_2)
+>>
+Rule 35 (Dimension is within bounds and length is non-negative)
+{v_1 : tensor, v_2 : int, v_4 : int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_4 >= 0
+>>
+Rule 38 (Combined Range Check for Positive and Negative Start Values)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_4 >= 0 ∧ if v_3 < 0 then (v_3 + shape(v_1, v_2)) >= 0 else v_3 < shape(v_1, v_2) ∧ (v_3 + v_4) <= shape(v_1, v_2)
+>>
+Rule 39 (Comprehensive check for dimension, start, and length validity, covering both positive and negative start values)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_4 >= 0 ∧ if v_3 < 0 then (v_3 + shape(v_1, v_2)) >= 0 ∧ (v_3 + v_4) <= shape(v_1, v_2)
+>>
+Rule 40 (Final Combined Validation Rule for narrow_copy)
+{v_1 : tensor, v_2 : int, v_3 : int, v_4 : int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 < ndim(v_1) ∧ v_4 >= 0 ∧ if v_3 < 0 then (v_3 + shape(v_1, v_2)) >= 0 ∧ (v_3 + v_4) <= shape(v_1, v_2) else v_3 < shape(v_1, v_2) ∧ (v_3 + v_4) <= shape(v_1, v_2)
+>>
+Rule 44 (Dimension and length should be non-negative)
+{v_2 : int, v_4 : int} |= v_2 ≥ 0 ∧ v_4 ≥ 0
+>>
+Rule 45 (Ensure length is non-negative given a valid dimension)
+{v_1: tensor, v_2: int, v_4: int} |= v_2 < ndim(v_1) ∧ v_4 >= 0
+>>
+Rule 50 (Dimension is valid if its absolute value is less than the number of dimensions)
+{v_1 : tensor, v_2 : int} |= max(v_2, 0 - v_2) < ndim(v_1)
+>>
+Rule 51 (Valid dimension check, covering both positive and negative indexing ranges)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 ≥ (0 - ndim(v_1)) else v_2 < ndim(v_1)
+>>
+Rule 52 (Dimension validity check)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) >= 0
+>>
+Rule 53 (Check dimension is valid for tensor)
+{v_1 : tensor, v_2 : int} |= if v_2 >= 0 then v_2 < ndim(v_1) else v_2 + ndim(v_1) >= 0
+>>
+Rule 55 (Check valid dimension range)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then ndim(v_1) + v_2 >= 0 else v_2 < ndim(v_1)
+>>
+Rule 56 (Ensure valid dimension)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 61 (dim is valid dimension)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then v_2 + ndim(v_1) ≥ 0 else v_2 < ndim(v_1)

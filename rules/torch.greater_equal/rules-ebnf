@@ -1,30 +1,42 @@
 >>
-Rule 1 (input tensor and other tensor should have the same shape)
-{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+Rule 3 (input tensors cannot be complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 2 (input tensor's dtype should not be bool)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 8 (if one of the tensors is empty the other must be also)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) ∨ (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) > 0)
 >>
-Rule 3 (if one of the tensors has zero dimensions, the other one's shape is irrelevant)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_2) = 0 then true
+Rule 10 (check if out is a tensor when specified)
+{v_3 : tensor} |= ndim(v_3) ≥ 0
 >>
-Rule 4 (input tensor must have at least one dimension to ensure meaningful comparison)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 12 (the out tensor dtype cannot be complex)
+{v_3: tensor} |= dtype_(v_3) ≠ 10 ∧ dtype_(v_3) ≠ 11
 >>
-Rule 5 (if input is empty, all values in output will be true.)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 13 (if other is a number, input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 6 (The input tensor should have numerical dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 14 (if out is specified, it should have the same dtype as input)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
 >>
-Rule 7 (The other tensor should have numerical dtype)
-{v_2 : tensor} |= dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 11 ∧ dtype_(v_2) ≠ 12
+Rule 15 (if out is specified, it should have the same shape as input)
+{v_1 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i)
 >>
-Rule 8 (The input tensor should not be complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 16 (if one of the tensors is empty the other must be also)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = 0) ∨ (ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1,i) = shape(v_2,i) ))
 >>
-Rule 9 (If the other tensor has more than one dimension, then it should have positive shape dimensions)
-{v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+Rule 24 (if one of the tensors is empty the other must be also)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = 0) ∧ (∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) = 0) ∨ (∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) > 0)
 >>
-Rule 10 (If the first tensor has more than one dimension, then it should have positive shape dimensions)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+Rule 26 (if input and other are tensors, they must have the same dtype or be able to promote to a common dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = dtype_(v_1)
+>>
+Rule 28 (if input and other are tensors, their sizes must match where not singleton)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 51 (if other is a complex tensor, input must be a complex tensor)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_2) = 10 ∨ dtype_(v_2) = 11 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 59 (if input is complex, then other must also be complex)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = dtype_(v_1)
+>>
+Rule 78 (if input is complex, the other argument cannot be a number.)
+{v_1: tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then false

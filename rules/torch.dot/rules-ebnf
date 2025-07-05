@@ -1,54 +1,105 @@
 >>
-Rule 1 (input and tensor must be 1D tensors with the same number of elements and same dtype)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2)
+Rule 1 (input tensors must be 1D)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
 >>
-Rule 2 (output tensor dtype should match input tensors dtype if provided)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ false then dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_3)
->>
-Rule 3 (out argument, if provided, should be a tensor)
-{v_3 : tensor ⊎ bool} |= if v_3 ≠ false then ndim(v_3) ≥ 0
->>
-Rule 4 (the length of the input tensors must be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
->>
-Rule 5 (if out tensor is provided, its shape must match the expected output shape (scalar))
-{v_3 : tensor ⊎ bool} |= if v_3 ≠ false then ndim(v_3) = 0
->>
-Rule 6 (out argument should be a tensor if provided and the data type should be floating point)
-{v_3 : tensor ⊎ bool} |= if v_3 ≠ false then 6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8
->>
-Rule 7 (If out is provided, out's number of elements should match the expected one.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ false then shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 8 (The input tensors must have the same size, enforced by checking their product to be equal)
+Rule 2 (input tensors must have the same number of elements)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 9 (if v_3 is given, the dtype of v_1 should be the same as dtype of v_3, v_3 should be a floating point dtype)
-{v_1 : tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then dtype_(v_1) = dtype_(v_3) ∧ (6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8)
+Rule 3 (input tensors must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 10 (The dtype of the input tensors should be in valid dtypes list [1-11])
-{v_1 : tensor, v_2 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11
+Rule 6 (input tensor dimension check combined)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 11 (If the input tensor's dtype is int, out dtype should also be an int.)
-{v_1 : tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 5)
+Rule 7 (input tensor size check)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 12 (If input tensors are bool, then out dtype should also be bool)
-{v_1 : tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then (dtype_(v_1) = 0) ∧ (dtype_(v_3) = 0)
+Rule 8 (Combined rule for 1D tensor and same dtype)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 13 (The dtype of the output tensor should be complex if any input tensor is complex.)
-{v_1 : tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+Rule 12 (check tensor dimension is valid - non negative)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
 >>
-Rule 14 (If both input tensors have different dtypes, the output tensor dtype must be the larger one)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then (dtype_(v_1) ≠ dtype_(v_2)) ∧ (if dtype_(v_1) > dtype_(v_2) then dtype_(v_3) = dtype_(v_1) else dtype_(v_3) = dtype_(v_2))
+Rule 13 (out tensor dtype matches inputs)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
 >>
-Rule 15 (The output tensor cannot be one of the input tensors.)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then v_3 ≠ v_1 ∧ v_3 ≠ v_2
+Rule 15 (Combined check for 1D tensors with same shape and dtype)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 16 (If out tensor is provided, its dtype should be a float if any of input tensors is float)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then ((dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∨ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)) ∧ (dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8)
+Rule 19 (dtype should be one of supported dtypes)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 17 (out tensor's dtype must be complex if one of the input tensors' dtype is complex)
-{v_1 : tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then ((dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∨ (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)) ∧ (dtype_(v_3) = 9 ∨ dtype_(v_3) = 10)
+Rule 21 (Check out argument is of tensor type)
+{v_3 : tensor ⊎ str} |= v_3 = "none" ∨ v_3 = "mean" ∨ v_3 = "sum" ∨ v_3 = "max" ∨ v_3 = "constant" ∨ v_3 = "tanh"
 >>
-Rule 18 (If both inputs are integer type, then the output should also be integer if out is provided.)
-{v_1: tensor, v_3 : tensor ⊎ bool} |= if v_3 ≠ false then (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 5)
+Rule 23 ( out tensor has right dimension)
+{v_3 : tensor} |= ndim(v_3) = 0
+>>
+Rule 28 (Check out argument is valid type)
+{v_3 : str} |= v_3 = "none"
+>>
+Rule 34 (Check out argument is of valid type i.e. tensor or None)
+{v_3 : tensor ⊎ str} |= v_3 = "none" ∨ (ndim(v_3) = 0 ∧ dtype_(v_1) = dtype_(v_3))
+>>
+Rule 43 (Check output argument when it's a tensor)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3) ∧ ndim(v_3) = 0
+>>
+Rule 44 (Check output argument is correct - either "none" or compatible tensor)
+{v_1 : tensor, v_3 : tensor ⊎ str} |= (v_3 = "none") ∨ (dtype_(v_1) = dtype_(v_3) ∧ ndim(v_3) = 0)
+>>
+Rule 46 (Check out argument is of valid type i.e. tensor or None string)
+{v_3 : tensor ⊎ str} |= (v_3 = "none") ∨ (ndim(v_3) = 0)
+>>
+Rule 47 (If out tensor is provided, dtype of the input tensor and out tensor should match)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ "none" then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 53 (Combined check for 1D tensors having same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 55 (Combined dtype check - tensors 1 and 2 should have the same dtype, and if v_3 given then that too)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 60 (If out tensor specified, then dimensions and dtype must match)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then dtype_(v_1) = dtype_(v_3) else false
+>>
+Rule 67 (Out tensor argument check -- requires correct type, dimension, and dtype)
+{v_1 : tensor, v_3 : tensor ⊎ str} |= (v_3 = "none") ∨ (ndim(v_3) = 0 ∧ dtype_(v_1) = dtype_(v_3))
+>>
+Rule 71 (Check that out parameter is of a valid type (tensor or "none"))
+{v_3 : tensor ⊎ str} |= v_3 = "none" ∨ ndim(v_3) = 0
+>>
+Rule 75 (If out tensor is specified, then the dimensions and the dtype must be compatible with the inputs)
+{v_1 : tensor, v_3 : tensor ⊎ str} |= (v_3 = "none") ∨ (if v_3 ≠ "none" then (ndim(v_3) = 0 ∧ dtype_(v_1) = dtype_(v_3)))
+>>
+Rule 78 (If any tensor is specified, its shape must not be negative.)
+{v_1 : tensor, v_2: tensor} |= shape(v_1, 0) >= 0 ∧ shape(v_2, 0) >= 0
+>>
+Rule 82 (Combined requirements - Dtype of input tensors, correct scalarity of the output)
+{v_1 : tensor, v_2: tensor, v_3 : tensor ⊎ str} |= dtype_(v_1) = dtype_(v_2) ∧ ((v_3 = "none") ∨ (dtype_(v_1) = dtype_(v_3) ∧ ndim(v_3) = 0))
+>>
+Rule 86 (Tensors are 1D, of the same length and data type and shape should be a positive number)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 0) > 0 ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 90 (Input Tensors must be non-empty)
+{v_1 : tensor} |= shape(v_1,0) > 0
+>>
+Rule 91 (Both inputs are tensors with dimensions 1, of the same size, with the same data type, and the size is positive)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2) ∧ shape(v_1, 0) > 0
+>>
+Rule 96 (Non empty input tensors.)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 101 (Inputs should be compatible in data type)
+{v_1 : tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 105 (One of possible data types)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+>>
+Rule 108 (Check if the input tensors is a floating-point data type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 109 (Input validation: tensors with matching dtypes and 1D tensors with matching shapes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 111 (Input must be of a valid datatype)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10

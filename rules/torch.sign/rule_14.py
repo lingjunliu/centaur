@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input tensor is quantized, out tensor, if provided, should also be quantized (Rule 14)
+# if input is float and out is given, out should be of same type or promote to Double (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If((And(v["arg1_dtype"] > 8, v["arg1_dtype"] < 12)), (And(v["arg2_dtype"] > 8, v["arg2_dtype"] < 12)), False)) if n else
-          If((And(v["arg1_dtype"] > 8, v["arg1_dtype"] < 12)), (And(v["arg2_dtype"] > 8, v["arg2_dtype"] < 12)), False))
+    s.add(Not(If(v["arg1_dtype"] == 7, (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), False)) if n else
+          If(v["arg1_dtype"] == 7, (Or(v["arg2_dtype"] == 7, v["arg2_dtype"] == 8)), False))
 )
 
 def rule_14_func(arg1, arg2, solver=None, neg=False):

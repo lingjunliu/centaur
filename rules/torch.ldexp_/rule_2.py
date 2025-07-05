@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Output shape should be broadcastable with input tensor shape (Rule 2)
+# output dtype should be able to accommodate the input dtype (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), If(v["arg1_ndim"] - i - 1 < 0, True, If(v["arg2_ndim"] - i - 1 < 0, True, Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1, Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1))))) for i in range(6)])) if n else
-          And([Implies(i < (If(v["arg1_ndim"] >= v["arg2_ndim"], v["arg1_ndim"] - 1, v["arg2_ndim"] - 1) + 1), If(v["arg1_ndim"] - i - 1 < 0, True, If(v["arg2_ndim"] - i - 1 < 0, True, Or(Or(Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == 1, Select(v["arg2_shape"], v["arg2_ndim"] - i - 1) == 1), Select(v["arg1_shape"], v["arg1_ndim"] - i - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - i - 1))))) for i in range(6)]))
+    s.add(Not(Or(Or((And(v["arg1_value"] == 6, v["arg2_value"] == 6)), (And(v["arg1_value"] == 7, (Or(v["arg2_value"] == 6, v["arg2_value"] == 7))))), (And(v["arg1_value"] == 8, (Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8)))))) if n else
+          Or(Or((And(v["arg1_value"] == 6, v["arg2_value"] == 6)), (And(v["arg1_value"] == 7, (Or(v["arg2_value"] == 6, v["arg2_value"] == 7))))), (And(v["arg1_value"] == 8, (Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8))))))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):
@@ -18,30 +18,24 @@ def rule_2_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 2
-        rule_2(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
+        rule_2(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_2(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)
+        rule_2(solver, {'arg1_value': arg1['value'], 'arg2_value': arg2['value']}, neg)

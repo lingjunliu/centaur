@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor to torch.trunc must have a numerical dtype (Rule 1)
+# Input tensor should not be boolean (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 9)) if n else
-          And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 9))
+    s.add(Not(v["arg1_dtype"] != 0) if n else
+          v["arg1_dtype"] != 0)
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

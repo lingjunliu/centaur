@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The input tensor can't be int8, int16, int32, int64, uint8 (Rule 17)
+# If the dtype is dtype then it should not be complex (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 6), v["arg1_dtype"] != 7), v["arg1_dtype"] != 8)) if n else
-          And(And(And(And(And(And(And(v["arg1_dtype"] != 1, v["arg1_dtype"] != 2), v["arg1_dtype"] != 3), v["arg1_dtype"] != 4), v["arg1_dtype"] != 5), v["arg1_dtype"] != 6), v["arg1_dtype"] != 7), v["arg1_dtype"] != 8))
+    s.add(Not(If(v["arg1_dtype"] == 12, False, False)) if n else
+          If(v["arg1_dtype"] == 12, False, False))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

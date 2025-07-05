@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dtype of tensor is floating point then min of the tensor has to be positive. (Rule 25)
+# torch.is_anomaly_check_nan_enabled takes no arguments, using a dummy int parameter and multiplication (Rule 25)
 
 rule_25 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) > 0, False)) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), Select(v["arg1_range"], 0) > 0, False))
+    s.add(Not(v["arg1_value"] * 1 == v["arg1_value"]) if n else
+          v["arg1_value"] * 1 == v["arg1_value"])
 )
 
 def rule_25_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_25_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 25
-        rule_25(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_25(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_25(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_25(solver, {'arg1_value': arg1['value']}, neg)

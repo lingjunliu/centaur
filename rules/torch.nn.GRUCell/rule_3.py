@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is a 2D tensor, then the batch size of input and hidden should match (Rule 3)
+# input and hidden tensors should have the same batch size, checking first dimension if ndim > 0 (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), False)) if n else
-          If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), False))
+    s.add(Not(If(v["arg1_ndim"] > 0, (If(v["arg2_ndim"] > 0, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), False)), False)) if n else
+          If(v["arg1_ndim"] > 0, (If(v["arg2_ndim"] > 0, Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], 0), False)), False))
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

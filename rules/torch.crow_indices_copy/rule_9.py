@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Tensor with floating point dtype must have maximum value less than 10 (Rule 9)
+# crow_indices_copy only takes one positional argument, which must be a tensor with non-negative values and integer dtype (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Select(v["arg1_range"], 1) < 10, False)) if n else
-          If(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), Select(v["arg1_range"], 1) < 10, False))
+    s.add(Not(And(And(Select(v["arg1_range"], 0) >= 0, 1 <= v["arg1_dtype"]), v["arg1_dtype"] <= 5)) if n else
+          And(And(Select(v["arg1_range"], 0) >= 0, 1 <= v["arg1_dtype"]), v["arg1_dtype"] <= 5))
 )
 
 def rule_9_func(arg1, solver=None, neg=False):
@@ -31,9 +31,9 @@ def rule_9_func(arg1, solver=None, neg=False):
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_9(solver, {'arg1_range': arg1_range, 'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_9(solver, {'arg1_range': arg1['range'], 'arg1_dtype': arg1['dtype']}, neg)

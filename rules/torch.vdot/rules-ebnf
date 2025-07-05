@@ -1,72 +1,126 @@
 >>
-Rule 1 (input tensors must be 1D and have the same shape, and their dtypes must match)
+Rule 1 (input and other tensors must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (input and other tensors must be 1D)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+>>
+Rule 3 (input and other tensors must have compatible dtypes. Avoid Float vs Double)
+{v_1 : tensor, v_2 : tensor} |=  (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ (dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8)
+>>
+Rule 4 (input and other tensors must have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 7 (Prevent float64 and float32 mismatch.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8
+>>
+Rule 9 (The dtypes of the tensors must be valid)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 0 ∧ dtype_(v_1) ≤ 12) ∧ (dtype_(v_2) ≥ 0 ∧ dtype_(v_2) ≤ 12)
+>>
+Rule 10 (If the first tensor is float32, the second one also has to be float32.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7
+>>
+Rule 11 (If the first tensor is float64, the second one also has to be float64.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8
+>>
+Rule 12 (Both tensors must have at least one dimension.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 14 (Both tensors must have a compatible dtype or both are not float types.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (dtype_(v_1) < 7 ∧ dtype_(v_2) < 7) ∨ (dtype_(v_1) > 8 ∧ dtype_(v_2) > 8)
+>>
+Rule 15 (If the first tensor is float32, the second one also has to be float32, otherwise if first tensor is float64, second one has to be float64, otherwise both should not be float.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else (dtype_(v_1) < 7 ∨ dtype_(v_1) > 8) ∧ (dtype_(v_2) < 7 ∨ dtype_(v_2) > 8)
+>>
+Rule 17 (Tensors should have compatible datatypes. Enforce that if one is floating, so must be the other)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 7 ∧ dtype_(v_1) ≤ 8) = (dtype_(v_2) ≥ 7 ∧ dtype_(v_2) ≤ 8)
+>>
+Rule 19 (Input tensor dimensions cannot be greater than 1)
+{v_1 : tensor} |= ndim(v_1) ≤ 1
+>>
+Rule 23 (Ensure both tensors datatypes are either both floating or neither is floating.)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)) ∨ ((dtype_(v_1) < 7 ∨ dtype_(v_1) > 8) ∧ (dtype_(v_2) < 7 ∨ dtype_(v_2) > 8))
+>>
+Rule 25 (The product of the dimensions of each tensor must be equal since shapes must match and ndim = 1)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧  ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0 ∧ ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 26 (Tensors have the same datatype, prevent Float vs Double)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ ((dtype_(v_1) < 7 ∨ dtype_(v_1) > 8) ∧ (dtype_(v_2) < 7 ∨ dtype_(v_2) > 8))
+>>
+Rule 27 (Input and Other are 1D tensors)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1
+>>
+Rule 28 (If one of the tensors is a float, the other has to be a float)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) = ((dtype_(v_2) = 7) ∨ (dtype_(v_2) = 8))
+>>
+Rule 29 (Shape and datatype are same for both tensors)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (If input tensor v_1 is complex, then input tensor v_2 must also be complex.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 30 (Prevent the combination of Float32 and Float64 dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 7 ∨ dtype_(v_2) ≠ 8) ∧ (dtype_(v_1) ≠ 8 ∨ dtype_(v_2) ≠ 7)
 >>
-Rule 3 (The size of the first dimension of v_1 should not be zero)
-{v_1 : tensor} |= shape(v_1, 0) > 0
+Rule 32 (If the tensors are float, they must be the same kind of float)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 7) then (dtype_(v_2) = 7) else if (dtype_(v_1) = 8) then (dtype_(v_2) = 8)
 >>
-Rule 4 (If v_1's dtype is float16, v_2's dtype cannot be complex64 or complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+Rule 37 (v_1 and v_2 are tensors with ndim = 1 and the same shape[0])
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 5 (The dtypes of v_1 and v_2 can only be int8, int16, int32, int64, float16, float32, float64, complex64 or complex128.)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 38 (Both tensors should have same dtype, and if they are floats they should be the same precision. Avoiding float32 vs float64)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ ((dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8) ∨ (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8) ∨ (dtype_(v_1) = dtype_(v_2)))
 >>
-Rule 6 (If v_1 is of dtype bool then v_2 also has to be of dtype bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+Rule 39 (Shape and datatype should match for both tensors and each dimension must be non-zero)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2) ∧ shape(v_1, 0) > 0
 >>
-Rule 7 (If v_1's dtype is np.int8, then v_2's dtype cannot be float16, float32, float64, complex64, or complex128.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+Rule 42 (If either of the tensors is float, they must both have the same floating point precision, avoid float32 vs float64)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 8 (If v_1's dtype is a floating point type, then v_2's dtype must also be a floating point type)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+Rule 43 (Both tensors are 1D, have same size, and are not a float32 and float64 combination)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ ((dtype_(v_1) ≠ 7 ∨ dtype_(v_2) ≠ 8) ∧ (dtype_(v_1) ≠ 8 ∨ dtype_(v_2) ≠ 7))
 >>
-Rule 9 (If v_1's dtype is complex, the output tensor's dtype is also complex)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 46 (If tensors are float, then make the float precision of them same to avoid the error.)
+{v_1 : tensor, v_2 : tensor} |= if ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) then (dtype_(v_1) = dtype_(v_2))
 >>
-Rule 10 (If v_1 is a tensor of integers, then v_2 must also be a tensor of integers)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5
+Rule 48 (If one tensor is float32, the other must also be float32. If one is float64, the other must be float64. Otherwise, their dtypes must be the same.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ ((dtype_(v_1) < 7 ∨ dtype_(v_1) > 8) ∧ (dtype_(v_2) < 7 ∨ dtype_(v_2) > 8) ∧ dtype_(v_1) = dtype_(v_2))
 >>
-Rule 11 (If v_1 is a tensor of np.float16, then v_2 cannot be integer dtype (1-5).)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5
+Rule 50 (Tensors have same floating precision if either is a float.)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_1) = dtype_(v_2)) ∨ (dtype_(v_1) < 7 ∧ dtype_(v_2) < 7) ∨ (dtype_(v_1) > 8 ∧ dtype_(v_2) > 8)
 >>
-Rule 12 (The number of elements in v_1 must be less than or equal to 1000)
-{v_1 : tensor} |= shape(v_1, 0) ≤ 1000
+Rule 52 (Both tensors are 1D and same size and same dtype, making sure to handle float mismatch)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ ((dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8) ∨ ((dtype_(v_1) < 7 ∨ dtype_(v_1) > 8) ∧ (dtype_(v_2) < 7 ∨ dtype_(v_2) > 8) ∧ dtype_(v_1) = dtype_(v_2)))
 >>
-Rule 13 (If v_2 is complex, then v_1 must also have complex dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 53 (Tensors have the same type.)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 14 (v_1's dtype cannot be np.uint8)
-{v_1 : tensor} |= dtype_(v_1) ≠ 5
+Rule 55 (If one tensor is a floating point tensor the other must be the same floating point type, or neither can be floats. And both tensors need to have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= ((dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) < 7 ∧ dtype_(v_2) < 7) ∨ (dtype_(v_1) > 8 ∧ dtype_(v_2) > 8))
 >>
-Rule 15 (If v_2's dtype is a floating point type, then v_1's dtype must be float16, float32 or float64.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 57 (Both tensors are 1D and same size, If v_1 is float32 v_2 is float32 and If v_1 is float64 v_2 is float64)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ (if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8)
 >>
-Rule 16 (If either v_1 or v_2 has a floating-point dtype then both must have floating point or complex dtypes.)
-{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∨ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+Rule 59 (The tensors are 1D, same size and have the same dtype or if either one is float32 both are float32 or if either one is float64 both are float64.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ ((dtype_(v_1) = dtype_(v_2)) ∨ ((dtype_(v_1) = 7) ∧ (dtype_(v_2) = 7)) ∨ ((dtype_(v_1) = 8) ∧ (dtype_(v_2) = 8)))
 >>
-Rule 17 (If v_1's dtype is np.int16, then v_2's dtype cannot be float16, float32, float64, complex64, or complex128.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 2 then dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 9 ∧ dtype_(v_2) ≠ 10
+Rule 60 (The tensors are 1D, have the same number of elements, have the same dtype, and in the case of floats the precisions must match)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2) ∧ (if (dtype_(v_1) = 7) then (dtype_(v_2) = 7) else if (dtype_(v_1) = 8) then (dtype_(v_2) = 8))
 >>
-Rule 18 (v_1's dtype cannot be str or dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 12
+Rule 61 (Input and other are 1D tensors and if one is float32/64 the other has to be respectively and both have the same shape.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ (if (dtype_(v_1) = 7) then (dtype_(v_2) = 7) else if (dtype_(v_1) = 8) then (dtype_(v_2) = 8))
 >>
-Rule 19 (If v_2's dtype is np.int8, then v_1's dtype cannot be float16, float32, float64, complex64, or complex128.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 1 then dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 62 (The tensors are 1D, same size, same dtype with correct float precision.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2) ∧ (if ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) then (dtype_(v_1) = dtype_(v_2)))
 >>
-Rule 20 (If the product of the elements in v_1's shape exceeds 1000, then the dtype must be float32, float64, complex64, or complex128)
-{v_1 : tensor} |= if shape(v_1, 0) > 1000 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 64 (Input and other are 1D tensors with the same shape, and matching dtypes, specifically enforcing the same floating point type if either is a float)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ if ((dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) then (dtype_(v_1) = dtype_(v_2)) else dtype_(v_1) = dtype_(v_2)
 >>
-Rule 21 (v_2's dtype cannot be str or dtype)
-{v_2 : tensor} |= dtype_(v_2) ≠ 11 ∧ dtype_(v_2) ≠ 12
+Rule 67 (The tensors are 1D, same size, and have same dtype, if one tensor is float32 other tensor is float32, if one tensor is float64, other tensor is float64, otherwise, neither is float)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2) ∧ if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else (dtype_(v_1) < 7 ∨ dtype_(v_1) > 8)
 >>
-Rule 22 (The dtypes of v_1 and v_2 cannot be bool if the number of elements is greater than 500.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 500 then dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
+Rule 70 (The tensors are 1D and have the same size and the same dtype; avoids mixing float32 and float64)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2) ∧ ((dtype_(v_1) < 7 ∨ dtype_(v_1) > 8) ∨ (dtype_(v_2) < 7 ∨ dtype_(v_2) > 8) ∨ (dtype_(v_1) = 7 ∧ dtype_(v_2) = 7) ∨ (dtype_(v_1) = 8 ∧ dtype_(v_2) = 8))
 >>
-Rule 23 (If the shape of v_1 exceeds 500 and v_1 has floating point dtype then v_2 must have floating point dtype)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 500 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+Rule 71 (Both input tensors must be 1D, have the same size, same dtype and must be of same floating precision if either one is float32 or float64, to prevent errors related to dtype mismatches.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ dtype_(v_1) = dtype_(v_2) ∧ (if dtype_(v_1) = 7 then dtype_(v_2) = 7 else if dtype_(v_1) = 8 then dtype_(v_2) = 8 else (dtype_(v_1) < 7 ∨ dtype_(v_1) > 8))
 >>
-Rule 24 (If the number of elements in v_1 or v_2 exceeds 2000, their dtypes cannot be int8 or uint8.)
-{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) > 2000 ∨ shape(v_2, 0) > 2000 then dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 5
+Rule 72 (Both input tensors must be 1D, have the same number of elements, and have same dtype, with same floating point precision if either one is float)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = 1 ∧ ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ (if (dtype_(v_1) ≥ 7 ∧ dtype_(v_1) ≤ 8) then dtype_(v_1) = dtype_(v_2) else dtype_(v_1) = dtype_(v_2))

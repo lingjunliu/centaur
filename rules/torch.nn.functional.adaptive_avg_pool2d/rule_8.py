@@ -5,41 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if output_size is a tuple, each element must be less than or equal to the shape of input tensor's last two dimensions, and the input tensor has 4 dimension (Rule 8)
+# output_size must be positive if output_size is float (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_ndim"] == 4), (And(Select(v["arg2_values"], 0) <= Select(v["arg1_shape"], v["arg1_ndim"] - 2), Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], v["arg1_ndim"] - 1))), False)) if n else
-          If((v["arg1_ndim"] == 4), (And(Select(v["arg2_values"], 0) <= Select(v["arg1_shape"], v["arg1_ndim"] - 2), Select(v["arg2_values"], 1) <= Select(v["arg1_shape"], v["arg1_ndim"] - 1))), False))
+    s.add(Not(v["arg1_value"] > 0) if n else
+          v["arg1_value"] > 0)
 )
 
-def rule_8_func(arg1, arg2, solver=None, neg=False):
+def rule_8_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
-            return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 8
-        rule_8(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_values': arg2_values})
+        rule_8(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_8(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape'], 'arg2_values': arg2['values']}, neg)
+        rule_8(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if dim is specified, it must be an integer (Rule 6)
+# prevent dimension from being smaller than min possible value for integer (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == v["arg1_value"], True, False)) if n else
-          If(v["arg1_value"] == v["arg1_value"], True, False))
+    s.add(Not(v["arg1_value"] > -2147483648) if n else
+          v["arg1_value"] > -2147483648)
 )
 
 def rule_6_func(arg1, solver=None, neg=False):
@@ -17,13 +17,15 @@ def rule_6_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, str)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
+        arg1_value = Int('arg1_value')
 
         # Value assignments
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 6
         rule_6(solver, {'arg1_value': arg1_value})

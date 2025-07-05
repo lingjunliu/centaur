@@ -45,7 +45,7 @@
 <STRING> ::= any quoted string (e.g., "hello", 'world')
 
 [Task Description]
-Define Rule 1 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
 
 Type is encoded as an integer (index of the following list):
 [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
@@ -56,26 +56,29 @@ String value should be selected from the following list:
 [API Documentation]
 parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
 
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
 [Output Format]
 Rule {Number} ({Description})\n{Rule Definition}
 Ex) Rule 21 (primitive type variable should not be zero)
     {v_1 : int ⊎ float} |= v_1 ≠ 0
 
 [Example Rules]
-Rule 15 (broadcasting compatibility for tensor shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
-
-Rule 32 (Integer indices only valid with int-compatible dtype)
-{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
-
 Rule 25 (tensor shape matches given tuple shape)
 {v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
 
 Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
 {v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
 
-Rule 30 (list of bools for masking or selection)
-{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
 
 ** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
 ** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
@@ -83,13 +86,105 @@ Rule 30 (list of bools for masking or selection)
 ** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
 
 <<< RESPONSE
-Rule 33 (String value must be a valid option)
+Rule 1 (string must be a valid value from the given list)
 {v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
 ** SUCCESS **
 
 >>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (input must be a string and not a number)
+{v_1 : str} |= true
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
 [Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
+Redundant variables: {v_1 : str} |= true (Unused: v_1)
 
 [Rule Grammar in EBNF Notation]
 <rule> ::= "{" <binding_list> "}" "|=" <expr>
@@ -137,7 +232,7 @@ The previous rule generation was successful. But, try to avoid rules that are to
 <STRING> ::= any quoted string (e.g., "hello", 'world')
 
 [Task Description]
-Define Rule 2 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
 
 Type is encoded as an integer (index of the following list):
 [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
@@ -148,20 +243,299 @@ String value should be selected from the following list:
 [API Documentation]
 parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
 
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
 [Output Format]
 Rule {Number} ({Description})\n{Rule Definition}
 Ex) Rule 21 (primitive type variable should not be zero)
     {v_1 : int ⊎ float} |= v_1 ≠ 0
 
 [Example Rules]
-Rule 30 (list of bools for masking or selection)
-{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (input must be a string with non-zero length)
+{v_1 : str} |= v_1.len > 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 4 (input must not be a number)
+{v_1 : str} |= v_1 ≠ "0" ∧ v_1 ≠ "1" ∧ v_1 ≠ "2" ∧ v_1 ≠ "3" ∧ v_1 ≠ "4" ∧ v_1 ≠ "5" ∧ v_1 ≠ "6" ∧ v_1 ≠ "7" ∧ v_1 ≠ "8" ∧ v_1 ≠ "9"
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 
 Rule 26 (tuple of ints used as kernel size must have length 2)
 {v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
 
-Rule 27 (reduction over valid dimensions)
-{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 5 (Input string should not be parseable as a number)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z"
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 
 Rule 5 (index tensor (v_2) should be within the range of input tensor)
 {v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
@@ -175,14 +549,11 @@ Rule 6 (last dimension of a tensor matches first dimension of the other)
 ** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
 
 <<< RESPONSE
-Rule 34 (Type value must be a valid option represented as an integer)
-{v_1 : int} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+Rule 6 (Input string must not consist of only numbers)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "0" ∧ v_1[i] ≠ "1" ∧ v_1[i] ≠ "2" ∧ v_1[i] ≠ "3" ∧ v_1[i] ≠ "4" ∧ v_1[i] ≠ "5" ∧ v_1[i] ≠ "6" ∧ v_1[i] ≠ "7" ∧ v_1[i] ≠ "8" ∧ v_1[i] ≠ "9"
 ** SUCCESS **
 
 >>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
 [Rule Grammar in EBNF Notation]
 <rule> ::= "{" <binding_list> "}" "|=" <expr>
 
@@ -229,7 +600,7 @@ The previous rule generation was successful. But, try to avoid rules that are to
 <STRING> ::= any quoted string (e.g., "hello", 'world')
 
 [Task Description]
-Define Rule 3 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
 
 Type is encoded as an integer (index of the following list):
 [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
@@ -239,6 +610,9 @@ String value should be selected from the following list:
 
 [API Documentation]
 parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
 
 [Output Format]
 Rule {Number} ({Description})\n{Rule Definition}
@@ -246,20 +620,20 @@ Ex) Rule 21 (primitive type variable should not be zero)
     {v_1 : int ⊎ float} |= v_1 ≠ 0
 
 [Example Rules]
-Rule 26 (tuple of ints used as kernel size must have length 2)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
 
-Rule 30 (list of bools for masking or selection)
-{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
 
-Rule 21 (primitive type variable should not be zero)
-{v_1 : int ⊎ float} |= v_1 ≠ 0
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
 
-Rule 13 (tensor must have a floating-point dtype: 6–8)
-{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
 
-Rule 17 (primitive type variable must be non-negative)
-{v_1 : int ⊎ float} |= v_1 ≥ 0
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
 
 ** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
 ** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
@@ -267,24 +641,11 @@ Rule 17 (primitive type variable must be non-negative)
 ** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
 
 <<< RESPONSE
-Rule 35 (tensor with shape that is an empty tuple is invalid.)
-{v_1 : tensor} |= shape(v_1).len > 0
-** PARSING ERROR ** (num_failures: 1)
+Rule 7 (Input string must contain at least one character that is not a digit or a plus/minus sign)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "+" ∧ v_1[i] ≠ "-" ∧ v_1[i] ≠ "0" ∧ v_1[i] ≠ "1" ∧ v_1[i] ≠ "2" ∧ v_1[i] ≠ "3" ∧ v_1[i] ≠ "4" ∧ v_1[i] ≠ "5" ∧ v_1[i] ≠ "6" ∧ v_1[i] ≠ "7" ∧ v_1[i] ≠ "8" ∧ v_1[i] ≠ "9"
+** SUCCESS **
 
 >>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '.' in the current parser context, at line 1 col 29
-
-{v_1 : tensor} |= shape(v_1).len > 0
-                            ^
-Expected one of: 
-	* ADDOP
-	* __ANON_3
-	* COMPOP
-	* MULOP
-	* __ANON_2
-
-
 [Rule Grammar in EBNF Notation]
 <rule> ::= "{" <binding_list> "}" "|=" <expr>
 
@@ -331,7 +692,7 @@ Expected one of:
 <STRING> ::= any quoted string (e.g., "hello", 'world')
 
 [Task Description]
-Define Rule 3 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
 
 Type is encoded as an integer (index of the following list):
 [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
@@ -341,6 +702,193 @@ String value should be selected from the following list:
 
 [API Documentation]
 parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 8 (The string must have non-numeric characters, or it should be a valid string from the predefined list)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "+" ∧ v_1[i] ≠ "-" ∧ v_1[i] ≠ "0" ∧ v_1[i] ≠ "1" ∧ v_1[i] ≠ "2" ∧ v_1[i] ≠ "3" ∧ v_1[i] ≠ "4" ∧ v_1[i] ≠ "5" ∧ v_1[i] ≠ "6" ∧ v_1[i] ≠ "7" ∧ v_1[i] ≠ "8" ∧ v_1[i] ≠ "9") ∨ (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 9 (Input string must either contain a non-numeric character or not be purely a sign)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "+" ∧ v_1[i] ≠ "-" ∧ v_1[i] ≠ "0" ∧ v_1[i] ≠ "1" ∧ v_1[i] ≠ "2" ∧ v_1[i] ≠ "3" ∧ v_1[i] ≠ "4" ∧ v_1[i] ≠ "5" ∧ v_1[i] ≠ "6" ∧ v_1[i] ≠ "7" ∧ v_1[i] ≠ "8" ∧ v_1[i] ≠ "9") ∨ (v_1 ≠ "+" ∧ v_1 ≠ "-")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
 
 [Output Format]
 Rule {Number} ({Description})\n{Rule Definition}
@@ -354,14 +902,14 @@ Rule 22 (valid step size for a range)
 Rule 9 (4D tensor with all shape dimensions positive)
 {v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
 
-Rule 4 (tensor data types should match)
-{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
 
-Rule 3 (input tensors must have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
 
-Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
 
 ** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
 ** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
@@ -369,14 +917,11 @@ Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for te
 ** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
 
 <<< RESPONSE
-Rule 35 (tensor with shape that is an empty tuple is invalid.)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 10 (The input must be a string that is not parseable as a valid number or a valid boolean)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] ≠ "+" ∧ v_1[i] ≠ "-" ∧ v_1[i] ≠ "0" ∧ v_1[i] ≠ "1" ∧ v_1[i] ≠ "2" ∧ v_1[i] ≠ "3" ∧ v_1[i] ≠ "4" ∧ v_1[i] ≠ "5" ∧ v_1[i] ≠ "6" ∧ v_1[i] ≠ "7" ∧ v_1[i] ≠ "8" ∧ v_1[i] ≠ "9" ∧ v_1[i] ≠ ".") ∧ (v_1 ≠ "true" ∧ v_1 ≠ "false")
 ** SUCCESS **
 
 >>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
 [Rule Grammar in EBNF Notation]
 <rule> ::= "{" <binding_list> "}" "|=" <expr>
 
@@ -423,7 +968,7 @@ The previous rule generation was successful. But, try to avoid rules that are to
 <STRING> ::= any quoted string (e.g., "hello", 'world')
 
 [Task Description]
-Define Rule 4 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
 
 Type is encoded as an integer (index of the following list):
 [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
@@ -434,41 +979,133 @@ String value should be selected from the following list:
 [API Documentation]
 parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
 
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
 [Output Format]
 Rule {Number} ({Description})\n{Rule Definition}
 Ex) Rule 21 (primitive type variable should not be zero)
     {v_1 : int ⊎ float} |= v_1 ≠ 0
 
 [Example Rules]
-Rule 26 (tuple of ints used as kernel size must have length 2)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
 
-Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
 
-Rule 8 (tensor must have an integer dtype: 1–5)
-{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
 
-Rule 24 (tuple of ints represents valid shape dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 11 (Input string is not a number, not a boolean, and contains at least one alphabetical character)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : (v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z" ∨ v_1[i] = "A" ∨ v_1[i] = "B" ∨ v_1[i] = "C" ∨ v_1[i] = "D" ∨ v_1[i] = "E" ∨ v_1[i] = "F" ∨ v_1[i] = "G" ∨ v_1[i] = "H" ∨ v_1[i] = "I" ∨ v_1[i] = "J" ∨ v_1[i] = "K" ∨ v_1[i] = "L" ∨ v_1[i] = "M" ∨ v_1[i] = "N" ∨ v_1[i] = "O" ∨ v_1[i] = "P" ∨ v_1[i] = "Q" ∨ v_1[i] = "R" ∨ v_1[i] = "S" ∨ v_1[i] = "T" ∨ v_1[i] = "U" ∨ v_1[i] = "V" ∨ v_1[i] = "W" ∨ v_1[i] = "X" ∨ v_1[i] = "Y" ∨ v_1[i] = "Z")) ∧ (v_1 ≠ "true" ∧ v_1 ≠ "false") ∧ (∀j ∈ [0, v_1.len - 1]: (v_1[j] ≠ "+" ∧ v_1[j] ≠ "-" ∧ v_1[j] ≠ "0" ∧ v_1[j] ≠ "1" ∧ v_1[j] ≠ "2" ∧ v_1[j] ≠ "3" ∧ v_1[j] ≠ "4" ∧ v_1[j] ≠ "5" ∧ v_1[j] ≠ "6" ∧ v_1[j] ≠ "7" ∧ v_1[j] ≠ "8" ∧ v_1[j] ≠ "9" ∧ v_1[j] ≠ "."))
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
 
 Rule 22 (valid step size for a range)
 {v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
 
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
 ** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
 ** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
 ** IMPORTANT: Variables should be named v_1, v_2, and so on. **
 ** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
 
 <<< RESPONSE
-Rule 36 (If the argument is a list, its length should be greater than zero)
-{v_1 : list(int) ⊎ list(float) ⊎ list(bool)} |= v_1.len > 0
+Rule 12 (Input string is not a valid number and not a valid boolean)
+{v_1 : str} |= (∀j ∈ [0, v_1.len - 1]: (v_1[j] ≠ "+" ∧ v_1[j] ≠ "-" ∧ v_1[j] ≠ "0" ∧ v_1[j] ≠ "1" ∧ v_1[j] ≠ "2" ∧ v_1[j] ≠ "3" ∧ v_1[j] ≠ "4" ∧ v_1[j] ≠ "5" ∧ v_1[j] ≠ "6" ∧ v_1[j] ≠ "7" ∧ v_1[j] ≠ "8" ∧ v_1[j] ≠ "9" ∧ v_1[j] ≠ ".")) ∧ (v_1 ≠ "true" ∧ v_1 ≠ "false")
 ** SUCCESS **
 
 >>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
 [Rule Grammar in EBNF Notation]
 <rule> ::= "{" <binding_list> "}" "|=" <expr>
 
@@ -515,7 +1152,7 @@ The previous rule generation was successful. But, try to avoid rules that are to
 <STRING> ::= any quoted string (e.g., "hello", 'world')
 
 [Task Description]
-Define Rule 5 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
 
 Type is encoded as an integer (index of the following list):
 [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
@@ -526,23 +1163,394 @@ String value should be selected from the following list:
 [API Documentation]
 parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
 
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
 [Output Format]
 Rule {Number} ({Description})\n{Rule Definition}
 Ex) Rule 21 (primitive type variable should not be zero)
     {v_1 : int ⊎ float} |= v_1 ≠ 0
 
 [Example Rules]
-Rule 14 (tensor should not be empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
 
-Rule 18 (input tensor is empty or only contains non-negative values)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (The input string must be composed of allowed characters only)
+{v_1 : str} |= ∀j ∈ [0, v_1.len - 1]: (v_1[j] = "+" ∨ v_1[j] = "-" ∨ v_1[j] = "0" ∨ v_1[j] = "1" ∨ v_1[j] = "2" ∨ v_1[j] = "3" ∨ v_1[j] = "4" ∨ v_1[j] = "5" ∨ v_1[j] = "6" ∨ v_1[j] = "7" ∨ v_1[j] = "8" ∨ v_1[j] = "9" ∨ v_1[j] = "." ∨ v_1[j] = "a" ∨ v_1[j] = "b" ∨ v_1[j] = "c" ∨ v_1[j] = "d" ∨ v_1[j] = "e" ∨ v_1[j] = "f" ∨ v_1[j] = "g" ∨ v_1[j] = "h" ∨ v_1[j] = "i" ∨ v_1[j] = "j" ∨ v_1[j] = "k" ∨ v_1[j] = "l" ∨ v_1[j] = "m" ∨ v_1[j] = "n" ∨ v_1[j] = "o" ∨ v_1[j] = "p" ∨ v_1[j] = "q" ∨ v_1[j] = "r" ∨ v_1[j] = "s" ∨ v_1[j] = "t" ∨ v_1[j] = "u" ∨ v_1[j] = "v" ∨ v_1[j] = "w" ∨ v_1[j] = "x" ∨ v_1[j] = "y" ∨ v_1[j] = "z" ∨ v_1[j] = "A" ∨ v_1[j] = "B" ∨ v_1[j] = "C" ∨ v_1[j] = "D" ∨ v_1[j] = "E" ∨ v_1[j] = "F" ∨ v_1[j] = "G" ∨ v_1[j] = "H" ∨ v_1[j] = "I" ∨ v_1[j] = "J" ∨ v_1[j] = "K" ∨ v_1[j] = "L" ∨ v_1[j] = "M" ∨ v_1[j] = "N" ∨ v_1[j] = "O" ∨ v_1[j] = "P" ∨ v_1[j] = "Q" ∨ v_1[j] = "R" ∨ v_1[j] = "S" ∨ v_1[j] = "T" ∨ v_1[j] = "U" ∨ v_1[j] = "V" ∨ v_1[j] = "W" ∨ v_1[j] = "X" ∨ v_1[j] = "Y" ∨ v_1[j] = "Z" ∨ v_1[j] = ">" ∨ v_1[j] = "-" ∨ v_1[j] = "," ∨ v_1[j] = ".")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 14 (The input string must either have a non-number/non-boolean character or belongs to the allowed strings)
+{v_1 : str} |= (∃j ∈ [0, v_1.len - 1]: (v_1[j] = "a" ∨ v_1[j] = "b" ∨ v_1[j] = "c" ∨ v_1[j] = "d" ∨ v_1[j] = "e" ∨ v_1[j] = "f" ∨ v_1[j] = "g" ∨ v_1[j] = "h" ∨ v_1[j] = "i" ∨ v_1[j] = "j" ∨ v_1[j] = "k" ∨ v_1[j] = "l" ∨ v_1[j] = "m" ∨ v_1[j] = "n" ∨ v_1[j] = "o" ∨ v_1[j] = "p" ∨ v_1[j] = "q" ∨ v_1[j] = "r" ∨ v_1[j] = "s" ∨ v_1[j] = "t" ∨ v_1[j] = "u" ∨ v_1[j] = "v" ∨ v_1[j] = "w" ∨ v_1[j] = "x" ∨ v_1[j] = "y" ∨ v_1[j] = "z" ∨ v_1[j] = "A" ∨ v_1[j] = "B" ∨ v_1[j] = "C" ∨ v_1[j] = "D" ∨ v_1[j] = "E" ∨ v_1[j] = "F" ∨ v_1[j] = "G" ∨ v_1[j] = "H" ∨ v_1[j] = "I" ∨ v_1[j] = "J" ∨ v_1[j] = "K" ∨ v_1[j] = "L" ∨ v_1[j] = "M" ∨ v_1[j] = "N" ∨ v_1[j] = "O" ∨ v_1[j] = "P" ∨ v_1[j] = "Q" ∨ v_1[j] = "R" ∨ v_1[j] = "S" ∨ v_1[j] = "T" ∨ v_1[j] = "U" ∨ v_1[j] = "V" ∨ v_1[j] = "W" ∨ v_1[j] = "X" ∨ v_1[j] = "Y" ∨ v_1[j] = "Z")) ∨ (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (Input string is neither a number, nor a boolean, nor is empty)
+{v_1 : str} |= v_1.len > 0 ∧ (∀j ∈ [0, v_1.len - 1]: (v_1[j] ≠ "+" ∧ v_1[j] ≠ "-" ∧ v_1[j] ≠ "0" ∧ v_1[j] ≠ "1" ∧ v_1[j] ≠ "2" ∧ v_1[j] ≠ "3" ∧ v_1[j] ≠ "4" ∧ v_1[j] ≠ "5" ∧ v_1[j] ≠ "6" ∧ v_1[j] ≠ "7" ∧ v_1[j] ≠ "8" ∧ v_1[j] ≠ "9" ∧ v_1[j] ≠ ".")) ∧ (v_1 ≠ "true" ∧ v_1 ≠ "false")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 16 (Input string cannot be interpreted as a number)
+{v_1 : str} |= if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "." then false else (∀j ∈ [0, v_1.len - 1]: (v_1[j] ≠ "+" ∧ v_1[j] ≠ "-" ∧ v_1[j] ≠ "0" ∧ v_1[j] ≠ "1" ∧ v_1[j] ≠ "2" ∧ v_1[j] ≠ "3" ∧ v_1[j] ≠ "4" ∧ v_1[j] ≠ "5" ∧ v_1[j] ≠ "6" ∧ v_1[j] ≠ "7" ∧ v_1[j] ≠ "8" ∧ v_1[j] ≠ "9"))
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
 
 Rule 31 (dtype must be a floating-point type)
 {v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
-
-Rule 3 (input tensors must have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
 
 Rule 25 (tensor shape matches given tuple shape)
 {v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
@@ -553,27 +1561,11 @@ Rule 25 (tensor shape matches given tuple shape)
 ** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
 
 <<< RESPONSE
-Rule 37 (Two tensors must have compatible data types for arithmetic operation)
-{v_1 : tensor, v_2 : tensor} |= (dtype(v_1) = 6 ∨ dtype(v_1) = 7 ∨ dtype(v_1) = 8 ∨ dtype(v_1) = 9 ∨ dtype(v_1) = 10) ∧ (dtype(v_2) = 6 ∨ dtype(v_2) = 7 ∨ dtype(v_2) = 8 ∨ dtype(v_2) = 9 ∨ dtype(v_2) = 10)
-** PARSING ERROR ** (num_failures: 2)
+Rule 17 (input should not be interpretable as a valid number, or be an empty string)
+{v_1 : str} |= (v_1.len = 0) ∨ (if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "." then false else (∀j ∈ [0, v_1.len - 1]: (v_1[j] ≠ "+" ∧ v_1[j] ≠ "-" ∧ v_1[j] ≠ "0" ∧ v_1[j] ≠ "1" ∧ v_1[j] ≠ "2" ∧ v_1[j] ≠ "3" ∧ v_1[j] ≠ "4" ∧ v_1[j] ≠ "5" ∧ v_1[j] ≠ "6" ∧ v_1[j] ≠ "7" ∧ v_1[j] ≠ "8" ∧ v_1[j] ≠ "9")))
+** SUCCESS **
 
 >>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '(' in the current parser context, at line 1 col 39
-
-{v_1 : tensor, v_2 : tensor} |= (dtype(v_1) = 6 ∨ dtype(v_1) = 7 ∨ dtype(v_1) 
-                                      ^
-Expected one of: 
-	* ADDOP
-	* __ANON_7
-	* __ANON_3
-	* COMPOP
-	* LSQB
-	* RPAR
-	* MULOP
-	* __ANON_2
-
-
 [Rule Grammar in EBNF Notation]
 <rule> ::= "{" <binding_list> "}" "|=" <expr>
 
@@ -620,7 +1612,7 @@ Expected one of:
 <STRING> ::= any quoted string (e.g., "hello", 'world')
 
 [Task Description]
-Define Rule 5 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
 
 Type is encoded as an integer (index of the following list):
 [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
@@ -630,6 +1622,193 @@ String value should be selected from the following list:
 
 [API Documentation]
 parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 18 (input string is neither a valid number, a valid boolean, nor empty, and is composed of allowed characters only)
+{v_1 : str} |= v_1.len > 0 ∧ (∀j ∈ [0, v_1.len - 1]: (v_1[j] = "+" ∨ v_1[j] = "-" ∨ v_1[j] = "0" ∨ v_1[j] = "1" ∨ v_1[j] = "2" ∨ v_1[j] = "3" ∨ v_1[j] = "4" ∨ v_1[j] = "5" ∨ v_1[j] = "6" ∨ v_1[j] = "7" ∨ v_1[j] = "8" ∨ v_1[j] = "9" ∨ v_1[j] = "." ∨ v_1[j] = "a" ∨ v_1[j] = "b" ∨ v_1[j] = "c" ∨ v_1[j] = "d" ∨ v_1[j] = "e" ∨ v_1[j] = "f" ∨ v_1[j] = "g" ∨ v_1[j] = "h" ∨ v_1[j] = "i" ∨ v_1[j] = "j" ∨ v_1[j] = "k" ∨ v_1[j] = "l" ∨ v_1[j] = "m" ∨ v_1[j] = "n" ∨ v_1[j] = "o" ∨ v_1[j] = "p" ∨ v_1[j] = "q" ∨ v_1[j] = "r" ∨ v_1[j] = "s" ∨ v_1[j] = "t" ∨ v_1[j] = "u" ∨ v_1[j] = "v" ∨ v_1[j] = "w" ∨ v_1[j] = "x" ∨ v_1[j] = "y" ∨ v_1[j] = "z" ∨ v_1[j] = "A" ∨ v_1[j] = "B" ∨ v_1[j] = "C" ∨ v_1[j] = "D" ∨ v_1[j] = "E" ∨ v_1[j] = "F" ∨ v_1[j] = "G" ∨ v_1[j] = "H" ∨ v_1[j] = "I" ∨ v_1[j] = "J" ∨ v_1[j] = "K" ∨ v_1[j] = "L" ∨ v_1[j] = "M" ∨ v_1[j] = "N" ∨ v_1[j] = "O" ∨ v_1[j] = "P" ∨ v_1[j] = "Q" ∨ v_1[j] = "R" ∨ v_1[j] = "S" ∨ v_1[j] = "T" ∨ v_1[j] = "U" ∨ v_1[j] = "V" ∨ v_1[j] = "W" ∨ v_1[j] = "X" ∨ v_1[j] = "Y" ∨ v_1[j] = "Z" ∨ v_1[j] = ">" ∨ v_1[j] = "-" ∨ v_1[j] = "," ∨ v_1[j] = ".")) ∧ (v_1 ≠ "true" ∧ v_1 ≠ "false")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 19 (Input string is valid if it can be parsed into a comment. For now we will check if the string contains at least one alphabet.)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : (v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z" ∨ v_1[i] = "A" ∨ v_1[i] = "B" ∨ v_1[i] = "C" ∨ v_1[i] = "D" ∨ v_1[i] = "E" ∨ v_1[i] = "F" ∨ v_1[i] = "G" ∨ v_1[i] = "H" ∨ v_1[i] = "I" ∨ v_1[i] = "J" ∨ v_1[i] = "K" ∨ v_1[i] = "L" ∨ v_1[i] = "M" ∨ v_1[i] = "N" ∨ v_1[i] = "O" ∨ v_1[i] = "P" ∨ v_1[i] = "Q" ∨ v_1[i] = "R" ∨ v_1[i] = "S" ∨ v_1[i] = "T" ∨ v_1[i] = "U" ∨ v_1[i] = "V" ∨ v_1[i] = "W" ∨ v_1[i] = "X" ∨ v_1[i] = "Y" ∨ v_1[i] = "Z")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
 
 [Output Format]
 Rule {Number} ({Description})\n{Rule Definition}
@@ -640,198 +1819,14 @@ Ex) Rule 21 (primitive type variable should not be zero)
 Rule 14 (tensor should not be empty)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
 
-Rule 1 (tensor shapes should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
 
-Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
 
-Rule 17 (primitive type variable must be non-negative)
-{v_1 : int ⊎ float} |= v_1 ≥ 0
-
-Rule 20 (input tensor must be 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 37 (Two tensors must have compatible data types for arithmetic operation)
-{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
-** SUCCESS **
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 6 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 5 (index tensor (v_2) should be within the range of input tensor)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
-
-Rule 13 (tensor must have a floating-point dtype: 6–8)
-{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
-
-Rule 1 (tensor shapes should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
-
-Rule 2 (v_2 should be a valid dimension of input tensor)
-{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
-
-Rule 12 (a primitive type variable is smaller than the other)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 38 (The input tensor should have compatible dtype with the expected dtype)
-{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
-** SUCCESS **
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 7 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 13 (tensor must have a floating-point dtype: 6–8)
-{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
-
-Rule 10 (valid 2D transposed convolution)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
-
-Rule 8 (tensor must have an integer dtype: 1–5)
-{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
-
-Rule 20 (input tensor must be 1-dimensional)
-{v_1 : tensor} |= ndim(v_1) = 1
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
 
 Rule 26 (tuple of ints used as kernel size must have length 2)
 {v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
@@ -842,118 +1837,11 @@ Rule 26 (tuple of ints used as kernel size must have length 2)
 ** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
 
 <<< RESPONSE
-Rule 39 (The reduction dimension must be valid for the given tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ -ndim(v_1) ∧ v_2 < ndim(v_1)
-** PARSING ERROR ** (num_failures: 3)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '-' in the current parser context, at line 1 col 36
-
-{v_1 : tensor, v_2 : int} |= v_2 ≥ -ndim(v_1) ∧ v_2 < ndim(v_1)
-                                   ^
-Expected one of: 
-	* VAR
-	* SIGNED_NUMBER
-	* TRUE
-	* FUNC
-	* FALSE
-	* ESCAPED_STRING
-	* LPAR
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 7 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 22 (valid step size for a range)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
-
-Rule 12 (a primitive type variable is smaller than the other)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
-
-Rule 8 (tensor must have an integer dtype: 1–5)
-{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
-
-Rule 18 (input tensor is empty or only contains non-negative values)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
-
-Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 39 (The reduction dimension must be valid for the given tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+Rule 20 (The input string is valid if it's a valid comment and not parseable as a number)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : (v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z" ∨ v_1[i] = "A" ∨ v_1[i] = "B" ∨ v_1[i] = "C" ∨ v_1[i] = "D" ∨ v_1[i] = "E" ∨ v_1[i] = "F" ∨ v_1[i] = "G" ∨ v_1[i] = "H" ∨ v_1[i] = "I" ∨ v_1[i] = "J" ∨ v_1[i] = "K" ∨ v_1[i] = "L" ∨ v_1[i] = "M" ∨ v_1[i] = "N" ∨ v_1[i] = "O" ∨ v_1[i] = "P" ∨ v_1[i] = "Q" ∨ v_1[i] = "R" ∨ v_1[i] = "S" ∨ v_1[i] = "T" ∨ v_1[i] = "U" ∨ v_1[i] = "V" ∨ v_1[i] = "W" ∨ v_1[i] = "X" ∨ v_1[i] = "Y" ∨ v_1[i] = "Z")) ∧ (if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "." then false else (∀j ∈ [0, v_1.len - 1]: (v_1[j] ≠ "+" ∧ v_1[j] ≠ "-" ∧ v_1[j] ≠ "0" ∧ v_1[j] ≠ "1" ∧ v_1[j] ≠ "2" ∧ v_1[j] ≠ "3" ∧ v_1[j] ≠ "4" ∧ v_1[j] ≠ "5" ∧ v_1[j] ≠ "6" ∧ v_1[j] ≠ "7" ∧ v_1[j] ≠ "8" ∧ v_1[j] ≠ "9")))
 ** SUCCESS **
 
 >>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
 [Rule Grammar in EBNF Notation]
 <rule> ::= "{" <binding_list> "}" "|=" <expr>
 
@@ -1000,7 +1888,7 @@ The previous rule generation was successful. But, try to avoid rules that are to
 <STRING> ::= any quoted string (e.g., "hello", 'world')
 
 [Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
 
 Type is encoded as an integer (index of the following list):
 [bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
@@ -1011,1371 +1899,8 @@ String value should be selected from the following list:
 [API Documentation]
 parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
 
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 15 (broadcasting compatibility for tensor shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
-
-Rule 21 (primitive type variable should not be zero)
-{v_1 : int ⊎ float} |= v_1 ≠ 0
-
-Rule 32 (Integer indices only valid with int-compatible dtype)
-{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
-
-Rule 7 (first dimension of a tensor matches second dimension of the other)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
-
-Rule 23 (3-dimensional tensor with all positive shape dimensions)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 40 (A list of tensors must have the same dtype)
-{v_1 : list(tensor)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i+1])
-** PARSING ERROR ** (num_failures: 4)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 59
-
-)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i+1])
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 5 (index tensor (v_2) should be within the range of input tensor)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
-
-Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
-
-Rule 24 (tuple of ints represents valid shape dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
-
-Rule 12 (a primitive type variable is smaller than the other)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
-
-Rule 6 (last dimension of a tensor matches first dimension of the other)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 40 (A list of tensors must have the same dtype)
-{v_1 : list(tensor)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-** PARSING ERROR ** (num_failures: 5)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 59
-
-)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 10 (valid 2D transposed convolution)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
-
-Rule 6 (last dimension of a tensor matches first dimension of the other)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
-
-Rule 30 (list of bools for masking or selection)
-{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
-
-Rule 12 (a primitive type variable is smaller than the other)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
-
-Rule 9 (4D tensor with all shape dimensions positive)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 40 (A list of tensors must have the same dtype)
-{v_1 : list(tensor)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-** PARSING ERROR ** (num_failures: 6)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 59
-
-)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 4 (tensor data types should match)
-{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
-
-Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
-
-Rule 9 (4D tensor with all shape dimensions positive)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
-
-Rule 26 (tuple of ints used as kernel size must have length 2)
-{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
-
-Rule 14 (tensor should not be empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 40 (A list of tensors must have the same dtype)
-{v_1 : list(tensor)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-** PARSING ERROR ** (num_failures: 7)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 59
-
-)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 8 (tensor must have an integer dtype: 1–5)
-{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
-
-Rule 31 (dtype must be a floating-point type)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
-
-Rule 24 (tuple of ints represents valid shape dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
-
-Rule 17 (primitive type variable must be non-negative)
-{v_1 : int ⊎ float} |= v_1 ≥ 0
-
-Rule 22 (valid step size for a range)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 40 (A list of tensors must have the same dtype)
-{v_1 : list(tensor)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-** PARSING ERROR ** (num_failures: 8)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 59
-
-)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 31 (dtype must be a floating-point type)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
-
-Rule 13 (tensor must have a floating-point dtype: 6–8)
-{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
-
-Rule 1 (tensor shapes should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
-
-Rule 29 (list of floats for weights must match length of a tensor dimension)
-{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
-
-Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 40 (A list of tensors must have the same dtype)
-{v_1 : list(tensor)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-** PARSING ERROR ** (num_failures: 9)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 59
-
-)} |= ∀i ∈ [0, v_1.len - 2] : dtype_(v_1[i]) = dtype_(v_1[i + 1])
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 5 (index tensor (v_2) should be within the range of input tensor)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
-
-Rule 23 (3-dimensional tensor with all positive shape dimensions)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
-
-Rule 1 (tensor shapes should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
-
-Rule 2 (v_2 should be a valid dimension of input tensor)
-{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
-
-Rule 12 (a primitive type variable is smaller than the other)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-I apologize for the repeated errors. I am still under development and learning to follow the grammar rules correctly. I will attempt to create a valid rule. The issue arises when accessing elements of a list within a quantifier, as the grammar does not explicitly support list access using brackets within the scope of `dtype_`. I will restructure the rule to avoid direct element access using bracket notation.
-
-Rule 40 (A list of tensors must have the same dtype)
-{v_1 : list(tensor)} |= if v_1.len > 1 then dtype_(v_1[0]) = dtype_(v_1[1])
-** PARSING ERROR ** (num_failures: 10)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 55
-
-nsor)} |= if v_1.len > 1 then dtype_(v_1[0]) = dtype_(v_1[1])
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 29 (list of floats for weights must match length of a tensor dimension)
-{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
-
-Rule 17 (primitive type variable must be non-negative)
-{v_1 : int ⊎ float} |= v_1 ≥ 0
-
-Rule 32 (Integer indices only valid with int-compatible dtype)
-{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
-
-Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
-{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
-
-Rule 16 (shape alignment for matrix multiplication)
-{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-I am still struggling with the grammar rules regarding accessing list elements. I will try a different approach, using only the list and tensor properties.
-
-Rule 40 (First tensor in list must be compatible with a given tensor)
-{v_1 : list(tensor), v_2 : tensor} |= if v_1.len > 0 then dtype_(v_1[0]) = dtype_(v_2)
-** PARSING ERROR ** (num_failures: 11)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 69
-
-ensor} |= if v_1.len > 0 then dtype_(v_1[0]) = dtype_(v_2)
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
-
-Rule 22 (valid step size for a range)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
-
-Rule 7 (first dimension of a tensor matches second dimension of the other)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
-
-Rule 21 (primitive type variable should not be zero)
-{v_1 : int ⊎ float} |= v_1 ≠ 0
-
-Rule 31 (dtype must be a floating-point type)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-I understand the problem now. I cannot directly access list elements using bracket notation within the expressions, as the grammar does not allow it. I will attempt to formulate a rule that avoids accessing list elements directly.
-
-Rule 40 (If list of tensors is not empty, tensors should be of floating point type)
-{v_1 : list(tensor)} |= if v_1.len > 0 then 6 ≤ dtype_(v_1[0]) ∧ dtype_(v_1[0]) ≤ 8
-** PARSING ERROR ** (num_failures: 12)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 59
-
-)} |= if v_1.len > 0 then 6 ≤ dtype_(v_1[0]) ∧ dtype_(v_1[0]) ≤ 8
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 8 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 4 (tensor data types should match)
-{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
-
-Rule 17 (primitive type variable must be non-negative)
-{v_1 : int ⊎ float} |= v_1 ≥ 0
-
-Rule 9 (4D tensor with all shape dimensions positive)
-{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
-
-Rule 19 (compatibility of integer or float (data) type tensor and variable)
-{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
-
-Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-I am very sorry for the continued errors. I am having trouble with the grammar and list accesses. I will try to formulate a rule without accessing specific elements of lists.
-
-Rule 40 (If list of tensors is not empty, it should have tensors)
-{v_1 : list(tensor)} |= v_1.len > 0
-** SUCCESS **
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 9 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 1 (tensor shapes should be the same)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
-
-Rule 15 (broadcasting compatibility for tensor shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
-
-Rule 13 (tensor must have a floating-point dtype: 6–8)
-{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
-
-Rule 23 (3-dimensional tensor with all positive shape dimensions)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
-
-Rule 8 (tensor must have an integer dtype: 1–5)
-{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 41 (The number of dimensions of the tensor must be greater than a given integer)
-{v_1 : tensor, v_2 : int} |= ndim(v_1) > v_2
-** SUCCESS **
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 10 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 24 (tuple of ints represents valid shape dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
-
-Rule 31 (dtype must be a floating-point type)
-{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
-
-Rule 14 (tensor should not be empty)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
-
-Rule 4 (tensor data types should match)
-{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
-
-Rule 19 (compatibility of integer or float (data) type tensor and variable)
-{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 42 (The dimensions of the tensor are compatible with a given string.)
-{v_1 : tensor, v_2 : str} |= if v_2 = "ii" then ndim(v_1) = 1 else if v_2 = "ii->i" then ndim(v_1) = 2
-** SUCCESS **
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 11 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 12 (a primitive type variable is smaller than the other)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
-
-Rule 18 (input tensor is empty or only contains non-negative values)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
-
-Rule 23 (3-dimensional tensor with all positive shape dimensions)
-{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
-
-Rule 15 (broadcasting compatibility for tensor shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
-
-Rule 24 (tuple of ints represents valid shape dimensions)
-{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 43 (If the tensor has > 1 dimensions, check shape on dim 1 is compatible with the other tensor's dim 0 shape.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) = shape(v_2, 0)
-** SUCCESS **
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The previous rule generation was successful. But, try to avoid rules that are too similar.
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 12 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
-
-[Output Format]
-Rule {Number} ({Description})\n{Rule Definition}
-Ex) Rule 21 (primitive type variable should not be zero)
-    {v_1 : int ⊎ float} |= v_1 ≠ 0
-
-[Example Rules]
-Rule 18 (input tensor is empty or only contains non-negative values)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
-
-Rule 22 (valid step size for a range)
-{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
-
-Rule 5 (index tensor (v_2) should be within the range of input tensor)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
-
-Rule 21 (primitive type variable should not be zero)
-{v_1 : int ⊎ float} |= v_1 ≠ 0
-
-Rule 29 (list of floats for weights must match length of a tensor dimension)
-{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
-
-** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
-** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
-** IMPORTANT: Variables should be named v_1, v_2, and so on. **
-** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
-
-<<< RESPONSE
-Rule 44 (A tuple of two tensors must have compatible shapes.)
-{v_1 : tuple(tensor)} |= if v_1.len = 2 then ndim(v_1[0]) = ndim(v_1[1])
-** PARSING ERROR ** (num_failures: 13)
-
->>> PROMPT
-[Feedback Message from Prior Run]
-The rule failed to parse with the grammar. Error: No terminal matches '[' in the current parser context, at line 1 col 54
-
-tensor)} |= if v_1.len = 2 then ndim(v_1[0]) = ndim(v_1[1])
-                                        ^
-Expected one of: 
-	* RPAR
-	* COMMA
-
-
-[Rule Grammar in EBNF Notation]
-<rule> ::= "{" <binding_list> "}" "|=" <expr>
-
-<binding_list> ::= <binding> ("," <binding>)*
-<binding> ::= <VAR> ":" <type>
-
-<type> ::= "tensor"
-         | "int"
-         | "float"
-         | "bool"
-         | "dtype"
-         | "str"
-         | "list" "(" <type> ")"
-         | "tuple" "(" <type> ")"
-         | <type> "⊎" <type>
-
-<expr> ::= <and_expr>
-<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
-<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
-<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
-               | <if_expr>
-               | <compare_expr>
-
-<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
-<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
-<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
-<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
-<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
-
-<tuple_access>  ::= "[" <expr> "]" | ".len"
-<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
-<constant> ::= <NUMBER> | "true" | "false" | <STRING>
-<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
-<ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
-<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
-<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
-<TENSORVAR> ::= same format as PRIMVAR
-<TUPLEVAR> ::= same format as PRIMVAR
-
-<VAR> ::= same format as PRIMVAR
-<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
-<STRING> ::= any quoted string (e.g., "hello", 'world')
-
-[Task Description]
-Define Rule 12 that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation and error messages.
-
-Type is encoded as an integer (index of the following list):
-[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
-
-String value should be selected from the following list:
-["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
-
-[API Documentation]
-parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
 
 [Output Format]
 Rule {Number} ({Description})\n{Rule Definition}
@@ -2386,17 +1911,17 @@ Ex) Rule 21 (primitive type variable should not be zero)
 Rule 27 (reduction over valid dimensions)
 {v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
 
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
 Rule 1 (tensor shapes should be the same)
 {v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
 
-Rule 3 (input tensors must have the same number of dimensions)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
-
-Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
-{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
-
-Rule 5 (index tensor (v_2) should be within the range of input tensor)
-{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
 
 ** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
 ** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
@@ -2404,9 +1929,467 @@ Rule 5 (index tensor (v_2) should be within the range of input tensor)
 ** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
 
 <<< RESPONSE
-I apologize again. It is clear I cannot use bracket access.
+Rule 21 (Input string should start with a character and not a number and must have non-numeric characters, or it should be a valid string from the predefined list)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : (v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z" ∨ v_1[i] = "A" ∨ v_1[i] = "B" ∨ v_1[i] = "C" ∨ v_1[i] = "D" ∨ v_1[i] = "E" ∨ v_1[i] = "F" ∨ v_1[i] = "G" ∨ v_1[i] = "H" ∨ v_1[i] = "I" ∨ v_1[i] = "J" ∨ v_1[i] = "K" ∨ v_1[i] = "L" ∨ v_1[i] = "M" ∨ v_1[i] = "N" ∨ v_1[i] = "O" ∨ v_1[i] = "P" ∨ v_1[i] = "Q" ∨ v_1[i] = "R" ∨ v_1[i] = "S" ∨ v_1[i] = "T" ∨ v_1[i] = "U" ∨ v_1[i] = "V" ∨ v_1[i] = "W" ∨ v_1[i] = "X" ∨ v_1[i] = "Y" ∨ v_1[i] = "Z")) ∧ (v_1[0] ≠ "0" ∧ v_1[0] ≠ "1" ∧ v_1[0] ≠ "2" ∧ v_1[0] ≠ "3" ∧ v_1[0] ≠ "4" ∧ v_1[0] ≠ "5" ∧ v_1[0] ≠ "6" ∧ v_1[0] ≠ "7" ∧ v_1[0] ≠ "8" ∧ v_1[0] ≠ "9") ∨ (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh")
+** SUCCESS **
 
-Rule 44 (A tuple of tensors must have more than zero tensors.)
-{v_1 : tuple(tensor)} |= v_1.len > 0
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 22 (The input string is not a number, and it's also not an empty string, or has a correct string value.)
+{v_1 : str} |= (∃i ∈ [0, v_1.len - 1] : v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z" ∨ v_1[i] = "A" ∨ v_1[i] = "B" ∨ v_1[i] = "C" ∨ v_1[i] = "D" ∨ v_1[i] = "E" ∨ v_1[i] = "F" ∨ v_1[i] = "G" ∨ v_1[i] = "H" ∨ v_1[i] = "I" ∨ v_1[i] = "J" ∨ v_1[i] = "K" ∨ v_1[i] = "L" ∨ v_1[i] = "M" ∨ v_1[i] = "N" ∨ v_1[i] = "O" ∨ v_1[i] = "P" ∨ v_1[i] = "Q" ∨ v_1[i] = "R" ∨ v_1[i] = "S" ∨ v_1[i] = "T" ∨ v_1[i] = "U" ∨ v_1[i] = "V" ∨ v_1[i] = "W" ∨ v_1[i] = "X" ∨ v_1[i] = "Y" ∨ v_1[i] = "Z") ∨ (v_1 ≠ "true" ∧ v_1 ≠ "false") ∨ (v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 23 (Input string can't be purely numerical and needs to contain alphabetic or special characters to be processed as a comment.)
+{v_1 : str} |= ∃i ∈ [0, v_1.len - 1] : (v_1[i] < "0" ∨ v_1[i] > "9")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 24 (input string is valid if it contains at least a character and not just a number)
+{v_1 : str} |= v_1.len > 0 ∧ ∃i ∈ [0, v_1.len - 1] : v_1[i] < "0" ∨ v_1[i] > "9"
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 25 (Input string should contain only valid characters or should not be a number)
+{v_1 : str} |= (∀i ∈ [0, v_1.len - 1] : (v_1[i] = "a" ∨ v_1[i] = "b" ∨ v_1[i] = "c" ∨ v_1[i] = "d" ∨ v_1[i] = "e" ∨ v_1[i] = "f" ∨ v_1[i] = "g" ∨ v_1[i] = "h" ∨ v_1[i] = "i" ∨ v_1[i] = "j" ∨ v_1[i] = "k" ∨ v_1[i] = "l" ∨ v_1[i] = "m" ∨ v_1[i] = "n" ∨ v_1[i] = "o" ∨ v_1[i] = "p" ∨ v_1[i] = "q" ∨ v_1[i] = "r" ∨ v_1[i] = "s" ∨ v_1[i] = "t" ∨ v_1[i] = "u" ∨ v_1[i] = "v" ∨ v_1[i] = "w" ∨ v_1[i] = "x" ∨ v_1[i] = "y" ∨ v_1[i] = "z" ∨ v_1[i] = "A" ∨ v_1[i] = "B" ∨ v_1[i] = "C" ∨ v_1[i] = "D" ∨ v_1[i] = "E" ∨ v_1[i] = "F" ∨ v_1[i] = "G" ∨ v_1[i] = "H" ∨ v_1[i] = "I" ∨ v_1[i] = "J" ∨ v_1[i] = "K" ∨ v_1[i] = "L" ∨ v_1[i] = "M" ∨ v_1[i] = "N" ∨ v_1[i] = "O" ∨ v_1[i] = "P" ∨ v_1[i] = "Q" ∨ v_1[i] = "R" ∨ v_1[i] = "S" ∨ v_1[i] = "T" ∨ v_1[i] = "U" ∨ v_1[i] = "V" ∨ v_1[i] = "W" ∨ v_1[i] = "X" ∨ v_1[i] = "Y" ∨ v_1[i] = "Z" ∨ v_1[i] = "+" ∨ v_1[i] = "-" ∨ v_1[i] = "0" ∨ v_1[i] = "1" ∨ v_1[i] = "2" ∨ v_1[i] = "3" ∨ v_1[i] = "4" ∨ v_1[i] = "5" ∨ v_1[i] = "6" ∨ v_1[i] = "7" ∨ v_1[i] = "8" ∨ v_1[i] = "9" ∨ v_1[i] = ">" ∨ v_1[i] = "," ∨ v_1[i] = "." ∨ v_1[i] = "<" ∨ v_1[i] = "[" ∨ v_1[i] = "]" ∨ v_1[i] = "(" ∨ v_1[i] = ")")) ∧ (∀i ∈ [0, v_1.len - 1] : (v_1[i] < "0" ∨ v_1[i] > "9"))
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that torch.parse_type_comment API parameters should satisfy. Refer to the API documentation. Particularly, there should be at least one rule to suppress each error message.
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "constant", "tanh"]
+
+[API Documentation]
+parse_type_comment(arg0: str) -> torch._C._jit_tree_views.Decl
+
+[Error Messages]
+RuntimeError: expected type comment but found 'number' here: 0
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 26 (Input string is valid if it's not a number string and if it matches with allowed comment format)
+{v_1 : str} |= (v_1 ≠ "+" ∧ v_1 ≠ "-" ∧ (if ∃i ∈ [0, v_1.len - 1]: v_1[i] = "." then false else (∀j ∈ [0, v_1.len - 1]: (v_1[j] ≠ "0" ∧ v_1[j] ≠ "1" ∧ v_1[j] ≠ "2" ∧ v_1[j] ≠ "3" ∧ v_1[j] ≠ "4" ∧ v_1[j] ≠ "5" ∧ v_1[j] ≠ "6" ∧ v_1[j] ≠ "7" ∧ v_1[j] ≠ "8" ∧ v_1[j] ≠ "9")))) ∧ (∃k ∈ [0, v_1.len - 1] : (v_1[k] < "0" ∨ v_1[k] > "9"))
 ** SUCCESS **
 

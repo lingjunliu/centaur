@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if dtype is bool, then deterministic should be true (Rule 15)
+# If a float or int variable is less than 0, the deterministic algorithms warn only is enabled, otherwise it is not (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == 0) if n else
-          v["arg1_value"] == 0)
+    s.add(Not(If(v["arg1_value"] < 0, True, False)) if n else
+          If(v["arg1_value"] < 0, True, False))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):
@@ -17,15 +17,13 @@ def rule_15_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 15
         rule_15(solver, {'arg1_value': arg1_value})

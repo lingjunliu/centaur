@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input is complex128, other must have complex128 dtype (Rule 16)
+# If input's dimension is greater than 0, then other cannot have dimension 0 and vice versa (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg2_dtype"] == 10, v["arg1_dtype"] == 10, False))) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, If(v["arg2_dtype"] == 10, v["arg1_dtype"] == 10, False)))
+    s.add(Not(If(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0, If(v["arg2_ndim"] > 0, v["arg1_ndim"] > 0, False))) if n else
+          If(v["arg1_ndim"] > 0, v["arg2_ndim"] > 0, If(v["arg2_ndim"] > 0, v["arg1_ndim"] > 0, False)))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):
@@ -25,17 +25,17 @@ def rule_16_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_ndim = Int('arg2_ndim')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_ndim == arg2.ndim)
 
         # Constraints for rule 16
-        rule_16(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
+        rule_16(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_16(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)
+        rule_16(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim']}, neg)

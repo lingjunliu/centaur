@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the parameter tensor requires grad, each element should be within the float/complex range of the tensor's data type. (Rule 19)
+# If requires_grad is true, then the Parameter tensor must have a floating-point or complex type, else requires_grad is false (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] == True, And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))) for i in range(6)]), False)) if n else
-          If(v["arg2_value"] == True, And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), (Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10))) for i in range(6)]), False))
+    s.add(Not(If(v["arg2_value"] == True, (Or(Or(Or(Or((v["arg1_dtype"] == 6), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10))), (v["arg2_value"] == False))) if n else
+          If(v["arg2_value"] == True, (Or(Or(Or(Or((v["arg1_dtype"] == 6), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10))), (v["arg2_value"] == False)))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):
@@ -25,20 +25,17 @@ def rule_19_func(arg1, arg2, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg1_dtype = Int('arg1_dtype')
         arg2_value = Bool('arg2_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == arg2)
 
         # Constraints for rule 19
-        rule_19(solver, {'arg1_dtype': arg1_dtype, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
+        rule_19(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_19(solver, {'arg1_dtype': arg1['dtype'], 'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)
+        rule_19(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

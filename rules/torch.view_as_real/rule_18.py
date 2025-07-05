@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The input tensor can't be float16, float32, float64 (Rule 18)
+# The input tensor must not have string dtype (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_dtype"] != 7, v["arg1_dtype"] != 8), v["arg1_dtype"] != 9)) if n else
-          And(And(v["arg1_dtype"] != 7, v["arg1_dtype"] != 8), v["arg1_dtype"] != 9))
+    s.add(Not(v["arg1_dtype"] != 11) if n else
+          v["arg1_dtype"] != 11)
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

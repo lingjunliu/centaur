@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Check if the object is an int and its value is zero (Rule 10)
+# The storage object must have a defined dtype (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == 0) if n else
-          v["arg1_value"] == 0)
+    s.add(Not(v["arg1_dtype"] != -1) if n else
+          v["arg1_dtype"] != -1)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):
@@ -17,20 +17,20 @@ def rule_10_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not isinstance(arg1, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_value': arg1_value})
+        rule_10(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_value': arg1['value']}, neg)
+        rule_10(solver, {'arg1_dtype': arg1['dtype']}, neg)

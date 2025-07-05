@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Batched matrix multiply requires batch dimensions to be broadcastable. Check the last example. (Rule 5)
+# If input is 2D and other is 1D, other size must match input's second dimension (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] > 2, v["arg2_ndim"] > 2), (Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg2_shape"], v["arg2_ndim"] - 1)), False)) if n else
-          If(And(v["arg1_ndim"] > 2, v["arg2_ndim"] > 2), (Select(v["arg1_shape"], v["arg1_ndim"] - 2) == Select(v["arg2_shape"], v["arg2_ndim"] - 1)), False))
+    s.add(Not(If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0), False)) if n else
+          If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 1), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0), False))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

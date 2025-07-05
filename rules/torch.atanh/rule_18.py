@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Check if input is not of type np.int32, np.int64. (Rule 18)
+# input tensor must be a floating-point or complex tensor (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 3, v["arg1_dtype"] != 4)) if n else
-          And(v["arg1_dtype"] != 3, v["arg1_dtype"] != 4))
+    s.add(Not(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10)) if n else
+          And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 10))
 )
 
 def rule_18_func(arg1, solver=None, neg=False):

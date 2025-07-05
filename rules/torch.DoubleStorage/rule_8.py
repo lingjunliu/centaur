@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# DoubleStorage size cannot be larger than the maximum allowed size for double type (Rule 8)
+# Number of bytes must not be a very large positive number to avoid overflow when cast to signed ptrdiff_t (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] <= 1.7976931348623157e+308) if n else
-          v["arg1_value"] <= 1.7976931348623157e+308)
+    s.add(Not(v["arg1_value"] < 9223372036854775807) if n else
+          v["arg1_value"] < 9223372036854775807)
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_8_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, (float, np.floating)):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Real('arg1_value')
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 8
         rule_8(solver, {'arg1_value': arg1_value})

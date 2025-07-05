@@ -5,17 +5,16 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if other is bool, then input must also be bool, and rounding_mode must be None (Rule 15)
+# The out tensor's dtype must match the expected output dtype after division (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg2_dtype"] == 0), (And(v["arg1_dtype"] == 0, v["arg3_value"] == 6)), False)) if n else
-          If((v["arg2_dtype"] == 0), (And(v["arg1_dtype"] == 0, v["arg3_value"] == 6)), False))
+    s.add(Not(v["arg2_dtype"] == v["arg1_dtype"]) if n else
+          v["arg2_dtype"] == v["arg1_dtype"])
 )
 
-def rule_15_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_15_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -23,24 +22,20 @@ def rule_15_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not isinstance(arg3, str):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
         arg2_dtype = Int('arg2_dtype')
-        arg3_value = String('arg3_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_value == list_of_string_values.index(arg3))
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value})
+        rule_15(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg3_value': arg3['value']}, neg)
+        rule_15(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

@@ -1,72 +1,117 @@
 >>
-Rule 1 (inplace parameter should be either true or false)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 2 (Example rule ensuring shape matches after hardsigmoid operation - trivially true but demonstrates shape property)
+{v_1 : tensor} |= shape(v_1, 0) = shape(v_1, 0)
 >>
-Rule 2 (input tensor should have a floating-point or complex dtype)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
->>
-Rule 3 (input tensor should have at least one dimension)
+Rule 3 (Ensuring at least one dimension exists for the input tensor)
 {v_1 : tensor} |= ndim(v_1) ≥ 1
 >>
-Rule 4 (all dimensions of the input tensor must be greater than zero)
+Rule 4 (Input tensor's dtype should not be Char to avoid 'hardsigmoid_cpu' not implemented error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 5 (Inplace parameter should be boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 6 (Input tensor should have at least one element to perform hardsigmoid)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 7 (Input tensor's dtype should not be Char (represented as index 1) to avoid 'hardsigmoid_cpu' not implemented error, using direct comparison to a constant)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1
+>>
+Rule 8 (If inplace is true, the input must be a floating point tensor)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 9 (Ensuring tensor is not empty)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 10 (Input tensor's dtype should be a valid numeric type to avoid 'hardsigmoid_cpu' not implemented error)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 12 (The number of dimensions should be less than a maximum (arbitrary value chosen to represent memory constraints.))
+{v_1 : tensor} |= ndim(v_1) < 6
+>>
+Rule 17 (If inplace is set to true, the tensor must have a floating-point dtype)
+{v_1 : bool, v_2 : tensor} |= if v_1 = true then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 21 (Tensor must have a shape where all dimension are positive)
 {v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 5 (minimum value in the input tensor should be greater than -infinity)
-{v_1 : tensor} |= min(v_1) > -1000000000
+Rule 22 (Input tensor's dtype must be a supported type (integer or float) to avoid 'hardsigmoid_cpu' not implemented error)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 6 (the number of elements in the input tensor should not exceed a limit)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 1024
+Rule 24 (The sum of the dimensions of the input should not exceed some arbitrary number)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
 >>
-Rule 7 (if inplace is true then the minimum value of tensor should be greater than -3)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) > -3
+Rule 27 (The total number of elements in a tensor shouldn't exceed a limit for efficient memory usage)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
 >>
-Rule 8 (if inplace is true then the maximum value of tensor should be less than 3)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) < 3
+Rule 30 (Sum of squares of dimensions of tensor must be less than a value)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) * shape(v_1, i) < 100000000
 >>
-Rule 9 (if inplace is true then the maximum value of tensor should be greater than -3)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) > -3
+Rule 32 (The product of all dimensions of a tensor must be a value that can be represented to avoid large memory allocation errors)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2000
 >>
-Rule 10 (The number of dimensions of the input tensor should be less than or equal to 5)
+Rule 35 (Every shape must be small enough to avoid potential memory access errors)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 5000
+>>
+Rule 38 (The number of elements in a tensor shouldn't exceed a maximum, to prevent potential memory overflow issues during computation.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
+>>
+Rule 41 (The total number of elements shouldn't exceed X)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 500
+>>
+Rule 44 (Total number of elements in the tensor must be in a range that can be represented by system.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000
+>>
+Rule 47 (The tensor should have no more than 5 dimensions in order to be effectively processed. This limits the complexity of the hard sigmoid function.)
 {v_1 : tensor} |= ndim(v_1) ≤ 5
 >>
-Rule 11 (if inplace is false then the minimum value of tensor should be less than 3)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then min(v_1) < 3
+Rule 50 (The product of dimensions must not exceed the maximum to prevent memory allocation issues)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) * shape(v_1, 0) < 1000000
 >>
-Rule 12 (if inplace is false then the maximum value of tensor should be greater than -3)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) > -3
+Rule 56 (The maximum dimension of a tensor must be less than some number)
+{v_1 : tensor} |= ndim(v_1) < 10
 >>
-Rule 13 (if inplace is false then the dtype of tensor should be less than or equal to float64)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then dtype_(v_1) ≤ 8
+Rule 59 (Minimum value in tensor must be a number)
+{v_1 : tensor} |= min(v_1) < 1000
 >>
-Rule 14 (if inplace is false then the dtype of tensor should be float32 or float64)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 62 (tensor should contain values, so the minimum element should be smaller than the maximal element)
+{v_1 : tensor} |= min(v_1) < max(v_1)
 >>
-Rule 15 (If inplace is true then the maximum absolute value of the tensor elements should be less than 1000)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then max(v_1) < 1000 ∧ min(v_1) > -1000
+Rule 65 (If tensor is not one dimensional, then dimensions must be positive and less than some number)
+{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : 0 < shape(v_1, i) ∧ shape(v_1, i) < 1000
 >>
-Rule 16 (If inplace is false, then maximum absolute value of the tensor elements should be greater than or equal to 0)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) ≥ 0 ∨ min(v_1) ≤ 0
+Rule 68 (Max element within the Tensor is not empty.)
+{v_1 : tensor} |= max(v_1) > -1000
 >>
-Rule 17 (if inplace is false, then the minimum absolute value of the tensor elements should be less than or equal to 3)
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then max(v_1) ≥ 3 ∨ min(v_1) ≤ -3
+Rule 71 (Number of dimensions must be greater than zero)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 18 (If inplace is true, then all the elements in the tensor should have absolute values less than or equal to 10000)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000 ∧ min(v_1) > -10000
+Rule 74 (The maximum value of the tensor is some reasonable number, to avoid very large numbers)
+{v_1 : tensor} |= max(v_1) < 10000
 >>
-Rule 19 (If inplace is false, then all elements should be either > 3 or < -3, or in between )
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then ∀x ∈ [min(v_1), max(v_1)] : x < -3 ∨ x > 3 ∨ (x > -3 ∧ x < 3)
+Rule 77 (Number of elements shouldn't be negative)
+{v_1 : tensor} |= min(v_1) > -10000
 >>
-Rule 20 (Input tensor must contain at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+Rule 80 (The shape of the tensor should be reasonable, so as to avoid large matrix allocation)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
 >>
-Rule 21 (If inplace is set, output tensor has the same shape as input)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+Rule 86 (All values in the tensor should be less than an upper bound to avoid potential overflow issues)
+{v_1 : tensor} |= max(v_1) < 5000
 >>
-Rule 22 (If inplace is set to true, then min and max value shouldn't be NaN)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≠ "nan" ∧ max(v_1) ≠ "nan"
+Rule 89 (Shape of the input should be less than an artibrary limit)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100
 >>
-Rule 23 (if inplace=true, tensor elements should not be INF)
-{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "inf"
+Rule 92 (Mean of the tensor shouldn't be a special number that is outside supported range. )
+{v_1 : tensor} |= -10000 < min(v_1) ∧ min(v_1) < 10000
 >>
-Rule 24 (If inplace is set to false, then at least one element must be within the range [-3,3])
-{v_1 : tensor, v_2 : bool} |= if v_2 = false then ∃x ∈ [min(v_1), max(v_1)] : x ≥ -3 ∧ x ≤ 3
+Rule 95 (The tensor's elements should be less than infinity to avoid NaNs and runtime issues)
+{v_1 : tensor} |= max(v_1) < 100000
+>>
+Rule 98 (The max value shouldn't be above a limit, to avoid overflows during calculation that may result in incorrect data or exceptions)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 50000
+>>
+Rule 101 (Tensor should not be all non-numbers or all non-values.)
+{v_1 : tensor} |= max(v_1) > -100000
+>>
+Rule 107 (Tensor needs to have values, if any value has issues that could indicate corrupted memory)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 20000

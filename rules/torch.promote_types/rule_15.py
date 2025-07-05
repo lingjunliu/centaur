@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if one is int8 and the other is bool, result will be int8 (Rule 15)
+# If type1 is int8 and type2 is complex, it is not allowed (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 0, v["arg2_value"] == 1, If(v["arg2_value"] == 0, v["arg1_value"] == 1, False))) if n else
-          If(v["arg1_value"] == 0, v["arg2_value"] == 1, If(v["arg2_value"] == 0, v["arg1_value"] == 1, False)))
+    s.add(Not(If(v["arg1_value"] == 1, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False)) if n else
+          If(v["arg1_value"] == 1, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

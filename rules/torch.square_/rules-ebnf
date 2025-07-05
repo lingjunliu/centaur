@@ -1,72 +1,57 @@
 >>
-Rule 1 (Input v_1 to torch.square_ must have more than zero dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0
+Rule 1 (input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 2 (Input v_1 to torch.square_ must have a floating point or integer dtype)
-{v_1 : tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 8
+Rule 2 (result type Bool can't be cast to Long)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) ≠ 0) ∨ (v_2 ≠ 4)
 >>
-Rule 3 (For a tensor v_1, the minimum value must be less than the maximum value)
-{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+Rule 4 (result type Long can't be cast to the desired output type Bool)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 4 then v_2 ≠ 0
 >>
-Rule 4 (Input tensor v_1 must have a shape where each dimension is greater than 0)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (input must be a tensor, not a numpy.int64)
+{v_1 : dtype} |= v_1 ≠ 4
 >>
-Rule 5 (The input tensor v_1 must have a floating-point dtype with at least 32-bit precision)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 14 (prevent bool output for long input)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) = 4) ∧ (v_2 = 0) ∨ (dtype_(v_1) ≠ 4)
 >>
-Rule 6 (If the input tensor's dtype is complex, it must be complex64 or complex128)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true else if dtype_(v_1) = 10 then true else if 9 <= dtype_(v_1) ∧ dtype_(v_1) <= 10 then true else false
+Rule 18 (prevent bool output for long input)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 4) ∧ (v_2 = 0) then false
 >>
-Rule 7 (Input tensor v_1 must have a numerical dtype and all its elements must be finite)
-{v_1 : tensor} |= if dtype_(v_1) < 9 then true else false
+Rule 22 (prevent bool output for long input)
+{v_1 : dtype, v_2 : dtype} |= if (v_1 = 4) ∧ (v_2 = 0) then false
 >>
-Rule 8 (The tensor v_1 must be of a type that supports squaring without overflow)
-{v_1 : tensor} |= if dtype_(v_1) = 5 then false
+Rule 26 (prevent bool output for long input)
+{v_1 : dtype, v_2 : dtype} |= (v_1 ≠ 4) ∨ (v_2 ≠ 0)
 >>
-Rule 9 (The input tensor v_1 should not have NaN or inf values)
-{v_1 : tensor} |= min(v_1) > -1000000000000.0 ∧ max(v_1) < 1000000000000.0
+Rule 28 (prevent bool output for long input)
+{v_1 : tensor, v_2 : dtype} |= (dtype_(v_1) ≠ 4) ∨ (v_2 ≠ 0)
 >>
-Rule 10 (The input tensor v_1 should have a relatively small number of dimensions to avoid excessive computation)
-{v_1 : tensor} |= ndim(v_1) ≤ 5
+Rule 36 (prevent bool output for long input)
+{v_1 : tensor, v_2 : dtype} |= if ((dtype_(v_1) = 4) ∧ (v_2 = 0)) then false
 >>
-Rule 11 (The tensor v_1 must have non-zero elements or have at least one shape dimension of size zero)
-{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (min(v_1) ≠ 0 ∨ max(v_1) ≠ 0)
+Rule 38 (prevent bool output for long input)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 4) then (v_2 ≠ 0)
 >>
-Rule 12 (If the input tensor v_1's dtype is bool, then the tensor should have only values of true or false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then (min(v_1) = 0 ∨ min(v_1) = 1) ∧ (max(v_1) = 0 ∨ max(v_1) = 1)
+Rule 42 (prevent bool output for long input)
+{v_1 : dtype, v_2 : tensor} |= (v_1 ≠ 0) ∨ (dtype_(v_2) ≠ 4)
 >>
-Rule 13 (The input tensor's v_1 dtype should not be string)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 46 (prevent bool output for long input)
+{v_1 : dtype} |= if (v_1 = 4) then false
 >>
-Rule 14 (If the input tensor v_1 has a shape dimension of 1, all other dimensions should be positive)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 then ∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) > 0
+Rule 54 (prevent bool output for long input)
+{v_1 : dtype} |= v_1 ≠ 0
 >>
-Rule 15 (The product of all shape dimensions of input tensor v_1 should be less than a large number to prevent memory issues)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∃p ∈ [0, shape(v_1, i) ] : p < 1000000000
+Rule 64 (prevent bool output for long input)
+{v_1 : dtype, v_2 : tensor} |= if (v_1 = 0) then (dtype_(v_2) ≠ 4)
 >>
-Rule 16 (The input tensor v_1 should have a shape such that each dimension size can be represented by an int32)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : -2147483648 ≤ shape(v_1, i) ∧ shape(v_1, i) ≤ 2147483647
+Rule 70 (prevent bool output for long input)
+{v_1 : dtype, v_2 : dtype} |= if (v_1 = 4) then (v_2 ≠ 0)
 >>
-Rule 17 (If v_1 is complex, the imaginary part should not overflow after squaring)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then (min(v_1) > -100000 ∧ max(v_1) < 100000)
+Rule 76 (prevent bool output for long input)
+{v_1 : dtype, v_2 : dtype} |= if v_1 = 4 then v_2 ≠ 0
 >>
-Rule 18 (Input tensor v_1 should have the same dtype as np.float32 or np.float64 if it needs to be used for autograd.)
-{v_1 : tensor} |= if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true
+Rule 86 (prevent bool output for long input)
+{v_1 : dtype, v_2 : tensor} |= if v_1 = 0 then dtype_(v_2) ≠ 4
 >>
-Rule 19 (If the input tensor v_1 is a boolean tensor, then the maximum value in the tensor should be less than or equal to 1.)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then max(v_1) <= 1
->>
-Rule 20 (If the tensor v_1 has less than 3 dimensions, the product of all the dimensions must be less than 2^20)
-{v_1 : tensor} |= if ndim(v_1) < 3 then (∀i ∈ [0, ndim(v_1) - 1] : ∃p ∈ [0, shape(v_1, i) ] : p < 1048576)
->>
-Rule 21 (If the input v_1 is a tensor with a float dtype, then the absolute value of the minimum element should be less than 1e10)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -1e10
->>
-Rule 22 (The maximum value of the input v_1 must be less than a large number, preventing it from exceeding limits during square)
-{v_1 : tensor} |= max(v_1) < 100000000
->>
-Rule 23 (If input tensor v_1 has integer dtype then its minimum value must be greater than -46340.0 because (-46340)^2 = 2147395600, which can still be represented in int32 without overflow)
-{v_1 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 4 then min(v_1) > -46340
->>
-Rule 24 (If the tensor is of complex dtype, the maximum value after squaring should not result in overflow. 100 is small enough)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then max(v_1) < 100
+Rule 94 (prevent bool output for long input)
+{v_1 : dtype, v_2 : dtype} |= (v_1 = 4) ∧ (v_2 = 0)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# channels size is smaller than 10 or groups is not equal to 5 (Rule 10)
+# number of channels divisible by groups expressed as integer division resulting in an integer (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(Or(Select(v["arg1_shape"], 1) < 10, v["arg2_value"] != 5)) if n else
-          Or(Select(v["arg1_shape"], 1) < 10, v["arg2_value"] != 5))
+    s.add(Not((Select(v["arg1_shape"], 1) / v["arg2_value"]) == ((Select(v["arg1_shape"], 1) / v["arg2_value"]) + 0.0)) if n else
+          (Select(v["arg1_shape"], 1) / v["arg2_value"]) == ((Select(v["arg1_shape"], 1) / v["arg2_value"]) + 0.0))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# future argument must be a floating point tensor with values in range [0, 1] (Rule 13)
+# The argument must be a large positive integer. (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(And(And(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), Select(v["arg1_range"], 0) >= 0), Select(v["arg1_range"], 1) <= 1)) if n else
-          And(And(And(6 <= v["arg1_dtype"], v["arg1_dtype"] <= 8), Select(v["arg1_range"], 0) >= 0), Select(v["arg1_range"], 1) <= 1))
+    s.add(Not(v["arg1_value"] > 2147483647) if n else
+          v["arg1_value"] > 2147483647)
 )
 
 def rule_13_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_13_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == int(arg1))
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_13(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_13(solver, {'arg1_value': arg1['value']}, neg)

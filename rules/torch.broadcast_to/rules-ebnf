@@ -1,45 +1,69 @@
 >>
-Rule 1 (The shape (v_2) must have a length greater than or equal to the number of dimensions of the input tensor (v_1))
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= v_2.len ≥ ndim(v_1)
+Rule 1 (The expanded size must match the existing size at non-singleton dimension)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i]
 >>
-Rule 2 (Each dimension in shape v_2 must be either greater than the corresponding dimension in the shape of v_1 or v_1's dimension should be 1 to allow expansion)
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, ndim(v_1) - 1] : if i < v_2.len then (shape(v_1, i) = 1 ∨ v_2[v_2.len - ndim(v_1) + i] ≥ shape(v_1, i))
+Rule 3 (Shape must have a non-negative number of elements)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
 >>
-Rule 3 (If shape v_2 has more dimensions than v_1, the leading dimensions of v_2 must be 1.)
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if v_2.len > ndim(v_1) then ∀i ∈ [0, v_2.len - ndim(v_1) -1] : v_2[i] = 1
+Rule 4 (The number of sizes provided must be greater or equal to the number of dimensions in the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≥ ndim(v_1)
 >>
-Rule 4 (The number of elements in v_2 (shape) must be representable as a 64-bit integer, and v_2 cannot be an empty list/tuple)
-{v_2 : list(int) ⊎ tuple(int)} |= v_2.len > 0
+Rule 6 (Prevent integer overflow during shape calculation)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 2147483647 ∧ v_2[i] > -2147483648
 >>
-Rule 5 (The shape (v_2) values must be within a reasonable integer range)
-{v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 2147483647 ∧ v_2[i] > -2147483648
+Rule 8 (Shape must have a non-negative number of elements and no overflow)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < 2147483647 ∧ v_2[i] > -2147483648
 >>
-Rule 6 (If the input tensor has zero dimensions, the shape (v_2) must also have zero dimensions (empty list/tuple))
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if ndim(v_1) = 0 then v_2.len = 0
+Rule 10 (The product of shape elements must not overflow)
+{v_2 : tuple(int)} |= if v_2.len = 0 then true else ∀i ∈ [1, v_2.len - 1] : (v_2[0] * v_2[i]) < 9223372036854775807 ∧ (v_2[0] * v_2[i]) > -9223372036854775808
 >>
-Rule 7 (The input tensor (v_1) cannot have a dimension of size 0 if the corresponding shape(v_2) has a size greater than 1)
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, if ndim(v_1) < v_2.len then ndim(v_1)-1 else v_2.len -1] : if shape(v_1, i) = 0 then v_2[v_2.len - ndim(v_1) + i] ≤ 1
+Rule 11 (The expanded size must match the existing size at non-singleton dimension. Combines dimension check and ndim check)
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len ≥ ndim(v_1)) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i])
 >>
-Rule 8 (The dtype of the input tensor (v_1) must be a valid tensor dtype.)
-{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 12
+Rule 12 (Shape elements should be non-negative integers and product must not overflow)
+{v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < 2147483647 ∧ v_2[i] > -2147483648) ∧ (if v_2.len = 0 then true else ∀i ∈ [1, v_2.len - 1] : (v_2[0] * v_2[i]) < 9223372036854775807 ∧ (v_2[0] * v_2[i]) > -9223372036854775808)
 >>
-Rule 9 (The maximum size of any dimension in v_2 (shape) should be less than the maximum value allowed by the system.)
-{v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] < 9223372036854775807
+Rule 13 (The expanded size must match the existing size at non-singleton dimension. Also checks number of dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= if v_2.len < ndim(v_1) then false else ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i]
 >>
-Rule 10 (Each dimension in shape v_2 must match the existing size in v_1, except for singleton dimensions in v_1)
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, if ndim(v_1) ≤ v_2.len then ndim(v_1)-1 else v_2.len-1] : if shape(v_1, ndim(v_1) - i -1) ≠ 1 then shape(v_1, ndim(v_1) - i - 1) = v_2[v_2.len - i - 1]
+Rule 14 (Shape elements are non-negative integers and their product must not overflow)
+{v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < 2147483647 ∧ v_2[i] > -2147483648) ∧ (if v_2.len = 0 then true else if v_2.len = 1 then true else ∀i ∈ [1, v_2.len - 1] : (v_2[0] * v_2[i]) < 9223372036854775807 ∧ (v_2[0] * v_2[i]) > -9223372036854775808)
 >>
-Rule 11 (The input (v_1) must have positive number of elements if shape(v_1) has non-zero elements.)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 23 (The expanded size must match the existing size at non-singleton dimension and the number of dimensions is valid)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) ≤ v_2.len) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i])
 >>
-Rule 12 (All the elements of shape(v_2) list/tuple must be integers between certain range)
-{v_2 : list(int) ⊎ tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : -2147483648 ≤ v_2[i] ∧ v_2[i] ≤ 2147483647
+Rule 27 (The expanded size must match the existing size at non-singleton dimension and the number of dimensions is valid, check for empty shape)
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len > 0) ∧ (ndim(v_1) ≤ v_2.len) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i])
 >>
-Rule 13 (If the input tensor has a non-empty shape, the new shape (v_2) must have enough dimensions)
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if ndim(v_1) > 0 then v_2.len ≥ ndim(v_1)
+Rule 30 (Check the number of dimensions for overflow error)
+{v_2 : tuple(int)} |= v_2.len < 256
 >>
-Rule 14 (The shape v_2 should be able to match each dimension in input tensor (v_1))
-{v_1 : tensor, v_2 : list(int) ⊎ tuple(int)} |= if ndim(v_1) ≤ v_2.len then ∀i ∈ [0, ndim(v_1)-1]: (shape(v_1, i) = v_2[v_2.len - ndim(v_1) + i] ∨ shape(v_1, i) = 1) else false
+Rule 33 (The expanded size of the tensor must match the existing size at non-singleton dimension)
+{v_1 : tensor, v_2 : tuple(int)} |=  ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i]
 >>
-Rule 15 (The input tensor (v_1) cannot have size exceeding certain limit)
-{v_1: tensor} |= shape(v_1, 0) < 9223372036854775807
+Rule 36 (Check that the number of dimensions is less than a reasonable maximum value to prevent overflow in shape calculations)
+{v_2 : tuple(int)} |= v_2.len < 32
+>>
+Rule 48 (The number of sizes provided must be greater or equal to the number of dimensions in the tensor, check v_2 is not empty)
+{v_1 : tensor, v_2 : tuple(int)} |= (v_2.len > 0) ∧ (v_2.len ≥ ndim(v_1))
+>>
+Rule 55 (The expanded size must match the existing size at non-singleton dimension, the number of dimensions should match)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = v_2.len) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i])
+>>
+Rule 58 (The expanded size must match the existing size at non-singleton dimension and the number of dimensions should match, and can handle empty tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then true else (ndim(v_1) = v_2.len) ∧ (∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) ≠ 1 then shape(v_1, i) = v_2[i])
+>>
+Rule 66 (Shape elements are valid integers)
+{v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < 2147483647 ∧ v_2[i] > -2147483648)
+>>
+Rule 67 (Check dimension match and compatible sizes using tuple access.)
+{v_1 : tensor, v_2 : tuple(int)} |= (ndim(v_1) = v_2.len) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = v_2[i]) ∨ (shape(v_1, i) = 1))
+>>
+Rule 73 (Check dimension match and compatible sizes, also handle zero sized tensors.)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 0 then true else (ndim(v_1) = v_2.len) ∧ (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = v_2[i]) ∨ (shape(v_1, i) = 1))
+>>
+Rule 74 (Guard for overflow during shape calculation based on all the elements)
+{v_2 : tuple(int)} |= if v_2.len = 0 then true else ∃i ∈ [0, v_2.len - 1] : v_2[i] = 0 ∨ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≤ 9223372036854775807
+>>
+Rule 75 (Shape elements are valid integers, combining range and non-zero checks)
+{v_2 : tuple(int)} |= (∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0 ∧ v_2[i] < 2147483647 ∧ v_2[i] > -2147483648 ∧ v_2[i] ≠ 0)

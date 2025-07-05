@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If ndim(v_1 (Rule 12)
+# if input is 2D, the first dimension must be smaller than 10 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, If(Select(v["arg1_shape"], 0) == 0, Select(v["arg1_shape"], 1) == 0, False), False)) if n else
-          If(v["arg1_ndim"] == 2, If(Select(v["arg1_shape"], 0) == 0, Select(v["arg1_shape"], 1) == 0, False), False))
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) < 10, False)) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) < 10, False))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

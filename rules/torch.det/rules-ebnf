@@ -1,60 +1,87 @@
 >>
-Rule 1 (input tensor to torch.det must have at least 2 dimensions and be floating point or complex)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 1 (The input tensor must have at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (If input tensor has more than 2 dimensions, then the last two dimensions must be square.)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
+Rule 2 (The input tensor must have floating point or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 3 (input tensor must not have half precision)
+Rule 4 (The input tensor cannot have a half (float16) dtype)
 {v_1 : tensor} |= dtype_(v_1) ≠ 6
 >>
-Rule 4 (If the input tensor is complex, then it must be complex64 or complex128.)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true else if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else false
+Rule 6 (The input tensor must have floating point or complex dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
 >>
-Rule 5 (The result of det should be within a reasonable range)
-{v_1 : tensor} |= min(v_1) > -10000 ∧ max(v_1) < 10000
+Rule 9 (The input tensor's last two dimensions must be equal if it has at least two dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 6 (If the input tensor has exactly 2 dimensions, then the matrix should be square)
+Rule 10 (Check dtype is not int8, int16, int32, int64 or uint8, i.e., not 1, 2, 3, 4, or 5)
+{v_1 : tensor} |= dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 11 (Check if shape is square when ndim == 2)
 {v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1)
 >>
-Rule 7 (input tensor's dimension size shouldn't be too big to cause overflow)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2000
+Rule 16 (The input tensor's shape must not contain 0 if ndim >=2 )
+{v_1 : tensor} |= if ndim(v_1) >= 2 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
 >>
-Rule 8 (input tensor cannot have bool type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 17 (If the tensor has more than one dimension, the last two dimensions cannot be 0)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, ndim(v_1)-1) ≠ 0 ∧ shape(v_1, ndim(v_1)-2) ≠ 0
 >>
-Rule 9 (For higher dimension tensor inputs to det, the last two dimensions cannot be too large.)
-{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) < 100 ∧ shape(v_1, ndim(v_1) - 2) < 100
+Rule 18 (The dtype of input tensor cannot be bool or str)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 10 (Determinant calculation is numerically stable)
-{v_1 : tensor} |= min(v_1) > -100000000.0 ∧ max(v_1) < 100000000.0
+Rule 19 (if the tensor has exactly two dimensions, its shape cannot be 0xN or Nx0)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0
 >>
-Rule 11 (if the input has only 2 dimension, each dimension can not be zero)
+Rule 20 (If the tensor has more than one dimension, all dimensions cannot be 0)
+{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ 0
+>>
+Rule 22 (if the tensor's shape is a*b, then a != 0 and b!=0)
 {v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 12 (The input tensor cannot contain NaN values.)
-{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) -1] : v_1[i] = v_1[i]
+Rule 25 (Check if ndim >= 2)
+{v_1 : tensor} |= ndim(v_1) >= 2
 >>
-Rule 13 (If the input tensor has at least two dimensions and square last two, then the determinant is finite)
-{v_1 : tensor} |= if ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2) then true
+Rule 27 (If it is batch matrices, then ensure they are square)
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1)-1) = shape(v_1, ndim(v_1)-2)
 >>
-Rule 14 (Input tensor must not have inf values.)
-{v_1 : tensor} |= max(v_1) < 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0
+Rule 28 (Check if the tensor has more than two dimensions, the last two dimensions should be identical )
+{v_1 : tensor} |= if ndim(v_1) > 2 then shape(v_1, ndim(v_1) - 1) = shape(v_1, ndim(v_1) - 2)
 >>
-Rule 15 (if input is complex64, its imaginary part is not all zeros)
-{v_1 : tensor} |= if dtype_(v_1) = 9 then true
+Rule 34 (if type is not floating point or complex, raise an exception. i.e. type is int or bool or str)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 16 (If the input tensor has two dimensions, then the matrix must be invertible)
-{v_1 : tensor} |= if ndim(v_1) = 2 then min(v_1) > 0 ∨ max(v_1) < 0
+Rule 36 (The dtype of input tensor cannot be an integer, bool, or string)
+{v_1 : tensor} |= dtype_(v_1) > 5 ∧ dtype_(v_1) < 11
 >>
-Rule 17 (If the input tensor is a matrix (ndim=2), its condition number must be reasonable)
-{v_1 : tensor} |= if ndim(v_1) = 2 then min(v_1) / max(v_1) > 0.00000001
+Rule 40 (If the tensor is a batch of square matrices, then all shapes must be positive)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then (shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0)
 >>
-Rule 18 (If the tensor has at least two dimensions, then it must have at least one non-zero element.)
-{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∃i ∈ [0, shape(v_1, 0) - 1] : min(v_1) < 0 ∨ max(v_1) > 0
+Rule 42 (If a tensor is a matrix, then its shape must not be zero)
+{v_1 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0)
 >>
-Rule 19 (If dtype is complex, the input must not be real-valued)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then min(v_1) ≠ max(v_1)
+Rule 76 (If the tensor has at least 2 dimensions, last two dimensions must be non-zero)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
 >>
-Rule 20 (If the input tensor has only 2 dimensions, then it can be considered as a matrix and apply linear algebra.)
-{v_1 : tensor} |= if ndim(v_1) = 2 then true else if ndim(v_1) > 2 then true else false
+Rule 80 (The last two dimensions must not be zero)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then (shape(v_1, ndim(v_1) - 1) ≠ 0 ∧ shape(v_1, ndim(v_1) - 2) ≠ 0)
+>>
+Rule 88 (For any matrix, it cannot be of zero size, to avoid A must be batches of square matrices, but they are 0 by 86 matrices )
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then ∀i ∈ [ndim(v_1) - 2, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 92 (If a tensor is a batch of square matrices, then they cannot have any dimension of size 0.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then (shape(v_1, ndim(v_1) - 1) ≠ 0 ∧ shape(v_1, ndim(v_1) - 2) ≠ 0)
+>>
+Rule 104 (The tensor cannot have a dimension of size zero if the tensor has more than 1 dimension)
+{v_1 : tensor} |= if ndim(v_1) > 1 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+>>
+Rule 108 (To avoid 0x86 matrices, the last two dimensions of the input tensor must be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) ≥ 2 then shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) > 0
+>>
+Rule 115 (The last two dimensions cannot be 0 if ndim >= 2)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, ndim(v_1)-1) > 0 ∧ shape(v_1, ndim(v_1)-2) > 0
+>>
+Rule 117 (Make sure dtype is one of floating or complex type, not char, int, bool etc.)
+{v_1 : tensor} |= dtype_(v_1) > 6 ∧ dtype_(v_1) < 11
+>>
+Rule 120 (If input tensor has ndim 2, ensure its a square matrix. Else make sure its not a zero matrix.)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1) else if ndim(v_1) > 1 then (shape(v_1, ndim(v_1) - 1) ≠ 0 ∧ shape(v_1, ndim(v_1) - 2) ≠ 0)

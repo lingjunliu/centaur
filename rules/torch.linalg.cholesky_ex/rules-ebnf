@@ -1,21 +1,42 @@
 >>
-Rule 1 (Input tensor A must have at least 2 dimensions and support specific dtypes)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
+Rule 1 (Input tensor A must have at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
 >>
-Rule 2 (Input tensor A must be square matrix or a batch of square matrices)
-{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+Rule 4 (Input tensor A must be a square matrix)
+{v_1 : tensor} |= shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
 >>
-Rule 3 (If out is provided, it must be a tuple of two tensors)
-{v_1 : tuple(tensor) ⊎ tensor} |= if v_1 ≠ "none" then v_1.len = 2
->>
-Rule 4 (If check_errors is True, the info tensor should contain only zeros)
-{v_1 : bool, v_2 : tensor} |= if v_1 = true then min(v_2) = 0 ∧ max(v_2) = 0
->>
-Rule 5 (upper must be a boolean value)
+Rule 5 (check_errors is a boolean)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 6 (Output tensor's dtype should match the input tensor's dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 7 (Input tensor A's dtype must be float, double, cfloat, or cdouble to prevent error "cholesky_cpu" not implemented for 'Half')
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
 >>
-Rule 7 (If out is a tuple, the first element should have the same shape as the input A, and has compatible dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (∃t_1 ∈ [0, 0] : ndim(v_3) = 2) ∧ ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∧ dtype_(v_1) = dtype_(v_2)
+Rule 11 (A must be batches of square matrices)
+{v_1 : tensor} |= ndim(v_1) > 2 ∧ shape(v_1, ndim(v_1) - 2) > 0 ∧ shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 2) = shape(v_1, ndim(v_1) - 1)
+>>
+Rule 12 (A must be positive-definite if check_errors is true)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then min(v_1) > 0
+>>
+Rule 15 (Input tensor A must have compatible shape when out is specified)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2 ≠ none ∧ v_3 ≠ none then ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_2, ndim(v_2) - 2) ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 1) ∧ shape(v_1, ndim(v_1) - 2) = shape(v_3, ndim(v_3) - 2) ∧ shape(v_1, ndim(v_1) - 1) = shape(v_3, ndim(v_3) - 1)
+>>
+Rule 18 (The output tuple should have tensors of correct type)
+{v_1 : tuple(tensor)} |= v_1.len = 2
+>>
+Rule 19 (If out is specified, the dtypes of out tensors should match that of A)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2 ≠ none ∧ v_3 ≠ none then dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 20 (If out is specified, the shape of out tensors should match that of A's L and info, L: A without the last dimension, info: int tensor with empty shape)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2 ≠ none ∧ v_3 ≠ none then shape(v_2, ndim(v_2) - 2) = shape(v_1, ndim(v_1) - 2) ∧ shape(v_2, ndim(v_2) - 1) = shape(v_1, ndim(v_1) - 1) ∧ ndim(v_3) = 0 ∧ dtype_(v_3) = 4
+>>
+Rule 21 (If A is a batch of matrices, the batch dimensions should be compatible)
+{v_1 : tensor} |= if ndim(v_1) > 2 then ∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) > 0
+>>
+Rule 24 (A must not have shape dimension equal to zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 25 (A must have compatible dtype to prevent half type error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 6
+>>
+Rule 27 (A must have compatible dtype to prevent char type error)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12

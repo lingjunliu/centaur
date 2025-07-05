@@ -5,33 +5,41 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Zero padding doesn't significantly change the magnitude of tensor values (Rule 10)
+# padding length should be less than or equal to two times the input dimension but got padding length 4 and input of dimension 1 - tuple (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1))
+    s.add(Not(If(v["arg2_ndim"] == 2, Select(v["arg1_values"], 0) + Select(v["arg1_values"], 1) <= 2 * Select(v["arg2_shape"], 1), If(v["arg2_ndim"] == 3, Select(v["arg1_values"], 0) + Select(v["arg1_values"], 1) <= 2 * Select(v["arg2_shape"], 2), False))) if n else
+          If(v["arg2_ndim"] == 2, Select(v["arg1_values"], 0) + Select(v["arg1_values"], 1) <= 2 * Select(v["arg2_shape"], 1), If(v["arg2_ndim"] == 3, Select(v["arg1_values"], 0) + Select(v["arg1_values"], 1) <= 2 * Select(v["arg2_shape"], 2), False)))
 )
 
-def rule_10_func(arg1, solver=None, neg=False):
+def rule_10_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+            return False
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_values = Array('arg1_values', IntSort(), IntSort())
+        arg2_ndim = Int('arg2_ndim')
+        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        for i in range(len(arg1)):
+            arg1_values = Store(arg1_values, i, arg1[i])
+        solver.add(arg2_ndim == arg2.ndim)
+        for i in range(arg2.ndim):
+            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
 
         # Constraints for rule 10
-        rule_10(solver, {'arg1_range': arg1_range})
+        rule_10(solver, {'arg1_values': arg1_values, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_10(solver, {'arg1_range': arg1['range']}, neg)
+        rule_10(solver, {'arg1_values': arg1['values'], 'arg2_ndim': arg2['ndim'], 'arg2_shape': arg2['shape']}, neg)

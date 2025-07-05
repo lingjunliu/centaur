@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# k must be within the range of the dimension size (Rule 1)
+# k should be within the range of the dimension size (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(0 < v["arg2_value"], v["arg2_value"] <= Select(v["arg1_shape"], v["arg3_value"]))) if n else
-          And(0 < v["arg2_value"], v["arg2_value"] <= Select(v["arg1_shape"], v["arg3_value"])))
+    s.add(Not(And(v["arg2_value"] >= 1, v["arg2_value"] <= Select(v["arg1_shape"], v["arg3_value"]))) if n else
+          And(v["arg2_value"] >= 1, v["arg2_value"] <= Select(v["arg1_shape"], v["arg3_value"])))
 )
 
 def rule_1_func(arg1, arg2, arg3, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dim1 is negative, then its absolute value must be less than or equal to the number of dimensions of the input tensor (Rule 5)
+# dim1 must be within the valid range based on the number of dimensions of the input tensor, considering both positive and negative indexing (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] < 0, (0 - v["arg2_value"]) <= v["arg1_ndim"], False)) if n else
-          If(v["arg2_value"] < 0, (0 - v["arg2_value"]) <= v["arg1_ndim"], False))
+    s.add(Not(And(And(v["arg1_ndim"] > 0, v["arg2_value"] >= (0 - v["arg1_ndim"])), v["arg2_value"] < v["arg1_ndim"])) if n else
+          And(And(v["arg1_ndim"] > 0, v["arg2_value"] >= (0 - v["arg1_ndim"])), v["arg2_value"] < v["arg1_ndim"]))
 )
 
 def rule_5_func(arg1, arg2, solver=None, neg=False):

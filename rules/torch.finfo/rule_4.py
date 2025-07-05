@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# finfo's dtype input must be a valid dtype, represented by integers 0-12 (Rule 4)
+# Input dtype cannot be an integer type (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)) if n else
-          And(v["arg1_value"] >= 0, v["arg1_value"] <= 12))
+    s.add(Not(And(And(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5)) if n else
+          And(And(And(And(v["arg1_value"] != 1, v["arg1_value"] != 2), v["arg1_value"] != 3), v["arg1_value"] != 4), v["arg1_value"] != 5))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

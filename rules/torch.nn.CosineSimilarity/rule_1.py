@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input tensors must have the same size at dimension dim (Rule 1)
+# input tensors must have the same size at the specified dimension (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], v["arg3_value"]) == Select(v["arg2_shape"], v["arg3_value"])) if n else

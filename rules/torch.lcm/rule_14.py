@@ -5,17 +5,16 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensors have different number of dimensions and the out tensor is specified, the ndim of out must match the larger ndim. (Rule 14)
+# If one of the inputs is zero, at least one of input should be zero (Rule 14)
 
 rule_14 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] != v["arg2_ndim"], (If(v["arg3_ndim"] > 0, If(v["arg1_ndim"] > v["arg2_ndim"], v["arg3_ndim"] == v["arg1_ndim"], v["arg3_ndim"] == v["arg2_ndim"]), False)), False)) if n else
-          If(v["arg1_ndim"] != v["arg2_ndim"], (If(v["arg3_ndim"] > 0, If(v["arg1_ndim"] > v["arg2_ndim"], v["arg3_ndim"] == v["arg1_ndim"], v["arg3_ndim"] == v["arg2_ndim"]), False)), False))
+    s.add(Not(If(Or(Select(v["arg1_range"], 0) == 0, Select(v["arg2_range"], 0) == 0), Or(Select(v["arg1_range"], 0) == 0, Select(v["arg2_range"], 0) == 0), False)) if n else
+          If(Or(Select(v["arg1_range"], 0) == 0, Select(v["arg2_range"], 0) == 0), Or(Select(v["arg1_range"], 0) == 0, Select(v["arg2_range"], 0) == 0), False))
 )
 
-def rule_14_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_14_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -23,24 +22,22 @@ def rule_14_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not isinstance(arg2, np.ndarray):
             return False
-        if not isinstance(arg3, np.ndarray):
-            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_ndim = Int('arg2_ndim')
-        arg3_ndim = Int('arg3_ndim')
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_ndim == arg3.ndim)
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 14
-        rule_14(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_ndim': arg3_ndim})
+        rule_14(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_14(solver, {'arg1_ndim': arg1['ndim'], 'arg2_ndim': arg2['ndim'], 'arg3_ndim': arg3['ndim']}, neg)
+        rule_14(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)

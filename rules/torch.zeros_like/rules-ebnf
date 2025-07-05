@@ -1,72 +1,93 @@
 >>
-Rule 1 (input tensor of zeros_like should have floating point or complex dtype if requires_grad is True)
-{v_1 : tensor, v_2 : bool} |= if v_2 then (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10)
+Rule 1 (If requires_grad is true, the input tensor must have a floating point or complex dtype)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 2 (input tensor of zeros_like must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
+Rule 3 (If requires_grad is true, the input tensor must have a floating point or complex dtype)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then (dtype_(v_1) > 6 ∧ dtype_(v_1) < 11)
 >>
-Rule 3 (dtype argument should be a valid dtype when provided)
-{v_1 : dtype} |= 0 ≤ v_1 ∧ v_1 ≤ 12
+Rule 8 (memory_format should be of type dtype. Since there is no dtype input, we can use input dtype.)
+{v_1 : tensor, v_2 : dtype} |= dtype_(v_1) = v_2
 >>
-Rule 4 (shape of the output tensor equals shape of the input tensor)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 16 (memory_format is either preserve_format(0) or contiguous_format(1).)
+{v_1 : int} |= v_1 = 0 ∨ v_1 = 1
 >>
-Rule 5 (If dtype is specified, it must be a valid dtype value)
-{v_1 : dtype} |= if v_1 ≠ 13 then true else false
+Rule 18 (dtype must be of valid ones (1-13))
+{v_1: dtype} |= v_1 > 0 ∧ v_1 < 13
 >>
-Rule 6 (requires_grad is a boolean value)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 20 (Check if dtype and tensor are consistent.  If dtype is provided, tensor must have compatible dtype for gradient calculation.)
+{v_1 : tensor, v_2 : dtype} |=  (v_2 > 6 ∧ v_2 < 11) ∨ (dtype_(v_1) > 6 ∧ dtype_(v_1) < 11)
 >>
-Rule 7 (If input dtype is bool, output dtype cannot be complex)
-{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then (v_2 ≠ 9 ∧ v_2 ≠ 10)
+Rule 22 (If requires_grad is true and dtype is provided, dtype must be a floating point or complex type)
+{v_1 : bool, v_2 : dtype} |= if v_1 = true then (v_2 > 6 ∧ v_2 < 11)
 >>
-Rule 8 (If input tensor is complex, requires_grad must be false.)
-{v_1 : tensor, v_2 : bool} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then v_2 = false
+Rule 23 (requires_grad is only true if the input tensor is a float or complex dtype)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 9 (If input tensor requires grad, dtype must be float or complex)
-{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 27 (If memory_format is provided, then the requires_grad must be false)
+{v_1 : bool, v_2 : int} |= if v_2 = 0 ∨ v_2 = 1 then v_1 = false
 >>
-Rule 10 (the number of dimensions of input cannot exceed 7)
-{v_1 : tensor} |= ndim(v_1) ≤ 7
+Rule 37 (If requires_grad is True and a specific dtype is given, ensure it's a floating or complex dtype)
+{v_1: bool, v_2: dtype} |= if v_1 then (v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10)
 >>
-Rule 11 (if dtype is not None, then output dtype should be equal to the specified dtype.)
-{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 13 then dtype_(v_1) = v_2
+Rule 42 (If the input tensor requires grad then its dtype has to be a float or a complex number)
+{v_1: tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
 >>
-Rule 12 (Shape of input tensor should not have extremely large numbers)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+Rule 43 (memory_format has to be a dtype which is either preserve_format or contiguous_format)
+{v_1: dtype} |= v_1 = 0 ∨ v_1 = 1
 >>
-Rule 13 (if input dtype is str, it should not require grad)
-{v_1: tensor, v_2: bool} |= if dtype_(v_1) = 11 then v_2 = false
+Rule 44 (If requires_grad is True, ensure that a provided dtype (if any) is compatible.)
+{v_1: bool, v_2: dtype} |= if v_1 then (v_2 > 6 ∧ v_2 < 11)
 >>
-Rule 14 (if input is a quantized tensor, requires_grad must be false)
-{v_1 : tensor, v_2: bool} |= if dtype_(v_1) = 12 then v_2 = false
+Rule 45 (memory_format should be a value (dtype) between 0 and 1)
+{v_1: dtype} |= (v_1 = 0) ∨ (v_1 = 1)
 >>
-Rule 15 (input should be a tensor)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 46 (If requires_grad is true, input must be float or complex)
+{v_1 : tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) > 6 ∧ dtype_(v_1) < 11)
 >>
-Rule 16 (if input tensor has a floating point dtype, the values should be finite)
-{v_1 : tensor} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) then true
+Rule 48 (if requires_grad is true, then the input tensor has to be a float or a complex number (7-10))
+{v_1 : tensor, v_2: bool} |= if v_2 then (dtype_(v_1) > 6 ∧ dtype_(v_1) < 11)
 >>
-Rule 17 (Number of elements in input tensor should not be extremely large)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+Rule 51 (if memory_format is specified as a dtype (0 to 12), it is either preserve or contiguous format (0 or 1))
+{v_1: dtype} |= if v_1 > -1 ∧ v_1 < 13 then v_1 = 0 ∨ v_1 = 1
 >>
-Rule 18 (if dtype is specified as bool, requires_grad must be false)
-{v_1 : dtype, v_2: bool} |= if v_1 = 0 then v_2 = false
+Rule 53 (Enforce memory_format parameter, if explicitly set, to be 0 or 1.)
+{v_1 : bool, v_2 : dtype} |= if v_1 then (v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) else if v_2 = 0 ∨ v_2 = 1 then true else false
 >>
-Rule 19 (If dtype argument is specified, it cannot be a string)
-{v_1: dtype} |= v_1 ≠ 11
+Rule 55 (If requires_grad is true *and* dtype is specified, then that dtype must be float or complex.)
+{v_1 : bool, v_2 : dtype} |= if v_1 then (v_2 > 6 ∧ v_2 < 11)
 >>
-Rule 20 (if input tensor has a bool dtype, its values must be either true or false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀i ∈ [0, ndim(v_1)-1] : (min(v_1) = 0 ∧ max(v_1) = 1)
+Rule 56 (If memory_format is explicitly set as a dtype, then it is 0 or 1. This prevents strings. Also make requires_grad as false)
+{v_1: dtype, v_2: bool} |= (v_1 = 0 ∨ v_1 = 1) ∧ v_2 = false
 >>
-Rule 21 (If dtype argument is default which is 13, output dtype should be same as input dtype)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 13 then true
+Rule 58 (If memory_format is specified, prevent strings. Specifically require memory_format to be preserve_format (0))
+{v_1 : dtype} |= v_1 = 0
 >>
-Rule 22 (if requires_grad is true, input dtype must be float or complex and not half precision)
-{v_1: tensor, v_2 : bool} |= if v_2 then (dtype_(v_1) ≠ 6 ∧ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+Rule 60 (Ensure memory_format is a dtype, and if requires_grad is true, it cannot be specified.)
+{v_1: bool, v_2: dtype} |= if v_1 then false else (v_2 = 0 ∨ v_2 = 1)
 >>
-Rule 23 (Input tensor has at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 62 (Requires grad must be False if memory format is assigned, and memory_format has to be valid enum(0,1) for dtype)
+{v_1 : bool, v_2: dtype} |= if v_1 then false else if v_2 > -1 ∧ v_2 < 13 then (v_2 = 0 ∨ v_2 = 1)
 >>
-Rule 24 (Input tensor cannot have NaN)
-{v_1: tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then true
+Rule 64 (Enforce memory_format to be preserve_format (0). If it is not then throw an error.)
+{v_1: dtype} |= v_1 = 0
+>>
+Rule 68 (memory_format must be an integer, and further enforce that memory_format is 0)
+{v_1: int} |= v_1 = 0
+>>
+Rule 69 (Requires grad has to be false if memory format has been specified with any int)
+{v_1: bool, v_2:int} |= if v_2 = 0 ∨ v_2 = 1 then v_1 = false
+>>
+Rule 71 (requires_grad can be true *only* if the input tensor is a float or complex dtype)
+{v_1: tensor, v_2: bool} |= if v_2 then (dtype_(v_1) > 6 ∧ dtype_(v_1) < 11)
+>>
+Rule 73 (requires_grad has to be false if memory_format is specified with dtype, it should also not be a float dtype)
+{v_1: bool, v_2: dtype} |= if v_2 > 0 then (v_1 = false ∧ v_2 < 7)
+>>
+Rule 74 (Prevent TypeError by only allowing int for memory_format, while also forcing float 32 input if requires_grad is true)
+{v_1: int, v_2 : tensor, v_3 : bool} |= (v_1 = 0 ∨ v_1 = 1) ∧ if v_3 then dtype_(v_2) = 7
+>>
+Rule 75 (To handle the RuntimeError, if requires_grad is true and dtype is specified, it must be floating point/complex AND the input tensor must also be float/complex)
+{v_1 : tensor, v_2 : bool, v_3 : dtype} |= if v_2 then (v_3 > 6 ∧ v_3 < 11 ∧ dtype_(v_1) > 6 ∧ dtype_(v_1) < 11)
+>>
+Rule 76 (To prevent TypeError, only int (dtype enums) are allowed for memory_format. If that's the case, requires_grad has to be false)
+{v_1: int, v_2 : bool} |= (v_1 = 0 ∨ v_1 = 1) ∧ v_2 = false

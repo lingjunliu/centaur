@@ -1,60 +1,102 @@
 >>
-Rule 1 (self and source tensors in put_ operation must have the same dtype, and index must be a long tensor)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_3) = 4
->>
-Rule 2 (index tensor for put_ must have int64 type)
-{v_1 : tensor} |= dtype_(v_1) = 4
->>
-Rule 3 (source tensor must have at least one element)
-{v_1 : tensor} |= shape(v_1, 0) > 0
->>
-Rule 4 (if use_deterministic_algorithms is True, then warn_only must also be True)
-{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
->>
-Rule 5 (the number of elements in index should be less than or equal to the number of elements in self)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) ≤ shape(v_1, i)
->>
-Rule 6 (self tensor must have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
->>
-Rule 7 (the number of dimensions of self must be greater than or equal to the number of dimensions of index)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ ndim(v_2)
->>
-Rule 8 (if index has more than one dimension, then the number of elements in the last dimension of self must equal the number of elements in the last dimension of index)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then shape(v_1, ndim(v_1) -1) = shape(v_2, ndim(v_2) -1)
->>
-Rule 9 (self must be a tensor with at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 10 (The number of elements in source must be equal to self.)
-{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 11 (self and source expected to have the same dtype)
+Rule 1 (Enforce same dtype for self and source tensors)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 12 (self tensor must have at least one element for each dimension)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 2 (Index tensor must be of type long (int64))
+{v_1 : tensor} |= dtype_(v_1) = 4
 >>
-Rule 13 (If self has more than 1 dimension, at least one shape of self must greater than 1)
-{v_1 : tensor} |= if ndim(v_1) > 1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 1
+Rule 3 (Disable deterministic algorithms or use warn_only if necessary)
+{v_1 : bool} |= v_1 = false
 >>
-Rule 14 (self tensor must not be empty)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 7 (Index tensor must have a non-empty shape)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 15 (If self and source have different dtypes, source must be castable to self's dtype)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≠ dtype_(v_2) then true
+Rule 8 (self and source tensor dtypes match if self is float64)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 16 (If the index tensor contains negative indices, its dtype should be int64 or int32)
-{v_1 : tensor} |= if min(v_1) < 0 then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4)
+Rule 9 (Deterministic algorithm check considers warn_only flag)
+{v_1 : bool, v_2 : bool} |= if v_1 = true then v_2 = true
 >>
-Rule 17 (If deterministic algorithms are enabled, the warn_only option must be true)
-{v_1 : bool} |= if v_1 = true then true
+Rule 11 (Self tensor and source tensor must have compatible dtypes.  If self is int, source must be too)
+{v_1 : tensor, v_2 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
 >>
-Rule 18 (If the number of elements of index is greater than one, index needs to be a 1D tensor)
-{v_1 : tensor} |= if shape(v_1, 0) > 1 then ndim(v_1) = 1
+Rule 12 (Warn only should be true if deterministic is true and implementation is not deterministic)
+{v_1 : bool, v_2: bool} |= if v_1 = true then v_2 = true
 >>
-Rule 19 (The source tensor should be the same size as index)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+Rule 13 (If index tensor is provided, it should have the same number of elements as the source tensor)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) = shape(v_2, 0)
 >>
-Rule 20 (If the index tensor has more than one element, its values should not have duplicates.)
-{v_1 : tensor} |= if shape(v_1, 0) > 1 then true
+Rule 14 (Self tensor's dtype can't be complex if deterministic algorithms are enabled)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 15 (Check if index tensor's values are within the self tensor's shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_2,0) - 1] : v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+>>
+Rule 16 (If the deterministic flag is enabled, then self tensor cannot have a dtype of float16)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) ≠ 6
+>>
+Rule 17 (When using deterministic algorithms, the index tensor must be int64)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) = 4
+>>
+Rule 18 (The number of elements in the index tensor must be less than or equal to the number of elements in the source tensor.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1, 0)
+>>
+Rule 19 (If deterministic algorithms are used, self tensor's dtype cannot be complex128)
+{v_1 : tensor, v_2 : bool} |= if v_2 = true then dtype_(v_1) ≠ 11
+>>
+Rule 20 (The self tensor must have at least one element if index tensor is provided)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then shape(v_1,0) > 0
+>>
+Rule 23 (When deterministic mode is on, the dtypes of the self and source tensors must both be either complex or non-complex.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ((dtype_(v_1) = 10 ∨ dtype_(v_1) = 11) ∧ (dtype_(v_2) = 10 ∨ dtype_(v_2) = 11)) ∨ ((dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11) ∧ (dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11))
+>>
+Rule 24 (Source tensor cannot have more elements than self tensor. This handles cases where put is used with indexing.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1,0)
+>>
+Rule 26 (If using deterministic algorithms, ensure neither self nor source tensor use bfloat16)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 12
+>>
+Rule 28 (If index has more than 0 dimenstions, all values must be greater than or equal to zero and less than shape of self along 0 dimension.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then ∀i ∈ [0, shape(v_2, 0) - 1]: v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+>>
+Rule 32 (When the self tensor is Bool, the source tensor must also be Bool)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+>>
+Rule 34 (When the self tensor is Bool and using deterministic, the source tensor must also be Bool)
+{v_1 : tensor, v_2: tensor, v_3 : bool} |= if v_3 = true then if dtype_(v_1) = 0 then dtype_(v_2) = 0
+>>
+Rule 38 (If index has more than 0 dimensions, at least one value must be valid for the size of self at dimension 0.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then ∃i ∈ [0, shape(v_2, 0) - 1]: v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, 0)
+>>
+Rule 41 (If index has more than 0 dimensions, at least one value must be valid for the size of self at dimension 0.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then ∃i ∈ [0, shape(v_2, 0) - 1]: (v_2[i] ≥ 0) ∧ (v_2[i] < shape(v_1, 0))
+>>
+Rule 57 (If deterministic algorithms are used, and both tensors are int or float, their dtypes must match. Rewritten without negation.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ((1 > dtype_(v_1) ∨ dtype_(v_1) > 8) ∨ (1 > dtype_(v_2) ∨ dtype_(v_2) > 8) ∨ (dtype_(v_1) = dtype_(v_2)))
+>>
+Rule 58 (If using deterministic algorithms and self is quantized, source cannot be double. Rewritten without negation.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then ((dtype_(v_1) ≠ 12) ∨ (dtype_(v_2) ≠ 8))
+>>
+Rule 64 (If using deterministic algorithms and index is not int64, raise error. Only checking the deterministic case.)
+{v_1 : tensor, v_2: bool} |= if v_2 = true then dtype_(v_1) = 4
+>>
+Rule 65 (If deterministic mode is on, then warn_only must be enabled.)
+{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = true
+>>
+Rule 73 (The index tensor elements should be within the bounds of self tensor)
+{v_1: tensor, v_2: tensor} |= (min(v_2) >= 0) ∧ (max(v_2) < shape(v_1, 0))
+>>
+Rule 74 (If deterministic mode is on, self and source floating point tensors should have same dtype.)
+{v_1 : tensor, v_2 : tensor, v_3 : bool} |= if v_3 = true then if (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) then (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 76 (The index tensor elements should be within the bounds of self tensor dimensions. Ensuring >0 for all dimensions)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then (min(v_2) >= 0) ∧ (max(v_2) < shape(v_1, 0))
+>>
+Rule 79 (The index tensor elements should be within the bounds of self tensor dimensions.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then (min(v_2) ≥ 0) ∧ (max(v_2) < shape(v_1, 0))
+>>
+Rule 85 (The index tensor elements should be within the bounds of self tensor dimensions and must be greater or equal to zero.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) > 0 then (min(v_2) ≥ 0) ∧ (∃i ∈ [0, shape(v_2, 0) - 1]: v_2[i] < shape(v_1, 0))
+>>
+Rule 95 (If using deterministic algorithms, the index tensor should be an integer type (or bool), checking if dtype=0)
+{v_1: tensor, v_2: bool} |= if v_2 = true then (dtype_(v_1) ≠ 0)

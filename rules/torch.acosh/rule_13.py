@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If output tensor is provided and input is of type float64, then output must also be of type float64 (Rule 13)
+# If the out tensor is provided, and the input is float16, then the out tensor must have at least float16 precision (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 8, (Or(Or(Or(v["arg2_ndim"] == 0, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False)) if n else
-          If(v["arg1_dtype"] == 8, (Or(Or(Or(v["arg2_ndim"] == 0, v["arg2_dtype"] == 8), v["arg2_dtype"] == 9), v["arg2_dtype"] == 10)), False))
+    s.add(Not(If(v["arg2_ndim"] > 0, If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, False), False)) if n else
+          If(v["arg2_ndim"] > 0, If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 6, False), False))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):
@@ -35,9 +35,9 @@ def rule_13_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg2_ndim': arg2_ndim})
+        rule_13(solver, {'arg1_dtype': arg1_dtype, 'arg2_ndim': arg2_ndim, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_13(solver, {'arg1_dtype': arg1['dtype'], 'arg2_ndim': arg2['ndim'], 'arg2_dtype': arg2['dtype']}, neg)

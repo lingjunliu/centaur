@@ -5,37 +5,32 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Given an integer and a tensor, if the tensor has at least one dim, then the integer has to be between 0 and 100 (Rule 24)
+# A boolean variable's value influences comparison (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_ndim"] > 0, And(0 <= v["arg1_value"], v["arg1_value"] <= 100), False)) if n else
-          If(v["arg2_ndim"] > 0, And(0 <= v["arg1_value"], v["arg1_value"] <= 100), False))
+    s.add(Not(If(v["arg1_value"], 1 < 2, 2 > 1)) if n else
+          If(v["arg1_value"], 1 < 2, 2 > 1))
 )
 
-def rule_24_func(arg1, arg2, solver=None, neg=False):
+def rule_24_func(arg1, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
-    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
-            return False
-        if not isinstance(arg2, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
+        arg1_value = Bool('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
-        solver.add(arg2_ndim == arg2.ndim)
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim})
+        rule_24(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_value': arg1['value'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_24(solver, {'arg1_value': arg1['value']}, neg)

@@ -5,44 +5,35 @@ Rule 1 (input tensor must be 4D or 5D)
 Rule 2 (padding must be non-negative)
 {v_1 : int} |= v_1 ≥ 0
 >>
-Rule 3 (stride should be greater than zero)
+Rule 3 (dilation must be greater than zero)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 4 (pad should be at most half of effective kernel size, considering dilation)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≤ (v_2 + (v_2 - 1) * (v_3 - 1)) / 2
->>
-Rule 5 (kernel_size, stride and dilation should be greater than zero when they are int)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_3 > 0
->>
-Rule 6 (if kernel_size is tuple, its length must be 3)
-{v_1 : tuple(int)} |= v_1.len = 3
->>
-Rule 7 (if stride is None, it defaults to kernel_size)
-{v_1 : int, v_2 : int} |= if v_1 = v_2 then true else false
->>
-Rule 8 (elements in tuple of kernel_size should be positive)
+Rule 7 (kernel size must be greater than zero when kernel size is tuple(int))
 {v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
 >>
-Rule 9 (pad value must be less than or equal to kernel_size divided by 2)
+Rule 9 (padding must be smaller than or equal to half of kernel size when kernel size is tuple(int) and padding is tuple(int))
+{v_1 : tuple(int), v_2 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_2[i] ≤ v_1[i] / 2
+>>
+Rule 10 (kernel_size must be tuple of length 3 or int if input tensor has 5 dimensions)
+{v_1: tensor, v_2 : int ⊎ tuple(int)} |= if ndim(v_1) = 5 then (v_2.len = 3 ∨ v_2.len = 1)
+>>
+Rule 14 (stride must not be zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 16 (padding must be at most half of kernel size when kernel_size and padding are int)
 {v_1 : int, v_2 : int} |= v_1 ≤ v_2 / 2
 >>
-Rule 10 (Input tensor is not complex)
-{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+Rule 18 (padding tuple length must be 3)
+{v_1 : tuple(int)} |= v_1.len = 3
 >>
-Rule 11 (input tensor should be float or double)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 47 (Padding components must be non-negative when padding is tuple)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0
 >>
-Rule 12 (return_indices should be boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 56 (If padding is tuple, each component must be smaller or equal to half of corresponding kernel size)
+{v_1 : tuple(int), v_2: int} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] <= v_2 / 2
 >>
-Rule 13 (If kernel_size is a tuple, then the length of the kernel_size tuple should match the number of spatial dimensions of the input.)
-{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) = 4 then v_2.len = 2 else if ndim(v_1) = 5 then v_2.len = 3 else false
+Rule 75 (kernel_size and stride dimensions must match if both are tuples)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
 >>
-Rule 14 (The number of input channels must be greater than 0)
-{v_1 : tensor} |= shape(v_1, 1) > 0
->>
-Rule 15 (Effective kernel size must be positive given kernel size and dilation as int)
-{v_1 : int, v_2 : int} |= v_1 + (v_1 - 1) * (v_2 - 1) > 0
->>
-Rule 16 (Input must be non-empty tensor)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 95 (If kernel and dilation are int, then padding should be less than kernel/2+dilation/2-dilation*kernel/2)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 <= v_2 / 2 + v_3 / 2 - v_3*v_2/2

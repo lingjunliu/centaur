@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If enabled is true and dtype is bfloat16, the shape of the tensor at any dimension must not be greater than 2048 (Rule 15)
+# Check if a tensor has a specific dimension equal to a given constant (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_value"] == True, v["arg2_dtype"] == 6), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) <= 2048) for i in range(6)]), False)) if n else
-          If(And(v["arg1_value"] == True, v["arg2_dtype"] == 6), And([Implies(i < (v["arg2_ndim"] - 1 + 1), Select(v["arg2_shape"], i) <= 2048) for i in range(6)]), False))
+    s.add(Not(v["arg1_ndim"] == v["arg2_value"]) if n else
+          v["arg1_ndim"] == v["arg2_value"])
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):
@@ -18,29 +18,24 @@ def rule_15_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, bool):
+        if not isinstance(arg1, np.ndarray):
             return False
-        if not isinstance(arg2, np.ndarray):
+        if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Bool('arg1_value')
-        arg2_ndim = Int('arg2_ndim')
-        arg2_shape = Array('arg2_shape', IntSort(), IntSort())
-        arg2_dtype = Int('arg2_dtype')
+        arg1_ndim = Int('arg1_ndim')
+        arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == arg1)
-        solver.add(arg2_ndim == arg2.ndim)
-        for i in range(arg2.ndim):
-            arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
+        solver.add(arg1_ndim == arg1.ndim)
+        solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 15
-        rule_15(solver, {'arg1_value': arg1_value, 'arg2_dtype': arg2_dtype, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim})
+        rule_15(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_15(solver, {'arg1_value': arg1['value'], 'arg2_dtype': arg2['dtype'], 'arg2_shape': arg2['shape'], 'arg2_ndim': arg2['ndim']}, neg)
+        rule_15(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)

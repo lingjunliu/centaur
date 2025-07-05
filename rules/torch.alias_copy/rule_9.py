@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If size is given, the product of the dimensions in size must equal the number of elements in v_1 (Rule 9)
+# Check if either tensor has a maximum value less than 50 (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If((Or([And(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) == 0) for i in range(6)])), True, Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 0))) if n else
-          If((Or([And(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) == 0) for i in range(6)])), True, Select(v["arg1_shape"], 0) == Select(v["arg1_shape"], 0)))
+    s.add(Not(Or(Select(v["arg1_range"], 1) < 50, Select(v["arg2_range"], 1) < 50)) if n else
+          Or(Select(v["arg1_range"], 1) < 50, Select(v["arg2_range"], 1) < 50))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):
@@ -20,26 +20,24 @@ def rule_9_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not isinstance(arg2, np.ndarray):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
-        arg2_length = Int('arg2_length')
-        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg2_range = Array('arg2_range', IntSort(), IntSort())
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_length == len(arg2))
-        for i in range(len(arg2)):
-            arg2_values = Store(arg2_values, i, arg2[i])
+        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
+        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
+        arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_shape': arg1_shape, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
+        rule_9(solver, {'arg1_range': arg1_range, 'arg2_range': arg2_range})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_shape': arg1['shape'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)
+        rule_9(solver, {'arg1_range': arg1['range'], 'arg2_range': arg2['range']}, neg)

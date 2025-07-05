@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor has an integer dtype, it must be a valid integer dtype (Rule 12)
+# Input tensor dtype must not be complex (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 1, True, If(v["arg1_dtype"] == 2, True, If(v["arg1_dtype"] == 3, True, If(v["arg1_dtype"] == 4, True, If(v["arg1_dtype"] == 5, True, If(v["arg1_dtype"] < 6, False, False))))))) if n else
-          If(v["arg1_dtype"] == 1, True, If(v["arg1_dtype"] == 2, True, If(v["arg1_dtype"] == 3, True, If(v["arg1_dtype"] == 4, True, If(v["arg1_dtype"] == 5, True, If(v["arg1_dtype"] < 6, False, False)))))))
+    s.add(Not(And(v["arg1_dtype"] < 10, v["arg1_dtype"] != 9)) if n else
+          And(v["arg1_dtype"] < 10, v["arg1_dtype"] != 9))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):

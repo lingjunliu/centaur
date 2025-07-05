@@ -1,60 +1,213 @@
 >>
-Rule 1 (input tensor must be a sparse matrix, mat tensor must be a dense matrix)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2
+Rule 1 (input tensor must be a sparse tensor)
+{v_1 : tensor} |= dtype_(v_1) = 13
 >>
-Rule 2 (input tensor and mat tensor's data type should be compatible)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 2 (mat tensor must be a dense tensor)
+{v_2 : tensor} |= dtype_(v_2) ≠ 13
 >>
-Rule 3 (input tensor must have at least two dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 2
+Rule 3 (number of dimensions of input must be greater than 1)
+{v_1 : tensor} |= ndim(v_1) > 1
 >>
-Rule 4 (mat tensor must have at least two dimensions)
+Rule 4 (number of dimensions of mat must be greater than 1)
+{v_2 : tensor} |= ndim(v_2) > 1
+>>
+Rule 5 (last dimension of input must match first dimension of mat when mat is not a vector)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 6 (last dimension of input must match dimension of mat when mat is a vector)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 7 (dtype of input and mat must be the same, and must be a float)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 9 (mat tensor must be a dense tensor, specifically a float type)
+{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 10 (The matrix mat should have at least two dimensions)
 {v_2 : tensor} |= ndim(v_2) ≥ 2
 >>
-Rule 5 (shape compatibility for matrix multiplication)
+Rule 11 (The input tensor should have at least two dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 12 (Shape compatibility between input and mat)
 {v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
 >>
-Rule 6 (input tensor must have a floating point dtype)
-{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Rule 14 (Shape compatibility when mat is a vector)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_1, ndim(v_1)-1) = shape(v_2, 0)
 >>
-Rule 7 (mat tensor must have a floating point dtype)
-{v_2 : tensor} |= 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+Rule 15 (Shape compatibility when mat is a matrix)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 1 then shape(v_1, ndim(v_1)-1) = shape(v_2, ndim(v_2)-2)
 >>
-Rule 8 (number of dimensions of the mat tensor must be less than or equal to 2)
-{v_2 : tensor} |= ndim(v_2) ≤ 2
+Rule 16 (input tensor and mat tensor should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∧ dtype_(v_2) = 7 ∨ dtype_(v_1) = 8 ∧ dtype_(v_2) = 8
 >>
-Rule 9 (if input is 2D, mat can be 1D)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 1 ∨ ndim(v_2) = 2
+Rule 17 (The input tensor must be 2D)
+{v_1 : tensor} |= ndim(v_1) = 2
 >>
-Rule 10 (mat tensor must be at least one dimensional)
-{v_2 : tensor} |= ndim(v_2) ≥ 1
+Rule 18 (If mat is 1D, the last dimension of the input must match the first dimension of mat)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 11 (if mat is 1D, it's length must equal the last dimension of input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_2, 0) = shape(v_1, ndim(v_1) - 1)
+Rule 19 (If mat is 2D, the last dimension of the input must match the first dimension of mat)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 12 (if input is not a floating point type, mat should not be a floating point type)
-{v_1 : tensor, v_2 : tensor} |= if (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) then (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)
+Rule 20 (The input tensor must have a floating point dtype)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 13 (shape of mat must be compatible with the number of columns in input if input is 2D)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
+Rule 21 (Shape compatibility: if input is (m, k) and mat is (k, n), the result will be (m, n))
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 1) = shape(v_2, 0)
 >>
-Rule 14 (if mat is 2D, the last dimension of mat must be greater than 0)
+Rule 22 (The second tensor must be dense)
+{v_2 : tensor} |= ndim(v_2) > 0 ∧ (dtype_(v_2) ≠ 13)
+>>
+Rule 24 (Input tensor has to be sparse COO format)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 27 (mat must be a matrix)
+{v_2 : tensor} |= ndim(v_2) = 2
+>>
+Rule 29 (The last dimension of v_1 must match the first dimension of v_2)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, ndim(v_1)-1) = shape(v_2, 0)
+>>
+Rule 32 (The number of dimensions of mat must be 1 or 2)
+{v_2 : tensor} |= ndim(v_2) = 1 ∨ ndim(v_2) = 2
+>>
+Rule 33 (Shape of input tensor must have 3 dimensions.)
+{v_1 : tensor} |= ndim(v_1) = 3
+>>
+Rule 35 (The first dimension of input should be non-zero)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 37 (The second dimension of the sparse matrix should be greater than zero)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 41 (The input tensor's format must be COO. The second and third dimensions should represent the sparse matrix shape)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ shape(v_1, 0) > 0
+>>
+Rule 44 (If mat is a vector, its length must be greater than zero)
+{v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_2, 0) > 0
+>>
+Rule 45 (If mat is a matrix, the shape[1] of mat (N) will be greater than 0)
 {v_2 : tensor} |= if ndim(v_2) = 2 then shape(v_2, 1) > 0
 >>
-Rule 15 (if input is 2D, number of dimensions of the mat tensor must be less than or equal to 2)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) ≤ 2
+Rule 46 (The last dimension of the sparse matrix must be equal to the first dimension of the dense matrix.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 2) = shape(v_2, 0)
 >>
-Rule 16 (if input is 2D, number of rows of input and mat should be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ (if ndim(v_2) = 2 then shape(v_2, 0) > 0)
+Rule 51 (Input Sparse Tensor should not contain NaN values)
+{v_1 : tensor} |= min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
 >>
-Rule 17 (if mat is 1D, number of columns of input must be greater than 0)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 ∧ ndim(v_1) = 2 then shape(v_1, 1) > 0
+Rule 52 (The second tensor, mat, should be two dimensional if the first tensor is three dimensional)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then ndim(v_2) = 2
 >>
-Rule 18 (if input is 3D, last two dimensions must be positive and the second to last dimension of mat should equal to the last dimension of input)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0 ∧ (if ndim(v_2) > 1 then shape(v_2, ndim(v_2) - 2) = shape(v_1, 2))
+Rule 56 (The sparse tensor's values' dtype must be float16, float32, or float64)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
 >>
-Rule 19 (If input's ndim is greater than 2, the mat's ndim should be greater than 1)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 then ndim(v_2) > 1
+Rule 58 (The nnz values of the sparse tensor should be greater than 0)
+{v_1: tensor} |= min(v_1) > 0
 >>
-Rule 20 (last dimension of input should be equal to the number of rows of mat if mat is 2D and number of dimensions of input is less than 4)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 2 ∧ ndim(v_1) < 4 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+Rule 59 (The sparse COO tensor must be 3 dimensional.)
+{v_1: tensor} |= ndim(v_1) = 3
+>>
+Rule 60 (The nnz values of the sparse tensor should be greater than 0, or there should be zero non-zero elements)
+{v_1: tensor} |= min(v_1) > 0 ∨ shape(v_1, 0) = 0
+>>
+Rule 63 (The nnz values of the sparse tensor should be non-negative, or all values are zero)
+{v_1: tensor} |= min(v_1) ≥ 0 ∨ max(v_1) = 0
+>>
+Rule 64 (The first dimension of the sparse matrix must be less than or equal to the second dimension times the third dimension.)
+{v_1: tensor} |= shape(v_1, 0) ≤ shape(v_1, 1) * shape(v_1, 2)
+>>
+Rule 65 (The mat matrix must have at least one row and one column)
+{v_2 : tensor} |= ndim(v_2) = 2 ∧ shape(v_2, 0) > 0 ∧ shape(v_2, 1) > 0
+>>
+Rule 66 (The nnz values of the sparse tensor should be non-negative, allowing for empty sparse tensors)
+{v_1: tensor} |= min(v_1) ≥ 0
+>>
+Rule 67 (The coordinates (indices) of the sparse tensor must be integers between 0 and the dimension size)
+{v_1: tensor} |= 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5
+>>
+Rule 68 (The sparse tensor needs to have valid shape for the corresponding coo tensor.)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 70 (The first input needs to be sparse)
+{v_1: tensor} |= dtype_(v_1) = 13
+>>
+Rule 71 (Mat must be dense. Mat needs to have the correct dimension for multiplication.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) = 2 then shape(v_1, 2) = shape(v_2,0) else if ndim(v_2) = 1 then shape(v_1, 2) = shape(v_2, 0) else false
+>>
+Rule 76 (Mat has to be dense)
+{v_2: tensor} |= dtype_(v_2) ≠ 13
+>>
+Rule 77 (Number of non-zero entries must be non-negative)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 0
+>>
+Rule 80 (The sparse coo tensor values has to be the same dtype as dense matrix)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 81 (The sparse coo tensor values has to be the same dtype as dense matrix, and must be floating point)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6)
+>>
+Rule 83 (Shape of the index tensor must be (nnz, 2), nnz can be zero.)
+{v_1 : tensor} |= shape(v_1, 1) = 2
+>>
+Rule 84 (The sparse coo tensor values has to be the same dtype as dense matrix, and must be floating point)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6)
+>>
+Rule 88 (If both are 3D (batched), their batch size needs to match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 90 (If both input tensors are 3D, it must be a batched mm)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then true else ndim(v_1) = 2 ∧ ndim(v_2) = 2
+>>
+Rule 91 (The data type of mat should be float, double or half.)
+{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6
+>>
+Rule 92 (The coordinate/indices dtype of sparse matrix has to be long.)
+{v_1 : tensor} |= dtype_(v_1) = 4
+>>
+Rule 93 (If both input tensors are 3D, it must be a batched mm and dimension 1 corresponds to dimension 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 95 (The sparse tensor needs to have at least one row)
+{v_1: tensor} |= shape(v_1, 1) > 0
+>>
+Rule 96 (The nnz values of the sparse tensor should be the same type with mat, and it must be either floating point or complex)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10)
+>>
+Rule 97 (If both input tensors are 3D, it must be a batched mm and dimension 1 corresponds to dimension 1 and dimension 2 corresponds to dimension 2)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1,2) = shape(v_2, 2)
+>>
+Rule 100 (The data type of mat should be float, double or half or complex64, complex128)
+{v_2 : tensor} |= dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 6 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 101 (The number of dimensions of input cannot be greater than 3.)
+{v_1 : tensor} |= ndim(v_1) ≤ 3
+>>
+Rule 102 (If the sparse matrix is 3D (batched) and the dense matrix is 2D, the last two dimension must correspond)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 2 then shape(v_1, 2) = shape(v_2, 0)
+>>
+Rule 104 (The sparse matrix must have at least two dimensions)
+{v_1 : tensor} |= ndim(v_1) >= 2
+>>
+Rule 105 (If the sparse matrix is 3D (batched) and the dense matrix is 2D, the last two dimension must correspond, otherwise they must both be 2d)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 3 ∧ ndim(v_2) = 2) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 2)
+>>
+Rule 117 (The values of sparse matrix must correspond with matrix dtype 7, 8, 6, 9, 10)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 118 (If the sparse matrix is 3D (batched) and the dense matrix is 2D or 3D, the row/col dimension needs to line up)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 2 then shape(v_1, 2) = shape(v_2, 0) else if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then shape(v_1, 2) = shape(v_2, 0)
+>>
+Rule 119 (The coordinates must be of integral type (int8 - int64))
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5
+>>
+Rule 120 (The index tensor of sparse matrix must be of type integer 1 to 5 inclusive)
+{v_1 : tensor} |= (dtype_(v_1) ≥ 1) ∧ (dtype_(v_1) ≤ 5)
+>>
+Rule 121 (If the sparse matrix is 3D (batched) and the dense matrix is 2D, they must correspond. For non-batched, it must be 2D)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 3 ∧ ndim(v_2) = 2) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 2) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1)
+>>
+Rule 122 (Dense matrix's dtype has to be in the following range.)
+{v_2 : tensor} |= (dtype_(v_2) ≥ 6) ∧ (dtype_(v_2) ≤ 10)
+>>
+Rule 124 (If the sparse matrix has three dimensions, it is treated as batched matrices and mat should have three dimensions and correspond in batch and matmul dimensions )
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 3 ∧ ndim(v_2) = 3 then shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 0)

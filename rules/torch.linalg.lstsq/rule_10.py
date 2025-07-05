@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If last two dimensions of A are m and n, last dimension of B is k, then n <= k (Rule 10)
+# A's and B's batch dimensions are equal (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(And(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 1), Select(v["arg1_shape"], v["arg1_ndim"] - 2) <= Select(v["arg2_shape"], v["arg2_ndim"] - 1))) if n else
-          And(And(v["arg1_ndim"] >= 2, v["arg2_ndim"] >= 1), Select(v["arg1_shape"], v["arg1_ndim"] - 2) <= Select(v["arg2_shape"], v["arg2_ndim"] - 1)))
+    s.add(Not(If(And(v["arg1_ndim"] > 2, v["arg2_ndim"] > 2), And([Implies(i < (v["arg1_ndim"] - 3 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False)) if n else
+          If(And(v["arg1_ndim"] > 2, v["arg2_ndim"] > 2), And([Implies(i < (v["arg1_ndim"] - 3 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]), False))
 )
 
 def rule_10_func(arg1, arg2, solver=None, neg=False):

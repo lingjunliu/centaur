@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The last dimension cannot be used if the tensor is of dimension 0. (Rule 15)
+# if dim is 0, tensor must have at least one dimension (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 0, v["arg2_value"] != -1, False)) if n else
-          If(v["arg1_ndim"] == 0, v["arg2_value"] != -1, False))
+    s.add(Not(If(v["arg2_value"] == 0, v["arg1_ndim"] > 0, False)) if n else
+          If(v["arg2_value"] == 0, v["arg1_ndim"] > 0, False))
 )
 
 def rule_15_func(arg1, arg2, solver=None, neg=False):

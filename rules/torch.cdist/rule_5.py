@@ -5,7 +5,7 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Shape compatibility between x1 and x2 (Rule 5)
+# x1 and x2 must have the same last dimension (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
     s.add(Not(Select(v["arg1_shape"], v["arg1_ndim"] - 1) == Select(v["arg2_shape"], v["arg2_ndim"] - 1)) if n else

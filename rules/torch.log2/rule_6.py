@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if the input tensor is complex, the output tensor must also be complex (Rule 6)
+# If input is ComplexDouble, out should also be ComplexDouble or Complex128 (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), False)) if n else
-          If(And(9 <= v["arg1_dtype"], v["arg1_dtype"] <= 10), And(9 <= v["arg2_dtype"], v["arg2_dtype"] <= 10), False))
+    s.add(Not(If(v["arg1_dtype"] == 10, Or(Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), v["arg1_dtype"] != 10), False)) if n else
+          If(v["arg1_dtype"] == 10, Or(Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), v["arg1_dtype"] != 10), False))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

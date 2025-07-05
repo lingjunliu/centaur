@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If out is specified, its dtype must be at least as precise as the input's (Rule 12)
+# Input tensor can't be boolean if output tensor is specified (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(True, v["arg2_dtype"] >= v["arg1_dtype"], False)) if n else
-          If(True, v["arg2_dtype"] >= v["arg1_dtype"], False))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 1, False)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_dtype"] != 1, False))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# are_deterministic_algorithms_enabled API returns a boolean; If deterministic algorithms are not enabled, it should return false. (Rule 11)
+# The flag indicates if deterministic algorithms are enabled. (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == False, True, False)) if n else
-          If(v["arg1_value"] == False, True, False))
+    s.add(Not(If(v["arg1_value"], True, False)) if n else
+          If(v["arg1_value"], True, False))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

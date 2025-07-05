@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Input tensor must be a real tensor. (Rule 10)
+# The dtype of the input tensor should not be Char (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10)) if n else
-          And(v["arg1_dtype"] != 9, v["arg1_dtype"] != 10))
+    s.add(Not(v["arg1_dtype"] != 1) if n else
+          v["arg1_dtype"] != 1)
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

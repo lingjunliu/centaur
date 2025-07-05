@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is float32 or float64 then it can contain inf value, otherwise it cannot (Rule 13)
+# If the tensor's dtype is not a float or complex number, the result is always false (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False))
+    s.add(Not(If(And(And(And(And(v["arg1_dtype"] != 6, v["arg1_dtype"] != 7), v["arg1_dtype"] != 8), v["arg1_dtype"] != 9), v["arg1_dtype"] != 10), True, False)) if n else
+          If(And(And(And(And(v["arg1_dtype"] != 6, v["arg1_dtype"] != 7), v["arg1_dtype"] != 8), v["arg1_dtype"] != 9), v["arg1_dtype"] != 10), True, False))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):

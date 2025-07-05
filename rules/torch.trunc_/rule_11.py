@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The result of trunc_ on a tensor should have values that are integers. (Rule 11)
+# Input tensor must be one of valid dtypes, excluding bool and complex (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (Select(v["arg1_range"], 1) + 1), Or((i - Select(v["arg1_range"], 0)) < 1, (i - Select(v["arg1_range"], 1)) > -1)) for i in range(6)])) if n else
-          And([Implies(i < (Select(v["arg1_range"], 1) + 1), Or((i - Select(v["arg1_range"], 0)) < 1, (i - Select(v["arg1_range"], 1)) > -1)) for i in range(6)]))
+    s.add(Not((And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 8))) if n else
+          (And(1 <= v["arg1_dtype"], v["arg1_dtype"] <= 8)))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):
@@ -22,16 +22,15 @@ def rule_11_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 11
-        rule_11(solver, {'arg1_range': arg1_range})
+        rule_11(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_11(solver, {'arg1_range': arg1['range']}, neg)
+        rule_11(solver, {'arg1_dtype': arg1['dtype']}, neg)

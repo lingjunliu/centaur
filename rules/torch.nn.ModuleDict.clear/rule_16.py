@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# ModuleDict.clear: dummy parameter - either an integer or a float cannot be 0. (Rule 16)
+# ModuleDict clear takes no arguments, using a dummy variable to satisfy grammar requirements (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] != 0) if n else
-          v["arg1_value"] != 0)
+    s.add(Not(v["arg1_value"] + 0 == v["arg1_value"]) if n else
+          v["arg1_value"] + 0 == v["arg1_value"])
 )
 
 def rule_16_func(arg1, solver=None, neg=False):
@@ -17,13 +17,15 @@ def rule_16_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not ((isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)) or isinstance(arg1, (float, np.floating))):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
+        arg1_value = Real('arg1_value')
 
         # Value assignments
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 16
         rule_16(solver, {'arg1_value': arg1_value})

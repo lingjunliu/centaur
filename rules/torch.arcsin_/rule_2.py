@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# output tensor's dtype should be compatible with input tensor's dtype. (Rule 2)
+# Tensor and desired dtype are both floating point or complex (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, v["arg2_value"] == 6, If(v["arg1_dtype"] == 7, v["arg2_value"] == 7, If(v["arg1_dtype"] == 8, v["arg2_value"] == 8, If(v["arg1_dtype"] == 9, v["arg2_value"] == 9, v["arg2_value"] == 10))))) if n else
-          If(v["arg1_dtype"] == 6, v["arg2_value"] == 6, If(v["arg1_dtype"] == 7, v["arg2_value"] == 7, If(v["arg1_dtype"] == 8, v["arg2_value"] == 8, If(v["arg1_dtype"] == 9, v["arg2_value"] == 9, v["arg2_value"] == 10)))))
+    s.add(Not(And((Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), (Or(Or(Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10)))) if n else
+          And((Or(Or(Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8), v["arg1_dtype"] == 9), v["arg1_dtype"] == 10)), (Or(Or(Or(Or(v["arg2_value"] == 6, v["arg2_value"] == 7), v["arg2_value"] == 8), v["arg2_value"] == 9), v["arg2_value"] == 10))))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

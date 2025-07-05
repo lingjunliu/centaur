@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The default dim should be 0 for scattering the tensor (Rule 16)
+# the batch size should be an integer (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_shape"], 0) > 0) if n else
-          Select(v["arg1_shape"], 0) > 0)
+    s.add(Not(Select(v["arg1_shape"], 0) >= 0) if n else
+          Select(v["arg1_shape"], 0) >= 0)
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

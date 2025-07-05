@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.are_deterministic_algorithms_enabled returns a boolean. It must be either True or False (Rule 3)
+# The global deterministic algorithms flag is either on or off (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == True, True, v["arg1_value"] == False)) if n else
-          If(v["arg1_value"] == True, True, v["arg1_value"] == False))
+    s.add(Not(v["arg1_value"]) if n else
+          v["arg1_value"])
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

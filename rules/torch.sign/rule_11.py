@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input is complex, output is complex (Rule 11)
+# input cannot be complex64 (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 11, True, False))) if n else
-          If(v["arg1_dtype"] == 10, True, If(v["arg1_dtype"] == 11, True, False)))
+    s.add(Not(v["arg1_dtype"] != 10) if n else
+          v["arg1_dtype"] != 10)
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

@@ -1,45 +1,144 @@
 >>
-Rule 1 (q must be in the range [0, 1])
-{v_1 : float} |= 0 ≤ v_1 ∧ v_1 ≤ 1
+Rule 1 (input tensor must be non-empty, checking at least one dimension is greater than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
 >>
-Rule 2 (interpolation must be one of the valid string options)
+Rule 2 (q must be in the range [0, 1], for float case)
+{v_1 : float} |= v_1 ≥ 0 ∧ v_1 ≤ 1
+>>
+Rule 3 (q must be in the range [0, 1], for tensor case, checking all elements)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1
+>>
+Rule 4 (interpolation must be one of the valid strings)
 {v_1 : str} |= v_1 = "linear" ∨ v_1 = "lower" ∨ v_1 = "higher" ∨ v_1 = "midpoint" ∨ v_1 = "nearest"
 >>
-Rule 3 (input tensor must be non-empty, i.e., at least one element)
-{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (dim must be within the valid range if it's provided)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
 >>
-Rule 4 (if q is a tensor, it must have the same dtype as the input tensor)
+Rule 6 (if q is a tensor, it must be 1D)
+{v_1 : tensor} |= ndim(v_1) ≤ 1
+>>
+Rule 7 (q tensor must be same dtype as the input tensor)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 5 (if q is a 1D tensor, all elements must be in range [0, 1])
-{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1
->>
-Rule 6 (dim must be a valid dimension if given)
-{v_1 : tensor, v_2 : int} |= if v_2 = None then true else (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
->>
-Rule 7 (q must be a float or a 1D tensor)
-{v_1 : tensor} |= ndim(v_1) = 1
->>
-Rule 8 (if keepdim is true, then the output tensor has dim retained)
+Rule 8 (keepdim is a boolean value)
 {v_1 : bool} |= v_1 = true ∨ v_1 = false
 >>
-Rule 9 (shape of output tensor when q is a 1D tensor and keepdim is false)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then ndim(v_1) = ndim(v_2) + ndim(v_1) - 1
+Rule 9 (q must be a non-negative value)
+{v_1 : float} |= v_1 ≥ 0
 >>
-Rule 10 (input tensor should be of floating or integer type)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8
+Rule 10 (dimension must be a valid integer)
+{v_1 : int} |= v_1 ≥ -1000 ∧ v_1 ≤ 1000
 >>
-Rule 11 (If interpolation is midpoint, the input tensor must be a floating point or complex type.)
-{v_1 : tensor, v_2 : str} |= if v_2 = "midpoint" then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+Rule 11 (input tensor must be non-empty, checking number of dimensions is greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 12 (if dim is not None, then the output size is equal to the input size, except for the dimension dim which gets discarded if keepdim is false.)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_2 ≠ None then if v_3 = true then true else shape(v_1, v_2) > 0
+Rule 12 (q must be in the range [0, 1] when q is a float, expressed differently)
+{v_1 : float} |= v_1 ≥ 0.0 ∧ v_1 ≤ 1.0
 >>
-Rule 13 (If dim is None, the input tensor must be flattened before computation, implying the output is 1D)
-{v_1 : tensor, v_2 : int} |= if v_2 = None then ndim(v_1) ≥ 0
+Rule 13 (interpolation must be one of the valid strings, using a different approach)
+{v_1 : str} |= (v_1 = "linear") ∨ (v_1 = "lower") ∨ (v_1 = "higher") ∨ (v_1 = "nearest") ∨ (v_1 = "midpoint")
 >>
-Rule 14 (The shape of the q tensor dictates the shape of the first dimension of the output tensor if q is a tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+Rule 15 (if q is a tensor, its elements must be floats within [0,1])
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] ≥ 0.0 ∧ v_1[i] ≤ 1.0)
 >>
-Rule 15 (If input tensor is empty, output should also be an empty tensor.)
-{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃j ∈ [0, ndim(v_1) -1 ] : shape(v_1, j) = 0)
+Rule 18 (Check dim is a valid int)
+{v_1 : int} |= v_1 > -10000 ∧ v_1 < 10000
+>>
+Rule 19 (q tensor elements cannot be NaN, using min and max)
+{v_1 : tensor} |= min(v_1) ≥ 0.0 ∨ max(v_1) ≤ 1.0
+>>
+Rule 20 (dimension must be within the valid range if provided, using if expression)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then v_2 < ndim(v_1) else v_2 ≥ (0 - ndim(v_1))
+>>
+Rule 21 (q tensor has at least one element and is a 1D tensor when it is a tensor)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) > 0
+>>
+Rule 23 (check if tensor is empty by checking if the product of shape elements is zero)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+>>
+Rule 24 (Ensure interpolation is valid through equality)
+{v_1: str} |= v_1 = "linear" ∨ v_1 = "lower" ∨ v_1 = "higher" ∨ v_1 = "midpoint" ∨ v_1 = "nearest"
+>>
+Rule 25 (dimension cannot exceed maximum shape dimensions of input tensor)
+{v_1: tensor, v_2: int} |= v_2 < ndim(v_1)
+>>
+Rule 27 (interpolation cannot be an empty string)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 30 (dimension must be within the valid range if provided, using a more direct boolean expression)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ 0 ∧ v_2 < ndim(v_1)) ∨ (v_2 < 0 ∧ v_2 ≥ (0 - ndim(v_1)))
+>>
+Rule 33 (q must be a scalar/float in range [0, 1])
+{v_1 : float} |= v_1 >= 0.0 ∧ v_1 <= 1.0
+>>
+Rule 35 (q cannot be an empty tensor - at least one dimension size > 0)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ shape(v_1, 0) > 0
+>>
+Rule 38 (keepdim has to be true or false)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 40 (Check that the dimension to reduce is smaller than the number of dimensions in the tensor, or if negative, less than or equal to the negative number of dimensions)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then ndim(v_1) > v_2 else ndim(v_1) ≥ (0 - v_2)
+>>
+Rule 41 (Check that the dimension is not greater or equal to the input ndim )
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 46 (Interpolation is a valid string. Removed Union type in the if condition, used CompareOp instead)
+{v_1 : str ⊎ int ⊎ float ⊎ bool} |= if v_1 = "linear" ∨ v_1 = "lower" ∨ v_1 = "higher" ∨ v_1 = "midpoint" ∨ v_1 = "nearest" then v_1 = v_1 else false
+>>
+Rule 49 (Interpolation is a valid string, removed conditional using arithmetic operation always resulting in 0 or 1)
+{v_1 : str} |= (v_1 = "linear") + (v_1 = "lower") + (v_1 = "higher") + (v_1 = "midpoint") + (v_1 = "nearest") < 2
+>>
+Rule 50 (Check that the dimension to reduce is valid or it can be None. Removed union from binding. Add check to ensure its an int.)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 54 (Check that dimension is a valid integer within a plausible range)
+{v_1 : int} |= v_1 > -1000 ∧ v_1 < 1000
+>>
+Rule 55 (Check if dtype is valid)
+{v_1 : dtype} |= v_1 > 0 ∧ v_1 < 13
+>>
+Rule 56 (Input tensor can't have zero dimension size)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 57 (Q cannot have Nan element if Q is a tensor.)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[i]
+>>
+Rule 58 (Input tensor must have at least one element when computing quantile)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 59 (If dim is specified then the tensor is not empty.)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∧ ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 60 (If interpolation is not a valid string.)
+{v_1 : str} |= v_1 ≠ "0" ∧ v_1 ≠ "1" ∧ v_1 ≠ "2" ∧ v_1 ≠ "3" ∧ v_1 ≠ "4" ∧ v_1 ≠ "5" ∧ v_1 ≠ "6" ∧ v_1 ≠ "7" ∧ v_1 ≠ "8" ∧ v_1 ≠ "9"
+>>
+Rule 61 (Interpolation must be a string, and its length must be greater than 0)
+{v_1 : str} |= v_1.len > 0
+>>
+Rule 62 (If tensor is given as q, then all elements must be not NaN)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[i]
+>>
+Rule 72 (If it has to be 1D then shape(v1,0) > 0 is enough to make sure it has at least one value.)
+{v_1: tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+>>
+Rule 73 (Check that the dimension to reduce is valid or not None. Replacing "none" with a different way to express it, using comparison with a number outside the range of dimension)
+{v_1 : tensor, v_2 : int} |= (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)) ∨ v_2 < (0 - ndim(v_1)) ∨ v_2 ≥ ndim(v_1)
+>>
+Rule 74 (Check Q tensor is 1D, and has elements between 0 and 1)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1
+>>
+Rule 75 (If Interpolation string is given.)
+{v_1 : str} |= (v_1 = "linear") ∨ (v_1 = "lower") ∨ (v_1 = "higher") ∨ (v_1 = "midpoint") ∨ (v_1 = "nearest")
+>>
+Rule 76 (Check q is a valid tensor, containing at least one element and is 1D)
+{v_1 : tensor} |= (ndim(v_1) = 1) ∧ (shape(v_1, 0) > 0)
+>>
+Rule 79 (Check keepdim value)
+{v_1 : bool} |= (v_1 = true) ∨ (v_1 = false)
+>>
+Rule 81 (Q cannot be Nan value)
+{v_1 : float} |= v_1 = v_1
+>>
+Rule 84 (If tensor is an empty tensor, checking if any of its dimensions is 0)
+{v_1: tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0

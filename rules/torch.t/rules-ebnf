@@ -1,66 +1,63 @@
 >>
-Rule 1 (input tensor to torch.t must be less than or equal to 2-dimensional)
+Rule 1 (input tensor should have no more than 2 dimensions)
 {v_1 : tensor} |= ndim(v_1) ≤ 2
 >>
-Rule 2 (input tensor to torch.t must have non-zero dimensions)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 2 (input tensor should have non-negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 3 (for 2D tensors, shape[0] * shape[1] <= max_size)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) ≤ 10000
+Rule 3 (check if the input tensor is a float type)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
 >>
-Rule 4 (If input is 2D, shape(input, 0) must be int and shape(input, 1) must be int)
-{v_1 : tensor} |= if ndim(v_1) = 2 then true
+Rule 4 (input tensor is not empty)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 5 (dtype of input tensor should be a real number)
-{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+Rule 5 (if the input tensor is 2D, the dimensions must be non-negative)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≥ 0 ∧ shape(v_1, 1) ≥ 0
 >>
-Rule 6 (If ndim(v_1) = 2, then shape(v_1, 0) > 0 and shape(v_1, 1) > 0)
+Rule 6 (input tensor dimension should be either 0, 1 or 2)
+{v_1 : tensor} |= ndim(v_1) = 0 ∨ ndim(v_1) = 1 ∨ ndim(v_1) = 2
+>>
+Rule 9 (input tensor dimension is less than 3)
+{v_1 : tensor} |= ndim(v_1) < 3
+>>
+Rule 10 (input tensor dimension can't be 3 or more)
+{v_1 : tensor} |= if ndim(v_1) ≥ 3 then false
+>>
+Rule 11 (if input is 2D, both dimensions must be greater than 0)
 {v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
 >>
-Rule 7 (If input is 1D, then min(input) < max(input))
-{v_1 : tensor} |= if ndim(v_1) = 1 then min(v_1) < max(v_1)
+Rule 12 (if input is 2D, the first dimension must be smaller than 10)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) < 10
 >>
-Rule 8 (if ndim(v_1) is 0 or 1, the shape does not matter)
-{v_1 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_1) = 1 then true
+Rule 13 (If input is a 2D tensor then first dimension is not equal to zero and second dimension is not equal to zero)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≠ 0 ∧ shape(v_1, 1) ≠ 0
 >>
-Rule 9 (The input must be a tensor)
-{v_1 : tensor ⊎ int ⊎ float ⊎ bool ⊎ dtype ⊎ str ⊎ list(tensor) ⊎ tuple(tensor)} |= if v_1 = v_1 then true else false
+Rule 14 (If input is a 1D tensor, its length must be less than 100)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 100
 >>
-Rule 10 (If input is empty tensor, return empty tensor)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true else ∃ i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 0 ∨ true
+Rule 19 (If the tensor is 3D, return false)
+{v_1 : tensor} |= if ndim(v_1) = 3 then false
 >>
-Rule 11 (For bool tensors, the values are true or false)
-{v_1 : tensor} |= if dtype_(v_1) = 0 then ∀ i ∈ [0, ndim(v_1) -1 ]: shape(v_1, i) = 0 ∨ true
+Rule 20 (Input tensor must have at least 0 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 12 (If ndim(v_1) = 2 and shape(v_1, 0) = 0, then shape(v_1, 1) = 0)
-{v_1 : tensor} |= if ndim(v_1) = 2 then if shape(v_1, 0) = 0 then shape(v_1, 1) = 0
->>
-Rule 13 (if input is complex type, the function may not work correctly)
-{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
->>
-Rule 14 (input cannot have string dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
->>
-Rule 15 (If input is a 2D tensor, shape(v_1, 0) and shape(v_1, 1) should be the same or different)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) = shape(v_1, 1) ∨ shape(v_1, 0) ≠ shape(v_1, 1)
->>
-Rule 16 (If input is 2D, the number of elements should be less than 10000)
-{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 10000
->>
-Rule 17 (If ndim(v_1) = 0, then v_1 does not have a shape)
-{v_1 : tensor} |= if ndim(v_1) = 0 then true
->>
-Rule 18 (If the tensor has a dimension of size 1, the min and max value in that dimension can be any value)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 ∨ true
->>
-Rule 19 (if ndim(v_1) >= 1, at least one element must exist)
-{v_1 : tensor} |= if ndim(v_1) ≥ 1 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
->>
-Rule 20 (if ndim(v_1) > 2, then shape(v_1, 0), shape(v_1, 1) are invalid)
+Rule 21 (If the input tensor has more than 2 dimensions, output false)
 {v_1 : tensor} |= if ndim(v_1) > 2 then false
 >>
-Rule 21 (if ndim(v_1) > 0 and the sum of shapes is less than 0 then something is wrong)
-{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) + 0 ≥ 0
+Rule 22 (If input is a 2D tensor, both dimensions should be less than 1000)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) < 1000 ∧ shape(v_1, 1) < 1000
 >>
-Rule 22 (If ndim(v_1) = 1, all elements must be greater than -1000 and less than 1000)
-{v_1 : tensor} |= if ndim(v_1) = 1 then min(v_1) > -1000 ∧ max(v_1) < 1000
+Rule 23 (if the tensor is 0D or 1D return true, otherwise check dimensions)
+{v_1 : tensor} |= if ndim(v_1) = 0 ∨ ndim(v_1) = 1 then true else if ndim(v_1) = 2 then true else false
+>>
+Rule 24 (if input is a tensor and has 3D or more then return false.)
+{v_1 : tensor} |= if ndim(v_1) >= 3 then false
+>>
+Rule 25 (If input tensor has at least 1 dimension and the first dimension is 0, return false)
+{v_1 : tensor} |= if ndim(v_1) >= 1 then shape(v_1, 0) ≠ 0
+>>
+Rule 29 (Input is 0D, 1D, or 2D)
+{v_1: tensor} |= ndim(v_1) < 3
+>>
+Rule 31 (Input must be a tensor and have no more than 2 dimensions)
+{v_1 : tensor} |=  ndim(v_1) ≤ 2

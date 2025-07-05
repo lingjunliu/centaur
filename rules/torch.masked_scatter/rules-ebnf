@@ -1,69 +1,84 @@
 >>
-Rule 1 (masked_scatter parameters should satisfy type and size constraints)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_3) = 0 ∧ (shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_3, 0) = shape(v_1, 0))
+Rule 1 (Self and source tensors should have compatible shapes for masked scatter)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_2, i) = 1) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, i))
 >>
-Rule 2 (masked_scatter requires mask to be boolean)
-{v_1 : tensor} |= dtype_(v_1) = 0
->>
-Rule 3 (masked_scatter source size should be large enough)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (shape(v_1, 0) ≤ shape(v_2, 0)) ∨ (shape(v_3, 0) ≤ shape(v_2, 0))
->>
-Rule 4 (masked_scatter target and mask should have compatible sizes)
-{v_1 : tensor, v_2 : tensor} |= shape(v_1,0) ≥ 1 ∧ shape(v_2,0) ≥ 1
->>
-Rule 5 (masked_scatter target and source tensors should have same number of elements, if mask is all true)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if min(v_3) = 1 ∧ max(v_3) = 1 then shape(v_1, 0) = shape(v_2, 0)
->>
-Rule 6 (Masked scatter requires the mask tensor and the input tensor to have compatible shapes)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
->>
-Rule 7 (masked_scatter target should have a valid number of dimensions)
-{v_1 : tensor} |= ndim(v_1) > 0
->>
-Rule 8 (masked_scatter source should have a valid number of dimensions)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 9 (masked_scatter target, source, and mask tensors should have same number of dimensions)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3)
->>
-Rule 10 (masked_scatter target and source tensors should have the same number of elements)
-{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 11 (masked_scatter: expected self and source to have same dtypes but gotFloat and Double)
+Rule 2 (Self and source tensors should have the same dtypes)
 {v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 12 (The size of tensor a (3) must match the size of tensor b (0) at non-singleton dimension 1)
-{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_1,v_3) > 1 ∧ shape(v_2,v_3) > 1 then shape(v_1,v_3) = shape(v_2,v_3)
+Rule 3 (Mask tensor should have boolean dtype)
+{v_1 : tensor} |= dtype_(v_1) = 0
 >>
-Rule 13 (the number of elements in the mask should not exceed the number of elements in target.)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2,0) ≤ shape(v_1,0)
+Rule 5 (Source tensor must have the same number of elements or less than the mask's true values)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 14 (If target and mask have the same number of elements, and all are true, then source and target elements have to match)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1, 0) = shape(v_3, 0) ∧ min(v_3) = 1 ∧ max(v_3) = 1 then dtype_(v_1) = dtype_(v_2)
+Rule 19 (Check shape compatibility between input and source tensors)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1  ] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 15 (if mask is 1-dimensional, then the number of true elements in mask should be no more than source's number of elements)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 1 then max(v_3) ≤ shape(v_2, 0)
+Rule 22 (Check shape compatibility between input and source tensors, or source is a scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (∃i ∈ [0, ndim(v_2)-1] : (shape(v_2, i) = 1)) ∨ (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1  ] : shape(v_1, i) = shape(v_2, i))
 >>
-Rule 16 (source must be a tensor.)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 25 (Check shape compatibility between input and source tensors, allowing scalar source)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (∀i ∈ [0, if ndim(v_1) < ndim(v_2) then ndim(v_1) else ndim(v_2)  ] : (if shape(v_1, i) ≠ shape(v_2, i) then shape(v_2, i) = 1))
 >>
-Rule 17 (If mask is 1-dimensional, then the number of true elements in mask should be no more than the target's number of elements)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 1 then max(v_2) ≤ shape(v_1, 0)
+Rule 28 (Check number of elements in source is sufficient for mask)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) > 0) ∧ (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) > 0)
 >>
-Rule 18 (If target and source are matrices, and target is not C-contiguous, then shapes of target and source should match)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then ∀i ∈ [0, 1] : shape(v_1, i) = shape(v_2, i)
+Rule 33 (Ensure mask is a boolean tensor)
+{v_3 : tensor} |= dtype_(v_3) = 0
 >>
-Rule 19 (If the mask has more elements than source, the size of tensor a must match the number of true elements in mask at the first dimension)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_3,0) > shape(v_2,0) then shape(v_1,0) = max(v_3)
+Rule 40 (Source tensor must have sufficient elements given the number of True elements in the mask)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) > 0) ∧ (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_3)-1] : shape(v_3, i) > 0)
 >>
-Rule 20 (If the number of true elements in mask at first dimension does not match size of the target, then the number of dimensions should match)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if shape(v_1,0) ≠ max(v_3) then ndim(v_1) = ndim(v_2)
+Rule 43 (Source tensor must have sufficient elements given the number of True elements in the mask)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (min(v_3) = 0 ∨ min(v_3) = 1) ∧ (∀i ∈ [0, ndim(v_1)-1] : shape(v_1,i) > 0) ∧ (∀i ∈ [0, ndim(v_2)-1] : shape(v_2, i) > 0) ∧ (∀i ∈ [0, ndim(v_3)-1] : shape(v_3, i) > 0)
 >>
-Rule 21 (When using masked_scatter_ with different shapes, make sure the number of elements to be copied will fit)
-{v_2 : tensor, v_3 : tensor} |= max(v_3) ≤ shape(v_2,0)
+Rule 46 (Check number of elements in source is sufficient for the number of True elements in the mask, accounting for potentially flattened tensors.)
+{v_1 : tensor, v_2 : tensor} |=  (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) > 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
 >>
-Rule 22 (Mask size must be able to index into both the input and output tensors)
-{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) ≤ shape(v_1, 0)
+Rule 52 (The number of elements in source should be greater or equal to the number of True elements in mask.)
+{v_2 : tensor} |=  (shape(v_2,0) ≥ 0)
 >>
-Rule 23 (Mask should be able to index both target and source)
-{v_1: tensor, v_2: tensor, v_3: tensor} |= shape(v_3,0) <= shape(v_1,0) ∧ shape(v_3,0) <= shape(v_2, 0)
+Rule 61 (Self and mask tensors should have positive number of elements)
+{v_1 : tensor, v_3 : tensor} |= (shape(v_1, 0) > 0) ∧ (shape(v_3, 0) > 0)
+>>
+Rule 64 (The number of elements in source must match the number of True elements in mask.)
+{v_1 : tensor, v_3 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0)
+>>
+Rule 79 (Self and mask tensors should have compatible shapes allowing for broadcasting)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_1) = 0) ∨ ((ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, if ndim(v_1) < ndim(v_3) then ndim(v_1) else ndim(v_3) - 1] : shape(v_1, i) = shape(v_3, i) ∨ shape(v_3, i) = 1))
+>>
+Rule 82 (Self and mask tensors must have compatible sizes allowing for broadcasting)
+{v_1 : tensor, v_3 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_3) = 0 then false else (ndim(v_1) = ndim(v_3)) ∧ (∀i ∈ [0, if ndim(v_1) < ndim(v_3) then ndim(v_1) else ndim(v_3) ] : shape(v_1, i) = shape(v_3, i) ∨ shape(v_3, i) = 1)
+>>
+Rule 85 (Check source tensor shape against the number of True elements in the mask)
+{v_2 : tensor, v_3 : tensor} |= (shape(v_2, 0) > 0) ∧ (shape(v_3, 0) > 0)
+>>
+Rule 91 (Shape of self and mask must be broadcastable or self is scalar)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, if ndim(v_1) < ndim(v_3) then ndim(v_1) else ndim(v_3) - 1] : (shape(v_1, i) = shape(v_3, i) ∨ shape(v_3, i) = 1 ∨ shape(v_1,i) = 1))
+>>
+Rule 94 (If source tensor is not scalar, self and mask tensors must have compatible sizes and shapes for broadcasting or element-wise comparison)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then true else (∀i ∈ [0, if ndim(v_1) < ndim(v_3) then ndim(v_1) else ndim(v_3) - 1] : (shape(v_1, i) = shape(v_3, i) ∨ shape(v_3, i) = 1 ∨ shape(v_1,i) = 1))
+>>
+Rule 97 (If self is not scalar, then self and mask must have compatible shapes allowing for broadcasting, element-wise comparison or point-wise operations)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_1) = 0) ∨  (∀i ∈ [0, if ndim(v_1) < ndim(v_3) then ndim(v_1) else ndim(v_3) - 1] : ((shape(v_1, i) = shape(v_3, i)) ∨ (shape(v_3, i) = 1) ∨ (shape(v_1,i) = 1)))
+>>
+Rule 98 (If self and source tensors are not scalar, then they must have the same dtypes)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) ∨ (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 101 (If both self and source are tensors, they must have the same dtypes. Scalar source tensors bypass this check)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 103 (Shape of self and mask must be broadcastable or self is scalar)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, if ndim(v_1) < ndim(v_3) then ndim(v_1) else ndim(v_3) - 1] : ((shape(v_1, i) = shape(v_3, i)) ∨ (shape(v_3, i) = 1) ∨ (shape(v_1,i) = 1)))
+>>
+Rule 104 (Self and source tensors must have the same dtypes unless source is scalar.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_2) = 0) ∨ (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 106 (Self and mask tensors must have broadcastable shape, and compatible size and number of elements)
+{v_1 : tensor, v_3 : tensor} |= (ndim(v_1) = 0) ∨ (∀i ∈ [0, if ndim(v_1) < ndim(v_3) then ndim(v_1) else ndim(v_3) - 1] : ((shape(v_1, i) = shape(v_3, i)) ∨ (shape(v_3, i) = 1) ∨ (shape(v_1,i) = 1))) ∧ (shape(v_3, 0) > 0)
+>>
+Rule 112 (There should be number of source elements available equal to num of true elements in mask)
+{v_2 : tensor, v_3 : tensor} |= (ndim(v_2) > 0) ∧ (ndim(v_3) > 0)
+>>
+Rule 115 (There should be as many source elements as there are True elements in mask, self, or any other combination based on broadcasting)
+{v_2 : tensor, v_3 : tensor, v_1 : tensor} |= (ndim(v_2) > 0) ∧ (∀i ∈ [0, if ndim(v_1) < ndim(v_3) then ndim(v_1) else ndim(v_3) - 1] : ((shape(v_1, i) = shape(v_3, i)) ∨ (shape(v_3, i) = 1) ∨ (shape(v_1,i) = 1)))

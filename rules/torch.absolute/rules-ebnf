@@ -1,45 +1,78 @@
 >>
-Rule 1 (if out tensor is provided, its dtype should match the input tensor's dtype)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else dtype_(v_1) = dtype_(v_2)
+Rule 1 (out tensor's dtype should be same as input tensor's dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
 >>
-Rule 2 (if out tensor is provided, its shape should match the input tensor's shape)
-{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then true else (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
->>
-Rule 3 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 4 (the out tensor v_2 should not overlap with the input tensor v_1, avoid aliasing issues)
-{v_1 : tensor, v_2 : tensor} |= v_1 ≠ v_2
->>
-Rule 5 (the input tensor should not be of boolean dtype, as absolute value is not defined for boolean types.)
+Rule 2 (input tensor should not have bool dtype)
 {v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 6 (if the input tensor's dtype is complex, the out tensor must also be complex)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) = 10 ∨ dtype_(v_2) = 11
+Rule 5 (input tensor should not have complex dtype when out tensor is not specified.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 7 (If the input tensor is quantized, the output tensor must also be quantized)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 12 then dtype_(v_2) = 12
+Rule 7 (input tensor's dtype should not be double when out tensor's dtype is float.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 7 then dtype_(v_1) ≠ 8
 >>
-Rule 8 (The input tensor v_1 should have numerical dtype)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 12
+Rule 8 (input tensor's dtype should not be double)
+{v_1 : tensor} |= dtype_(v_1) ≠ 8
 >>
-Rule 9 (If input is complex type tensor, the output should not be int or float tensor.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5 ∧ dtype_(v_2) ≠ 6 ∧ dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8
+Rule 10 (out tensor's dtype should be float when input tensor's dtype is double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 7
 >>
-Rule 10 (The shape of input tensor v_1 must be representable with int64.)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 9223372036854775807 ∧ shape(v_1, i) ≥ -9223372036854775808
+Rule 12 (If out tensor is provided, it should have floating point type, if input tensor is double.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 11 (The input tensor v_1 should have elements which when converted to absolute values do not overflow.)
-{v_1 : tensor} |= min(v_1) = min(v_1)
+Rule 14 (If the output tensor is provided and its dtype is boolean, then input tensor dtype should also be boolean)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 0 then dtype_(v_1) = 0
 >>
-Rule 12 (For integral types, the out tensor should be large enough to contain the absolute value of the input tensor)
-{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then true
+Rule 15 (If input tensor's dtype is Double, then output tensor's dtype must be Float or Double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
 >>
-Rule 13 (if v_1 has at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+Rule 16 (input tensor is neither bool nor complex if out is not given)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 14 (If input is a BFloat16 tensor, then the output should also be a BFloat16 tensor)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+Rule 17 (If input is boolean, out should also be boolean if specified)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
 >>
-Rule 15 (The data type of input v_1 should be in the valid range)
-{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+Rule 20 (If input is double and output is specified, output can be double but not bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) ≠ 0
+>>
+Rule 25 (If input is Double and output is specified and NOT bool, then output MUST be float or double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 ∧ dtype_(v_2) ≠ 0 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 26 (If input is Bool and output is specified and NOT double/float, then output MUST be bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ (dtype_(v_2) ≠ 7 ∧ dtype_(v_2) ≠ 8) then dtype_(v_2) = 0
+>>
+Rule 27 (If output is not specified, the input tensor MUST not be bool, double, complex64, or complex128)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 29 (If input is Double and out is specified and not Bool or Complex, then output has to be Float or Double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 34 (If out is specified, input cannot be Bool, unless out is also bool)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then (if dtype_(v_2) = 0 then dtype_(v_1) = 0 else dtype_(v_1) ≠ 0)
+>>
+Rule 35 (If input is Double, and out is specified and is not Bool or Complex, output MUST be Float or Double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) ∧ dtype_(v_2) ≠ 0 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 38 (If input is Double and out is specified AND valid, then the *out* dtype MUST be float or double)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 ∧ ndim(v_2) > 0 then (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 39 (If out is tensor and input is Double, an error will occur if out's dtype is Bool or Int)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 ∧ ndim(v_2) > 0 then dtype_(v_2) ≠ 0
+>>
+Rule 42 (If input is Bool and out is specified AND valid, out must be Bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ ndim(v_2) > 0 then dtype_(v_2) = 0
+>>
+Rule 63 (When the input tensor is of type double and an output tensor IS specified, and the output tensor is valid, then that output tensor must be either Float or Double.)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 69 (When no output is specified, the input cannot be Bool, complex64, complex128, or Double)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11 ∧ dtype_(v_1) ≠ 8
+>>
+Rule 84 (If an output is tensor is double or complex, then it is incorrect)
+{v_2 : tensor} |= dtype_(v_2) ≠ 8 ∧ dtype_(v_2) ≠ 10 ∧ dtype_(v_2) ≠ 11
+>>
+Rule 94 (If out is specified and valid, the output may not be double.)
+{v_2 : tensor} |= dtype_(v_2) ≠ 8
+>>
+Rule 112 (If the *out* tensor is not specified as a parameter, the input may not be Double or Bool type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 0

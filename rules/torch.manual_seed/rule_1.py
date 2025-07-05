@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# seed must be within the specified range (Rule 1)
+# seed value should be within the inclusive range [-0x8000_0000_0000_0000, 0xffff_ffff_ffff_ffff] (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And(-9223372036854775808 <= v["arg1_value"], v["arg1_value"] <= 18446744073709551615)) if n else
-          And(-9223372036854775808 <= v["arg1_value"], v["arg1_value"] <= 18446744073709551615))
+    s.add(Not(And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 18446744073709551615)) if n else
+          And(v["arg1_value"] >= -9223372036854775808, v["arg1_value"] <= 18446744073709551615))
 )
 
 def rule_1_func(arg1, solver=None, neg=False):

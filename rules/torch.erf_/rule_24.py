@@ -5,33 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The minimum value of the input tensor must be a valid floating point number (Rule 24)
+# Allow only float or complex input; don't allow char output (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > -10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0) if n else
-          Select(v["arg1_range"], 0) > -10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.0)
+    s.add(Not(And((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 11)), (v["arg2_dtype"] > 0))) if n else
+          And((And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 11)), (v["arg2_dtype"] > 0)))
 )
 
-def rule_24_func(arg1, solver=None, neg=False):
+def rule_24_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_range': arg1_range})
+        rule_24(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_range': arg1['range']}, neg)
+        rule_24(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

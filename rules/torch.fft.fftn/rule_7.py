@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# The length of the s tuple must be equal to the length of the dim list, if both are given. (Rule 7)
+# When given, dim and shape arguments must have the same length (Rule 7)
 
 rule_7 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], False)) if n else
-          If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], False))
+    s.add(Not(v["arg1_length"] == v["arg2_length"]) if n else
+          v["arg1_length"] == v["arg2_length"])
 )
 
 def rule_7_func(arg1, arg2, solver=None, neg=False):
@@ -20,7 +20,7 @@ def rule_7_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
             return False
-        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations

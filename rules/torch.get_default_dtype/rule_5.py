@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.get_default_dtype has no input arguments so any dtype equals itself (Rule 5)
+# get_default_dtype should return a valid dtype (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_value"] == v["arg1_value"]) if n else
-          v["arg1_value"] == v["arg1_value"])
+    s.add(Not(And(0 <= v["arg1_value"], v["arg1_value"] <= 12)) if n else
+          And(0 <= v["arg1_value"], v["arg1_value"] <= 12))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

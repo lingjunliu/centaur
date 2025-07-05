@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If padding is an integer and the input is 3D, the padded width must be less than or equal to 1000 (Rule 13)
+# Integer padding size should be less than or equal to twice the input dimension -1, W (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] <= 1000, False)) if n else
-          If(v["arg1_ndim"] == 3, Select(v["arg1_shape"], 2) + 2 * v["arg2_value"] <= 1000, False))
+    s.add(Not(v["arg2_value"] <= 2 * Select(v["arg1_shape"], v["arg1_ndim"] - 1)) if n else
+          v["arg2_value"] <= 2 * Select(v["arg1_shape"], v["arg1_ndim"] - 1))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

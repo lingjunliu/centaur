@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If v_1's dtype is complex, the output tensor's dtype is also complex (Rule 9)
+# The dtypes of the tensors must be valid (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), True, False))
+    s.add(Not(And((And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12)), (And(v["arg2_dtype"] >= 0, v["arg2_dtype"] <= 12)))) if n else
+          And((And(v["arg1_dtype"] >= 0, v["arg1_dtype"] <= 12)), (And(v["arg2_dtype"] >= 0, v["arg2_dtype"] <= 12))))
 )
 
-def rule_9_func(arg1, solver=None, neg=False):
+def rule_9_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
+        if not isinstance(arg2, np.ndarray):
+            return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg2_dtype = Int('arg2_dtype')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
 
         # Constraints for rule 9
-        rule_9(solver, {'arg1_dtype': arg1_dtype})
+        rule_9(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_9(solver, {'arg1_dtype': arg1['dtype']}, neg)
+        rule_9(solver, {'arg1_dtype': arg1['dtype'], 'arg2_dtype': arg2['dtype']}, neg)

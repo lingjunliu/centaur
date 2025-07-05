@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor's shape has more than 2 values, it cannot be that both its first and last dimensions are 0 (Rule 23)
+# Check the second dimension size should not be too large to prevent potential crash (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] > 2, (And(Select(v["arg1_shape"], 0) == 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 0)) == False, False)) if n else
-          If(v["arg1_ndim"] > 2, (And(Select(v["arg1_shape"], 0) == 0, Select(v["arg1_shape"], v["arg1_ndim"] - 1) == 0)) == False, False))
+    s.add(Not(If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 1) < 5000, False)) if n else
+          If(v["arg1_ndim"] > 1, Select(v["arg1_shape"], 1) < 5000, False))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):

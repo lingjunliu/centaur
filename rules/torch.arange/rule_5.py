@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if step is positive, then end must be greater than start (Rule 5)
+# start, end, step types should be consistent (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] > 0, v["arg2_value"] > v["arg1_value"], False)) if n else
-          If(v["arg3_value"] > 0, v["arg2_value"] > v["arg1_value"], False))
+    s.add(Not((v["arg1_value"] + v["arg2_value"] + v["arg3_value"]) == (v["arg1_value"] + v["arg2_value"] + v["arg3_value"])) if n else
+          (v["arg1_value"] + v["arg2_value"] + v["arg3_value"]) == (v["arg1_value"] + v["arg2_value"] + v["arg3_value"]))
 )
 
 def rule_5_func(arg1, arg2, arg3, solver=None, neg=False):

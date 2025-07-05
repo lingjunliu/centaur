@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# groups has to be smaller or equal than channel size and greater than 0 if channel size is greater than 0 (Rule 9)
+# number of channels is divisible by groups (Rule 9)
 
 rule_9 = lambda s, v, n=False: (
-    s.add(Not(Or((And(And(Select(v["arg1_shape"], 1) > 0, v["arg2_value"] > 0), v["arg2_value"] <= Select(v["arg1_shape"], 1))), (And(Select(v["arg1_shape"], 1) == 0, v["arg2_value"] > 0)))) if n else
-          Or((And(And(Select(v["arg1_shape"], 1) > 0, v["arg2_value"] > 0), v["arg2_value"] <= Select(v["arg1_shape"], 1))), (And(Select(v["arg1_shape"], 1) == 0, v["arg2_value"] > 0))))
+    s.add(Not(Or([And(i < (Select(v["arg1_shape"], 1) + 1), Select(v["arg1_shape"], 1) == v["arg2_value"] * i) for i in range(6)])) if n else
+          Or([And(i < (Select(v["arg1_shape"], 1) + 1), Select(v["arg1_shape"], 1) == v["arg2_value"] * i) for i in range(6)]))
 )
 
 def rule_9_func(arg1, arg2, solver=None, neg=False):

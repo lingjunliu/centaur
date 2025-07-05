@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# start, end, and step must have the same sign if end - start has the same sign (Rule 2)
+# Upper bound and larger bound inconsistent with step sign - start < end when step > 0 and start > end when step < 0 (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg2_value"] - v["arg1_value"]) > 0, Or((And(And(v["arg1_value"] > 0, v["arg2_value"] > 0), v["arg3_value"] > 0)), (And(And(v["arg1_value"] < 0, v["arg2_value"] < 0), v["arg3_value"] < 0))), False)) if n else
-          If((v["arg2_value"] - v["arg1_value"]) > 0, Or((And(And(v["arg1_value"] > 0, v["arg2_value"] > 0), v["arg3_value"] > 0)), (And(And(v["arg1_value"] < 0, v["arg2_value"] < 0), v["arg3_value"] < 0))), False))
+    s.add(Not(If(v["arg3_value"] > 0, v["arg1_value"] < v["arg2_value"], v["arg1_value"] > v["arg2_value"])) if n else
+          If(v["arg3_value"] > 0, v["arg1_value"] < v["arg2_value"], v["arg1_value"] > v["arg2_value"]))
 )
 
 def rule_2_func(arg1, arg2, arg3, solver=None, neg=False):

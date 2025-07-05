@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# check if the shape of the tensor is within reasonable limits - max 100 for all dimensions (Rule 5)
+# If the input tensor's dimension is 2, then its shape[0] should be smaller than 100. Demonstrating if-then-else and dimension (Rule 5)
 
 rule_5 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 100) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) <= 100) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) < 100, False)) if n else
+          If(v["arg1_ndim"] == 2, Select(v["arg1_shape"], 0) < 100, False))
 )
 
 def rule_5_func(arg1, solver=None, neg=False):

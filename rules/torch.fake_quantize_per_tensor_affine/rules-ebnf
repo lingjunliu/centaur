@@ -1,63 +1,309 @@
 >>
-Rule 1 (quant_min should be less than or equal to quant_max, and zero_point must be between quant_min and quant_max)
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≤ v_2 ∧ v_1 ≤ v_3 ∧ v_3 ≤ v_2
->>
-Rule 2 (input tensor must be of float32 dtype)
+Rule 1 (input tensor must be of float32 dtype to avoid 'Char' error)
 {v_1 : tensor} |= dtype_(v_1) = 7
 >>
-Rule 3 (scale must be a positive float)
-{v_1 : float} |= v_1 > 0
+Rule 2 (zero_point must be between quant_min and quant_max)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≥ v_2 ∧ v_1 ≤ v_3
 >>
-Rule 4 (scale must be a float or a float tensor with no dimensions)
-{v_1 : float ⊎ tensor} |= if v_1 = v_1 then true else ndim(v_1) = 0
->>
-Rule 5 (zero_point must be an integer or an integer tensor with no dimensions)
-{v_1 : int ⊎ tensor} |= if v_1 = v_1 then true else ndim(v_1) = 0
->>
-Rule 6 (quant_min is non-negative if zero_point is 0)
-{v_1 : int, v_2 : int} |= if v_2 = 0 then v_1 ≥ 0
->>
-Rule 7 (If scale is a tensor, then the input and scale tensors should have the same dtype)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then true else dtype_(v_1) = dtype_(v_2)
->>
-Rule 8 (zero_point must be non-negative)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 9 (quant_max must be greater than zero_point)
-{v_1 : int, v_2 : int} |= v_2 > v_1
->>
-Rule 10 (quant_min must be less than quant_max)
-{v_1 : int, v_2 : int} |= v_1 < v_2
->>
-Rule 11 (quant_min must be an integer and less than or equal to zero_point, which also must be an integer.)
+Rule 3 (quant_min should be less than or equal to quant_max)
 {v_1 : int, v_2 : int} |= v_1 ≤ v_2
 >>
-Rule 12 (If the input tensor (v_1) has more than 1 element, the scale (v_2) must be greater than 0)
-{v_1 : tensor, v_2 : float} |= if min(v_1) = max(v_1) then true else v_2 > 0
+Rule 4 (scale should be greater than zero)
+{v_1 : float} |= v_1 > 0
 >>
-Rule 13 (The input tensor (v_1) cannot be of Char type)
-{v_1 : tensor} |= dtype_(v_1) ≠ 11
+Rule 5 (quant_min should be a valid integer)
+{v_1 : int} |= v_1 < 2147483647 ∧ v_1 > -2147483648
 >>
-Rule 14 (zero_point must be an integer within the range [quant_min, quant_max])
-{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≤ v_3 ∧ v_3 ≤ v_2
+Rule 8 (zero_point should be non-negative)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 15 (The number of dimensions of input tensor should be greater than or equal to 0)
-{v_1 : tensor} |= ndim(v_1) ≥ 0
+Rule 9 (quant_min should be non-positive)
+{v_1 : int} |= v_1 ≤ 0
 >>
-Rule 16 (If the scale is float32 tensor, then the input tensor should be a float32 tensor)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 7 then dtype_(v_1) = 7
+Rule 12 (zero_point must be between quant_min and quant_max)
+{v_1 : int, v_2 : int, v_3 : int} |= v_2 ≤ v_1 ∧ v_1 ≤ v_3
 >>
-Rule 17 (If zero_point is a int32 tensor, then the input tensor should be a float32 tensor)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 3 then dtype_(v_1) = 7
+Rule 15 (quant_max must be less than a maximum value)
+{v_1 : int} |= v_1 < 65535
 >>
-Rule 18 (If quant_min is not zero, zero_point must be an integer greater than quant_min)
-{v_1 : int, v_2 : int} |= if v_1 ≠ 0 then v_2 > v_1
+Rule 16 (quant_min must be greater than a minimum value)
+{v_1 : int} |= v_1 > -65535
 >>
-Rule 19 (quant_max and quant_min must have different values.)
-{v_1 : int, v_2 : int} |= v_1 ≠ v_2
+Rule 17 (scale should not be too large)
+{v_1 : float} |= v_1 < 10000.0
 >>
-Rule 20 (Zero point must be an integer datatype(1 to 5))
-{v_1: int} |= 1 <= v_1 ∧ v_1 <= 5
+Rule 18 (scale should not be too small)
+{v_1 : float} |= v_1 > 0.00001
 >>
-Rule 21 (quant_min must be less than zero_point, and the diffence must be less than 256)
-{v_1 : int, v_2 : int} |= v_1 ≤ v_2 ∧ (v_2 - v_1) < 256
+Rule 19 (zero_point must be less than or equal to quant_max + 1 to avoid off-by-one errors)
+{v_1 : int, v_2 : int} |= v_1 ≤ v_2 + 1
+>>
+Rule 20 (zero_point must be greater than or equal to quant_min -1 to avoid off-by-one errors)
+{v_1 : int, v_2 : int} |= v_1 ≥ v_2 - 1
+>>
+Rule 21 (quant_max must be positive)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 22 (quant_min must be negative)
+{v_1 : int} |= v_1 < 0
+>>
+Rule 23 (zero_point must be an integer)
+{v_1 : float} |= ∃i ∈ [-10,10]: v_1 = i
+>>
+Rule 24 (Input tensor should have at least one element)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 25 (quant_max and quant_min have the same sign)
+{v_1: int, v_2: int} |= (v_1 > 0 ∧ v_2 > 0) ∨ (v_1 < 0 ∧ v_2 < 0)
+>>
+Rule 26 (If quant_min is zero, then zero_point should also be zero)
+{v_1 : int, v_2 : int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 27 (If quant_max is 255, the zero_point should be less than 256)
+{v_1 : int, v_2 : int} |= if v_1 = 255 then v_2 < 256
+>>
+Rule 28 (quant_max must be greater than quant_min)
+{v_1 : int, v_2 : int} |= v_1 > v_2
+>>
+Rule 29 (input cannot have NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1]: min(v_1) > -1000000000000000000000.0
+>>
+Rule 30 (scale cannot be NaN values)
+{v_1 : float} |= v_1 > -1000000000000000000000.0
+>>
+Rule 31 (quant_min must not be equal to quant_max, if zero_point is equal to either)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = v_1 ∨ v_3 = v_2 then v_1 ≠ v_2
+>>
+Rule 32 (scale should not be extremely small)
+{v_1 : float} |= v_1 > 1e-8
+>>
+Rule 33 (input tensor should not have inf values)
+{v_1 : tensor} |= max(v_1) < 1000000000000000000000.0
+>>
+Rule 36 (zero_point cannot be larger than quant_max by a large amount)
+{v_1 : int, v_2 : int} |= v_1 - v_2 < 128
+>>
+Rule 37 (zero_point cannot be smaller than quant_min by a large amount)
+{v_1 : int, v_2 : int} |= v_2 - v_1 < 128
+>>
+Rule 38 (quant_min should be sufficiently smaller than quant_max)
+{v_1 : int, v_2 : int} |= v_2 - v_1 > 1
+>>
+Rule 39 (if zero_point is close to the boundary then quant_max should not be much further)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 - v_1 < 5 then v_2 - v_3 < 256
+>>
+Rule 40 (if zero_point is close to the boundary then quant_min should not be much further)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 - v_2 < 5 then v_1 - v_3 < 256
+>>
+Rule 41 (Zero point must be a valid value within the range of the specified dtype for integer tensors.)
+{v_1 : int} |= v_1 ≥ -128 ∧ v_1 ≤ 127
+>>
+Rule 44 (The difference between quant_max and quant_min should not be too large (prevent overflow).)
+{v_1 : int, v_2 : int} |= v_2 - v_1 < 65536
+>>
+Rule 45 (The scale should be a reasonable value)
+{v_1 : float} |= v_1 < 100
+>>
+Rule 46 (The scale should not be zero)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 47 (If the input tensor is empty, all other parameters should be zero)
+{v_1 : tensor, v_2 : float, v_3 : int, v_4 : int, v_5:int} |= if shape(v_1, 0) = 0 then v_2 = 0 ∧ v_3 = 0 ∧ v_4 = 0 ∧ v_5 = 0
+>>
+Rule 48 (Quant_min must be less than zero_point)
+{v_1: int, v_2: int} |= v_1 < v_2
+>>
+Rule 50 (The range between quant_min and quant_max cannot be empty, zero_point must be strictly in between)
+{v_1: int, v_2: int, v_3: int} |= v_1 < v_3 ∧ v_3 < v_2
+>>
+Rule 51 (If zero_point equals quant_min, quant_min and quant_max have to be different)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = v_1 then v_1 ≠ v_2
+>>
+Rule 52 (Scale must be positive and finite)
+{v_1: float} |= v_1 > 0 ∧ v_1 < 100000000.0
+>>
+Rule 53 (if quant_min is equal to quant_max, then zero_point must be equal to quant_min)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_1 = v_2 then v_3 = v_1
+>>
+Rule 54 (quant_min and quant_max should not have opposite signs if zero_point is zero.)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_3 = 0 then (v_1 ≥ 0 ∧ v_2 ≥ 0) ∨ (v_1 ≤ 0 ∧ v_2 ≤ 0)
+>>
+Rule 55 (If zero_point is the same as quant_min and the input is large, the scale cannot be too big)
+{v_1 : float, v_2 : int, v_3 : int, v_4 : tensor} |= if v_2 = v_3 ∧ max(v_4) > 100 then v_1 < 10
+>>
+Rule 57 (If quant_max is close to zero, then scale should also be small)
+{v_1: float, v_2: int} |= if v_2 < 10 then v_1 < 0.1
+>>
+Rule 58 (If quant_min is close to zero, then scale should also be small)
+{v_1: float, v_2: int} |= if v_2 > -10 then v_1 < 0.1
+>>
+Rule 59 (If quant_min and quant_max have very different magnitudes, zero_point should be different from zero)
+{v_1 : int, v_2 : int, v_3 : int} |= if (v_1 > 10 * v_2 ∨ v_2 > 10 * v_1) then v_3 ≠ 0
+>>
+Rule 63 (if the scale is small, quant_min should be small in magnitude)
+{v_1 : float, v_2 : int} |= if v_1 < 0.01 then v_2 > -100
+>>
+Rule 64 (if the scale is small, quant_max should be small in magnitude)
+{v_1 : float, v_2 : int} |= if v_1 < 0.01 then v_2 < 100
+>>
+Rule 65 (The scale cannot be too small relative to the range of input values to prevent information loss)
+{v_1 : float, v_2 : tensor, v_3 : int, v_4: int} |= v_1 > (max(v_2) - min(v_2))/(v_4-v_3) /1000
+>>
+Rule 66 (quant_max should be a large positive number or zero to cover positive range)
+{v_1: int} |= v_1 > 100 ∨ v_1 = 0
+>>
+Rule 67 (quant_min should be a large negative number or zero to cover the negative range)
+{v_1: int} |= v_1 < -100 ∨ v_1 = 0
+>>
+Rule 68 (The number of quantization levels (quant_max - quant_min + 1) should not be zero to avoid division by zero)
+{v_1 : int, v_2 : int} |= v_2 - v_1 + 1 ≠ 0
+>>
+Rule 69 (scale should not be extremely large in order to prevent overflow issues)
+{v_1 : float} |= v_1 < 1000
+>>
+Rule 70 (if zero_point is very close to quant_min, then the tensor values shouldn't have any very small values.)
+{v_1 : tensor, v_2 : int, v_3: int} |= if v_2-v_3 < 5 then min(v_1) > -0.00001
+>>
+Rule 71 (If zero_point and quant_min are equal, then the range of tensor should be positive)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 = v_3 then min(v_1) ≥ 0
+>>
+Rule 72 (if zero_point and quant_max are equal, then the range of tensor should be negative)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 = v_3 then max(v_1) ≤ 0
+>>
+Rule 73 (the scale should not be too close to zero or it can overflow, should be greater than this small value)
+{v_1: float} |= v_1 > 1e-10
+>>
+Rule 74 (If input tensor contains only zeros, then the zero_point should be within quant_min and quant_max range)
+{v_1: tensor, v_2: int, v_3: int, v_4: int} |= if min(v_1) = 0 ∧ max(v_1) = 0 then v_3 ≥ v_2 ∧ v_3 ≤ v_4
+>>
+Rule 75 (Scale has to be greater or equal to zero for uint8 type to prevent negative values being quantized)
+{v_1: float, v_2: dtype} |= if v_2 = 5 then v_1 ≥ 0
+>>
+Rule 76 (If quant_min is 0, the zero_point should also be 0 to prevent overflow for uint8 values)
+{v_1: int, v_2: int} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 77 (Scale cannot be infinite to prevent NaN values during division)
+{v_1: float} |= v_1 < 1e10
+>>
+Rule 78 (If the tensor has negative values, the zero point should be small)
+{v_1: tensor, v_2: int} |= if min(v_1) < 0 then v_2 < 1000
+>>
+Rule 79 (If the tensor has positive values, the zero point should be large)
+{v_1: tensor, v_2: int} |= if max(v_1) > 0 then v_2 > -1000
+>>
+Rule 80 (Zero_point cannot be too close to either bound)
+{v_1: int, v_2: int, v_3: int} |= (v_1 - v_2 > 10) ∧ (v_3 - v_1 > 10)
+>>
+Rule 81 (Scale should not be a NaN value.)
+{v_1: float} |= v_1 = v_1
+>>
+Rule 82 (If input values are small, the quant min and max should reflect this to prevent precision loss)
+{v_1: tensor, v_2: int, v_3: int} |= if max(v_1) < 1 then v_3 < 100 ∧ v_2 > -100
+>>
+Rule 83 (Quant min, max, and zero point must all be the same dtype)
+{v_1: dtype, v_2: dtype, v_3: dtype} |= v_1 = v_2 ∧ v_2 = v_3
+>>
+Rule 84 (Scale should always be positive)
+{v_1: float} |= v_1 > 0
+>>
+Rule 85 (Quant min cannot be positive if zero point is zero and all values are to be positive)
+{v_1: tensor, v_2: int, v_3: int} |= if min(v_1) >= 0 ∧ v_3 = 0 then v_2 <= 0
+>>
+Rule 86 (if scale is 1.0, then zero_point has to be 0, otherwise this will offset the values)
+{v_1: float, v_2: int} |= if v_1 = 1.0 then v_2 = 0
+>>
+Rule 87 (If the difference between quant_min and zero_point is large, the input cannot contain large negative numbers for stability)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 - v_2 > 100 then min(v_1) > -1000
+>>
+Rule 88 (If the difference between quant max and zero_point is large, the input cannot contain large positive numbers for stability)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 - v_3 > 100 then max(v_1) < 1000
+>>
+Rule 89 (If quant_min is very small then the scale should also be somewhat small to prevent too much range on negative numbers)
+{v_1: float, v_2: int} |= if v_2 < -1000 then v_1 < 0.1
+>>
+Rule 90 (If quant_max is very big, then the scale must also be big enough to allow for wide range)
+{v_1: float, v_2: int} |= if v_2 > 1000 then v_1 > 0.001
+>>
+Rule 91 (For integer datatypes, make sure zero point will not overflow)
+{v_1: int, v_2: dtype} |= if v_2 = 1 then v_1 < 128
+>>
+Rule 92 (If scale is close to zero, then quant_min and quant_max should be very close, to avoid large values going outside boundaries)
+{v_1: float, v_2: int, v_3: int} |= if v_1 < 0.0001 then (v_3 - v_2) < 10
+>>
+Rule 93 (zero_point cannot equal quant_min if the tensor contains positive values)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 = v_2 then max(v_1) <= 0
+>>
+Rule 94 (zero_point cannot equal quant_max if the tensor contains negative values)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 = v_2 then min(v_1) >= 0
+>>
+Rule 95 (The product of the scale and the difference between quant_max and quant_min should be reasonable to avoid overflow.)
+{v_1: float, v_2: int, v_3: int} |= v_1 * (v_3 - v_2) < 1e9
+>>
+Rule 96 (If the input tensor contains only one unique value, the scale cannot be zero)
+{v_1: tensor, v_2: float} |= if min(v_1) = max(v_1) then v_2 ≠ 0
+>>
+Rule 97 (if quant max or quant_min equal 0, check that tensor doesn't have too much positive or negative)
+{v_1: tensor, v_2: int} |= if v_2 = 0 then max(v_1) < 100
+>>
+Rule 99 (If there are a lot of unique values, the range must be greater than a certain value)
+{v_1: tensor, v_2: int, v_3: int} |= if v_3 - v_2 < 100 then shape(v_1, 0) <= 100
+>>
+Rule 100 (Input must be of float type)
+{v_1: tensor} |= dtype_(v_1) = 7
+>>
+Rule 101 (If quant_max and quant_min are equal, then scale must be very large to represent one single value well)
+{v_1: int, v_2: int, v_3: float} |= if v_1 = v_2 then v_3 > 1000
+>>
+Rule 102 (If Zero point and quant_max is same. the min of a tensor cannot be greater than 0 to guarantee quantization works)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 = v_3 then min(v_1) <=0
+>>
+Rule 103 (Check that quant_min is valid as int32.min)
+{v_1 : int} |= v_1 > -2147483648
+>>
+Rule 104 (If tensor contains extremely large values, scale should be large enough to contain the values in the range quant_min, quant_max )
+{v_1: tensor, v_2: float, v_3: int, v_4:int} |= if max(v_1) > 1e5 then v_2 > max(v_1)/(v_4-v_3)
+>>
+Rule 105 (Quant min and quant max should not be infinite)
+{v_1:int, v_2:int} |= v_1 < 1e9 ∧ v_2 < 1e9
+>>
+Rule 106 ( if the scale is too small, all values after nearby_int will be either quant_min or quant_max)
+{v_1: float, v_2: int, v_3 :int} |= v_1 > (v_3-v_2)*1e-12
+>>
+Rule 107 (Quant min must be an int)
+{v_1: float} |= ∃i ∈ [-2147483648, 2147483647] : v_1 = i
+>>
+Rule 113 (Quant min is a valid Number)
+{v_1: int} |= v_1 ≤ 2147483647 ∧ v_1 ≥ -2147483648
+>>
+Rule 116 (Quant min and quant max, and zero point are in a reasonable range, to avoid memory overflow)
+{v_1: int} |= v_1 > -32768 ∧ v_1 < 32767
+>>
+Rule 117 (For small scales, the tensor itself must not have too great a range)
+{v_1: float, v_2: tensor} |= if v_1 < 0.01 then (max(v_2) - min(v_2)) < 100
+>>
+Rule 118 (If Zero point and quant max is same, zero point should have non-negative values )
+{v_1: int, v_2: int} |= if v_1=v_2 then v_1 >0
+>>
+Rule 119 (If quant_max is maximum possible value, all elements of tensor has to be less than scale or we'll saturate)
+{v_1: tensor, v_2: int, v_3: float} |= if v_2 > 250 then max(v_1) < v_3
+>>
+Rule 120 (scale cannot be negative)
+{v_1: float} |= v_1 ≥ 0
+>>
+Rule 125 (If quant_max and quant_min are same the range in the tensor must be very small.)
+{v_1: tensor, v_2: int, v_3: int} |= if v_2 = v_3 then max(v_1) - min(v_1) < 0.001
+>>
+Rule 126 (If Quant_min and quant_max are within 16 bits, the scale shouldn't be overly large)
+{v_1: float, v_2: int, v_3: int} |= if v_3 < 32767 ∧ v_2 > -32767 then v_1 < 1000
+>>
+Rule 127 (If zero point is the smallest possible value it should never occur )
+{v_1: int} |= v_1 > -2147483648
+>>
+Rule 128 (The input tensor should not have elements with a very high absolute value, it can lead to instability)
+{v_1: tensor} |= max(v_1) < 1e6 ∧ min(v_1) > -1e6
+>>
+Rule 129 (if scale is very big, quant_min and quant_max need to be also big or it can lead to saturation)
+{v_1: float, v_2: int, v_3: int} |= if v_1 > 1e3 then (v_2 < -1000) ∧ (v_3 > 1000)
+>>
+Rule 130 (If all the values in a tensor are same the scale should not be too small, or the quantized values will be the same)
+{v_1: tensor, v_2: float} |= if min(v_1) = max(v_1) then v_2> 1e-7

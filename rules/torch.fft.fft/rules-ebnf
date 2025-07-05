@@ -1,60 +1,102 @@
 >>
-Rule 1 (input tensor's dimension `dim` should be within the valid range [-ndim(input), ndim(input)-1])
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 ≤ (ndim(v_1) - 1)
+Rule 1 (Signal length must be positive to avoid zero data points error)
+{n : int} |= n > 0
 >>
-Rule 2 (signal length n must be greater than zero)
+Rule 6 (Signal length must be positive to avoid zero data points error)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 3 (input tensor's dtype should be complex)
-{v_1 : tensor} |= dtype_(v_1) = 10 ∨ dtype_(v_1) = 11
+Rule 7 (Output tensor 'out' must be of complex type)
+{v_1 : tensor} |= 10 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
 >>
-Rule 4 (norm should be one of the supported strings)
-{v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
+Rule 9 (Input tensor must not be of Half type on some devices)
+{v_1 : tensor} |= dtype_(v_1) ≠ 7
 >>
-Rule 5 (If n is given, it must be greater than or equal to 0)
-{v_1 : tensor, v_2 : int} |= if v_2 > 0 then true else (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
->>
-Rule 6 (If out is given, its dtype should be complex)
-{v_1 : tensor} |= if ndim(v_1) > 0 then (dtype_(v_1) = 10 ∨ dtype_(v_1) = 11)
->>
-Rule 7 (If n is given, it must be smaller than or equal to the corresponding dimension of the input tensor)
-{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > 0 then v_2 ≤ shape(v_1, v_3)
->>
-Rule 8 (input tensor must have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 9 (If CUDA is available, input tensor doesn't have Half dtype)
-{v_1 : tensor} |= if ∃i ∈ [0, 0] : true then dtype_(v_1) ≠ 6
->>
-Rule 10 (If CUDA is available, and the input tensor is Half or CHalf, then the signal length n must be a power of 2)
-{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, 0] : true) ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 9) then (v_2 > 0 ∧ (v_2 ∧ (v_2 - 1)) = 0)
->>
-Rule 11 (CUDA availability is not a consideration if Half is not supported)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6
->>
-Rule 12 (If dim is given, it should be a valid dimension of the input tensor)
-{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
->>
-Rule 13 (The 'out' tensor should have the same shape as the input tensor after applying n and dim)
-{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : if i = v_4 then shape(v_2, i) = v_3 else shape(v_2, i) = shape(v_1, i))
->>
-Rule 14 (The 'out' tensor should have the same dtype as the input tensor after applying n and dim)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_2) = dtype_(v_1)
->>
-Rule 15 (If out is given, it has to be a Tensor)
+Rule 10 (Output argument must be a tensor)
 {v_1 : tensor} |= ndim(v_1) ≥ 0
 >>
-Rule 16 (If input tensor is real-valued, its dtype should be float)
-{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+Rule 13 (Dimension 'dim' must be within the valid range for the input tensor)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
 >>
-Rule 17 (input tensor can not be boolean)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0
+Rule 16 (Signal length must be non-negative to allow zero-padding)
+{v_1 : int} |= v_1 ≥ 0
 >>
-Rule 18 (The input tensor's dimension specified by dim must be greater than zero)
-{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+Rule 18 (Out tensor must be complex if input is complex)
+{v_1 : tensor, v_2 : tensor} |= if 9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then 9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10
 >>
-Rule 19 (When norm is "ortho", check that shape(input, dim) is greater than 0)
-{v_1 : tensor, v_2 : str, v_3 : int} |= if v_2 = "ortho" then shape(v_1, v_3) > 0
+Rule 19 (Norm must be chosen from allowed values)
+{v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
 >>
-Rule 20 (If input and output tensors are given, then their ndim should be equal)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ndim(v_1) = ndim(v_2)
+Rule 20 (If signal length n is specified, it should be less than or equal to the maximum allowed value)
+{v_1 : int} |= v_1 ≤ 2147483647
+>>
+Rule 22 (Input tensor must have at least one dimension when dim is specified)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 25 (Input tensor must not be double if out is complex)
+{v_1 : tensor, v_2 : tensor} |= if 9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10 then dtype_(v_1) ≠ 8
+>>
+Rule 26 (If out is specified, input and out should have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 9 then dtype_(v_1) = 7 ∨ dtype_(v_1) = 9 else if dtype_(v_2) = 10 then dtype_(v_1) = 8 ∨ dtype_(v_1) = 10
+>>
+Rule 30 (Input tensor's dtype should support FFT)
+{v_1: tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+>>
+Rule 32 (Input tensor must have at least one dimension when dim is specified, so ndim >=1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 40 (If out is specified as a parameter, then it must be a tensor)
+{v_1: tensor} |= ndim(v_1) >=0
+>>
+Rule 41 (If out is specified, it must be a tensor)
+{v_1: tensor} |= ndim(v_1) >= 0
+>>
+Rule 45 (If input is a real tensor, and out is provided, then out must be a complex tensor)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then 9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10
+>>
+Rule 60 (If the input is double, it should output complex128, and if the input is float, it should output complex64)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 9 else if dtype_(v_1) = 8 then dtype_(v_2) = 10
+>>
+Rule 65 (If the operation is performed, the shape of out should be the same or broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 75 (If the input is complex, the output tensor dtype has to be complex as well)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 85 (If input is a real tensor and out is provided, then out should have a complex data type.)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then 9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10
+>>
+Rule 92 (The 'dim' argument must be within the valid range of dimensions for the input tensor.  It must be greater or equal to the negative of the number of dimensions.)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2
+>>
+Rule 95 (If the input is float32 or float64, the output has to be complex)
+{v_1: tensor} |= if dtype_(v_1) = 7 then true else if dtype_(v_1) = 8 then true
+>>
+Rule 97 (The 'dim' argument must be within the valid range of dimensions for the input tensor.  It must be less than the number of dimensions.)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 105 (The dimension should be a valid dimension to perform FFT)
+{v_1: tensor, v_2: int} |= v_2 >= (0 - ndim(v_1))
+>>
+Rule 107 (The 'dim' argument must be within the valid range of dimensions for the input tensor, and less than ndim)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1) ∧ v_2 >= (0 - ndim(v_1))
+>>
+Rule 110 (If out is specified, it must have the same number of dimensions)
+{v_1: tensor, v_2: tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 115 (For float input tensors, 'n' must be a power of 2)
+{v_1 : tensor, v_2: int} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (v_2 > 0 ∧ (v_2 ∧ (v_2 - 1)) = 0)
+>>
+Rule 120 (If input is a real tensor, the output must be complex.)
+{v_1: tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+>>
+Rule 125 (If CUDA is used, n must be a power of 2)
+{v_1 : int} |= ∃i ∈ [0, 31] : v_1 = 2 * i
+>>
+Rule 130 (For half input tensor, it must be on CUDA GPU with Compute Capability >= 5.3)
+{v_1: tensor} |= if dtype_(v_1) = 7 then true
+>>
+Rule 132 (The 'dim' argument must be within the valid range of dimensions for the input tensor, and less than ndim)
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) <= v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 135 (For half input tensor, n must be a power of 2)
+{v_1 : tensor, v_2: int} |= if dtype_(v_1) = 7 then (v_2 > 0 ∧ (v_2 ∧ (v_2 - 1)) = 0)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# dtype should be one of specified types (Rule 2)
+# If type1 is bool, type2 cannot be complex (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (And(v["arg2_value"] >= 0, v["arg2_value"] <= 12)))) if n else
-          And((And(v["arg1_value"] >= 0, v["arg1_value"] <= 12)), (And(v["arg2_value"] >= 0, v["arg2_value"] <= 12))))
+    s.add(Not(If(v["arg1_value"] == 0, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False)) if n else
+          If(v["arg1_value"] == 0, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

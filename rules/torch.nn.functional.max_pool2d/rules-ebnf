@@ -1,15 +1,123 @@
 >>
-Rule 1 (input tensor must be 3D or 4D, kernel_size must be int or tuple of two ints, stride and dilation must be positive, padding must be non-negative and no more than half of effective kernel size)
-{v_1 : tensor, v_2 : int ⊎ tuple(int), v_3 : int ⊎ tuple(int), v_4 : int, v_5 : int} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ (if (v_2.len = 2) then true else (ndim(v_1) > 0)) ∧ (if (v_3.len = 2) then (v_3[0] > 0 ∧ v_3[1] > 0) else (v_3 > 0)) ∧ v_4 ≥ 0 ∧ v_5 > 0 ∧ v_4 ≤ (if (v_2.len = 2) then (v_2[0] + (v_2[0] - 1) * (v_5 - 1)) / 2 else (v_2 + (v_2 - 1) * (v_5 - 1)) / 2)
->>
-Rule 2 (padding must be non-negative and no more than half of effective kernel size when kernel_size is an int)
-{v_2 : int, v_4 : int, v_5 : int} |= v_4 ≥ 0 ∧ v_4 ≤ (v_2 + (v_2 - 1) * (v_5 - 1)) / 2
->>
-Rule 3 (stride should be greater than zero)
-{v_3 : int} |= v_3 > 0
->>
-Rule 4 (input tensor must be 3D or 4D)
+Rule 1 (Input tensor must be 3D or 4D)
 {v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
 >>
-Rule 5 (kernel_size must either be a single int, or a tuple of two ints)
-{v_2 : int ⊎ tuple(int)} |= (if v_2.len = 0 then true else (v_2.len = 2))
+Rule 2 (Padding must be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 3 (Stride should be greater than zero)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 6 (Padding should be at most half of effective kernel size, considering dilation)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≤ (v_2 + (v_2 - 1) * (v_3 - 1)) / 2
+>>
+Rule 7 (Stride cannot be zero)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 8 (Check for integer out of range - using a reasonable bound)
+{v_1 : int} |= v_1 < 2147483647 ∧ v_1 > -2147483648
+>>
+Rule 12 (Kernel size must be greater than zero)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 16 (Check if the input tensor is non-empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 17 (Input tensor must have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 20 (Check if kernel size is a tuple of two positive integers)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
+>>
+Rule 21 (Combination of stride and kernel size. If stride is none it defaults to kernel size)
+{v_1 : int, v_2: int} |= v_2 > 0 ∧ v_1 > 0
+>>
+Rule 22 (Ceil mode is boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 24 (Input tensor must have at least one dimension and non-zero shape)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 26 (Padding is less than kernel size)
+{v_1 : int, v_2 : int} |= v_1 < v_2
+>>
+Rule 29 (Valid combination of pad, kernel_size and dilation.)
+{v_1: int, v_2: int, v_3: int} |= v_1 <= (v_2 + (v_2-1) * (v_3 -1)) / 2
+>>
+Rule 32 (Padding is non-negative)
+{v_1 : int} |= v_1 >= 0
+>>
+Rule 36 (Check if the input is 3d or 4d tensor)
+{v_1:tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+>>
+Rule 37 (Input tensor must be 3D or 4D with non-zero dimensions)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 42 (Kernel size should be a tuple with positive integers)
+{v_1: tuple(int)} |= v_1.len = 2 ∧ v_1[0] > 0 ∧ v_1[1] > 0
+>>
+Rule 46 (Padding should be a non-negative integer less or equal than kernel size)
+{v_1: int, v_2: int} |= v_1 >= 0 ∧ v_1 <= v_2
+>>
+Rule 47 (Check stride being non-zero)
+{v_1 : int} |= v_1 != 0
+>>
+Rule 48 (Effective kernel size with dilation)
+{v_1: int, v_2: int} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 52 (Padding should be a non-negative integer)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 55 (Padding less than effective kernel size given dilation)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 <= (v_2 + (v_2 - 1) * (v_3 - 1)) / 2
+>>
+Rule 56 (Check shape dimensions are valid positive integers.)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 67 (Padding should be a non-negative integer and should be less than kernel_size)
+{v_1: int, v_2: int} |= v_1 >= 0 ∧ v_1 < v_2
+>>
+Rule 74 (Padding should be a non-negative integer and less or equal than half the kernel_size)
+{v_1: int, v_2: int, v_3: int} |= v_1 >= 0 ∧ v_1 <= (v_2 + (v_2-1) * (v_3 -1)) / 2
+>>
+Rule 76 (Effective kernel size with dilation should be a positive number)
+{v_1:int, v_2:int} |= v_1 > 0 ∧ v_2 > 0
+>>
+Rule 81 (Ceil Mode should be a bool)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 85 (Stride should be a positive integer different than 0)
+{v_1 : int} |= v_1 > 0 ∧ v_1 != 0
+>>
+Rule 94 (Padding should be a non-negative integer less or equal than the kernel size and not cause integer overflow)
+{v_1: int, v_2: int, v_3: int} |= v_1 >= 0 ∧ v_1 <= (v_2 + (v_2-1) * (v_3 -1)) / 2 ∧ v_2 < 2147483647 ∧ v_3 < 2147483647
+>>
+Rule 96 (Kernel Size must be a positive integer)
+{v_1: int} |= v_1 > 0
+>>
+Rule 106 (Combination of dilation, padding and kernel size should be valid)
+{v_1: int, v_2:int, v_3: int} |= v_1 <= (v_2 + (v_2 - 1) * (v_3 - 1)) / 2
+>>
+Rule 110 (Stride should be a positive integer and not zero)
+{v_1 : int} |= v_1 > 0 ∧ v_1 ≠ 0
+>>
+Rule 112 (Input tensor must be 3D or 4D)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4)
+>>
+Rule 120 (Padding should be a non-negative integer and smaller or equal than the effective kernel size)
+{v_1: int, v_2: int, v_3: int} |= v_1 >= 0 ∧ v_1 <= (v_2 + (v_2-1) * (v_3 - 1)) / 2
+>>
+Rule 125 (Padding should be a non-negative integer and less than kernel_size)
+{v_1: int, v_2: int, v_3 : int} |= v_1 >= 0 ∧ v_1 <= (v_2 + (v_2-1) * (v_3 - 1)) / 2
+>>
+Rule 132 (Check for Integer overflow)
+{v_1 : int, v_2 :int, v_3 : int} |= v_1 < 2147483647 ∧ v_2 < 2147483647 ∧ v_3 < 2147483647
+>>
+Rule 133 (Input tensor must be 3D or 4D and have positive shape)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∨ ndim(v_1) = 4) ∧ ∀i ∈ [0, if ndim(v_1) = 3 then 2 else 3] : shape(v_1, i) > 0
+>>
+Rule 137 (If Return indices is enabled, then ceil mode has to be set.)
+{v_1: bool, v_2: bool} |= if v_1 = true then v_2 = true ∨ v_2 = false
+>>
+Rule 142 (Check for integer range.)
+{v_1 : int, v_2: int, v_3 : int} |= v_1 < 2147483647 ∧ v_2 < 2147483647 ∧ v_3 < 2147483647

@@ -1,66 +1,225 @@
 >>
-Rule 1 (num_parameters must be 1 or equal to the input channel size)
-{v_1 : int, v_2 : tensor} |= v_1 = 1 ∨ v_1 = (if ndim(v_2) < 2 then 1 else shape(v_2, 1))
->>
-Rule 2 (input tensor should not have type promotion issue)
-{v_1 : tensor} |= dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 8
->>
-Rule 3 (num_parameters should be non-negative)
-{v_1 : int} |= v_1 ≥ 0
->>
-Rule 4 (init value should be a reasonable value)
-{v_1 : float} |= v_1 > -100 ∧ v_1 < 100
->>
-Rule 5 (input tensor should have at least one dimension)
-{v_1 : tensor} |= ndim(v_1) ≥ 1
->>
-Rule 6 (If num_parameters is not 1, then the input tensor must have at least 2 dimensions)
-{v_1 : int, v_2 : tensor} |= if v_1 ≠ 1 then ndim(v_2) ≥ 2
->>
-Rule 7 (If channel dim exists (ndim >= 2), num_parameters must be less than or equal to channel size)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then v_1 <= shape(v_2, 1)
->>
-Rule 8 (The shape of the input tensor should not have negative dimensions)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > -1
->>
-Rule 9 (num_parameters should not be zero if the tensor has channel dim greater than 1)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 ∧ shape(v_2, 1) > 1 then v_1 ≠ 0
->>
-Rule 10 (If the input tensor has less than 2 dimensions, num_parameters must be 1)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) < 2 then v_1 = 1
->>
-Rule 11 (The shape of the input tensor should not be negative)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 0
->>
-Rule 12 (The input tensor's dtype must be supported)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5
->>
-Rule 13 (num_parameters should be a positive integer)
+Rule 1 (num_parameters should be greater than 0)
 {v_1 : int} |= v_1 > 0
 >>
-Rule 14 (input tensor's ndim should be a reasonable number)
-{v_1 : tensor} |= ndim(v_1) < 10
+Rule 4 (Number of parameters should be 1 or number of input channels (greater than 1))
+{v_1 : int, v_2 : tensor} |= (v_1 = 1) ∨ (ndim(v_2) >= 2 ∧ v_1 = shape(v_2, 1))
 >>
-Rule 15 (If num_parameters equals the channel size, then channel size must be greater than 0)
-{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 ∧ v_1 = shape(v_2, 1) then shape(v_2, 1) > 0
+Rule 5 (Shape should not contain negative dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) ≥ 0
 >>
-Rule 16 (The number of parameters cannot be negative)
+Rule 7 (Weight tensor's number of dimensions matches num_parameters)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = 1 ∧ shape(v_1,0) = v_2
+>>
+Rule 10 (Input tensor should have floating point or complex dtype - using dtype_ function)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 11 (Number of parameters should be 1 or number of input channels (greater than 1))
+{v_1 : int, v_2 : tensor} |= (v_1 = 1) ∨ (ndim(v_2) ≥ 2 ∧ v_1 = shape(v_2, 1))
+>>
+Rule 13 (weight tensor has correct shape)
+{v_1: tensor, v_2: int} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = v_2
+>>
+Rule 14 (Prevent type promotion by ensuring input and weight have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 19 (Prevent large allocation by limiting tensor size)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1) -1]: shape(v_1, i) < 2048
+>>
+Rule 21 (Number of parameters can not be zero when input channel size is 1)
+{v_1: int, v_2: tensor} |= if ndim(v_2) < 2 then v_1 ≠ 0
+>>
+Rule 22 (Input tensor's dimensions should not lead to storage overflow)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 2147483647
+>>
+Rule 24 (Number of parameters should be 1 or equal to the input channel size if input has channels)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) ≥ 2 then v_1 = 1 ∨ v_1 = shape(v_2, 1) else v_1 = 1
+>>
+Rule 26 (Input dimensions should be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 27 (Ensure that parameter number and channel size match up appropriately)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then (v_1 = 1 ∨ v_1 = shape(v_2, 1)) else v_1 = 1
+>>
+Rule 28 (prevent memory allocation errors by limiting dimensions)
+{v_1 : tensor} |= ndim(v_1) < 6
+>>
+Rule 34 (Prevent SymIntArrayRef errors by ensuring shape values can be represented by concrete integers)
+{v_1: tensor} |= ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 2147483647
+>>
+Rule 35 (Force num_parameters to be a positive number to avoid edge cases)
+{v_1: int} |= v_1 > 0
+>>
+Rule 36 (Input tensor's total number of elements should not lead to storage overflow)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 2147483647
+>>
+Rule 37 (num_parameters equals one or the input channels)
+{v_1 : int, v_2 : tensor} |= (v_1 = 1) ∨ (if ndim(v_2) >= 2 then v_1 = shape(v_2, 1))
+>>
+Rule 38 (Tensor Dimensions should be within reasonable bounds)
+{v_1 : tensor} |= ndim(v_1) <= 5
+>>
+Rule 39 (Ensure num_parameters is non-negative)
 {v_1 : int} |= v_1 >= 0
 >>
-Rule 17 (the number of channels in the tensor should not be zero if num_parameters is not 1)
-{v_1 : int, v_2 : tensor} |= if v_1 ≠ 1 ∧ ndim(v_2) >= 2 then shape(v_2, 1) ≠ 0
+Rule 40 (limit the size of individual dimensions to prevent integer overflows in indexing)
+{v_1: tensor} |=  ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 10000
 >>
-Rule 18 (if init is used with num_parameter = 1, it should have a reasonable value)
-{v_1: float, v_2 : int} |= if v_2 = 1 then v_1 > -100 ∧ v_1 < 100
+Rule 41 (Prevent large dimensions)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1,i) < 2048
 >>
-Rule 19 (if init is used, it should not be nan or inf)
-{v_1: float} |= v_1 = v_1
+Rule 42 (If num_parameters is zero, then the channel dimension has to be 0)
+{v_1: int, v_2: tensor} |= if v_1 = 0 then (if ndim(v_2) >=2 then shape(v_2,1)=0)
 >>
-Rule 20 (If number of parameter is greater than 1, the input should be floating tensor)
-{v_1: int, v_2: tensor} |= if v_1 > 1 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 43 (Input tensor's total number of elements should not lead to storage overflow - more robust)
+{v_1: tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 2147483647) ∧ (∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) > 0)
 >>
-Rule 21 (The input tensor cannot have dimensions equal to zero.)
-{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+Rule 44 (num_parameters consistency with number of input channels)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then (v_1 = 1 ∨ v_1 = shape(v_2, 1)) else (v_1 = 1)
 >>
-Rule 22 (if num_parameter equals to 1 and init is not defined, then the output and input dtype should be the same)
-{v_1:tensor, v_2:dtype} |= if v_2 = 1 then dtype_(v_1) = v_2
+Rule 45 (Preventing overflow by limiting dimension product)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1,0) * shape(v_1,1) < 10000000
+>>
+Rule 46 (dtype should be float to be differentiable)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 47 (Shape Dimensions shouldn't be too big to fit in memory)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 4096
+>>
+Rule 48 (Constrain dimension sizes to prevent storage overflow errors.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048
+>>
+Rule 49 (Ensure number of parameters matches input channels, or is set to one if no input channels)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) >= 2 then v_1 = 1 ∨ v_1 = shape(v_2, 1) else v_1 = 1
+>>
+Rule 52 (Prevent SymIntArrayRef errors by bounding dimension count and size)
+{v_1 : tensor} |= ndim(v_1) < 5 ∧ (if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000)
+>>
+Rule 55 (Input should be of floating or complex type to allow for gradients)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 56 (Shape Dimensions shouldn't be too big to fit in memory, consider all dimensions to avoid index errors)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) < 1024
+>>
+Rule 57 (Dimensions should be non negative, checking for invalid tensor creation)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) >= 0
+>>
+Rule 58 (Input tensor's total number of elements should be limited, prevent integer overflow)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 2048
+>>
+Rule 61 (Prevent SymIntArrayRef error. All shape values are within integer bound)
+{v_1: tensor} |=  if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 1000
+>>
+Rule 62 (When parameters is zero, input must not have channel)
+{v_1 : int, v_2 : tensor} |= if v_1 = 0 then ndim(v_2) < 2
+>>
+Rule 64 (Require number of params to be more than -1. To prevent other error)
+{v_1 : int} |= v_1 > -1
+>>
+Rule 68 (Limit dimension size to avoid memory allocation issues and storage overflow)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 1024
+>>
+Rule 70 (Force floating point dtype for correct gradient computation)
+{v_1: tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 72 (Reduce number of dimensions to prevent /pytorch/build/aten/src/ATen/RegisterCPU.cpp errors)
+{v_1 : tensor} |= ndim(v_1) < 4
+>>
+Rule 77 (Weight tensor has the correct number of parameters, based on input)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_2) >= 2 then (ndim(v_1) = 1 ∧ shape(v_1, 0) = shape(v_2, 1)) else (ndim(v_1)=1 ∧ shape(v_1,0)=1 ∧ v_3 = 1)
+>>
+Rule 78 (Maximum dimension size to prevent memory alloc issues and integer overflows in indexing)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 512
+>>
+Rule 81 (Check weight tensor size based on input channel size when input has more than one dimension and fix param number.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) >= 2 then ndim(v_1) = 1 ∧ shape(v_1, 0) = shape(v_2, 1) else ndim(v_1) = 1 ∧ shape(v_1,0)=1
+>>
+Rule 85 (Number of parameters can't be negative)
+{v_1: int} |= v_1 >= 0
+>>
+Rule 86 (Reduce number of dimensions to smaller than 5 to avoid RegisterCPU error)
+{v_1 : tensor} |= ndim(v_1) < 5
+>>
+Rule 88 (The number of parameters shouldn't lead to large allocation)
+{v_1: int} |= v_1 < 10000
+>>
+Rule 89 (Ensure input and weight dimensions are consistent for broadcast)
+{v_1: tensor, v_2: tensor} |= if ndim(v_2) >= 2 then ndim(v_1) = 1 ∧ shape(v_1, 0) = shape(v_2, 1) else ndim(v_1) = 1 ∧ shape(v_1,0) = 1
+>>
+Rule 90 (If input tensor has zero elements, num_parameters needs to be small)
+{v_1 : int, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then v_1 < 10
+>>
+Rule 91 (Weight's dtype matches input dtype, if floating or complex)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9 ∨ dtype_(v_2) = 10 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 92 (Smaller dimensions to prevent out of bounds errors)
+{v_1: tensor} |=  if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) < 2048
+>>
+Rule 94 (To prevent /pytorch/build/aten/src/ATen/RegisterCPU.cpp error and memory issues, limit dimension size and number of dimensions)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 1024 ∧ ndim(v_1) < 5
+>>
+Rule 95 (Check that number of parameters is consistent with channel size)
+{v_1 : tensor, v_2: int} |= if ndim(v_1) >= 2 then shape(v_1, 1) = v_2 ∨ v_2=1 else v_2 = 1
+>>
+Rule 96 (To prevent memory error)
+{v_1: tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) * shape(v_1, 1) < 10000000
+>>
+Rule 100 (Check that weight tensor and input tensor are the same dtype. Also allows for autograd.)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 102 (Require all dimensions to be positive integers. To fix dimension errors with allocation.)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 103 (Make shape value smaller to fix the sym int array reference issue)
+{v_1: tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) < 4096
+>>
+Rule 105 (Only floating type tensor allows grad, also prevent mix type promotion)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 106 (The weight size should be same with the input size)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) >= 2 then ndim(v_1) = 1 ∧ shape(v_1, 0) = shape(v_2, 1) else ndim(v_1) = 1 ∧ shape(v_1,0) = 1
+>>
+Rule 107 (Do not allow negative dimension)
+{v_1: tensor} |=  if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) >= 0
+>>
+Rule 111 (Make sure that num_param is valid, to fix param related problems)
+{v_1: int, v_2: tensor} |= if ndim(v_2) < 2 then v_1 = 1 else if ndim(v_2) >= 2 then v_1 = 1 ∨ v_1 = shape(v_2, 1)
+>>
+Rule 116 (To avoid Type promoting issue, force same type for input and weight)
+{v_1: tensor, v_2: tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10)
+>>
+Rule 117 (To prevent 5261 error, limit number of dimension)
+{v_1: tensor} |= ndim(v_1) < 4
+>>
+Rule 119 (To fix channel issues and make sure that the parameter is in valid range)
+{v_1: int, v_2: tensor} |= if ndim(v_2) > 1 then v_1 = 1 ∨ v_1 = shape(v_2, 1) else v_1 = 1
+>>
+Rule 120 (The weight Dtype should be consistent with input, also fix promoting problem)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = dtype_(v_2)) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 121 (If it's empty, there is no channel)
+{v_1 : int, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0 then v_1 = 1
+>>
+Rule 127 (To prevent alloc cpu related problem)
+{v_1 : tensor} |= if shape(v_1,0) > 0 then shape(v_1,0) < 2048
+>>
+Rule 129 (For parameters, channel dimensions is important, fix the dimension mismatch problem)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 2 then shape(v_1, 1) = v_2 ∨ v_2=1 else v_2 = 1
+>>
+Rule 134 (Num parameters needs to be valid and no channel problems)
+{v_1 : tensor, v_2: int} |= if ndim(v_1) > 1 then shape(v_1, 1) = v_2 ∨ v_2 = 1 else v_2 = 1
+>>
+Rule 135 (Weight has same dtype with input, fix promotion error and allow gradient compute)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 136 (Prevents negative dimension errors by checking positivity.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) >= 0
+>>
+Rule 137 (To prevent memory allocation errors due to large sizes in intermediate calculations)
+{v_1: tensor} |= shape(v_1, 0) < 5000
+>>
+Rule 139 (Ensure that parameter number matches the input size when more than 1 dimensions present. fixes dim mismatch issues.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) >= 2 then shape(v_1, 1) = v_2 ∨ v_2 = 1 else v_2 = 1
+>>
+Rule 142 (The tensor must have a positive shape value at dimension 0. To fix 5261)
+{v_1: tensor} |= shape(v_1, 0) > 0

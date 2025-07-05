@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input is float32, output must be float32 if specified (Rule 11)
+# If out is provided, its dtype should be able to contain the result of asinh(input (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, False)) if n else
-          If(v["arg1_dtype"] == 7, v["arg2_dtype"] == 7, False))
+    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 2, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 3, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 4, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 5, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] >= 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] >= 10, False))))))))))) if n else
+          If(v["arg1_dtype"] == 1, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 2, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 3, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 4, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 5, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 6, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 7, v["arg2_dtype"] >= 7, If(v["arg1_dtype"] == 8, v["arg2_dtype"] >= 8, If(v["arg1_dtype"] == 9, v["arg2_dtype"] >= 9, If(v["arg1_dtype"] == 10, v["arg2_dtype"] >= 10, False)))))))))))
 )
 
 def rule_11_func(arg1, arg2, solver=None, neg=False):

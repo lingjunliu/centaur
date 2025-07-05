@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# When input tensor contains very small values, they should not cause underflow during the squaring operation. (Rule 17)
+# input tensor elements are not too large (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) > -1e+19) if n else
-          Select(v["arg1_range"], 0) > -1e+19)
+    s.add(Not(Select(v["arg1_range"], 1) < 100) if n else
+          Select(v["arg1_range"], 1) < 100)
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

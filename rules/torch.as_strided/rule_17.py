@@ -5,32 +5,37 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If storage_offset is specified then it must be a valid integer within the allowed range. (Rule 17)
+# Mismatch in length of strides and shape, considering a maximum dimension of 5 for tuple (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] < 2147483647, v["arg1_value"] > -2147483648)) if n else
-          And(v["arg1_value"] < 2147483647, v["arg1_value"] > -2147483648))
+    s.add(Not(If(And(v["arg1_length"] < 5, v["arg2_length"] < 5), v["arg1_length"] == v["arg2_length"], False)) if n else
+          If(And(v["arg1_length"] < 5, v["arg2_length"] < 5), v["arg1_length"] == v["arg2_length"], False))
 )
 
-def rule_17_func(arg1, solver=None, neg=False):
+def rule_17_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg1)):
+            return False
+        if not (isinstance(arg2, tuple) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_length = Int('arg1_length')
+        arg2_length = Int('arg2_length')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_length == len(arg1))
+        solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 17
-        rule_17(solver, {'arg1_value': arg1_value})
+        rule_17(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_17(solver, {'arg1_value': arg1['value']}, neg)
+        rule_17(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# input tensor (v_1 (Rule 13)
+# input and weight must be tensors (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(v["arg1_ndim"] < v["arg2_ndim"]) if n else
-          v["arg1_ndim"] < v["arg2_ndim"])
+    s.add(Not(And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0)) if n else
+          And(v["arg1_ndim"] >= 0, v["arg2_ndim"] >= 0))
 )
 
 def rule_13_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor has requires_grad = True, then the operation is only supported on floating point and complex tensors. (Rule 17)
+# input tensor should have floating point dtype to avoid implicit casting issues and errors and named parameter (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(True, Or(Or(Or(Or((v["arg1_dtype"] == 6), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10)), False)) if n else
-          If(True, Or(Or(Or(Or((v["arg1_dtype"] == 6), (v["arg1_dtype"] == 7)), (v["arg1_dtype"] == 8)), (v["arg1_dtype"] == 9)), (v["arg1_dtype"] == 10)), False))
+    s.add(Not(And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 9)) if n else
+          And(v["arg1_dtype"] > 5, v["arg1_dtype"] < 9))
 )
 
 def rule_17_func(arg1, solver=None, neg=False):

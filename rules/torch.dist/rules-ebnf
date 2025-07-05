@@ -1,6 +1,81 @@
 >>
-Rule 1 (input and other tensors should have broadcastable shapes, simplified)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+Rule 2 (input tensors should not be boolean to allow subtraction)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_2) ≠ 0
 >>
-Rule 2 (Tensors should have same number of elements or be broadcastable)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1) else ∃k ∈ [0, 0] : k = 0 ∧ (∀i ∈ [0, ndim(v_1) - 1]: k = k + shape(v_1, i)) ∧ (∀j ∈ [0, ndim(v_2) - 1]: k = k + shape(v_2, j))
+Rule 6 (input tensors should be of floating point type to allow subtraction)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≥ 6 ∧ dtype_(v_1) ≤ 8 ∧ dtype_(v_2) ≥ 6 ∧ dtype_(v_2) ≤ 8
+>>
+Rule 13 (input tensors should not be boolean to allow subtraction, alternative formulation)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then false else if dtype_(v_2) = 0 then false
+>>
+Rule 17 (input tensors should not be boolean to allow subtraction)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) ≠ 0)
+>>
+Rule 20 (p must be a non-negative number)
+{v_3 : float} |= v_3 ≥ 0
+>>
+Rule 24 (tensor dimensions should match to avoid broadcasting errors - strict version)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then false else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 33 (tensor shapes should be broadcastable)
+{v_1 : tensor, v_2 : tensor} |=  if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1) else ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) ∨ shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = 1)
+>>
+Rule 36 (if tensors have different dimensions, smaller tensor should have all shape equal to 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1 else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1
+>>
+Rule 37 (input tensors should be of floating point type or integer type to allow subtraction)
+{v_1 : tensor, v_2 : tensor} |= (6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)
+>>
+Rule 39 (tensors should have same shape when ndim is same)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 41 (p must be a non-negative number or inf)
+{v_3 : float ⊎ str} |= (v_3 ≥ 0) ∨ (v_3 = "inf")
+>>
+Rule 42 (if tensors have different dimensions, smaller tensor should have all shape equal to 1, refined)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i)
+>>
+Rule 43 (input tensors should be of floating point type or integer type to allow subtraction, and not bool)
+{v_1 : tensor, v_2 : tensor} |= ((6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5)) ∧ ((6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∨ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)) ∧ (dtype_(v_1) ≠ 0) ∧ (dtype_(v_2) ≠ 0)
+>>
+Rule 45 (if tensors have different dimensions, smaller tensor should have all shape equal to 1, and greater than 0 )
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, ndim(v_1) - 1 - i) = 1 ∧ shape(v_1, ndim(v_1) - 1 - i) > 0) ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i) else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, ndim(v_2) - 1 - i) = 1 ∧  shape(v_2, ndim(v_2) - 1 - i) > 0) ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i)
+>>
+Rule 47 (p must be a non-negative number or inf or none string)
+{v_3 : float ⊎ str} |= (v_3 ≥ 0) ∨ (v_3 = "inf") ∨ (v_3 = "none")
+>>
+Rule 48 (if tensors have different dimensions, smaller tensor should have all shape equal to 1, and greater than 0, at least one of them must match)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : ((shape(v_1, ndim(v_1) - 1 - i) = 1 ∧ shape(v_1, ndim(v_1) - 1 - i) > 0) ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : ((shape(v_2, ndim(v_2) - 1 - i) = 1 ∧  shape(v_2, ndim(v_2) - 1 - i) > 0) ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i))
+>>
+Rule 51 (if tensors have different dimensions, smaller tensor should have all shape equal to 1, and greater than 0, at least one of them must match, shorter expression)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) else if ndim(v_2) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i))
+>>
+Rule 52 (input tensors should be of floating point type or integer type to allow subtraction, and not bool, combined expression)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0) ∨ (dtype_(v_2) = 0) then false else ((6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∨ (1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5)) ∧ ((6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8) ∨ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5))
+>>
+Rule 55 (input tensors should be of floating point type or integer type to allow subtraction, and not bool, alternative representation using dtype)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0) ∨ (dtype_(v_2) = 0) then false else (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 8) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 8)
+>>
+Rule 56 (p must be a non-negative number or inf or none string, alternative representation)
+{v_3 : float ⊎ str} |= v_3 ≥ 0 ∨ v_3 = "inf" ∨ v_3 = "none"
+>>
+Rule 57 (tensor dimensions should be broadcastable or equal)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i)) else ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i))
+>>
+Rule 60 (tensor dimensions should be broadcastable or equal - combined conditions)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) < ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, ndim(v_1) - 1 - i) = 1 ∨ shape(v_1, ndim(v_1) - 1 - i) = shape(v_2, ndim(v_2) - 1 - i))) ∨ (ndim(v_2) < ndim(v_1) ∧ ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_2, ndim(v_2) - 1 - i) = 1 ∨ shape(v_2, ndim(v_2) - 1 - i) = shape(v_1, ndim(v_1) - 1 - i)))
+>>
+Rule 64 (input tensors must be of floating point type or integer type to allow subtraction, and not bool using if expression)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = 0) ∨ (dtype_(v_2) = 0) then false else if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 8) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 8) then true else false
+>>
+Rule 67 (input tensors should be of floating point type or integer type to allow subtraction, and not bool using simplified constraints)
+{v_1 : tensor, v_2 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 ∧ 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+>>
+Rule 70 (input tensors should have compatible data types)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ ((1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5)) ∨ ((6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8))
+>>
+Rule 72 (tensor dimensions should be broadcastable or equal, alternative expression)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) - 1 else ndim(v_2) - 1] : (ndim(v_1) - i - 1 < 0 ∨ ndim(v_2) - i - 1 < 0 ∨ shape(v_1, ndim(v_1) - i - 1) = 1 ∨ shape(v_2, ndim(v_2) - i - 1) = 1 ∨ shape(v_1, ndim(v_1) - i - 1) = shape(v_2, ndim(v_2) - i - 1)) else false
+>>
+Rule 79 (input tensors must be of compatible type, and not bool, correct grammar)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∨ dtype_(v_2) = 0 then false else ((6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) ∧ (6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8)) ∨ ((1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5) ∧ (1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5))

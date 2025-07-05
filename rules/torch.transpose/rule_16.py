@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dim0 is less than zero, it must be less than the negative value of dimension - 1 (Rule 16)
+# If dim0 equals the number of dimensions, the tensor must be 0 dimensional (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), False)) if n else
-          If(v["arg2_value"] < 0, v["arg2_value"] >= (0 - v["arg1_ndim"]), False))
+    s.add(Not(If(v["arg2_value"] == v["arg1_ndim"], v["arg1_ndim"] == 0, False)) if n else
+          If(v["arg2_value"] == v["arg1_ndim"], v["arg1_ndim"] == 0, False))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor's dtype is complex, the output tensor must have complex dtype as well (Rule 6)
+# Output tensor must have at least the same precision as the input (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False)) if n else
-          If(Or(v["arg1_dtype"] == 9, v["arg1_dtype"] == 10), Or(v["arg2_dtype"] == 9, v["arg2_dtype"] == 10), False))
+    s.add(Not(v["arg2_dtype"] >= v["arg1_dtype"]) if n else
+          v["arg2_dtype"] >= v["arg1_dtype"])
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

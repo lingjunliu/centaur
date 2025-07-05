@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Negative indices should be validated against the tensor's shape. (Rule 22)
+# if dimension is out of bound, then index is 0 (Rule 22)
 
 rule_22 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg3_value"] < 0, v["arg3_value"] + Select(v["arg1_shape"], v["arg2_value"]) >= 0, False)) if n else
-          If(v["arg3_value"] < 0, v["arg3_value"] + Select(v["arg1_shape"], v["arg2_value"]) >= 0, False))
+    s.add(Not(If(Or(v["arg2_value"] < (0 - v["arg1_ndim"]), v["arg2_value"] >= v["arg1_ndim"]), v["arg3_value"] == 0, False)) if n else
+          If(Or(v["arg2_value"] < (0 - v["arg1_ndim"]), v["arg2_value"] >= v["arg1_ndim"]), v["arg3_value"] == 0, False))
 )
 
 def rule_22_func(arg1, arg2, arg3, solver=None, neg=False):
@@ -28,20 +28,19 @@ def rule_22_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
         arg2_value = Int('arg2_value')
         arg3_value = Int('arg3_value')
 
         # Value assignments
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 22
-        rule_22(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_22(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_22(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_22(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# alpha and beta should be non-negative (Rule 2)
+# alpha and beta should be between 0 and 1, inclusive (Rule 2)
 
 rule_2 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] >= 0, v["arg2_value"] >= 0)) if n else
-          And(v["arg1_value"] >= 0, v["arg2_value"] >= 0))
+    s.add(Not(And(And(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1), v["arg2_value"] >= 0), v["arg2_value"] <= 1)) if n else
+          And(And(And(v["arg1_value"] >= 0, v["arg1_value"] <= 1), v["arg2_value"] >= 0), v["arg2_value"] <= 1))
 )
 
 def rule_2_func(arg1, arg2, solver=None, neg=False):

@@ -1,60 +1,102 @@
 >>
-Rule 1 (dim should be a valid dimension of input tensor)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then true else -1 * ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) - 1
+Rule 2 (dim should be within the valid range)
+{v_1 : tensor, v_2 : int} |= -1 * ndim(v_1) <= v_2 ∧ v_2 <= ndim(v_1) -1
 >>
-Rule 2 (if input tensor is empty, it should have dimension)
-{v_1 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ndim(v_1) > 0
+Rule 3 (keepdim should be a boolean)
+{v_3 : bool} |= v_3 = true ∨ v_3 = false
 >>
-Rule 3 (keepdim must be a boolean)
-{v_1 : bool} |= v_1 = true ∨ v_1 = false
+Rule 4 (Input tensor should not be a boolean tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
 >>
-Rule 4 (if input tensor is empty, dim cannot be None, represented by -100)
-{v_1 : tensor, v_2 : int} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then v_2 ≠ -100
+Rule 6 (dim must be specified when input tensor is empty)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
 >>
-Rule 5 (if dim is None represented by -100, input should have more than 0 elements)
-{v_1 : tensor, v_2 : int} |= if v_2 = -100 then ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+Rule 10 (input tensor's dimension must be greater than 0 when dim is specified)
+{v_1 : tensor} |= ndim(v_1) > 0 ∨ (ndim(v_1) = 0 ∧ shape(v_1,0) = 1)
 >>
-Rule 6 (if dim is not None, it should be integer)
-{v_1 : int} |= v_1 ≥ -100
+Rule 11 (dim must be specified when input tensor is empty, expressed using ∃)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
 >>
-Rule 7 (if dim is not None, then input tensor must have dimension greater than 0)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -100 then ndim(v_1) > 0
+Rule 19 (Dimension should be within range)
+{v_1 : tensor, v_2 : int} |= v_2 >= (0 - ndim(v_1)) ∧ v_2 <= (ndim(v_1) -1)
 >>
-Rule 8 (dtype of input tensor should be among allowed dtypes)
-{v_1 : tensor} |= 0 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 20 (if input tensor is empty dim should not be none)
+{v_1 : tensor, v_2 : int ⊎ str} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 ≠ "none"
 >>
-Rule 9 (The dimension provided should be less than the number of dimensions in input tensor)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -100 then v_2 < ndim(v_1)
+Rule 21 (If input is empty, dim must be specified.)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 10 (The absolute value of dimension should be less or equal to number of dimensions)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -100 then if v_2 < 0 then 0 - v_2 ≤ ndim(v_1) else v_2 < ndim(v_1)
+Rule 22 (Dimension should be within range)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 ≤ (ndim(v_1) - 1)
 >>
-Rule 11 (keepdim should only be used when dim is not None represented by -100)
-{v_1 : int, v_2 : bool} |= if v_1 = -100 then v_2 = false
+Rule 23 (if input tensor is empty dim must be specified. In other words, if input tensor is empty, dim can not be None)
+{v_1 : tensor, v_2 : str} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 ≠ "none"
 >>
-Rule 12 (Number of elements in input tensor should be less than max integer)
-{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) < 2147483647
+Rule 27 (If input is empty, dim must be specified)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
 >>
-Rule 13 (dimension should be a valid integer or None represented by -100)
-{v_1 : int} |= v_1 = -100 ∨ v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9
+Rule 41 (Shape of input tensor must be defined)
+{v_1 : tensor} |= ndim(v_1) >=0
 >>
-Rule 14 (When dim is not None, the output tensor's dimension is one less than the input unless keepdim is specified)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_2 ≠ -100 then if v_3 = false then ndim(v_1) - 1 > 0 else ndim(v_1) > 0
+Rule 47 (either the tensor is not empty, or if tensor is empty then dim is not none)
+{v_1 : tensor, v_2 : str} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ((∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = 0) ∧ v_2 ≠ "none")
 >>
-Rule 15 (if input tensor is 0 dimension, dimension should be None)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 = -100
+Rule 48 (If input is empty, dim must not be none, using or condition)
+{v_1 : tensor, v_2 : str} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (v_2 ≠ "none")
 >>
-Rule 16 (If the input tensor has only one element, dimension is not required)
-{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1,i) > 1 then true
+Rule 50 (Check if dim is none when input tensor is empty)
+{v_1 : tensor, v_2 : str} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 ≠ "none"
 >>
-Rule 17 (The dimension provided should be within valid range i.e less than number of dimensions and greater than negative number of dimension)
-{v_1 : tensor, v_2 : int} |= if v_2 ≠ -100 then v_2 < ndim(v_1) ∧ v_2 ≥ (0 - ndim(v_1))
+Rule 53 (If dim is specified then dim must be an integer and must be in the valid range)
+{v_1 : tensor, v_2 : int ⊎ str} |= if v_2 ≠ "none" then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ (v_2 ≥ (0 - ndim(v_1)) ∧ v_2 ≤ (ndim(v_1) - 1))
 >>
-Rule 18 (The dimension should be a valid index of shape if keepdim is True)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_2 ≠ -100 ∧ v_3 = true then v_2 < ndim(v_1)
+Rule 63 (If dim is None, then the tensor should not be empty)
+{v_1 : tensor, v_2 : str} |= if v_2 = "none" then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
 >>
-Rule 19 (The dimension provided should be within range of allowable dtypes)
-{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10
+Rule 65 (if input tensor has elements)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
 >>
-Rule 20 (For floating point tensors, check for NaN values.)
-{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true
+Rule 69 (If dim is None, then the tensor should not be empty, another expression using !=)
+{v_1 : tensor, v_2 : str} |= if v_2 = "none" then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+>>
+Rule 71 (Dimension must be within the valid range [-ndim(v_1), ndim(v_1)))
+{v_1 : tensor, v_2 : int} |= v_2 >= (0-ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 73 (Dimension should be within range expressed with shape function)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 74 (if the specified dimension is not in valid range, it should be an error )
+{v_1 : tensor, v_2 : int} |= if v_2 < (0-ndim(v_1)) ∨ v_2 ≥ ndim(v_1) then false
+>>
+Rule 75 (If dim is None, then the tensor should not be empty, alternative expression)
+{v_1 : tensor, v_2 : str} |= (v_2 ≠ "none") ∨ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+>>
+Rule 77 (Prevent dimension out of range, specifically v2 can be between -(ndim(v1)+1) and ndim(v1))
+{v_1 : tensor, v_2 : int} |= v_2 > (0-ndim(v_1) -1 ) ∧ v_2 <= ndim(v_1)
+>>
+Rule 78 (If dim is None, then the tensor should not be empty, different expression using and)
+{v_1 : tensor, v_2 : str} |= (v_2 ≠ "none") ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+>>
+Rule 80 (Input tensor should be of certain type (int, float))
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 82 (Dimension should be within range specified from -ndim(v_1) until ndim(v_1) - 1 )
+{v_1 : tensor, v_2 : int} |= v_2 >= (0-ndim(v_1)) ∧ v_2 <= (ndim(v_1) - 1)
+>>
+Rule 86 (Input tensor number of dimension should be integer.)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 88 (Dimension should be within range expressed as single relational)
+{v_1 : tensor, v_2 : int} |= (0-ndim(v_1)) ≤ v_2 ∧ v_2 ≤ (ndim(v_1) - 1)
+>>
+Rule 89 (check tensor element data type (int or float), more constraints)
+{v_1: tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 92 (Tensor cannot have zero dimensions.)
+{v_1 : tensor} |= ndim(v_1) ≠ 0
+>>
+Rule 95 (Either tensor must not be empty, or if it is then dim is specified)
+{v_1 : tensor, v_2 : str} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0) ∨ (v_2 ≠ "none")
+>>
+Rule 98 (If tensor is of dimension 0 then it's problematic)
+{v_1 : tensor} |= ndim(v_1) > 0

@@ -8,8 +8,8 @@ from z3 import *
 # input and target tensors must have the same shape (Rule 1)
 
 rule_1 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), v["arg1_ndim"] == v["arg2_ndim"])) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), And(Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i), v["arg1_ndim"] == v["arg2_ndim"])) for i in range(6)]))
+    s.add(Not(And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)]))) if n else
+          And(v["arg1_ndim"] == v["arg2_ndim"], And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == Select(v["arg2_shape"], i)) for i in range(6)])))
 )
 
 def rule_1_func(arg1, arg2, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor has a floating point dtype, and the out tensor is specified, then the output dtype cannot be an integer (Rule 19)
+# If the output tensor's data type is short (2 (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8), v["arg2_dtype"] < 6, False)) if n else
-          If(And(v["arg1_dtype"] >= 6, v["arg1_dtype"] <= 8), v["arg2_dtype"] < 6, False))
+    s.add(Not(If(v["arg2_dtype"] == 2, (Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 5)), False)) if n else
+          If(v["arg2_dtype"] == 2, (Or(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 2), v["arg1_dtype"] == 5)), False))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

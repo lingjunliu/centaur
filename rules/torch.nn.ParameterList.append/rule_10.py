@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# value to append must be a tensor whose minimum is less than its maximum (Rule 10)
+# If tensor, min value must be less than max value (Rule 10)
 
 rule_10 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) < Select(v["arg1_range"], 1))
+    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1)) if n else
+          Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1))
 )
 
 def rule_10_func(arg1, solver=None, neg=False):

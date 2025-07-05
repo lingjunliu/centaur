@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if one of the input tensors is complex, the other must also be complex (Rule 3)
+# dividend and divisor should have the same dtype to avoid unexpected casting (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), False)) if n else
-          If(Or(v["arg1_dtype"] == 10, v["arg1_dtype"] == 11), Or(v["arg2_dtype"] == 10, v["arg2_dtype"] == 11), False))
+    s.add(Not(v["arg1_dtype"] == v["arg2_dtype"]) if n else
+          v["arg1_dtype"] == v["arg2_dtype"])
 )
 
 def rule_3_func(arg1, arg2, solver=None, neg=False):

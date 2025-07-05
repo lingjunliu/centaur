@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Minimum value of the tensor must be less than or equal to the maximum (Rule 4)
+# Check that the maximum value is not less than min value (Rule 4)
 
 rule_4 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1)) if n else
-          Select(v["arg1_range"], 0) <= Select(v["arg1_range"], 1))
+    s.add(Not(Select(v["arg1_range"], 1) >= Select(v["arg1_range"], 0)) if n else
+          Select(v["arg1_range"], 1) >= Select(v["arg1_range"], 0))
 )
 
 def rule_4_func(arg1, solver=None, neg=False):

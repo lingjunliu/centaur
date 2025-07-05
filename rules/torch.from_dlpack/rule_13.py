@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the input tensor is float16, then the minimum value must be greater than or equal to -65504 and the maximum value must be less than or equal to 65504 (Rule 13)
+# ext_tensor's ndim is 1 and its length is a prime number (Rule 13)
 
 rule_13 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) >= -65504, Select(v["arg1_range"], 1) <= 65504), False)) if n else
-          If(v["arg1_dtype"] == 6, And(Select(v["arg1_range"], 0) >= -65504, Select(v["arg1_range"], 1) <= 65504), False))
+    s.add(Not(And(v["arg1_ndim"] == 1, (And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Or([And(j < (Select(v["arg1_shape"], 0) - 1 + 1), i * j != Select(v["arg1_shape"], 0)) for j in range(6)])) for i in range(6)])))) if n else
+          And(v["arg1_ndim"] == 1, (And([Implies(i < (Select(v["arg1_shape"], 0) - 1 + 1), Or([And(j < (Select(v["arg1_shape"], 0) - 1 + 1), i * j != Select(v["arg1_shape"], 0)) for j in range(6)])) for i in range(6)]))))
 )
 
 def rule_13_func(arg1, solver=None, neg=False):
@@ -22,18 +22,18 @@ def rule_13_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_ndim = Int('arg1_ndim')
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_ndim == arg1.ndim)
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
 
         # Constraints for rule 13
-        rule_13(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_13(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_13(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_13(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)

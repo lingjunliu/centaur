@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# For tensor with ndim of 2, shape must not be (0,0 (Rule 11)
+# ensure tensor has reasonable shape size to avoid overflow (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_ndim"] == 2, Or((Select(v["arg1_shape"], 0) != 0), (Select(v["arg1_shape"], 1) != 0)), False)) if n else
-          If(v["arg1_ndim"] == 2, Or((Select(v["arg1_shape"], 0) != 0), (Select(v["arg1_shape"], 1) != 0)), False))
+    s.add(Not(And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 10000, Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 10000)) if n else
+          And(Select(v["arg1_shape"], v["arg1_ndim"] - 1) < 10000, Select(v["arg1_shape"], v["arg1_ndim"] - 2) < 10000))
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

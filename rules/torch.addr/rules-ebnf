@@ -1,3 +1,243 @@
 >>
-Rule 1 (input tensor's shape should match the outer product of vec1 and vec2)
-{input : tensor, vec1 : tensor, vec2 : tensor} |= ndim(vec1) = 1 ∧ ndim(vec2) = 1 ∧ shape(input, 0) = shape(vec1, 0) ∧ shape(input, 1) = shape(vec2, 0)
+Rule 1 (vec1 should be 1-dimensional)
+{vec1 : tensor} |= ndim(vec1) = 1
+>>
+Rule 2 (vec2 should be 1-dimensional)
+{vec2 : tensor} |= ndim(vec2) = 1
+>>
+Rule 3 (input should be at least 2-dimensional if beta is not 0)
+{input : tensor, beta : int ⊎ float} |= if beta ≠ 0 then ndim(input) ≥ 2
+>>
+Rule 8 (vec1 and vec2 must have the same dtype)
+{vec1 : tensor, vec2 : tensor} |= dtype_(vec1) = dtype_(vec2)
+>>
+Rule 9 (input and vec1 must have the same dtype)
+{input : tensor, vec1 : tensor} |= dtype_(input) = dtype_(vec1)
+>>
+Rule 10 (input and vec2 must have the same dtype)
+{input : tensor, vec2 : tensor} |= dtype_(input) = dtype_(vec2)
+>>
+Rule 14 (the first dimension of input should be equal to the size of vec1 if beta is not 0)
+{input : tensor, vec1 : tensor, beta : int ⊎ float} |= if beta ≠ 0 then shape(input,0) = shape(vec1,0)
+>>
+Rule 15 (the second dimension of input should be equal to the size of vec2 if beta is not 0)
+{input : tensor, vec2 : tensor, beta : int ⊎ float} |= if beta ≠ 0 then shape(input,1) = shape(vec2,0)
+>>
+Rule 21 (input's number of dimensions must be greater than or equal to the number of sizes provided)
+{input : tensor, v_1 : tuple(int)} |= ndim(input) ≤ v_1.len
+>>
+Rule 22 (shape of input should match the given size, when the number of dimensions is equal)
+{input : tensor, v_1 : tuple(int)} |= if ndim(input) = v_1.len then ∀i ∈ [0, v_1.len - 1] : shape(input, i) = v_1[i]
+>>
+Rule 23 (output must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 26 (if the resulting type is Long, input must be Long)
+{input : tensor, vec1 : tensor, vec2 : tensor} |= if dtype_(vec1) = 4 ∧ dtype_(vec2) = 4 then dtype_(input) = 4
+>>
+Rule 30 (shape of input should match the given size when the number of dimensions is equal - using tuple_access)
+{input : tensor, v_1 : tuple(int)} |= if ndim(input) = v_1.len then ∀i ∈ [0, v_1.len - 1] : shape(input,i) = v_1[i]
+>>
+Rule 32 (beta must be an integer if input has integer type using the type list index)
+{input : tensor, beta : int ⊎ float} |= if dtype_(input) < 6 then beta = (beta * 1.0)
+>>
+Rule 33 (alpha must be an integer if input has integer type using the type list index)
+{input : tensor, alpha : int ⊎ float} |= if dtype_(input) < 6 then alpha = (alpha * 1.0)
+>>
+Rule 35 (vec1 should have the same type as input, if the input type is not smaller than float16)
+{input : tensor, vec1 : tensor} |= if dtype_(input) > 6 then dtype_(input) = dtype_(vec1)
+>>
+Rule 36 (vec2 should have the same type as input, if the input type is not smaller than float16)
+{input : tensor, vec2 : tensor} |= if dtype_(input) > 6 then dtype_(input) = dtype_(vec2)
+>>
+Rule 37 (vec1 and vec2 length consistency)
+{vec1: tensor, vec2: tensor, input: tensor} |= shape(vec1, 0) = shape(input, 0) ∧ shape(vec2, 0) = shape(input, 1)
+>>
+Rule 38 (vec1 ndim and vec2 ndim must be 1)
+{vec1: tensor, vec2: tensor} |= ndim(vec1) = 1 ∧ ndim(vec2) = 1
+>>
+Rule 39 (beta must be an integer if input has integer type)
+{input : tensor, beta : int ⊎ float} |= if dtype_(input) < 6 then beta = 1
+>>
+Rule 40 (alpha must be an integer if input has integer type)
+{input : tensor, alpha : int ⊎ float} |= if dtype_(input) < 6 then alpha = 1
+>>
+Rule 43 (vec1 length consistency)
+{vec1: tensor, input: tensor} |= shape(vec1, 0) = shape(input, 0)
+>>
+Rule 44 (vec2 length consistency)
+{vec2: tensor, input: tensor} |= shape(vec2, 0) = shape(input, 1)
+>>
+Rule 46 (input ndim must be 2 or less, if beta is not 0.)
+{input: tensor, beta: int ⊎ float} |= if beta ≠ 0 then ndim(input) ≤ 2
+>>
+Rule 47 (input ndim must be 2 or less, if alpha is not 0.)
+{input: tensor, alpha: int ⊎ float} |= if alpha ≠ 0 then ndim(input) ≤ 2
+>>
+Rule 48 (beta must be an integer if input has integer type and beta is not 1)
+{input : tensor, beta : int ⊎ float} |= if dtype_(input) < 6 ∧ beta ≠ 1 then beta = (beta * 1.0)
+>>
+Rule 49 (alpha must be an integer if input has integer type and alpha is not 1)
+{input : tensor, alpha : int ⊎ float} |= if dtype_(input) < 6 ∧ alpha ≠ 1 then alpha = (alpha * 1.0)
+>>
+Rule 50 (shape consistency for vec1 and input)
+{input: tensor, vec1: tensor} |= shape(vec1, 0) = shape(input, 0)
+>>
+Rule 51 (shape consistency for vec2 and input)
+{input: tensor, vec2: tensor} |= shape(vec2, 0) = shape(input, 1)
+>>
+Rule 52 (input's number of dimensions is less than or equal to 2)
+{input: tensor} |= ndim(input) ≤ 2
+>>
+Rule 53 (The expanded size must match the existing size)
+{input: tensor, vec1: tensor, vec2: tensor} |= shape(vec1, 0) = shape(input, 0) ∧ shape(vec2, 0) = shape(input, 1)
+>>
+Rule 54 (vec1 and vec2 must have same dtype as input)
+{input: tensor, vec1: tensor, vec2: tensor} |= dtype_(input) = dtype_(vec1) ∧ dtype_(input) = dtype_(vec2)
+>>
+Rule 63 (beta and alpha can not be strings)
+{beta: str, alpha: str} |= beta ≠ "none" ∧ alpha ≠ "none"
+>>
+Rule 64 (Check vec1 is one dimensional)
+{vec1: tensor} |= ndim(vec1) = 1
+>>
+Rule 65 (Check vec2 is one dimensional)
+{vec2: tensor} |= ndim(vec2) = 1
+>>
+Rule 66 (Check input is two dimensional)
+{input: tensor} |= ndim(input) = 2
+>>
+Rule 67 (beta must be an int if input dtype is int.)
+{input: tensor, beta: int ⊎ float} |= if dtype_(input) < 6 then beta = (beta * 1.0)
+>>
+Rule 68 (alpha must be an int if input dtype is int.)
+{input: tensor, alpha: int ⊎ float} |= if dtype_(input) < 6 then alpha = (alpha * 1.0)
+>>
+Rule 72 (out must be a tensor.)
+{out: tensor} |= ndim(out) ≥ 0
+>>
+Rule 73 (Check same dtype for input out)
+{input: tensor, out: tensor} |= dtype_(input) = dtype_(out)
+>>
+Rule 74 (beta must be an int if input dtype is int and it is not equal to 1)
+{input: tensor, beta: int ⊎ float} |= if dtype_(input) < 6 ∧ beta ≠ 1 then beta = (beta * 1.0)
+>>
+Rule 75 (alpha must be an int if input dtype is int and it is not equal to 1)
+{input: tensor, alpha: int ⊎ float} |= if dtype_(input) < 6 ∧ alpha ≠ 1 then alpha = (alpha * 1.0)
+>>
+Rule 76 (vec1 length consistency and must have the same dtype with input)
+{input: tensor, vec1: tensor} |= shape(vec1, 0) = shape(input, 0) ∧ dtype_(input) = dtype_(vec1)
+>>
+Rule 77 (vec2 length consistency and must have the same dtype with input)
+{input: tensor, vec2: tensor} |= shape(vec2, 0) = shape(input, 1) ∧ dtype_(input) = dtype_(vec2)
+>>
+Rule 79 (vec1 and vec2 ndim must be 1 and input ndim must be 2)
+{vec1: tensor, vec2: tensor, input: tensor} |= ndim(vec1) = 1 ∧ ndim(vec2) = 1 ∧ ndim(input) = 2
+>>
+Rule 80 (Expand Error: number of sizes must be >= ndim of tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= v_2.len ≥ ndim(v_1)
+>>
+Rule 86 (If the result dtype is Long then the input and vectors dtype must be long)
+{input: tensor, vec1: tensor, vec2: tensor} |= if 4 = 4 then dtype_(input) = 4 ∧ dtype_(vec1) = 4 ∧ dtype_(vec2) = 4
+>>
+Rule 87 (if out is not none then input, vec1, vec2 and out must be the same type)
+{input: tensor, vec1: tensor, vec2: tensor, out: tensor} |= dtype_(input) = dtype_(vec1) ∧ dtype_(input) = dtype_(vec2) ∧ dtype_(input) = dtype_(out)
+>>
+Rule 93 (If the number of dimensions provided does not match the number of dimensions of the tensor)
+{v_1 : tensor, v_2 : tuple(int)} |= if ndim(v_1) ≠ v_2.len then true else ∀i ∈ [0, v_1.len -1] : shape(v_1, i) = v_2[i]
+>>
+Rule 99 (The expanded size must match the existing size at non-singleton dimension)
+{input: tensor, vec1: tensor, vec2: tensor} |= if shape(input,0) ≠ 0 ∧ shape(input, 1) ≠ 0 then shape(vec1, 0) = shape(input, 0) ∧ shape(vec2, 0) = shape(input, 1)
+>>
+Rule 100 (beta must be an integer if input dtype is int)
+{input: tensor, beta: int ⊎ float} |= if dtype_(input) < 6 then beta = 1
+>>
+Rule 101 (alpha must be an integer if input dtype is int)
+{input: tensor, alpha: int ⊎ float} |= if dtype_(input) < 6 then alpha = 1
+>>
+Rule 103 (Check if the number of dimension provided for expand is valid )
+{v_1: tensor, v_2: tuple(int)} |= v_2.len ≥ ndim(v_1)
+>>
+Rule 104 (check that the tensor is not empty)
+{input: tensor} |= shape(input, 0) > 0 ∧ shape(input, 1) > 0
+>>
+Rule 105 (If dtype of the vectors are Long (4) then the input type must be Long(4))
+{input: tensor, vec1: tensor, vec2: tensor} |= if dtype_(vec1) = 4 ∧ dtype_(vec2) = 4 then dtype_(input) = 4
+>>
+Rule 109 (Check that the tensor is not empty or only contain non-negative numbers)
+{input: tensor} |= (∃i ∈ [0, ndim(input) - 1] : shape(input, i) = 0) ∨ min(input) ≥ 0
+>>
+Rule 111 (Dimensions of input and vectors must be valid to perform the add operation)
+{input: tensor, vec1: tensor, vec2: tensor} |= shape(vec1, 0) = shape(input, 0) ∧ shape(vec2, 0) = shape(input, 1) ∧ ndim(vec1) = 1 ∧ ndim(vec2) = 1 ∧ ndim(input) = 2
+>>
+Rule 112 (beta must be an integer if input dtype is int and beta is not zero)
+{input: tensor, beta: int ⊎ float} |= if dtype_(input) < 6 ∧ beta ≠ 0 then beta = 1
+>>
+Rule 113 (alpha must be an integer if input dtype is int and alpha is not zero)
+{input: tensor, alpha: int ⊎ float} |= if dtype_(input) < 6 ∧ alpha ≠ 0 then alpha = 1
+>>
+Rule 116 (Check vec1 is one dimensional and consistent shape with Input)
+{input: tensor, vec1: tensor} |= ndim(vec1) = 1 ∧ shape(vec1, 0) = shape(input, 0)
+>>
+Rule 117 (Check vec2 is one dimensional and consistent shape with Input)
+{input: tensor, vec2: tensor} |= ndim(vec2) = 1 ∧ shape(vec2, 0) = shape(input, 1)
+>>
+Rule 118 (Check the out dtype is not float, preventing TypeError: addr(): argument 'out' must be Tensor, not float)
+{out: tensor} |= dtype_(out) ≠ 8
+>>
+Rule 119 (beta must be an integer if input dtype is int and not equal 1)
+{input: tensor, beta: int ⊎ float} |= if dtype_(input) < 6 ∧ beta ≠ 1 then beta = 1
+>>
+Rule 120 (alpha must be an integer if input dtype is int and not equal 1)
+{input: tensor, alpha: int ⊎ float} |= if dtype_(input) < 6 ∧ alpha ≠ 1 then alpha = 1
+>>
+Rule 126 (beta must be an integer if input dtype is int and beta is not 1 or 0.)
+{input: tensor, beta: int ⊎ float} |= if dtype_(input) < 6 ∧ beta ≠ 1 ∧ beta ≠ 0 then beta = 1
+>>
+Rule 127 (alpha must be an integer if input dtype is int and alpha is not 1 or 0.)
+{input: tensor, alpha: int ⊎ float} |= if dtype_(input) < 6 ∧ alpha ≠ 1 ∧ alpha ≠ 0 then alpha = 1
+>>
+Rule 131 (To prevent RuntimeError: result type Float can't be cast to the desired output type Long, if dtype is not Long then input type should be float)
+{input: tensor, vec1: tensor, vec2: tensor} |= if dtype_(vec1) ≠ 4 ∧ dtype_(vec2) ≠ 4 then dtype_(input) > 6
+>>
+Rule 134 (If dtype of the vectors are Long (4) then the input type must be Long(4) or the input type should be a floating point)
+{input: tensor, vec1: tensor, vec2: tensor} |= if dtype_(vec1) = 4 ∧ dtype_(vec2) = 4 then dtype_(input) = 4 else dtype_(input) > 6
+>>
+Rule 135 (Check vec1 is one dimensional and consistent shape with Input. Check vec2 is one dimensional and consistent shape with Input)
+{input: tensor, vec1: tensor, vec2: tensor} |= ndim(vec1) = 1 ∧ shape(vec1, 0) = shape(input, 0) ∧ ndim(vec2) = 1 ∧ shape(vec2, 0) = shape(input, 1)
+>>
+Rule 142 (Dimensions of vec1 must be 1, dimensions of vec2 must be 1, and dimension of the input must be 2)
+{vec1: tensor, vec2: tensor, input:tensor} |= ndim(vec1) = 1 ∧ ndim(vec2) = 1 ∧ ndim(input) = 2
+>>
+Rule 146 (Check that the output has at least one dimension to avoid TypeErrors)
+{out: tensor} |= ndim(out) > 0
+>>
+Rule 149 (Dimensions and Shape must be consistent for matrix add operation)
+{vec1: tensor, vec2: tensor, input:tensor} |= ndim(vec1) = 1 ∧ ndim(vec2) = 1 ∧ ndim(input) = 2 ∧ shape(vec1, 0) = shape(input, 0) ∧ shape(vec2, 0) = shape(input, 1)
+>>
+Rule 151 (To prevent RuntimeError: result type Float can't be cast to the desired output type Long, the dtype must be consistent.)
+{input: tensor, vec1: tensor, vec2: tensor, out: tensor} |= if (dtype_(vec1) = 4 ∧ dtype_(vec2) = 4) then (dtype_(input) = 4 ∧ dtype_(out) = 4) else (dtype_(input) > 6 ∧ dtype_(out) > 6)
+>>
+Rule 153 (If beta is zero, input can have an empty size)
+{input : tensor, beta : int ⊎ float} |= if beta = 0 then ∃i ∈ [0, ndim(input) -1] : shape(input, i) = 0 else True
+>>
+Rule 154 (To guarantee that when dtype of the vectors are Long (4) then the input type must be Long(4) or a floating point number)
+{input: tensor, vec1: tensor, vec2: tensor} |= if (dtype_(vec1) = 4 ∧ dtype_(vec2) = 4) then (dtype_(input) = 4) else dtype_(input) > 6
+>>
+Rule 160 (The 'out' tensor, if present, must be a tensor)
+{out: tensor} |= ndim(out) >= 0
+>>
+Rule 166 (Check that vec1 is 1-dimensional, and vec2 is 1-dimensional and input is 2-dimensional and shape is consistent)
+{input: tensor, vec1: tensor, vec2: tensor} |= ndim(vec1) = 1 ∧ ndim(vec2) = 1 ∧ ndim(input) = 2 ∧ shape(vec1, 0) = shape(input, 0) ∧ shape(vec2, 0) = shape(input, 1)
+>>
+Rule 167 (If the argument out is a tensor, the datatype needs to be a valid one)
+{out: tensor} |= dtype_(out) >= 0 ∧ dtype_(out) < 13
+>>
+Rule 174 (Check that dtype of input, vec1 and vec2 match to prevent resulting type failure.)
+{input: tensor, vec1: tensor, vec2: tensor, out: tensor} |= if dtype_(out) = 4 then (dtype_(input) = 4 ∧ dtype_(vec1) = 4 ∧ dtype_(vec2) = 4) else (dtype_(input) > 6 ∧ dtype_(vec1) > 6 ∧ dtype_(vec2) > 6)
+>>
+Rule 178 (Check that alpha is not a string)
+{alpha: str} |= alpha ≠ "none"
+>>
+Rule 179 (Check that beta is not a string)
+{beta: str} |= beta ≠ "none"

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If window_length is negative, the result is an error (Rule 12)
+# If dtype is not None then it must be a floating-point or complex type (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] < 0, False, False)) if n else
-          If(v["arg1_value"] < 0, False, False))
+    s.add(Not(And((v["arg1_value"] != -1), Or((Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10)), (v["arg1_value"] == -1)))) if n else
+          And((v["arg1_value"] != -1), Or((Or(Or(Or(Or(v["arg1_value"] == 6, v["arg1_value"] == 7), v["arg1_value"] == 8), v["arg1_value"] == 9), v["arg1_value"] == 10)), (v["arg1_value"] == -1))))
 )
 
 def rule_12_func(arg1, solver=None, neg=False):
@@ -17,7 +17,7 @@ def rule_12_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
+        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
             return False
 
         # Variable declarations
@@ -25,7 +25,7 @@ def rule_12_func(arg1, solver=None, neg=False):
         arg1_value = Int('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == int(arg1))
+        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
 
         # Constraints for rule 12
         rule_12(solver, {'arg1_value': arg1_value})

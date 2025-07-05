@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if the input is a bool tensor, then throw error since log would not work (Rule 16)
+# input tensor should be of floating type or complex type (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 0, False, False)) if n else
-          If(v["arg1_dtype"] == 0, False, False))
+    s.add(Not(If(v["arg1_dtype"] >= 6, True, If(v["arg1_dtype"] >= 9, True, False))) if n else
+          If(v["arg1_dtype"] >= 6, True, If(v["arg1_dtype"] >= 9, True, False)))
 )
 
 def rule_16_func(arg1, solver=None, neg=False):

@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# dropout probability should be of float type or it will raise an error during computation (Rule 12)
+# Input tensor must be of floating-point type when dropout probability is greater than 0 and less than 1 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg2_value"] == v["arg2_value"], False)) if n else
-          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), v["arg2_value"] == v["arg2_value"], False))
+    s.add(Not(If(And(v["arg2_value"] > 0, v["arg2_value"] < 1), (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), False)) if n else
+          If(And(v["arg2_value"] > 0, v["arg2_value"] < 1), (Or(Or(v["arg1_dtype"] == 6, v["arg1_dtype"] == 7), v["arg1_dtype"] == 8)), False))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):
@@ -20,15 +20,17 @@ def rule_12_func(arg1, arg2, solver=None, neg=False):
     if not solver:
         if not isinstance(arg1, np.ndarray):
             return False
-        if not ((isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)) or isinstance(arg2, (float, np.floating))):
+        if not isinstance(arg2, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
         arg1_dtype = Int('arg1_dtype')
+        arg2_value = Real('arg2_value')
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 12
         rule_12(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})

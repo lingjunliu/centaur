@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If size has values, then element in size should not be zero when stride has the same length. (Rule 12)
+# The length of size and stride should be the same if size.len > 0 and stride.len > 0 (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(And(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"]), And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != 0) for i in range(6)]), False)) if n else
-          If(And(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"]), And([Implies(i < (v["arg1_length"] - 1 + 1), Select(v["arg1_values"], i) != 0) for i in range(6)]), False))
+    s.add(Not(If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], False)) if n else
+          If(And(v["arg1_length"] > 0, v["arg2_length"] > 0), v["arg1_length"] == v["arg2_length"], False))
 )
 
 def rule_12_func(arg1, arg2, solver=None, neg=False):
@@ -26,19 +26,16 @@ def rule_12_func(arg1, arg2, solver=None, neg=False):
         # Variable declarations
         solver = Solver()
         arg1_length = Int('arg1_length')
-        arg1_values = Array('arg1_values', IntSort(), IntSort())
         arg2_length = Int('arg2_length')
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
-        for i in range(len(arg1)):
-            arg1_values = Store(arg1_values, i, arg1[i])
         solver.add(arg2_length == len(arg2))
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_length': arg1_length, 'arg1_values': arg1_values, 'arg2_length': arg2_length})
+        rule_12(solver, {'arg1_length': arg1_length, 'arg2_length': arg2_length})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_length': arg1['length'], 'arg1_values': arg1['values'], 'arg2_length': arg2['length']}, neg)
+        rule_12(solver, {'arg1_length': arg1['length'], 'arg2_length': arg2['length']}, neg)

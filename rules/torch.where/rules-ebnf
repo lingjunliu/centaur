@@ -1,54 +1,72 @@
 >>
-Rule 1 (condition should be a boolean tensor)
+Rule 1 (condition must be a boolean tensor)
+{condition : tensor} |= dtype_(condition) = 0
+>>
+Rule 2 (input and other tensors must have the same shape if condition is a tensor)
+{condition : tensor, input : tensor, other : tensor} |= if ndim(condition) > 0 then shape(input) = shape(other)
+>>
+Rule 5 (condition must have the same size as input and other along non-singleton dimensions, addressing the RuntimeError)
+{condition : tensor, input : tensor, other : tensor} |= ∀ i ∈ [0, ndim(condition) -1] : (shape(condition, i) = shape(input, i)) ∨ (shape(condition, i) = 1) ∧ (shape(other, i) = shape(input, i)) ∨ (shape(other, i) = 1)
+>>
+Rule 6 (condition must be a boolean tensor)
 {v_1 : tensor} |= dtype_(v_1) = 0
 >>
-Rule 2 (condition, input and other tensors should have compatible shapes)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∧ (shape(v_2, i) = shape(v_3, i))
+Rule 7 (input and other tensors must have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 8 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
 >>
-Rule 3 (If input is scalar, other must be scalar or same dtype as condition)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then (ndim(v_3) = 0 ∨ dtype_(v_3) = dtype_(v_1))
+Rule 8 (out tensor must have a compatible dtype with input and other)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 7 then dtype_(v_1) = 7 ∧ dtype_(v_2) = 7
 >>
-Rule 4 (If other is scalar, input must be scalar or same dtype as condition)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_3) = 0 then (ndim(v_2) = 0 ∨ dtype_(v_2) = dtype_(v_1))
+Rule 9 (condition's shape should be broadcastable to the shape of input)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, ndim(v_1) - ndim(v_2) + i) = shape(v_2, i)) ∨ (shape(v_2, i) = 1) else  ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_2, ndim(v_2) - ndim(v_1) + i) = shape(v_1, i)) ∨ (shape(v_1, i) = 1)
 >>
-Rule 5 (input and other tensors should have same dtype)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+Rule 11 (input and other tensors must have the same shape if condition is not a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 then shape(v_2) = shape(v_3)
 >>
-Rule 6 (if condition, input and other are tensors, then their dtypes should be the same)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then dtype_(v_2) = dtype_(v_3)
+Rule 13 (The size of condition must match the size of input along the dimension when input's dimension is greater than 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then  ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1)
 >>
-Rule 7 (if condition, input and other are tensors, and they all have the same number of dimensions, then their shapes should be same)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 ∧ ndim(v_1) = ndim(v_2) ∧ ndim(v_2) = ndim(v_3) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_2, i) = shape(v_3, i)
+Rule 15 (input and other tensors must have the same shape if condition is not a scalar and their dimensions are not 0)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ndim(v_3) > 0 then shape(v_2) = shape(v_3)
 >>
-Rule 8 (If input and other are scalars, their types should be the same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then dtype_(v_1) = dtype_(v_2)
+Rule 17 (The size of condition must match the size of input along the dimension when input's dimension is greater than 0, or the condition is a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then  ∀i ∈ [0, ndim(v_2) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) else ndim(v_1) = 0
 >>
-Rule 9 (If input tensor is provided and condition is scalar, the condition must be True)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) = 0 then v_2 = true
+Rule 21 (If out is specified, its dtype must match input's dtype)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then dtype_(v_1) = dtype_(v_2)
 >>
-Rule 10 (if other tensor is provided and condition is scalar, the condition must be True)
-{v_1 : tensor, v_3 : tensor} |= if ndim(v_3) > 0 ∧ ndim(v_1) = 0 then v_1 = true
+Rule 23 (If input and other are tensors, their shape must be broadcastable)
+{input : tensor, other : tensor} |= ∀i ∈ [0, if ndim(input) ≥ ndim(other) then ndim(input) else ndim(other) - 1] : (i ≥ ndim(input) ∨ i ≥ ndim(other) ∨ shape(input, ndim(input) - 1 - i) = shape(other, ndim(other) - 1 - i) ∨ shape(input, ndim(input) - 1 - i) = 1 ∨ shape(other, ndim(other) - 1 - i) = 1)
 >>
-Rule 11 (If one of input or other is scalar, and the other one is tensor then the scalar should have compatible dtype.)
-{v_1 : tensor, v_2 : tensor, v_3: tensor} |= if ndim(v_2) = 0 then (if 1 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 5 then 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 else if 6 ≤ dtype_(v_3) ∧ dtype_(v_3) ≤ 8 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8) else if ndim(v_3) = 0 then (if 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5 then 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 else if 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8 then 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8)
+Rule 24 (If out is specified, its dtype must be the same as input and other)
+{out : tensor, input : tensor} |= dtype_(out) = dtype_(input)
 >>
-Rule 12 (Input and other tensors should have same dtype)
-{v_2 : tensor, v_3 : tensor} |= dtype_(v_2) = dtype_(v_3)
+Rule 25 (If condition, input and other are tensors, their shape must be broadcastable)
+{condition : tensor, input : tensor, other: tensor} |= ∀i ∈ [0, if ndim(condition) ≥ ndim(input) then ndim(condition) else ndim(input) - 1] : (i >= ndim(condition) ∨ i >= ndim(input) ∨ shape(condition, ndim(condition)-1-i) = shape(input, ndim(input) - 1 - i) ∨ shape(condition, ndim(condition)-1-i) = 1 ∨ shape(input, ndim(input) - 1 - i) = 1) ∧ ∀i ∈ [0, if ndim(condition) ≥ ndim(other) then ndim(condition) else ndim(other) - 1] : (i >= ndim(condition) ∨ i >= ndim(other) ∨ shape(condition, ndim(condition)-1-i) = shape(other, ndim(other) - 1 - i) ∨ shape(condition, ndim(condition)-1-i) = 1 ∨ shape(other, ndim(other) - 1 - i) = 1)
 >>
-Rule 13 (if the dimensions of input and other are not the same, then both should be a scalar, otherwise false)
-{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) ≠ ndim(v_3) then ndim(v_2) = 0 ∧ ndim(v_3) = 0
+Rule 30 (If input and other are tensors, their shape must be broadcastable given the condition's shape)
+{condition : tensor, input : tensor, other : tensor} |=  ∀i ∈ [0, if ndim(condition) ≥ ndim(input) then ndim(condition) else ndim(input) - 1] : (i >= ndim(condition) ∨ i >= ndim(input) ∨ shape(condition, ndim(condition)-1-i) = shape(input, ndim(input) - 1 - i) ∨ shape(condition, ndim(condition)-1-i) = 1 ∨ shape(input, ndim(input) - 1 - i) = 1) ∧ ∀i ∈ [0, if ndim(condition) ≥ ndim(other) then ndim(condition) else ndim(other) - 1] : (i >= ndim(condition) ∨ i >= ndim(other) ∨ shape(condition, ndim(condition)-1-i) = shape(other, ndim(other) - 1 - i) ∨ shape(condition, ndim(condition)-1-i) = 1 ∨ shape(other, ndim(other) - 1 - i) = 1) ∧ ∀i ∈ [0, if ndim(input) ≥ ndim(other) then ndim(input) else ndim(other) - 1] : (i >= ndim(input) ∨ i >= ndim(other) ∨ shape(input, ndim(input)-1-i) = shape(other, ndim(other) - 1 - i) ∨ shape(input, ndim(input)-1-i) = 1 ∨ shape(other, ndim(other) - 1 - i) = 1)
 >>
-Rule 14 (If condition is not a boolean tensor, the program output is a tuple of LongTensor)
-{v_1 : tensor} |= if dtype_(v_1) ≠ 0 then true else false
+Rule 36 (If out is provided and input is float32, then out must be float32)
+{out: tensor, input: tensor} |= if dtype_(input) = 7 then dtype_(out) = 7
 >>
-Rule 15 (if the input tensor and other tensor have the same number of dimensions and shapes, then dtype should also be same)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) then dtype_(v_1) = dtype_(v_2)
+Rule 37 (If input and other are tensors, their shape must be broadcastable given the condition's shape, with simplified condition)
+{condition : tensor, input : tensor, other : tensor} |= ∀i ∈ [0, if ndim(condition) ≥ ndim(input) ∨ ndim(condition) ≥ ndim(other) then ndim(condition) else if ndim(input) >= ndim(other) then ndim(input) else ndim(other) - 1] : (i >= ndim(condition) ∨ i >= ndim(input) ∨ i >= ndim(other) ∨ shape(condition, ndim(condition)-1-i) = shape(input, ndim(input) - 1 - i) ∨ shape(condition, ndim(condition)-1-i) = shape(other, ndim(other) - 1 - i) ∨ shape(input, ndim(input)-1-i) = shape(other, ndim(other) - 1 - i) ∨ shape(condition, ndim(condition)-1-i) = 1 ∨ shape(input, ndim(input)-1-i) = 1 ∨ shape(other, ndim(other) - 1 - i) = 1)
 >>
-Rule 16 (If only one of input or other is scalar, then that scalar and condition should have the same dtype)
-{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 ∧ ndim(v_3) > 0 then dtype_(v_1) = dtype_(v_2) else if ndim(v_2) > 0 ∧ ndim(v_3) = 0 then dtype_(v_1) = dtype_(v_3)
+Rule 40 (If out is provided, its dtype must be compatible with input and other such that the result is compatible too)
+{out: tensor, input: tensor, other: tensor} |= if dtype_(input) = 7 ∧ dtype_(other) = 7 then dtype_(out) = 7 ∨ dtype_(out) = 8
 >>
-Rule 17 (If one of input or other is complex, then both should be complex)
-{v_1 : tensor, v_2 : tensor} |= if 9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10 then 9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10 else if 9 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10 then 9 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
+Rule 60 (If input and other are the same type, then out must also have that type)
+{input : tensor, other : tensor, out : tensor} |= dtype_(input) = dtype_(other) ∧ dtype_(input) = dtype_(out)
 >>
-Rule 18 (If one of input or other is boolean, then both should be boolean)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0 else if dtype_(v_2) = 0 then dtype_(v_1) = 0
+Rule 68 (If input or other is float64, then out should be float64 as well. Enforce type promotion)
+{input: tensor, other: tensor, out: tensor} |= if dtype_(input) = 8 ∨ dtype_(other) = 8 then dtype_(out) = 8
+>>
+Rule 72 (The size of the input and the other must match.)
+{input : tensor, other : tensor} |= shape(input) = shape(other)
+>>
+Rule 80 (If the condition, input, other are of tensor type then dtype of input and other tensor must match)
+{input : tensor, other : tensor} |= dtype_(input) = dtype_(other)
+>>
+Rule 101 (if other and input is specified, they must be broadcastable)
+{input : tensor, other : tensor} |= ∀i ∈ [0, if ndim(input) ≥ ndim(other) then ndim(input) else if ndim(input) < ndim(other) then ndim(other) else 0] : i ≥ ndim(input) ∨ i ≥ ndim(other) ∨ shape(input, ndim(input)-1-i) = 1 ∨ shape(other, ndim(other)-1-i) = 1 ∨ shape(input, ndim(input)-1-i) = shape(other, ndim(other)-1-i)

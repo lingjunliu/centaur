@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If tensor is a float, its min value must be smaller than 1.7e+38 (Rule 24)
+# String input must be a valid choice (Rule 24)
 
 rule_24 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) < 1.7e+38, False)) if n else
-          If(v["arg1_dtype"] == 7, Select(v["arg1_range"], 0) < 1.7e+38, False))
+    s.add(Not(v["arg1_value"] == 6) if n else
+          v["arg1_value"] == 6)
 )
 
 def rule_24_func(arg1, solver=None, neg=False):
@@ -17,23 +17,20 @@ def rule_24_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, str):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_dtype = Int('arg1_dtype')
-        arg1_range = Array('arg1_range', IntSort(), IntSort())
+        arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
-        arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
+        solver.add(arg1_value == list_of_string_values.index(arg1))
 
         # Constraints for rule 24
-        rule_24(solver, {'arg1_dtype': arg1_dtype, 'arg1_range': arg1_range})
+        rule_24(solver, {'arg1_value': arg1_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_24(solver, {'arg1_dtype': arg1['dtype'], 'arg1_range': arg1['range']}, neg)
+        rule_24(solver, {'arg1_value': arg1['value']}, neg)

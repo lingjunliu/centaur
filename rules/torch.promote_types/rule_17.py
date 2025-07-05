@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the type promotion is between a signed and unsigned integer and the signed integer is smaller than the unsigned integer, promote to a larger signed integer (Rule 17)
+# If type2 is int8 and type1 is complex, it is not allowed (Rule 17)
 
 rule_17 = lambda s, v, n=False: (
-    s.add(Not(If(And((Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4)), v["arg2_value"] == 5), v["arg1_value"] > v["arg2_value"], If(And((Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4)), v["arg1_value"] == 5), v["arg2_value"] > v["arg1_value"], False))) if n else
-          If(And((Or(Or(Or(v["arg1_value"] == 1, v["arg1_value"] == 2), v["arg1_value"] == 3), v["arg1_value"] == 4)), v["arg2_value"] == 5), v["arg1_value"] > v["arg2_value"], If(And((Or(Or(Or(v["arg2_value"] == 1, v["arg2_value"] == 2), v["arg2_value"] == 3), v["arg2_value"] == 4)), v["arg1_value"] == 5), v["arg2_value"] > v["arg1_value"], False)))
+    s.add(Not(If(v["arg2_value"] == 1, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False)) if n else
+          If(v["arg2_value"] == 1, And(v["arg1_value"] != 9, v["arg1_value"] != 10), False))
 )
 
 def rule_17_func(arg1, arg2, solver=None, neg=False):

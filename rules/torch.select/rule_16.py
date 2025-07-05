@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If dim is equal to or greater than the number of dimensions, then the input tensor should be empty along some dimension (Rule 16)
+# if dimension is out of range (positive (Rule 16)
 
 rule_16 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg2_value"] >= v["arg1_ndim"], (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])), False)) if n else
-          If(v["arg2_value"] >= v["arg1_ndim"], (Or([And(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) == 0) for i in range(6)])), False))
+    s.add(Not(If(v["arg2_value"] >= v["arg1_ndim"], Select(v["arg1_shape"], 0) > 0, False)) if n else
+          If(v["arg2_value"] >= v["arg1_ndim"], Select(v["arg1_shape"], 0) > 0, False))
 )
 
 def rule_16_func(arg1, arg2, solver=None, neg=False):

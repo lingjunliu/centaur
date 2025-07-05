@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.is_autocast_cpu_enabled API has no parameters, define a constraint that combines a string and a tensor. (Rule 18)
+# torch.is_autocast_cpu_enabled returns a boolean. If there exists an element that is true in a list of bools, then the result is a bool (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(Or(v["arg1_ndim"] > 0, v["arg2_value"] == 6)) if n else
-          Or(v["arg1_ndim"] > 0, v["arg2_value"] == 6))
+    s.add(Not(If(Or([And(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) == True) for i in range(6)]), Or(v["arg1_value"] == True, v["arg1_value"] == False), Or(v["arg1_value"] == True, v["arg1_value"] == False))) if n else
+          If(Or([And(i < (v["arg2_length"] - 1 + 1), Select(v["arg2_values"], i) == True) for i in range(6)]), Or(v["arg1_value"] == True, v["arg1_value"] == False), Or(v["arg1_value"] == True, v["arg1_value"] == False)))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):
@@ -18,24 +18,27 @@ def rule_18_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, np.ndarray):
+        if not isinstance(arg1, bool):
             return False
-        if not isinstance(arg2, str):
+        if not (isinstance(arg2, list) and all(isinstance(e, bool) for e in arg2)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg2_value = String('arg2_value')
+        arg1_value = Bool('arg1_value')
+        arg2_length = Int('arg2_length')
+        arg2_values = Array('arg2_values', IntSort(), BoolSort())
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg1_value == arg1)
+        solver.add(arg2_length == len(arg2))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
 
         # Constraints for rule 18
-        rule_18(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})
+        rule_18(solver, {'arg1_value': arg1_value, 'arg2_length': arg2_length, 'arg2_values': arg2_values})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_18(solver, {'arg1_ndim': arg1['ndim'], 'arg2_value': arg2['value']}, neg)
+        rule_18(solver, {'arg1_value': arg1['value'], 'arg2_length': arg2['length'], 'arg2_values': arg2['values']}, neg)

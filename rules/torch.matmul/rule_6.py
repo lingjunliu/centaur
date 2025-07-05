@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the first tensor is 1D and second at least 1D, last dim of output equals last dim of second tensor (Rule 6)
+# check size alignment when both tensors are 2D (Rule 6)
 
 rule_6 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] >= 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], v["arg2_ndim"] - 1), False)) if n else
-          If(And(v["arg1_ndim"] == 1, v["arg2_ndim"] >= 1), Select(v["arg1_shape"], 0) == Select(v["arg2_shape"], v["arg2_ndim"] - 1), False))
+    s.add(Not(If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0), False)) if n else
+          If(And(v["arg1_ndim"] == 2, v["arg2_ndim"] == 2), Select(v["arg1_shape"], 1) == Select(v["arg2_shape"], 0), False))
 )
 
 def rule_6_func(arg1, arg2, solver=None, neg=False):

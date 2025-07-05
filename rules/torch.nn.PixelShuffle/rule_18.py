@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Upscale factor must not make the total number of channels excessively small (Rule 18)
+# Upscale factor should be reasonable compared to input size (Rule 18)
 
 rule_18 = lambda s, v, n=False: (
-    s.add(Not(Select(v["arg2_shape"], 1) > (v["arg1_value"] * v["arg1_value"]) / 2) if n else
-          Select(v["arg2_shape"], 1) > (v["arg1_value"] * v["arg1_value"]) / 2)
+    s.add(Not(v["arg1_value"] < Select(v["arg2_shape"], -2) + Select(v["arg2_shape"], -1)) if n else
+          v["arg1_value"] < Select(v["arg2_shape"], -2) + Select(v["arg2_shape"], -1))
 )
 
 def rule_18_func(arg1, arg2, solver=None, neg=False):

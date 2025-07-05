@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If mode is "tanh", then dtype must be None, or it is invalid (Rule 8)
+# If level > 0, then enabled must be true (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_value"] == 11, v["arg2_value"] == 6, False)) if n else
-          If(v["arg1_value"] == 11, v["arg2_value"] == 6, False))
+    s.add(Not(If(v["arg1_value"] > 0, v["arg2_value"] == True, False)) if n else
+          If(v["arg1_value"] > 0, v["arg2_value"] == True, False))
 )
 
 def rule_8_func(arg1, arg2, solver=None, neg=False):
@@ -18,17 +18,19 @@ def rule_8_func(arg1, arg2, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not isinstance(arg1, str):
+        if not (isinstance(arg1, (int, np.integer)) and not isinstance(arg1, bool)):
             return False
-        if not ((isinstance(arg2, torch.dtype) or isinstance(arg2, tf.dtypes.DType)) or isinstance(arg2, str)):
+        if not isinstance(arg2, bool):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = String('arg1_value')
+        arg1_value = Int('arg1_value')
+        arg2_value = Bool('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == int(arg1))
+        solver.add(arg2_value == arg2)
 
         # Constraints for rule 8
         rule_8(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

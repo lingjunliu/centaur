@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if input is complex64, the output must be complex64 (Rule 19)
+# If input is boolean, then output should be also boolean (Rule 19)
 
 rule_19 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False)) if n else
-          If(v["arg1_dtype"] == 10, v["arg2_dtype"] == 10, False))
+    s.add(Not(If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, False)) if n else
+          If(v["arg1_dtype"] == 0, v["arg2_dtype"] == 0, False))
 )
 
 def rule_19_func(arg1, arg2, solver=None, neg=False):

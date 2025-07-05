@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If input tensor v_1 is quantized, then it should not be of type qint8 or quint8 (Rule 11)
+# The input tensor cannot have a np.int8 dtype when a float is expected (Rule 11)
 
 rule_11 = lambda s, v, n=False: (
-    s.add(Not(If(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), False, False)) if n else
-          If(Or(v["arg1_dtype"] == 1, v["arg1_dtype"] == 5), False, False))
+    s.add(Not(v["arg1_dtype"] != 1) if n else
+          v["arg1_dtype"] != 1)
 )
 
 def rule_11_func(arg1, solver=None, neg=False):

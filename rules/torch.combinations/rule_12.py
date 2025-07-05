@@ -5,17 +5,16 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# if r is greater than the tensor length, and with_replacement is False, then the output should be empty (Rule 12)
+# r is int and non-negative or the input tensor is empty (Rule 12)
 
 rule_12 = lambda s, v, n=False: (
-    s.add(Not(If(And(v["arg2_value"] > Select(v["arg1_shape"], 0), v["arg3_value"] == False), Or([And(i < (0 + 1), True) for i in range(6)]), False)) if n else
-          If(And(v["arg2_value"] > Select(v["arg1_shape"], 0), v["arg3_value"] == False), Or([And(i < (0 + 1), True) for i in range(6)]), False))
+    s.add(Not(Or((v["arg2_value"] >= 0), (Select(v["arg1_shape"], 0) == 0))) if n else
+          Or((v["arg2_value"] >= 0), (Select(v["arg1_shape"], 0) == 0)))
 )
 
-def rule_12_func(arg1, arg2, arg3, solver=None, neg=False):
+def rule_12_func(arg1, arg2, solver=None, neg=False):
     arg1 = next(iter(arg1.values()))
     arg2 = next(iter(arg2.values()))
-    arg3 = next(iter(arg3.values()))
 
     # Invariant learning phase
     if not solver:
@@ -23,25 +22,21 @@ def rule_12_func(arg1, arg2, arg3, solver=None, neg=False):
             return False
         if not (isinstance(arg2, (int, np.integer)) and not isinstance(arg2, bool)):
             return False
-        if not isinstance(arg3, bool):
-            return False
 
         # Variable declarations
         solver = Solver()
         arg1_shape = Array('arg1_shape', IntSort(), IntSort())
         arg2_value = Int('arg2_value')
-        arg3_value = Bool('arg3_value')
 
         # Value assignments
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == arg3)
 
         # Constraints for rule 12
-        rule_12(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value})
+        rule_12(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_12(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value'], 'arg3_value': arg3['value']}, neg)
+        rule_12(solver, {'arg1_shape': arg1['shape'], 'arg2_value': arg2['value']}, neg)

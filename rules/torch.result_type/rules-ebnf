@@ -1,66 +1,126 @@
 >>
-Rule 1 (tensors should have compatible dtypes for arithmetic operation)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) ≠ 12 ∧ dtype_(v_2) ≠ 12 ∧ (dtype_(v_1) = dtype_(v_2) ∨ (dtype_(v_1) < 9 ∧ dtype_(v_2) < 9) ∨ (dtype_(v_1) > 6 ∧ dtype_(v_2) > 6))
+Rule 5 (If the first argument is a tensor, its number of dimensions should be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
 >>
-Rule 2 (If one input is a boolean tensor, the other input must be a tensor as well)
-{v_1 : tensor, v_2 : tensor ⊎ int ⊎ float} |= if dtype_(v_1) = 0 then ndim(v_2) > 0
+Rule 6 (If the second argument is a tensor, its number of dimensions should be greater than 0)
+{v_2 : tensor} |= ndim(v_2) > 0
 >>
-Rule 3 (If one of the inputs is a complex type, the other should also be either a complex or a floating point type.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 9 then dtype_(v_2) ≥ 7 else if dtype_(v_2) ≥ 9 then dtype_(v_1) ≥ 7
+Rule 7 (If the first argument is a tensor, it's dtype should not be string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
 >>
-Rule 4 (If one input is int and the other is float, both should be converted to float)
-{v_1 : tensor ⊎ int, v_2 : tensor ⊎ float} |= if (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 5) ∨ (v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5) then if (dtype_(v_2) ≥ 7 ∧ dtype_(v_2) ≤ 9) ∨ (v_2 > 0.0) then true else false
+Rule 8 (If the second argument is a tensor, it's dtype should not be string)
+{v_2 : tensor} |= dtype_(v_2) ≠ 11
 >>
-Rule 5 (If one input is uint8, the other cannot be a bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 5 then dtype_(v_2) ≠ 0 else if dtype_(v_2) = 5 then dtype_(v_1) ≠ 0
+Rule 9 (If the first argument is a tensor and the second argument is a tensor, their shapes must be compatible for broadcasting)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, ndim(v_2) - ndim(v_1) + i) ∨ shape(v_1, i) = 1 else ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, ndim(v_1) - ndim(v_2) + i) ∨ shape(v_2, i) = 1
 >>
-Rule 6 (If one input is a tensor and the other is a number, the number must be within the range of the tensor's dtype.)
-{v_1 : tensor, v_2 : int ⊎ float} |= if ndim(v_1) > 0 then if dtype_(v_1) = 0 then (v_2 = 0 ∨ v_2 = 1) else if dtype_(v_1) = 1 then -128 ≤ v_2 ∧ v_2 ≤ 127 else if dtype_(v_1) = 2 then -32768 ≤ v_2 ∧ v_2 ≤ 32767 else if dtype_(v_1) = 3 then -2147483648 ≤ v_2 ∧ v_2 ≤ 2147483647 else if dtype_(v_1) = 4 then -9223372036854775808 ≤ v_2 ∧ v_2 ≤ 9223372036854775807 else if dtype_(v_1) = 5 then 0 ≤ v_2 ∧ v_2 ≤ 255
+Rule 12 (If the second argument is a tensor, its dtype must be a number type.)
+{v_2 : tensor} |= 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 10
 >>
-Rule 7 (If one input is float16, the other cannot be a complex128)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 then dtype_(v_2) ≠ 11 else if dtype_(v_2) = 7 then dtype_(v_1) ≠ 11
+Rule 13 (If the first argument is a tensor, its dtype must be a number type.)
+{v_1 : tensor} |= 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 10
 >>
-Rule 8 (If one input is a tensor, the other cannot be a string)
-{v_1 : tensor ⊎ str, v_2 : tensor ⊎ str} |= if dtype_(v_1) = 12 then ndim(v_2) < 1 else if dtype_(v_2) = 12 then ndim(v_1) < 1
+Rule 14 (If the first argument is an integer, it should be representable in int64)
+{v_1 : int} |= -9223372036854775808 ≤ v_1 ∧ v_1 ≤ 9223372036854775807
 >>
-Rule 9 (If both inputs are numbers, at least one of them should be non-zero.)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= if ndim(v_1) < 1 ∧ ndim(v_2) < 1 then v_1 ≠ 0 ∨ v_2 ≠ 0
+Rule 15 (If the second argument is an integer, it should be representable in int64)
+{v_2 : int} |= -9223372036854775808 ≤ v_2 ∧ v_2 ≤ 9223372036854775807
 >>
-Rule 10 (if both inputs are the same number then their type should be the same)
-{v_1 : tensor ⊎ int ⊎ float, v_2 : tensor ⊎ int ⊎ float} |= if v_1 = v_2 then if ndim(v_1) > 0 then if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2) else if ndim(v_2) > 0 then true
+Rule 16 (If the first argument is a float, it should be a valid floating point number)
+{v_1 : float} |= v_1 > -3.402823e38 ∧ v_1 < 3.402823e38
 >>
-Rule 11 (The types should not be both bool tensors if they do not have the same shape)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 ∧ dtype_(v_2) = 0 then if ndim(v_1) = ndim(v_2) then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else false
+Rule 17 (If the second argument is a float, it should be a valid floating point number)
+{v_2 : float} |= v_2 > -3.402823e38 ∧ v_2 < 3.402823e38
 >>
-Rule 12 (If one of the inputs is np.dtype, it must be a valid dtype)
-{v_1 : tensor ⊎ dtype, v_2 : tensor ⊎ dtype} |= if dtype_(v_1) = 12 then v_1 ≥ 0 ∧ v_1 ≤ 12 else if dtype_(v_2) = 12 then v_2 ≥ 0 ∧ v_2 ≤ 12
+Rule 18 (If the first argument is a tensor, its elements should be finite)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : (∃j ∈ [0, shape(v_1, i) - 1] : min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf")
 >>
-Rule 13 (if one of the inputs is a tensor with dtype int64, the other input should not be bool)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 4 then dtype_(v_2) ≠ 0 else if dtype_(v_2) = 4 then dtype_(v_1) ≠ 0
+Rule 19 (If the second argument is a tensor, its elements should be finite)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : (∃j ∈ [0, shape(v_2, i) - 1] : min(v_2) ≠ "inf" ∧ max(v_2) ≠ "inf")
 >>
-Rule 14 (if one input is complex64 the other should be >= float32)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 10 then dtype_(v_2) ≥ 8 else if dtype_(v_2) = 10 then dtype_(v_1) ≥ 8
+Rule 20 (If the first argument is a tensor, it shouldn't have NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) -1] : min(v_1) ≠ "NaN" ∧ max(v_1) ≠ "NaN"
 >>
-Rule 15 (at least one of the dtypes must exist in the given type list.)
-{v_1 : dtype, v_2 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11 ∨ v_1 = 12 ∧ v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11 ∨ v_2 = 12
+Rule 21 (If the second argument is a tensor, it shouldn't have NaN values)
+{v_2 : tensor} |= ∃i ∈ [0, ndim(v_2) - 1] : ∀j ∈ [0, shape(v_2, i) -1] : min(v_2) ≠ "NaN" ∧ max(v_2) ≠ "NaN"
 >>
-Rule 16 (If one input is uint8 and the other is a scalar, the scalar must be in range 0-255)
-{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 5 then if ndim(v_2) < 1 then v_2 ≥ 0 ∧ v_2 ≤ 255
+Rule 22 (If the first argument is a tensor, all shape dimensions must be non-negative)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
 >>
-Rule 17 (if one input is a tensor with float64, the other input should not be int8 or int16)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 else if dtype_(v_2) = 8 then dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2
+Rule 23 (If the second argument is a tensor, all shape dimensions must be non-negative)
+{v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) ≥ 0
 >>
-Rule 18 (If one input is a number, the other input should not be a complex tensor)
-{v_1 : tensor ⊎ int ⊎ float, v_2 : tensor} |= if ndim(v_1) < 1 then dtype_(v_2) < 10
+Rule 24 (If the first argument is a tensor, the minimum and maximum values should be different if it's of integer dtype)
+{v_1 : tensor} |= if 1 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 5 then min(v_1) ≠ max(v_1)
 >>
-Rule 19 (if one input is complex128, the other cannot be int8, int16, int32, int64, uint8)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 11 then dtype_(v_2) ≠ 1 ∧ dtype_(v_2) ≠ 2 ∧ dtype_(v_2) ≠ 3 ∧ dtype_(v_2) ≠ 4 ∧ dtype_(v_2) ≠ 5 else if dtype_(v_2) = 11 then dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+Rule 25 (If the second argument is a tensor, the minimum and maximum values should be different if it's of integer dtype)
+{v_2 : tensor} |= if 1 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 5 then min(v_2) ≠ max(v_2)
 >>
-Rule 20 (If both inputs are numbers but their types are different, the higher type rank will be the result type.)
-{v_1 : int ⊎ float, v_2 : int ⊎ float} |= if ndim(v_1) < 1 ∧ ndim(v_2) < 1 then if v_1 > v_2 then if v_1 > 0 then v_1 ≥ 1 ∧ v_1 ≤ 5 else v_1 ≥ 7 ∧ v_1 ≤ 9 else if v_2 > 0 then v_2 ≥ 1 ∧ v_2 ≤ 5 else v_2 ≥ 7 ∧ v_2 ≤ 9
+Rule 26 (If the first argument is an int, it must be non-negative if the second argument's dtype is uint8)
+{v_1 : int, v_2 : tensor} |= if dtype_(v_2) = 6 then v_1 ≥ 0
 >>
-Rule 21 (If one input is int8 and the other one is not bool, then the result type will be int8)
-{v_1 : tensor, v_2 : tensor ⊎ int ⊎ float} |= if dtype_(v_1) = 1 then if dtype_(v_2) ≠ 0 then true else false
+Rule 27 (If the second argument is an int, it must be non-negative if the first argument's dtype is uint8)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 ≥ 0
 >>
-Rule 22 (If one input is int and the other is int and v1>=v2, the result is int (with largest range))
-{v_1 : int, v_2 : int} |= if v_1 ≥ v_2 then (v_1 ≥ -128 ∧ v_1 ≤ 127 ∧ v_2 ≥ -128 ∧ v_2 ≤ 127) ∨ (v_1 ≥ -32768 ∧ v_1 ≤ 32767 ∧ v_2 ≥ -32768 ∧ v_2 ≤ 32767) ∨ (v_1 ≥ -2147483648 ∧ v_1 ≤ 2147483647 ∧ v_2 ≥ -2147483648 ∧ v_2 ≤ 2147483647) ∨ (v_1 ≥ -9223372036854775808 ∧ v_1 ≤ 9223372036854775807 ∧ v_2 ≥ -9223372036854775808 ∧ v_2 ≤ 9223372036854775807) ∨ (v_1 ≥ 0 ∧ v_1 ≤ 255 ∧ v_2 ≥ 0 ∧ v_2 ≤ 255)
+Rule 28 (If first argument is a number and second argument is a tensor, then first argument should be representable by tensor's dtype)
+{v_1 : int ⊎ float, v_2 : tensor} |= if dtype_(v_2) = 1 then -128 ≤ v_1 ∧ v_1 ≤ 127 else if dtype_(v_2) = 2 then -32768 ≤ v_1 ∧ v_1 ≤ 32767 else if dtype_(v_2) = 3 then -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647 else if dtype_(v_2) = 4 then -9223372036854775808 ≤ v_1 ∧ v_1 ≤ 9223372036854775807 else if dtype_(v_2) = 5 then 0 ≤ v_1 ∧ v_1 ≤ 255 else if dtype_(v_2) = 6 then 1.17549435E-38 ≤ v_1 ∧ v_1 ≤ 3.4028235E38 else if dtype_(v_2) = 7 then 2.2250738585072014E-308 ≤ v_1 ∧ v_1 ≤ 1.7976931348623157E308
+>>
+Rule 29 (If second argument is a number and first argument is a tensor, then second argument should be representable by tensor's dtype)
+{v_1 : tensor, v_2 : int ⊎ float} |= if dtype_(v_1) = 1 then -128 ≤ v_2 ∧ v_2 ≤ 127 else if dtype_(v_1) = 2 then -32768 ≤ v_2 ∧ v_2 ≤ 32767 else if dtype_(v_1) = 3 then -2147483648 ≤ v_2 ∧ v_2 ≤ 2147483647 else if dtype_(v_1) = 4 then -9223372036854775808 ≤ v_2 ∧ v_2 ≤ 9223372036854775807 else if dtype_(v_1) = 5 then 0 ≤ v_2 ∧ v_2 ≤ 255 else if dtype_(v_1) = 6 then 1.17549435E-38 ≤ v_2 ∧ v_2 ≤ 3.4028235E38 else if dtype_(v_1) = 7 then 2.2250738585072014E-308 ≤ v_2 ∧ v_2 ≤ 1.7976931348623157E308
+>>
+Rule 34 (If the first argument is a bool, its value should be either true or false)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 35 (If the second argument is a bool, its value should be either true or false)
+{v_2 : bool} |= v_2 = true ∨ v_2 = false
+>>
+Rule 36 (If the first argument is a string, it must be from the allowed string list)
+{v_1 : str} |= v_1 = "ii" ∨ v_1 = "ii->i" ∨ v_1 = "i,j->ij" ∨ v_1 = "bij,bjk->bik" ∨ v_1 = "...ij->...ji" ∨ v_1 = "bn,anm,bm->ba" ∨ v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum" ∨ v_1 = "max" ∨ v_1 = "constant" ∨ v_1 = "tanh"
+>>
+Rule 37 (If the second argument is a string, it must be from the allowed string list)
+{v_2 : str} |= v_2 = "ii" ∨ v_2 = "ii->i" ∨ v_2 = "i,j->ij" ∨ v_2 = "bij,bjk->bik" ∨ v_2 = "...ij->...ji" ∨ v_2 = "bn,anm,bm->ba" ∨ v_2 = "none" ∨ v_2 = "mean" ∨ v_2 = "sum" ∨ v_2 = "max" ∨ v_2 = "constant" ∨ v_2 = "tanh"
+>>
+Rule 40 (If the first argument is a dtype, its value must be one of the allowed dtypes)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 12
+>>
+Rule 41 (If the second argument is a dtype, its value must be one of the allowed dtypes)
+{v_2 : dtype} |= v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 12
+>>
+Rule 44 (If the first argument is a list, its elements should be representable by int64)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : -9223372036854775808 ≤ v_1[i] ∧ v_1[i] ≤ 9223372036854775807
+>>
+Rule 45 (If the second argument is a list, its elements should be representable by int64)
+{v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : -9223372036854775808 ≤ v_2[i] ∧ v_2[i] ≤ 9223372036854775807
+>>
+Rule 46 (If the first argument is a list, its elements should be finite floats)
+{v_1 : list(float)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > -3.402823e38 ∧ v_1[i] < 3.402823e38
+>>
+Rule 47 (If the second argument is a list, its elements should be finite floats)
+{v_2 : list(float)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] > -3.402823e38 ∧ v_2[i] < 3.402823e38
+>>
+Rule 50 (If the first argument is a tuple of integers, each element should be representable by int64)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : -9223372036854775808 ≤ v_1[i] ∧ v_1[i] ≤ 9223372036854775807
+>>
+Rule 51 (If the second argument is a tuple of integers, each element should be representable by int64)
+{v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : -9223372036854775808 ≤ v_2[i] ∧ v_2[i] ≤ 9223372036854775807
+>>
+Rule 54 (If the first argument is an int, its value must be representable by int32)
+{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647
+>>
+Rule 55 (If the second argument is an int, its value must be representable by int32)
+{v_2 : int} |= -2147483648 ≤ v_2 ∧ v_2 ≤ 2147483647
+>>
+Rule 56 (If the first argument is float, it should not be infinity)
+{v_1 : float} |= v_1 ≠ "inf" ∧ v_1 ≠ "-inf"
+>>
+Rule 57 (If the second argument is float, it should not be infinity)
+{v_2 : float} |= v_2 ≠ "inf" ∧ v_2 ≠ "-inf"
+>>
+Rule 58 (If the first argument is a float, it should be different from zero to avoid division by zero errors)
+{v_1 : float} |= v_1 ≠ 0
+>>
+Rule 59 (If the second argument is a float, it should be different from zero to avoid division by zero errors)
+{v_2 : float} |= v_2 ≠ 0
+>>
+Rule 75 (If only one argument is string, the other one must be tensor)
+{v_1 : str ⊎ int ⊎ float ⊎ bool ⊎ dtype ⊎ list(int) ⊎ tuple(int), v_2 : str ⊎ int ⊎ float ⊎ tensor ⊎ bool ⊎ dtype ⊎ list(int) ⊎ tuple(int)} |= if (v_1 = "ii") ∨ (v_1 = "ii->i") ∨ (v_1 = "i,j->ij") ∨ (v_1 = "bij,bjk->bik") ∨ (v_1 = "...ij->...ji") ∨ (v_1 = "bn,anm,bm->ba") ∨ (v_1 = "none") ∨ (v_1 = "mean") ∨ (v_1 = "sum") ∨ (v_1 = "max") ∨ (v_1 = "constant") ∨ (v_1 = "tanh") then v_2 = "tensor" else if (v_2 = "ii") ∨ (v_2 = "ii->i") ∨ (v_2 = "i,j->ij") ∨ (v_2 = "bij,bjk->bik") ∨ (v_2 = "...ij->...ji") ∨ (v_2 = "bn,anm,bm->ba") ∨ (v_2 = "none") ∨ (v_2 = "mean") ∨ (v_2 = "sum") ∨ (v_2 = "max") ∨ (v_2 = "constant") ∨ (v_2 = "tanh") then v_1 = "tensor"

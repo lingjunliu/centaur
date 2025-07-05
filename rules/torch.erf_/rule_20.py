@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If output tensor is provided, its complex type must match the complex type of input tensor. (Rule 20)
+# input and output tensors should both be float or both be complex, but never input float output complex or vice versa. And input tensor should not be bool (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(v["arg1_dtype"] > 8, v["arg1_dtype"] == v["arg2_dtype"], False)) if n else
-          If(v["arg1_dtype"] > 8, v["arg1_dtype"] == v["arg2_dtype"], False))
+    s.add(Not(Or((And(And(And((v["arg1_dtype"] > 5), (v["arg1_dtype"] < 9)), (v["arg2_dtype"] > 5)), (v["arg2_dtype"] < 9))), (And(And(And((v["arg1_dtype"] > 8), (v["arg1_dtype"] < 12)), (v["arg2_dtype"] > 8)), (v["arg2_dtype"] < 12))))) if n else
+          Or((And(And(And((v["arg1_dtype"] > 5), (v["arg1_dtype"] < 9)), (v["arg2_dtype"] > 5)), (v["arg2_dtype"] < 9))), (And(And(And((v["arg1_dtype"] > 8), (v["arg1_dtype"] < 12)), (v["arg2_dtype"] > 8)), (v["arg2_dtype"] < 12)))))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

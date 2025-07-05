@@ -1,45 +1,48 @@
 >>
-Rule 1 (input tensor type should be float or complex)
-{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+Rule 4 (output tensor's dtype should be able to accommodate the input tensor's dtype to avoid casting errors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_2) ≥ dtype_(v_1)
 >>
-Rule 2 (input tensor should have at least one element)
-{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+Rule 5 (Input tensor must have a floating-point dtype if the output tensor has a floating-point dtype to avoid casting errors)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") then (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64")
 >>
-Rule 3 (if out is specified, its dtype should be the same as input's dtype)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then dtype_(v_1) = dtype_(v_2)
+Rule 6 (output tensor's dtype should be able to accommodate the input tensor's dtype to avoid casting errors)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "float64" then dtype_(v_2) = "float64" else if dtype_(v_1) = "float32" then (dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64") else if dtype_(v_1) = "float16" then (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
 >>
-Rule 4 (if out is specified, its shape should be the same as input's shape)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+Rule 9 (If out tensor is provided then it should have floating point dtype)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
 >>
-Rule 5 (if out is specified, it shouldn't be aliased with the input tensor)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then v_1 ≠ v_2
+Rule 11 (Output shape must match input shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 6 (if out is specified, it should be contiguous)
-{v_2 : tensor} |= if ndim(v_2) > 0 then true
+Rule 13 (Output should be float if input is int)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8") then (dtype_(v_2) = "float16" ∨ dtype_(v_2) = "float32" ∨ dtype_(v_2) = "float64")
 >>
-Rule 7 (if the input tensor's elements are all zero, then the output tensor's elements should be all 0 as well, if out is specified)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : min(v_1) = 0 ∧ max(v_1) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : min(v_1) ≠ 0 ∨ max(v_1) ≠ 0)
+Rule 14 (Output should be float if input is int)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8") then (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64")
 >>
-Rule 8 (if input tensor is quantized, then output tensor should be quantized too)
-{v_1 : tensor} |= if ndim(v_1) > 0 then true
+Rule 15 (Output should be same complex dtype)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = "np.complex64" then dtype_(v_2) = "np.complex64" else if dtype_(v_1) = "np.complex128" then dtype_(v_2) = "np.complex128"
 >>
-Rule 9 (input tensor values must be finite)
-{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : min(v_1) ≠ "inf" ∧ max(v_1) ≠ "inf"
+Rule 17 (Output should be float if input is bool)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "bool") then (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64")
 >>
-Rule 10 (The input tensor has to be a floating-point or complex type)
-{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 ∨ dtype_(v_1) = 6
+Rule 20 (If the output tensor is specified, it should have floating point precision equal or higher than input tensor.)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "np.float16") then (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64") else if (dtype_(v_1) = "np.float32") then (dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64") else if (dtype_(v_1) = "np.float64") then (dtype_(v_2) = "np.float64")
 >>
-Rule 11 (input tensor dimension should be less than or equal to 8)
-{v_1 : tensor} |= ndim(v_1) ≤ 8
+Rule 21 (Integer input requires float output)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8") then (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64") else if (dtype_(v_1) = "bool") then (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64")
 >>
-Rule 12 (If input tensor is complex, then the out tensor should be complex.)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then dtype_(v_2) = 9 ∨ dtype_(v_2) = 10
+Rule 22 (Output dtype and shape compatibility)
+{v_1 : tensor, v_2 : tensor} |= if (v_2 ≠ "none") then (if (dtype_(v_1) = "np.float16") then (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64") else if (dtype_(v_1) = "np.float32") then (dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64") else if (dtype_(v_1) = "np.float64") then (dtype_(v_2) = "np.float64")) ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
 >>
-Rule 13 (If input tensor's values are all positive, the out tensor should contain values in range [0.5, 1])
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (min(v_1) ≥ 0)
+Rule 23 (Integer input requires float output)
+{v_1 : tensor, v_2 : tensor} |= if (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8") then (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64") else if (dtype_(v_1) = "bool") then (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64") else (dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64")
 >>
-Rule 14 (If the input tensor has a dimension of size 0, then the output tensor should also have a dimension of size 0 if out is specified.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0)
+Rule 25 (Integer/Bool input requires float output)
+{v_1 : tensor} |= if (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "bool") then true else (dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64")
 >>
-Rule 15 (If input tensor's dtype is float16, then the output tensor's dtype cannot be int8)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) ≠ 1
+Rule 29 (Valid input dtype)
+{v_1 : tensor} |= (dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64")
+>>
+Rule 32 (Output dtype and shape compatibility)
+{v_1 : tensor, v_2 : tensor} |= if (v_2 ≠ "none") then (((dtype_(v_1) = "np.float16") ∧ (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64")) ∨ ((dtype_(v_1) = "np.float32") ∧ (dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64")) ∨ ((dtype_(v_1) = "np.float64") ∧ (dtype_(v_2) = "np.float64")) ∨ ((dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "bool") ∧ (dtype_(v_2) = "np.float16" ∨ dtype_(v_2) = "np.float32" ∨ dtype_(v_2) = "np.float64"))) ∧ ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else (dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64")

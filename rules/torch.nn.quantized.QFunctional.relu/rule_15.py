@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Check if shape of Tensor is power of 2 (Rule 15)
+# The shape of the tensor should always be positive. (Rule 15)
 
 rule_15 = lambda s, v, n=False: (
-    s.add(Not(And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or([And(k < (10 + 1), Select(v["arg1_shape"], i) == 2 * k) for k in range(6)])) for i in range(6)])) if n else
-          And([Implies(i < (v["arg1_ndim"] - 1 + 1), Or([And(k < (10 + 1), Select(v["arg1_shape"], i) == 2 * k) for k in range(6)])) for i in range(6)]))
+    s.add(Not(If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False)) if n else
+          If(v["arg1_ndim"] > 0, And([Implies(i < (v["arg1_ndim"] - 1 + 1), Select(v["arg1_shape"], i) > 0) for i in range(6)]), False))
 )
 
 def rule_15_func(arg1, solver=None, neg=False):

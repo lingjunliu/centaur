@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# torch.get_deterministic_debug_mode returns boolean and it is not an integer (Rule 3)
+# The return value is true if and only if torch.is_deterministic( (Rule 3)
 
 rule_3 = lambda s, v, n=False: (
-    s.add(Not(And(And(Or(v["arg1_value"] == True, v["arg1_value"] == False), v["arg1_value"] != 1), v["arg1_value"] != 0)) if n else
-          And(And(Or(v["arg1_value"] == True, v["arg1_value"] == False), v["arg1_value"] != 1), v["arg1_value"] != 0))
+    s.add(Not(v["arg1_value"] == True) if n else
+          v["arg1_value"] == True)
 )
 
 def rule_3_func(arg1, solver=None, neg=False):

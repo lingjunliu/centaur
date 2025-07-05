@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Mixing different complex types will result in largest complex type. (Rule 20)
+# If type1 is float16 and type2 is complex, it is not allowed (Rule 20)
 
 rule_20 = lambda s, v, n=False: (
-    s.add(Not(If(Or((And(v["arg1_value"] == 9, v["arg2_value"] == 10)), (And(v["arg1_value"] == 10, v["arg2_value"] == 9))), True, False)) if n else
-          If(Or((And(v["arg1_value"] == 9, v["arg2_value"] == 10)), (And(v["arg1_value"] == 10, v["arg2_value"] == 9))), True, False))
+    s.add(Not(If(v["arg1_value"] == 6, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False)) if n else
+          If(v["arg1_value"] == 6, And(v["arg2_value"] != 9, v["arg2_value"] != 10), False))
 )
 
 def rule_20_func(arg1, arg2, solver=None, neg=False):

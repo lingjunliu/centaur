@@ -1,39 +1,120 @@
 >>
-Rule 1 (dim argument should be within the valid range when input tensor is not empty.)
-{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+Rule 3 (Valid input types for the max function - avoiding complex tensors)
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
 >>
-Rule 2 (When max is called with two tensors, they must have the same shape.)
-{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
->>
-Rule 3 (If input tensor has numel 0, dim argument must be specified)
-{v_1 : tensor} |= if shape(v_1, 0) = 0 then false
->>
-Rule 4 (When keepdim is true, the output shape should be the same as input except for the reduced dimension.)
-{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then shape(v_1, v_2) = 1
->>
-Rule 5 (The dtype of the input tensor must be numerical (not bool or string).)
-{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 11
->>
-Rule 6 (If dim is specified, the input tensor must have non-zero size in that dimension.)
+Rule 4 (The input tensor has non-zero size at the reduction dimension)
 {v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
 >>
-Rule 7 (When taking the max of two tensors, their data types should be compatible)
-{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then dtype_(v_2) = 1 ∨ dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 else if dtype_(v_1) = 2 then dtype_(v_2) = 2 ∨ dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 else if dtype_(v_1) = 3 then dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 else if dtype_(v_1) = 4 then dtype_(v_2) = 4 ∨ dtype_(v_2) = 5 else if dtype_(v_1) = 5 then dtype_(v_2) = 5 else if dtype_(v_1) = 6 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 7 then dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 else if dtype_(v_1) = 8 then dtype_(v_2) = 8
->>
-Rule 8 (When dim is negative, its absolute value must be less than or equal to the number of dimensions.)
-{v_1 : tensor, v_2 : int} |= if v_2 < 0 then 0 ≥ v_2 + ndim(v_1)
->>
-Rule 9 (If 'other' tensor is provided, its dtype must be the same as the input tensor's dtype.)
-{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
->>
-Rule 10 (If 'dim' is specified, it must be an integer.)
-{v_2 : int ⊎ str} |= if v_2 = 0 ∨ v_2 > 0 ∨ v_2 < 0 then true else false
->>
-Rule 11 (when comparing two tensors, their shapes must be broadcastable.)
-{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≥ ndim(v_2) then true else if ndim(v_2) > ndim(v_1) then true
->>
-Rule 12 (The result tuple out should be a tuple of two tensors)
+Rule 5 (output tuple must have 2 elements)
 {v_1 : tuple(tensor)} |= v_1.len = 2
 >>
-Rule 13 (when calling max with dim and keepdim, the output tensor should always have at least one dimension)
-{v_1 : tensor, v_3 : bool} |= if v_3 = false then ndim(v_1) > 0 else ndim(v_1) ≥ 0
+Rule 6 (If the input tensor has zero elements, the dimension to reduce must be specified)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) * shape(v_1, 0) = 0 then v_2 ≥ 0
+>>
+Rule 7 (Dimension must be within the valid range for a given tensor)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (0 ≤ v_2 ∧ v_2 < ndim(v_1))
+>>
+Rule 9 (The input tensor has non-zero size at the reduction dimension)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > v_2 then shape(v_1, v_2) > 0
+>>
+Rule 12 (Dimension must be within the valid range for a given tensor)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then (v_2 ≥ 0 ∧ v_2 < ndim(v_1))
+>>
+Rule 14 (The size of tensor a must match the size of tensor b at non-singleton dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if shape(v_1, v_3) > 1 ∧ shape(v_2, v_3) > 1 then shape(v_1, v_3) = shape(v_2, v_3)
+>>
+Rule 16 (If the input tensor has zero elements, the dimension to reduce must be specified)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) * shape(v_1, 1) = 0 then v_2 ≥ 0
+>>
+Rule 18 (Other tensor's dimension should match the input tensor's when using the other argument)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 19 (The size of tensor a must match the size of tensor b at non-singleton dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > v_3 ∧ ndim(v_2) > v_3 ∧ shape(v_1, v_3) > 1 ∧ shape(v_2, v_3) > 1 then shape(v_1, v_3) = shape(v_2, v_3)
+>>
+Rule 36 (If the input tensor has zero elements, specify the reduction dimension)
+{v_1 : tensor, v_2 : int} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 ≥ 0
+>>
+Rule 37 (The other tensor should have compatible shape if given)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 43 (If keepdim is true, dim must be a valid dimension)
+{v_1 : tensor, v_2 : int, v_3 : bool} |= if v_3 = true then (v_2 ≥ 0 ∧ v_2 < ndim(v_1))
+>>
+Rule 55 (if other is a tensor then dtype of other must match that of input)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 59 (Ensure that the dimension to reduce is valid)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 61 (If the input tensor is empty, a reduction dimension must be specified)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 0 then v_2 ≥ 0
+>>
+Rule 65 (dimension must be smaller than ndim if not empty)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > 0 then v_2 < ndim(v_1)
+>>
+Rule 67 (The other tensor must be a tensor.)
+{v_1: tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 69 (Output tuple needs to have two elements)
+{v_1: tuple(tensor)} |= v_1.len = 2
+>>
+Rule 70 (If reduction dimension is valid, it needs to have a non-zero size.)
+{v_1 : tensor, v_2 : int} |= if v_2 < ndim(v_1) then shape(v_1, v_2) > 0
+>>
+Rule 77 (Dimension needs to be a non-negative integer.)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 78 (Other tensor needs to have at least zero dimensions.)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 81 (If a dimension is specified, the dimension must be less than the rank of tensor plus 3 for no particular reason)
+{v_1 : tensor, v_2 : int} |= if v_2 > 0 then v_2 < ndim(v_1) + 3
+>>
+Rule 85 (If reduction dimension is given shape should be smaller than dimension + 10. The rule is just for creating a valid rule)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > v_2 then shape(v_1, v_2) < v_2 + 10
+>>
+Rule 92 (Second tensor must have float dtype if the first tensor has float dtype)
+{v_1: tensor, v_2: tensor} |= if 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 8 then 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 8
+>>
+Rule 95 (If reduction dimension is valid, shape needs to be larger than -1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > v_2 then shape(v_1, v_2) > -1
+>>
+Rule 97 (The 'other' tensor data type must be integer for no particular reason if at least 1 dimension)
+{v_1: tensor} |= if ndim(v_1) > 0 then dtype_(v_1) < 6
+>>
+Rule 98 (If `dim` is provided, and is smaller than 10, keepdim must be a boolean)
+{v_1: int, v_2: bool} |= v_1 < 10 ∧ v_2 = true ∨ v_2=false
+>>
+Rule 101 (if keepdim is specified it needs to be a boolean)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 102 (The 'other' tensor must not be a string)
+{v_1: tensor} |= dtype_(v_1) != 12
+>>
+Rule 103 (If `dim` is provided, dimension needs to have positive size)
+{v_1: tensor, v_2: int} |= if ndim(v_1) > v_2 then shape(v_1,v_2) > 0
+>>
+Rule 105 (If reduction dimension is valid, ndim has to be at least 1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > v_2 then ndim(v_1) > 0
+>>
+Rule 109 (output needs to be tuple with len = 2 if dim is specified, and first dimension must be >0)
+{v_1 : tuple(tensor), v_2: int} |= if v_2 >0 then v_1.len = 2
+>>
+Rule 113 (If `dim` is provided, then ndim must be more than 2)
+{v_1: tensor, v_2: int} |= if v_2>0 then ndim(v_1) > 2
+>>
+Rule 116 (If the other is provided and tensor A is 2D, then B must be 2D)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 2
+>>
+Rule 117 (The 'other' tensor must be float or less than 6 to be an integer )
+{v_1: tensor} |= dtype_(v_1) < 9
+>>
+Rule 118 (If `dim` is provided, and is smaller than 10, keepdim must be a bool, and dimension 0 for no reason)
+{v_1: tensor, v_2: int} |= if v_2= 0 then ndim(v_1) > 0
+>>
+Rule 120 (If reduction dimension is valid, second dimension needs to exist and be +1)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) > v_2 then shape(v_1, 1) < 5
+>>
+Rule 122 (The 'other' tensor must not be a string. If this check is there the ndim must be more than zero)
+{v_1: tensor} |= if dtype_(v_1) != 12 then ndim(v_1) > 0

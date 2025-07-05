@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# Check if the dtype is complex64 or complex128 if autocast xla is enabled, it can potentially lead to errors (Rule 8)
+# A float value is not NaN. (Rule 8)
 
 rule_8 = lambda s, v, n=False: (
-    s.add(Not(And(v["arg1_value"] != 9, v["arg1_value"] != 10)) if n else
-          And(v["arg1_value"] != 9, v["arg1_value"] != 10))
+    s.add(Not(And(v["arg1_value"] > -10000000000, v["arg1_value"] < 10000000000)) if n else
+          And(v["arg1_value"] > -10000000000, v["arg1_value"] < 10000000000))
 )
 
 def rule_8_func(arg1, solver=None, neg=False):
@@ -17,15 +17,15 @@ def rule_8_func(arg1, solver=None, neg=False):
 
     # Invariant learning phase
     if not solver:
-        if not (isinstance(arg1, torch.dtype) or isinstance(arg1, tf.dtypes.DType)):
+        if not isinstance(arg1, (float, np.floating)):
             return False
 
         # Variable declarations
         solver = Solver()
-        arg1_value = Int('arg1_value')
+        arg1_value = Real('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_available_dtypes.index(np_dtype(arg1)))
+        solver.add(arg1_value == arg1)
 
         # Constraints for rule 8
         rule_8(solver, {'arg1_value': arg1_value})

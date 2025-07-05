@@ -5,11 +5,11 @@ import tensorflow as tf
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
 from z3 import *
 
-# If the tensor has a defined shape and num_features is not given, then the size of dimension 1 or 0 must be within a reasonable range. (Rule 23)
+# If input is float, expect parameter to have scalar type of Float (Rule 23)
 
 rule_23 = lambda s, v, n=False: (
-    s.add(Not(If((v["arg1_ndim"] == 3), (And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 1) < 100000)), If((v["arg1_ndim"] == 2), (And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 0) < 100000)), False))) if n else
-          If((v["arg1_ndim"] == 3), (And(Select(v["arg1_shape"], 1) > 0, Select(v["arg1_shape"], 1) < 100000)), If((v["arg1_ndim"] == 2), (And(Select(v["arg1_shape"], 0) > 0, Select(v["arg1_shape"], 0) < 100000)), False)))
+    s.add(Not(If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False)) if n else
+          If(Or(v["arg1_dtype"] == 7, v["arg1_dtype"] == 8), True, False))
 )
 
 def rule_23_func(arg1, solver=None, neg=False):
@@ -22,18 +22,15 @@ def rule_23_func(arg1, solver=None, neg=False):
 
         # Variable declarations
         solver = Solver()
-        arg1_ndim = Int('arg1_ndim')
-        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg1_dtype = Int('arg1_dtype')
 
         # Value assignments
-        solver.add(arg1_ndim == arg1.ndim)
-        for i in range(arg1.ndim):
-            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
 
         # Constraints for rule 23
-        rule_23(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape})
+        rule_23(solver, {'arg1_dtype': arg1_dtype})
         return solver.check() == sat
 
     # Fuzz input generation phase
     else:
-        rule_23(solver, {'arg1_ndim': arg1['ndim'], 'arg1_shape': arg1['shape']}, neg)
+        rule_23(solver, {'arg1_dtype': arg1['dtype']}, neg)
