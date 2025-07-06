@@ -312,15 +312,18 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
     signature = definition["signature"]
     rules_to_keep = set()
     n_rules_original = len(ruleset)
+    base_validity_ratio = 0.0
 
-    for rule in ruleset:
+    for rule in [None] + list(ruleset):
         trial = 0
+        valid = 0
         block_all = set()
 
         while trial < max_trial:
             block_one = []
             remaining_ruleset = set(ruleset)
-            remaining_ruleset.remove(rule)
+            if rule is not None: 
+                remaining_ruleset.remove(rule)
 
             solver = Solver()
             initial_constraints(solver, signature, z3_args)
@@ -331,11 +334,8 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
             solver.add(*sampled_blocks)
 
             if solver.check() != sat:
-                if trial == 0:
-                    break
-                else:
-                    trial = trial+1
-                    continue
+                trial += 1
+                continue
     
             model = solver.model()
             for decl in model.decls():
@@ -370,15 +370,17 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
     
             concrete_input, abstract_input = instantiate_args(model, signature, z3_args)
             status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
+            
+            if status != "invalid":
+                valid += 1
 
-            if status == "invalid":
-                print(f"After {trial+1} trials, found an input that is invalid without {rule[1]}, the rule is kept.")
-                if print_details:
-                    print(f"Input:\n{abstract_print(abstract_input, signature)}")
-                    print(f"Exception message: {exception_message}\n")
+            trial += 1
+
+        if rule is None:
+            base_validity_ratio = valid / trial
+        else:
+            if valid / trial >= base_validity_ratio:
                 rules_to_keep.add(rule)
-                break
-            trial = trial+1
 
     print(f"{bcolors.OKBLUE}Rules reduced from {n_rules_original} to {len(rules_to_keep)}{bcolors.ENDC}")
     if print_details and rules_to_keep:
