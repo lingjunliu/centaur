@@ -13,12 +13,17 @@ if (length(args) > 1) {
   mode <- args[2]
 }
 
-csv <- sprintf("%s_vs_%s_%s.csv", sota, tname, mode)
 if (length(args) > 2) {
   csv <- args[3]
 }
 
-ylabel <- sprintf("Comparison - %s", mode)
+if (mode == "cov") {
+  ylabel <- "# branches covered"
+} else if (mode == "val") {
+  ylabel <- "Validity"
+} else {
+  ylabel <- sprintf("Comparison - %s", mode)
+}
 font_size <- 1.2
 create_pdf <- TRUE
 
@@ -78,6 +83,18 @@ if (create_pdf) {
   dev.off()
 }
 
-cat("---------------------------------")
+sota_mean <- mean(sota_col)
+tname_mean <- mean(tname_col)
+diff <- tname_mean - sota_mean
+
+if (diff > 0) {
+  comparison <- "better"
+} else {
+  comparison <- "worse"
+}
+
+cat("%---------------------------------")
+cat(sprintf("\n%% %s is %s than %s on average (Diff: %.2f)\n", tname, comparison, sota, diff))
+cat("%---------------------------------")
 cat(sprintf("\n%% %s\n", sota))
 stat_tests(sota_col, tname_col, suffix)
