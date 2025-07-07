@@ -5,7 +5,9 @@ export max_parallel=690     # Fix number of slurm jobs to 690
 
 n_inputs=${1:-500}
 method=${2:-lcov}     # Method to run, default is lcov
-debug=${3:-0}         # To debug coverage difference with titanfuzz, pass 1
+native=${3:-False}    # Limit the coverage to the native folder only (only applicable to the html method)
+lib_v=${4:-2.6.0}     # Library version to use
+debug=${5:-0}         # To debug coverage difference with titanfuzz, pass 1
 
 # Only torch is supported for coverage for now
 # TODO: Add support for tensorflow
@@ -19,29 +21,32 @@ fi
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
+export setup_env=0       # Do not setup the environment again inside slurm script
+
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r $PROJECT_DIR/requirements.txt
+# Installing specified version of the library (torch)
+pip install torch==${lib_v}
 job_name=pat
 echo "Patching code before running coverage script"
 bash $slurm_sh "python -m eval.patching" ${job_name} ${n_inputs}
 
-export setup_env=0       # Do not setup the environment again inside slurm script
 if ! command -v python3.12 &> /dev/null; then
     echo "Error: python3.12 is not installed. Please install it before running this script."
     exit 1
 fi
-python3.12 -m venv venv
-source venv/bin/activate
-pip install -r $PROJECT_DIR/requirements.txt
 # Install instrumented pytorch
-if [ ! -f $PROJECT_DIR/instrumented_pytorch/torch-* ]; then  # Download only if not already downloaded
+if [ ! -f ${PROJECT_DIR}/instrumented_pytorch/torch-${lib_v}* ]; then  # Download only if not already downloaded
     pip install gdown
     gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
 fi
-pip install $PROJECT_DIR/instrumented_pytorch/torch-*
+pip install $PROJECT_DIR/instrumented_pytorch/torch-${lib_v}*
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 
 job_name=cov
 echo "Running coverage script"
-bash $slurm_sh "python -m eval.coverage" ${job_name} ${method} ${debug}
+bash $slurm_sh "python -m eval.coverage" ${job_name} ${method} ${native} ${debug}
 
 # DEBUG ################################
 
@@ -54,7 +59,7 @@ fi
 # END DEBUG ############################
 
 # Re-install vanilla pytorch
-pip install -r $PROJECT_DIR/requirements.txt
+pip install torch==${lib_v}
 
 # DEBUG ################################
 
