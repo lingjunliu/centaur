@@ -11,19 +11,19 @@ from pathlib import Path
 
 def load_apis(project_dir, low=-1, high=-1):
     """Load APIs from file or range"""
-    apis_file = "apis.txt"
+    apis_file = "torch_apis.txt"
 
     if os.path.exists(apis_file):
         with open(apis_file, 'r') as f:
             apis = [line.strip() for line in f if line.strip()]
-        print(f"Loaded {len(apis)} APIs from apis.txt")
+        print(f"Loaded {len(apis)} APIs from torch_apis.txt")
         return apis
     elif low != -1 and high != -1:
         apis = [str(i) for i in range(low, high + 1)]
         print(f"Generated {len(apis)} APIs from range {low}-{high}")
         return apis
     else:
-        raise ValueError("No apis.txt file found and no valid range specified")
+        raise ValueError("No torch_apis.txt file found and no valid range specified")
 
 def create_batch_script(batch_id, apis, lib, low, high, project_dir):
     """Create SBATCH script for batch"""

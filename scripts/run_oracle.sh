@@ -28,7 +28,7 @@ pip install -r $PROJECT_DIR/requirements.txt
 
 cd $PROJECT_DIR
 
-apis=(`cat apis.txt`)
+apis=(`cat torch_apis.txt`)
 n_apis=${#apis[@]}
 i=0
 

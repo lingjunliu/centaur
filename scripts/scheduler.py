@@ -28,7 +28,7 @@ class SimpleScheduler:
         # File paths
         self.lock_file = self.project_dir / f".scheduler_lock_{lib}"
         self.monitor_file = self.project_dir / "monitor.txt"
-        self.apis_file = self.project_dir / "apis.txt"
+        self.apis_file = self.project_dir / "torch_apis.txt"
         
         # Ensure directories exist
         (self.project_dir / ".tmp").mkdir(exist_ok=True)
@@ -43,7 +43,7 @@ class SimpleScheduler:
         elif self.low != -1 and self.high != -1:
             return [str(i) for i in range(self.low, self.high + 1)]
         else:
-            raise ValueError("No apis.txt file found and no valid range specified")
+            raise ValueError("No torch_apis.txt file found and no valid range specified")
 
     def get_next_batch(self, apis):
         """Get next batch of APIs using file locking"""

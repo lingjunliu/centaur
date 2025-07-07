@@ -11,6 +11,7 @@ if [ "$lib" == "pytorch" ]; then
 elif [ "$lib" == "tensorflow" ]; then
     lib="tf"
 fi
+export elements_file=${lib}_apis.txt
 
 job_name=orcl
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm

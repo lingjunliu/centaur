@@ -17,7 +17,7 @@ The code is organized as follow:
 - 📁 llm               # code to generate drivers and signatures using gemini
 - 📄 pytest.ini        # pytest configuration file
 - 📄 requirements.txt  # dependencies of this project
-- 📄 apis.txt          # list of supported APIs
+- 📄 torch_apis.txt    # list of supported PyTorch APIs
 - 📄 signatures.json   # signatures for the supported APIs
 - 📁 scripts           # scripts (e.g., run test, demo generator, etc.)
 - 📁 tests             # tests
@@ -90,7 +90,7 @@ The code is organized as follow:
  
  <h3> Slurm (all apis) </h3>
 
- To run fuzzing campaings, use the `scripts/fuzz_with_slurm.sh`. **Be sure to install and configure slurm before running this.**. This runs the fuzzing campaign on apis from the file `apis.txt` parallelly.
+ To run fuzzing campaings, use the `scripts/fuzz_with_slurm.sh`. **Be sure to install and configure slurm before running this.**. This runs the fuzzing campaign on apis from the file `torch_apis.txt` parallelly.
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh <duration> <n_max> <lib> <seed>
  ```
@@ -103,7 +103,7 @@ The code is organized as follow:
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/fuzz_with_slurm.sh 3600 0 torch 42
  ```
- This will run the `z3` based generator parallelly on all apis in `apis.txt` with `seed=42`, each with a time budget of 1 hour with no limits on the number of inputs or models generated.
+ This will run the `z3` based generator parallelly on all apis in `torch_apis.txt` with `seed=42`, each with a time budget of 1 hour with no limits on the number of inputs or models generated.
 
  <h3> Without slurm (one api) </h3>
 
