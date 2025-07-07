@@ -82,6 +82,9 @@ fi
 # Clean up temporary files
 echo "Cleaning up temporary files"
 rm -r $PROJECT_DIR/eval/patched_drivers
+if [ $debug -eq 0 ]; then
+    rm -r .tmp/coverage_raw_files
+fi
 
 # Aggregating and saving results: coverage
 cov_results=$PROJECT_DIR/.tmp/coverage_results
