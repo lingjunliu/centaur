@@ -232,7 +232,7 @@ def merge_csvs(csv_1, csv_2, csv_3):
         for l_2 in lines_2:
             tokens_2 = l_2.strip().split(",")
             if tokens_1[0] == tokens_2[0]:
-                lines += l_1.strip() + "," + l_2.strip() + "\n"
+                lines += l_1.strip() + "," + ",".join(tokens_2[1:]) + "\n"
                 
     with open(csv_3, "w") as f:
         f.write(lines)
