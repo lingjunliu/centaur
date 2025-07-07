@@ -10,14 +10,15 @@ def main():
     elif lib == "tensorflow":
         lib = "tf"
         
-    supported_apis = read_file_in_root("torch_variations.txt")
+    supported_apis = read_file_in_root("torch_apis.txt")
+    supported_variations = read_file_in_root("torch_variations.txt")
 
     rule_to_api = {}
     api_to_rule = {}
     inv_dir = get_dir_in_root(f"invariants_{lib}")
     for file in os.listdir(inv_dir):
-        if file not in supported_apis:
-            print(f"Invariants learned for unsupported api {file}")
+        if file not in supported_variations:
+            print(f"Invariants learned for unsupported api variation {file}")
         file_path = os.path.join(inv_dir, file)
         if os.path.isfile(file_path):
             with open(file_path, "r") as f:
@@ -51,7 +52,7 @@ def main():
     for api in supported_apis:
         if api not in api_to_rule:
             if to_print:
-                print("The following api variations do not have invariants yet:")
+                print("The following apis do not have invariants yet:")
                 to_print = False
             print(f"{api}")
 
