@@ -1,5 +1,5 @@
 import os, sys
-from utils.misc import get_dir_in_root, get_tmp_dir, read_file_in_root, map_torch_to_driver
+from utils.misc import get_dir_in_root, get_tmp_dir, read_file_in_root
 
 def main():
     lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
@@ -10,14 +10,15 @@ def main():
     elif lib == "tensorflow":
         lib = "tf"
         
-    supported_apis = read_file_in_root("apis.txt")
+    supported_apis = read_file_in_root("torch_apis.txt")
+    supported_variations = read_file_in_root("torch_variations.txt")
 
     rule_to_api = {}
     api_to_rule = {}
     inv_dir = get_dir_in_root(f"invariants_{lib}")
     for file in os.listdir(inv_dir):
-        if file not in supported_apis:
-            print(f"Invariants learned for unsupported api {file}")
+        if file not in supported_variations:
+            print(f"Invariants learned for unsupported api variation {file}")
         file_path = os.path.join(inv_dir, file)
         if os.path.isfile(file_path):
             with open(file_path, "r") as f:
@@ -48,13 +49,12 @@ def main():
             f.write(f"{api},{len(rules)}\n")
 
     to_print = True
-    torch_to_driver, driver_to_torch = map_torch_to_driver()
     for api in supported_apis:
         if api not in api_to_rule:
             if to_print:
                 print("The following apis do not have invariants yet:")
                 to_print = False
-            print(f"{api}: {driver_to_torch[api]}")
+            print(f"{api}")
 
 if __name__ == "__main__":
     main()

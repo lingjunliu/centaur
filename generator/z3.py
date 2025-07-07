@@ -313,9 +313,12 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
     rules_to_keep = set()
     n_rules_original = len(ruleset)
     base_validity_ratio = 0.0
+    base_validity_ratio = 0.0
 
     for rule in [None] + list(ruleset):
+    for rule in [None] + list(ruleset):
         trial = 0
+        valid = 0
         valid = 0
         block_all = set()
 
@@ -334,6 +337,8 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
             solver.add(*sampled_blocks)
 
             if solver.check() != sat:
+                trial += 1
+                continue
                 trial += 1
                 continue
     

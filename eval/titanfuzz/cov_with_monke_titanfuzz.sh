@@ -34,7 +34,6 @@ APPLY_MONKE=${2:-1}
 RUN_MOD=${3:-1}
 COMPUTE_COV=${4:-1}
 
-conda_env_name=torch310 # conda environment name with instrumented torch
 DIR=${root_dir}/eval/titanfuzz/titanfuzz_inputs/Results_690_apis/torch/valid
 out_dir=${root_dir}/eval/titanfuzz/modified_inputs
 
@@ -102,13 +101,9 @@ if [ ${RUN_MOD} -eq 1 ]; then
     cd ${root_dir}
 fi
 
-# Activate conda environment for coverage computation
-deactivate
-conda init > /dev/null 2>&1
-eval "$(conda shell.bash hook)" > /dev/null 2>&1
-
 if [ ${COMPUTE_COV} -eq 1 ]; then
-    conda activate torch310
+    pip install ${root_dir}/instrumented_pytorch/torch-2.6.0*
+    
     libname=torch
     export TORCH_BUILD_DIR=$(pip show "$libname" | grep "Location:" | awk '{print $2}')/${libname}
     echo "Using ${libname} from ${TORCH_BUILD_DIR}"
@@ -134,9 +129,9 @@ if [ ${COMPUTE_COV} -eq 1 ]; then
             rm $api_out
         fi
     done
-
-    conda deactivate
 fi
+
+pip install torch==2.6.0
 
 echo "Results are saved in ${result_file}"
 

@@ -5,7 +5,7 @@ import psutil
 import time
 import re
 from bs4 import BeautifulSoup
-from .misc import get_tmp_dir, create_subdir
+from .misc import get_tmp_dir, create_subdir, get_dir_in_root
 from .process_lcov import analyze_lcov
 
 def monitor_memory(proc, limit=16000):
@@ -109,7 +109,7 @@ def extract_coverage_data(html_content):
 
     return coverage_data, total_coverage
 
-def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=False):
+def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=False, native_only=False):
     """
     Generate coverage data after running a command. To differentiate the generated profraw and profdata files from other
     parallel executions, provide a prefix for the file names. The default is "default".
@@ -212,25 +212,27 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     
     if len(return_obj.stderr.decode()) > 0:
         print(f"Error faced while running llvm-cov: {return_obj.stderr.decode()}")
-        
+
     if gen_html:
         print("Generating HTML coverage report...")
         try:
-            return_obj = subprocess.run(
-                [
-                    f"{llvm_prefix}llvm-cov",
-                    "show",
-                    f"-instr-profile={profdata_file}",
-                    "-format=html",
-                    "-show-branches=count",
-                    "-coverage-watermark=2,1",
-                    f"-output-dir={cov_dir}/{prefix}",
-                    "-object",
-                    LIB1,
-                    LIB2,
-                ],
-                capture_output=True,
-            )
+            cmd_html =  [
+                            f"{llvm_prefix}llvm-cov",
+                            "show",
+                            LIB1,
+                            f"-instr-profile={profdata_file}",
+                            "-format=html",
+                            "-show-branches=count",
+                            "-coverage-watermark=2,1",
+                            f"-output-dir={cov_dir}/{prefix}"
+                        ]
+            if native_only:                
+                instrumentation_dir = get_dir_in_root('instrumented_pytorch')
+                native_dir = f"{instrumentation_dir}/pytorch/aten/src/ATen/native/"
+                cmd_html.append(native_dir)
+                print(f"Filtering to only the native folder at {native_dir}")
+
+            return_obj = subprocess.run(cmd_html, capture_output=True)
         except subprocess.CalledProcessError as err:
             raise Exception(f"Could not generate html data. Error Code {err.returncode}: {err}")
         except KeyboardInterrupt:
@@ -274,7 +276,7 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     
     return return_code, lcov_data
 
-def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=False, save_lcov=False):
+def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=False, save_lcov=False, native_only=False):
     """
     Generate # of branches and # of lines covered in Pytorch after running a command.
     To differentiate the generated profraw and profdata files from other
@@ -285,7 +287,7 @@ def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files.
     It will return the num_branches, num_lines, return_code of executing cmd_line and a dict containing detailed information.
     """
-    return_code, lcov_data = gen_cov_torch(cmd_line, prefix=prefix, capture_output=capture_output, gen_html=gen_html)
+    return_code, lcov_data = gen_cov_torch(cmd_line, prefix=prefix, capture_output=capture_output, gen_html=gen_html, native_only=native_only)
 
     cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
     if save_lcov:

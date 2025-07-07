@@ -40,7 +40,7 @@ stat_tests <- function(data1, data2, suffix) {
   cat(sprintf("\\newcommand{\\tTestPvalue%s}{%.3g} %% %s | significant < 0.05 < insignificant\n", suffix, tTestPvalue$p.value, tTestPvalue$p.value))
   
   cat(sprintf("\\newcommand{\\cohensDvalue%s}{%.2f} %% %s | small: 0.2 | medium: 0.5 | large: 0.8\n", suffix, cohensDvalue, cohensDvalue))
-  cat("\n---------------------------------\n")
+  cat("\n%---------------------------------\n")
 }
 
 

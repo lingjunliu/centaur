@@ -5,16 +5,6 @@ if ! command -v python3.12 &> /dev/null; then
     echo "Error: python3.12 is not installed. Please install it before running this script."
     exit 1
 fi
-python3.12 -m venv venv
-source venv/bin/activate
-pip install -r $PROJECT_DIR/requirements.txt
-# Install instrumented pytorch
-if [ ! -f /tmp/foo.txt ]; then  # Download only if not already downloaded
-    pip install gdown
-    gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/
-fi
-pip install $PROJECT_DIR/instrumented_pytorch/torch-*
-
 # Test coverage filtering
 
 rm mm.profraw > /dev/null 2>&1
@@ -51,6 +41,3 @@ ${bindir}/llvm-cov export -instr-profile=mm.profdata -format=lcov -object $LIB1 
 
 # check which files were covered
 grep "SF:" mm.lcov | sort | uniq | wc -l
-
-# Restore environment
-pip install -r $PROJECT_DIR/requirements.txt
