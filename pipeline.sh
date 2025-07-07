@@ -13,8 +13,8 @@ export max_memory_usage=90      # Maximum memory usage in percentage (set this b
 # Step 1: Infer invariants: <duration> <regen> <library>
 bash scripts/infer_invariants_with_slurm.sh 600 1 $lib
 # Step 2: Generate models: <duration> <n_models> <library> <seed> <regen>
-bash scripts/generate_models_with_slurm.sh 3600 1000 $lib $seed 1
+bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 1
 # Step 3: Fuzz with the generated models: <duration> <n_inputs> <library> <seed>
-bash scripts/fuzz_with_slurm.sh 3600 500 $lib $seed
+bash scripts/fuzz_with_slurm.sh 180 0 $lib $seed
 # Step 4: Collect coverage: <n_inputs>
-bash scripts/coverage_with_slurm.sh 500
+bash scripts/coverage_with_slurm.sh -1
