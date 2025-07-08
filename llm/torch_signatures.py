@@ -1865,7 +1865,7 @@ signatures["torch.conj"] = {
     "kwargs": {},
     "inner": {},
 }
-signatures["torch.nn.functional.conv_transpose2d"] = {
+signatures["torch.nn.functional.conv_transpose2d_1"] = {
     "args": {
         "input": "tensor",
         "weight": "tensor",
@@ -4842,30 +4842,6 @@ signatures["torch.std_2"] = {
     },
     "inner": {},
 }
-signatures["torch.std_3"] = {
-    "args": {
-        "input": "tensor"
-    },
-    "kwargs": {
-        "dim": "list", # Should it be list[int]?
-        "correction": "integer",
-        "keepdim": "boolean",
-        "out": "tensor"
-    },
-    "inner": {},
-}
-signatures["torch.std_4"] = {
-    "args": {
-        "input": "tensor"
-    },
-    "kwargs": {
-        "dim": None,
-        "correction": "integer",
-        "keepdim": "boolean",
-        "out": "tensor"
-    },
-    "inner": {},
-}
 signatures["torch.std_mean_1"] = {
     "args": {
         "input": "tensor"
@@ -5224,30 +5200,6 @@ signatures["torch.var_2"] = {
     },
     "kwargs": {
         "dim": "tuple",
-        "correction": "integer",
-        "keepdim": "boolean",
-        "out": "tensor"
-    },
-    "inner": {},
-}
-signatures["torch.var_3"] = {
-    "args": {
-        "input": "tensor"
-    },
-    "kwargs": {
-        "dim": "list",
-        "correction": "integer",
-        "keepdim": "boolean",
-        "out": "tensor"
-    },
-    "inner": {},
-}
-signatures["torch.var_4"] = {
-    "args": {
-        "input": "tensor"
-    },
-    "kwargs": {
-        "dim": None, #Should this be a special "None" type?
         "correction": "integer",
         "keepdim": "boolean",
         "out": "tensor"
