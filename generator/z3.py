@@ -316,7 +316,6 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
     base_validity_ratio = 0.0
 
     for rule in [None] + list(ruleset):
-    for rule in [None] + list(ruleset):
         trial = 0
         valid = 0
         valid = 0
