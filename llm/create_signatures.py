@@ -1,36 +1,117 @@
 from google import genai
 import os, time
 from llm.create_driver import fetch_documentation, extract_code_from_response, extract_function_info
+from llm.tf_signatures import signatures as tf_signatures
+from llm.torch_signatures import signatures as torch_signatures
 from utils.misc import read_file_in_root
+from utils.new_api_utils import get_doc_tf
+import sys
+import logging
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+logger = logging.getLogger(__name__)
 
-def get_api_basename(torch_api):
-    api = None
-    with open(f"{CUR_DIR}/supported.csv", "r") as f:
-        for line in f.readlines():
-            tokens = line.strip().split(",")
-            if tokens[1] == torch_api:
-                api = tokens[0]
-                break
-    return api
+def get_prompt(api, lib="torch"):
+    examples = {
+        "torch": """
+```python
+signatures["torch.scatter_add"] = {
+    "args": {
+        "input": "tensor",
+        "dim": "integer",
+        "index": "tensor",
+        "src": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.add"] = {
+    "args": {
+        "input": "tensor",
+        "other": "tensor"
+    },
+    "kwargs": {
+        "alpha": "float",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.nn.ReflectionPad1d_1"] = {
+    "args": {
+        "padding": "integer"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "other": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.ReflectionPad1d_2"] = {
+    "args": {
+        "padding": "tuple"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "other": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+```
+""",
+        "tf": """
+```python
+signatures["tf.abs"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.signal.rfft"] = {
+    "args": {
+        "input_tensor": "tensor"
+    },
+    "kwargs": {
+        "fft_length": "integer", # Tensor of type int32 and shape [1] is an integer
+        "name": "string"
+    },
+    "inner": {}
+}
+```
+"""
+    }
 
-def get_prompt(api):
-    doc = extract_function_info(fetch_documentation(api), api)
+    if lib == "torch":
+        doc = extract_function_info(fetch_documentation(api), api)
+    else:
+        doc = get_doc_tf(api)
+        
     prefix = f'This is the documentation for the function {api}:\n\n"{doc.encode('ascii', errors='ignore').decode()}"\n\n' if doc else ""
-    callables = f'This api likely returns a function, look for the parameters that can be passed to the function returned by this api. Hint: very often this information can be found under the "Shape:" section of the documentation.' if api.split('.')[-1][0].isupper() else 'This api likely does not return a function, check if that is true. If so, `inner` should be empty. Otherwise add the signature for the inner call.'
+    if lib == "torch":
+        callables = f'This api likely returns a function, look for the parameters that can be passed to the function returned by this api. Hint: very often this information can be found under the "Shape:" section of the documentation.' if api.split('.')[-1][0].isupper() else 'This api likely does not return a function, check if that is true. If so, `inner` should be empty. Otherwise add the signature for the inner call.'
+    elif lib == "tf":
+        callables = ""
     with open(f"{CUR_DIR}/prompt_signature_gen.md", "r", encoding="utf-8") as file:
         prompt = file.read()
         prompt = prompt.replace("{api}", api)
         prompt = prompt.replace("{callables}", callables)
+        prompt = prompt.replace("{examples}", examples[lib])
     return prefix + prompt
 
-def save_sig(sig):
-    filepath = f"{CUR_DIR}/signatures.py"
+def save_sig(sig, lib):
+    filepath = f"{CUR_DIR}/{lib}_signatures.py"
     with open(filepath, 'a') as f:
         f.write(sig + '\n')
 
-def generate_signatures(api):
+def generate_signatures(api, lib="torch"):
     model = "gemini-2.0-flash"
     gemini_key = os.getenv("gemini_key")
 
@@ -38,21 +119,45 @@ def generate_signatures(api):
     time.sleep(6)
     client = genai.Client(api_key=gemini_key)
     chat = client.chats.create(model=model)
-    response = chat.send_message(get_prompt(api))
+    try:
+        prompt = get_prompt(api, lib=lib)
+    except Exception as e:
+        print(f"\nGenerating prompt for {api} faced exception.\n{e.__class__.__name__}: {str(e)}\n")
+        with open(f"{CUR_DIR}/failed_sig_{lib}.txt", "a") as f:
+            f.write(f"{api}\n")
+        return
+    logger.info(f"[Prompt]\n\n{prompt}")
+    response = chat.send_message(prompt)
+    logger.info(f"[Response]\n\n{response.text}")
     sig = extract_code_from_response(response.text)
     print(f"Got response from Gemini API:\n{sig}")
     if sig is not None:
-        save_sig(sig)
+        save_sig(sig, lib=lib)
     else:
-        with open(f"{CUR_DIR}/needs_sig.txt", "a") as f:
+        with open(f"{CUR_DIR}/needs_sig_{lib}.txt", "a") as f:
             f.write(f"{api}\n")
 
 def main():
-    torch_apis = read_file_in_root("torch_apis.txt")
-    
-    for torch_api in torch_apis:
-        print(f"\nGenerating valid signatures for {torch_api}...\n")
-        generate_signatures(torch_api)
+    lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
+
+    logfile = f"{CUR_DIR}/signature_creation_{lib}.log"
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,                                     # Minimum log level
+        format='%(message)s',                                   # Log format
+        filename=logfile,                                       # Log file path
+        filemode="w"                                            # Append/Write mode
+    )
+
+    apis = read_file_in_root(f"{lib}_apis.txt")
+    signatures = torch_signatures if lib == "torch" else tf_signatures
+
+    for api in apis:
+        if api in signatures:
+            print(f"Signature exists for {api}. Skipping...")
+            continue
+        print(f"\nGenerating valid signatures for {api}...\n")
+        generate_signatures(api, lib=lib)
         
 if __name__ == "__main__":
     main()

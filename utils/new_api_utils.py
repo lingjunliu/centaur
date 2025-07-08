@@ -1,5 +1,6 @@
 import torch, importlib, os, json
 import numpy as np
+import inspect
 
 from utils.misc import map_torch_to_driver, read_file_in_root, save_file_in_root
 
@@ -184,6 +185,9 @@ def get_signature_of_input(api, input_dict, lib="torch"):
 def get_func(api, lib="torch"):
     api = get_lib_version(api, lib=lib)
 
+    if lib == "tf" and api.startswith("tf."):
+        api = api.replace("tf.", "tensorflow.")
+
     # Split module path and function name
     module_path, func_name = api.rsplit('.', 1)
 
@@ -347,6 +351,11 @@ def main():
     save_file_in_root("torch_variations.txt", variations)
     if len(problematic_apis) > 0:
         save_file_in_root("problematic_apis.txt", "\n".join(problematic_apis))
+
+def get_doc_tf(api):
+    func = get_func(api, lib="tf")
+    signature = f"{api}{str(inspect.signature(func))}"
+    return signature + '\n' + func.__doc__ if func else None
 
 if __name__ == "__main__":
     main()

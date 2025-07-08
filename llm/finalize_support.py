@@ -1,5 +1,5 @@
 import os, shutil, json
-from llm.signatures import signatures
+from llm.torch_signatures import signatures
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
