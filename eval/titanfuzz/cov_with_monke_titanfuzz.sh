@@ -29,15 +29,15 @@ wait_for_slurm(){
 
 ##################################################################################
 
-MAX_INPUTS=${1:-0}
-APPLY_MONKE=${2:-1}
-RUN_MOD=${3:-1}
-COMPUTE_COV=${4:-1}
+DIR=${1:-$root_dir/eval/titanfuzz/titanfuzz_inputs/Results_180s_1/torch/valid} # Default directory for inputs
+MAX_INPUTS=${2:-0}
+APPLY_MONKE=${3:-1}
+RUN_MOD=${4:-1}
+COMPUTE_COV=${5:-1}
 
-DIR=${root_dir}/eval/titanfuzz/titanfuzz_inputs/Results_180s_1/torch/valid
 out_dir=${root_dir}/eval/titanfuzz/modified_inputs
 
-apisFile=${root_dir}/apis.txt
+apisFile=${root_dir}/torch_apis.txt
 declare -a apis
 apis=(`cat "$apisFile"`)
 

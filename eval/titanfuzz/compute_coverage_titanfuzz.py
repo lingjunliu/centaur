@@ -33,17 +33,16 @@ def main():
     if len(sys.argv) > 4:
         limit = int(sys.argv[4])
 
-    torch_to_driver, driver_to_torch = map_torch_to_driver()
-    torch_api = driver_to_torch[api]
-    dir = f"{dir}/{torch_api}"
+    dir = f"{dir}/{api}"
     n_inputs = retain_limited_files(dir, retain_count=limit, ext='.pkl')
 
     if n_inputs == 0:
-        print(f"No input files were generated for {torch_api}")
+        print(f"No input files were generated for {api}")
         return
     
     print(f"{dir}/driver.py")
-    num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python {dir}/driver.py {dir}", prefix=api, capture_output=True)
+    prefix = api.replace(".", "_")
+    num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python {dir}/driver.py {dir}", prefix=prefix, capture_output=True)
 
     if return_code != 0:
         print(f"ERROR: Execution for {api} failed and returned {return_code}")
