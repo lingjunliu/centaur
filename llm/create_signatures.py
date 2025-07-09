@@ -126,9 +126,9 @@ def generate_signatures(api, lib="torch"):
         with open(f"{CUR_DIR}/failed_sig_{lib}.txt", "a") as f:
             f.write(f"{api}\n")
         return
-    logger.info(f"[Prompt]\n\n{prompt}")
+    logger.info(f"[Prompt]\n\n{prompt}\n\n")
     response = chat.send_message(prompt)
-    logger.info(f"[Response]\n\n{response.text}")
+    logger.info(f"[Response]\n\n{response.text}\n\n")
     sig = extract_code_from_response(response.text)
     print(f"Got response from Gemini API:\n{sig}")
     if sig is not None:
@@ -146,7 +146,7 @@ def main():
         level=logging.INFO,                                     # Minimum log level
         format='%(message)s',                                   # Log format
         filename=logfile,                                       # Log file path
-        filemode="w"                                            # Append/Write mode
+        filemode="a"                                            # Append/Write mode
     )
 
     apis = read_file_in_root(f"{lib}_apis.txt")
