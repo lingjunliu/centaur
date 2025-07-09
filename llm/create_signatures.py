@@ -4,7 +4,7 @@ from llm.create_driver import fetch_documentation, extract_code_from_response, e
 from llm.tf_signatures import signatures as tf_signatures
 from llm.torch_signatures import signatures as torch_signatures
 from utils.misc import read_file_in_root
-from utils.new_api_utils import get_doc_tf
+from utils.new_api_utils import get_doc_tf, get_api_suffix
 import sys
 import logging
 
@@ -152,8 +152,13 @@ def main():
     apis = read_file_in_root(f"{lib}_apis.txt")
     signatures = torch_signatures if lib == "torch" else tf_signatures
 
+    completed = set()
+    for variation in signatures.keys():
+        api, suffix = get_api_suffix(variation)
+        completed.add(api)
+
     for api in apis:
-        if api in signatures:
+        if api in completed:
             print(f"Signature exists for {api}. Skipping...")
             continue
         print(f"\nGenerating valid signatures for {api}...\n")
