@@ -1,0 +1,153 @@
+>>
+Rule 1 (input tensors must have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (output tensor must have the same dtype as input tensors if provided)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ null then dtype_(v_1) = dtype_(v_3) ∧ dtype_(v_2) = dtype_(v_3)
+>>
+Rule 4 (If input is 1D and other is 2D, input size must match other's first dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 5 (If input is 2D and other is 1D, other size must match input's second dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 6 (check size alignment when both tensors are 2D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 7 (Batch dimensions must be broadcastable, checking a specific case)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 ∧ ndim(v_2) = 3 then shape(v_1, 0) = shape(v_2, 0) ∨ shape(v_1, 0) = 1 ∨ shape(v_2, 0) = 1
+>>
+Rule 8 (shape must be positive)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 9 (input/other cannot be empty tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 18 (When one of the tensor dimension is 0, the number of dimensions should be greater than 0)
+{v_1 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then ndim(v_1) > 0
+>>
+Rule 19 (If a dimension is 0, then all batch dimensions must be 1 or the corresponding dimension in the other tensor must be 0)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 3] : shape(v_1, i) = 0 then ∀j ∈ [0, ndim(v_2) - 3] : shape(v_1, j) = 1 ∨ shape(v_2, j) = 0
+>>
+Rule 21 (The last dimension of tensor v1 should be equal to the second to last dimension of v2 in batched matmul.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 22 (if one tensor is 1D and the other is N-D (N>2) the 1D tensor's size should match the N-D tensors N-2 dimension size.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) > 2 then shape(v_1, 0) = shape(v_2, ndim(v_2) - 2) else if ndim(v_2) = 1 ∧ ndim(v_1) > 2 then shape(v_2, 0) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 23 (if both tensors are 1D, then their sizes must match.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 24 (If a dimension is 0, then all batch dimensions must be 1 or the corresponding dimension in the other tensor must be 0)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 then (ndim(v_1) = 1 ∨ ndim(v_2) = 1) ∨ (∀j ∈ [0, ndim(v_1) - 2] : shape(v_1, j) = 1 ∨ shape(v_2, j) = 0)
+>>
+Rule 25 (The last dimension of tensor v1 should be equal to the second to last dimension of v2 in batched matmul.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, ndim(v_1) - 1) = shape(v_2, ndim(v_2) - 2)
+>>
+Rule 26 (if one tensor is 1D and the other is N-D (N>2) the 1D tensor's size should match the N-D tensors N-2 dimension size.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) > 1 then shape(v_1, 0) = shape(v_2, ndim(v_2) - 2) else if ndim(v_2) = 1 ∧ ndim(v_1) > 1 then shape(v_2, 0) = shape(v_1, ndim(v_1) - 2)
+>>
+Rule 28 (Ensure dtypes are not half and float, must be the same)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 then dtype_(v_2) = 6
+>>
+Rule 34 (If out is provided, its dtype should match the input dtype)
+{v_1 : tensor, v_3 : tensor} |= if v_3 ≠ null then dtype_(v_1) = dtype_(v_3)
+>>
+Rule 39 (check that the output shape corresponds to the input shapes for batched matmul)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ null then (ndim(v_1) > 2 ∧ ndim(v_2) > 2) ∧ (shape(v_1, 0) = shape(v_3, 0))
+>>
+Rule 40 (Ensure that non-matrix dimensions are broadcastable if ndim > 2 for both)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 2 ∧ ndim(v_2) > 2 then (ndim(v_1) = ndim(v_2)) ∧ (∀i ∈ [0, ndim(v_1) - 2] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 41 (If out is provided, check that the number of dimensions matches what is expected based on the inputs)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ null then (ndim(v_1) = 2 ∧ ndim(v_2) = 2) ∧ (ndim(v_3) = 2)
+>>
+Rule 44 (check that the output shape corresponds to the input shapes for batched matmul)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ null then (ndim(v_1) > 2 ∧ ndim(v_2) > 2) ∧ (shape(v_1, 0) = shape(v_3, 0) ∨ shape(v_2, 0) = shape(v_3, 0))
+>>
+Rule 50 (if the last dimension of a is 11 and the first dimension of b is 50, it's an error.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 0 ∧ ndim(v_2) > 0 then if (ndim(v_1) > 1 ∧ ndim(v_2) > 1) then (shape(v_1, ndim(v_1)-1) ≠ 11 ∨ shape(v_2, 0) ≠ 50)
+>>
+Rule 51 ( if the out tensor is defined, then shape must match with the result of v1*v2)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ null then shape(v_1, 0) * shape(v_2, 1) = shape(v_3,0)
+>>
+Rule 52 ( If one of the input tensors is half, then the other one should also be half.)
+{v_1: tensor, v_2:tensor} |= if (dtype_(v_1) = 6) then (dtype_(v_2) = 6) else if (dtype_(v_2) = 6) then (dtype_(v_1) = 6)
+>>
+Rule 57 ( the dtypes should be the same between two tensors when doing dot product)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 59 ( if the out tensor is defined, then ndim should match the calculated result's ndim)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 ≠ null then if (ndim(v_1) = 1 ∧ ndim(v_2) = 2) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 1) then ndim(v_3) = 1 else if (ndim(v_1) = 2 ∧ ndim(v_2) = 2) then ndim(v_3) = 2 else ndim(v_3) > 0
+>>
+Rule 61 ( mat1 and mat2 shapes cannot be multiplied (1x0 and 4x5), shape[1] of mat1 must be > 0.)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) > 0
+>>
+Rule 62 ( mat1 and mat2 shapes cannot be multiplied (1x0 and 4x5), shape[0] of mat2 must be > 0.)
+{v_2: tensor} |= if ndim(v_2) = 2 then shape(v_2, 0) > 0
+>>
+Rule 66 ( If one of the input tensors is half, then the other one should also be half. - Alternative implementation.)
+{v_1: tensor, v_2:tensor} |= (dtype_(v_1) = 6) = (dtype_(v_2) = 6)
+>>
+Rule 71 (Check for matmul (1x0 and 4x5) error - shape of first tensor must be > 0 if first tensor has ndim >= 2)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, 0) > 0
+>>
+Rule 72 (Check for matmul (1x0 and 4x5) error - shape of second tensor must be > 0 if second tensor has ndim >= 2)
+{v_2 : tensor} |= if ndim(v_2) >= 2 then shape(v_2, 1) > 0
+>>
+Rule 75 (Check for matmul (1x0 and 4x5) error - shape of first tensor must be > 0 if first tensor has ndim >= 2)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, 1) > 0
+>>
+Rule 76 (Check for matmul (1x0 and 4x5) error - shape of second tensor must be > 0 if second tensor has ndim >= 2)
+{v_2 : tensor} |= if ndim(v_2) >= 2 then shape(v_2, 0) > 0
+>>
+Rule 79 (Check for matmul (1x0 and 4x5) error - shape of first tensor must be > 0 if first tensor has ndim >= 2)
+{v_1 : tensor} |= if ndim(v_1) >= 2 then shape(v_1, ndim(v_1)-2) > 0
+>>
+Rule 81 ( if there is a size mismatch error, then the size of vector a (11) must match the size of tensor b (50) at non-singleton dimension 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 82 (If one tensor is Half, the other should be Half to avoid expected scalar type Half but found Float)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 6) = (dtype_(v_2) = 6)
+>>
+Rule 86 (if the last dimension of a does not match the first dimension of b, suppress The size of tensor a (11) must match the size of tensor b (50) at non-singleton dimension 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 0 then shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 88 (if there is a size mismatch error, then the size of vector a (11) must match the size of tensor b (50) at non-singleton dimension 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 0 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 91 (Shape of 1st matrix should be positive.)
+{v_1 : tensor} |= ndim(v_1) < 2 ∨ shape(v_1, 0) > 0
+>>
+Rule 92 (Shape of 2nd matrix should be positive.)
+{v_2 : tensor} |= ndim(v_2) < 2 ∨ shape(v_2, 1) > 0
+>>
+Rule 98 (Shape of 1st matrix should be positive if number of dimensions are equal to or greater than 2.)
+{v_1 : tensor} |= (ndim(v_1) < 2) ∨ (shape(v_1, ndim(v_1)-2) > 0)
+>>
+Rule 99 (Avoid dot : expected both vectors to have same dtype, but found Double and Float)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then (dtype_(v_1) = dtype_(v_2))
+>>
+Rule 100 (Ensure that dimensions are properly aligned)
+{v_1 : tensor, v_2 : tensor} |=  if (ndim(v_1) = 2) ∧ (ndim(v_2) = 1) then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 101 (Ensure that dimensions are properly aligned matrix x matrix case)
+{v_1: tensor, v_2: tensor} |=  if (ndim(v_1) = 2) ∧ (ndim(v_2) = 2) then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 102 (To avoid The size of tensor a (11) must match the size of tensor b (50) at non-singleton dimension 1, for matrix x vector case)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 0 then (ndim(v_1) = 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, 1) = shape(v_2, 0)) ∨ (ndim(v_1) = 2 ∧ ndim(v_2) = 2 ∧ shape(v_1, 1) = shape(v_2, 0))
+>>
+Rule 103 (if the last dimension of a does not match the first dimension of b, suppress The size of tensor a (11) must match the size of tensor b (50) at non-singleton dimension 1 - alternative implementation)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 0 then (shape(v_1, ndim(v_1) - 1)) = (shape(v_2, 0))
+>>
+Rule 105 (Avoid dot : expected both vectors to have same dtype, but found Double and Float)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (ndim(v_1) != 1) ∨ (ndim(v_2) != 1)
+>>
+Rule 109 (Avoid dot : expected both vectors to have same dtype, but found Double and Float)
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = dtype_(v_2)) ∨ (ndim(v_1) ≠ 1 ∧ ndim(v_2) ≠ 1)
+>>
+Rule 112 (if one of them is half, the other one should also be half - avoid "expected scalar type Half but found Float")
+{v_1: tensor, v_2: tensor} |= (dtype_(v_1) = 6) = (dtype_(v_2) = 6)
+>>
+Rule 117 (To avoid The size of tensor a (11) must match the size of tensor b (50) at non-singleton dimension 1, check the shapes only when the last dimension of a and the first dimension of b do not have sizes equal to 1)
+{v_1: tensor, v_2: tensor} |=  if (ndim(v_1) > 1) ∧ (ndim(v_2) > 0) then if (shape(v_1, ndim(v_1) - 1) != 1 ∧ shape(v_2, 0) != 1) then (shape(v_1, ndim(v_1) - 1)) = (shape(v_2, 0))

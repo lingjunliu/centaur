@@ -1,29 +1,61 @@
 from lark import Lark
 import os, re, time, random, json
 import google.generativeai as genai
+import torch, inspect, pkgutil, types, inspect
 from collections import defaultdict
 
 with open("grammar.lark", "r", encoding="utf-8") as f:
     grammar = f.read()
 parser = Lark(grammar)
 
-err_file = os.path.join(os.path.dirname(__file__), "err_messages")
-api_to_errors = defaultdict(list)
+def list_all_apis(signature_path="../signatures.json"):
+    def strip_suffix(api_name):
+        parts = api_name.split(".")
+        suffix_re = re.compile(r"^(.*?)(_\d+)?$")
+        last_part = parts[-1]
+        m = suffix_re.match(last_part)
+        base_last = m.group(1) if m else last_part
+        return ".".join(parts[:-1] + [base_last])
 
-with open(err_file, "r") as f:
-    content = f.read()
+    with open(signature_path, "r") as f:
+        signatures = json.load(f)
 
-blocks = [block.strip() for block in content.split(">>") if block.strip()]
-for block in blocks:
-    lines = block.splitlines()
-    if not lines:
-        continue
+    apis = list({strip_suffix(k) for k in signatures.keys()})
+    return apis 
+
+def load_api_errors():
+    err_file = os.path.join(os.path.dirname(__file__), "err_messages")
+    api_to_errors = defaultdict(list)
+
+    with open(err_file, "r") as f:
+        content = f.read()
+
+    blocks = [block.strip() for block in content.split(">>") if block.strip()]
+    for block in blocks:
+        lines = block.splitlines()
+        if not lines:
+            continue
+        try:
+            api, first_line = lines[0].split(", ", 1)
+            error_msg = "\n".join([first_line] + lines[1:])
+            api_to_errors[api].append(error_msg)
+        except ValueError:
+            continue
+
+    return api_to_errors
+
+api_list = list_all_apis()
+api_to_errors = load_api_errors()
+
+def get_doc_by_name(full_name):
+    parts = full_name.split('.')
     try:
-        api, first_line = lines[0].split(", ", 1)
-        error_msg = "\n".join([first_line] + lines[1:])
-        api_to_errors[api].append(error_msg)
-    except ValueError:
-        continue 
+        obj = __import__(parts[0])
+        for part in parts[1:]:
+            obj = getattr(obj, part)
+        return obj.__doc__ or ""
+    except Exception:
+        return ""
 
 def load_example_rules(path="examples", k=5):
     with open(path, "r") as f:
@@ -31,8 +63,9 @@ def load_example_rules(path="examples", k=5):
     examples = [(lines[i], lines[i + 1]) for i in range(0, len(lines), 2)]
     return random.sample(examples, min(k, len(examples)))
 
-def log_response(label, prompt, response, num_failures=0):
-    with open("log-rulegen", "a", encoding="utf-8") as log_file:
+def log_response(label, prompt, response, dir_path, num_failures=0):
+    log_path = os.path.join(dir_path, "log-rulegen")
+    with open(log_path, "a", encoding="utf-8") as log_file:
         log_file.write(">>> PROMPT\n")
         log_file.write(prompt.strip() + "\n\n")
         log_file.write("<<< RESPONSE\n")
@@ -43,19 +76,28 @@ def log_response(label, prompt, response, num_failures=0):
         else:
             log_file.write("\n\n")
 
-def generate_rules(lib="torch", timeout=1800, max_failures=30, max_rules=30000):
+def generate_rules(api, max_failures=100, timeout=60):
     num_failures = 0
     num_rules = 1
     rule_defs = set()
 
-    if os.path.exists("rules"):
-        with open("rules", "r") as f:
+    dir_path = os.path.join("../rules", api)
+    os.makedirs(dir_path, exist_ok=True)
+    file_path = os.path.join(dir_path, "rules-ebnf")
+
+    if os.path.exists(file_path):
+        with open(file_path, "r") as f:
             block = []
             for line in f:
-                if line.strip() == ">>":
+                line = line.strip()
+                if line == ">>":
                     block = []
                 else:
-                    block.append(line.strip())
+                    block.append(line)
+                    if len(block) == 1:
+                        match = re.match(r"Rule (\d+)", block[0])
+                        if match:
+                            num_rules = int(match.group(1)) + 1
                     if len(block) == 2:
                         rule_defs.add(block[1])
 
@@ -65,7 +107,7 @@ def generate_rules(lib="torch", timeout=1800, max_failures=30, max_rules=30000):
 
     feedback = ""
     base_time = time.time()
-    while time.time() - base_time < timeout and num_rules <= max_rules:
+    while num_failures < max_failures and time.time() - base_time < timeout:
         prompt = ""
         if feedback:
             prompt += f"[Feedback Message from Prior Run]\n{feedback}\n\n"
@@ -122,7 +164,15 @@ def generate_rules(lib="torch", timeout=1800, max_failures=30, max_rules=30000):
         # safe_error_msg = error_msg.replace('"', '\\"')
 
         prompt += "\n[Task Description]\n"
-        prompt += f"Define Rule {num_rules} that some API parameters in {lib} should satisfy.\n\n"
+        prompt += f"Define rules that {api} API parameters should satisfy. Refer to the API documentation. "
+        
+        errors = api_to_errors.get(api, [])
+        if errors:
+            prompt += "Particularly, there should be at least one rule to suppress each error message.\n\n"
+        else:
+            prompt += "\n\n"
+
+        # prompt += f"Define Rule {num_rules} that API parameters in {lib} should satisfy.\n\n"
         # prompt += f"Define Rule {num_rules} to suppress the following error message from {api} API in {lib}:\n"
         # prompt += f"\"{safe_error_msg}\"\n\n"
 
@@ -132,6 +182,17 @@ def generate_rules(lib="torch", timeout=1800, max_failures=30, max_rules=30000):
         prompt += "String value should be selected from the following list:\n"
         prompt += '["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", '
         prompt += '"mean", "sum", "max", "constant", "tanh"]\n\n'
+
+        doc_str = get_doc_by_name(api)
+        if doc_str:
+            prompt += "[API Documentation]\n"
+            prompt += doc_str.lstrip().rstrip() + "\n\n"
+
+        if errors:
+            prompt += "[Error Messages]\n"
+            for err_msg in errors:
+                prompt += err_msg + "\n"
+            prompt += "\n"
 
         prompt += "[Output Format]\n"
         prompt += "Rule {Number} ({Description})\\n{Rule Definition}\n"
@@ -152,81 +213,76 @@ def generate_rules(lib="torch", timeout=1800, max_failures=30, max_rules=30000):
         response = response.text.strip().replace('\u2212', '-').replace(' else true', '')
         lines = response.splitlines()
 
-        new_rule_def = None
-        new_rule = None
-        redundant_vars = []
+        feedback_messages = []
+        new_rules = []
+        pattern = re.compile(r"^Rule \d+ \(.+\)$")
 
-        for i in range(len(lines) - 1):
-            if re.match(r"^Rule \d+ \(.+\)$", lines[i].strip()):
-                header = re.sub(r'Rule\s+\d+', f'Rule {num_rules}', lines[i].strip())
-                new_rule_def = lines[i + 1].strip()
-                new_rule = f"{header}\n{new_rule_def}"
+        i = 0
+        while i < len(lines) - 1:
+            line = lines[i].strip()
+            if pattern.match(line):
+                header = re.sub(r'Rule\s+\d+', f'Rule {num_rules}', line)
+                rule_def = lines[i + 1].strip()
+                rule = f"{header}\n{rule_def}"
+                new_rules.append((rule_def, rule))
+                num_rules += 1
+                i += 2
+            else:
+                i += 1
 
-                bindings = re.search(r"\{([^}]+)\}", new_rule_def)
-                if bindings: 
-                    declared_vars = [v.strip().split(":")[0].strip() for v in bindings.group(1).split(",")]
-                else:
-                    declared_vars = []
-
-                rule_expr = new_rule_def.split("|=")
-                if len(rule_expr) > 1:
-                    rule_expr = rule_expr[1].strip()
-                else:
-                    rule_expr = ""
-
-                redundant_vars = [v for v in declared_vars if v not in rule_expr]
-                break
-
-        if new_rule_def is None:
-            feedback = "The output format was incorrect. Please follow the output format strictly."
+        if not new_rules:
             num_failures += 1
-            log_response("format error", prompt, response, num_failures)
-            if num_failures >= max_failures:
-                feedback = f"Failed {max_failures} times in a row. Try to generate a different rule." 
-                num_failures = 0
+            msg = "No valid rules detected. Please follow the expected output format for each rule."
+            feedback_messages.append(msg)
+            log_response("format error", prompt, response, dir_path, num_failures)
+            feedback = "\n".join(feedback_messages)
             continue
 
-        if redundant_vars:
-            feedback = f"All variables should appear in the expression. Redundant variables: {', '.join(redundant_vars)}"
-            num_failures += 1
-            log_response("redundant variables", prompt, response, num_failures)
-            if num_failures >= max_failures:
-                feedback = f"Failed {max_failures} times in a row. Try to generate a different rule." 
-                num_failures = 0
-            continue
+        for rule_def, rule_text in new_rules:
+            bindings = re.search(r"\{([^}]+)\}", rule_def)
+            if bindings:
+                declared_vars = [v.strip().split(":")[0].strip() for v in bindings.group(1).split(",")]
+            else:
+                declared_vars = []
 
-        if new_rule_def in rule_defs:
-            feedback = "This rule already exists. Please generate a more diverse and novel rule."
-            num_failures += 1
-            log_response("duplicated rule", prompt, response, num_failures)
-            if num_failures >= max_failures:
-                feedback = f"Failed {max_failures} times in a row. Try to generate a different rule." 
-                num_failures = 0
-            continue
+            rule_expr = rule_def.split("|=")
+            rule_expr = rule_expr[1].strip() if len(rule_expr) > 1 else ""
 
-        try:
-            parser.parse(new_rule_def)
-        except Exception as e:
-            feedback = f"The rule failed to parse with the grammar. Error: {str(e)}"
-            num_failures += 1
-            log_response("parsing error", prompt, response, num_failures)
-            if num_failures >= max_failures:
-                feedback = f"Failed {max_failures} times in a row. Try to generate a different rule." 
-                num_failures = 0
-            continue
-    
-        with open("rules", "a", encoding="utf-8") as f:
-            f.write(">>\n" + new_rule + "\n")
+            redundant_vars = [v for v in declared_vars if v not in rule_expr]
+            if redundant_vars:
+                msg = f"Redundant variables: {rule_def} (Unused: {', '.join(redundant_vars)})"
+                num_failures += 1
+                feedback_messages.append(msg)
+                log_response("redundant variables", prompt, rule_text, dir_path, num_failures)
+                continue
 
-        log_response("success", prompt, response)
-        rule_defs.add(new_rule_def)
-        num_rules += 1
-        num_failures = 0
-        # base_time = time.time()
-        feedback = "The previous rule generation was successful. But, try to avoid rules that are too similar."
+            if rule_def in rule_defs:
+                msg = f"Duplicated rule: {rule_def}"
+                num_failures += 1
+                feedback_messages.append(msg)
+                log_response("duplicated rule", prompt, rule_text, dir_path, num_failures)
+                continue
+
+            try:
+                parser.parse(rule_def)
+            except Exception as e:
+                msg = f"Parse error: {rule_def} (Error: {str(e)})"
+                num_failures += 1
+                feedback_messages.append(msg)
+                log_response("parsing error", prompt, rule_text, dir_path, num_failures)
+                continue
+
+            with open(file_path, "a", encoding="utf-8") as f:
+                f.write(">>\n" + rule_text + "\n")
+
+            log_response("success", prompt, rule_text, dir_path)
+            rule_defs.add(rule_def)
+
+        feedback = "\n".join(feedback_messages)
 
 def main():
-    generate_rules()
+    for api in api_list:
+        generate_rules(api)
 
 if __name__ == "__main__":
     main()

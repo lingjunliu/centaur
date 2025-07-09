@@ -37,6 +37,7 @@ The code is organized as follow:
  <h3> Slurm (all variants) </h3>
 
  To run invariant inference for all variants (variations of the apis from `torch_variations.txt` for PyTorch and `tf_variations.txt` for Tensorflow.), run the following. **Be sure to install and configure slurm before running this.**
+ 
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/infer_invariants_with_slurm.sh <duration> <regen> <lib>
  ```
@@ -53,6 +54,7 @@ The code is organized as follow:
  
  <h3> Without slurm (one variant) </h3>
  To run invariant inference for a single variant, run the following *(under the venv)*:
+
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ python -m learner.invariant_inference <variant> <time budget> <1 to regenerate invariants 0 otherwise>
  ```

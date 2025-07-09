@@ -1,0 +1,123 @@
+>>
+Rule 1 (input tensor and target tensor must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (reduction must be one of 'none', 'mean', or 'sum')
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+>>
+Rule 3 (input tensor cannot be a boolean tensor if negation is used)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 5 (Target tensor should only contain 1 or -1)
+{v_1 : tensor} |= (min(v_1) = -1) ∧ (max(v_1) = 1)
+>>
+Rule 7 (input tensor and target tensor must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 11 (input and target tensor should have float or integer dtype)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 9) ∧ (dtype_(v_2) ≥ 1 ∧ dtype_(v_2) ≤ 9)
+>>
+Rule 12 (input tensor and target tensor must have compatible data types to avoid casting issues)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 8 then dtype_(v_2) = 8 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 6
+>>
+Rule 13 (Input and target tensor must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 16 (If reduction is 'none', ensure output shape matches the broadcast shape of input and target)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 17 (input tensor and target tensor must have shapes that are broadcastable)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 18 (Target tensor should have dtype int8, int16, int32, int64, float16, float32 or float64.)
+{v_1 : tensor} |= (dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)
+>>
+Rule 19 (ensure that if the input tensor requires gradient, then the target tensor also needs to have a floating point dtype to support gradient calculation)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8
+>>
+Rule 20 (ensure the shape of the output is scalar if reduction is not 'none')
+{v_1 : tensor, v_2 : str} |= if v_2 ≠ "none" then ndim(v_1) = 0
+>>
+Rule 21 (If input and target have different shapes then reduction must be none)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ shape(v_2, i)) then v_3 = "none"
+>>
+Rule 23 (if the reduction is not none, input and target should have broadcastable shapes, or input must be a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 ≠ "none" then (ndim(v_1) = 0) ∨ (∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : ((i >= ndim(v_1) ∨ i >= ndim(v_2)) ∨ shape(v_1,i) = shape(v_2,i) ∨ shape(v_1,i) = 1 ∨ shape(v_2,i) = 1))
+>>
+Rule 24 (Target tensor should have dtype int8, int16, int32, int64, float16, float32 or float64 and values should be either 1 or -1.)
+{v_1 : tensor} |= ((dtype_(v_1) = 1) ∨ (dtype_(v_1) = 2) ∨ (dtype_(v_1) = 3) ∨ (dtype_(v_1) = 4) ∨ (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8)) ∧ ((min(v_1) = -1) ∧ (max(v_1) = 1))
+>>
+Rule 25 (If input tensor is of bool dtype, the target tensor should also be bool)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 0 then dtype_(v_2) = 0
+>>
+Rule 26 (if any of the shapes do not match or is not equal to one, and reduction is not none then it is an error.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : ((i < ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_1, i) ≠ shape(v_2, i) ∧ shape(v_1, i) ≠ 1 ∧ shape(v_2, i) ≠ 1) ∨ (i >= ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_2, i) ≠ 1) ∨ (i < ndim(v_1) ∧ i >= ndim(v_2) ∧ shape(v_1, i) ≠ 1))) then v_3 = "none"
+>>
+Rule 27 (If input and target have incompatible sizes, then the shape of the output should match one of the inputs to prevent broadcast errors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (∃i ∈ [0, ndim(v_1)-1] : (shape(v_1,i) = shape(v_3,i))) ∨ (∃i ∈ [0, ndim(v_2)-1] : (shape(v_2,i) = shape(v_3,i)))
+>>
+Rule 28 (If input tensor's dtype is not float, cast it to float)
+{v_1 : tensor} |= if dtype_(v_1) < 6 then false
+>>
+Rule 29 (Ensure that if the sizes of the input and target tensors don't match then use reduction none)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ shape(v_2, i) then v_3 = "none"
+>>
+Rule 30 (The target tensor must have values of only -1 or 1.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1,0)-1] : v_1[i] = 1 ∨ v_1[i] = -1
+>>
+Rule 31 (If input and target tensors do not have the same shape, the `reduction` parameter must be set to "none".)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) ≠ ndim(v_2)) ∨ (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ shape(v_2, i)) then v_3 = "none"
+>>
+Rule 32 (if the shapes do not align and the reduction is not set to 'none', the code should throw an error)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (ndim(v_1) ≠ ndim(v_2)) ∨ (∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1)-1 else ndim(v_2)-1] : (i < ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_1, i) ≠ shape(v_2, i) )) then v_3 = "none"
+>>
+Rule 33 (If the input tensor is bool then the reduction parameter must be none)
+{v_1 : tensor, v_2 : str} |= if dtype_(v_1) = 0 then v_2 = "none"
+>>
+Rule 35 (If target tensor contains other values then dtype should be float to prevent casting errors)
+{v_1 : tensor} |= if (∃i ∈ [0, shape(v_1,0)-1] : v_1[i] ≠ 1 ∧ v_1[i] ≠ -1) then (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 36 (If target tensor's dtype is bool, the values must be either true or false (1 or -1 represented as bool))
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (∃i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = true ∨ v_1[i] = false))
+>>
+Rule 39 (If the input tensor's shape does not broadcast with the target tensor and the reduction is not 'none', then this is an invalid combination)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2) - 1] : ((i < ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_1, i) ≠ shape(v_2, i) ∧ shape(v_1, i) ≠ 1 ∧ shape(v_2, i) ≠ 1) ∨ (i >= ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_2, i) ≠ 1) ∨ (i < ndim(v_1) ∧ i >= ndim(v_2) ∧ shape(v_1, i) ≠ 1))) then v_3 = "none"
+>>
+Rule 40 (If the input requires grad the target should be float)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (dtype_(v_2) = 6 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 42 (If the output shape does not match the broadcasted shape and the input shape, it should throw an error, so reduction is 'none')
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if (∀i ∈ [0, ndim(v_3)-1] : ((i < ndim(v_1) ∧ shape(v_3,i) = shape(v_1,i)) ∨ (i < ndim(v_2) ∧ shape(v_3,i) = shape(v_2,i)))) then true else v_4 = "none"
+>>
+Rule 43 (To prevent negation errors, when input tensor is boolean, ensure it will not be negated by having dtype bool)
+{v_1: tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 44 (If the sizes don't match for non-singleton dimensions, then `reduction` should be "none")
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if ∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)-1] : ((i < ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_1, i) ≠ shape(v_2, i) ∧ shape(v_1, i) ≠ 1 ∧ shape(v_2, i) ≠ 1) ∨ (i >= ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_2, i) ≠ 1) ∨ (i < ndim(v_1) ∧ i >= ndim(v_2) ∧ shape(v_1, i) ≠ 1)) then v_3 = "none"
+>>
+Rule 46 (To prevent negation errors on boolean tensors, input tensor must have a floating point or integer dtype)
+{v_1: tensor} |= dtype_(v_1) > 0
+>>
+Rule 47 (if reduction is specified, then the output shape must be scalar)
+{v_1: tensor, v_2 : str} |= if v_2 = "none" then true else ndim(v_1) = 0
+>>
+Rule 48 (To ensure there are no type errors, if reduction is "none" then the dtypes must be the same)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if v_3 = "none" then dtype_(v_1) = dtype_(v_2)
+>>
+Rule 49 (If the output shape does not match the expected shape given input and target, and the reduction is not "none", throw error)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4: str} |= if (∀i ∈ [0, ndim(v_3)-1] : ( (i < ndim(v_1) ∧ shape(v_3, i) = shape(v_1, i)) ∨ (i < ndim(v_2) ∧ shape(v_3, i) = shape(v_2, i)) ∨ shape(v_3, i) = 1)) then true else v_4 = "none"
+>>
+Rule 50 (To avoid char casting issues when using SoftMarginLoss, the input tensor's dtype should be float)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 51 (If shapes do not match and broadcasting is not possible, then the reduction should be none)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if (∃i ∈ [0, if ndim(v_1) > ndim(v_2) then ndim(v_1) else ndim(v_2)-1] : ((i < ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_1, i) ≠ shape(v_2, i) ∧ shape(v_1, i) ≠ 1 ∧ shape(v_2, i) ≠ 1) ∨ (i >= ndim(v_1) ∧ i < ndim(v_2) ∧ shape(v_2, i) ≠ 1) ∨ (i < ndim(v_1) ∧ i >= ndim(v_2) ∧ shape(v_1, i) ≠ 1))) then v_3 = "none"
+>>
+Rule 52 (if the shapes cannot broadcast together, then the output shape must match one of the inputs when reduction is mean or sum, otherwise the output cannot be determined.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= if (∀i ∈ [0, ndim(v_3)-1] : ((i < ndim(v_1) ∧ shape(v_3, i) = shape(v_1, i)) ∨ (i < ndim(v_2) ∧ shape(v_3, i) = shape(v_2, i)))) then true else v_4 = "none"
+>>
+Rule 53 (If input requires grad, then target must have a floating-point dtype)
+{v_1 : tensor, v_2: tensor} |= if dtype_(v_1) > 5 then dtype_(v_2) > 5
+>>
+Rule 56 (The output tensor has dimension 0, or output's shape must match one of the inputs in dimension and size, or output shape matches broadcasting if reduction is none)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : str} |= (ndim(v_3) = 0) ∨ (∀i ∈ [0, ndim(v_3)-1] : ((i < ndim(v_1) ∧ shape(v_3, i) = shape(v_1, i)) ∨ (i < ndim(v_2) ∧ shape(v_3, i) = shape(v_2, i)) ∨ ((i<ndim(v_1) ∧ i < ndim(v_2) ∧ (shape(v_1, i)=1 ∨ shape(v_2,i) = 1)) ∧ v_4 = "none")))

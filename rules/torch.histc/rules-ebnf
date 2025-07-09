@@ -1,0 +1,99 @@
+>>
+Rule 1 (bins must be greater than 0)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 2 (max must be larger than min)
+{v_1 : float, v_2 : float} |= v_2 > v_1
+>>
+Rule 3 (input tensor should not have complex dtype (10, 11))
+{v_1 : tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 4 (min and max cannot be infinite when they are specified.)
+{v_1 : float, v_2 : float} |= v_1 ≠ "+inf" ∧ v_1 ≠ "-inf" ∧ v_2 ≠ "+inf" ∧ v_2 ≠ "-inf"
+>>
+Rule 5 (input tensor must not be empty, prevent allocating too much memory)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1000000
+>>
+Rule 7 (input tensor and output tensor should have same dtype.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 8 (input tensor must not be too large to avoid storage size overflow - simplified)
+{v_1 : tensor} |= shape(v_1, 0) < 2048 ∧ shape(v_1, 1) < 2048 ∧ shape(v_1, 2) < 2048
+>>
+Rule 10 (bins should be small enough to prevent memory allocation errors.)
+{v_1: int} |= v_1 < 10000
+>>
+Rule 11 (min should be less than max)
+{v_1: float, v_2: float} |= v_1 < v_2
+>>
+Rule 12 (input tensor must not be too large - more refined)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000
+>>
+Rule 13 (bins should be small enough to prevent memory allocation errors and positive.)
+{v_1: int} |= v_1 < 10000 ∧ v_1 > 0
+>>
+Rule 15 (input dtype must not be complex)
+{v_1: tensor} |= dtype_(v_1) ≠ 10 ∧ dtype_(v_1) ≠ 11
+>>
+Rule 16 (Check if product of all dimensions is less than max int to prevent overflow)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2147483647
+>>
+Rule 17 (input tensor must not be too large - more refined and considers dimension being 0)
+{v_1 : tensor} |= (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000) ∨ (shape(v_1, 0)=0) ∨ (shape(v_1, 1)=0) ∨ (shape(v_1, 2)=0)
+>>
+Rule 19 (Ensure max-min doesn't overflow, handles large values)
+{v_1: float, v_2: float} |= (v_2 - v_1) < 1e10
+>>
+Rule 21 (Check if product of all dimensions is less than max int to prevent overflow - considering only cases when all dimensions > 0)
+{v_1 : tensor} |= if (shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0) then (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2147483647)
+>>
+Rule 22 (input tensor must not be too large - considering dimension being 0 or 1)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 then shape(v_1, 0) * shape(v_1, 1) < 2000000
+>>
+Rule 23 (bins should be positive)
+{v_1: int} |= v_1 > 0
+>>
+Rule 24 (Ensure max-min doesn't overflow, handles large values, considering inf)
+{v_1: float, v_2: float} |= if (v_1 = "+inf") ∨ (v_1 = "-inf") ∨ (v_2 = "+inf") ∨ (v_2 = "-inf") then true else (v_2 - v_1) < 1e10
+>>
+Rule 26 (Check that the tensor isn't too big to handle, prevent OOM)
+{v_1: tensor} |= shape(v_1, 0) < 100000000
+>>
+Rule 27 (input tensor must not be too large - considering dimension being 0 or 1, prevents alloc error)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if shape(v_1,0) > 0 ∧ shape(v_1,1) > 0 then shape(v_1, 0) * shape(v_1, 1) < 2000000 else if shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) > 0 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000
+>>
+Rule 29 (Ensure max is greater than min, prevents error)
+{v_1: float, v_2: float} |= v_2 > v_1
+>>
+Rule 30 (Check that the tensor isn't too big to handle, prevent OOM. Refines previous.)
+{v_1: tensor} |= if ndim(v_1) = 0 then true else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000000
+>>
+Rule 31 (input tensor must not be too large - prevents alloc error. Checks for ndim.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000 else if ndim(v_1) >= 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000
+>>
+Rule 32 (bins should be positive integer and reasonable)
+{v_1: int} |= v_1 > 0 ∧ v_1 < 5000
+>>
+Rule 36 (input tensor must not be too large - prevents alloc error. Checks for ndim, combines checks.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000 else if ndim(v_1) >= 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000000
+>>
+Rule 40 (input tensor must not be too large - prevents alloc error. Checks for ndim, combines checks. And ensure it's not inf or nan)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000 else if ndim(v_1) >= 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 100000000 ∧ min(v_1) ≠ "+inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "+inf" ∧ max(v_1) ≠ "-inf" ∧ min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+>>
+Rule 44 (input tensor prevents alloc error. Checks for ndim, combines checks, inf, nan, and reasonable sizes)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000 else if ndim(v_1) >= 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000000 ∧ min(v_1) ≠ "+inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "+inf" ∧ max(v_1) ≠ "-inf" ∧ min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+>>
+Rule 49 (Valid Arguments: bins must be a valid positive integer and min < max, with no complex dtype)
+{v_1 : int, v_2 : float, v_3 : float, v_4: tensor} |= v_1 > 0 ∧ v_1 < 5000 ∧ v_3 > v_2 ∧ dtype_(v_4) ≠ 10 ∧ dtype_(v_4) ≠ 11
+>>
+Rule 52 (input tensor prevents alloc/OOM/inf/nan/reasonable sizes. Avoid duplicate by making min/max finite.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000 else if ndim(v_1) >= 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000000 ∧ min(v_1) ≠ "+inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "+inf" ∧ max(v_1) ≠ "-inf"
+>>
+Rule 56 (input tensor - ALL checks, prevents alloc/OOM/inf/nan/reasonable sizes/and non-complex dtype. Combines all.)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float} |= if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000 else if ndim(v_1) >= 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000000 ∧ min(v_1) ≠ "+inf" ∧ min(v_1) ≠ "-inf" ∧ max(v_1) ≠ "+inf" ∧ max(v_1) ≠ "-inf" ∧ min(v_1) = min(v_1) ∧ max(v_1) = max(v_1) ∧ v_1 > 0 ∧ v_1 < 5000 ∧ v_3 > v_2 ∧ dtype_(v_4) ≠ 10 ∧ dtype_(v_4) ≠ 11
+>>
+Rule 57 (input tensor - Prevents alloc/OOM/inf/nan/sizes/complex dtype by combining all relevant checks into one rule)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float} |= (if ndim(v_1) = 0 then true else if ndim(v_1) = 1 then shape(v_1, 0) < 2000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 2000000 else if ndim(v_1) >= 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000000) ∧ (min(v_1) ≠ "+inf") ∧ (min(v_1) ≠ "-inf") ∧ (max(v_1) ≠ "+inf") ∧ (max(v_1) ≠ "-inf") ∧ (v_2 > 0) ∧ (v_2 < 5000) ∧ (v_4 > v_3) ∧ (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11)
+>>
+Rule 58 (input validation - Prevents errors related to tensor properties and argument values with a very comprehensive check)
+{v_1 : tensor, v_2 : int, v_3 : float, v_4 : float} |= ((ndim(v_1) = 0) ∨ ((ndim(v_1) = 1) ∧ (shape(v_1, 0) < 2000000)) ∨ ((ndim(v_1) = 2) ∧ (shape(v_1, 0) * shape(v_1, 1) < 2000000)) ∨ ((ndim(v_1) ≥ 3) ∧ (shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) < 2000000))) ∧ (∀i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) < 10000000) ∧ (min(v_1) ≠ "+inf") ∧ (min(v_1) ≠ "-inf") ∧ (max(v_1) ≠ "+inf") ∧ (max(v_1) ≠ "-inf") ∧ (v_2 > 0) ∧ (v_2 < 5000) ∧ (v_4 > v_3) ∧ (dtype_(v_1) ≠ 10) ∧ (dtype_(v_1) ≠ 11) ∧ (v_3 ≠ "+inf") ∧ (v_3 ≠ "-inf") ∧ (v_4 ≠ "+inf") ∧ (v_4 ≠ "-inf")

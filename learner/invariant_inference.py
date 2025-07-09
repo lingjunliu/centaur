@@ -30,10 +30,10 @@ def print_rules(api, ruleset):
     else:
         print(f"No rules passed for {api}.")
 
-def refine_ruleset(ruleset, invalid_inputs):
+def refine_ruleset(api, ruleset, invalid_inputs):
     refined = set()
     for rule in ruleset:
-        if check_rules_z3_invalid_inputs(invalid_inputs, rule):
+        if check_rules_z3_invalid_inputs(api, invalid_inputs, rule):
             refined.add(rule)
     return refined
 
@@ -108,13 +108,13 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                         print(f"Input {idx} is valid")
                     # Check rules for the input dictionary
                     if not initialized:
-                        ruleset = check_rules_z3(input_dict) if z3 else check_rules(input_dict)
+                        ruleset = check_rules_z3(api, input_dict) if z3 else check_rules(input_dict)
                         initialized = True
                     else:
-                        ruleset = ruleset.intersection(check_rules_z3(input_dict) if z3 else check_rules(input_dict))
+                        ruleset = ruleset.intersection(check_rules_z3(api, input_dict) if z3 else check_rules(input_dict))
                     valid += 1
             
-            ruleset = refine_ruleset(ruleset, invalid_inputs)
+            # ruleset = refine_ruleset(api, ruleset, invalid_inputs)
             # Save some stats
             infer_dir = create_subdir(get_tmp_dir(), f"infer_results_{lib}")
             csv_file = os.path.join(infer_dir, f"{variant}.csv")

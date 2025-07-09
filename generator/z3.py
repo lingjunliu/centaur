@@ -109,8 +109,8 @@ def initial_constraints(solver, signature, z3_args):
             value = z3_var['value']
             solver.add(And(value >= 0, value <= len(list_of_available_dtypes) - 3)) 
 
-def collect_constraints(solver, ruleset, z3_args, use_reference=False):
-    rule_func_map = get_rules_map(use_reference=use_reference)
+def collect_constraints(solver, api, ruleset, z3_args, use_reference=False):
+    rule_func_map = get_rules_map(api, use_reference=use_reference)
     for rule in ruleset:
         arity, rule_name, *args = rule
         rule_func = rule_func_map[arity][rule_name]
@@ -121,8 +121,8 @@ def collect_constraints(solver, ruleset, z3_args, use_reference=False):
        
         rule_func(*arg_dicts, solver=solver)
 
-def collect_neg_constraint(solver, rule, z3_args, use_reference=False):
-    rule_func_map = get_rules_map(use_reference=use_reference)
+def collect_neg_constraint(solver, api, rule, z3_args, use_reference=False):
+    rule_func_map = get_rules_map(api, use_reference=use_reference)
     arity, rule_name, *args = rule
     rule_func = rule_func_map[arity][rule_name]
         
@@ -250,6 +250,7 @@ def variable_bounds(assertions):
         default_buckets = float_buckets if sort_kind == Z3_REAL_SORT else int_buckets
         default_buckets = add_negative_buckets(default_buckets)
         opt_min = Optimize()
+        opt_min.set("timeout", 1000)
         opt_min.add(linear_assertions)
         opt_min.minimize(var)
         if opt_min.check() == sat:
@@ -258,6 +259,7 @@ def variable_bounds(assertions):
         else:
             continue
         opt_max = Optimize()
+        opt_max.set("timeout", 1000)
         opt_max.add(linear_assertions)
         opt_max.maximize(var)
         if opt_max.check() == sat:
@@ -311,22 +313,24 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
     rules_to_keep = set()
     n_rules_original = len(ruleset)
     base_validity_ratio = 0.0
+    base_validity_ratio = 0.0
 
     for rule in [None] + list(ruleset):
         trial = 0
+        valid = 0
         valid = 0
         block_all = set()
 
         while trial < max_trial:
             block_one = []
             remaining_ruleset = set(ruleset)
-            if rule is not None:
+            if rule is not None: 
                 remaining_ruleset.remove(rule)
 
             solver = Solver()
             initial_constraints(solver, signature, z3_args)
-            collect_constraints(solver, remaining_ruleset, z3_args, use_reference=use_reference)
-            # collect_neg_constraint(solver, rule, z3_args, use_reference=use_reference)
+            collect_constraints(solver, api, remaining_ruleset, z3_args, use_reference=use_reference)
+            # collect_neg_constraint(solver, api, rule, z3_args, use_reference=use_reference)
     
             sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
             solver.add(*sampled_blocks)
@@ -334,9 +338,13 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
             if solver.check() != sat:
                 trial += 1
                 continue
+                trial += 1
+                continue
     
             model = solver.model()
             for decl in model.decls():
+                if decl.arity() != 0:
+                    continue
                 var, val = decl(), model[decl]
                 name_parts = str(decl.name()).rsplit("_", 1)
 
@@ -366,7 +374,7 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
     
             concrete_input, abstract_input = instantiate_args(model, signature, z3_args)
             status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
-
+            
             if status != "invalid":
                 valid += 1
 
@@ -393,7 +401,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     solver = Solver()
     models, num_model = [], 0
     initial_constraints(solver, definition["signature"], z3_args)
-    collect_constraints(solver, definition["ruleset"], z3_args, use_reference=use_reference)
+    collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference)
     block_all = set()
     stale = 0
     # valid_blocks = []   # list of blocks for valid models, saved for restarts
@@ -430,7 +438,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                 # restart the solver
                 solver = Solver()
                 initial_constraints(solver, definition["signature"], z3_args)
-                collect_constraints(solver, definition["ruleset"], z3_args, use_reference=use_reference)
+                collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference)
                 # solver.add(And(valid_blocks))   # Adding previously saved blocks from valid models
                 # block = []
                 stale = 0
@@ -448,6 +456,8 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
         solve_times.append(time.time() - start_time)
         start_time = time.time()
         for decl in model.decls():
+            if decl.arity() != 0:
+                continue
             var, val = decl(), model[decl]
             name_parts = str(decl.name()).rsplit("_", 1)
 
