@@ -6,203 +6,12 @@ from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 from eval.oracle import oracle_crash
 from utils.defaults import domain_limits
-import llm.valid_inputs as valid_inputs
+import llm.valid_inputs_torch as valid_inputs_torch
+import llm.valid_inputs_tf as valid_inputs_tf
 import numpy as np
 import os
 import traceback
-
-def scatter_inputs():
-    list_of_inputs = []
-    # Input 1, valid
-    src_torch = torch.arange(1, 11).reshape((2, 5))
-    src = src_torch.numpy() 
-    index = torch.tensor([[0, 1, 2, 0]]).numpy()
-    input = torch.zeros(3, 5, dtype=src_torch.dtype).numpy()
-    dim = 0
-
-    input_dict = {
-        "input": input,
-        "dim": dim,
-        "src": src, 
-        "index": index,         
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2, invalid
-    index_2 = torch.tensor([[0, 1, 2], [0, 1, 4]])
-    input_dict["index"] = index_2.numpy()
-    
-    # Skipping invalid inputs
-    # list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3, valid
-    input_dict["dim"] = 1
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4, invalid
-    input_dict = {
-        "input": torch.full((2, 4), 2.).numpy(),
-        "dim": 1,
-        "src": 1.23, 
-        "index": torch.tensor([[2], [3]]).numpy(),         
-    }
-    
-    # Skipping invalid inputs
-    # list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5, valid
-    input_dict = {
-        "input": torch.full((2, 4), 2., dtype=int).numpy(),
-        "dim": 1,
-        "src": torch.tensor([[2], [3]]).numpy(), 
-        "index": torch.tensor([[2], [3]]).numpy(),         
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6, valid
-    input_dict = {
-        "input": torch.full((2, 4), 2., dtype=torch.float32).numpy(),
-        "dim": 1,
-        "src": torch.tensor([[2], [3]], dtype=torch.float32).numpy(), 
-        "index": torch.tensor([[2], [3]]).numpy(),         
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    return list_of_inputs
-
-def matmul_inputs():
-    list_of_inputs = []
-    # Input 1, valid
-    input = torch.randn(3, 5).numpy()
-    other = torch.randn(5, 2).numpy() 
-
-    input_dict = {
-        "input": input,
-        "other": other
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2, valid
-    input = torch.randn(3, 5).numpy()
-    other = torch.randn(5).numpy()
-
-    input_dict = {
-        "input": input,
-        "other": other
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    return list_of_inputs
-
-def combinations_inputs():
-    list_of_inputs = []
-    # Input 1, valid
-    input = torch.tensor([10, 20, 30, 40]).numpy()
-    r = 3
-    with_replacement = False
-
-    input_dict = {
-        "input": input,
-        "r": r,
-        "with_replacement": with_replacement
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2, valid
-    input = torch.tensor([1.5, 2.5]).numpy()
-    r = 2
-    with_replacement = True
-
-    input_dict = {
-        "input": input,
-        "r": r,
-        "with_replacement": with_replacement
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    return list_of_inputs
-
-def addcmul_inputs():
-    list_of_inputs = []
-    # Input 1, valid
-    input = torch.tensor([1.0, 2.0, 3.0]).numpy()
-    tensor1 = torch.tensor([0.1, 0.2, 0.3]).numpy()
-    tensor2 = torch.tensor([10.0, 20.0, 30.0]).numpy()
-    value = 2.0  
-
-    input_dict = {
-        "input": input,
-        "tensor1": tensor1,
-        "tensor2": tensor2,
-        "value": value
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2, valid
-    input = torch.ones((2, 3)).numpy()
-    tensor1 = torch.tensor([[1.0, 2.0, 3.0],
-                            [4.0, 5.0, 6.0]]).numpy()
-    tensor2 = torch.tensor([[0.1, 0.2, 0.3],
-                            [0.4, 0.5, 0.6]]).numpy()
-    value = 0.5
-
-    input_dict = {
-        "input": input,
-        "tensor1": tensor1,
-        "tensor2": tensor2,
-        "value": value
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    return list_of_inputs
-
-def lp_pool1d_inputs():
-    list_of_inputs = []
-    # Input 1, valid
-    input = torch.tensor([[[1.0, 2.0, 3.0, 4.0, 5.0]]]).numpy()
-    norm_type = 2.0
-    kernel_size = 2
-    stride = 2
-    ceil_mode = True
-    
-    input_dict = {
-        "input": input,
-        "norm_type": norm_type,
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "ceil_mode": ceil_mode
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2, valid
-    input = torch.tensor([[[1.0, 4.0, 2.0, 5.0, 3.0, 6.0]]]).numpy()
-    norm_type = 1.0
-    kernel_size = 3
-    stride = 2
-    ceil_mode = True
-    
-    input_dict = {
-        "input": input,
-        "norm_type": norm_type,
-        "kernel_size": kernel_size,
-        "stride": stride,
-        "ceil_mode": ceil_mode
-    }
-    
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    return list_of_inputs
+import sys
 
 def introduce_float_types(input_dict, signature):
     """
@@ -484,19 +293,25 @@ def augment_inputs(list_of_inputs, signature):
     
     return original_inputs + mutated_inputs
 
-# Add human and LLM defined inputs for APIs that are
-# difficult to generate inputs for
-
-# Human defined inputs: Uncomment if needed (LLM generated inputs are preferred)
-# inputs_per_api = {
-    # "scatter": scatter_inputs(),      # human start
-    # "matmul": matmul_inputs(),
-    # "combinations": combinations_inputs(),
-    # "addcmul": addcmul_inputs(),
-    # "lp_pool1d_": lp_pool1d_inputs(), # human end
-# }
-
-def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=0):
+def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffix=0):
+    """
+    Get inputs for an API.
+    If LLM generated inputs are available, append them to the list.
+    If there are saved inputs, read from that and append to the list.
+    At the end, generate new inputs with the random generator using the time budget.
+    Augment the inputs with the mutators.
+    Return the list of inputs.
+    """
+    
+    list_of_inputs = []
+    
+    if lib == "torch":
+        valid_inputs = valid_inputs_torch
+    elif lib == "tf":
+        valid_inputs = valid_inputs_tf
+    else:
+        raise ValueError(f"Invalid library: {lib}")
+    
     try:
         api_signature = get_signature(api, lib=lib, suffix=suffix)
     except Exception as e:
@@ -508,28 +323,14 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=
     variation = f"{lib_api}_{suffix}" if suffix > 0 else lib_api
     # Return LLM generated inputs if available
     if variation in valid_inputs.generated_inputs:
-        print(f"Using LLM generated inputs for {variation}")
-        try:
-            return augment_inputs(valid_inputs.generated_inputs[variation], api_signature)
-        except Exception as e:
-            print(f"{bcolors.FAIL}Error augmenting inputs for {variation} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
-            traceback.print_exc()
+        print(f"Adding LLM generated inputs for {variation}")
+        list_of_inputs = valid_inputs.generated_inputs[variation]
 
-    # Return human written inputs if available
-    # if api in inputs_per_api:
-    #     try:
-    #         return augment_inputs(inputs_per_api[api], api_signature)
-    #     except Exception as e:
-    #         print(f"Error augmenting inputs for {api} in {lib} | {e.__class__.__name__}: {e}")
-    
-    # Generate valid inputs through random generation otherwise
     input_file = os.path.join(get_dir_in_root(f"valid_inputs_{lib}"), f"{api}.pkl")
-    
-    list_of_inputs = []
     
     # If there already is a saved file, read from that and concretize
     if os.path.isfile(input_file):
-        print(f"Using saved inputs for {api} from {input_file}")
+        print(f"Adding saved inputs for {api} from {input_file}")
         abstract_inputs = read_pkl(input_file)
         for abs_inp, saved_seed, suff in abstract_inputs:
             if suff != suffix:
@@ -537,42 +338,46 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=5, seed=42, suffix=
             rng = np.random.default_rng(saved_seed)
             list_of_inputs.append(concretize_input(abs_inp, api_signature, rng))
     
-    if len(list_of_inputs) == 0:   # Generate and save otherwise
-        print(f"Generating inputs for {api} (suffix: {suffix}) with time budget {time_budget} seconds and minimum valid inputs {min_val_inp}")
-        valid = 0
-        invalid = 0
-        abstract_inputs = []
-        
-        start_time = time.time()
-        while (time.time() - start_time < time_budget) and (valid < min_val_inp):
-            rng = np.random.default_rng(seed)
-            input_dict, abs_inp = get_random_input(api_signature, rng)
-            status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
-            if status == "invalid":
-                invalid += 1
-            else:
-                valid += 1
-                # Only adding valid inputs
-                list_of_inputs.append(input_dict)
-                # Save the abstract input along with the seed
-                abstract_inputs.append((abs_inp, seed, suffix))
-            
-            seed += 1
-        
-        # Save abstract inputs to file
-        save_to_new_pkl(input_file, abstract_inputs)
+    # Generate and append new inputs
+    print(f"Generating inputs for {api} (suffix: {suffix}) with time budget {time_budget} seconds and minimum valid inputs {min_val_inp}")
+    valid = 0
+    abstract_inputs = []
     
-    return augment_inputs(list_of_inputs, api_signature)
+    start_time = time.time()
+    while (time.time() - start_time < time_budget) and (valid < min_val_inp):
+        rng = np.random.default_rng(seed)
+        input_dict, abs_inp = get_random_input(api_signature, rng)
+        status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
+        if status == "nominal":
+            valid += 1
+            list_of_inputs.append(input_dict)
+            abstract_inputs.append((abs_inp, seed, suffix))
+        
+        seed += 1
+    
+    # Save abstract inputs to file
+    save_to_new_pkl(input_file, abstract_inputs)
+    
+    list_of_inputs = augment_inputs(list_of_inputs, api_signature)
+    
+    return list_of_inputs
 
 def main():
     all_apis = set(read_file_in_root("torch_apis.txt"))
     apis = set()
     total_inputs = 0
     apis_with_issues = set()
-    lib = "torch"
     
-    for torch_api in all_apis:
-        n_variations = get_n_variations(torch_api, lib=lib)
+    lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
+    if lib == "torch":
+        valid_inputs = valid_inputs_torch
+    elif lib == "tf":
+        valid_inputs = valid_inputs_tf
+    else:
+        raise ValueError(f"Invalid library: {lib}")
+    
+    for api in all_apis:
+        n_variations = get_n_variations(api, lib=lib)
         suffixes = []
         if n_variations == 1:
             suffixes = [0]
@@ -580,25 +385,25 @@ def main():
             suffixes = [i for i in range(1, n_variations + 1)]
 
         for suffix in suffixes:
-            variation = f"{torch_api}_{suffix}" if suffix > 0 else torch_api
+            variation = f"{api}_{suffix}" if suffix > 0 else api
             if variation not in valid_inputs.generated_inputs.keys():
                 print(f"{bcolors.WARNING}Warning: {variation} not found in valid_inputs.generated_inputs{bcolors.ENDC}")
-                apis_with_issues.add(torch_api)
+                apis_with_issues.add(api)
                 break
-            generated_inputs = get_inputs(torch_api, time_budget=0, lib=lib, suffix=suffix)
+            generated_inputs = get_inputs(api, time_budget=0, lib=lib, suffix=suffix)
             if len(generated_inputs) == 0:
-                print(f"{bcolors.WARNING}Warning: No inputs generated for {torch_api} with suffix {suffix}{bcolors.ENDC}")
-                apis_with_issues.add(torch_api)
+                print(f"{bcolors.WARNING}Warning: No inputs generated for {api} with suffix {suffix}{bcolors.ENDC}")
+                apis_with_issues.add(api)
                 break
-            apis.add(torch_api)
+            apis.add(api)
             total_inputs += len(generated_inputs)
 
             for input_dict in generated_inputs:
                 try:
-                    _ = get_abstract_input(input_dict, get_signature(torch_api, lib=lib, suffix=suffix))
+                    _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
                 except Exception as e:
-                    print(f"{bcolors.FAIL}Error getting abstract input for {torch_api} with suffix {suffix} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
-                    apis_with_issues.add(torch_api)
+                    print(f"{bcolors.FAIL}Error getting abstract input for {api} with suffix {suffix} | {e.__class__.__name__}: {e}{bcolors.ENDC}")
+                    apis_with_issues.add(api)
                     break
 
     

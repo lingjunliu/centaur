@@ -4,7 +4,7 @@ from llm.create_driver import fetch_documentation, extract_code_from_response, e
 from llm.tf_signatures import signatures as tf_signatures
 from llm.torch_signatures import signatures as torch_signatures
 from utils.misc import read_file_in_root
-from utils.new_api_utils import get_doc_tf
+from utils.new_api_utils import get_doc_tf, get_api_suffix
 import sys
 import logging
 
@@ -126,9 +126,9 @@ def generate_signatures(api, lib="torch"):
         with open(f"{CUR_DIR}/failed_sig_{lib}.txt", "a") as f:
             f.write(f"{api}\n")
         return
-    logger.info(f"[Prompt]\n\n{prompt}")
+    logger.info(f"[Prompt]\n\n{prompt}\n\n")
     response = chat.send_message(prompt)
-    logger.info(f"[Response]\n\n{response.text}")
+    logger.info(f"[Response]\n\n{response.text}\n\n")
     sig = extract_code_from_response(response.text)
     print(f"Got response from Gemini API:\n{sig}")
     if sig is not None:
@@ -146,14 +146,19 @@ def main():
         level=logging.INFO,                                     # Minimum log level
         format='%(message)s',                                   # Log format
         filename=logfile,                                       # Log file path
-        filemode="w"                                            # Append/Write mode
+        filemode="a"                                            # Append/Write mode
     )
 
     apis = read_file_in_root(f"{lib}_apis.txt")
     signatures = torch_signatures if lib == "torch" else tf_signatures
 
+    completed = set()
+    for variation in signatures.keys():
+        api, suffix = get_api_suffix(variation)
+        completed.add(api)
+
     for api in apis:
-        if api in signatures:
+        if api in completed:
             print(f"Signature exists for {api}. Skipping...")
             continue
         print(f"\nGenerating valid signatures for {api}...\n")

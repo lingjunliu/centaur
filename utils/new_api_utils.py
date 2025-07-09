@@ -1,6 +1,7 @@
 import torch, importlib, os, json
 import numpy as np
 import inspect
+import tensorflow as tf
 
 from utils.misc import map_torch_to_driver, read_file_in_root, save_file_in_root
 
@@ -210,6 +211,9 @@ def to_torch(x, device="cpu"):
         return torch.tensor(x).to(device)
     elif isinstance(x, torch.Tensor):
         return x.to(device)
+    elif isinstance(x, tf.Tensor):
+        # Convert TensorFlow tensor to PyTorch tensor
+        return torch.from_numpy(x.numpy()).to(device)
     # dtype
     elif isinstance(x, np.dtype):
         return torch.tensor(np.array([], dtype=x)).dtype
@@ -224,15 +228,41 @@ def to_torch(x, device="cpu"):
     
     return x
 
+def to_tf(x, device="cpu"):
+    device = "/cpu:0" if device == "cpu" else "/gpu:0"
+    with tf.device(device):
+        # tensor
+        if isinstance(x, torch.Tensor):
+            return tf.constant(x.cpu().numpy())
+        elif isinstance(x, np.ndarray):
+            return tf.constant(x)
+        # dtype
+        elif isinstance(x, np.dtype):
+            # Convert numpy dtype to tensorflow dtype using TensorFlow's built-in conversion
+            return tf.dtypes.as_dtype(x)
+        # tensor_list
+        elif isinstance(x, list):
+            ret_x = []
+            for elem in x:
+                ret_x.append(to_tf(elem))
+            return ret_x
+        elif isinstance(x, tuple):
+            return tuple(to_tf(list(x)))
+        
+        return x
+
 def to_numpy(x, device="cpu"):
     # tensor
     if isinstance(x, torch.Tensor):
-        if device != "cpu":
-            x = x.to("cpu")
-        return x.numpy(force=True)
+        return x.cpu().numpy(force=True)
+    elif isinstance(x, tf.Tensor):
+        # Convert TensorFlow tensor to numpy array
+        return x.numpy()
     # dtype
     elif isinstance(x, torch.dtype):
         return torch.tensor([], dtype=x).numpy(force=True).dtype
+    elif isinstance(x, tf.dtypes.DType):
+        return tf.constant([], dtype=x).numpy().dtype
     # tensor_list
     elif isinstance(x, list):
         ret_x = []
@@ -253,6 +283,7 @@ def get_input(api, input_dict, cpu=True, lib="torch"):
     torch tensors if lib is torch.
     """
     api = get_lib_version(api, lib=lib)
+    to_lib = to_torch if lib == "torch" else to_tf
     device = "cpu" if cpu else "cuda"
     original_signature = get_signature_of_input(api, input_dict, lib=lib)
     true_input = {
@@ -263,11 +294,11 @@ def get_input(api, input_dict, cpu=True, lib="torch"):
     
     # args
     for arg in original_signature["args"].keys():
-        true_input["args"].append(to_torch(input_dict[arg], device=device))
+        true_input["args"].append(to_lib(input_dict[arg], device=device))
 
     # kwargs
     for arg in original_signature["kwargs"].keys():
-        true_input["kwargs"][arg] = to_torch(input_dict[arg], device=device)
+        true_input["kwargs"][arg] = to_lib(input_dict[arg], device=device)
 
     # inner if available
     if len(original_signature["inner"].keys()) > 0:
@@ -277,11 +308,11 @@ def get_input(api, input_dict, cpu=True, lib="torch"):
         }
         # args
         for arg in original_signature["inner"]["args"].keys():
-            true_input["inner"]["args"].append(to_torch(input_dict[arg], device=device))
+            true_input["inner"]["args"].append(to_lib(input_dict[arg], device=device))
 
         # kwargs
         for arg in original_signature["inner"]["kwargs"].keys():
-            true_input["inner"]["kwargs"][arg] = to_torch(input_dict[arg], device=device)
+            true_input["inner"]["kwargs"][arg] = to_lib(input_dict[arg], device=device)
     
     return true_input
 
@@ -297,19 +328,32 @@ def run_api(api, input_dict, cpu=True, lib="torch"):
     api = get_lib_version(api, lib=lib)
     func = get_func(api, lib=lib)
     inp = get_input(api, input_dict, cpu=cpu, lib=lib)
+    tf_device = "/cpu:0" if cpu else "/gpu:0"
     
     if lib == "torch":            
         torch.use_deterministic_algorithms(True)
         torch.utils.deterministic.fill_uninitialized_memory = True
+    elif lib == "tf":
+        tf.config.experimental.enable_op_determinism()
 
-    result = func(*inp["args"], **inp["kwargs"])
+    if lib == "torch":
+        result = func(*inp["args"], **inp["kwargs"])
+    elif lib == "tf":
+        with tf.device(tf_device):
+            result = func(*inp["args"], **inp["kwargs"])
+
     if callable(result):
         if len(inp["inner"]) == 0:
             raise Exception(f"{api} returns a function, but the input does not have inner values")
         
-        if not cpu:
+        if lib == "torch" and not cpu:
             result = result.cuda()
-        result = result(*inp["inner"]["args"], **inp["inner"]["kwargs"])
+        
+        if lib == "torch":
+            result = result(*inp["inner"]["args"], **inp["inner"]["kwargs"])
+        elif lib == "tf":
+            with tf.device(tf_device):
+                result = result(*inp["inner"]["args"], **inp["inner"]["kwargs"])
 
     result_dict = {}
     if isinstance(result, tuple) or isinstance(result, list):
@@ -324,38 +368,7 @@ def run_api(api, input_dict, cpu=True, lib="torch"):
 
     return result_dict
 
-def main():
-    variations = ""
-    torch_apis = read_file_in_root("torch_apis.txt")
-    problematic_apis = []
-    for torch_api in torch_apis:
-        n_variants = get_n_variations(torch_api, lib="torch")
-        if n_variants > 1:
-            for i in range(1, n_variants + 1):
-                try:
-                    signature = get_signature(torch_api, lib="torch", suffix=i)
-                    variations += f"{torch_api}_{i}\n"
-                except Exception as e:
-                    print(f"Error getting signature for {torch_api}_{i}\n{e.__class__.__name__}: {e}")
-                    problematic_apis.append(torch_api)
-                    continue
-        else:
-            try:
-                signature = get_signature(torch_api, lib="torch", suffix=0)
-                variations += f"{torch_api}\n"
-            except Exception as e:
-                print(f"Error getting signature for {torch_api}\n{e.__class__.__name__}: {e}")
-                problematic_apis.append(torch_api)
-                continue
-    
-    save_file_in_root("torch_variations.txt", variations)
-    if len(problematic_apis) > 0:
-        save_file_in_root("problematic_apis.txt", "\n".join(problematic_apis))
-
 def get_doc_tf(api):
     func = get_func(api, lib="tf")
     signature = f"{api}{str(inspect.signature(func))}"
     return signature + '\n' + func.__doc__ if func else None
-
-if __name__ == "__main__":
-    main()
