@@ -1865,7 +1865,7 @@ signatures["torch.conj"] = {
     "kwargs": {},
     "inner": {},
 }
-signatures["torch.nn.functional.conv_transpose2d"] = {
+signatures["torch.nn.functional.conv_transpose2d_1"] = {
     "args": {
         "input": "tensor",
         "weight": "tensor",
@@ -4842,30 +4842,6 @@ signatures["torch.std_2"] = {
     },
     "inner": {},
 }
-signatures["torch.std_3"] = {
-    "args": {
-        "input": "tensor"
-    },
-    "kwargs": {
-        "dim": "list", # Should it be list[int]?
-        "correction": "integer",
-        "keepdim": "boolean",
-        "out": "tensor"
-    },
-    "inner": {},
-}
-signatures["torch.std_4"] = {
-    "args": {
-        "input": "tensor"
-    },
-    "kwargs": {
-        "dim": None,
-        "correction": "integer",
-        "keepdim": "boolean",
-        "out": "tensor"
-    },
-    "inner": {},
-}
 signatures["torch.std_mean_1"] = {
     "args": {
         "input": "tensor"
@@ -5224,30 +5200,6 @@ signatures["torch.var_2"] = {
     },
     "kwargs": {
         "dim": "tuple",
-        "correction": "integer",
-        "keepdim": "boolean",
-        "out": "tensor"
-    },
-    "inner": {},
-}
-signatures["torch.var_3"] = {
-    "args": {
-        "input": "tensor"
-    },
-    "kwargs": {
-        "dim": "list",
-        "correction": "integer",
-        "keepdim": "boolean",
-        "out": "tensor"
-    },
-    "inner": {},
-}
-signatures["torch.var_4"] = {
-    "args": {
-        "input": "tensor"
-    },
-    "kwargs": {
-        "dim": None, #Should this be a special "None" type?
         "correction": "integer",
         "keepdim": "boolean",
         "out": "tensor"
@@ -9390,5 +9342,3725 @@ signatures["torch.quantize_per_channel"] = {
         "dtype": "dtype"
     },
     "kwargs": {},
+    "inner": {},
+}
+signatures["torch.blackman_window"] = {
+    "args": {
+        "window_length": "integer"
+    },
+    "kwargs": {
+        "periodic": "boolean",
+        "dtype": "dtype",
+        "layout": "string", # Should it be torch.layout?
+        "requires_grad": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.kaiser_window_1"] = {
+    "args": {
+        "length": "integer"
+    },
+    "kwargs": {
+        "periodic": "boolean",
+        "beta": "float",
+        "dtype": "dtype",
+        "layout": "string", # Should this be torch.layout?
+        "requires_grad": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.kaiser_window_2"] = {
+    "args": {
+        "length": "integer",
+        "beta": "float"
+    },
+    "kwargs": {
+        "periodic": "boolean",
+        "dtype": "dtype",
+        "layout": "string", # Should this be torch.layout?
+        "requires_grad": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.rand_like"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "dtype": "dtype",
+        "layout": "string", #string might be too restrictive, but it's the closest
+        "requires_grad": "boolean",
+        "memory_format": "string" #string might be too restrictive, but it's the closest
+    },
+    "inner": {},
+}
+signatures["torch.randint_1"] = {
+    "args": {
+        "high": "integer",
+        "size": "tuple"
+    },
+    "kwargs": {
+        "low": "integer",
+        "generator": "torch.Generator", # Should be a Generator object type, but not available
+        "out": "tensor",
+        "dtype": "dtype",
+        "layout": "torch.layout", # Should be a Layout object type, but not available
+        "requires_grad": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.randint_2"] = {
+    "args": {
+        "low": "integer",
+        "high": "integer",
+        "size": "tuple"
+    },
+    "kwargs": {
+        "generator": "torch.Generator", # Should be a Generator object type, but not available
+        "out": "tensor",
+        "dtype": "dtype",
+        "layout": "torch.layout", # Should be a Layout object type, but not available
+        "requires_grad": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.randint_like_1"] = {
+    "args": {
+        "input": "tensor",
+        "low": "integer",
+        "high": "integer"
+    },
+    "kwargs": {
+        "dtype": "dtype",
+        "layout": "string", # unsure what layout means here, it's torch.layout
+        "requires_grad": "boolean",
+    },
+    "inner": {},
+}
+
+signatures["torch.randint_like_2"] = {
+    "args": {
+        "input": "tensor",
+        "high": "integer"
+    },
+    "kwargs": {
+        "dtype": "dtype",
+        "layout": "string", # unsure what layout means here, it's torch.layout
+        "requires_grad": "boolean",
+    },
+    "inner": {},
+}
+signatures["torch.randn_1"] = {
+    "args": {
+        "size": "integer"  # Should be a sequence of integers, but simplified to integer for single integer input
+    },
+    "kwargs": {
+        "generator": "torch.Generator",  # No type available that represents this; ideally would want custom type
+        "out": "tensor",
+        "dtype": "dtype",
+        "layout": "torch.layout",  # No type available that represents this; ideally would want custom type
+        "requires_grad": "boolean",
+        "pin_memory": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.randn_2"] = {
+    "args": {
+        "size": "tuple"
+    },
+    "kwargs": {
+        "generator": "torch.Generator",  # No type available that represents this; ideally would want custom type
+        "out": "tensor",
+        "dtype": "dtype",
+        "layout": "torch.layout",  # No type available that represents this; ideally would want custom type
+        "requires_grad": "boolean",
+        "pin_memory": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.randn_3"] = {
+    "args": {
+        "size": "list"
+    },
+    "kwargs": {
+        "generator": "torch.Generator",  # No type available that represents this; ideally would want custom type
+        "out": "tensor",
+        "dtype": "dtype",
+        "layout": "torch.layout",  # No type available that represents this; ideally would want custom type
+        "requires_grad": "boolean",
+        "pin_memory": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.sparse_csr_tensor_1"] = {
+    "args": {
+        "crow_indices": "tensor",
+        "col_indices": "tensor",
+        "values": "tensor",
+        "size": "tuple"
+    },
+    "kwargs": {
+        "dtype": "dtype",
+        "requires_grad": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.sparse_csr_tensor_2"] = {
+    "args": {
+        "crow_indices": "tensor",
+        "col_indices": "tensor",
+        "values": "tensor",
+        "size": "list"
+    },
+    "kwargs": {
+        "dtype": "dtype",
+        "requires_grad": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.sparse_csr_tensor_3"] = {
+    "args": {
+        "data": "tensor"
+    },
+    "kwargs": {
+       "dtype": "dtype",
+       "requires_grad": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.normal_1"] = {
+    "args": {
+        "mean": "tensor",
+        "std": "tensor"
+    },
+    "kwargs": {
+        "generator": "torch.Generator", # Should be torch.Generator type?
+        "out": "tensor"
+    },
+    "inner": {},
+}
+
+signatures["torch.normal_2"] = {
+    "args": {
+        "mean": "float",
+        "std": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {},
+}
+
+signatures["torch.normal_3"] = {
+    "args": {
+        "mean": "tensor",
+        "std": "float"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {},
+}
+
+signatures["torch.normal_4"] = {
+    "args": {
+        "mean": "float",
+        "std": "float",
+        "size": "tuple" # or list?
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.fft.ifft"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "n": "integer",
+        "dim": "integer",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.fft.ifft2"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "s": "tuple",
+        "dim": "tuple",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.fft.ifftn"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "s": "tuple",
+        "dim": "tuple",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.fft.irfft"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "n": "integer",
+        "dim": "integer",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.fft.irfft2"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "s": "tuple",
+        "dim": "tuple",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.fft.rfftn"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "s": "tuple",
+        "dim": "tuple",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.fft.irfftn"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "s": "tuple",
+        "dim": "tuple",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.fft.hfft"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "n": "integer",
+        "dim": "integer",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {}
+}
+signatures["torch.fft.ihfft"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "n": "integer",
+        "dim": "integer",
+        "norm": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.linalg.cholesky"] = {
+    "args": {
+        "A": "tensor"
+    },
+    "kwargs": {
+        "upper": "boolean",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.linalg.det"] = {
+    "args": {
+        "A": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.linalg.slogdet"] = {
+    "args": {
+        "A": "tensor"
+    },
+    "kwargs": {
+        "out": "tuple" # Could also be None, but we only allow specific types
+    },
+    "inner": {},
+}
+signatures["torch.linalg.eigvalsh"] = {
+    "args": {
+        "A": "tensor"
+    },
+    "kwargs": {
+        "UPLO": "string",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.linalg.householder_product"] = {
+    "args": {
+        "input": "tensor",
+        "h": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.linalg.norm_1"] = {
+    "args": {
+        "A": "tensor"
+    },
+    "kwargs": {
+        "ord": "float",  # Could also be int or string
+        "dim": "integer",
+        "keepdim": "boolean",
+        "out": "tensor",
+        "dtype": "dtype"
+    },
+    "inner": {},
+}
+signatures["torch.linalg.norm_2"] = {
+    "args": {
+        "A": "tensor"
+    },
+    "kwargs": {
+        "ord": "float",  # Could also be int or string
+        "dim": "tuple",
+        "keepdim": "boolean",
+        "out": "tensor",
+        "dtype": "dtype"
+    },
+    "inner": {},
+}
+signatures["torch.linalg.matrix_norm_1"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "ord": "integer",
+        "dim": "tuple",
+        "keepdim": "boolean",
+        "out": "tensor",
+        "dtype": "dtype"
+    },
+    "inner": {},
+}
+
+signatures["torch.linalg.matrix_norm_2"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "ord": "string",
+        "dim": "tuple",
+        "keepdim": "boolean",
+        "out": "tensor",
+        "dtype": "dtype"
+    },
+    "inner": {},
+}
+
+signatures["torch.linalg.matrix_norm_3"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "ord": "list",
+        "dim": "tuple",
+        "keepdim": "boolean",
+        "out": "tensor",
+        "dtype": "dtype"
+    },
+    "inner": {},
+}
+
+signatures["torch.linalg.matrix_norm_4"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "ord": "tensor",
+        "dim": "tuple",
+        "keepdim": "boolean",
+        "out": "tensor",
+        "dtype": "dtype"
+    },
+    "inner": {},
+}
+signatures["torch.linalg.matrix_power"] = {
+    "args": {
+        "A": "tensor",
+        "n": "integer"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.linalg.qr"] = {
+    "args": {
+        "A": "tensor",
+    },
+    "kwargs": {
+        "mode": "string",
+        "out": "tuple",
+    },
+    "inner": {},
+}
+signatures["torch.linalg.svd"] = {
+    "args": {
+        "A": "tensor"
+    },
+    "kwargs": {
+        "full_matrices": "boolean",
+        "driver": "string",
+        "out": "tuple"
+    },
+    "inner": {},
+}
+signatures["torch.linalg.tensorsolve"] = {
+    "args": {
+        "A": "tensor",
+        "B": "tensor"
+    },
+    "kwargs": {
+        "dims": "tuple", # or None, but can't express None
+        "out": "tensor" # or None, but can't express None
+    },
+    "inner": {},
+}
+signatures["torch.nn.Bilinear"] = {
+    "args": {
+        "in1_features": "integer",
+        "in2_features": "integer",
+        "out_features": "integer"
+    },
+    "kwargs": {
+        "bias": "boolean",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input1": "tensor",
+            "input2": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.ELU"] = {
+    "args": {},
+    "kwargs": {
+        "alpha": "float",
+        "inplace": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.GLU"] = {
+    "args": {},
+    "kwargs": {
+        "dim": "integer"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.GELU"] = {
+    "args": {},
+    "kwargs": {
+        "approximate": "string"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.AdaptiveLogSoftmaxWithLoss"] = {
+    "args": {
+        "in_features": "integer",
+        "n_classes": "integer",
+        "cutoffs": "list"  # Sequence should be interpreted as list or tuple, choosing list
+    },
+    "kwargs": {
+        "div_value": "float",
+        "head_bias": "boolean",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "target": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.AdaptiveLogSoftmaxWithLoss.log_prob"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {},
+    "inner": {}
+}
+
+signatures["torch.nn.AdaptiveLogSoftmaxWithLoss.predict"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {},
+    "inner": {}
+}
+signatures["torch.nn.BatchNorm3d"] = {
+    "args": {
+        "num_features": "integer"
+    },
+    "kwargs": {
+        "eps": "float",
+        "momentum": "float",  # Optional[float], but float is the best match
+        "affine": "boolean",
+        "track_running_stats": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.Conv1d"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer" # or tuple, creating another signature for tuple
+    },
+    "kwargs": {
+        "stride": "integer", # or tuple, creating another signature for tuple
+        "padding": "integer", # or tuple or string, creating another signature for tuple and string
+        "dilation": "integer", # or tuple, creating another signature for tuple
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Conv1d_tuple_kernel"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "integer", # or tuple, creating another signature for tuple
+        "padding": "integer", # or tuple or string, creating another signature for tuple and string
+        "dilation": "integer", # or tuple, creating another signature for tuple
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Conv1d_tuple_stride"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer" # or tuple, creating another signature for tuple
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "integer", # or tuple or string, creating another signature for tuple and string
+        "dilation": "integer", # or tuple, creating another signature for tuple
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Conv1d_tuple_dilation"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer" # or tuple, creating another signature for tuple
+    },
+    "kwargs": {
+        "stride": "integer", # or tuple, creating another signature for tuple
+        "padding": "integer", # or tuple or string, creating another signature for tuple and string
+        "dilation": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Conv1d_tuple_padding"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer" # or tuple, creating another signature for tuple
+    },
+    "kwargs": {
+        "stride": "integer", # or tuple, creating another signature for tuple
+        "padding": "tuple",
+        "dilation": "integer", # or tuple, creating another signature for tuple
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Conv1d_string_padding"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer" # or tuple, creating another signature for tuple
+    },
+    "kwargs": {
+        "stride": "integer", # or tuple, creating another signature for tuple
+        "padding": "string",
+        "dilation": "integer", # or tuple, creating another signature for tuple
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.Conv2d_1"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "dilation": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Conv2d_2"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "dilation": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Conv2d_3"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "dilation": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.Conv2d_4"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "dilation": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Conv2d_5"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "string",
+        "dilation": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Conv2d_6"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "string",
+        "dilation": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Conv2d_7"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "string",
+        "dilation": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Conv2d_8"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "string",
+        "dilation": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.Conv3d"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "dilation": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Conv3d_2"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "dilation": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Conv3d_3"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "string",
+        "dilation": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Conv3d_4"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "string",
+        "dilation": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.ConvTranspose1d"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple", # Can also be integer, creating new signatures
+    },
+    "kwargs": {
+        "stride": "tuple", # Can also be integer, creating new signatures
+        "padding": "tuple", # Can also be integer, creating new signatures
+        "output_padding": "tuple", # Can also be integer, creating new signatures
+        "groups": "integer",
+        "bias": "boolean",
+        "dilation": "tuple", # Can also be integer, creating new signatures
+        "padding_mode": "string",
+        "dtype": "dtype",
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.ConvTranspose1d_1"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer",
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "output_padding": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "dilation": "integer",
+        "padding_mode": "string",
+        "dtype": "dtype",
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.ConvTranspose2d"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "output_padding": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "dilation": "integer",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {
+            "output_size": "tuple"
+        }
+    }
+}
+
+signatures["torch.nn.ConvTranspose2d_1"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "output_padding": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "dilation": "tuple",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {
+            "output_size": "tuple"
+        }
+    }
+}
+signatures["torch.nn.ConvTranspose3d"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "output_padding": "integer",
+        "groups": "integer",
+        "bias": "boolean",
+        "dilation": "integer",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.ConvTranspose3d_1"] = {
+    "args": {
+        "in_channels": "integer",
+        "out_channels": "integer",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "output_padding": "tuple",
+        "groups": "integer",
+        "bias": "boolean",
+        "dilation": "tuple",
+        "padding_mode": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.Dropout"] = {
+    "args": {},
+    "kwargs": {
+        "p": "float",
+        "inplace": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.Dropout2d"] = {
+    "args": {},
+    "kwargs": {
+        "p": "float",
+        "inplace": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.Dropout3d"] = {
+    "args": {},
+    "kwargs": {
+        "p": "float",
+        "inplace": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AlphaDropout"] = {
+    "args": {
+        "p": "float",
+    },
+    "kwargs": {
+        "inplace": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.FeatureAlphaDropout"] = {
+    "args": {},
+    "kwargs": {
+        "p": "float",
+        "inplace": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.Embedding"] = {
+    "args": {
+        "num_embeddings": "integer",
+        "embedding_dim": "integer"
+    },
+    "kwargs": {
+        "padding_idx": "integer",
+        "max_norm": "float",
+        "norm_type": "float",
+        "scale_grad_by_freq": "boolean",
+        "sparse": "boolean",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Embedding.from_pretrained"] = {
+    "args": {
+        "embeddings": "tensor"
+    },
+    "kwargs": {
+        "freeze": "boolean",
+        "padding_idx": "integer",
+        "max_norm": "float",
+        "norm_type": "float",
+        "scale_grad_by_freq": "boolean",
+        "sparse": "boolean"
+    },
+    "inner": {}
+}
+signatures["torch.nn.EmbeddingBag"] = {
+    "args": {
+        "num_embeddings": "integer",
+        "embedding_dim": "integer"
+    },
+    "kwargs": {
+        "max_norm": "float",
+        "norm_type": "float",
+        "scale_grad_by_freq": "boolean",
+        "mode": "string",
+        "sparse": "boolean",
+        "include_last_offset": "boolean",
+        "padding_idx": "integer",
+        "dtype": "dtype" # Could also be a string?
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "offsets": "tensor",
+            "per_sample_weights": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.EmbeddingBag.from_pretrained"] = {
+    "args": {
+        "embeddings": "tensor"
+    },
+    "kwargs": {
+        "freeze": "boolean",
+        "max_norm": "float",
+        "norm_type": "float",
+        "scale_grad_by_freq": "boolean",
+        "mode": "string",
+        "sparse": "boolean",
+        "include_last_offset": "boolean",
+        "padding_idx": "integer"
+    },
+    "inner": {}
+}
+signatures["torch.nn.Fold_1"] = {
+    "args": {
+        "output_size": "tuple",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "dilation": "integer",
+        "padding": "integer",
+        "stride": "integer"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Fold_2"] = {
+    "args": {
+        "output_size": "tuple",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "dilation": "tuple",
+        "padding": "tuple",
+        "stride": "tuple"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.Fold_3"] = {
+    "args": {
+        "output_size": "integer",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "dilation": "integer",
+        "padding": "integer",
+        "stride": "integer"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.MultiLabelMarginLoss"] = {
+    "args": {},
+    "kwargs": {
+        "size_average": "boolean", # Deprecated, but included for completeness
+        "reduce": "boolean", # Deprecated, but included for completeness
+        "reduction": "string"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "target": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.TripletMarginWithDistanceLoss"] = {
+    "args": {},
+    "kwargs": {
+        "distance_function": "Callable", # could be a function type?
+        "margin": "float",
+        "swap": "boolean",
+        "reduction": "string"
+    },
+    "inner": {
+        "args": {
+            "anchor": "tensor",
+            "positive": "tensor",
+            "negative": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.CTCLoss"] = {
+    "args": {},
+    "kwargs": {
+        "blank": "integer",
+        "reduction": "string",
+        "zero_infinity": "boolean"
+    },
+    "inner": {
+        "args": {
+            "log_probs": "tensor",
+            "targets": "tensor",
+            "input_lengths": "tuple", # Can also be a tensor
+            "target_lengths": "tuple" # Can also be a tensor
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.ReplicationPad2d_1"] = {
+    "args": {
+        "padding": "integer"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.ReplicationPad2d_2"] = {
+    "args": {
+        "padding": "tuple"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.ConstantPad2d_1"] = {
+    "args": {
+        "padding": "integer",
+        "value": "float"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.ConstantPad2d_2"] = {
+    "args": {
+        "padding": "tuple",
+        "value": "float"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.ConstantPad3d_1"] = {
+    "args": {
+        "padding": "integer",
+        "value": "float" # Could be any number, assuming float
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.ConstantPad3d_2"] = {
+    "args": {
+        "padding": "tuple",
+        "value": "float" # Could be any number, assuming float
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AvgPool2d_1"] = {
+    "args": {
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int]
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.AvgPool2d_2"] = {
+    "args": {
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int]
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.AvgPool2d_3"] = {
+    "args": {
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "integer",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int]
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.AvgPool2d_4"] = {
+    "args": {
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "tuple",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int]
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.AvgPool2d_5"] = {
+    "args": {
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int]
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.AvgPool2d_6"] = {
+    "args": {
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "integer",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int]
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.AvgPool2d_7"] = {
+    "args": {
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "tuple",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int]
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.AvgPool2d_8"] = {
+    "args": {
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int]
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AvgPool3d_1"] = {
+    "args": {
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int] is interpreted as integer
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AvgPool3d_2"] = {
+    "args": {
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer" # Optional[int] is interpreted as integer
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.MaxPool1d_1"] = {
+    "args": {
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "dilation": "integer",
+        "return_indices": "boolean",
+        "ceil_mode": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.MaxPool1d_2"] = {
+    "args": {
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "dilation": "tuple",
+        "return_indices": "boolean",
+        "ceil_mode": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AdaptiveMaxPool1d_1"] = {
+    "args": {
+        "output_size": "integer"
+    },
+    "kwargs": {
+        "return_indices": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AdaptiveMaxPool1d_2"] = {
+    "args": {
+        "output_size": "tuple"
+    },
+    "kwargs": {
+        "return_indices": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AdaptiveMaxPool2d_1"] = {
+    "args": {
+        "output_size": "integer",
+    },
+    "kwargs": {
+        "return_indices": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AdaptiveMaxPool2d_2"] = {
+    "args": {
+        "output_size": "tuple",
+    },
+    "kwargs": {
+        "return_indices": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AdaptiveMaxPool2d_3"] = {
+    "args": {
+        "output_size": "None",
+    },
+    "kwargs": {
+        "return_indices": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AdaptiveMaxPool3d_1"] = {
+    "args": {
+        "output_size": "integer"
+    },
+    "kwargs": {
+        "return_indices": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+
+signatures["torch.nn.AdaptiveMaxPool3d_2"] = {
+    "args": {
+        "output_size": "tuple"
+    },
+    "kwargs": {
+        "return_indices": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AdaptiveAvgPool1d_1"] = {
+    "args": {
+        "output_size": "integer"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.AdaptiveAvgPool1d_2"] = {
+    "args": {
+        "output_size": "tuple"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.AdaptiveAvgPool2d_1"] = {
+    "args": {
+        "output_size": "integer"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.AdaptiveAvgPool2d_2"] = {
+    "args": {
+        "output_size": "tuple"
+    },
+    "kwargs": {},
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.RNN"] = {
+    "args": {
+        "input_size": "integer",
+        "hidden_size": "integer",
+    },
+    "kwargs": {
+        "num_layers": "integer",
+        "nonlinearity": "string",
+        "bias": "boolean",
+        "batch_first": "boolean",
+        "dropout": "float",
+        "bidirectional": "boolean",
+        "dtype": "dtype", # Could also be None?
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "hx": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.LSTM"] = {
+    "args": {
+        "input_size": "integer",
+        "hidden_size": "integer"
+    },
+    "kwargs": {
+        "num_layers": "integer",
+        "bias": "boolean",
+        "batch_first": "boolean",
+        "dropout": "float",
+        "bidirectional": "boolean",
+        "proj_size": "integer",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "h_0": "tensor",
+            "c_0": "tensor"
+        },
+        "kwargs": {}
+    }
+}
+signatures["torch.nn.GRU"] = {
+    "args": {
+        "input_size": "integer",
+        "hidden_size": "integer",
+    },
+    "kwargs": {
+        "num_layers": "integer",
+        "bias": "boolean",
+        "batch_first": "boolean",
+        "dropout": "float",
+        "bidirectional": "boolean",
+        "dtype": "dtype",
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "h_0": "tensor",
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.RNNCell"] = {
+    "args": {
+        "input_size": "integer",
+        "hidden_size": "integer"
+    },
+    "kwargs": {
+        "bias": "boolean",
+        "nonlinearity": "string",
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor",
+            "hidden": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.Transformer"] = {
+    "args": {},
+    "kwargs": {
+        "d_model": "integer",
+        "nhead": "integer",
+        "num_encoder_layers": "integer",
+        "num_decoder_layers": "integer",
+        "dim_feedforward": "integer",
+        "dropout": "float",
+        "activation": "string", # Could be a string or a Callable, but sticking to string for simplicity
+        "custom_encoder": "list", # Should be Any
+        "custom_decoder": "list", # Should be Any
+        "layer_norm_eps": "float",
+        "batch_first": "boolean",
+        "norm_first": "boolean",
+        "bias": "boolean",
+        # device skipped
+        "dtype": "dtype"
+    },
+    "inner": {
+        "args": {
+            "src": "tensor",
+            "tgt": "tensor"
+        },
+        "kwargs": {
+            "src_mask": "tensor",
+            "tgt_mask": "tensor",
+            "memory_mask": "tensor",
+            "src_key_padding_mask": "tensor",
+            "tgt_key_padding_mask": "tensor",
+            "memory_key_padding_mask": "tensor",
+            "src_is_causal": "boolean",
+            "tgt_is_causal": "boolean",
+            "memory_is_causal": "boolean"
+        }
+    }
+}
+
+signatures["torch.nn.Transformer.generate_square_subsequent_mask"] = {
+    "args": {
+        "sz": "integer"
+    },
+    "kwargs": {
+        # device skipped
+        "dtype": "dtype"
+    },
+    "inner": {}
+}
+signatures["torch.nn.TransformerEncoderLayer"] = {
+    "args": {
+        "d_model": "integer",
+        "nhead": "integer"
+    },
+    "kwargs": {
+        "dim_feedforward": "integer",
+        "dropout": "float",
+        "activation": "string",  # Could also be a callable, but string is a closer match.
+        "layer_norm_eps": "float",
+        "batch_first": "boolean",
+        "norm_first": "boolean",
+        "bias": "boolean",
+        "dtype": "dtype",
+    },
+    "inner": {
+        "args": {
+            "src": "tensor"
+        },
+        "kwargs": {
+            "src_mask": "tensor",
+            "src_key_padding_mask": "tensor",
+            "is_causal": "boolean"
+        }
+    }
+}
+signatures["torch.nn.TransformerDecoderLayer"] = {
+    "args": {
+        "d_model": "integer",
+        "nhead": "integer"
+    },
+    "kwargs": {
+        "dim_feedforward": "integer",
+        "dropout": "float",
+        "activation": "string", # Could also be a callable, but sticking to string as per instructions
+        "layer_norm_eps": "float",
+        "batch_first": "boolean",
+        "norm_first": "boolean",
+        "bias": "boolean"
+    },
+    "inner": {
+        "args": {
+            "tgt": "tensor",
+            "memory": "tensor"
+        },
+        "kwargs": {
+            "tgt_mask": "tensor", #Optional[Tensor]
+            "memory_mask": "tensor", #Optional[Tensor]
+            "tgt_key_padding_mask": "tensor", #Optional[Tensor]
+            "memory_key_padding_mask": "tensor", #Optional[Tensor]
+            "tgt_is_causal": "boolean",
+            "memory_is_causal": "boolean"
+        }
+    }
+}
+signatures["torch.nn.Upsample_1"] = {
+    "args": {},
+    "kwargs": {
+        "size": "integer",
+        "scale_factor": "float",
+        "mode": "string",
+        "align_corners": "boolean",
+        "recompute_scale_factor": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Upsample_2"] = {
+    "args": {},
+    "kwargs": {
+        "size": "tuple",
+        "scale_factor": "float",
+        "mode": "string",
+        "align_corners": "boolean",
+        "recompute_scale_factor": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+
+signatures["torch.nn.Upsample_3"] = {
+    "args": {},
+    "kwargs": {
+        "size": "tuple",
+        "scale_factor": "tuple",
+        "mode": "string",
+        "align_corners": "boolean",
+        "recompute_scale_factor": "boolean"
+    },
+    "inner": {
+        "args": {
+            "input": "tensor"
+        },
+        "kwargs": {}
+    },
+}
+signatures["torch.nn.functional.conv1d"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "string", # Could be an integer or tuple as well, creating more signatures
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_1"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "integer",
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_2"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "integer",
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_3"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "tuple",
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_4"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_5"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "string", # Should be a string ("valid", "same")
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_6"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "string", # Should be a string ("valid", "same")
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_7"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "integer",
+        "dilation": "tuple",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_8"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "integer",
+        "dilation": "tuple",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_9"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "tuple",
+        "dilation": "tuple",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_10"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "dilation": "tuple",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_11"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "string", # Should be a string ("valid", "same")
+        "dilation": "tuple",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv2d_12"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "string", # Should be a string ("valid", "same")
+        "dilation": "tuple",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv3d"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "string", # or could be integer or tuple, need more signatures
+        "dilation": "tuple", # or could be integer, need more signatures
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv3d_stride_int"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "string", # or could be integer or tuple, need more signatures
+        "dilation": "tuple", # or could be integer, need more signatures
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv3d_padding_int"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "integer",
+        "dilation": "tuple", # or could be integer, need more signatures
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv3d_padding_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "dilation": "tuple", # or could be integer, need more signatures
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv3d_dilation_int"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "string", # or could be integer or tuple, need more signatures
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv3d_dilation_int_stride_int"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",
+        "padding": "string", # or could be integer or tuple, need more signatures
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv3d_dilation_int_padding_int"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "integer",
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv3d_dilation_int_padding_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "dilation": "integer",
+        "groups": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv_transpose1d"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer", # Could also be a tuple. Creating another signature.
+        "padding": "integer", # Could also be a tuple. Creating another signature.
+        "output_padding": "integer", # Could also be a tuple. Creating another signature.
+        "groups": "integer",
+        "dilation": "integer" # Could also be a tuple. Creating another signature.
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_stride_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "integer", # Could also be a tuple. Creating another signature.
+        "output_padding": "integer", # Could also be a tuple. Creating another signature.
+        "groups": "integer",
+        "dilation": "integer" # Could also be a tuple. Creating another signature.
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_padding_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer", # Could also be a tuple. Creating another signature.
+        "padding": "tuple",
+        "output_padding": "integer", # Could also be a tuple. Creating another signature.
+        "groups": "integer",
+        "dilation": "integer" # Could also be a tuple. Creating another signature.
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_output_padding_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer", # Could also be a tuple. Creating another signature.
+        "padding": "integer", # Could also be a tuple. Creating another signature.
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "integer" # Could also be a tuple. Creating another signature.
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_dilation_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer", # Could also be a tuple. Creating another signature.
+        "padding": "integer", # Could also be a tuple. Creating another signature.
+        "output_padding": "integer", # Could also be a tuple. Creating another signature.
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_stride_padding_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "output_padding": "integer", # Could also be a tuple. Creating another signature.
+        "groups": "integer",
+        "dilation": "integer" # Could also be a tuple. Creating another signature.
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_stride_output_padding_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "integer", # Could also be a tuple. Creating another signature.
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "integer" # Could also be a tuple. Creating another signature.
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_stride_dilation_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "integer", # Could also be a tuple. Creating another signature.
+        "output_padding": "integer", # Could also be a tuple. Creating another signature.
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_padding_output_padding_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer", # Could also be a tuple. Creating another signature.
+        "padding": "tuple",
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "integer" # Could also be a tuple. Creating another signature.
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_padding_dilation_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer", # Could also be a tuple. Creating another signature.
+        "padding": "tuple",
+        "output_padding": "integer", # Could also be a tuple. Creating another signature.
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_output_padding_dilation_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer", # Could also be a tuple. Creating another signature.
+        "padding": "integer", # Could also be a tuple. Creating another signature.
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_stride_padding_output_padding_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "integer" # Could also be a tuple. Creating another signature.
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_stride_padding_dilation_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "output_padding": "integer", # Could also be a tuple. Creating another signature.
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_stride_output_padding_dilation_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "integer", # Could also be a tuple. Creating another signature.
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_padding_output_padding_dilation_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer", # Could also be a tuple. Creating another signature.
+        "padding": "tuple",
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.conv_transpose1d_stride_padding_output_padding_dilation_tuple"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv_transpose3d"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "integer",  # Could be tuple
+        "padding": "integer", # Could be tuple
+        "output_padding": "integer",  # Could be tuple
+        "groups": "integer",
+        "dilation": "integer" # Could be tuple
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.conv_transpose3d_1"] = {
+    "args": {
+        "input": "tensor",
+        "weight": "tensor",
+    },
+    "kwargs": {
+        "bias": "tensor",
+        "stride": "tuple",
+        "padding": "tuple",
+        "output_padding": "tuple",
+        "groups": "integer",
+        "dilation": "tuple"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.pdist"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "p": "float" # Could also be integer, but float is more general
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.dropout"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "p": "float",
+        "training": "boolean",
+        "inplace": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.dropout2d"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "p": "float",
+        "training": "boolean",
+        "inplace": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.dropout3d"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "p": "float",
+        "training": "boolean",
+        "inplace": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.feature_alpha_dropout"] = {
+    "args": {
+        "input": "tensor",
+        "p": "float"
+    },
+    "kwargs": {
+        "training": "boolean",
+        "inplace": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.one_hot"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "num_classes": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.fold"] = {
+    "args": {
+        "input": "tensor",
+        "output_size": "tuple",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "dilation": "integer",
+        "padding": "integer",
+        "stride": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.unfold"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple",
+    },
+    "kwargs": {
+        "dilation": "integer",
+        "padding": "integer",
+        "stride": "integer",
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.instance_norm"] = {
+    "args": {
+        "input": "tensor",
+        "running_mean": "tensor",
+        "running_var": "tensor",
+        "weight": "tensor",
+        "bias": "tensor",
+    },
+    "kwargs": {
+        "use_input_stats": "boolean",
+        "momentum": "float",
+        "eps": "float",
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.bilinear"] = {
+    "args": {
+        "input1": "tensor",
+        "input2": "tensor",
+        "weight": "tensor"
+    },
+    "kwargs": {
+        "bias": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.elu"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "alpha": "float",
+        "inplace": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.hardtanh"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "min_val": "float",
+        "max_val": "float",
+        "inplace": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.gumbel_softmax_1"] = {
+    "args": {
+        "logits": "tensor",
+    },
+    "kwargs": {
+        "tau": "float",
+        "hard": "boolean",
+        "dim": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.gumbel_softmax_2"] = {
+    "args": {
+        "logits": "tensor",
+        "tau": "float",
+    },
+    "kwargs": {
+        "hard": "boolean",
+        "dim": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.glu"] = {
+    "args": {
+        "input": "tensor",
+        "dim": "integer"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.functional.mish"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "inplace": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.tanhshrink"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.functional.threshold"] = {
+    "args": {
+        "input": "tensor",
+        "threshold": "float",
+        "value": "float"
+    },
+    "kwargs": {
+        "inplace": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.kl_div"] = {
+    "args": {
+        "input": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "reduction": "string",
+        "log_target": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.binary_cross_entropy"] = {
+    "args": {
+        "input": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "weight": "tensor",
+        "size_average": "boolean",
+        "reduce": "boolean",
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.hinge_embedding_loss"] = {
+    "args": {
+        "input": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "margin": "float",
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.multi_margin_loss"] = {
+    "args": {
+        "input": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "p": "integer",
+        "margin": "float",
+        "weight": "tensor",
+        "size_average": "boolean", # deprecated
+        "reduce": "boolean", # deprecated
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.cosine_embedding_loss"] = {
+    "args": {
+        "input1": "tensor",
+        "input2": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "margin": "float",
+        "size_average": "boolean",
+        "reduce": "boolean",
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.smooth_l1_loss"] = {
+    "args": {
+        "input": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "reduction": "string",
+        "delta": "float"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.huber_loss"] = {
+    "args": {
+        "input": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "delta": "float",
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.multilabel_margin_loss"] = {
+    "args": {
+        "input": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "size_average": "boolean",
+        "reduce": "boolean",
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.soft_margin_loss"] = {
+    "args": {
+        "input": "tensor",
+        "target": "tensor"
+    },
+    "kwargs": {
+        "size_average": "boolean", # deprecated
+        "reduce": "boolean", # deprecated
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.triplet_margin_loss"] = {
+    "args": {
+        "anchor": "tensor",
+        "positive": "tensor",
+        "negative": "tensor",
+    },
+    "kwargs": {
+        "margin": "float",
+        "p": "float",
+        "eps": "float",
+        "swap": "boolean",
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.triplet_margin_with_distance_loss"] = {
+    "args": {
+        "anchor": "tensor",
+        "positive": "tensor",
+        "negative": "tensor"
+    },
+    "kwargs": {
+        "distance_function": "callable", # This should ideally be a callable but there isn't a callable option
+        "margin": "float",
+        "swap": "boolean",
+        "reduction": "string"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.ctc_loss"] = {
+    "args": {
+        "log_probs": "tensor",
+        "targets": "tensor",
+        "input_lengths": "tensor",
+        "target_lengths": "tensor"
+    },
+    "kwargs": {
+        "blank": "integer",
+        "reduction": "string",
+        "zero_infinity": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.avg_pool3d_1"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.avg_pool3d_2"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.avg_pool3d_3"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "list" # Could also be a tuple of integers
+    },
+    "kwargs": {
+        "stride": "list", # Could also be a tuple of integers
+        "padding": "list", # Could also be a tuple of integers
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.avg_pool3d_4"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.avg_pool3d_5"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.avg_pool3d_6"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "list",
+        "padding": "list",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.avg_pool3d_7"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "list",
+        "padding": "list",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.avg_pool3d_8"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "list"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.avg_pool3d_9"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "list"
+    },
+    "kwargs": {
+        "stride": "tuple",
+        "padding": "tuple",
+        "ceil_mode": "boolean",
+        "count_include_pad": "boolean",
+        "divisor_override": "integer"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.adaptive_max_pool3d_1"] = {
+    "args": {
+        "input": "tensor",
+        "output_size": "tuple"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.functional.adaptive_max_pool3d_2"] = {
+    "args": {
+        "input": "tensor",
+        "output_size": "integer"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.functional.adaptive_avg_pool3d_1"] = {
+    "args": {
+        "input": "tensor",
+        "output_size": "tuple"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.functional.adaptive_avg_pool3d_2"] = {
+    "args": {
+        "input": "tensor",
+        "output_size": "integer"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.functional.max_unpool1d"] = {
+    "args": {
+        "input": "tensor",
+        "indices": "tensor",
+        "kernel_size": "integer"
+    },
+    "kwargs": {
+        "stride": "integer",
+        "padding": "integer",
+        "output_size": "tuple"
+    },
+    "inner": {},
+}
+
+
+signatures["torch.nn.functional.max_unpool3d"] = {
+    "args": {
+        "input": "tensor",
+        "indices": "tensor",
+        "output_size": "tuple"
+    },
+    "kwargs": {
+        "stride": "integer", #Could also be tuple
+        "padding": "integer" #Could also be tuple
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.fractional_max_pool2d"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple",
+        "output_size": "tuple"
+    },
+    "kwargs": {
+        "output_ratio": "tuple",
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.fractional_max_pool3d_1"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple",
+        "output_size": "tuple"
+    },
+    "kwargs": {
+        "output_ratio": "None", # Assuming None is not a type, creating separate signatures for output_ratio instead.
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.fractional_max_pool3d_2"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple",
+        "output_size": "None"
+    },
+    "kwargs": {
+        "output_ratio": "tuple",
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.fractional_max_pool3d_3"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "integer",
+        "output_size": "tuple"
+    },
+    "kwargs": {
+        "output_ratio": "None",
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.fractional_max_pool3d_4"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "integer",
+        "output_size": "None"
+    },
+    "kwargs": {
+        "output_ratio": "tuple",
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.fractional_max_pool3d_5"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple",
+        "output_size": "integer" # Considering that the output size can be passed as int too.
+    },
+    "kwargs": {
+        "output_ratio": "None",
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.fractional_max_pool3d_6"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "tuple",
+        "output_size": "None"
+    },
+    "kwargs": {
+        "output_ratio": "tuple",
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.fractional_max_pool3d_7"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "integer",
+        "output_size": "integer"
+    },
+    "kwargs": {
+        "output_ratio": "None",
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+
+signatures["torch.nn.functional.fractional_max_pool3d_8"] = {
+    "args": {
+        "input": "tensor",
+        "kernel_size": "integer",
+        "output_size": "None"
+    },
+    "kwargs": {
+        "output_ratio": "tuple",
+        "return_indices": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.local_response_norm"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "size": "integer",
+        "alpha": "float",
+        "beta": "float",
+        "k": "float"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.group_norm"] = {
+    "args": {
+        "input": "tensor",
+        "num_groups": "integer"
+    },
+    "kwargs": {
+        "weight": "tensor",
+        "bias": "tensor",
+        "eps": "float",
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.pixel_unshuffle"] = {
+    "args": {
+        "input": "tensor",
+        "downscale_factor": "integer"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.functional.affine_grid"] = {
+    "args": {
+        "theta": "tensor",
+        "size": "tuple"
+    },
+    "kwargs": {
+        "align_corners": "boolean"
+    },
+    "inner": {},
+}
+signatures["torch.nn.functional.grid_sample"] = {
+    "args": {
+        "input": "tensor",
+        "grid": "tensor"
+    },
+    "kwargs": {
+        "mode": "string",
+        "padding_mode": "string",
+        "align_corners": "boolean"
+    },
+    "inner": {}
+}
+
+signatures["torch.nn.init.calculate_gain"] = {
+    "args": {
+        "nonlinearity": "string"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+signatures["torch.nn.init.constant_"] = {
+    "args": {
+        "tensor": "tensor",
+        "val": "float" # Could also be integer or boolean, assuming float is most general
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+signatures["torch.nn.init.dirac_"] = {
+    "args": {
+        "tensor": "tensor",
+        "offset": "integer"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+signatures["torch.nn.init.eye_"] = {
+    "args": {
+        "tensor": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.init.normal_"] = {
+    "args": {
+        "tensor": "tensor",
+        "mean": "float",
+        "std": "float"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+signatures["torch.nn.init.ones_"] = {
+    "args": {
+        "tensor": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+signatures["torch.nn.init.orthogonal_"] = {
+    "args": {
+        "tensor": "tensor"
+    },
+    "kwargs": {
+        "gain": "float"
+    },
+    "inner": {},
+}
+signatures["torch.nn.init.sparse_"] = {
+    "args": {
+        "tensor": "tensor",
+        "sparsity": "float"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.init.uniform_"] = {
+    "args": {
+        "tensor": "tensor",
+        "a": "float",
+        "b": "float"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+
+signatures["torch.nn.init.kaiming_normal_"] = {
+    "args": {
+        "tensor": "tensor",
+        "a": "float",
+        "mode": "string",
+        "nonlinearity": "string"
+    },
+    "kwargs": {},
+    "inner": {}
+}
+signatures["torch.nn.init.kaiming_uniform_"] = {
+    "args": {
+        "tensor": "tensor",
+        "a": "float",
+        "mode": "string",
+        "nonlinearity": "string"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+signatures["torch.nn.init.xavier_normal_"] = {
+    "args": {
+        "tensor": "tensor",
+        "gain": "float"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+
+signatures["torch.nn.init.xavier_uniform_"] = {
+    "args": {
+        "tensor": "tensor",
+        "gain": "float"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.init.zeros_"] = {
+    "args": {
+        "tensor": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.utils.clip_grad_value__1"] = {
+    "args": {
+        "parameters": "tensor_list",
+        "clip_value": "float"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.nn.utils.rnn.pack_padded_sequence"] = {
+    "args": {
+        "input": "tensor",
+        "lengths": "tensor",
+        "batch_first": "boolean",
+        "enforce_sorted": "boolean"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+
+signatures["torch.nn.utils.rnn.pack_sequence"] = {
+    "args": {
+        "sequences": "tensor_list",
+        "enforce_sorted": "boolean"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.special.polygamma"] = {
+    "args": {
+        "n": "integer",
+        "input": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.special.digamma"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {},
+}
+
+signatures["torch.special.erf"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {}
+}
+signatures["torch.special.erfc"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {}
+}
+signatures["torch.special.logsumexp_1"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "dim": "integer",
+        "keepdim": "boolean",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.special.logsumexp_2"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "dim": "list", # Could be a tuple of ints too
+        "keepdim": "boolean",
+        "out": "tensor"
+    },
+    "inner": {},
+}
+
+
+signatures["torch.special.logit_1"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "eps": "float"
+    },
+    "inner": {}
+}
+
+signatures["torch.special.logit_2"] = {
+    "args": {
+        "input": "tensor",
+    },
+    "kwargs": {
+        "eps": "tensor"
+    },
+    "inner": {}
+}
+signatures["torch.special.exp2"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.special.expm1"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.special.xlogy"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.special.zeta_1"] = {
+    "args": {
+        "x": "tensor",
+        "q": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+signatures["torch.special.zeta_2"] = {
+    "args": {
+        "x": "tensor",
+        "q": "float"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+
+signatures["torch.special.zeta_3"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.special.i0"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {}
+}
+signatures["torch.special.i1e"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.special.round"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {},
+    "inner": {},
+}
+signatures["torch.special.log1p"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "out": "tensor"
+    },
+    "inner": {},
+}
+signatures["torch.special.log_softmax_1"] = {
+    "args": {
+        "input": "tensor",
+        "dim": "integer"
+    },
+    "kwargs": {
+        "dtype": "dtype"
+    },
+    "inner": {},
+}
+signatures["torch.special.log_softmax_2"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "dim": "integer",
+        "dtype": "dtype"
+    },
     "inner": {},
 }

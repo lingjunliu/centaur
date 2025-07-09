@@ -161,9 +161,9 @@ def abstract_print(abstract, signature):
             i += 3
         
         if domain == "tensor": # tensors                
-            printable += f"{arg}: \n\tshape: {tuple(ll[0])}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n\trange: {tuple(ll[2])}\n"
+            printable += f'{arg}: \n\tshape: {tuple(ll[0])}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n\trange: {(np.format_float_positional(ll[2][0]), np.format_float_positional(ll[2][1]))}\n'
         else:
-            printable += f"{arg}: \n\tvalue: {ll[0][0]}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n"
+            printable += f'{arg}: \n\tvalue: {np.format_float_positional(ll[0][0])}\n\tdtype: {list_of_available_dtypes[ll[1][0]]}\n'
         
     return printable
 
