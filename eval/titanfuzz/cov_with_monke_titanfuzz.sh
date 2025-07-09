@@ -29,12 +29,12 @@ wait_for_slurm(){
 
 ##################################################################################
 
-MAX_INPUTS=${1:-500}
+MAX_INPUTS=${1:-0}
 APPLY_MONKE=${2:-1}
 RUN_MOD=${3:-1}
 COMPUTE_COV=${4:-1}
 
-DIR=${root_dir}/eval/titanfuzz/titanfuzz_inputs/Results_690_apis/torch/valid
+DIR=${root_dir}/eval/titanfuzz/titanfuzz_inputs/Results_180s_1/torch/valid
 out_dir=${root_dir}/eval/titanfuzz/modified_inputs
 
 apisFile=${root_dir}/apis.txt
@@ -60,6 +60,7 @@ mkdir -p ${outputs}
 result_file=${outputs}/coverage.csv
 
 source ${root_dir}/venv/bin/activate
+pip install torch==2.2.0
 
 total_files=$(find ${DIR} -name "*.py" -type f | wc -l)
 inputs_per_proc=$(((total_files + n_procs - 1) / n_procs))
@@ -102,7 +103,7 @@ if [ ${RUN_MOD} -eq 1 ]; then
 fi
 
 if [ ${COMPUTE_COV} -eq 1 ]; then
-    pip install ${root_dir}/instrumented_pytorch/torch-2.6.0*
+    pip install ${root_dir}/instrumented_pytorch/torch-2.2.0*
     
     libname=torch
     export TORCH_BUILD_DIR=$(pip show "$libname" | grep "Location:" | awk '{print $2}')/${libname}
@@ -131,7 +132,7 @@ if [ ${COMPUTE_COV} -eq 1 ]; then
     done
 fi
 
-pip install torch==2.6.0
+pip install torch==2.2.0
 
 echo "Results are saved in ${result_file}"
 

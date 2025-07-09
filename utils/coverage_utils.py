@@ -38,30 +38,31 @@ def extract_coverage_data(html_content):
     Returns list of tuples (path, coverage_number) and total sum.
     """
     filters = [
+        # Filters are not used for now, but can be uncommented if needed
         # Tensor/memory management
-        "Copy", "Factory", "TensorShape", "TensorFactories", "TensorOperators",
-        "TensorTransform", "TensorAdvanced", "TensorCompare", "TensorProperties",
-        "Index", "Cat", "Stack", "Unfold", "Resize", "Fill", "utils", "Utils",
-        "ParamUtils", "Param", "Dispatch", "Iterator", "Stride", "Contiguous", "Type", "Tensor", "Loops",
+        # "Copy", "Factory", "TensorShape", "TensorFactories", "TensorOperators",
+        # "TensorTransform", "TensorAdvanced", "TensorCompare", "TensorProperties",
+        # "Index", "Cat", "Stack", "Unfold", "Resize", "Fill", "utils", "Utils",
+        # "ParamUtils", "Param", "Dispatch", "Iterator", "Stride", "Contiguous", "Type", "Tensor", "Loops",
 
-        # Quantization
-        "quantized", "Quant", "qconv", "qlinear", "qmatmul", "qelu", "qrelu",
-        "qsigmoid", "qtanh", "qclamp", "qthreshold", "qhardsigmoid", "qgelu",
-        "qsoftmax", "qmul", "qhardswish", "qdropout", "qnormalization", "fbgemm",
-        "qnnpack", "AffineQuantizer", "FakeQuant", "IntRepr", "MakePerTensor",
+        # # Quantization
+        # "quantized", "Quant", "qconv", "qlinear", "qmatmul", "qelu", "qrelu",
+        # "qsigmoid", "qtanh", "qclamp", "qthreshold", "qhardsigmoid", "qgelu",
+        # "qsoftmax", "qmul", "qhardswish", "qdropout", "qnormalization", "fbgemm",
+        # "qnnpack", "AffineQuantizer", "FakeQuant", "IntRepr", "MakePerTensor",
 
-        # Random/distribution
-        "Distribution", "Random", "Multinomial", "SobolEngine",
+        # # Random/distribution
+        # "Distribution", "Random", "Multinomial", "SobolEngine",
 
-        # Sampling/upsampling (typically not core compute)
-        "UpSample", "GridSampl", "FractionalMaxPool", "PixelShuffle",
-        "ChannelShuffle", "Sorting", "Histogram", "Bucketization",
+        # # Sampling/upsampling (typically not core compute)
+        # "UpSample", "GridSampl", "FractionalMaxPool", "PixelShuffle",
+        # "ChannelShuffle", "Sorting", "Histogram", "Bucketization",
 
-        # Sparse operations (specialized, not core dense compute)
-        "Sparse", "sparse",
+        # # Sparse operations (specialized, not core dense compute)
+        # "Sparse", "sparse",
 
-        # Infrastructure
-        "Shim", "Fallback", "Legacy", "Verbose", "Test", "Debug"
+        # # Infrastructure
+        # "Shim", "Fallback", "Legacy", "Verbose", "Test", "Debug"
     ]
     soup = BeautifulSoup(html_content, 'html.parser')
 
@@ -226,11 +227,14 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
                             "-coverage-watermark=2,1",
                             f"-output-dir={cov_dir}/{prefix}"
                         ]
-            if native_only:                
-                instrumentation_dir = get_dir_in_root('instrumented_pytorch')
-                native_dir = f"{instrumentation_dir}/pytorch/aten/src/ATen/native/"
-                cmd_html.append(native_dir)
-                print(f"Filtering to only the native folder at {native_dir}")
+            instrumentation_dir = get_dir_in_root('instrumented_pytorch')
+            if native_only:                                
+                filter_dir = f"{instrumentation_dir}/pytorch/aten/src/ATen/native/"                
+                print(f"Filtering to only the native folder at {filter_dir}")
+            else:
+                filter_dir = f"{instrumentation_dir}/pytorch/"
+            
+            cmd_html.append(filter_dir)
 
             return_obj = subprocess.run(cmd_html, capture_output=True)
         except subprocess.CalledProcessError as err:
@@ -316,9 +320,10 @@ def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
 def main():
     if len(sys.argv) > 1:
         cmd_line = sys.argv[1]
-        gen_html = sys.argv[2].lower() == "true" if len(sys.argv) > 2 else False
-        prefix = sys.argv[3] if len(sys.argv) > 3 else "default"
-        num_branches, num_lines, return_code, coverage_dict = get_cov_torch(cmd_line, prefix=prefix, gen_html=gen_html)
+        gen_html = sys.argv[2].lower() == "html" if len(sys.argv) > 2 else False
+        native_only = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
+        prefix = sys.argv[4] if len(sys.argv) > 4 else "default"
+        num_branches, num_lines, return_code, coverage_dict = get_cov_torch(cmd_line, prefix=prefix, gen_html=gen_html, native_only=native_only)
 
         if return_code != 0:
             print(f"Executing {cmd_line} failed with return code {return_code}")

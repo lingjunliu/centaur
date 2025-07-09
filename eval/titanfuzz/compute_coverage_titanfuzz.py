@@ -5,8 +5,8 @@ from utils.misc import map_torch_to_driver
 
 def retain_limited_files(directory, retain_count=300, ext=".pkl"):
     pkl_files = [f for f in os.listdir(directory) if f.endswith(ext)]
-    if len(pkl_files) <= retain_count:
-        print(f"Less than or equal to {retain_count} {ext} files found ({len(pkl_files)}) in {directory}. No files deleted.")
+    if len(pkl_files) <= retain_count or retain_count <= 0:
+        print(f"{len(pkl_files)} {ext} files found in {directory}. No files deleted.")
         return len(pkl_files)
     
     files_to_keep = random.sample(pkl_files, retain_count)
@@ -29,7 +29,7 @@ def main():
 
     print(f"dir: {dir}, api: {api}, out_file: {out_file}")
     
-    limit = 300
+    limit = 0
     if len(sys.argv) > 4:
         limit = int(sys.argv[4])
 
