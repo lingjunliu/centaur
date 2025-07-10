@@ -1,0 +1,204 @@
+>>
+Rule 1 (Input tensor cannot be of boolean type to avoid `adaptive_avg_pool2d" not implemented for 'Bool'`)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 2 (output_size should be positive to avoid `elements of output_size must be greater than or equal to 0`)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 3 (output_size should be a single integer to avoid `argument 'output_size' should contain one int (got 2)`)
+{v_1 : tuple(int)} |= v_1.len = 1
+>>
+Rule 4 (Input tensor should have at least 2 dimensions to avoid `Expected 2 to 3 dimensions, but got 1-dimensional tensor`)
+{v_1 : tensor} |= ndim(v_1) ≥ 2 ∧ ndim(v_1) ≤ 3
+>>
+Rule 5 (output_size cannot be excessively large to prevent `can't allocate memory`)
+{v_1 : int, v_2 : tensor} |= v_1 < 1000 ∧ shape(v_2, ndim(v_2) - 1) < 1000
+>>
+Rule 6 (output_size cannot cause integer multiplication overflow)
+{v_1 : int, v_2 : tensor} |= v_1 < 2147483647 / shape(v_2, 1)
+>>
+Rule 9 (output_size should be less than maximum limit to avoid potential overflow)
+{v_1 : int} |= v_1 < 2048
+>>
+Rule 12 (Prevent excessive memory allocation by limiting the product of input dimensions and output size.)
+{v_1 : int, v_2 : tensor} |= v_1 * shape(v_2, ndim(v_2) -1) < 1000000
+>>
+Rule 13 (The output size should not be excessively large relative to a dimension of the input to prevent integer overflow.)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, 1) * 100
+>>
+Rule 14 (Input tensor cannot be of boolean type; using a different approach with shape check)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 15 (The dimensions after applying output size should be within a memory limit to prevent OOM errors)
+{v_1 : int, v_2 : tensor} |= shape(v_2, 1) * v_1 < 500000000
+>>
+Rule 16 (The output_size should fit within the valid range for SymInt to avoid related errors)
+{v_1 : int} |= v_1 < 2147483647 ∧ v_1 > -2147483648
+>>
+Rule 17 (To use adaptive pool, the last dimension size should be big enough.)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) > v_2
+>>
+Rule 18 (Combined check for dimension and boolean type. Requires tensor to have at least one dimension and ensures dtype is not boolean via shape.)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ shape(v_1, 0) > 1
+>>
+Rule 19 (Memory allocation constraint: ensure output_size is not excessively small when multiplied by other shape parameters, to avoid division by zero and extreme values)
+{v_1 : int, v_2 : tensor} |= v_1 > 0 ∧ v_1 * shape(v_2, 1) < 1000000000
+>>
+Rule 20 (Ensure that the output size fits within a safe computational bound to avoid "IntArrayRef contains an int that cannot be represented as a SymInt")
+{v_1 : int} |= v_1 < 100000
+>>
+Rule 21 (The number of input channels must be a reasonable value)
+{v_1 : tensor} |= shape(v_1, 1) < 5000
+>>
+Rule 22 (Ensuring that the input tensor is large enough compared to output_size, avoid division by zero errors.)
+{v_1 : tensor, v_2 : int} |= shape(v_1, ndim(v_1) - 1) > 0 ∧ shape(v_1, ndim(v_1) - 1) % v_2 = 0
+>>
+Rule 23 (Restrict channel dimension to a reasonable size to prevent memory allocation issues.)
+{v_1 : tensor} |= shape(v_1, 1) < 2048
+>>
+Rule 24 (Combination of tensor dimension checks, enforcing either 2 or 3 dimensions.)
+{v_1 : tensor} |= ndim(v_1) = 2 ∨ ndim(v_1) = 3
+>>
+Rule 25 (If input has three dimensions, N dimension should be a reasonable size. Prevents possible multiplication overflow)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) < 1024
+>>
+Rule 26 (The output size must be less than or equal to the input size.)
+{v_1 : tensor, v_2 : int} |= v_2 ≤ shape(v_1, ndim(v_1)-1)
+>>
+Rule 27 (Check if the output_size is a power of 2, which might be helpful to optimize memory allocation. Avoiding OOM)
+{v_1 : int} |= ∃i ∈ [0, 20] : v_1 = 2 * i
+>>
+Rule 28 (The total number of elements should be in reasonable range.)
+{v_1 : tensor, v_2 : int} |= v_2 * shape(v_1, 1) * (if ndim(v_1) = 3 then shape(v_1, 0) else 1) < 100000000
+>>
+Rule 29 (If the input is 2D, the channel size cannot be equal to 1. Special Cases.)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) ≠ 1
+>>
+Rule 30 (output_size shouldn't be 1 if the last dimension of input is small, to avoid edge cases in calculations)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, ndim(v_1) - 1) < 10 then v_2 ≠ 1
+>>
+Rule 31 (output_size should be greater than 1 if input tensor is small and N dim exists)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 3 ∧ shape(v_1, 0) < 5 then v_2 > 1
+>>
+Rule 32 (Combined condition to restrict tensor shape based on its dtype)
+{v_1 : tensor} |= if dtype_(v_1) < 6 then shape(v_1, 1) < 1000 else shape(v_1, 1) < 2048
+>>
+Rule 33 (output_size cannot be too close to the maximum value that can be represented by int.)
+{v_1 : int} |= v_1 < 2147483640
+>>
+Rule 34 (If input is small, output_size shouldn't shrink the last dimension too much, to prevent integer overflow during calculations)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, ndim(v_1) - 1) < 5 then v_2 ≥ shape(v_1, ndim(v_1) - 1) / 2
+>>
+Rule 35 (Restricting maximum size of output size based on number of channels)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, 1) > 1000 then v_1 < 500 else v_1 < 1000
+>>
+Rule 36 (If number of channels is very small, output_size cannot be very large.)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, 1) < 5 then v_1 < 100
+>>
+Rule 37 (output_size must be strictly positive in the 3D case)
+{v_1 : int, v_2 : tensor} |= if ndim(v_2) = 3 then v_1 > 0
+>>
+Rule 39 (Combined shape condition, checking if both dimensions are larger than a certain threshold, related to the Bool error.)
+{v_1: tensor} |= shape(v_1, 0) > 5 ∧ shape(v_1, 1) > 5
+>>
+Rule 41 (If channels are less than 8, output_size needs to be less than 32.)
+{v_1 : int} |= v_1 < 32
+>>
+Rule 43 (Prevent numel overflow by limiting the output_size if input last dimension is extremely large)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, ndim(v_2) -1) > 5000 then v_1 < 100
+>>
+Rule 44 (if tensor has 2 dimensions then channels must be reasonably large)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 10
+>>
+Rule 45 (output size should not be a very large fraction of the last dimension of the input tensor)
+{v_1 : int, v_2 : tensor} |= v_1 < shape(v_2, ndim(v_2) - 1) * 0.75 ∨ shape(v_2, ndim(v_2) - 1) > 100
+>>
+Rule 46 (If ndim is equal to 2 make sure that channel size is greater than output size.)
+{v_1 : tensor, v_2 : int} |= if ndim(v_1) = 2 then shape(v_1, 0) > v_2
+>>
+Rule 47 (If output_size is large make sure channel size is at least a certain size)
+{v_1 : int, v_2 : tensor} |= if v_1 > 500 then shape(v_2, 1) > 100
+>>
+Rule 48 (Ensure that total number of elements remains below a maximum value)
+{v_1 : int, v_2 : tensor} |= (if ndim(v_2) = 3 then shape(v_2, 0) * shape(v_2, 1) * v_1 else shape(v_2, 0) * v_1) < 10000000
+>>
+Rule 49 (If channel size is close to output size, N cannot be large, and must be present i.e. 3D tensor.)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, 1) - v_1 < 5 then ndim(v_2) ≠ 3 ∨ shape(v_2, 0) < 100
+>>
+Rule 50 (The size should only be greater than one if the tensor's channel count is less than 32.)
+{v_1: int, v_2 : tensor} |= if v_1 > 1 then shape(v_2, 1) < 32
+>>
+Rule 55 (If the input is very large, the output cannot be too small)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, ndim(v_2)-1) > 4096 then v_1 > 16
+>>
+Rule 56 (if there are not that many elements in the dimension, it needs to be at least 1)
+{v_1 : tensor, v_2 : int} |= if shape(v_2, ndim(v_2) - 1) < 100 then v_1 ≥ 1
+>>
+Rule 57 (channels must be different than the output size if output is large to avoid overflow issues)
+{v_1 : int, v_2 : tensor} |= if v_1 > 50 then shape(v_2, 1) ≠ v_1
+>>
+Rule 58 (the number of input channels must be greater than 1)
+{v_1 : tensor} |= shape(v_1, 1) > 1
+>>
+Rule 61 (The number of channels cannot be a very small number to prevent anomolies)
+{v_1: tensor} |= shape(v_1, 1) > 2
+>>
+Rule 62 (if shape is low, it needs to have large number of features)
+{v_1 : int, v_2: tensor} |= if shape(v_2, ndim(v_2) -1) < 300 then v_1 > 10
+>>
+Rule 63 (If there are many channels then the total output elements can't be arbitrarily large)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, 1) > 64 then shape(v_2, 1) * v_1 < 500000
+>>
+Rule 64 (output_size has to be in the reasonable range, but less than number of features if the total product would be an issue)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, 1) > 100 then v_1 < 500 else v_1 < 100000
+>>
+Rule 65 (If the output size is very small, the last dimension of the input tensor cannot be excessively large. Avoids division by zero and memory issues.)
+{v_1 : int, v_2 : tensor} |= if v_1 < 4 then shape(v_2, ndim(v_2)-1) < 1024
+>>
+Rule 66 (If output size is extremely large then N has to be equal to 1, otherwise the elements would explode.)
+{v_1 : int, v_2 : tensor} |= if v_1 > 2048 then (if ndim(v_2) = 3 then shape(v_2, 0) = 1)
+>>
+Rule 67 (The output_size can't divide the input size if the number of channels are extremely high - prevent integer overflows.)
+{v_1: int, v_2: tensor} |= if shape(v_2, 1) > 2048 then shape(v_2, ndim(v_2) - 1) % v_1 ≠ 0
+>>
+Rule 68 (Prevent near-zero output sizes when input features are small to help avoid division by zero)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, ndim(v_2)-1) < 16 then v_1 > 2
+>>
+Rule 69 (If output is small the dimension needs to be also small)
+{v_1 : int, v_2 : tensor} |= if v_1 < 10 then shape(v_2, ndim(v_2)-1) < 500
+>>
+Rule 70 (If shape is equal to 1 do not allow it to go to a smaller number like zero!)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, 1) = 1 then v_1 > 0
+>>
+Rule 71 (Number of channels * output_size can't be excessively small as that is a sign that something will break in calculations.)
+{v_1 : int, v_2 : tensor} |= v_1 * shape(v_2, 1) > 16
+>>
+Rule 72 (Large number of channels indicate last dimension needs to be large to properly perform adaptive average pooling.)
+{v_1 : tensor} |= if shape(v_1, 1) > 2048 then shape(v_1, ndim(v_1)-1) > 100
+>>
+Rule 73 (The output_size can't be near the maximum value if channels are near the max.)
+{v_1 : int, v_2 : tensor} |= if shape(v_2, 1) > 2000 then v_1 < 1000
+>>
+Rule 74 (Output size cannot cause a large increase in the size of the last dimension of small tensors)
+{v_1: int, v_2: tensor} |= if shape(v_2, ndim(v_2) - 1) < 10 then v_1 ≤ shape(v_2, ndim(v_2) - 1) * 2
+>>
+Rule 75 (The output size must not be significantly smaller than the input if there is a small batch size)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 3 ∧ shape(v_2, 0) < 4 then shape(v_2, ndim(v_2) - 1) / v_1 < 4
+>>
+Rule 76 (The channel dimension cannot be zero or calculations will fail.)
+{v_1: tensor} |= shape(v_1, 1) ≠ 0
+>>
+Rule 77 (The output size must be a reasonable positive value. This mainly affects the "IntArrayRef contains an int that cannot be represented as a SymInt" error, by ensuring its small!)
+{v_1: int} |= v_1 > 0 ∧ v_1 < 5000
+>>
+Rule 78 (The output_size needs to be small enough that the original L dimension is not significantly reduced by adaptative pool)
+{v_1: int, v_2: tensor} |= if shape(v_2, ndim(v_2) - 1) < 500 then v_1 > shape(v_2, ndim(v_2) - 1) / 10
+>>
+Rule 79 ( If the data consists of less than 32 points we should ensure the features are not extremely small)
+{v_1: int, v_2: tensor} |= if shape(v_2, 1) < 32 then v_1 > 2
+>>
+Rule 83 (if there is more than 1 channel make sure that N has only one batch.)
+{v_1: tensor} |= if shape(v_1, 1) > 1 then if ndim(v_1) = 3 then shape(v_1, 0) = 1
+>>
+Rule 84 (If batch size is large and channels are small, the output size must be large enough)
+{v_1: int, v_2: tensor} |= if ndim(v_2) = 3 ∧ shape(v_2, 0) > 512 ∧ shape(v_2, 1) < 16 then v_1 > 10

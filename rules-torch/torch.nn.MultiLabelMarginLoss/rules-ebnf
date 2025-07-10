@@ -1,0 +1,105 @@
+>>
+Rule 1 (Input tensor should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 2 (Input and target tensors should have the same size along each dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 3 (Reduction must be one of the allowed strings)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+>>
+Rule 4 (Reduction can only be 'none' if input tensor has at least one dimension)
+{v_1 : str, v_2 : tensor} |= if v_1 = "none" then ndim(v_2) ≥ 1
+>>
+Rule 5 (Target tensor values should be less than the input tensor size in the second dimension, assuming input is (N,C))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < shape(v_1, 1)
+>>
+Rule 6 (Input tensor should not have any dimension with size 0)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 7 (Input and Target tensors must have the same shape if ndim > 0)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 8 (If input tensor has 0 dimension, target tensor should also have 0 dimension)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 9 (When input tensor has more than 0 dimensions, at least one dimension should be greater than zero)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 11 (If input tensor has a dimension of size zero, target tensor must also have the same dimension with size zero or both tensors should have 0 dimension)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) = 0 then shape(v_2, i) = 0)
+>>
+Rule 14 (If input tensor and target tensor both have more than 0 dimensions, then at least they must have same number of dimensions and if shape of input is 0 then target must also be 0)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) > 0 ∧ ndim(v_2) > 0) ≤ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : if shape(v_1, i) = 0 then shape(v_2, i) = 0)
+>>
+Rule 16 (Input and target tensors must either both be 0-dimensional, or have the same number of dimensions and matching shapes)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 17 (If input and target tensors have non-zero dimensions, they must have the same shape in each dimension)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0) then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 20 (Input and target tensors must have the same number of elements or be empty)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∨ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) ∨ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 21 (If the input tensor is non-empty, the target tensor cannot have zero dimensions)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then ndim(v_2) > 0
+>>
+Rule 22 (If the input tensor is non-empty and has certain dimensions, the target tensor dimensions must align and sizes match)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ≤ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 24 (If the input is non-empty, the target must have the same number of dimensions, and their shapes must align)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)
+>>
+Rule 25 (If the input is a non-empty tensor, the target must align dimensions and shape)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 26 (If the input tensor is not an empty tensor, target tensor dimensions must match with the input tensor)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then ndim(v_1) = ndim(v_2)
+>>
+Rule 27 (The input and target tensors should have the same shape. The shape must have positive values)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) > 0
+>>
+Rule 28 (At least one dimension of the input tensor should be positive and input and target tensors must have the same number of elements)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) > 0) ∧ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i))
+>>
+Rule 29 (If input has a dimension, the target also has the same dimension, shapes must align)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) else True
+>>
+Rule 30 (If either tensor has a dimension with size 0, then they both have to be empty or must be the same shape)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0 ∨ ∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) ≤ (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 31 (Either the input and target are both empty, or the input and target are not empty and have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ((∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ (∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)) ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∧ shape(v_1, i) > 0))
+>>
+Rule 32 (If the input is non-empty, the target must have the same dimensions and sizes)
+{v_1 : tensor, v_2 : tensor} |= if ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 33 (If the input is a non-empty vector, the target must also be a non-empty vector with the same size)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) then ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 34 (Both Input and target should be either an empty tensor or same number of dimensions and same shape)
+{v_1 : tensor, v_2 : tensor} |= ((ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∧ (∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 0)) ∨ (ndim(v_1) = ndim(v_2) ∧ (∀i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 35 (If input has shape, then both inputs should have same dimensions and shapes)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 36 (If both Input and target have shape (not empty), should have same size)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) ∧ (∃j ∈ [0, ndim(v_2)-1] : shape(v_2, j) > 0) then (ndim(v_1) = ndim(v_2) ∧ (∀k ∈ [0, ndim(v_1)-1] : shape(v_1, k) = shape(v_2, k)))
+>>
+Rule 37 (If the input is a non-empty tensor then the target has the same shape as the input)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_2) ∧ ∀j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = shape(v_2, j))
+>>
+Rule 38 (If one of the input or output is non-empty, the other also needs to be a non-empty tensor and they should have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ((∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) ∨ (∃i ∈ [0, ndim(v_2)-1] : shape(v_2, i) > 0)) ≤ (ndim(v_1) = ndim(v_2) ∧ (∀k ∈ [0, ndim(v_1)-1] : shape(v_1, k) = shape(v_2, k) ∧ shape(v_1,k) > 0 ))
+>>
+Rule 39 (If the input and target are non-empty tensors, at least one dimension in each must be positive and shape of tensors must be same)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) ∧ (∃j ∈ [0, ndim(v_2)-1] : shape(v_2, j) > 0) ∧ (ndim(v_1) = ndim(v_2) ∧ (∀k ∈ [0, ndim(v_1)-1] : shape(v_1, k) = shape(v_2, k)))
+>>
+Rule 40 (If both Input and target have any shape, then they have the same number of dimensions and at least one dimension in both has to be greater than zero. Also the shapes have to align)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0) ∧ (∃j ∈ [0, ndim(v_2)-1] : shape(v_2, j) > 0) ≤ (ndim(v_1) = ndim(v_2) ∧ (∀k ∈ [0, ndim(v_1)-1] : shape(v_1, k) = shape(v_2, k)))
+>>
+Rule 41 (Non-empty tensors (input and target) should have at least one dimension with size greater than zero and must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 ∧ ∃j ∈ [0, ndim(v_2)-1] : shape(v_2, j) > 0) ≤ (ndim(v_1) = ndim(v_2) ∧ (∀k ∈ [0, ndim(v_1)-1] : shape(v_1, k) = shape(v_2, k)))
+>>
+Rule 42 (Non-empty Input and target should have the same shape and size)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0 then (ndim(v_1) = ndim(v_2) ∧ (∀k ∈ [0, ndim(v_1)-1] : shape(v_1, k) = shape(v_2, k)))

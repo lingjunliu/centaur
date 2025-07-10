@@ -1,0 +1,84 @@
+>>
+Rule 1 (dim and s should have the same length)
+{v_1 : tuple(int), v_2 : tuple(int)} |= v_1.len = v_2.len
+>>
+Rule 3 (norm should be selected from the specified string list)
+{v_1 : str} |= v_1 = "forward" ∨ v_1 = "backward" ∨ v_1 = "ortho"
+>>
+Rule 4 (input tensor should be complex type)
+{v_1 : tensor} |= dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 6 (dim must be in the valid range of dimensions of the input tensor - corrected using addition)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] + ndim(v_1) ∧ v_2[i] + ndim(v_1) < 2 * ndim(v_1)
+>>
+Rule 11 (dim and s should have same length, or s is none)
+{v_1 : tuple(int), v_2 : tuple(int) ⊎ str} |= (v_2 = "none") ∨ (v_1.len = v_2.len)
+>>
+Rule 13 (if s is not none, dim should not be none)
+{v_1 : tuple(int) ⊎ str, v_2 : tuple(int) ⊎ str} |= if v_1 ≠ "none" then v_2 ≠ "none"
+>>
+Rule 15 (If s is not None, dim should have same length.)
+{v_1 : tuple(int) ⊎ str, v_2 : tuple(int)} |= if v_1 ≠ "none" then v_1.len = v_2.len
+>>
+Rule 16 (If s is None then dim is None)
+{v_1 : tuple(int) ⊎ str, v_2 : tuple(int) ⊎ str} |= if v_1 = "none" then v_2 = "none"
+>>
+Rule 17 (If s is a tuple, then dim is also a tuple, and s and dim have the same length)
+{v_1 : tuple(int) ⊎ str, v_2 : tuple(int) ⊎ str} |= if v_1 ≠ "none" then (v_2 ≠ "none" ∧ v_1.len = v_2.len)
+>>
+Rule 20 (If dim is a tuple, then dim elements must be within allowed range, accounting for negative indices)
+{v_1 : tensor, v_2 : tuple(int) ⊎ str} |= if v_2 ≠ "none" then ∀i ∈ [0, v_2.len - 1] : (v_2[i] + ndim(v_1) ≥ 0 ∧ v_2[i] + ndim(v_1) < 2 * ndim(v_1))
+>>
+Rule 21 (If dim is a tuple, then dim elements must be within allowed range, if at least one dimension exists)
+{v_1 : tensor, v_2 : tuple(int) ⊎ str} |= if v_2 ≠ "none" ∧ ndim(v_1) > 0 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] + ndim(v_1) ≥ 0 ∧ v_2[i] + ndim(v_1) < 2 * ndim(v_1))
+>>
+Rule 22 (Combining all conditions for s and dim)
+{v_1 : tensor, v_2 : tuple(int) ⊎ str, v_3 : tuple(int)} |= ((v_2 = "none" ∧ v_3 = "none") ∨ (v_2 ≠ "none" ∧ v_3 ≠ "none" ∧ v_2.len = v_3.len ∧ ∀i ∈ [0, v_3.len - 1] : (v_3[i] + ndim(v_1) ≥ 0 ∧ v_3[i] + ndim(v_1) < 2 * ndim(v_1))))
+>>
+Rule 23 (Input tensor should have the same dtype as the out tensor, if out is provided)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 24 (If dim is a tuple, its length must be less or equal than the number of dimensions of the input tensor)
+{v_1: tensor, v_2: tuple(int) ⊎ str} |= if v_2 != "none" then v_2.len <= ndim(v_1)
+>>
+Rule 25 (if dim has at least one element, it should be within bounds)
+{v_1 : tensor, v_2 : tuple(int) ⊎ str} |= if v_2 != "none" ∧ v_2.len > 0 then ∃i ∈ [0, v_2.len - 1] : (v_2[i] + ndim(v_1) >= 0 ∧ v_2[i] + ndim(v_1) < 2 * ndim(v_1))
+>>
+Rule 27 (if dim and s are given, then each element s[i] should be positive or -1)
+{v_1: tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : (v_1[i] > 0) ∨ (v_1[i] = -1)
+>>
+Rule 29 (norm is backward by default if not given)
+{v_1 : str ⊎ bool} |= (v_1 = "forward") ∨ (v_1 = "backward") ∨ (v_1 = "ortho") ∨ (v_1 = true) ∨ (v_1 = false)
+>>
+Rule 30 (The output tensor's shape must be consistent with input and s)
+{v_1: tensor, v_2: tensor, v_3: tuple(int) ⊎ str} |= if v_3 != "none" then ndim(v_2) = v_3.len else ndim(v_2) = ndim(v_1)
+>>
+Rule 31 (The output tensor's shape must be consistent with input and s, taking into account -1)
+{v_1: tensor, v_2: tensor, v_3: tuple(int) ⊎ str} |= if v_3 != "none" then (ndim(v_2) = v_3.len ∧ ∀i ∈ [0, v_3.len - 1] : if v_3[i] != -1 then shape(v_2, i) = v_3[i] ) else ndim(v_2) = ndim(v_1)
+>>
+Rule 32 (If s and dim are both "none" the output tensor must have same shape)
+{v_1 : tensor, v_2 : tensor, v_3 : str, v_4: str} |= if v_3 = "none" ∧ v_4 = "none" then ndim(v_1) = ndim(v_2) ∧  ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 34 (The function shape should have valid dimension parameters, corrected)
+{v_1: tensor, v_2: int} |= v_2 + ndim(v_1) >= 0 ∧ v_2 + ndim(v_1) < 2 * ndim(v_1)
+>>
+Rule 36 (If s and dim are provided, the elements of dim must exist in the input tensor)
+{v_1: tensor, v_3: tuple(int)} |= ∀i ∈ [0, v_3.len - 1] : v_3[i] + ndim(v_1) >= 0 ∧ v_3[i] + ndim(v_1) < 2 * ndim(v_1)
+>>
+Rule 37 (if dim and s are provided, s length must match dim length)
+{v_1: tuple(int), v_3: tuple(int)} |= v_1.len = v_3.len
+>>
+Rule 38 (The function ndim should be greater or equal than 0)
+{v_1: tensor} |= ndim(v_1) >= 0
+>>
+Rule 39 (dim must be a tuple or a string, and if it's a string, it must be "none")
+{v_1: tuple(int) ⊎ str} |= v_1 = "none" ∨ v_1.len >= 0
+>>
+Rule 42 (If s and dim have the same length, then the output shape must have the same length, corrected)
+{v_2: tuple(int) ⊎ str, v_3: tuple(int) ⊎ str, v_4: tensor} |= if v_2 ≠ "none" ∧ v_3 ≠ "none" ∧ v_2.len = v_3.len then ndim(v_4) = v_2.len
+>>
+Rule 43 (If dim is provided, its length must be less or equal to number of dimension)
+{v_1 : tensor, v_2 : tuple(int) ⊎ str} |= if v_2 != "none" then v_2.len <= ndim(v_1)
+>>
+Rule 45 (if s is provided, each element in dim should be in range -ndim(input), ..., ndim(input) -1, also handle default)
+{v_1 : tensor, v_2 : tuple(int), v_3 : tuple(int) ⊎ str} |= if v_3 != "none" then ∀i ∈ [0, v_2.len - 1]: v_2[i] + ndim(v_1) >= 0 ∧ v_2[i] + ndim(v_1) < 2 * ndim(v_1)
