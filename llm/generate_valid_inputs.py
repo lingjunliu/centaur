@@ -208,9 +208,9 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
         to_return[attempt] = 1
         print("Retrying code generation after 6 seconds...")
         time.sleep(6)
-        retry_prompt = retry_prompt(error)
-        logger.info(f"[Retry Prompt]\n\n{retry_prompt}\n\n")
-        response = chat.send_message(retry_prompt)
+        prompt = retry_prompt(error)
+        logger.info(f"[Retry Prompt]\n\n{prompt}\n\n")
+        response = chat.send_message(prompt)
         print("Got response from Gemini API.")
         logger.info(f"[Response]\n\n{response.text}\n\n")
         code = extract_code_from_response(response.text)
@@ -229,7 +229,7 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
         logger.info(f"API: {api} Suffix: {suffix} | Input generated successfully.\n\n")
         if code is not None:
             code = code.replace("generated_inputs = {}", "")
-            with open(f"{CUR_DIR}/valid_inputs.py", "a") as fv:
+            with open(f"{CUR_DIR}/valid_inputs_{lib}.py", "a") as fv:
                 fv.write(code + "\n\n")
         else:
             print("No code to write to valid_inputs.py.")
