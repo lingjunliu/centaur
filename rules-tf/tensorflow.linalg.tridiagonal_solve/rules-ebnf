@@ -1,0 +1,93 @@
+>>
+Rule 1 (diagonals and rhs should have the same dtype)
+{diagonals : tensor, rhs : tensor} |= dtype_(diagonals) = dtype_(rhs)
+>>
+Rule 2 (partial_pivoting and perturb_singular cannot both be true when partial_pivoting is false)
+{partial_pivoting : bool, perturb_singular : bool} |= if partial_pivoting = false then perturb_singular = false
+>>
+Rule 3 (diagonals_format must be one of the allowed strings)
+{diagonals_format : str} |= diagonals_format = "matrix" ∨ diagonals_format = "sequence" ∨ diagonals_format = "compact"
+>>
+Rule 4 (transpose_rhs is a boolean)
+{transpose_rhs : bool} |= transpose_rhs = true ∨ transpose_rhs = false
+>>
+Rule 5 (conjugate_rhs is a boolean)
+{conjugate_rhs : bool} |= conjugate_rhs = true ∨ conjugate_rhs = false
+>>
+Rule 6 (partial_pivoting is a boolean)
+{partial_pivoting : bool} |= partial_pivoting = true ∨ partial_pivoting = false
+>>
+Rule 7 (perturb_singular is a boolean)
+{perturb_singular : bool} |= perturb_singular = true ∨ perturb_singular = false
+>>
+Rule 8 (The number of dimensions of rhs must be greater or equal than one)
+{rhs : tensor} |= ndim(rhs) ≥ 1
+>>
+Rule 9 (The number of dimensions of diagonals must be greater or equal than one)
+{diagonals : tensor} |= ndim(diagonals) ≥ 1
+>>
+Rule 11 (If diagonals_format is sequence then diagonals must be a tuple)
+{diagonals : tuple(tensor), diagonals_format : str} |= if diagonals_format = "sequence" then true else false
+>>
+Rule 12 (If diagonals_format is matrix then diagonals must be a tensor)
+{diagonals : tensor, diagonals_format : str} |= if diagonals_format = "matrix" then true else false
+>>
+Rule 13 (If diagonals_format is compact then diagonals must be a tensor)
+{diagonals : tensor, diagonals_format : str} |= if diagonals_format = "compact" then true else false
+>>
+Rule 16 (If diagonals_format is compact then diagonals.shape[-2] == 3)
+{diagonals : tensor, diagonals_format : str} |= if diagonals_format = "compact" then shape(diagonals, ndim(diagonals) - 2) = 3
+>>
+Rule 17 (rhs can be M or M,K, check if shape[-1] matches)
+{rhs : tensor, diagonals : tensor} |= shape(diagonals, ndim(diagonals) - 1) = shape(rhs, ndim(rhs) - 1) ∨ shape(diagonals, ndim(diagonals) - 1) = shape(rhs, ndim(rhs) - 2)
+>>
+Rule 18 (diagonals dtype must be one of the allowed values)
+{diagonals : tensor} |= dtype_(diagonals) = 7 ∨ dtype_(diagonals) = 8 ∨ dtype_(diagonals) = 10 ∨ dtype_(diagonals) = 11
+>>
+Rule 20 (If diagonals_format is sequence, diagonals should be a tuple)
+{diagonals : tuple(tensor), diagonals_format : str} |= diagonals_format = "sequence"
+>>
+Rule 21 (If diagonals_format is matrix or compact, diagonals should be a tensor)
+{diagonals : tensor, diagonals_format : str} |= diagonals_format = "matrix" ∨ diagonals_format = "compact"
+>>
+Rule 22 (The last dimension of diagonals should be same as the second to last dimension in matrix format)
+{diagonals : tensor, diagonals_format : str} |= if diagonals_format = "matrix" then shape(diagonals, ndim(diagonals) - 1) = shape(diagonals, ndim(diagonals) - 2)
+>>
+Rule 23 (If diagonals_format is sequence, diagonals should be a tuple of three tensors)
+{diagonals : tuple(tensor), diagonals_format : str} |= if diagonals_format = "sequence" then diagonals.len = 3
+>>
+Rule 25 (diagonals and rhs must have same number of batch dimensions)
+{diagonals : tensor, rhs : tensor} |= ndim(diagonals) - (if diagonals_format = "matrix" then 2 else if diagonals_format = "compact" then 2 else 1) = ndim(rhs) - (if ndim(rhs) > 1 then 2 else 1)
+>>
+Rule 27 (The batch dimensions of diagonals and rhs are equal)
+{diagonals : tensor, rhs : tensor, diagonals_format : str} |= ndim(diagonals) - (if diagonals_format = "matrix" then 2 else 1) = ndim(rhs) -1
+>>
+Rule 28 (If transpose_rhs is true, then shape of rhs can be [..., K, M])
+{rhs : tensor, transpose_rhs : bool, diagonals : tensor} |= if transpose_rhs = true then shape(diagonals, ndim(diagonals) - 1) = shape(rhs, ndim(rhs) - 2)
+>>
+Rule 32 (If diagonals_format is not sequence, then diagonals should be tensor)
+{diagonals : tensor, diagonals_format : str} |= diagonals_format ≠ "sequence"
+>>
+Rule 33 (Shape of rhs and diagonals must match based on transpose_rhs)
+{rhs : tensor, diagonals : tensor, transpose_rhs : bool} |= if transpose_rhs then shape(rhs, ndim(rhs)-2) = shape(diagonals, ndim(diagonals)-1) else shape(rhs, ndim(rhs)-1) = shape(diagonals, ndim(diagonals)-1)
+>>
+Rule 34 (If partial_pivoting is true, perturb_singular can be true or false, but must be false if partial_pivoting is false)
+{partial_pivoting : bool, perturb_singular : bool} |= if partial_pivoting then true else perturb_singular = false
+>>
+Rule 38 (If diagonals_format is not matrix, compact, or sequence, then diagonals_format is not a valid option)
+{diagonals_format : str} |= diagonals_format = "matrix" ∨ diagonals_format = "compact" ∨ diagonals_format = "sequence"
+>>
+Rule 39 (If transpose_rhs is True, rhs has shape [..., K, M], otherwise [..., M, K] or [..., M] based on number of dimensions)
+{rhs : tensor, transpose_rhs : bool, diagonals : tensor} |= if transpose_rhs then true else ndim(rhs) ≤ 2 ∨ shape(diagonals, ndim(diagonals)-1) = shape(rhs, ndim(rhs)-2)
+>>
+Rule 40 (If not transpose_rhs, check if the last dimensions of rhs and diagonals match or rhs is 1D)
+{rhs : tensor, transpose_rhs : bool, diagonals : tensor} |= if transpose_rhs = false then (ndim(rhs) = 1) ∨ (shape(diagonals, ndim(diagonals)-1) = shape(rhs, ndim(rhs)-1))
+>>
+Rule 42 (The last dimension of diagonals should match with the second to last or last of rhs)
+{diagonals : tensor, rhs : tensor, transpose_rhs : bool} |= if transpose_rhs then shape(diagonals, ndim(diagonals) - 1) = shape(rhs, ndim(rhs) - 2) else shape(diagonals, ndim(diagonals) - 1) = shape(rhs, ndim(rhs) - 1)
+>>
+Rule 43 (If rhs has more than 1 dimension and transpose_rhs is true, last dim of diagonals must match second last dim of rhs)
+{diagonals : tensor, rhs : tensor, transpose_rhs : bool} |= if transpose_rhs ∧ ndim(rhs) > 1 then shape(diagonals, ndim(diagonals) - 1) = shape(rhs, ndim(rhs) - 2)
+>>
+Rule 44 (If transpose_rhs is false and rhs has more than one dimension, last dim of diagonals must match last dim of rhs)
+{diagonals : tensor, rhs : tensor, transpose_rhs : bool} |= if (transpose_rhs = false) ∧ (ndim(rhs) > 1) then shape(diagonals, ndim(diagonals) - 1) = shape(rhs, ndim(rhs) - 1)

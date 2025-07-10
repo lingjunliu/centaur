@@ -1,0 +1,99 @@
+>>
+Rule 1 (output tensor's dtype should be able to accommodate the input tensor's values without loss of precision when the output dtype is specified, addressing "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "float" then dtype_(v_1) = "float" ∨ dtype_(v_1) = "float64" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 2 (If the output dtype is specified as int, the input tensor must be integral, addressing "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "int" then dtype_(v_1) = "int" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8"
+>>
+Rule 3 (if out dtype is specified and is a lower precision float than the input, it is disallowed to avoid overflow; addressing "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float16" then dtype_(v_1) ≠ "np.float32" ∧ dtype_(v_1) ≠ "np.float64"
+>>
+Rule 4 (If the output dtype is complex, the input tensor must also be complex to avoid precision issues)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "complex64" ∨ v_2 = "complex128" then dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 5 (If a specific dtype for the output is requested, then ensure the input dtype can be safely cast to it; addressing "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "bool" then dtype_(v_1) = "bool" else if v_2 = "np.int8" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" else if v_2 = "np.int16" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" else if v_2 = "np.int32" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" else if v_2 = "np.int64" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" else if v_2 = "np.uint8" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" else if v_2 = "np.float16" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.float16" else if v_2 = "np.float32" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" else if v_2 = "np.float64" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" else if v_2 = "complex64" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" ∨ dtype_(v_1) = "complex64" else if v_2 = "complex128" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 6 (If no dtype is specified, the input dtype should be at least float32 to avoid underflow problems)
+{v_1 : tensor} |= dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 7 (When output dtype is specified as float16, the input cannot be complex. This addresses "RuntimeError: result type Float can't be cast to the desired output type Char".)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float16" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 8 (if the output dtype is integral then the input cannot be complex. This avoids error "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.int8" ∨ v_2 = "np.int16" ∨ v_2 = "np.int32" ∨ v_2 = "np.int64" ∨ v_2 = "np.uint8" then dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 9 (if a higher precision output dtype is specified, the input should not be a lower precision type. For example, if out=float64 then input should not be float16 to avoid underflow and precision issues. This addresses "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float64" then dtype_(v_1) ≠ "np.float16" ∧ dtype_(v_1) ≠ "np.float32" else if v_2 = "np.float32" then dtype_(v_1) ≠ "np.float16"
+>>
+Rule 10 (If out dtype is bool, then the input should be only bool or int. Avoids "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "bool" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8"
+>>
+Rule 11 (If the input is float16 and the output is not specified, the default should be float32 or higher. This avoids "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.float16" then v_2 = "np.float32" ∨ v_2 = "np.float64" ∨ v_2 = "complex64" ∨ v_2 = "complex128" ∨ v_2 = "dtype"
+>>
+Rule 12 (The output dtype must be a valid dtype, selected from the specified list. While this doesn't directly address the casting error, it ensures dtype is within the expected range, and will help prevent it)
+{v_1 : dtype} |= v_1 = "bool" ∨ v_1 = "np.int8" ∨ v_1 = "np.int16" ∨ v_1 = "np.int32" ∨ v_1 = "np.int64" ∨ v_1 = "np.uint8" ∨ v_1 = "np.float16" ∨ v_1 = "np.float32" ∨ v_1 = "np.float64" ∨ v_1 = "complex64" ∨ v_1 = "complex128" ∨ v_1 = "dtype"
+>>
+Rule 13 (If the output is int type, then input tensor should not be bool.)
+{v_1: tensor, v_2: dtype} |= if v_2 = "np.int8" ∨ v_2 = "np.int16" ∨ v_2 = "np.int32" ∨ v_2 = "np.int64" ∨ v_2 = "np.uint8" then dtype_(v_1) ≠ "bool"
+>>
+Rule 15 (If the desired output type is float32, the input can be float16, float32, or bool. Otherwise error "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float32" then dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "bool"
+>>
+Rule 16 (If the output dtype is complex64, input must be float or complex to prevent the casting error)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "complex64" then dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 17 (if the output dtype is complex128, the input tensor should be either float or complex)
+{v_1: tensor, v_2: dtype} |= if v_2 = "complex128" then dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 18 (if the input tensor is bool, then output dtype must be bool, int or float. To avoid "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "bool" then v_2 = "bool" ∨ v_2 = "np.int8" ∨ v_2 = "np.int16" ∨ v_2 = "np.int32" ∨ v_2 = "np.int64" ∨ v_2 = "np.uint8" ∨ v_2 = "np.float16" ∨ v_2 = "np.float32" ∨ v_2 = "np.float64"
+>>
+Rule 19 (If the target dtype is float64 and input tensor is bool, int8, int16, int32, uint8 or float16, it should be valid, else return casting error)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float64" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64"
+>>
+Rule 20 (If the input is int64 and the output dtype is float16 then not allowed to avoid runtime error "result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float16" then dtype_(v_1) ≠ "np.int64"
+>>
+Rule 21 (If input tensor is uint8 then output dtype should be int16 or higher precision, float16 or higher, or complex. Prevents "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.uint8" then v_2 = "np.int16" ∨ v_2 = "np.int32" ∨ v_2 = "np.int64" ∨ v_2 = "np.float16" ∨ v_2 = "np.float32" ∨ v_2 = "np.float64" ∨ v_2 = "complex64" ∨ v_2 = "complex128"
+>>
+Rule 22 (If target dtype is an integer (int8, int16, int32, int64, or uint8), then the input tensor must be of a dtype that can be losslessly cast to it to avoid "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.int8" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" else if v_2 = "np.int16" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.uint8" else if v_2 = "np.int32" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.int32" else if v_2 = "np.int64" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.uint8" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" else if v_2 = "np.uint8" then dtype_(v_1) = "bool" ∨ dtype_(v_1) = "np.uint8"
+>>
+Rule 23 (If the input tensor has an integer dtype, then the output dtype should not be bool to avoid loss of information. To avoid error "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = "np.int8" ∨ dtype_(v_1) = "np.int16" ∨ dtype_(v_1) = "np.int32" ∨ dtype_(v_1) = "np.int64" ∨ dtype_(v_1) = "np.uint8" then v_2 ≠ "bool"
+>>
+Rule 24 (If the input tensor is np.float16, and no output dtype is given, then default dtype must be np.float32, np.float64 or complex type, otherwise, we get "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1: tensor} |= if dtype_(v_1) = "np.float16" then true
+>>
+Rule 25 (If the input tensor is int8, and the target dtype is float16, it could cause a "RuntimeError: result type Float can't be cast to the desired output type Char". So avoid this case)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float16" then dtype_(v_1) ≠ "np.int8"
+>>
+Rule 26 (If the input is np.int32 and output dtype is np.float16 this is invalid and raises error, so avoid.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float16" then dtype_(v_1) ≠ "np.int32"
+>>
+Rule 27 (If the output is specified to be np.int8 and the input is a larger int such as np.int32, np.int64, this is not allowed for data type safety.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.int8" then dtype_(v_1) ≠ "np.int16" ∧ dtype_(v_1) ≠ "np.int32" ∧ dtype_(v_1) ≠ "np.int64"
+>>
+Rule 28 (If the target dtype is np.int16 and the input dtype is np.int64, this should not be allowed to prevent potential casting errors.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.int16" then dtype_(v_1) ≠ "np.int32" ∧ dtype_(v_1) ≠ "np.int64"
+>>
+Rule 29 (If output is specified to be np.int32, the input cannot be np.int64, this avoides casting "RuntimeError: result type Float can't be cast to the desired output type Char")
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.int32" then dtype_(v_1) ≠ "np.int64"
+>>
+Rule 30 (The `out` tensor's dtype must be floating point or complex if an `out` tensor is given.)
+{v_1 : tensor} |= dtype_(v_1) = "np.float16" ∨ dtype_(v_1) = "np.float32" ∨ dtype_(v_1) = "np.float64" ∨ dtype_(v_1) = "complex64" ∨ dtype_(v_1) = "complex128"
+>>
+Rule 31 (If the input is int16, and output is specified as float16 it could lead to precision issues, should be avoided)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.float16" then dtype_(v_1) ≠ "np.int16"
+>>
+Rule 32 (If target dtype is np.uint8 and input is a float (np.float16/32/64) or complex, it will raise the casting error, to prevent this we define the rule.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = "np.uint8" then dtype_(v_1) ≠ "np.float16" ∧ dtype_(v_1) ≠ "np.float32" ∧ dtype_(v_1) ≠ "np.float64" ∧ dtype_(v_1) ≠ "complex64" ∧ dtype_(v_1) ≠ "complex128"
+>>
+Rule 33 (If the output dtype is explicitly specified as `str`, this is disallowed, as the arcsinh function only operates on numerical tensors. Although not technically a *cast* error as in the prompt, such an assignment is nonsensical and would result in an error.)
+{v_1 : dtype} |= v_1 ≠ "str"
+>>
+Rule 35 (If `out` is specified it should have same dtype as the input, this prevents type casting related errors)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)

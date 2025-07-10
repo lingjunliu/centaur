@@ -1,0 +1,120 @@
+>>
+Rule 1 (x must be a tensor)
+{x : tensor} |= ndim(x) ≥ 0
+>>
+Rule 2 (y must be a tensor)
+{y : tensor} |= ndim(y) ≥ 0
+>>
+Rule 3 (x must have a dtype that is bfloat16, half, float32, float64, int32, int64, complex64, or complex128)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 9 ∨ dtype_(x) = 10
+>>
+Rule 4 (y must have the same dtype as x)
+{x : tensor, y : tensor} |= dtype_(x) = dtype_(y)
+>>
+Rule 5 (x and y must have compatible shapes for broadcasting)
+{x : tensor, y : tensor} |= ∀i ∈ [0, if ndim(x) ≥ ndim(y) then ndim(x) - 1 else ndim(y) - 1] : if ndim(x) - i - 1 < 0 then true else if ndim(y) - i - 1 < 0 then true else shape(x, ndim(x) - i - 1) = shape(y, ndim(y) - i - 1) ∨ shape(x, ndim(x) - i - 1) = 1 ∨ shape(y, ndim(y) - i - 1) = 1
+>>
+Rule 6 (If x is of complex type, then the real part of x must not be null)
+{x: tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then true
+>>
+Rule 7 (x and y must both be tensors)
+{x : tensor, y : tensor} |= ndim(x) ≥ 0 ∧ ndim(y) ≥ 0
+>>
+Rule 8 (x can only be specific dtypes)
+{x : tensor} |= dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 10
+>>
+Rule 9 (the shapes of x and y must be broadcastable)
+{x : tensor, y : tensor} |= (ndim(x) = ndim(y)) ∨ (ndim(x) < ndim(y)) ∨ (ndim(x) > ndim(y))
+>>
+Rule 10 (if x is an int32 tensor, its minimum value must be within a reasonable range)
+{x : tensor} |= if dtype_(x) = 4 then min(x) > -2147483648
+>>
+Rule 11 (if x is a float32 tensor, its maximum value must be within a reasonable range)
+{x : tensor} |= if dtype_(x) = 7 then max(x) < 3.4028235e+38
+>>
+Rule 12 (x and y must have the same number of elements if their ndims are both 1)
+{x : tensor, y : tensor} |= if ndim(x) = 1 ∧ ndim(y) = 1 then shape(x, 0) = shape(y, 0)
+>>
+Rule 13 (y must also be one of the supported dtypes)
+{y : tensor} |= dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5 ∨ dtype_(y) = 10
+>>
+Rule 14 (if y is a complex64 tensor, its imaginary part must not be null)
+{y : tensor} |= if dtype_(y) = 9 then true
+>>
+Rule 15 (x and y must have the same number of dimensions or be broadcastable)
+{x : tensor, y : tensor} |= ndim(x) = ndim(y) ∨ (ndim(x) < ndim(y) ∧ ∀i ∈ [0, ndim(y) - ndim(x) -1] : shape(y, i) > 0) ∨ (ndim(y) < ndim(x) ∧ ∀i ∈ [0, ndim(x) - ndim(y) - 1] : shape(x, i) > 0)
+>>
+Rule 16 (if the ndim of x and y is equal and greater than 0, the shape of x must match with shape of y)
+{x : tensor, y : tensor} |= if ndim(x) = ndim(y) ∧ ndim(x) > 0 then ∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y, i)
+>>
+Rule 17 (x must be a tensor with at least one element)
+{x : tensor} |= ∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0
+>>
+Rule 18 (If the shape of x at index 0 is greater than 100 then the shape of y at index 0 should be greater than 0)
+{x : tensor, y : tensor} |= if ndim(x) > 0 ∧ shape(x, 0) > 100 then ndim(y) > 0 ∧ shape(y, 0) > 0
+>>
+Rule 19 (If x has a floating point dtype and y has an integer dtype, then y's values must fit within the range of representable values in x)
+{x : tensor, y : tensor} |= if (dtype_(x) = 7 ∨ dtype_(x) = 8) ∧ (dtype_(y) = 4 ∨ dtype_(y) = 5) then min(y) ≥ -2147483648 ∧ max(y) ≤ 2147483647
+>>
+Rule 20 (If either x or y is a complex type, then the other must also be a complex type)
+{x : tensor, y : tensor} |= (dtype_(x) = 9 ∨ dtype_(x) = 10) = (dtype_(y) = 9 ∨ dtype_(y) = 10)
+>>
+Rule 21 (x must have positive shape values)
+{x : tensor} |= ∀i ∈ [0, ndim(x) - 1]: shape(x, i) > 0
+>>
+Rule 22 (y must have positive shape values)
+{y : tensor} |= ∀i ∈ [0, ndim(y) - 1]: shape(y, i) > 0
+>>
+Rule 23 (If x is a tensor with ndim > 1, then the product of its shape values must be less than a maximum value)
+{x : tensor} |= if ndim(x) > 1 then (∀i ∈ [0, ndim(x) - 1]: shape(x, i) < 100000)
+>>
+Rule 24 (If x and y have the same shape then their minimums should be close)
+{x : tensor, y : tensor} |= if ndim(x) = ndim(y) ∧ (∀i ∈ [0, ndim(x) - 1]: shape(x, i) = shape(y, i)) then min(x) - min(y) < 1000 ∧ min(y) - min(x) < 1000
+>>
+Rule 25 (If x and y have different number of dimensions, the smaller tensor must have a shape of 1 in the leading dimensions)
+{x : tensor, y : tensor} |= if ndim(x) < ndim(y) then ∀i ∈ [0, ndim(y) - ndim(x) - 1] : shape(y, i) = 1 else if ndim(y) < ndim(x) then ∀i ∈ [0, ndim(x) - ndim(y) - 1] : shape(x, i) = 1
+>>
+Rule 26 (If x and y are both scalars, then the dtypes must be in the allowed list)
+{x : tensor, y : tensor} |= if ndim(x) = 0 ∧ ndim(y) = 0 then (dtype_(x) = 7 ∨ dtype_(x) = 8 ∨ dtype_(x) = 9 ∨ dtype_(x) = 4 ∨ dtype_(x) = 5 ∨ dtype_(x) = 10) ∧ (dtype_(y) = 7 ∨ dtype_(y) = 8 ∨ dtype_(y) = 9 ∨ dtype_(y) = 4 ∨ dtype_(y) = 5 ∨ dtype_(y) = 10)
+>>
+Rule 27 (The sum of the shape of x must be greater then the sum of the shape of y)
+{x : tensor, y : tensor} |= (∀i ∈ [0, ndim(x) -1]: shape(x,i)) > (∀i ∈ [0, ndim(y) -1]: shape(y,i)) ∨ (∃i ∈ [0, ndim(x) - 1] : shape(x, i) > 0) ∧ (∃i ∈ [0, ndim(y) - 1] : shape(y, i) > 0)
+>>
+Rule 29 (if x is an int64 tensor, its maximum value must be within a reasonable range)
+{x : tensor} |= if dtype_(x) = 5 then max(x) < 9223372036854775807
+>>
+Rule 32 (It is not the case that both x and y are complex128)
+{x : tensor, y : tensor} |= (dtype_(x) = 10 ∧ dtype_(y) = 10) = false
+>>
+Rule 33 (x and y cannot both have ndim greater than 5)
+{x : tensor, y : tensor} |= if ndim(x) > 5 then ndim(y) ≤ 5
+>>
+Rule 34 (If x is an int64 and y is an int32, then max(y) <= max(x) and min(y) >= min(x))
+{x : tensor, y : tensor} |= if dtype_(x) = 5 ∧ dtype_(y) = 4 then max(y) ≤ max(x) ∧ min(y) ≥ min(x)
+>>
+Rule 35 (If the tensors do not have the same rank, then the tensor with lower rank must have shape 1 for all its dimensions.)
+{x : tensor, y : tensor} |= if ndim(x) < ndim(y) then ∀i ∈ [0, ndim(x) -1] : shape(x, i) = 1 else if ndim(y) < ndim(x) then ∀i ∈ [0, ndim(y)-1] : shape(y,i) = 1
+>>
+Rule 36 (If x and y are complex tensors, the imaginary part of each element should have the same range)
+{x : tensor, y : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then if dtype_(y) = 9 ∨ dtype_(y) = 10 then max(x) - min(x) = max(y) - min(y)
+>>
+Rule 37 (If x has dimension > 1 then each dimension has size less than 1000)
+{x : tensor} |= if ndim(x) > 1 then ∀i ∈ [0, ndim(x) - 1]: shape(x, i) < 1000
+>>
+Rule 38 (If dtype of x is int32 or int64, then the minimum and maximum values must fit within a reasonable range)
+{x : tensor} |= if dtype_(x) = 4 then min(x) ≥ -2147483648 ∧ max(x) ≤ 2147483647 else if dtype_(x) = 5 then min(x) ≥ -9223372036854775808 ∧ max(x) ≤ 9223372036854775807
+>>
+Rule 39 (If x has ndim 0, then y must also have ndim 0)
+{x : tensor, y : tensor} |= if ndim(x) = 0 then ndim(y) = 0
+>>
+Rule 40 (If x is a bool tensor, then all elements must be either true or false)
+{x : tensor} |= if dtype_(x) = 0 then (∀i ∈ [0, ndim(x)-1]: shape(x, i) > 0)
+>>
+Rule 42 (If x is of type float64 or complex128, then y should not be of type float32 or complex64.)
+{x : tensor, y : tensor} |= if dtype_(x) = 8 ∨ dtype_(x) = 10 then (dtype_(y) = 7 ∨ dtype_(y) = 9) = false
+>>
+Rule 43 (If y is a float64 or complex128 tensor, then x cannot be float32 or complex64)
+{x : tensor, y : tensor} |= if dtype_(y) = 8 ∨ dtype_(y) = 10 then (dtype_(x) = 7 ∨ dtype_(x) = 9) = false
+>>
+Rule 44 (If x is complex64 or complex128, the magnitude of x must be greater then 0)
+{x : tensor} |= if dtype_(x) = 9 ∨ dtype_(x) = 10 then min(x) > 0

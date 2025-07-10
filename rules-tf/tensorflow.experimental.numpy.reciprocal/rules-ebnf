@@ -1,0 +1,99 @@
+>>
+Rule 1 (Input tensor should not contain zero values to avoid division by zero)
+{v_1 : tensor} |= min(v_1) > 0 ∨ min(v_1) < 0
+>>
+Rule 2 (Data type of the input tensor should not be boolean.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 4 (The input tensor dimension should be greater than 0.)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 5 (The sum of absolute values of the elements in the input tensor should be greater than 0.)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) < 0 ∨ max(v_1) > 0
+>>
+Rule 6 (The absolute value of the minimum value of the input tensor should not exceed the maximum value.)
+{v_1 : tensor} |= max(v_1) ≥ 0 ∧ min(v_1) < 0 ∧ max(v_1) + min(v_1) ≥ 0
+>>
+Rule 7 (Input tensor should not contain zero values to avoid division by zero)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ 0 ∧ max(v_1) ≠ 0
+>>
+Rule 11 (Handle integer overflow. Input tensor should be within a range that does not cause overflow when taking the reciprocal.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) > -128 ∧ max(v_1) < 127 else if dtype_(v_1) = 2 then min(v_1) > -32768 ∧ max(v_1) < 32767 else if dtype_(v_1) = 3 then min(v_1) > -2147483648 ∧ max(v_1) < 2147483647 else if dtype_(v_1) = 4 then min(v_1) > -9223372036854775808 ∧ max(v_1) < 9223372036854775807
+>>
+Rule 12 (Handle unsigned integer overflow. Ensure input values are not zero and that reciprocal does not exceed maximum representable value.)
+{v_1 : tensor} |= if dtype_(v_1) = 5 then min(v_1) > 0 ∧ max(v_1) < 255
+>>
+Rule 13 (The tensor values should not be close to zero to prevent large reciprocal values and potential instability.)
+{v_1 : tensor} |= min(v_1) > 0.00001 ∨ max(v_1) < -0.00001
+>>
+Rule 14 (For complex data types, ensure the real and imaginary parts are not both zero to avoid division by zero)
+{v_1 : tensor} |= if dtype_(v_1) = 10 ∨ dtype_(v_1) = 11 then (min(v_1) > 0 ∨ max(v_1) < 0)
+>>
+Rule 15 (Limit the maximum value of the input to avoid overflow, considering the dtype)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then max(v_1) < 1000000000.0 else if dtype_(v_1) = 8 then max(v_1) < 1000000000000000.0
+>>
+Rule 16 (For floating point tensors, prevent values too close to zero to avoid extremely large results.)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ (min(v_1) > 1e-07 ∨ max(v_1) < -1e-07)
+>>
+Rule 17 (Input tensor should not be of string type)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 18 (The product of shape of the input tensor should be greater than zero.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 19 (The tensor values should be within the valid range for float16 to prevent overflow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -65500 ∧ max(v_1) < 65500
+>>
+Rule 26 (The reciprocal of the smallest positive number must be less than max for float16, handling zero separately)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then (min(v_1) > 0 ∧ min(v_1) > 6.103515625e-05) ∨ (max(v_1) < 0 ∧ max(v_1) < -6.103515625e-05) ∨ (min(v_1) > -0.000001 ∧ max(v_1) < 0.000001)
+>>
+Rule 27 (The reciprocal of the smallest positive number must be less than max for float32, handling zero separately)
+{v_1 : tensor} |= if dtype_(v_1) = 7 then (min(v_1) > 0 ∧ min(v_1) > 1.175494351E-38) ∨ (max(v_1) < 0 ∧ max(v_1) < -1.175494351E-38) ∨ (min(v_1) > -0.000001 ∧ max(v_1) < 0.000001)
+>>
+Rule 28 (The reciprocal of the smallest positive number must be less than max for float64, handling zero separately)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then (min(v_1) > 0 ∧ min(v_1) > 2.2250738585072014E-308) ∨ (max(v_1) < 0 ∧ max(v_1) < -2.2250738585072014E-308) ∨ (min(v_1) > -0.000000000000001 ∧ max(v_1) < 0.000000000000001)
+>>
+Rule 29 (If the tensor contains any value close to zero for floating point tensors, it would raise overflow error.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > -1e-6 ∧ max(v_1) < 1e-6
+>>
+Rule 30 (If the tensor contains zero value for integer tensors, it would raise ZeroDivisionError.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ 0 ∧ max(v_1) ≠ 0
+>>
+Rule 31 (If the tensor contains large value, taking the reciprocal could result in underflow.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > -1e10 ∧ max(v_1) < 1e10
+>>
+Rule 32 (If the data type is complex, the norm of all elements of the input tensor must be non-zero.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > 0 ∨ max(v_1) < 0
+>>
+Rule 33 (If the data type is bool, all elements of the input tensor must be non-zero.)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) = true
+>>
+Rule 34 (The reciprocal for float data type cannot exceed the maximum float value.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) > 1.0e-38
+>>
+Rule 35 (If dtype is complex64, the real and imaginary parts cannot be simultaneously zero.)
+{v_1 : tensor} |= if dtype_(v_1) = 9 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ 0 ∨ max(v_1) ≠ 0
+>>
+Rule 36 (If dtype is complex128, the real and imaginary parts cannot be simultaneously zero.)
+{v_1 : tensor} |= if dtype_(v_1) = 10 then ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ min(v_1) ≠ 0 ∨ max(v_1) ≠ 0
+>>
+Rule 37 (If the tensor is multi-dimensional, each dimension must be greater than 0 for reciprocal to be valid.)
+{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 38 (Minimum and maximum value should be small to prevent overflow when calculating the reciprocal)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then (min(v_1) > -1000 ∧ max(v_1) < 1000)
+>>
+Rule 39 (Minimum value must be greater than zero when the input data type is unsigned integer)
+{v_1 : tensor} |= if dtype_(v_1) = 5 then min(v_1) > 0
+>>
+Rule 40 (If the tensor is a high-dimensional tensor, the sizes cannot be too large to prevent underflow)
+{v_1 : tensor} |= if ndim(v_1) > 3 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 10000
+>>
+Rule 41 (When the input is float16, limit the range to prevent over/underflow)
+{v_1 : tensor} |= if dtype_(v_1) = 6 then min(v_1) > -2048 ∧ max(v_1) < 2048
+>>
+Rule 42 (If dtype is int8 or uint8, tensor values should not be too close to zero.)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 5 then (min(v_1) > 1 ∨ max(v_1) < -1)
+>>
+Rule 43 (When the tensor has large values and small values exist, reciprocal operation can be unstable.)
+{v_1 : tensor} |= if dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) < 1000000 ∨ min(v_1) > -1000000

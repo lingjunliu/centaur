@@ -1,0 +1,41 @@
+import numpy as np
+import torch 
+import tensorflow as tf
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from z3 import *
+
+# max_delta cannot be greater than the maximum possible value given the dtype (Rule 34)
+
+rule_34 = lambda s, v, n=False: (
+    s.add(Not(If(v["arg1_dtype"] == 1, v["arg2_value"] <= 128, If(v["arg1_dtype"] == 2, v["arg2_value"] <= 32768, If(v["arg1_dtype"] == 3, v["arg2_value"] <= 2147483648, If(v["arg1_dtype"] == 4, v["arg2_value"] <= 9223372036854775807, If(v["arg1_dtype"] == 5, v["arg2_value"] <= 255, If(v["arg1_dtype"] == 6, v["arg2_value"] <= 65504, If(v["arg1_dtype"] == 7, v["arg2_value"] <= 3.4e+38, If(v["arg1_dtype"] == 8, v["arg2_value"] <= 1.7e+308, False))))))))) if n else
+          If(v["arg1_dtype"] == 1, v["arg2_value"] <= 128, If(v["arg1_dtype"] == 2, v["arg2_value"] <= 32768, If(v["arg1_dtype"] == 3, v["arg2_value"] <= 2147483648, If(v["arg1_dtype"] == 4, v["arg2_value"] <= 9223372036854775807, If(v["arg1_dtype"] == 5, v["arg2_value"] <= 255, If(v["arg1_dtype"] == 6, v["arg2_value"] <= 65504, If(v["arg1_dtype"] == 7, v["arg2_value"] <= 3.4e+38, If(v["arg1_dtype"] == 8, v["arg2_value"] <= 1.7e+308, False)))))))))
+)
+
+def rule_34_func(arg1, arg2, solver=None, neg=False):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not isinstance(arg2, (float, np.floating)):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_dtype = Int('arg1_dtype')
+        arg2_value = Real('arg2_value')
+
+        # Value assignments
+        solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
+        solver.add(arg2_value == arg2)
+
+        # Constraints for rule 34
+        rule_34(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        rule_34(solver, {'arg1_dtype': arg1['dtype'], 'arg2_value': arg2['value']}, neg)

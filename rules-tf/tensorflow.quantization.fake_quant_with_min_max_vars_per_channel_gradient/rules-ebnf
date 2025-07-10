@@ -1,0 +1,144 @@
+>>
+Rule 1 (gradients, inputs, min, and max must be tensors of float32 type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= dtype_(v_1) = 8 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8 ∧ dtype_(v_4) = 8
+>>
+Rule 2 (gradients and inputs tensors must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3)
+>>
+Rule 3 (min and max tensors must have shape [d], which is the last dimension of gradients)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= shape(v_2, 0) = shape(v_3, 0) ∧ shape(v_1, ndim(v_1) - 1) = shape(v_2, 0)
+>>
+Rule 4 (num_bits should be between 2 and 16)
+{v_1 : int} |= 2 ≤ v_1 ∧ v_1 ≤ 16
+>>
+Rule 5 (gradients tensor must have valid rank)
+{v_1 : tensor} |= ndim(v_1) = 1 ∨ ndim(v_1) = 2 ∨ ndim(v_1) = 4
+>>
+Rule 6 (narrow_range must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 7 (If gradients has shape [d], then inputs, min, and max also have shape [d])
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1 ∧ ndim(v_3) = 1 ∧ ndim(v_4) = 1
+>>
+Rule 8 (If gradients has shape [b, d], then inputs has shape [b,d], and min/max have shape [d])
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 2 ∧ ndim(v_3) = 1 ∧ ndim(v_4) = 1 ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_3, 0) = shape(v_1, 1) ∧ shape(v_4, 0) = shape(v_1, 1)
+>>
+Rule 9 (If gradients has shape [b, h, w, d], then inputs has shape [b, h, w, d] and min/max have shape [d])
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if ndim(v_1) = 4 then ndim(v_2) = 4 ∧ ndim(v_3) = 1 ∧ ndim(v_4) = 1 ∧ shape(v_1, 3) = shape(v_2, 3) ∧ shape(v_3, 0) = shape(v_1, 3) ∧ shape(v_4, 0) = shape(v_1, 3)
+>>
+Rule 10 (All tensor dimensions must be greater or equal than 1)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 1
+>>
+Rule 11 (num_bits cannot be float)
+{v_1 : int ⊎ float} |= if v_1 > 16 then false else if v_1 < 2 then false
+>>
+Rule 12 (If gradients has shape [b, h, w, d], then dimensions b, h, and w should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 13 (If gradients has shape [b, d], then dimension b should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0
+>>
+Rule 14 (If gradients has shape [d], then dimension d should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) > 0
+>>
+Rule 16 (The minimum value must be less than or equal to the maximum value for each channel)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≤ v_2[i]
+>>
+Rule 17 (If narrow_range is true, then num_bits must be greater than 1)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 1
+>>
+Rule 19 (If gradients is 2D, then inputs is 2D, min is 1D, and max is 1D)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 2 ∧ ndim(v_3) = 1 ∧ ndim(v_4) = 1
+>>
+Rule 20 (If gradients is 4D, then inputs is 4D, min is 1D, and max is 1D)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= if ndim(v_1) = 4 then ndim(v_2) = 4 ∧ ndim(v_3) = 1 ∧ ndim(v_4) = 1
+>>
+Rule 21 (gradients and inputs should have the same shape if they are 2D)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 22 (If gradients is 1D, then inputs is 1D and has the same shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 then ndim(v_2) = 1 ∧ shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 23 (If gradients is 2D, then inputs is 2D and has the same shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then ndim(v_2) = 2 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)
+>>
+Rule 24 (If gradients is 4D, then inputs is 4D and has the same shape)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 4 then ndim(v_2) = 4 ∧ shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2) ∧ shape(v_1, 3) = shape(v_2, 3)
+>>
+Rule 25 (If gradients is 1D, then min and max have shape[shape(gradients, 0)])
+{v_1 : tensor, v_2 : tensor, v_3: tensor} |= if ndim(v_1) = 1 then shape(v_2, 0) = shape(v_1, 0) ∧ shape(v_3, 0) = shape(v_1, 0)
+>>
+Rule 26 (If gradients is 2D, then min and max have shape [shape(gradients, 1)])
+{v_1 : tensor, v_2 : tensor, v_3: tensor} |= if ndim(v_1) = 2 then shape(v_2, 0) = shape(v_1, 1) ∧ shape(v_3, 0) = shape(v_1, 1)
+>>
+Rule 27 (If gradients is 4D, then min and max have shape [shape(gradients, 3)])
+{v_1 : tensor, v_2 : tensor, v_3: tensor} |= if ndim(v_1) = 4 then shape(v_2, 0) = shape(v_1, 3) ∧ shape(v_3, 0) = shape(v_1, 3)
+>>
+Rule 29 (min values should be less than max values)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i]
+>>
+Rule 30 (min and max must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 31 (inputs, min, and max must have floating point dtype)
+{v_1 : tensor, v_2 : tensor, v_3: tensor} |= dtype_(v_1) = 8 ∧ dtype_(v_2) = 8 ∧ dtype_(v_3) = 8
+>>
+Rule 38 (min and max must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 40 (If narrow range is true, num_bits must be between 2 and 16)
+{v_1 : bool, v_2 : int} |= if v_1 = true then 2 <= v_2 ∧ v_2 <= 16
+>>
+Rule 41 (Gradients, Inputs, Min and Max should have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor, v_4 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ndim(v_1) = ndim(v_3) ∧ ndim(v_1) = ndim(v_4)
+>>
+Rule 42 (num_bits should be between 2 and 16, inclusive)
+{v_1 : int} |= v_1 ≥ 2 ∧ v_1 ≤ 16
+>>
+Rule 44 (If gradients is 4D, then shape[1] and shape[2] dimensions must be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 46 (If narrow_range is true, num_bits should be greater than 2)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 2
+>>
+Rule 47 (if narrow_range is true, num_bits cannot be equal to 2)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≠ 2
+>>
+Rule 48 (minimum value should be lesser than maximum value)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i]
+>>
+Rule 49 (if gradients is 4D, shape[3] > 0)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 3) > 0
+>>
+Rule 51 (if gradients is 2D, shape[1] > 0)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 1) > 0
+>>
+Rule 53 (The length of min and max tensors must be the same)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 54 (Narrow range should be a bool type, either true or false)
+{v_1: bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 56 (num_bits should not be zero)
+{v_1: int} |= v_1 ≠ 0
+>>
+Rule 57 (if gradients is 2D, shape[0] > 0 and shape[1] > 0)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0
+>>
+Rule 60 (There should be at least one channel where min is smaller than max)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_1,0) - 1] : v_1[i] < v_2[i]
+>>
+Rule 61 (if num_bits is 2 and narrow_range is true, this is not allowed)
+{v_1 : int, v_2 : bool} |= if v_1 = 2 then v_2 = false
+>>
+Rule 62 (If gradients is 2D, then the batch dimension must be > 0)
+{v_1: tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 0
+>>
+Rule 63 (The channel dimension for min and max must be greater than zero)
+{v_1: tensor} |= shape(v_1, 0) > 0
+>>
+Rule 65 (For each channel, minimum must be strictly less than the maximum.)
+{v_1: tensor, v_2: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < v_2[i]
+>>
+Rule 66 (if num_bits is set to 2, narrow_range must not be set to true.)
+{v_1: int, v_2: bool} |= if v_1 = 2 then v_2 = false

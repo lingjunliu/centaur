@@ -1,0 +1,99 @@
+>>
+Rule 1 (num_split must be greater than 0)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 5 (dense_shape[axis] should be non-negative)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) ≥ 0
+>>
+Rule 6 (axis should be less than the rank of the tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 7 (axis should be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 8 (rank of the tensor should be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 10 (axis must be within the valid range [-rank, rank))
+{v_1 : tensor, v_2 : int} |= (0 - ndim(v_1)) ≤ v_2 ∧ v_2 < ndim(v_1)
+>>
+Rule 11 (if axis is negative, it's absolute value must be less than the rank of the tensor)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - v_2) < ndim(v_1)
+>>
+Rule 12 (num_split must be less than or equal to the size of the axis)
+{v_1 : tensor, v_2 : int, v_3 : int} |= v_2 ≤ shape(v_1, v_3)
+>>
+Rule 13 (axis must be a valid dimension for the sparse tensor)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ 0 ∧ v_2 < ndim(v_1)
+>>
+Rule 14 (if num_split is 1, then the operation is essentially a no-op)
+{v_1 : int} |= if v_1 = 1 then true
+>>
+Rule 15 (num_split cannot be 0)
+{v_1 : int} |= v_1 ≠ 0
+>>
+Rule 21 (The rank of the tensor and the absolute value of the axis cannot be equal when axis is negative)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then (0 - v_2) ≠ ndim(v_1)
+>>
+Rule 22 (shape of input tensor along axis should be greater than 0)
+{v_1 : tensor, v_2 : int} |= shape(v_1, v_2) > 0
+>>
+Rule 23 (The product of num_split and the size of each split should equal the original size of the axis)
+{v_1 : tensor, v_2 : int, v_3 : int} |= shape(v_1, v_3) % v_2 = 0 ∨ shape(v_1, v_3) % v_2 ≠ 0 ∧ shape(v_1,v_3) > v_2
+>>
+Rule 25 (If axis equals the number of dimensions then it will give an error)
+{v_1 : tensor, v_2 : int} |= v_2 ≠ ndim(v_1)
+>>
+Rule 27 (If the axis is -1 then the last dimension of the tensor will be split)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then ndim(v_1) > 0
+>>
+Rule 29 (If axis is out of bound then operation fails)
+{v_1 : tensor, v_2 : int} |= if v_2 < (0 - ndim(v_1)) ∨ v_2 ≥ ndim(v_1) then false
+>>
+Rule 30 (The value of num_split cannot exceed the maximum integer value)
+{v_1 : int} |= v_1 < 2147483647
+>>
+Rule 31 (if num_split is greater than 1 and shape along axis is 0 then it raises errors)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > 1 then shape(v_1, v_3) > 0
+>>
+Rule 32 (If the shape of the input tensor on the axis is not divisible by num_split, then the output tensors have varying shapes)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, v_3) % v_2 ≠ 0 then true
+>>
+Rule 37 (If axis equals negative rank, it's the same as the last axis)
+{v_1 : tensor, v_2 : int} |= if v_2 = (0 - ndim(v_1)) then v_2 = (0 - ndim(v_1))
+>>
+Rule 40 (If axis is negative, then calculate its corresponding positive value)
+{v_1 : int, v_2 : int} |= if v_1 < 0 then v_1 + v_2 ≥ 0
+>>
+Rule 42 (If num_split is greater than the shape of the axis then the result contains zero-size tensors)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 > shape(v_1, v_3) then true
+>>
+Rule 43 (The rank of input tensor should be greater than axis if axis is a positive number)
+{v_1 : tensor, v_2 : int} |= if v_2 ≥ 0 then ndim(v_1) > v_2
+>>
+Rule 44 (Num_split cannot be greater than the maximum limit)
+{v_1 : int} |= v_1 < 100000
+>>
+Rule 51 (if num_split is equal to the shape of sp_input along the axis then output tensors will be scalars)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if v_2 = shape(v_1, v_3) then true
+>>
+Rule 52 (If the rank of sp_input is 0, then axis is not a valid parameter)
+{v_1 : tensor} |= if ndim(v_1) = 0 then false
+>>
+Rule 53 (If axis is equal to the negative rank of sp_input, then it is splitting along the last axis)
+{v_1 : tensor, v_2 : int} |= if v_2 = (0 - ndim(v_1)) then true
+>>
+Rule 58 (shape[axis] must be divisible by num_split, or some slices will be larger)
+{v_1 : tensor, v_2 : int, v_3: int} |= shape(v_1,v_3) % v_2 = 0 ∨ shape(v_1,v_3) > v_2
+>>
+Rule 59 (If the shape of sp_input along the split axis is zero, then output tensors will also have zero shapes)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, v_2) = 0 then true
+>>
+Rule 63 (The shape of the output tensors should be consistent.)
+{v_1 : tensor, v_2 : int, v_3 : int} |= if shape(v_1, v_3) % v_2 = 0 then true
+>>
+Rule 64 (The indices tensor must be a 2D tensor)
+{v_1 : tensor} |= ndim(v_1) = 2
+>>
+Rule 65 (The first dimension of indices should match the first dimension of values.)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)

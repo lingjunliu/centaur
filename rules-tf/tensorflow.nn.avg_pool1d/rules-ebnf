@@ -1,0 +1,132 @@
+>>
+Rule 1 (ksize must have length 1 or 3 when it is a list)
+{v_1 : list(int)} |= v_1.len = 1 ∨ v_1.len = 3
+>>
+Rule 3 (padding must be either VALID or SAME)
+{v_1 : str} |= v_1 = "VALID" ∨ v_1 = "SAME"
+>>
+Rule 4 (data_format must be either NWC or NCW)
+{v_1 : str} |= v_1 = "NWC" ∨ v_1 = "NCW"
+>>
+Rule 5 (if ksize is an int, it must be greater than 0)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 7 (ksize list elements must be positive integers)
+{v_1 : list(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+>>
+Rule 9 (Input tensor must be 3-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 3
+>>
+Rule 15 (if ksize is a list, its length must be equal to the number of dimensions of the input if data_format is NWC)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NWC" then v_2.len = ndim(v_1)
+>>
+Rule 16 (if ksize is a list, its length must be equal to the number of dimensions of the input if data_format is NCW)
+{v_1 : tensor, v_2 : list(int), v_3 : str} |= if v_3 = "NCW" then v_2.len = ndim(v_1)
+>>
+Rule 23 (Input tensor must have a valid shape)
+{v_1 : tensor} |= shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0
+>>
+Rule 26 (the channel dimension must be positive)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NWC" then shape(v_1, 2) > 0 else if v_2 = "NCW" then shape(v_1, 1) > 0
+>>
+Rule 27 (if ksize is a list of length 1, the first element should be greater than 0)
+{v_1 : list(int)} |= if v_1.len = 1 then v_1[0] > 0
+>>
+Rule 29 (if ksize is a list, the product of ksize must be less than the total number of elements in the input tensor)
+{v_1 : tensor, v_2 : list(int)} |= if v_2.len = 3 then v_2[0] * v_2[1] * v_2[2] < shape(v_1,0) * shape(v_1,1) * shape(v_1,2)
+>>
+Rule 30 (If ksize is a list of length 3, all the elements should be greater than zero)
+{v_1 : list(int)} |= if v_1.len = 3 then v_1[0] > 0 ∧ v_1[1] > 0 ∧ v_1[2] > 0
+>>
+Rule 32 (ksize should be less than or equal to input size along the relevant dimension)
+{v_1 : tensor, v_2 : int, v_3:str} |=  if v_3 = "NWC" then v_2 <= shape(v_1,1) else if v_3= "NCW" then v_2 <= shape(v_1,2)
+>>
+Rule 36 (If ksize is a list, the size of the kernel must be less than or equal to input size along the relevant dimension)
+{v_1 : tensor, v_2 : list(int), v_3:str} |= if v_3 = "NWC" then v_2[0] <= shape(v_1,0) ∧ v_2[1] <= shape(v_1,1) ∧ v_2[2] <= shape(v_1,2) else if v_3= "NCW" then v_2[0] <= shape(v_1,0) ∧ v_2[1] <= shape(v_1,1) ∧ v_2[2] <= shape(v_1,2)
+>>
+Rule 38 (If ksize is an int, it must be less than or equal to input size along the relevant dimension)
+{v_1 : tensor, v_2 : int, v_3:str} |=  if v_3 = "NWC" then v_2 ≤ shape(v_1,1) else if v_3= "NCW" then v_2 ≤ shape(v_1,2)
+>>
+Rule 41 (If ksize is an int and padding is VALID, then ksize must be less than or equal to the input size along the width dimension to avoid an empty output)
+{v_1 : tensor, v_2 : int, v_3:str} |= if v_3 = "VALID" then v_2 <= shape(v_1, 1)
+>>
+Rule 42 (If strides is an int and padding is VALID, then strides must be smaller than or equal to the input size along the width dimension so output size is greater than zero)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "VALID" then v_2 <= shape(v_1, 1)
+>>
+Rule 44 (If ksize and strides are list, their lengths should match each other.)
+{v_1 : list(int), v_2: list(int)} |= v_1.len = v_2.len
+>>
+Rule 45 (If data_format is NWC, then the input tensor's second dimension must be greater than or equal to ksize or stride)
+{v_1:tensor, v_2:int, v_3:str} |= if v_3 = "NWC" then shape(v_1, 1) >= v_2
+>>
+Rule 46 (If data_format is NCW, then the input tensor's third dimension must be greater than or equal to ksize or stride)
+{v_1:tensor, v_2:int, v_3:str} |= if v_3 = "NCW" then shape(v_1, 2) >= v_2
+>>
+Rule 47 (If ksize is a list and data_format is NWC, then the first element must be less or equal than shape(v_1,0)
+{v_1:tensor, v_2:list(int), v_3:str} |= if v_3="NWC" then v_2[0] <= shape(v_1,0)
+>>
+Rule 48 (If ksize is a list and data_format is NCW, then the first element must be less or equal than shape(v_1,0))
+{v_1:tensor, v_2:list(int), v_3:str} |= if v_3="NCW" then v_2[0] <= shape(v_1,0)
+>>
+Rule 53 (If strides is a list and data_format is NWC, then the second element must be less or equal than shape(v_1,1))
+{v_1:tensor, v_2:list(int), v_3:str} |= if v_3="NWC" then v_2[1] <= shape(v_1,1)
+>>
+Rule 54 (If strides is a list and data_format is NCW, then the third element must be less or equal than shape(v_1,2))
+{v_1:tensor, v_2:list(int), v_3:str} |= if v_3="NCW" then v_2[2] <= shape(v_1,2)
+>>
+Rule 55 (If ksize is a list and data_format is NWC, then the third element must be less or equal than shape(v_1,2))
+{v_1:tensor, v_2:list(int), v_3:str} |= if v_3="NWC" then v_2[2] <= shape(v_1,2)
+>>
+Rule 56 (If ksize is a list and data_format is NCW, then the second element must be less or equal than shape(v_1,1))
+{v_1:tensor, v_2:list(int), v_3:str} |= if v_3="NCW" then v_2[1] <= shape(v_1,1)
+>>
+Rule 60 (padding must be a string and either 'VALID' or 'SAME')
+{v_4 : str} |= v_4 = "VALID" ∨ v_4 = "SAME"
+>>
+Rule 61 (data_format must be a string and either 'NWC' or 'NCW')
+{v_5 : str} |= v_5 = "NWC" ∨ v_5 = "NCW"
+>>
+Rule 64 (if ksize is an integer, it must be greater than 0)
+{v_2 : int} |= v_2 > 0
+>>
+Rule 65 (if strides is an integer, it must be greater than 0)
+{v_3 : int} |= v_3 > 0
+>>
+Rule 70 (data_format must be a string and either 'NWC' or 'NCW')
+{v_2 : str} |= v_2 = "NWC" ∨ v_2 = "NCW"
+>>
+Rule 72 (strides must be an integer and greater than 0)
+{v_4 : int} |= v_4 > 0
+>>
+Rule 77 (Input tensor's last dimension must be greater than 0)
+{v_5 : tensor} |= shape(v_5, 2) > 0
+>>
+Rule 85 (Input tensor's last dimension must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 2) > 0
+>>
+Rule 88 (input tensor dtype must be float16, float32, or float64)
+{v_3 : tensor} |= dtype_(v_3) = 6 ∨ dtype_(v_3) = 7 ∨ dtype_(v_3) = 8
+>>
+Rule 94 (Input tensor shape dimensions must be positive)
+{v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0
+>>
+Rule 95 (padding should have valid value.)
+{v_4: str} |= v_4 = "VALID" ∨ v_4 = "SAME"
+>>
+Rule 98 (ksize and strides must be the same if both are integers.)
+{v_1 : int, v_2 : int} |= v_1 = v_2
+>>
+Rule 108 (padding must be "VALID" or "SAME")
+{v_3 : str} |= v_3 = "VALID" ∨ v_3 = "SAME"
+>>
+Rule 109 (data_format must be "NWC" or "NCW")
+{v_4 : str} |= v_4 = "NWC" ∨ v_4 = "NCW"
+>>
+Rule 119 (If ksize is an integer, it must be greater than 0 and strides must be of the same value)
+{v_1 : int, v_2 : int} |= v_1 > 0 ∧ v_2 > 0 ∧ v_1 = v_2
+>>
+Rule 122 (padding must be VALID or SAME)
+{v_5 : str} |= v_5 = "VALID" ∨ v_5 = "SAME"
+>>
+Rule 123 (data_format must be NWC or NCW)
+{v_6 : str} |= v_6 = "NWC" ∨ v_6 = "NCW"

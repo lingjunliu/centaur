@@ -1,0 +1,3960 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 1 (year should be a positive integer)
+{v_1 : int} |= v_1 > 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (month should be within a valid range)
+{v_2 : int} |= v_2 ≥ 1 ∧ v_2 ≤ 12
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (day should be within a valid range)
+{v_3 : int} |= v_3 ≥ 1 ∧ v_3 ≤ 31
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 4 (Year, month and day form a valid date)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 > 0 ∧ v_2 ≥ 1 ∧ v_2 ≤ 12 ∧ v_3 ≥ 1 ∧ v_3 ≤ 31
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 5 (Year, month and day are integers)
+{v_1 : int, v_2 : int, v_3 : int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : int, v_2 : int, v_3 : int} |= true (Unused: v_1, v_2, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 6 (Month is within the valid range)
+{v_1 : int} |= v_1 ≥ 1 ∧ v_1 ≤ 12
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 7 (Year must be a valid year)
+{v_1 : int} |= v_1 > 1900 ∧ v_1 < 2100
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 8 (The date is not in the future)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 * 10000 + v_2 * 100 + v_3 ≤ 20241231
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 9 (Day is within the valid range for the given month and year)
+{v_1 : int, v_2 : int, v_3 : int} |= if v_2 = 2 then if v_1 % 4 = 0 ∧ v_1 % 100 ≠ 0 ∨ v_1 % 400 = 0 then v_3 ≤ 29 else v_3 ≤ 28 else if v_2 = 4 ∨ v_2 = 6 ∨ v_2 = 9 ∨ v_2 = 11 then v_3 ≤ 30 else v_3 ≤ 31
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 10 (All inputs must be integers)
+{v_1 : int, v_2 : int, v_3 : int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : int, v_2 : int, v_3 : int} |= true (Unused: v_1, v_2, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 11 (The month cannot be 0)
+{v_2 : int} |= v_2 ≠ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 12 (Day is not zero)
+{v_3 : int} |= v_3 ≠ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (The year, month and day arguments should not be negative)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 ≥ 0 ∧ v_2 ≥ 0 ∧ v_3 ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 14 (Year is of a reasonable magnitude)
+{v_1 : int} |= v_1 < 10000
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (Year month and day must be of integer type)
+{v_1 : int, v_2 : int, v_3 : int} |= true
+** REDUNDANT VARIABLES ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : int, v_2 : int, v_3 : int} |= true (Unused: v_1, v_2, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 16 (A date far enough in the past to maintain forward compatibility)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 * 10000 + v_2 * 100 + v_3 < 20150000
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 17 (Month must be of reasonable magnitude)
+{v_2 : int} |= v_2 < 100
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 18 (Day must be of reasonable magnitude)
+{v_3 : int} |= v_3 < 100
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 19 (The combination of year and month and day should represent a valid date)
+{v_1 : int, v_2 : int, v_3 : int} |= ∃m ∈ [1, 12] : v_2 = m ∧ (if m = 2 then ∃d ∈ [1, if v_1 % 4 = 0 ∧ v_1 % 100 ≠ 0 ∨ v_1 % 400 = 0 then 29 else 28] : v_3 = d else if m = 4 ∨ m = 6 ∨ m = 9 ∨ m = 11 then ∃d ∈ [1, 30] : v_3 = d else ∃d ∈ [1, 31] : v_3 = d)
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 20 (The day argument should be greater than zero)
+{v_3 : int} |= v_3 > 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 21 (The month argument should be greater than zero)
+{v_2 : int} |= v_2 > 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 22 (Year must be greater than zero)
+{v_1 : int} |= v_1 > 0
+** DUPLICATED RULE ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Duplicated rule: {v_1 : int} |= v_1 > 0
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 23 (A date in the future isn't allowed)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 * 10000 + v_2 * 100 + v_3 ≤ 20771231
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 24 (All inputs combined must be non-zero)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 + v_2 + v_3 ≠ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 25 (The month argument should be less than 13)
+{v_2 : int} |= v_2 < 13
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 26 (If the year is a leap year, then the day cannot be greater than 29 when the month is February)
+{v_1 : int, v_2 : int, v_3 : int} |= if (v_1 % 4 = 0 ∧ v_1 % 100 ≠ 0) ∨ (v_1 % 400 = 0) then if v_2 = 2 then v_3 ≤ 29
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 27 (If the year is not a leap year, then the day cannot be greater than 28 when the month is February)
+{v_1 : int, v_2 : int, v_3 : int} |= if (v_1 % 4 ≠ 0 ∨ v_1 % 100 = 0) ∧ (v_1 % 400 ≠ 0) then if v_2 = 2 then v_3 ≤ 28
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.compat.forward_compatible API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Return true if the forward compatibility window has expired.
+
+  See [Version
+  compatibility](https://www.tensorflow.org/guide/versions#backward_and_partial_forward_compatibility).
+
+  Forward-compatibility refers to scenarios where the producer of a TensorFlow
+  model (a GraphDef or SavedModel) is compiled against a version of the
+  TensorFlow library newer than what the consumer was compiled against. The
+  "producer" is typically a Python program that constructs and trains a model
+  while the "consumer" is typically another program that loads and serves the
+  model.
+
+  TensorFlow has been supporting a 3 week forward-compatibility window for
+  programs compiled from source at HEAD.
+
+  For example, consider the case where a new operation `MyNewAwesomeAdd` is
+  created with the intent of replacing the implementation of an existing Python
+  wrapper - `tf.add`.  The Python wrapper implementation should change from
+  something like:
+
+  ```python
+  def add(inputs, name=None):
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  to:
+
+  ```python
+  from tensorflow.python.compat import compat
+
+  def add(inputs, name=None):
+    if compat.forward_compatible(year, month, day):
+      # Can use the awesome new implementation.
+      return gen_math_ops.my_new_awesome_add(inputs, name)
+    # To maintain forward compatibility, use the old implementation.
+    return gen_math_ops.add(inputs, name)
+  ```
+
+  Where `year`, `month`, and `day` specify the date beyond which binaries
+  that consume a model are expected to have been updated to include the
+  new operations. This date is typically at least 3 weeks beyond the date
+  the code that adds the new operation is committed.
+
+  Args:
+    year:  A year (e.g., 2018). Must be an `int`.
+    month: A month (1 <= month <= 12) in year. Must be an `int`.
+    day:   A day (1 <= day <= 31, or 30, or 29, or 28) in month. Must be an
+      `int`.
+
+  Returns:
+    True if the caller can expect that serialized TensorFlow graphs produced
+    can be consumed by programs that are compiled with the TensorFlow library
+    source code after (year, month, day).
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 28 (The date isn't in the distant past.)
+{v_1 : int, v_2 : int, v_3 : int} |= v_1 * 10000 + v_2 * 100 + v_3 > 19700101
+** SUCCESS **
+

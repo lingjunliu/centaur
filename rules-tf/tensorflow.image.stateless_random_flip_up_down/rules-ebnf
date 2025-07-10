@@ -1,0 +1,111 @@
+>>
+Rule 1 (image must be a 3D or 4D tensor)
+{v_1 : tensor} |= ndim(v_1) = 3 ∨ ndim(v_1) = 4
+>>
+Rule 2 (seed must be a 1D tensor of shape [2])
+{v_2 : tensor} |= ndim(v_2) = 1 ∧ shape(v_2, 0) = 2
+>>
+Rule 3 (seed must have dtype int32 or int64)
+{v_2 : tensor} |= dtype_(v_2) = 2 ∨ dtype_(v_2) = 4
+>>
+Rule 4 (image dimensions must be positive)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 5 (seed's elements must be non-negative)
+{v_2 : tensor} |= ∀i ∈ [0, 1] : v_2[i] ≥ 0
+>>
+Rule 6 (image is a tensor with supported number of channels)
+{v_1 : tensor} |=  (ndim(v_1) = 3 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 3) > 0)
+>>
+Rule 7 (if the image is 4D, batch size must be positive)
+{v_1 : tensor} |= if ndim(v_1) = 4 then shape(v_1, 0) > 0
+>>
+Rule 8 (height and width of the image must be positive)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) > 0 ∧ shape(v_1, 1) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) > 0 ∧ shape(v_1, 2) > 0)
+>>
+Rule 9 (if seed dtype is int32, ensure it's used in XLA context)
+{v_2 : tensor} |= if dtype_(v_2) = 2 then true
+>>
+Rule 10 (Image and seed tensors should not be empty)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∧ (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0)
+>>
+Rule 11 (channels of the image must be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) > 0 else shape(v_1, 3) > 0
+>>
+Rule 12 (if the seed has dtype int64, ensure it fits within int32 when using XLA)
+{v_2 : tensor} |= if dtype_(v_2) = 4 then true
+>>
+Rule 13 (The seed tensor should not contain NaN or infinite values)
+{v_2 : tensor} |= min(v_2) > -10000000000 ∧ max(v_2) < 10000000000
+>>
+Rule 14 (if the seed has dimension greater than 0 the values must be integers)
+{v_2 : tensor} |=  ∀i ∈ [0, 1] : v_2[i] = (v_2[i] / 1) * 1
+>>
+Rule 15 (seed values should be within reasonable bounds)
+{v_2 : tensor} |= ∀i ∈ [0, 1] : v_2[i] > -2147483648 ∧ v_2[i] < 2147483647
+>>
+Rule 16 (the image should have a valid number of channels)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 2) > 0) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 3) > 0)
+>>
+Rule 17 (check if image dimensions are not zero)
+{v_1 : tensor} |= ∃i ∈ [0, if ndim(v_1) = 3 then 2 else 3] : shape(v_1, i) > 0
+>>
+Rule 18 (image and seed should be tensors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0
+>>
+Rule 19 (height and width should not be swapped)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) ≠ shape(v_1, 1) else if ndim(v_1) = 4 then shape(v_1, 1) ≠ shape(v_1, 2)
+>>
+Rule 20 (image's data type must be a real number, not complex)
+{v_1 : tensor} |= dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 22 (image should have at least one channel)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 2) ≥ 1 else shape(v_1, 3) ≥ 1
+>>
+Rule 26 (seed elements must be int32 or int64)
+{v_2 : tensor} |= (shape(v_2, 0) = 2) ∧ (dtype_(v_2) = 2 ∨ dtype_(v_2) = 4)
+>>
+Rule 27 (seed values cannot be too large or too small)
+{v_2 : tensor} |= ∀i ∈ [0, 1] : v_2[i] > -30000 ∧ v_2[i] < 30000
+>>
+Rule 28 (image should have at least one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 30 (Image values should be within a reasonable range)
+{v_1 : tensor} |= min(v_1) > -10000 ∧ max(v_1) < 10000
+>>
+Rule 31 (image's datatype should not be boolean)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0
+>>
+Rule 32 (The seed values should be different to ensure randomness)
+{v_2 : tensor} |= v_2[0] ≠ v_2[1]
+>>
+Rule 33 (seed values cannot be equal to zero)
+{v_2 : tensor} |= ∀i ∈ [0, 1] : v_2[i] ≠ 0
+>>
+Rule 34 (the image tensor's dtype must be in the range [1,11] except for boolean type)
+{v_1 : tensor} |= (dtype_(v_1) ≥ 1 ∧ dtype_(v_1) ≤ 11)
+>>
+Rule 35 (If image is 3D, it must have 3 dimensions, if 4D, it must have 4)
+{v_1 : tensor} |= (ndim(v_1) = 3) ∨ (ndim(v_1) = 4)
+>>
+Rule 36 (the height and width of image cannot be both 1)
+{v_1 : tensor} |= if ndim(v_1) = 3 then shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1 else shape(v_1, 1) > 1 ∨ shape(v_1, 2) > 1
+>>
+Rule 37 (Image must have at least one row and one column)
+{v_1 : tensor} |= (ndim(v_1) = 3 ∧ shape(v_1, 0) ≥ 1 ∧ shape(v_1, 1) ≥ 1) ∨ (ndim(v_1) = 4 ∧ shape(v_1, 1) ≥ 1 ∧ shape(v_1, 2) ≥ 1)
+>>
+Rule 38 (Image tensor should have numerical datatype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 39 (The image must have at least 3 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+>>
+Rule 40 (The image tensor's shape cannot have zero values)
+{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) = 3 then 2 else 3] : shape(v_1, i) > 0
+>>
+Rule 41 (Seed must be of type tensor)
+{v_2 : tensor} |= ndim(v_2) > 0
+>>
+Rule 45 (The seed values must not be too similar)
+{v_2 : tensor} |= if (v_2[0] + 1) > v_2[1] then (v_2[0] + 1) - v_2[1] > 5 else (v_2[1] + 1) - v_2[0] > 5

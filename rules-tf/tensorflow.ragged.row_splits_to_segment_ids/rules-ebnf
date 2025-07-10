@@ -1,0 +1,108 @@
+>>
+Rule 1 (splits must be a 1-D tensor)
+{v_1 : tensor} |= ndim(v_1) = 1
+>>
+Rule 2 (splits must be a sorted integer tensor)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 3 (the first element of splits must be zero)
+{v_1 : tensor} |= v_1[0] = 0
+>>
+Rule 4 (out_type defaults to splits.dtype if splits has a dtype, otherwise tf.int64 which is type 4)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) ≠ 12 then v_2 = dtype_(v_1) else v_2 = 4
+>>
+Rule 5 (splits must be sorted)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i] ≤ v_1[i+1]
+>>
+Rule 6 (splits must have at least two elements to define a segment)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 2
+>>
+Rule 7 (The shape of the output tensor is splits[-1], implying splits[-1] should be non-negative)
+{v_1 : tensor} |= v_1[shape(v_1, 0) - 1] ≥ 0
+>>
+Rule 8 (out_type should be one of the integer types)
+{v_1 : dtype} |= v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5
+>>
+Rule 9 (splits tensor should have non-negative elements)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 10 (The number of segments should be less than or equal to the maximum possible value for the out_type)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then shape(v_1,0)-1 ≤ 127 else if v_2 = 2 then shape(v_1,0)-1 ≤ 32767 else if v_2 = 3 then shape(v_1,0)-1 ≤ 2147483647 else if v_2 = 4 then shape(v_1,0)-1 ≤ 9223372036854775807 else if v_2 = 5 then shape(v_1,0)-1 ≤ 255
+>>
+Rule 11 (splits should not contain NaN values)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[i]
+>>
+Rule 12 (splits cannot be empty)
+{v_1 : tensor} |= shape(v_1,0) > 0
+>>
+Rule 13 (splits tensor should not contain infinite values)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1000000000000 ∧ v_1[i] > -1000000000000
+>>
+Rule 14 (splits tensor values cannot decrease rapidly)
+{v_1 : tensor} |= ∀i ∈ [1, shape(v_1, 0) - 1] : v_1[i] - v_1[i-1] ≤ 10000
+>>
+Rule 15 (last element in splits should be greater or equal to the number of elements in any of the segments)
+{v_1 : tensor} |= v_1[shape(v_1, 0)-1] ≥ 0
+>>
+Rule 16 (If out_type is specified and it is bool, then splits dtype cannot be float or complex)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 0 then dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 17 (If splits has dtype, out_type should match or be of a larger size integer type)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 else if dtype_(v_1) = 2 then v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 else if dtype_(v_1) = 3 then v_2 = 3 ∨ v_2 = 4 else if dtype_(v_1) = 4 then v_2 = 4 else if dtype_(v_1) = 5 then v_2 = 5 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4
+>>
+Rule 18 (splits tensor cannot have too large values relative to the chosen out_type)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then max(v_1) ≤ 127 else if v_2 = 2 then max(v_1) ≤ 32767 else if v_2 = 3 then max(v_1) ≤ 2147483647 else if v_2 = 4 then max(v_1) ≤ 9223372036854775807 else if v_2 = 5 then max(v_1) ≤ 255
+>>
+Rule 19 (splits elements should not increase by too much)
+{v_1 : tensor} |= ∀i ∈ [1, shape(v_1, 0) - 1] : v_1[i] - v_1[i-1] < 10000000
+>>
+Rule 20 (The last element of splits should be less than a large number)
+{v_1 : tensor} |= v_1[shape(v_1, 0) - 1] < 10000000000
+>>
+Rule 21 (splits values should not overflow the selected dtype)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 1 then max(v_1) < 128 else if v_2 = 2 then max(v_1) < 32768 else if v_2 = 3 then max(v_1) < 2147483648 else if v_2 = 4 then max(v_1) < 9223372036854775808 else if v_2 = 5 then max(v_1) < 256
+>>
+Rule 22 (splits tensor should be 1D and out_type must be integer type.)
+{v_1 : tensor, v_2 : dtype} |= ndim(v_1) = 1 ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5)
+>>
+Rule 23 (If splits dtype is uint8, out_type must be large enough to hold the splits values)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 5 then v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+>>
+Rule 24 (If splits dtype is int8, out_type must be at least int8)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4
+>>
+Rule 25 (If splits dtype is int16, out_type must be at least int16)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 2 then v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4
+>>
+Rule 26 (If splits dtype is int32, out_type must be at least int32)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 3 then v_2 = 3 ∨ v_2 = 4
+>>
+Rule 27 (If splits dtype is int64, out_type must be int64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 4 then v_2 = 4
+>>
+Rule 28 (If splits dtype is uint8, out_type must be at least uint8)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 5 then v_2 = 5 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4
+>>
+Rule 29 (The last element of splits must match the size that segment_ids will have)
+{v_1 : tensor} |= shape(v_1, 0) ≥ 2 ∧ shape(v_1, 0) - 1 < 10000000 ∧ v_1[shape(v_1, 0) - 1] < 10000000
+>>
+Rule 30 (The last element of splits should not exceed the maximum value that can be represented with int32, unless the out_type is int64)
+{v_1 : tensor, v_2 : dtype} |= if v_2 ≠ 4 then v_1[shape(v_1, 0) - 1] < 2147483647
+>>
+Rule 31 (If the splits dtype is smaller than int32 and out_type is not specified, out_type defaults to int64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 5 then if v_2 = 12 then v_2 = 4
+>>
+Rule 32 (The values in splits should not be excessively large to prevent integer overflow)
+{v_1 : tensor} |= max(v_1) < 4611686018427387903
+>>
+Rule 34 (If the splits dtype is not int64, the last element of split can not be an excessively large value)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 4 then v_1[shape(v_1, 0) - 1] < 4611686018427387903
+>>
+Rule 35 (For each element in splits, it should not differ more than a fixed maximum range with the next split value)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 2] : v_1[i+1] - v_1[i] < 1000000
+>>
+Rule 36 (If dtype of splits is uint8 and out_type is not specified, out_type defaults to int32)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 5 then if v_2 = 12 then v_2 = 3
+>>
+Rule 37 (splits should not have repeated values except for the first value)
+{v_1 : tensor} |= ∀i ∈ [1, shape(v_1, 0) - 2] : v_1[i] < v_1[i+1]

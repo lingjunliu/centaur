@@ -1,0 +1,4004 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 1 (Dataset must be a tf.data.Dataset object, implicitly checked by the type system. Dataset contains exactly one element, runtime check implied)
+{v_1 : tensor} |= true
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : tensor} |= true (Unused: v_1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (The dataset contains a single element with a non-zero number of dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (The single element tensor in the dataset must have a shape with all positive values)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 4 (The single element in the dataset must have a floating-point dtype)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 5 (The single element in the dataset must have a shape where the minimum value is less than the maximum)
+{v_1 : tensor} |= min(v_1) ≤ max(v_1)
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 6 (The single element tensor in the dataset must have at least 2 dimensions if its dtype is complex)
+{v_1 : tensor} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then ndim(v_1) ≥ 2
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 7 (The single element tensor's dtype must be either int, float, bool or string)
+{v_1 : tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 11
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 8 (If the single element tensor in the dataset is of type string, its length must be greater than 0)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then shape(v_1, 0) > 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 9 (The single element tensor in the dataset must have non-negative minimum value if the dtype is uint8)
+{v_1 : tensor} |= if dtype_(v_1) = 5 then min(v_1) ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 10 (If the shape of single element tensor is 0, then dtype should not be int)
+{v_1 : tensor} |= if shape(v_1,0) = 0 then dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 5
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 11 (The shape of single element tensor must not be negative)
+{v_1 : tensor} |= ¬(∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 0)
+** PARSING ERROR ** (num_failures: 2)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Parse error: {v_1 : tensor} |= ¬(∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 0) (Error: No terminal matches '¬' in the current parser context, at line 1 col 19
+
+{v_1 : tensor} |= ¬(∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i
+                  ^
+Expected one of: 
+	* FALSE
+	* IF
+	* FUNC
+	* VAR
+	* __ANON_4
+	* SIGNED_NUMBER
+	* TRUE
+	* __ANON_6
+	* LPAR
+	* ESCAPED_STRING
+)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 9 (4D tensor with all shape dimensions positive)
+{v_1 : tensor} |= ndim(v_1) = 4 ∧ ∀i ∈ [0, 3] : shape(v_1, i) > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 12 (The shape of the single element tensor must be non-negative)
+{v_1 : tensor} |= (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0)
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 31 (dtype must be a floating-point type)
+{v_1 : dtype} |= v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 11 (index tensor (v_3) is within the input tensor along the specified dimension)
+{v_1 : tensor, v_2 : int, v_3 : tensor} |= min(v_3) ≥ 0 ∧ max(v_3) ≤ shape(v_1, v_2) − 1
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (The single element tensor in the dataset should have a rank less than or equal to 5)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 14 (If single element tensor's dtype is bool, it must have positive shape)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (If single element tensor's dtype is not a string, min value must be less than or equal to max value)
+{v_1 : tensor} |= if dtype_(v_1) ≠ 11 then min(v_1) ≤ max(v_1)
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 16 (The minimum and maximum values of single element tensor should be a valid number)
+{v_1 : tensor} |= (min(v_1) ≠ "true") ∧ (min(v_1) ≠ "false") ∧ (max(v_1) ≠ "true") ∧ (max(v_1) ≠ "false")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 17 (The single element tensor's shape should be greater than 10 if the dtype is float64)
+{v_1 : tensor} |= if dtype_(v_1) = 8 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 10)
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 18 (If the single element tensor is a boolean type, its minimum should be false and maximum should be true.)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then min(v_1) = false ∧ max(v_1) = true
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 30 (list of bools for masking or selection)
+{v_1 : tensor, v_2 : list(bool)} |= v_2.len = shape(v_1, 0)
+
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 19 (If single element tensor's dtype is string, its min/max can be only be selected from predefined list)
+{v_1 : tensor} |= if dtype_(v_1) = 11 then min(v_1) = "ii" ∨ min(v_1) = "ii->i" ∨ min(v_1) = "i,j->ij" ∨ min(v_1) = "bij,bjk->bik" ∨ min(v_1) = "...ij->...ji" ∨ min(v_1) = "bn,anm,bm->ba" ∨ min(v_1) = "none" ∨ min(v_1) = "mean" ∨ min(v_1) = "sum" ∨ min(v_1) = "max" ∨ min(v_1) = "min" ∨ min(v_1) = "prod" ∨ min(v_1) = "relu" ∨ min(v_1) = "tanh" ∨ min(v_1) = "sigmoid" ∨ min(v_1) = "softmax" ∨ min(v_1) = "elu" ∨ min(v_1) = "selu" ∨ min(v_1) = "gelu" ∨ min(v_1) = "swish" ∨ min(v_1) = "constant" ∨ min(v_1) = "linear" ∨ min(v_1) = "softplus" ∧ max(v_1) = "ii" ∨ max(v_1) = "ii->i" ∨ max(v_1) = "i,j->ij" ∨ max(v_1) = "bij,bjk->bik" ∨ max(v_1) = "...ij->...ji" ∨ max(v_1) = "bn,anm,bm->ba" ∨ max(v_1) = "none" ∨ max(v_1) = "mean" ∨ max(v_1) = "sum" ∨ max(v_1) = "max" ∨ max(v_1) = "min" ∨ max(v_1) = "prod" ∨ max(v_1) = "relu" ∨ max(v_1) = "tanh" ∨ max(v_1) = "sigmoid" ∨ max(v_1) = "softmax" ∨ max(v_1) = "elu" ∨ max(v_1) = "selu" ∨ max(v_1) = "gelu" ∨ max(v_1) = "swish" ∨ max(v_1) = "constant" ∨ max(v_1) = "linear" ∨ max(v_1) = "softplus"
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 20 (if single element is of integer family, the values in shape cannot be float)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then ¬(∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0.3 ∨ shape(v_1, i) = -5.0 ∨ shape(v_1, i) = +7.0)
+** PARSING ERROR ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Parse error: {v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then ¬(∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0.3 ∨ shape(v_1, i) = -5.0 ∨ shape(v_1, i) = +7.0) (Error: No terminal matches '¬' in the current parser context, at line 1 col 115
+
+ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then ¬(∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i
+                                        ^
+Expected one of: 
+	* FALSE
+	* IF
+	* FUNC
+	* VAR
+	* __ANON_4
+	* SIGNED_NUMBER
+	* TRUE
+	* __ANON_6
+	* LPAR
+	* ESCAPED_STRING
+)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 21 (if single element is of integer family, the values in shape cannot be float)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then ¬(∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) > 0 ∧ shape(v_1, i) < 1))
+** PARSING ERROR ** (num_failures: 4)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Parse error: {v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then ¬(∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) > 0 ∧ shape(v_1, i) < 1)) (Error: No terminal matches '¬' in the current parser context, at line 1 col 115
+
+ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then ¬(∃i ∈ [0, ndim(v_1) - 1] : (shape(v_1, 
+                                        ^
+Expected one of: 
+	* FALSE
+	* IF
+	* FUNC
+	* VAR
+	* __ANON_4
+	* SIGNED_NUMBER
+	* TRUE
+	* __ANON_6
+	* LPAR
+	* ESCAPED_STRING
+)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 21 (primitive type variable should not be zero)
+{v_1 : int ⊎ float} |= v_1 ≠ 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 22 (if single element is of integer family, the shape values must be integers)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = (shape(v_1, i) as int))
+** PARSING ERROR ** (num_failures: 5)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Parse error: {v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = (shape(v_1, i) as int)) (Error: No terminal matches 'a' in the current parser context, at line 1 col 173
+
+) - 1] : shape(v_1, i) = (shape(v_1, i) as int))
+                                        ^
+Expected one of: 
+	* __ANON_2
+	* COMPOP
+	* ADDOP
+	* MULOP
+	* RPAR
+	* __ANON_3
+)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.data.experimental.get_single_element API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Returns the single element of the `dataset` as a nested structure of tensors. (deprecated)
+
+Deprecated: THIS FUNCTION IS DEPRECATED. It will be removed in a future version.
+Instructions for updating:
+Use `tf.data.Dataset.get_single_element()`.
+
+The function enables you to use a `tf.data.Dataset` in a stateless
+"tensor-in tensor-out" expression, without creating an iterator.
+This facilitates the ease of data transformation on tensors using the
+optimized `tf.data.Dataset` abstraction on top of them.
+
+For example, lets consider a `preprocessing_fn` which would take as an
+input the raw features and returns the processed feature along with
+it's label.
+
+```python
+def preprocessing_fn(raw_feature):
+  # ... the raw_feature is preprocessed as per the use-case
+  return feature
+
+raw_features = ...  # input batch of BATCH_SIZE elements.
+dataset = (tf.data.Dataset.from_tensor_slices(raw_features)
+           .map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+           .batch(BATCH_SIZE))
+
+processed_features = tf.data.experimental.get_single_element(dataset)
+```
+
+In the above example, the `raw_features` tensor of length=BATCH_SIZE
+was converted to a `tf.data.Dataset`. Next, each of the `raw_feature` was
+mapped using the `preprocessing_fn` and the processed features were
+grouped into a single batch. The final `dataset` contains only one element
+which is a batch of all the processed features.
+
+NOTE: The `dataset` should contain only one element.
+
+Now, instead of creating an iterator for the `dataset` and retrieving the
+batch of features, the `tf.data.experimental.get_single_element()` function
+is used to skip the iterator creation process and directly output the batch
+of features.
+
+This can be particularly useful when your tensor transformations are
+expressed as `tf.data.Dataset` operations, and you want to use those
+transformations while serving your model.
+
+# Keras
+
+```python
+
+model = ... # A pre-built or custom model
+
+class PreprocessingModel(tf.keras.Model):
+  def __init__(self, model):
+    super().__init__(self)
+    self.model = model
+
+  @tf.function(input_signature=[...])
+  def serving_fn(self, data):
+    ds = tf.data.Dataset.from_tensor_slices(data)
+    ds = ds.map(preprocessing_fn, num_parallel_calls=BATCH_SIZE)
+    ds = ds.batch(batch_size=BATCH_SIZE)
+    return tf.argmax(
+      self.model(tf.data.experimental.get_single_element(ds)),
+      axis=-1
+    )
+
+preprocessing_model = PreprocessingModel(model)
+your_exported_model_dir = ... # save the model to this path.
+tf.saved_model.save(preprocessing_model, your_exported_model_dir,
+              signatures={'serving_default': preprocessing_model.serving_fn})
+```
+
+Args:
+  dataset: A `tf.data.Dataset` object containing a single element.
+
+Returns:
+  A nested structure of `tf.Tensor` objects, corresponding to the single
+  element of `dataset`.
+
+Raises:
+  TypeError: if `dataset` is not a `tf.data.Dataset` object.
+  InvalidArgumentError: (at runtime) if `dataset` does not contain exactly
+    one element.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 23 (if single element is of integer family, the shape values must be integers)
+{v_1 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 then (∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) % 1) = 0)
+** SUCCESS **
+

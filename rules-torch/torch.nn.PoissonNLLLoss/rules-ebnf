@@ -1,0 +1,75 @@
+>>
+Rule 1 (Input and target tensors should have the same shape to avoid broadcasting errors)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (eps should be non-negative to avoid undefined log)
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 3 (reduction must be a valid string.)
+{v_1 : str} |= v_1 = "none" ∨ v_1 = "mean" ∨ v_1 = "sum"
+>>
+Rule 4 (log_input must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 8 (shape must match, example)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 9 (Target should be non-negative.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+>>
+Rule 10 (Input can accept float or int but target must be of the same datatype if input is int.)
+{v_1 : tensor, v_2 : tensor} |= if 1 <= dtype_(v_1) ∧ dtype_(v_1) <= 5 then 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
+>>
+Rule 11 (target should be of float type for float input)
+{v_1 : tensor, v_2 : tensor} |= if 6 <= dtype_(v_1) ∧ dtype_(v_1) <= 9 then 6 <= dtype_(v_2) ∧ dtype_(v_2) <= 9
+>>
+Rule 12 (Input and target tensors should have compatible shapes, handling singleton dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+>>
+Rule 13 (eps should be a small positive float)
+{v_1 : float} |= v_1 > 0 ∧ v_1 < 1
+>>
+Rule 15 (Input and target dtype should be the same)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 17 (Target should not be NaN.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[i]
+>>
+Rule 19 (Input and target tensors must have the same size at non-singleton dimensions.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i)) ∨ (shape(v_1, i) = 1) ∨ (shape(v_2, i) = 1)
+>>
+Rule 20 (Input and target tensors should have broadcast-compatible shapes, and same size except singleton.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 21 (If reduction is none, then the output has the same shape as input.)
+{v_1 : str, v_2 : tensor, v_3: tensor} |= if v_1 = "none" then ndim(v_2) = ndim(v_3) ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+>>
+Rule 22 (If full is true, target has to be integer.)
+{v_1: bool, v_2: tensor} |= if v_1 = true then 1 <= dtype_(v_2) ∧ dtype_(v_2) <= 5
+>>
+Rule 23 (If reduction is 'mean' or 'sum', the output should be a scalar.)
+{v_1 : str, v_2 : tensor} |= if v_1 = "mean" ∨ v_1 = "sum" then ndim(v_2) = 0
+>>
+Rule 24 (eps must be a float value if log_input is false.)
+{v_1 : bool, v_2: float} |= if v_1 = false then v_2 = v_2
+>>
+Rule 25 (If log_input is false, the input tensor should not contain -inf)
+{v_1: bool, v_2: tensor} |= if v_1 = false then ∀i ∈ [0, shape(v_2, 0)-1] : v_2[i] > -1000000
+>>
+Rule 26 (The target values cannot be negative since it represents poisson distribution.)
+{v_1: tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0
+>>
+Rule 28 (The input and target shapes must be compatible, prioritizing matching sizes at non-singleton dimensions.)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ (shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 29 (The shapes of input and target should be broadcastable, if not exactly same)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ (shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 31 (When input and target have different shapes, they must be broadcastable to each other)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then false else ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1)
+>>
+Rule 32 (If shapes do not match, and reduction is not none, shapes must be broadcastable.)
+{v_1 : tensor, v_2 : tensor, v_3 : str} |= if shape(v_1, 0) ≠ shape(v_2, 0) ∧ v_3 ≠ "none" then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))
+>>
+Rule 34 (If the shapes of input and target differ, at least one of the sizes at the corresponding indices is 1.)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∀i ∈ [0, ndim(v_1) - 1] : (if shape(v_1, i) ≠ shape(v_2, i) then (shape(v_1, i) = 1 ∨ shape(v_2, i) = 1))

@@ -1,0 +1,75 @@
+>>
+Rule 3 (x's dtype must be float16, float32, float64, int32, int64, complex64, or complex128)
+{v_1 : tensor} |= 6 ≤ dtype_(v_1) ∧ dtype_(v_1) ≤ 11
+>>
+Rule 4 (y's dtype must be float16, float32, float64, int32, int64, complex64, or complex128)
+{v_2 : tensor} |= 6 ≤ dtype_(v_2) ∧ dtype_(v_2) ≤ 11
+>>
+Rule 5 (x and y must have compatible shapes for element-wise operations)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 7 (If y is a very large number, x can't be close to 0 to prevent inf or NaN results)
+{v_1 : tensor, v_2 : tensor} |= if max(v_2) > 1000 then min(v_1) > 0.00001
+>>
+Rule 10 (x and y must have compatible shapes for element-wise operations or broadcasting)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ ndim(v_1) = 0 ∨ ndim(v_2) = 0 ∨ (ndim(v_1) = 1 ∧ ndim(v_2) = 1)
+>>
+Rule 11 (If x's dtype is complex, y's dtype must be complex too)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) ≥ 9 then dtype_(v_2) ≥ 9
+>>
+Rule 12 (If y's dtype is complex, x's dtype must be complex too)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_2) ≥ 9 then dtype_(v_1) ≥ 9
+>>
+Rule 18 (if x is 0, then y has to be positive)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) = 0 then min(v_2) > 0
+>>
+Rule 22 (if x is a complex number, y can be any number)
+{v_1 : tensor} |= if dtype_(v_1) > 8 then true
+>>
+Rule 23 (if y is a complex number, x can be any number)
+{v_2 : tensor} |= if dtype_(v_2) > 8 then true
+>>
+Rule 25 (If y has at least one fractional element, x must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - ((v_2[i] / 1) * 1)) ≠ 0 then min(v_1) ≥ 0
+>>
+Rule 26 (If x is negative, y must be an integer)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - ((v_2[i] / 1) * 1)) = 0
+>>
+Rule 27 (If any element of x is close to zero, and any element of y is very negative, this can cause issues)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0.0001 then if max(v_2) < -100 then false
+>>
+Rule 28 (x and y must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 30 (If y has at least one fractional element, x must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - (v_2[i] / 1 * 1)) ≠ 0 then min(v_1) ≥ 0
+>>
+Rule 31 (If x is negative, y must be an integer)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0 then ∀i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - (v_2[i] / 1 * 1)) = 0
+>>
+Rule 32 (If any element of x is close to zero, and any element of y is very negative, this can cause issues)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < 0.0001 ∧ max(v_2) < -100 then false
+>>
+Rule 33 (Check x dtype if y is not a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 then if dtype_(v_1) > 8 then true
+>>
+Rule 38 (x cannot be zero if any y is negative)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 0 then min(v_1) > 0
+>>
+Rule 42 (If x is a very small positive number, y should not be very large)
+{v_1 : tensor, v_2 : tensor} |= if max(v_1) < 0.0001 then max(v_2) < 1000
+>>
+Rule 43 (If y is a very large negative number, x should not be close to 1)
+{v_1 : tensor, v_2 : tensor} |= if min(v_2) < -1000 then min(v_1) > 1.01 ∨ max(v_1) < 0.99
+>>
+Rule 51 (If x is negative, y must be an integer)
+{v_1 : tensor, v_2 : tensor} |= min(v_1) < 0 ∧ (∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - (v_2[i] / 1 * 1)) ≠ 0) = false
+>>
+Rule 58 (y must have the same dtype or int dtype)
+{v_2 : tensor} |=  6 <= dtype_(v_2) ∧ dtype_(v_2) <= 11
+>>
+Rule 60 (If y has at least one fractional element, x must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= ∃i ∈ [0, shape(v_2, 0) - 1] : (v_2[i] - (v_2[i] / 1 * 1)) ≠ 0 ∧ (min(v_1) < 0) = false
+>>
+Rule 63 (The shape of x and y should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)

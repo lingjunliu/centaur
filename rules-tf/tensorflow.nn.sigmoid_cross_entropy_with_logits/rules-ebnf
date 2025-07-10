@@ -1,0 +1,129 @@
+>>
+Rule 1 (logits and labels must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 2 (logits must be of type float32 or float64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 3 (labels values should be between 0 and 1)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1
+>>
+Rule 4 (labels must be of the same type as logits)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 5 (If logits is a scalar, labels must also be a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 6 (logits and labels tensors cannot have negative dimensions)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 ∧ ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0
+>>
+Rule 7 (labels should not be NaN if logits is not NaN)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") then (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = "NaN")
+>>
+Rule 8 (if logits has shape [x,y,z] the labels should have the same shape [x,y,z])
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 3) then (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_1, 2) = shape(v_2, 2))
+>>
+Rule 9 (The number of elements in logits should not be too large to avoid memory issues)
+{v_1 : tensor} |= shape(v_1, 0) * shape(v_1, 1) < 1000000 ∨ ndim(v_1) < 2
+>>
+Rule 10 (If the logits is a matrix then both dimensions should be greater than 1)
+{v_1 : tensor} |= if (ndim(v_1) = 2) then (shape(v_1, 0) > 1 ∧ shape(v_1, 1) > 1)
+>>
+Rule 11 (If logits contains very large values then the labels should be close to 0 or 1)
+{v_1 : tensor, v_2 : tensor} |= if (max(v_1) > 100) then (min(v_2) < 0.1 ∨ max(v_2) > 0.9)
+>>
+Rule 12 (Labels cannot all be zero)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0
+>>
+Rule 13 (Labels cannot all be one)
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 1
+>>
+Rule 14 (If logits are very small, labels should not be 1)
+{v_1 : tensor, v_2 : tensor} |= if min(v_1) < -100 then ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 1
+>>
+Rule 15 (If logits are very big, labels should not be 0)
+{v_1 : tensor, v_2 : tensor} |= if max(v_1) > 100 then ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0
+>>
+Rule 16 (If logits contains inf, labels should be either 0 or 1)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "inf") then ∀j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = 0 ∨ v_2[j] = 1
+>>
+Rule 17 (If labels has only 1 element then logits should have only 1 element)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, 0) = 1 ∧ ndim(v_1) = 1) then (shape(v_2, 0) = 1 ∧ ndim(v_2) = 1)
+>>
+Rule 18 (if logits contains only positive values labels should be close to zero)
+{v_1 : tensor, v_2 : tensor} |= if (min(v_1) >= 0) then (max(v_2) < 0.5) ∨ (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0)
+>>
+Rule 19 (if labels contains only the value 0, then the minimum of logits should be a very large negative number)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0) then min(v_2) < -50
+>>
+Rule 20 (If labels contains only the value 1, then the maximum of logits should be a very large number)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 1) then max(v_2) > 50
+>>
+Rule 21 (If labels is a tensor with only 0 and 1 then logits minimum should be negative and maximum positive)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1) then min(v_2) < 0 ∧ max(v_2) > 0
+>>
+Rule 22 (The absolute difference between the min and max values of logits should be less than 1000)
+{v_1 : tensor} |= max(v_1) - min(v_1) < 1000
+>>
+Rule 23 (If labels contains any Nan, then Logits should also contain Nan)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") then (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = "NaN")
+>>
+Rule 24 (if labels contains only 0 or 1 the average value of logits should be between -50 and 50)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1) then (min(v_2) + max(v_2)) / 2 > -50 ∧ (min(v_2) + max(v_2)) / 2 < 50
+>>
+Rule 26 (if Logits has nan values, then labels must have same amount of Nan values)
+{v_1 : tensor, v_2 : tensor} |= (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") ∧ (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = "NaN")
+>>
+Rule 28 (If all logits are positive, all labels should be near 0)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0) then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] < 0.1)
+>>
+Rule 29 (If labels has a very high standard deviation, the logits should too)
+{v_1 : tensor, v_2 : tensor} |= if (max(v_1) - min(v_1) > 1) then (max(v_2) - min(v_2) > 1)
+>>
+Rule 30 (If all Logits are negative all labels must be neaR 1)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] < 0) then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0.9)
+>>
+Rule 36 (Labels can not only have 0.5 value )
+{v_1 : tensor} |= ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ 0.5
+>>
+Rule 37 (If Logits has nan values, then labels must have same amount of Nan values)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") then (∃j ∈ [0, shape(v_2, 0) - 1] : v_2[j] = "NaN") else (if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = "NaN") then false)
+>>
+Rule 38 (If the mean of the logits is very high, the mean of the labels should be close to 1)
+{v_1 : tensor, v_2 : tensor} |= if ((min(v_2) + max(v_2)) / 2) > 50 then ((min(v_1) + max(v_1)) / 2) > 0.8
+>>
+Rule 39 (If the mean of the logits is very small, the mean of the labels should be close to 0)
+{v_1 : tensor, v_2 : tensor} |= if ((min(v_2) + max(v_2)) / 2) < -50 then ((min(v_1) + max(v_1)) / 2) < 0.2
+>>
+Rule 40 (The ratio between the maximum and minimum label can not be too big)
+{v_1 : tensor} |= max(v_1) / min(v_1) < 100 ∨ (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0)
+>>
+Rule 41 (The labels must have a valid dtype)
+{v_1: tensor} |= dtype_(v_1) = 0 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 42 (If logits has zero values, the labels should be close to 0.5)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0) then (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] > 0.4 ∧ v_1[i] < 0.6 )
+>>
+Rule 43 (If the labels are one-hot encoded, logits should have distinct values)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1) ∧ (∀i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1) ∧ (∀j ∈ [0, shape(v_1, 0) - 1] : if i ≠ j then v_1[j] = 0)) then (max(v_2) - min(v_2) > 10)
+>>
+Rule 44 (If logits have very high values, labels should have small std deviation)
+{v_1 : tensor, v_2 : tensor} |= if (max(v_2) > 100) then (max(v_1) - min(v_1) < 0.1)
+>>
+Rule 45 (The product between the maximum value of logits and minimum value of labels must not be greater than a threshold)
+{v_1 : tensor, v_2 : tensor} |= max(v_2) * min(v_1) < 1000
+>>
+Rule 46 (If labels are all the same value logits should have small variance)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = v_1[0]) then (max(v_2) - min(v_2) < 1)
+>>
+Rule 48 (If the labels are one-hot encoded, logits should have distinct values)
+{v_1 : tensor, v_2 : tensor} |= if (∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 ∨ v_1[i] = 1) ∧ (∃i ∈ [0, shape(v_1, 0) - 1] : (v_1[i] = 1) ∧ (∀j ∈ [0, shape(v_1, 0) - 1] : if i ≠ j then v_1[j] = 0)) then (max(v_2) - min(v_2) > 10)
+>>
+Rule 52 (If logits has zero values, the labels should be close to 0.5)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0) then (∀i ∈ [0, shape(v_2, 0) - 1] : v_2[i] > 0.4 ∧ v_2[i] < 0.6 )
+>>
+Rule 54 (If logits have very high values, labels should have small std deviation)
+{v_1 : tensor, v_2 : tensor} |= if (max(v_1) > 100) then (max(v_2) - min(v_2) < 0.1)
+>>
+Rule 55 (The product between the maximum value of logits and minimum value of labels must not be greater than a threshold)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) * min(v_2) < 1000

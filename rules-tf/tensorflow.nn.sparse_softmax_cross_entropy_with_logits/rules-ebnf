@@ -1,0 +1,117 @@
+>>
+Rule 1 (logits must have rank >= 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 2 (labels rank should be logits rank minus one)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) = ndim(v_1) - 1
+>>
+Rule 3 (logits dtype must be float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
+>>
+Rule 4 (labels dtype must be int32 or int64)
+{v_1 : tensor} |= dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64"
+>>
+Rule 5 (logits shape should be [d_0, d_1, ..., d_{r-1}, num_classes] and labels shape should be [d_0, d_1, ..., d_{r-1}])
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_1, i)
+>>
+Rule 6 (labels values must be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 7 (labels values must be less than num_classes, which is the last dimension of logits)
+{v_1 : tensor, v_2 : tensor} |= max(v_1) < shape(v_2, ndim(v_2) - 1)
+>>
+Rule 8 (logits and labels must have compatible shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) + 1
+>>
+Rule 9 (the first r-1 dimensions of logits and labels should match)
+{v_1 : tensor, v_2 : tensor} |= ∀i ∈ [0, ndim(v_2) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 10 (logits cannot be scalar)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 12 (logits and labels must have at least one dimension)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 14 (if number of classes is 1, labels elements must be 0)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) = 1 then ∀i ∈ [0, ndim(v_2) -1] : v_2[i] = 0
+>>
+Rule 15 (If labels is empty, logits must be empty too)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0) then (∃j ∈ [0, ndim(v_1) - 1] : shape(v_1, j) = 0)
+>>
+Rule 19 (labels values must be in range [0, number of classes -1] if logits not empty)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else (min(v_2) ≥ 0 ∧ max(v_2) < shape(v_1, ndim(v_1)-1))
+>>
+Rule 22 (If logits are not empty, labels values must be non-negative)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then min(v_2) ≥ 0
+>>
+Rule 23 (If logits are not empty, labels values must be less than number of classes)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0 then max(v_2) < shape(v_1, ndim(v_1) - 1)
+>>
+Rule 24 (labels rank is one less than logits rank)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) + 1 = ndim(v_1)
+>>
+Rule 28 (If labels is not empty then labels values must be non-negative)
+{v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then min(v_2) ≥ 0
+>>
+Rule 29 (If labels is not empty then labels values must be less than number of classes in logits)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) > 0) then max(v_2) < shape(v_1, ndim(v_1) - 1)
+>>
+Rule 30 (Logits and labels must have compatible dtypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64") ∧ (dtype_(v_2) = "int32" ∨ dtype_(v_2) = "int64")
+>>
+Rule 31 (if logits is empty, all elements of label should be zero.)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then ∀j ∈ [0, ndim(v_2) -1] : v_2[j] = 0
+>>
+Rule 32 (If logits has only one class, then labels must be zero)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, ndim(v_1)-1) = 1) then (min(v_2) = 0 ∧ max(v_2) = 0)
+>>
+Rule 33 (Logits must be unscaled)
+{v_1 : tensor} |= min(v_1) < 0 ∨ max(v_1) > 0
+>>
+Rule 34 (If number of classes is greater than 1, then labels elements must be less than number of classes)
+{v_1 : tensor, v_2 : tensor} |= if (shape(v_1, ndim(v_1)-1) > 1) then max(v_2) < shape(v_1, ndim(v_1)-1)
+>>
+Rule 36 (Logits cannot contain NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1)-1] : shape(v_1, i) ≠ shape(v_1, i)
+>>
+Rule 37 (If the shape of logits is [batch_size, num_classes] and the shape of labels is [batch_size], then num_classes must be greater than 0)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 1) then shape(v_1, 1) > 0
+>>
+Rule 38 (If num_classes is greater than 1, labels elements must be non negative)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) > 1 then min(v_2) ≥ 0
+>>
+Rule 39 (Logits values must be finite)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+>>
+Rule 40 (If num_classes is greater than 1, labels elements must be less than number of classes)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) > 1 then max(v_2) < shape(v_1, ndim(v_1)-1)
+>>
+Rule 41 (If number of classes is greater than 1, labels elements must be valid indices)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) > 1 then ∀i ∈ [0, ndim(v_2) - 1]: v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, ndim(v_1)-1)
+>>
+Rule 42 (If the shape of logits is [batch_size, num_classes] and the shape of labels is [batch_size], then the values in label should be less than num_classes)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 1) then max(v_2) < shape(v_1, 1)
+>>
+Rule 43 (If the shape of logits is [batch_size, num_classes] and the shape of labels is [batch_size], then the values in label should be non-negative)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) = 2 ∧ ndim(v_2) = 1) then min(v_2) ≥ 0
+>>
+Rule 44 (If number of classes is greater than 1, all elements in labels must be valid)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) > 1 then ∀i ∈ [0, ndim(v_2) - 1] : (v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, ndim(v_1)-1))
+>>
+Rule 46 (Labels must be indices)
+{v_1 : tensor, v_2 : tensor} |= if (ndim(v_1) > 0 ∧ ndim(v_2) > 0) then ∀i ∈ [0, ndim(v_2)-1] : (v_2[i] ≥ 0 ∧ v_2[i] < shape(v_1, ndim(v_1)-1))
+>>
+Rule 47 (logits must be floats)
+{v_1: tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
+>>
+Rule 48 (labels must be integers)
+{v_1: tensor} |= dtype_(v_1) = "int32" ∨ dtype_(v_1) = "int64"
+>>
+Rule 49 (If the number of classes is 1 all labels must be 0)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, ndim(v_1)-1) = 1 then ∀i ∈ [0, ndim(v_2) - 1] : v_2[i] = 0
+>>
+Rule 50 (If logits has shape [batch_size, num_classes], labels has shape [batch_size], logits must have more than 0 rows)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_1, 0) > 0
+>>
+Rule 51 (If logits has shape [batch_size, num_classes], labels has shape [batch_size], labels must have more than 0 rows)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 1 then shape(v_2, 0) > 0

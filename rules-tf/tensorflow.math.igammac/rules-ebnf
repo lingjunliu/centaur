@@ -1,0 +1,90 @@
+>>
+Rule 1 (Input tensors `a` and `x` must have the same data type)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 2 (Data type of tensor `a` must be either bfloat16, half, float32, or float64, represented as 7, 8, 9 respectively)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+>>
+Rule 3 (The dimensions of tensors `a` and `x` must match)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 4 (Shape of tensors `a` and `x` should be identical)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2)) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)
+>>
+Rule 5 (The values of tensor `a` should be non-negative)
+{v_1 : tensor} |= min(v_1) ≥ 0
+>>
+Rule 7 (The shapes of tensors `a` and `x` can be broadcast)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > ndim(v_2) then ∀i ∈ [0, ndim(v_2)-1]: shape(v_1, ndim(v_1)-ndim(v_2) + i) = shape(v_2, i) else if ndim(v_2) > ndim(v_1) then ∀i ∈ [0, ndim(v_1)-1]: shape(v_2, ndim(v_2)-ndim(v_1) + i) = shape(v_1, i) else ∀i ∈ [0, ndim(v_1)-1]: shape(v_1, i) = shape(v_2, i)
+>>
+Rule 9 (Check if the tensor `a` is greater than 0)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 10 (If `a` is a scalar, it should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 > 0
+>>
+Rule 12 (Tensor `a` can't be too large to avoid overflow)
+{v_1 : tensor} |= max(v_1) < 1000
+>>
+Rule 13 (If shapes are different, at least one of the corresponding dimensions should be one for broadcast)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (ndim(v_1) = 0) ∨ (ndim(v_2) = 0) else ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i) ∨ shape(v_1, i) = 1 ∨ shape(v_2, i) = 1
+>>
+Rule 14 (The values of tensor `x` should be finite and not NaN)
+{v_1 : tensor} |= max(v_1) < 100000 ∧ min(v_1) > -100000
+>>
+Rule 15 (If a is a scalar, it should not be zero to avoid division by zero in some implementations)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≠ 0
+>>
+Rule 16 (Check that the minimum value of `a` is not a very large negative number.)
+{v_1 : tensor} |= min(v_1) > -1000
+>>
+Rule 18 (Check that the shapes of `a` and `x` are compatible for element-wise operation)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)) ∨ (ndim(v_1) = 0) ∨ (ndim(v_2) = 0)
+>>
+Rule 19 (If `a` and `x` are both scalars, they should both be positive)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 ∧ ndim(v_2) = 0 then v_1 > 0 ∧ v_2 > 0
+>>
+Rule 20 (If both `a` and `x` are tensors, then the elements of `x` should all be positive if all elements of `a` are less than one)
+{v_1 : tensor, v_2 : tensor} |= if max(v_1) < 1 then min(v_2) > 0
+>>
+Rule 21 (Check if `a` and `x` have valid floating point datatypes)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9) ∧ (dtype_(v_2) = 7 ∨ dtype_(v_2) = 8 ∨ dtype_(v_2) = 9)
+>>
+Rule 22 (If either `a` or `x` are zero dimensional, then the other should also be zero dimensional)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) = (ndim(v_2) = 0)
+>>
+Rule 23 (The product of the shape dimensions of a cannot be too large.)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) * shape(v_1, 1) < 1000000
+>>
+Rule 24 (If the rank of `a` is greater than 0, then each dimension should be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 25 (Either both tensors should be scalars or both should be at least 1D)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∧ ndim(v_2) = 0) ∨ (ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1)
+>>
+Rule 26 (If the shape of `a` is (m, n) then `x` should also have shape(m, n) or shape(m, 1) or shape(1, n))
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 then (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_1, 1) = shape(v_2, 1)) ∨ (shape(v_1, 0) = shape(v_2, 0) ∧ shape(v_2, 1) = 1) ∨ (shape(v_1, 1) = shape(v_2, 1) ∧ shape(v_2, 0) = 1)
+>>
+Rule 27 (If the number of dimensions are different, all dimensions in tensor with smaller number of dimensions must be 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) < ndim(v_2) then ∀i ∈ [0, ndim(v_1) -1] : shape(v_1, i) = 1 else if ndim(v_2) < ndim(v_1) then  ∀i ∈ [0, ndim(v_2) -1] : shape(v_2, i) = 1
+>>
+Rule 28 (If number of dimensions of `x` is not equal to number of dimensions of `a` then, `x`'s dimensions can not be greater than `a`)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then ndim(v_2) ≤ ndim(v_1)
+>>
+Rule 30 (If the operation involves division by a, ensure a is not too small to avoid overflow)
+{v_1 : tensor} |= min(v_1) > 0.000001
+>>
+Rule 32 (The maximum value of `a` cannot be excessively large)
+{v_1 : tensor} |= max(v_1) < 100000
+>>
+Rule 33 (Check if dtype is bfloat16, half, float32, or float64.)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9
+>>
+Rule 34 (If any element of `a` is zero, the corresponding element in `x` must be positive.)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_1, 0) - 1] : v_1[i] = 0 then ∀j ∈ [0, shape(v_2, 0) - 1] : v_2[j] > 0
+>>
+Rule 35 (If there is a dimension of a having size zero, x should have exactly the same shape)
+{v_1: tensor, v_2: tensor} |= if ∃i ∈ [0, ndim(v_1) - 1]: shape(v_1, i) = 0 then (ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i))
+>>
+Rule 36 (If one element of x is zero, no element of a can be 0)
+{v_1 : tensor, v_2 : tensor} |= if ∃i ∈ [0, shape(v_2, 0) - 1] : v_2[i] = 0 then ∀j ∈ [0, shape(v_1, 0) - 1] : v_1[j] ≠ 0

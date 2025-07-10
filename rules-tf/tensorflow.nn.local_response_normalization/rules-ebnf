@@ -1,0 +1,150 @@
+>>
+Rule 1 (depth_radius should be non-negative)
+{v_1 : int} |= v_1 ≥ 0
+>>
+Rule 2 (bias should be positive to avoid dividing by zero)
+{v_1 : float} |= v_1 > 0
+>>
+Rule 3 (alpha should be non-negative)
+{v_1 : float} |= v_1 ≥ 0
+>>
+Rule 4 (input tensor must be 4-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 4
+>>
+Rule 6 (depth_radius should be less than the last dimension of the input tensor)
+{v_1 : tensor, v_2 : int} |= v_2 < shape(v_1, ndim(v_1) - 1)
+>>
+Rule 7 (input tensor dtype must be float16, float32, or bfloat16)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7
+>>
+Rule 8 (depth_radius should be less than half of the last dimension of the input tensor)
+{v_1 : tensor, v_2 : int} |= 2 * v_2 < shape(v_1, ndim(v_1) - 1)
+>>
+Rule 9 (alpha and beta should have reasonable values)
+{v_1 : float, v_2 : float} |= v_1 < 100 ∧ v_2 < 10
+>>
+Rule 10 (input tensor's batch size should be greater than zero.)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 11 (depth_radius should be an integer representable by int32)
+{v_1 : int} |= -2147483648 ≤ v_1 ∧ v_1 ≤ 2147483647
+>>
+Rule 12 (If input tensor has zero batch size, depth_radius must be zero)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 0 then v_2 = 0
+>>
+Rule 13 (Bias should not be too large)
+{v_1 : float} |= v_1 < 1000
+>>
+Rule 14 (Check valid combination of input type and depth_radius)
+{v_1: tensor, v_2: int} |= if dtype_(v_1) = 6 then v_2 < 20 else if dtype_(v_1) = 7 then v_2 < 50
+>>
+Rule 15 (If depth_radius is zero, then bias must be greater than zero and alpha must be non-negative)
+{v_1 : int, v_2 : float, v_3 : float} |= if v_1 = 0 then v_2 > 0 ∧ v_3 ≥ 0
+>>
+Rule 16 (The input tensor must have non-zero elements)
+{v_1 : tensor} |= max(v_1) ≠ min(v_1)
+>>
+Rule 17 (Check valid range of beta)
+{v_1: float} |= v_1 > 0 ∧ v_1 < 1
+>>
+Rule 18 (The depth radius cannot be larger than the spatial dimensions)
+{v_1: tensor, v_2: int} |= v_2 < shape(v_1, 1) ∧ v_2 < shape(v_1, 2)
+>>
+Rule 19 (Alpha must be positive if beta is not zero)
+{v_1 : float, v_2 : float} |= if v_2 ≠ 0 then v_1 > 0
+>>
+Rule 20 (Check the third dimension of input tensor should be greater than 1)
+{v_1 : tensor} |= shape(v_1, 2) > 1
+>>
+Rule 21 (When using float16, the depth_radius should not be too large)
+{v_1 : tensor, v_2 : int} |= if dtype_(v_1) = 6 then v_2 < 10
+>>
+Rule 22 (if the first dimension of the input tensor is 1, then depth_radius should also be 1)
+{v_1 : tensor, v_2 : int} |= if shape(v_1, 0) = 1 then v_2 = 1
+>>
+Rule 24 (When beta is 0.5, bias + alpha must be greater than 0)
+{v_1 : float, v_2 : float, v_3 : float} |= if v_3 = 0.5 then v_1 + v_2 > 0
+>>
+Rule 25 (bias and alpha can not be both zero)
+{v_1: float, v_2: float} |= (v_1 = 0) = false ∨ (v_2 = 0) = false
+>>
+Rule 27 (If input is half dtype, alpha should be greater than 0)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 6 then v_2 > 0
+>>
+Rule 28 (bias and alpha can not be both zero)
+{v_1: float, v_2: float} |= (v_1 = 0 ∧ v_2 = 0) = false
+>>
+Rule 29 (If input is bfloat16 dtype, alpha should be greater than 0)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 7 then v_2 > 0
+>>
+Rule 30 (If input is float32 dtype, alpha should be greater than 0)
+{v_1: tensor, v_2: float} |= if dtype_(v_1) = 8 then v_2 > 0
+>>
+Rule 31 (When beta is close to 0, alpha should not be too large)
+{v_1: float, v_2: float} |= if v_2 < 0.1 then v_1 < 100
+>>
+Rule 32 (If bias is close to 1 and alpha is close to 1, beta should be less than 1)
+{v_1: float, v_2: float, v_3: float} |= if v_1 > 0.9 ∧ v_1 < 1.1 ∧ v_2 > 0.9 ∧ v_2 < 1.1 then v_3 < 1
+>>
+Rule 33 (When depth radius is greater than 0, alpha must be greater than or equal to 0)
+{v_1: int, v_2: float} |= if v_1 > 0 then v_2 ≥ 0
+>>
+Rule 34 (When depth radius is small, bias should be small to make sure the output is valid)
+{v_1: int, v_2: float} |= if v_1 < 3 then v_2 < 5
+>>
+Rule 35 (If any of the dimensions of input tensor is 0, all other parameters should default.)
+{v_1: tensor, v_2: int, v_3: float, v_4: float, v_5: float} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then v_2 = 5 ∧ v_3 = 1.0 ∧ v_4 = 1.0 ∧ v_5 = 0.5
+>>
+Rule 36 (The input tensor should not have any NaN values)
+{v_1: tensor} |= min(v_1) = min(v_1) ∧ max(v_1) = max(v_1)
+>>
+Rule 37 (depth_radius should be less than the height and width if height or width is less than 10.)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) < 10 ∨ shape(v_1, 2) < 10 then v_2 < shape(v_1, 1) ∧ v_2 < shape(v_1, 2)
+>>
+Rule 39 (If the depth_radius is large, the first dimension of input tensor must be not so small to avoid out of bound.)
+{v_1: tensor, v_2: int} |= if v_2 > 10 then shape(v_1, 0) > 5
+>>
+Rule 40 (If beta is greater than zero then Bias + alpha must be greater than zero, assuming sqr_sum = 1 in the formula)
+{v_1 : float, v_2: float, v_3: float} |= if v_3 > 0 then v_1 + v_2 > 0
+>>
+Rule 41 (The alpha must be less than max value that float32 can represent, to avoid overflow)
+{v_1: float} |= v_1 < 3.4028235e+38
+>>
+Rule 43 (If depth_radius * 2 + 1 is greater than the feature map dimension of the tensor, then the result may be incorrect, but avoid crashing.)
+{v_1: tensor, v_2: int} |= if shape(v_1, 3) > 0 then 2 * v_2 + 1 ≤ shape(v_1, 3)
+>>
+Rule 44 (alpha should be a reasonable number)
+{v_1 : float} |= v_1 < 10000000000000.0
+>>
+Rule 45 (If depth_radius is close to feature map dimension of input tensor, bias can not be zero.)
+{v_1: tensor, v_2: int, v_3: float} |= if shape(v_1, 3) > 0 ∧ v_2 > shape(v_1, 3) * 0.8 then v_3 ≠ 0
+>>
+Rule 46 (alpha should be less than max value that float32 can represent divided by batch size, assuming the square sum is batch size)
+{v_1: float, v_2: tensor} |= v_1 < 3.4028235e+38 / shape(v_2,0)
+>>
+Rule 47 (When the input image size is small and depth_radius is large, alpha or beta should be small enough)
+{v_1 : tensor, v_2: int, v_3: float, v_4: float} |= if shape(v_1, 1) < 20 ∧ v_2 > 5 then v_3 < 100 ∨ v_4 < 5
+>>
+Rule 48 (When beta is zero, then bias and alpha cannot be zero simultaneously.)
+{v_1: float, v_2: float, v_3: float} |= if v_3 = 0 then (v_1 = 0 ∧ v_2 = 0) = false
+>>
+Rule 49 (When input tensor's dtype is not float16, bfloat16, or float32, then alpha, beta, bias, and depth_radius should be default values.)
+{v_1: tensor, v_2: int, v_3: float, v_4: float, v_5: float} |= if dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8 then v_2 = 5 ∧ v_3 = 1.0 ∧ v_4 = 1.0 ∧ v_5 = 0.5
+>>
+Rule 50 (When depth_radius is 0, alpha must be 0 to disable the normalization)
+{v_1: int, v_2: float} |= if v_1 = 0 then v_2 = 0
+>>
+Rule 51 (The product of bias, alpha, and beta should be less than 10^10.)
+{v_1: float, v_2: float, v_3: float} |= v_1 * v_2 * v_3 < 10000000000.0
+>>
+Rule 52 (If beta is not the default, then the input tensor must have feature map dimension not equal to zero to avoid dividing by zero.)
+{v_1: tensor, v_2: float} |= if v_2 ≠ 0.5 then shape(v_1, 3) ≠ 0
+>>
+Rule 53 (When input tensor is very small, depth radius should be 1 to avoid out of range error.)
+{v_1: tensor, v_2: int} |= if shape(v_1, 1) < 3 ∧ shape(v_1, 2) < 3 then v_2 = 1
+>>
+Rule 54 (If the input tensor's last dimension is 1, the depth_radius does not affect the output)
+{v_1: tensor, v_2: int} |= if shape(v_1, 3) = 1 then v_2 = 0 ∨ v_2 = 1
+>>
+Rule 55 (When beta is 0.5 and shape(v_1,3) > 0, bias and alpha should not be zero simultaneously.)
+{v_1: tensor, v_2: float, v_3: float, v_4: float} |= if v_4 = 0.5 ∧ shape(v_1,3) > 0 then (v_2 = 0 ∧ v_3 = 0) = false

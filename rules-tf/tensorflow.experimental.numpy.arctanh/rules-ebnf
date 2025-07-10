@@ -1,0 +1,87 @@
+>>
+Rule 1 (Input tensor's elements should be within the domain of arctanh, i.e., [-1, 1])
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≥ -1 ∧ v_1[j] ≤ 1
+>>
+Rule 2 (Check if the input tensor is not empty)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 3 (Check if the input tensor has a valid data type for arctanh calculation (float or complex))
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 4 (Check element-wise condition within a tensor)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] > 0 then v_1[j] < 1 else v_1[j] > -1
+>>
+Rule 5 (Shape equality check between tensor and tuple)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : if v_2[i] > 0 then shape(v_1, i) = v_2[i]
+>>
+Rule 6 (Comparison between tensor max value and a floating-point value)
+{v_1 : tensor, v_2 : float} |= max(v_1) < v_2
+>>
+Rule 7 (Comparison between tensor min value and a floating-point value)
+{v_1 : tensor, v_2 : float} |= min(v_1) > v_2
+>>
+Rule 9 (Ensure tensor has specific dimensions)
+{v_1 : tensor, v_2 : int} |= ndim(v_1) = v_2
+>>
+Rule 10 (Ensure all elements are non-negative, relevant if taking arctanh of squared values)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≥ 0
+>>
+Rule 11 (Check if the input tensor contains NaN values - using alternative formulation)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] = v_1[j]
+>>
+Rule 12 (Check that all elements in the tensor are not complex)
+{v_1: tensor} |=  ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then false
+>>
+Rule 13 (Check that the dtype is float before arctanh)
+{v_1: tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then true else false
+>>
+Rule 14 (If any element is outside the domain, return false - short circuiting behavior)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : (v_1[j] < -1) ∨ (v_1[j] > 1)
+>>
+Rule 15 (Check if the shape of the tensor is a valid input for arctanh, at least 1 dimension)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 16 (Check if the tensor is of float16, float32, float64, complex64 or complex128.)
+{v_1 : tensor} |= (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) ∨ (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10)
+>>
+Rule 17 (Check that the absolute value of each element in the tensor is less than or equal to 1)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] < 0 then -1 * v_1[j] ≤ 1 else v_1[j] ≤ 1
+>>
+Rule 18 (If dtype is complex64/128, check real and imaginary parts are within [-1, 1])
+{v_1 : tensor} |= if (dtype_(v_1) = 9) ∨ (dtype_(v_1) = 10) then (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≥ -1 ∧ v_1[j] ≤ 1)
+>>
+Rule 19 (Check if all elements in the tensor are real numbers when the dtype is float)
+{v_1 : tensor} |= if (dtype_(v_1) = 6) ∨ (dtype_(v_1) = 7) ∨ (dtype_(v_1) = 8) then (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : v_1[j] = v_1[j])
+>>
+Rule 21 (Check if the tensor has inf values. arctanh(-1) and arctanh(1) are defined but approach infinity - Alternative expression)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (v_1[j] ≤ 1000000000000.0 ∧ v_1[j] ≥ -1000000000000.0)
+>>
+Rule 22 (If dtype is complex, require both real and imaginary parts to be within [-1,1])
+{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≥ -1 ∧ v_1[j] ≤ 1)
+>>
+Rule 23 (If the input is empty the condition is trivially satisfied.)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then true else (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≥ -1 ∧ v_1[j] ≤ 1))
+>>
+Rule 24 (Check if tensor contains only finite values)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≠ 1000000000000.0) ∧ (v_1[j] ≠ -1000000000000.0)
+>>
+Rule 25 (Check the data type)
+{v_1 : tensor} |= if (dtype_(v_1) = 6) then true else if (dtype_(v_1) = 7) then true else if (dtype_(v_1) = 8) then true else if (dtype_(v_1) = 9) then true else if (dtype_(v_1) = 10) then true else false
+>>
+Rule 26 (If data type is complex, both the real and imaginary components must individually fall within the range of -1 to 1)
+{v_1 : tensor} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) then (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] ≥ -1 ∧ v_1[j] ≤ 1))
+>>
+Rule 27 (Ensure all input values are within the open interval (-1, 1) for arctanh to be well-behaved)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : (v_1[j] > -1) ∧ (v_1[j] < 1)
+>>
+Rule 28 (The absolute value of all elements must be less than 1.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] < 0 then -1 * v_1[j] < 1 else v_1[j] < 1
+>>
+Rule 30 (Alternative formulation - Check for existence of inf)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : (v_1[j] = 1000000000000.0) ∨ (v_1[j] = -1000000000000.0)
+>>
+Rule 32 (Alternative formulation - Check the existence of NaN values)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : ∃j ∈ [0, shape(v_1, i) - 1] : v_1[j] ≠ v_1[j]
+>>
+Rule 33 (Check that the input is a tensor of floating-point numbers where absolute value is less than 1.)
+{v_1 : tensor} |= (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (∀i ∈ [0, ndim(v_1) - 1] : ∀j ∈ [0, shape(v_1, i) - 1] : if v_1[j] < 0 then -1 * v_1[j] < 1 else v_1[j] < 1)

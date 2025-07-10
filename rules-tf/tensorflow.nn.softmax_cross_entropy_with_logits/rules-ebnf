@@ -1,0 +1,111 @@
+>>
+Rule 1 (logits and labels must have the same dtype)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 3 (logits and labels should have the same shape except the axis dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_1) = ndim(v_2) else ndim(v_1) = ndim(v_2) ∧ v_3 < ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_2, i)
+>>
+Rule 4 (logits and labels must have the same rank)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+>>
+Rule 5 (logits tensor should have more than one dimension)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 7 (The value of axis should be less than the dimension of logits)
+{v_1 : tensor, v_2 : int} |= v_2 < ndim(v_1)
+>>
+Rule 8 (logits data type should be float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = "float16" ∨ dtype_(v_1) = "float32" ∨ dtype_(v_1) = "float64"
+>>
+Rule 10 (axis is greater than or equal to the negative number of dimensions of logits)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1))
+>>
+Rule 11 (axis should be within the valid range of dimensions for logits)
+{v_1 : tensor, v_2 : int} |= v_2 ≥ (0 - ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 12 (The shape of the labels should be a valid probability distribution)
+{v_1 : tensor, v_2 : int} |= ∀i ∈ [0, shape(v_1, v_2) -1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+>>
+Rule 13 (The shape of the labels should be a valid probability distribution if axis is -1)
+{v_1 : tensor} |= min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+>>
+Rule 14 (The axis should be an integer greater or equal to -1)
+{v_1 : int} |= v_1 ≥ -1
+>>
+Rule 15 (If axis equals to -1, output tensor's ndim is labels's ndim minus 1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ndim(v_1) = ndim(v_2) - 1
+>>
+Rule 16 (labels should contain non-negative probability distribution)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1)-1] : ∀j ∈ [0, shape(v_1, i) - 1] : shape(v_1,i) >= 0
+>>
+Rule 18 (labels should be a valid probability distribution, meaning each row sums to 1)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then ∀i ∈ [0, shape(v_1, ndim(v_1)-1) -1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1 else ∀i ∈ [0, shape(v_1, v_2) - 1] : min(v_1) ≥ 0 ∧ max(v_1) ≤ 1
+>>
+Rule 21 (If axis is not -1, then logits and labels shapes match in that dimensions)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ -1 then shape(v_1, v_3) = shape(v_2, v_3)
+>>
+Rule 25 (if axis is negative, the real axis is the dimension that corresponds to the class dimension, which cannot be less than zero)
+{v_1 : tensor, v_2 : int} |= if v_2 < 0 then ndim(v_1) + v_2 ≥ 0
+>>
+Rule 27 (Each element in labels along the class axis must be a valid probability between 0 and 1)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then ∀i ∈ [0, shape(v_1, ndim(v_1) -1) -1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1 else ∀i ∈ [0, shape(v_1, v_2) - 1] : v_1[i] ≥ 0 ∧ v_1[i] ≤ 1
+>>
+Rule 29 (If the axis is not -1, shapes of logits and labels should match in all dimensions, except for the axis dimension)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 ≠ -1 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) - 1] : if i ≠ v_3 then shape(v_1, i) = shape(v_2, i)
+>>
+Rule 30 (Sum of probability distribution in labels along axis should be close to 1)
+{v_1 : tensor, v_2 : int} |= if v_2 = -1 then true else ∃i ∈ [0, shape(v_1, v_2) -1] : true
+>>
+Rule 31 (If logits and labels have more than 1 dimension, last dimension (or specified axis dimension) size of labels should greater than 1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then (if v_3 = -1 then shape(v_2, ndim(v_2)-1) > 1 else shape(v_2, v_3) > 1)
+>>
+Rule 33 (if axis is -1, then ndim(logits) should be equal to ndim(labels))
+{v_1 : tensor, v_2 : tensor, v_3:int} |= if v_3 = -1 then ndim(v_1) = ndim(v_2)
+>>
+Rule 34 (Labels should have non-negative values)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) -1] : ∀j ∈ [0, shape(v_1, i) -1] : v_1[i] ≥ 0
+>>
+Rule 35 (If axis is provided then axis < ndim(logits))
+{v_1 : tensor, v_2 : int} |=  v_2 < ndim(v_1)
+>>
+Rule 36 (If axis is provided then axis > -ndim(logits))
+{v_1 : tensor, v_2 : int} |=  v_2 > (0 - ndim(v_1))
+>>
+Rule 39 (if logits and labels have more than 1 dimension, output's shape should be equal to label's except the class dimension)
+{v_1 : tensor, v_2 : tensor, v_3:int} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then (if v_3 = -1 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) -2] : shape(v_1, i) = shape(v_2,i) else ndim(v_1) = ndim(v_2) -1 )else true
+>>
+Rule 40 (The axis parameter must be within the valid range of dimensions for the labels tensor)
+{v_1 : tensor, v_2 : int} |= v_2 >= (0- ndim(v_1)) ∧ v_2 < ndim(v_1)
+>>
+Rule 43 (if logits and labels have the same shape and axis=-1 the resulting tensor's shape matches the labels/logits shape except for the last dimension)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = shape(v_2, 0) then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 47 (Labels and Logits tensors must have the same shape if axis=-1)
+{v_1 : tensor, v_2 : tensor, v_3: int} |= if v_3 = -1 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 48 (Labels and Logits tensors's dimension should greater or equal to 1)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 1
+>>
+Rule 49 (Logits and Labels must have same shape, except when axis is provided and different to -1)
+{v_1 : tensor, v_2 : tensor, v_3 : int} |= if v_3 = -1 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) = shape(v_2, i) ∧ ndim(v_1) = ndim(v_2)
+>>
+Rule 51 (If labels is a matrix, each row must be a probability distribution: sum of the row must be equal to 1.)
+{v_1: tensor} |= if ndim(v_1) = 2 then ∀i ∈ [0, shape(v_1, 0)-1]: true
+>>
+Rule 54 (Axis value must be non-negative when passed )
+{v_1 : int} |= v_1 >= 0
+>>
+Rule 55 (If axis is non-negative, it can't be greater than or equal to the number of dimensions in the logits tensor)
+{v_1 : tensor, v_2: int} |= if v_2 >=0 then v_2 < ndim(v_1)
+>>
+Rule 56 (The shape of logits and labels should be the same except for the specified axis dimension)
+{v_1: tensor, v_2: tensor, v_3: int} |= if v_3 >= 0 then ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1)-1] : if i != v_3 then shape(v_1, i) = shape(v_2, i)
+>>
+Rule 58 (If axis is negative, then the real axis is ndim(logits) + axis, and the real axis must not be less than zero)
+{v_1: tensor, v_2: int} |= if v_2 < 0 then (ndim(v_1) + v_2) ≥ 0
+>>
+Rule 59 (If Labels and Logits have dimension bigger than 1 and the axis is not specified, output's ndim equals to the input's and its shape is the same than the input's shape for every dimension expect for the last one.)
+{v_1: tensor, v_2: tensor} |= if ndim(v_1) > 1 ∧ ndim(v_2) > 1 then ndim(v_1) = ndim(v_2)
+>>
+Rule 60 (If Labels is a 2d-matrix, the sum of the elements in each row must be one)
+{v_1: tensor} |= if ndim(v_1) = 2 then ∀i ∈ [0, shape(v_1,0) - 1] : true

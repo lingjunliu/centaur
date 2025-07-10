@@ -1,0 +1,72 @@
+>>
+Rule 1 (indices must be an integer tensor (int32 or int64))
+{v_2 : tensor} |= dtype_(v_2) = 3 ∨ dtype_(v_2) = 4
+>>
+Rule 2 (updates must have the same type as tensor)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 3 (indices's shape[-1] must be less than or equal to the rank of tensor)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) ≤ ndim(v_1)
+>>
+Rule 4 (bad_indices_policy must be a valid string)
+{v_4 : str} |= v_4 = "" ∨ v_4 = "DEFAULT" ∨ v_4 = "ERROR" ∨ v_4 = "IGNORE"
+>>
+Rule 5 (rank of updates should be greater than 0)
+{v_3 : tensor} |= ndim(v_3) > 0
+>>
+Rule 6 (indices must have at least one dimension)
+{v_2 : tensor} |= ndim(v_2) > 0
+>>
+Rule 7 (tensor should have dimension larger than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 8 (If bad_indices_policy is "ERROR", the op does not support GPU)
+{v_4 : str} |= if v_4 = "ERROR" then false
+>>
+Rule 10 (updates cannot have a dimension of size 0)
+{v_3 : tensor} |= ∀i ∈ [0, ndim(v_3) - 1] : shape(v_3, i) > 0
+>>
+Rule 11 (The updates tensor rank must be greater or equal than index tensor rank minus 1)
+{v_2 : tensor, v_3 : tensor} |= ndim(v_3) ≥ ndim(v_2) - 1
+>>
+Rule 12 (indices values should not be negative)
+{v_2 : tensor} |= ∀i ∈ [0, shape(v_2, 0) - 1] : ∀j ∈ [0, shape(v_2, 1) - 1] : v_2[i] ≥ 0
+>>
+Rule 13 (tensor must be a valid tensor)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 14 (tensor and indices shape must be compatible)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_2) > 0 ∧ ndim(v_1) ≥ shape(v_2, ndim(v_2) - 1)
+>>
+Rule 15 (if indices is a scalar, it should not be negative)
+{v_2 : tensor} |= if ndim(v_2) = 0 then v_2 ≥ 0
+>>
+Rule 16 (If indices's last dimension equals tensor's rank, updates's rank should be at least 1)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) = ndim(v_1) then ndim(v_3) ≥ 1
+>>
+Rule 17 (If indices's last dimension is less than tensor's rank, the updates's shape should be compatible)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) < ndim(v_1) then ∀i ∈ [shape(v_2, ndim(v_2) - 1), ndim(v_1) - 1] : shape(v_1, i) = shape(v_3, ndim(v_2)-1 + (i - shape(v_2, ndim(v_2) - 1)))
+>>
+Rule 18 (indices shape's first dimension should not be zero if the tensor is not a scalar.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) > 0 then shape(v_2, 0) > 0
+>>
+Rule 20 (updates shape should match expected shape based on indices)
+{v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 then (∀i ∈ [0, ndim(v_2)-1]: shape(v_2, i) = shape(v_3, i))
+>>
+Rule 21 (If indices is empty, updates should also be empty, unless tensor is a scalar)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) = 0 then (if ndim(v_1) > 0 then ndim(v_3) = 0)
+>>
+Rule 22 (The shape of updates matches indices and tensor only if indices.shape[-1] < tensor.ndim)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) < ndim(v_1) then shape(v_2, 0) = shape(v_3,0)
+>>
+Rule 23 (If indices.shape[-1] equals to tensor.ndim, the last dimension of updates is redundant.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) = ndim(v_1) then shape(v_3, ndim(v_3)-1) > 0
+>>
+Rule 24 (If indices.shape[-1] is less than tensor.ndim, the shape of the updates tensor must be congruent.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) < ndim(v_1) then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = shape(v_3, i)
+>>
+Rule 25 (If indices.shape[-1] is less than tensor.ndim, updates.ndim should equal indices.ndim -1 + (tensor.ndim - indices.shape[-1]) )
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2) - 1) < ndim(v_1) then ndim(v_3) = ndim(v_2) - 1 + (ndim(v_1) - shape(v_2, ndim(v_2) - 1))
+>>
+Rule 33 (If indices is not empty and has valid shape, the maximum value of each index should be less than shape of v_1 )
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) > 0 ∧ shape(v_2, ndim(v_2)-1) > 0 then ∀j ∈ [0, shape(v_2, ndim(v_2)-1) - 1] : max(v_2) < shape(v_1, j)

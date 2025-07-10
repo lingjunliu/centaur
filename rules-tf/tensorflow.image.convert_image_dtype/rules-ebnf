@@ -1,0 +1,75 @@
+>>
+Rule 1 (image's dtype must be one of the supported types)
+{v_1 : tensor} |= dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 0
+>>
+Rule 2 (dtype must be a valid type)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8
+>>
+Rule 3 (image's ndim must be greater than 0)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 4 (check if dtype can be converted between int and float)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8) then true else if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then true
+>>
+Rule 5 (the number of dimensions of the tensor should not be too large)
+{v_1 : tensor} |= ndim(v_1) < 10
+>>
+Rule 6 (check image's shape[0] must be greater than 0)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 8 (if input is float and output is int, saturate should be true for safety)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then v_3 = true
+>>
+Rule 10 (Check for valid dtype conversion with another tensor)
+{v_1: tensor, v_2: tensor} |= if (dtype_(v_1) = 5 ∧ dtype_(v_2) = 7) then true else if (dtype_(v_1) = 7 ∧ dtype_(v_2) = 5) then true
+>>
+Rule 19 (If input dtype is bool, output cannot be bool)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 0 then v_2 ≠ 0
+>>
+Rule 20 (If output is float, input cannot be int64)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 then dtype_(v_1) ≠ 4
+>>
+Rule 22 (If saturate is true, and converting from float to int, values must be in range)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if v_3 = true ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then ∀i ∈ [0, ndim(v_1) -1] : min(v_1) ≥ 0 ∧ max(v_1) < 1
+>>
+Rule 23 (Check if both are same type)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = v_2 then true else false
+>>
+Rule 24 (If output is bool, the input must be bool.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 0 then dtype_(v_1) = 0
+>>
+Rule 25 (If saturate is false and converting from signed to unsigned int, ensure values are non-negative)
+{v_1 : tensor, v_2 : dtype, v_3: bool} |= if v_3 = false ∧ (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (v_2 = 5) then min(v_1) ≥ 0
+>>
+Rule 30 (If input is integer, output cannot be bool)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) then v_2 ≠ 0
+>>
+Rule 31 (If saturate is false and converting from float to int, and any value is outside the representable range, the rule is violated)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if v_3 = false ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then ∃i ∈ [0, ndim(v_1) -1] : (min(v_1) < 0) ∨ (max(v_1) ≥ 1)
+>>
+Rule 32 (If input is a floating point type and output is an integer type, and saturate is false, and any value is outside the integer's range, then throw exception)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if v_3 = false ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then true
+>>
+Rule 33 (If input is a floating point type and output is an integer type, and saturate is false, and any value is outside the integer's range, then the conversion is lossy)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if v_3 = false ∧ (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then ∃i ∈ [0, ndim(v_1) -1] : (v_1[i] < -128 ∨ v_1[i] > 127)
+>>
+Rule 34 (If the image is int64 and being converted to float32, saturate must be true to prevent possible loss of data)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if dtype_(v_1) = 4 ∧ v_2 = 7 then v_3 = true
+>>
+Rule 35 (if input tensor is of integer type and the saturate argument is false, all values in the tensor must be representable by the output dtype)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) ∧ v_3 = false then (min(v_1) ≥ -128 ∧ max(v_1) ≤ 127)
+>>
+Rule 36 (If the image is int64 and being converted to float32 or float64, saturate must be true to prevent possible loss of data)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if dtype_(v_1) = 4 ∧ (v_2 = 7 ∨ v_2 = 8) then v_3 = true
+>>
+Rule 37 (If input tensor is of integer type and the saturate argument is false, all values in the tensor must be representable by the output dtype WITHOUT loss of precision)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) ∧ v_3 = false then (∀i ∈ [0, ndim(v_1)-1]: v_1[i] ≥ -128 ∧ v_1[i] ≤ 127)
+>>
+Rule 41 (If input tensor is of integer type and the saturate argument is false, and converting to another int type. Enforce upper bound check (simplified version))
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if (dtype_(v_1) = 1) ∧ (v_2 = 2) ∧ v_3 = false then max(v_1) <= 32767
+>>
+Rule 42 (If input tensor is of integer type and the saturate argument is false, and converting to another int type. For int8->uint8 checks v1 >= 0)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if (dtype_(v_1) = 1) ∧ (v_2 = 5) ∧ v_3 = false then min(v_1) >= 0
+>>
+Rule 43 (If the image is int32/int64, and being converted to int8/int16 and saturate=false, we need to prevent value clipping)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ (v_2 = 1 ∨ v_2 = 2) ∧ v_3 = false then (max(v_1) <= 127 ∧ min(v_1) >= -128)
