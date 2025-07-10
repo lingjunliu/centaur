@@ -382,7 +382,7 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
 
         if rule is None:
             base_validity_ratio = valid / trial
-        elif valid / trial >= base_validity_ratio:
+        elif valid / trial < base_validity_ratio:
             rules_to_keep.add(rule)
 
     print(f"{bcolors.OKBLUE}Rules reduced from {n_rules_original} to {len(rules_to_keep)}{bcolors.ENDC}")
