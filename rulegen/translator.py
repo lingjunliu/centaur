@@ -125,7 +125,7 @@ def write_rules(dir, rules_file):
             continue
 
 def main():
-    base_dir = os.path.abspath("../rules")
+    base_dir = os.path.abspath("../rules-torch")
     rules_file = "rules-ebnf"
 
     for entry in os.listdir(base_dir):

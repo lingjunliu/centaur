@@ -24,7 +24,7 @@ def list_all_apis(signature_path="../signatures.json"):
     return apis 
 
 def load_api_errors():
-    err_file = os.path.join(os.path.dirname(__file__), "err_messages")
+    err_file = os.path.join(os.path.dirname(__file__), "err_messages_torch")
     api_to_errors = defaultdict(list)
 
     with open(err_file, "r") as f:
@@ -81,7 +81,7 @@ def generate_rules(api, max_failures=100, timeout=60):
     num_rules = 1
     rule_defs = set()
 
-    dir_path = os.path.join("../rules", api)
+    dir_path = os.path.join("../rules-torch", api)
     os.makedirs(dir_path, exist_ok=True)
     file_path = os.path.join(dir_path, "rules-ebnf")
 
@@ -148,7 +148,7 @@ def generate_rules(api, max_failures=100, timeout=60):
 <constant> ::= <NUMBER> | "true" | "false" | <STRING>
 <COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
 <ADDOP> ::= "+" | "-"
-<MULOP> ::= "*" | "/"
+<MULOP> ::= "*" | "/" | "%"
 <FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
 <PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
 <TENSORVAR> ::= same format as PRIMVAR

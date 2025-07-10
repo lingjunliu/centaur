@@ -5,6 +5,15 @@ from lark import Transformer
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from utils.defaults import MAX_N_DIM, list_of_string_values
 
+'''
+# For TensorFlow
+list_of_string_values = [
+    "ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none",
+    "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax",
+    "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"
+]
+'''
+
 class Z3ExprTransformer(Transformer):
     def __init__(self, var_map, var_types):
         self.var_map = var_map
@@ -92,7 +101,7 @@ class Z3ExprTransformer(Transformer):
     
     def binop(self, items):
         left, op, right = items
-        op_map = {"+": "+", "-": "-", "*": "*", "/": "/", "×": "*"}
+        op_map = {"+": "+", "-": "-", "*": "*", "/": "/", "×": "*", "%": "%"}
         op_str = op_map[str(op)]
         return f"{left} {op_str} {right}"
 
