@@ -54,7 +54,7 @@ if (sota == "FreeFuzz") {
 }
 
 if (sota == "Pathfinder") {
-  ylim <- c(2500, 10000)
+  ylim <- c(2500, 11500)
 } else {
   ylim <- c(9000, 11500)
 }
