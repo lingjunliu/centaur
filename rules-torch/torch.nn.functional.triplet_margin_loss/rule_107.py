@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Reduction is not constant and all shapes of tensors are the same if margin and P are more or equal to 0, swap can only be true or false. (Rule 107)
@@ -49,7 +49,7 @@ def rule_107_func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, solver=None, neg=Fal
         arg7_value = Bool('arg7_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         for i in range(arg3.ndim):

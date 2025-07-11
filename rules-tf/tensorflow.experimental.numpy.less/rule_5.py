@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # Check if all elements in v_1 tensor are less than all elements in v_2 tensor. Not a real constraint for less, but syntactically correct. (Rule 5)

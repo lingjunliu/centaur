@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If the image is int32/int64, and being converted to int8/int16 and saturate=false, we need to prevent value clipping (Rule 43)

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If input is a 1D tensor, number of groups must be 1. Otherwise, require input to have >=2 dimensions, number of groups to be positive, number of channels to be divisible by number of groups, and weights vector to have the same size as the number of channels. (Rule 28)

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If the computation is a matrix multiplication given by string "bij,bjk->bik", then the last dimension of v1 must be equal to the first dimension of v2, only if str is equal to "bij,bjk->bik" (Rule 18)
@@ -37,7 +37,7 @@ def rule_18_func(arg1, arg2, arg3, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
-        solver.add(arg3_value == list_of_string_values.index(arg3))
+        solver.add(arg3_value == list_of_string_values_tf.index(arg3))
 
         # Constraints for rule 18
         rule_18(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_value': arg3_value})

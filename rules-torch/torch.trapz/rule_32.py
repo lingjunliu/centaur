@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # y and x must have the same length along dim if x is provided and dim is valid. If x is not passed, then x has 0 dimensions, and any dim is valid for y. Dtype of y or x can't be bool, dim must be in valid range (Rule 32)

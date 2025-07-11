@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # if num is specified and it is not none , it should match the shape of value at the axis if axis is valid. (Rule 34)
@@ -43,7 +43,7 @@ def rule_34_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == int(arg3))
-        solver.add(arg4_value == list_of_string_values.index(arg4))
+        solver.add(arg4_value == list_of_string_values_tf.index(arg4))
 
         # Constraints for rule 34
         rule_34(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})

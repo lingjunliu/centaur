@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If use_quote_delim is set to False, then field_delim and na_value must not be equal (Rule 52)
@@ -34,8 +34,8 @@ def rule_52_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_string_values.index(arg2))
-        solver.add(arg3_value == list_of_string_values.index(arg3))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
+        solver.add(arg3_value == list_of_string_values_tf.index(arg3))
 
         # Constraints for rule 52
         rule_52(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})

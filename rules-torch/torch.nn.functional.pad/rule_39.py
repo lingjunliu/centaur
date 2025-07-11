@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Value Constraint based on Mode (Rule 39)
@@ -28,7 +28,7 @@ def rule_39_func(arg1, arg2, solver=None, neg=False):
         arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
 
         # Constraints for rule 39
         rule_39(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

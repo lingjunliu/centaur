@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If delimiter is not none, value_dtype should be int, float or bool. (Rule 63)
@@ -29,7 +29,7 @@ def rule_63_func(arg1, arg2, solver=None, neg=False):
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
         solver.add(arg2_value == list_of_available_dtypes.index(np_dtype(arg2)))
 
         # Constraints for rule 63

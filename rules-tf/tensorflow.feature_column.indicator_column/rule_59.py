@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If the categorical column has a default value, the default value must be within the vocabulary (Rule 59)
@@ -30,7 +30,7 @@ def rule_59_func(arg1, arg2, solver=None, neg=False):
         arg2_values = Array('arg2_values', IntSort(), StringSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
         solver.add(arg2_length == len(arg2))
         for i in range(len(arg2)):
             arg2_values = Store(arg2_values, i, arg2[i])

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If the layout is specified and shape length is greater than 0, elements must be positive. (Rule 46)
@@ -33,7 +33,7 @@ def rule_46_func(arg1, arg2, solver=None, neg=False):
         solver.add(arg1_length == len(arg1))
         for i in range(len(arg1)):
             arg1_values = Store(arg1_values, i, arg1[i])
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 46
         rule_46(solver, {'arg1_values': arg1_values, 'arg1_length': arg1_length, 'arg2_value': arg2_value})

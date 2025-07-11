@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If there are two string inputs, then they are not equal. (Rule 77)
@@ -29,8 +29,8 @@ def rule_77_func(arg1, arg2, solver=None, neg=False):
         arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 77
         rule_77(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

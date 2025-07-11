@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # check if combiner is "mean", dimension should be greater than 0. (Rule 80)
@@ -29,7 +29,7 @@ def rule_80_func(arg1, arg2, solver=None, neg=False):
         arg2_value = Int('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
         solver.add(arg2_value == int(arg2))
 
         # Constraints for rule 80

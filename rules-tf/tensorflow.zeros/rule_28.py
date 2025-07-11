@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If the layout is specified, the shape must have at least two dimensions. (Rule 28)
@@ -30,7 +30,7 @@ def rule_28_func(arg1, arg2, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_length == len(arg1))
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 28
         rule_28(solver, {'arg1_length': arg1_length, 'arg2_value': arg2_value})

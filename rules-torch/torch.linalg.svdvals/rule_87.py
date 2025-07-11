@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If driver is not None, the input data type must be a float type (Rule 87)
@@ -30,7 +30,7 @@ def rule_87_func(arg1, arg2, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 87
         rule_87(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})

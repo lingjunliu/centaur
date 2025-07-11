@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If log_target is false, then target should only contain non-negative values, otherwise reduction should be none. (Rule 58)
@@ -38,7 +38,7 @@ def rule_58_func(arg1, arg2, arg3, solver=None, neg=False):
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_value == arg2)
-        solver.add(arg3_value == list_of_string_values.index(arg3))
+        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
 
         # Constraints for rule 58
         rule_58(solver, {'arg1_range': arg1_range, 'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value, 'arg3_value': arg3_value})

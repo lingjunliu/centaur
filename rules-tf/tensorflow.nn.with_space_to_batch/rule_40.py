@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If data_format is given, input's ndim = num_spatial_dims + 2 (Rule 40)
@@ -33,7 +33,7 @@ def rule_40_func(arg1, arg2, arg3, solver=None, neg=False):
         arg3_ndim = Int('arg3_ndim')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_ndim == arg3.ndim)
 

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If reduction is sum, mean, or none and tensors have equal shapes then the margin has to be positive if P is bigger than zero, swap also has to be a boolean (Rule 96)
@@ -49,7 +49,7 @@ def rule_96_func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, solver=None, neg=Fals
         arg7_value = Bool('arg7_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         for i in range(arg3.ndim):

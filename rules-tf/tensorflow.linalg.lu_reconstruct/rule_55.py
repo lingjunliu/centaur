@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If validate_args is true and perm is provided, the shape of the perm should be equal to last dimension of lower_upper (Rule 55)
@@ -39,7 +39,7 @@ def rule_55_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
         solver.add(arg3_ndim == arg3.ndim)
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])

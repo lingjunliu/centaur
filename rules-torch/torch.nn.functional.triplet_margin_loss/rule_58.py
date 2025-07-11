@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If reduction is not constant and all tensors have more than 0 dimensions, then the margin must be positive and P must be positive. (Rule 58)
@@ -45,7 +45,7 @@ def rule_58_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
         arg6_value = Int('arg6_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
         solver.add(arg2_ndim == arg2.ndim)
         solver.add(arg3_ndim == arg3.ndim)
         solver.add(arg4_ndim == arg4.ndim)

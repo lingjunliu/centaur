@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # Check if a STRING is a valid value in the predefined list and is not 'none' or 'mean' (Rule 62)
@@ -25,7 +25,7 @@ def rule_62_func(arg1, solver=None, neg=False):
         arg1_value = String('arg1_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
 
         # Constraints for rule 62
         rule_62(solver, {'arg1_value': arg1_value})

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If perm is not "none", and validate_args is true, then the last dimension of perm should be equal to the last dimension of the lower_upper matrix (Rule 38)
@@ -39,7 +39,7 @@ def rule_38_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg4_value = Bool('arg4_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
         solver.add(arg2_ndim == arg2.ndim)
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])

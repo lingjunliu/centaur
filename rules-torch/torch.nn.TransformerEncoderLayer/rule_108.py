@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If activation is not relu or gelu, and bias is false, then the variance of input tensor should be less than 0.01 and the gradient also has to be smaller, d_model must be greater than zero (Rule 108)
@@ -37,7 +37,7 @@ def rule_108_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg4_value = Int('arg4_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
         arg2_range = Store(arg2_range, 0, int(np.min(arg2)))
         arg2_range = Store(arg2_range, 1, int(np.max(arg2)))
         solver.add(arg3_value == arg3)

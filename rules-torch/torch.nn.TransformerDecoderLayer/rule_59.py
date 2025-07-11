@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Complex condition involving multiple parameters using and/or (Rule 59)
@@ -44,7 +44,7 @@ def rule_59_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         solver.add(arg1_value == int(arg1))
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == arg3)
-        solver.add(arg4_value == list_of_string_values.index(arg4))
+        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
         solver.add(arg5_value == arg5)
 
         # Constraints for rule 59

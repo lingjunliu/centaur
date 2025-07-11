@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If perm is not "none", then perm and lower_upper should have compatible dtypes (Rule 32)
@@ -33,7 +33,7 @@ def rule_32_func(arg1, arg2, arg3, solver=None, neg=False):
         arg3_dtype = Int('arg3_dtype')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
         solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
 

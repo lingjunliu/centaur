@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # if the shape of a tensor in ModuleDict.values is greater than a threshold, the minimum must be greater than another threshold, and it is float type, and dimensions are all positive. Additionally min cannot be max to suppress division by zero and all dimensions must exceed some threshold. If its not true, just return true if the dimension > 3 (Rule 82)

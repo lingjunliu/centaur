@@ -5,7 +5,7 @@ from .input_generators import get_ll, abstract_print
 from .rules_auto_z3 import get_rules_map
 from .definitions import get_definition
 from .serialize import load_model, save_model
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values, int_buckets, float_buckets
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values_torch, list_of_string_values_tf, int_buckets, float_buckets
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors
 from utils.new_api_utils import get_lib_version, get_api_suffix
 from eval.oracle import oracle_crash
@@ -132,10 +132,12 @@ def collect_neg_constraint(solver, api, rule, z3_args, use_reference=False):
        
     rule_func(*arg_dicts, solver=solver, neg=True)
 
-def instantiate_args(model, signature, z3_args, seed=42):
+def instantiate_args(model, signature, z3_args, seed=42, lib="torch"):
     concrete_args = {}
     abstract_args = {}
     rng = np.random.default_rng(seed)
+
+    list_of_string_values = list_of_string_values_torch if lib == "torch" else list_of_string_values_tf
 
     for param_name, z3_var in z3_args.items():
         param_type = signature[param_name]
@@ -227,7 +229,7 @@ def variable_bounds(assertions):
         vars_found = set()
         def walk(e):
             if is_const(e) and e.decl().kind() == Z3_OP_UNINTERPRETED:
-                if e.sort().kind() != Z3_ARRAY_SORT and e.sort().kind() != Z3_BOOL_SORT:
+                if e.sort().kind() != Z3_ARRAY_SORT:
                     vars_found.add(e)
             elif e.decl().kind() == Z3_OP_SELECT:
                 arr, idx = e.children()
@@ -247,8 +249,15 @@ def variable_bounds(assertions):
 
     for var in all_vars:
         sort_kind = var.sort().kind()
-        default_buckets = float_buckets if sort_kind == Z3_REAL_SORT else int_buckets
-        default_buckets = add_negative_buckets(default_buckets)
+        if sort_kind == Z3_REAL_SORT:
+            default_buckets = float_buckets
+        elif sort_kind == Z3_BOOL_SORT:
+            default_buckets = [False, True]
+        else
+            default_buckets = int_buckets
+        
+        default_buckets = add_negative_buckets(default_buckets) if sort_kind != Z3_BOOL_SORT else default_buckets
+        
         opt_min = Optimize()
         opt_min.set("timeout", 1000)
         opt_min.add(linear_assertions)
@@ -267,7 +276,7 @@ def variable_bounds(assertions):
             maxv = float(val.as_fraction()) if sort_kind == Z3_REAL_SORT else val.as_long()
         else:
             continue
-        bounds[var] = set(clip_buckets(default_buckets, minv, maxv)) 
+        bounds[var] = set(clip_buckets(default_buckets, minv, maxv)) if minv != maxv else set([minv])
     return bounds
 
 # Add assertions for sampled values from partitions
@@ -295,6 +304,8 @@ def sample_partitions(var_values_map, p):
             if abs(v2 - v1) <= 1e-6:
                 continue
             v = random.uniform(v1 + 1e-6, v2 - 1e-6)
+        elif sort_kind == Z3_BOOL_SORT:
+            v = random.choice([v1, v2])
         else:
             continue
 
@@ -303,25 +314,29 @@ def sample_partitions(var_values_map, p):
 
     return sampled_partitions
 
-def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, lib="torch", use_reference=False):
+def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=30, print_details=False, lib="torch"):
     """
     If after removing a rule, all generated inputs are still valid,
     then the rule is filtered out from the ruleset.
+    This stage run until max_trial trials for each rule OR time_budget seconds,
+    whichever comes first.
     """
-    ruleset = definition["ruleset"]
-    signature = definition["signature"]
+    use_reference = False   # no reduction for reference rulesets
     rules_to_keep = set()
     n_rules_original = len(ruleset)
     base_validity_ratio = 0.0
     base_validity_ratio = 0.0
 
+    time_budget_per_rule = time_budget / (n_rules_original + 1) # Adding 1 for calculating the initial validity ratio
     for rule in [None] + list(ruleset):
         trial = 0
         valid = 0
         valid = 0
         block_all = set()
+        perma_block = set()
 
-        while trial < max_trial:
+        start_time = time.time()
+        while time.time() - start_time < time_budget_per_rule and trial < max_trial:
             block_one = []
             remaining_ruleset = set(ruleset)
             if rule is not None: 
@@ -334,6 +349,7 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
     
             sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
             solver.add(*sampled_blocks)
+            solver.add(*perma_block)
 
             if solver.check() != sat:
                 trial += 1
@@ -365,14 +381,21 @@ def reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=False, 
                         array_len = 2
                     for i in range(array_len):
                         block_one.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    
+                    # Do not dim_size to be 0 more than once for a dimension in the shape
+                    if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
+                        perma_block.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
                 else:
                     block_one.append(var != val)
+                    
+                    if suffix == "ndim" and val.as_long() == 0:
+                        perma_block.add(var != val)
     
             for elem in block_one:
                 if elem not in block_all:
                     block_all.add(elem)
     
-            concrete_input, abstract_input = instantiate_args(model, signature, z3_args)
+            concrete_input, abstract_input = instantiate_args(model, signature, z3_args, lib=lib)
             status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
             
             if status != "invalid":
@@ -403,6 +426,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     initial_constraints(solver, definition["signature"], z3_args)
     collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference)
     block_all = set()
+    perma_block = set()
     stale = 0
     # valid_blocks = []   # list of blocks for valid models, saved for restarts
     rng = np.random.default_rng(seed)
@@ -427,6 +451,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
         # Strategy #1: Adding blocking constraints with probability p_1
         sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
         one_solver.add(*sampled_blocks)
+        one_solver.add(*perma_block)
 
         # Strategy #2: Adding partitioning-based constraints with probability p_2
         sampled_partitions = sample_partitions(var_values_map, 0.3)
@@ -439,8 +464,6 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                 solver = Solver()
                 initial_constraints(solver, definition["signature"], z3_args)
                 collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference)
-                # solver.add(And(valid_blocks))   # Adding previously saved blocks from valid models
-                # block = []
                 stale = 0
                 seed += 1
                 saturation += 10    # Making it more difficult to reach stale
@@ -486,10 +509,10 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                             break
                     if actual_key is not None:
                         var_values_map[actual_key].add(model.eval(Select(var, i), model_completion=True).as_long())
-                    # potential_valid_blocks.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    
                     # Do not dim_size to be 0 more than once for a dimension in the shape
-                    # if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
-                    #     solver.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
+                        perma_block.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
             else:
                 block_one.append(var != val)
                 # For strategy #2: Value set which a partition is created from is updated 
@@ -504,21 +527,18 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                         var_values_map[actual_key].add(val.as_long())
                     elif var.sort().kind() == Z3_REAL_SORT:
                         var_values_map[actual_key].add(float(val.as_fraction()))
-                # if not suffix and suffix not in ["ndim", "dtype"]: # potentially can add length too, TODO: asess
-                #     potential_valid_blocks.append(var != val)
-        
-        # Randomly block one of the constraints
-        # selected_const = block[rng.integers(len(block))]
-        # solver.add(selected_const)
-        # if print_details:
-        #     print(f"Blocking constraint: {selected_const}")
+                    elif var.sort().kind() == Z3_BOOL_SORT:
+                        var_values_map[actual_key].add(is_true(val))
+                
+                if suffix == "ndim" and val.as_long() == 0:
+                    perma_block.add(var != val)
 
         # For strategy #1: The set of blocking constraints is updated
         for elem in block_one:
             if elem not in block_all:
                 block_all.add(elem)
 
-        concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args)
+        concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args, lib=lib)
         status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
  
         if status != "invalid":
@@ -538,10 +558,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
             num_model += 1
             
             print(f"Valid models: {num_model} | Memory usage: {get_memory_usage():.4f} MB", end="\r", flush=True)
-            # TODO: Check if this could be improved
-            # selected_valid_block = potential_valid_blocks[rng.integers(len(potential_valid_blocks))]
-            # solver.add(selected_valid_block)
-            # valid_blocks.append(selected_valid_block)
+
             if status != "nominal": # Always log crashes
                 print(f"\n[{status}]\n{exception_message}")
                 print(f"\nPotential bug. Input:\n{abstract_print(abstract_input, definition['signature'])}")
@@ -606,10 +623,6 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
             print(f"Removing existing corpus directory: {corpus_dir}")
             shutil.rmtree(corpus_dir)
         os.makedirs(corpus_dir, exist_ok=True)
-        start_time = time.time()
-        print(f"{bcolors.OKBLUE}Refining ruleset for {api} with suffix {suffix}{bcolors.ENDC}")
-        definition["ruleset"] = reduce_ruleset(definition, api, z3_args, max_trial=30, print_details=True, lib="torch", use_reference=use_reference)
-        print(f"{bcolors.OKBLUE}Refinement took {time.time()-start_time} s | Generating models for {api} with suffix {suffix}{bcolors.ENDC}")
         start_time = time.time()
         models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference)
         print(f"{bcolors.OKBLUE}Model generation took {time.time()-start_time} s{bcolors.ENDC}")

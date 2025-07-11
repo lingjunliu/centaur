@@ -27,9 +27,8 @@ list_of_available_dtypes = [bool, np.int8, np.int16, np.int32, np.int64, np.uint
 int_buckets = [0, MAX_N_DIM, MAX_SZ_DIM, np.iinfo(np.int8).max, np.iinfo(np.int16).max, np.iinfo(np.int32).max, np.iinfo(np.int64).max]
 float_buckets = [0, 1.0, MAX_N_DIM, MAX_SZ_DIM, np.finfo(np.float16).max, np.finfo(np.float32).max, np.finfo(np.float64).max]
 
-'''
 # For PyTorch
-list_of_string_values = [
+list_of_string_values_torch = [
     "ii",
     "ii->i",
     "i,j->ij",
@@ -43,10 +42,9 @@ list_of_string_values = [
     "constant",
     "tanh",
 ]
-'''
 
 # For TensorFlow
-list_of_string_values = [
+list_of_string_values_tf = [
     "ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none",
     "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax",
     "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"

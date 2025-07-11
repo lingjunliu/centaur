@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Dummy rule: If tensor is not empty, string cannot be "none" and bool must be true (Rule 46)
@@ -37,7 +37,7 @@ def rule_46_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
         solver.add(arg3_value == arg3)
 
         # Constraints for rule 46

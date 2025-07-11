@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If string is equal to one value, shape should be positive. (Rule 65)
@@ -31,7 +31,7 @@ def rule_65_func(arg1, arg2, solver=None, neg=False):
         # Value assignments
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 65
         rule_65(solver, {'arg1_shape': arg1_shape, 'arg2_value': arg2_value})

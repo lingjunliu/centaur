@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If decimals is given as a tuple its length must equal ndim(x (Rule 44)
@@ -35,7 +35,7 @@ def rule_44_func(arg1, arg2, arg3, solver=None, neg=False):
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_length == len(arg2))
-        solver.add(arg3_value == list_of_string_values.index(arg3))
+        solver.add(arg3_value == list_of_string_values_tf.index(arg3))
 
         # Constraints for rule 44
         rule_44(solver, {'arg1_ndim': arg1_ndim, 'arg2_length': arg2_length, 'arg3_value': arg3_value})

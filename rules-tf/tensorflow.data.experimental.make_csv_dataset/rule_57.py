@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # na_value and field_delim must be different (Rule 57)
@@ -29,8 +29,8 @@ def rule_57_func(arg1, arg2, solver=None, neg=False):
         arg2_value = String('arg2_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
 
         # Constraints for rule 57
         rule_57(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value})

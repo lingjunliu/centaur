@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # if all input tensors have positive dimensions then margin must be bigger than zero and reduction is sum, mean, or none (Rule 64)
@@ -54,7 +54,7 @@ def rule_64_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])
         solver.add(arg4_value == arg4)
-        solver.add(arg5_value == list_of_string_values.index(arg5))
+        solver.add(arg5_value == list_of_string_values_torch.index(arg5))
 
         # Constraints for rule 64
         rule_64(solver, {'arg1_shape': arg1_shape, 'arg1_ndim': arg1_ndim, 'arg2_shape': arg2_shape, 'arg2_ndim': arg2_ndim, 'arg3_shape': arg3_shape, 'arg3_ndim': arg3_ndim, 'arg4_value': arg4_value, 'arg5_value': arg5_value})

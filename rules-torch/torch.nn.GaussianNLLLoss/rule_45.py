@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # eps must be float, reduction must be string, shapes of input and target must be compatible for broadcasting and shapes of input and var must be compatible for broadcasting (Rule 45)
@@ -45,7 +45,7 @@ def rule_45_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
         solver.add(arg3_ndim == arg3.ndim)
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])

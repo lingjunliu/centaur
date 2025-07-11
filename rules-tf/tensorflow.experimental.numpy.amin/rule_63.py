@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # if keepdims is a boolean and tensor has at least one dimension, with the axis provided as string "none" (Rule 63)
@@ -35,7 +35,7 @@ def rule_63_func(arg1, arg2, arg3, solver=None, neg=False):
         # Value assignments
         solver.add(arg1_value == arg1)
         solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_value == list_of_string_values.index(arg3))
+        solver.add(arg3_value == list_of_string_values_tf.index(arg3))
 
         # Constraints for rule 63
         rule_63(solver, {'arg1_value': arg1_value, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})

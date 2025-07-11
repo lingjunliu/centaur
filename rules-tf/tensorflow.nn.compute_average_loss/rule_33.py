@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If sample_weight and global_batch_size are given and shape of sample_weight's first dimension is greater than 0 and global_batch_size is greater than 0, the min of sample_weight must be non-negative (equivalent to all values being non-negative (Rule 33)

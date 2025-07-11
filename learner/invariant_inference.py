@@ -1,11 +1,13 @@
 from generator.rules import check_rules
 from generator.rules_auto_z3 import check_rules_z3, check_rules_z3_invalid_inputs
+from generator.z3 import reduce_ruleset, create_z3_args
 from .inputs import get_inputs
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_api_suffix
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir
 from generator.input_generators import abstract_print, get_abstract_input
 from eval.oracle import oracle_crash
 import os, sys
+import time
 
 def save_invariants(api, ruleset, invariant_file):
     if len(ruleset) > 0:
@@ -30,14 +32,7 @@ def print_rules(api, ruleset):
     else:
         print(f"No rules passed for {api}.")
 
-def refine_ruleset(api, ruleset, invalid_inputs):
-    refined = set()
-    for rule in ruleset:
-        if check_rules_z3_invalid_inputs(api, invalid_inputs, rule):
-            refined.add(rule)
-    return refined
-
-def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=30, min_val_inp=100, seed=42, z3=False, suffix=0, use_reference=False):
+def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=60, min_val_inp=100, seed=42, z3=False, suffix=0, use_reference=False):
     '''
         Takes an API and
         
@@ -55,6 +50,9 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
         and the invariants already exist, they are read from the file and returned.
     '''
     list_of_rulesets = []
+
+    # Doing a 25/75 split of the time budget for generating inputs and refining rules
+    time_budget_learner, time_budget_refinement = 0.25*time_budget, 0.75*time_budget
     
     n_variants = get_n_variations(api, lib=lib)
     if suffix > 0 or (suffix == 0 and n_variants == 1):
@@ -72,10 +70,12 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             print(f"No reference invariants found for {variant}. Skipping inference.")
             continue
         else:   # Inference
+            print(f"Started invariant inference for {api} (suffix {suff})")
+            start_time = time.time()
             if os.path.isfile(invariant_file):
                 print(f"Removing existing invariants file for {variant} at {invariant_file}")
                 os.remove(invariant_file)
-            list_of_inputs = get_inputs(api, lib=lib, time_budget=time_budget, min_val_inp=min_val_inp, seed=seed, suffix=suff)
+            list_of_inputs = get_inputs(api, lib=lib, time_budget=time_budget_learner, min_val_inp=min_val_inp, seed=seed, suffix=suff)
             ruleset = set()
             initialized = False
             print(f"Inferring invariants for {variant} with {len(list_of_inputs)} inputs\n")
@@ -88,6 +88,8 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             valid = 0
             invalid = 0
             invalid_inputs = []
+
+            # Verifying stage: Keep rules that ALL valid inputs satisfy
             for idx, input_dict in enumerate(list_of_inputs):
                 if print_details:
                     print(f"\n[Input {idx}]")
@@ -113,8 +115,15 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                     else:
                         ruleset = ruleset.intersection(check_rules_z3(api, input_dict) if z3 else check_rules(input_dict))
                     valid += 1
-            
-            # ruleset = refine_ruleset(api, ruleset, invalid_inputs)
+            print(f"Invariant inference took {time.time()-start_time:.2f} seconds\n")
+
+            # Refining stage: If removing a rule does not decrease the validity ratio, remove it
+            print(f"Started rule refinement stage for api {api} (suffix {suff})")
+            start_time = time.time()
+            z3_args = create_z3_args(api_signature)
+            ruleset = reduce_ruleset(ruleset, api_signature, api, z3_args, max_trial=min_val_inp, time_budget=time_budget_refinement, print_details=print_details, lib=lib)
+            print(f"Rule refinement took {time.time()-start_time:.2f} seconds")
+
             # Save some stats
             infer_dir = create_subdir(get_tmp_dir(), f"infer_results_{lib}")
             csv_file = os.path.join(infer_dir, f"{variant}.csv")

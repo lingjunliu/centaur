@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If activation is not relu or gelu, and bias is false, dim_feedforward must be positive (Rule 118)
@@ -33,7 +33,7 @@ def rule_118_func(arg1, arg2, arg3, solver=None, neg=False):
         arg3_value = Bool('arg3_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == arg3)
 

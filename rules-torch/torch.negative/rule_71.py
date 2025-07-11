@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # When an out tensor is provided, the input and out tensors must have compatible dtypes for negation. Specifically, the out tensor's dtype must be greater or equal to the input tensor's dtype. Additionally, if input is float32, then out cannot be float. (Rule 71)

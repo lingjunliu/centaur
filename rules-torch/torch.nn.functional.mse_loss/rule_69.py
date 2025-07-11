@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If weight is specified, input and weight must have the same dtype, and same shape if reduction is none, and weight must have floating point dtype. (Rule 69)
@@ -41,7 +41,7 @@ def rule_69_func(arg1, arg2, arg3, solver=None, neg=False):
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
         solver.add(arg3_ndim == arg3.ndim)
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If data format is none, the number of input channels and the number of filter output channels must match the last dimension of the input and the output shape tensor, respectively. (Rule 126)
@@ -38,7 +38,7 @@ def rule_126_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg4_shape = Array('arg4_shape', IntSort(), IntSort())
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values.index(arg1))
+        solver.add(arg1_value == list_of_string_values_tf.index(arg1))
         solver.add(arg2_ndim == arg2.ndim)
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])

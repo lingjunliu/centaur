@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If validate_args is true, and lower_upper is not complex, perm's dtype must be int32 or int64 and rank of perm should be N-1, where N is the rank of lower_upper, and length of perm should match the inner dimension of lower_upper. (Rule 20)

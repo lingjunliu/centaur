@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # if log_target is False and target contains a value less than 0, reduction should be none (Rule 54)
@@ -36,7 +36,7 @@ def rule_54_func(arg1, arg2, arg3, solver=None, neg=False):
         arg1_range = Store(arg1_range, 0, int(np.min(arg1)))
         arg1_range = Store(arg1_range, 1, int(np.max(arg1)))
         solver.add(arg2_value == arg2)
-        solver.add(arg3_value == list_of_string_values.index(arg3))
+        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
 
         # Constraints for rule 54
         rule_54(solver, {'arg1_range': arg1_range, 'arg2_value': arg2_value, 'arg3_value': arg3_value})

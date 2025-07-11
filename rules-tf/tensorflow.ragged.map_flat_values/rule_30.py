@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If op is constant the shape[0] of the output should match the shape[0] of any ragged tensor. (Rule 30)
@@ -35,7 +35,7 @@ def rule_30_func(arg1, arg2, arg3, solver=None, neg=False):
         # Value assignments
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])
 

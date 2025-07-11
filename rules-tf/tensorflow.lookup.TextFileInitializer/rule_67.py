@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
 from z3 import *
 
 # If key_index is LINE_NUMBER or WHOLE_LINE, the delimiter must be none and value_index must not be LINE_NUMBER or WHOLE_LINE (Rule 67)
@@ -34,7 +34,7 @@ def rule_67_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == list_of_string_values.index(arg2))
+        solver.add(arg2_value == list_of_string_values_tf.index(arg2))
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 67
