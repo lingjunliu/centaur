@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # If with_replacement is true and r is greater than tensor size, then the tensor size has to be less than or equal to 1. This doesn't make logical sense, but it is attempting to introduce a new constraint. (Rule 35)

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # lambd must be smaller than a threshold to avoid overflow for float16 tensors. If input tensor is complex64 or complex128, lambd should be smaller than the min/max of the real part of the tensor. Otherwise, it should be non-negative (Rule 20)

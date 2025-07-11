@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # requires 3 values, v1 a float between -1 and 1, v2 a list of boolean, which can not be empty and should contain a single False value if v1 is smaller than 0 and a single True value if v1 is bigger than 0  (Rule 136)

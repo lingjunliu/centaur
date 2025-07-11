@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # Weight must be a scalar or 1D tensor to suppress the 'Mismatch of parameter numbers and input channel size' RuntimeError, and it must be a tensor, and if it's 1D, then if the input has at least 2 dimensions the channel size should match weight shape, and make sure the dtypes are the same, and only allows 6,7,8 dtypes (Rule 86)

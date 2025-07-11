@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # If reduction is none and a weight is specified, then weight should have the same shape as target/input and be float tensors. (Rule 122)
@@ -39,7 +39,7 @@ def rule_122_func(arg1, arg2, arg3, solver=None, neg=False):
         solver.add(arg1_ndim == arg1.ndim)
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
-        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.torch.index(arg2))
         solver.add(arg3_ndim == arg3.ndim)
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # If nonlinearity is tanh, and input_size and hidden_size are large, dropout has to be large (Rule 98)
@@ -37,7 +37,7 @@ def rule_98_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg4_value = Real('arg4_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.torch.index(arg1))
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == int(arg3))
         solver.add(arg4_value == arg4)

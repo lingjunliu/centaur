@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # Reduction cannot be "constant", P must be non-negative and all input tensors have at least one dimension (Rule 91)
@@ -41,7 +41,7 @@ def rule_91_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
         arg5_ndim = Int('arg5_ndim')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.torch.index(arg1))
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_ndim == arg3.ndim)
         solver.add(arg4_ndim == arg4.ndim)

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # Example requires tensor to have a dtype between 6 and 8 and v2 should be a bool set to true and third variable is int between 1 and 10, and fourth variable is string (Rule 125)
@@ -40,7 +40,7 @@ def rule_125_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_value == arg2)
         solver.add(arg3_value == int(arg3))
-        solver.add(arg4_value == list_of_string_values.index(arg4))
+        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
 
         # Constraints for rule 125
         rule_125(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})

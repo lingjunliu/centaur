@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # Margin has to be non negative if P is also non negative and also swap is true and reduction is not constant and tensors have at least one dimension (Rule 100)
@@ -52,7 +52,7 @@ def rule_100_func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, solver=None, neg=Fal
         solver.add(arg1_value == arg1)
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == arg3)
-        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
+        solver.add(arg4_value == list_of_string_values_torch.torch.index(arg4))
         solver.add(arg5_ndim == arg5.ndim)
         solver.add(arg6_ndim == arg6.ndim)
         solver.add(arg7_ndim == arg7.ndim)

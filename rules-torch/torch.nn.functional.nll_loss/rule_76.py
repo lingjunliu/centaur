@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # Shape Check, If Reduction is Sum, Dims Should Be Equal, and Both Tensors have Dimension, and Input Batch must exist (Rule 76)
@@ -38,7 +38,7 @@ def rule_76_func(arg1, arg2, arg3, solver=None, neg=False):
         for i in range(arg1.ndim):
             arg1_shape = Store(arg1_shape, i, arg1.shape[i])
         solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
+        solver.add(arg3_value == list_of_string_values_torch.torch.index(arg3))
 
         # Constraints for rule 76
         rule_76(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})

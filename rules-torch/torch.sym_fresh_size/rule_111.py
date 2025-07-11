@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # bool variable must be equal to true or false based on a string comparison and dimension and min of tensor > 10  (Rule 111)
@@ -35,7 +35,7 @@ def rule_111_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.torch.index(arg2))
         solver.add(arg3_ndim == arg3.ndim)
         arg3_range = Store(arg3_range, 0, int(np.min(arg3)))
         arg3_range = Store(arg3_range, 1, int(np.max(arg3)))

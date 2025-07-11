@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # If the output shape does not match the broadcasted shape and the input shape, it should throw an error, so reduction is 'none' (Rule 42)
@@ -49,7 +49,7 @@ def rule_42_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg3_ndim == arg3.ndim)
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])
-        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
+        solver.add(arg4_value == list_of_string_values_torch.torch.index(arg4))
 
         # Constraints for rule 42
         rule_42(solver, {'arg1_ndim': arg1_ndim, 'arg1_shape': arg1_shape, 'arg2_ndim': arg2_ndim, 'arg2_shape': arg2_shape, 'arg3_ndim': arg3_ndim, 'arg3_shape': arg3_shape, 'arg4_value': arg4_value})

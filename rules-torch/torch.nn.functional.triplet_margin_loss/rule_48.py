@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # Margin and P are non negative if tensors have equal shapes and reduction is none, mean or sum (Rule 48)
@@ -53,7 +53,7 @@ def rule_48_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])
         solver.add(arg4_value == arg4)
         solver.add(arg5_value == int(arg5))
-        solver.add(arg6_value == list_of_string_values_torch.index(arg6))
+        solver.add(arg6_value == list_of_string_values_torch.torch.index(arg6))
 
         # Constraints for rule 48
         rule_48(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_value': arg4_value, 'arg5_value': arg5_value, 'arg6_value': arg6_value})

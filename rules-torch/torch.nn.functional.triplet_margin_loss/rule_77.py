@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # Margin and P should be non-negative, reduction can't be constant and swap is boolean. (Rule 77)
@@ -39,7 +39,7 @@ def rule_77_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         # Value assignments
         solver.add(arg1_value == arg1)
         solver.add(arg2_value == int(arg2))
-        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
+        solver.add(arg3_value == list_of_string_values_torch.torch.index(arg3))
         solver.add(arg4_value == arg4)
 
         # Constraints for rule 77

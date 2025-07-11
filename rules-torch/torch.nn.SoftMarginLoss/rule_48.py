@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
 from z3 import *
 
 # To ensure there are no type errors, if reduction is "none" then the dtypes must be the same (Rule 48)
@@ -35,7 +35,7 @@ def rule_48_func(arg1, arg2, arg3, solver=None, neg=False):
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
-        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
+        solver.add(arg3_value == list_of_string_values_torch.torch.index(arg3))
 
         # Constraints for rule 48
         rule_48(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_value': arg3_value})
