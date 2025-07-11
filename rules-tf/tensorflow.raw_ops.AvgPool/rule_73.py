@@ -1,0 +1,53 @@
+import numpy as np
+import torch 
+import tensorflow as tf
+
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_tf, np_dtype
+from z3 import *
+
+# ksize and strides lists must have lengths of 4, and all elements must be positive, and strides[0], strides[3], ksize[0] and ksize[3] must be 1 and their h/w should less than input, and ksize > strides (Rule 73)
+
+rule_73 = lambda s, v, n=False: (
+    s.add(Not(And(And(v["arg2_length"] == 4, v["arg3_length"] == 4), And([Implies(i < (3 + 1), And(Select(v["arg2_values"], i) > 0, And([Implies(j < (3 + 1), And(And(And(And(And(And(And(And(Select(v["arg3_values"], j) > 0, Select(v["arg2_values"], 0) == 1), Select(v["arg2_values"], 3) == 1), Select(v["arg3_values"], 0) == 1), Select(v["arg3_values"], 3) == 1), Select(v["arg2_values"], 1) * Select(v["arg2_values"], 2) <= Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2)), Select(v["arg3_values"], 1) * Select(v["arg3_values"], 2) <= Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2)), Select(v["arg2_values"], 1) >= Select(v["arg3_values"], 1)), Select(v["arg2_values"], 2) >= Select(v["arg3_values"], 2))) for j in range(6)]))) for i in range(6)]))) if n else
+          And(And(v["arg2_length"] == 4, v["arg3_length"] == 4), And([Implies(i < (3 + 1), And(Select(v["arg2_values"], i) > 0, And([Implies(j < (3 + 1), And(And(And(And(And(And(And(And(Select(v["arg3_values"], j) > 0, Select(v["arg2_values"], 0) == 1), Select(v["arg2_values"], 3) == 1), Select(v["arg3_values"], 0) == 1), Select(v["arg3_values"], 3) == 1), Select(v["arg2_values"], 1) * Select(v["arg2_values"], 2) <= Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2)), Select(v["arg3_values"], 1) * Select(v["arg3_values"], 2) <= Select(v["arg1_shape"], 1) * Select(v["arg1_shape"], 2)), Select(v["arg2_values"], 1) >= Select(v["arg3_values"], 1)), Select(v["arg2_values"], 2) >= Select(v["arg3_values"], 2))) for j in range(6)]))) for i in range(6)])))
+)
+
+def rule_73_func(arg1, arg2, arg3, solver=None, neg=False):
+    arg1 = next(iter(arg1.values()))
+    arg2 = next(iter(arg2.values()))
+    arg3 = next(iter(arg3.values()))
+
+    # Invariant learning phase
+    if not solver:
+        if not isinstance(arg1, np.ndarray):
+            return False
+        if not (isinstance(arg2, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg2)):
+            return False
+        if not (isinstance(arg3, list) and all((isinstance(e, (int, np.integer)) and not isinstance(e, bool)) for e in arg3)):
+            return False
+
+        # Variable declarations
+        solver = Solver()
+        arg1_shape = Array('arg1_shape', IntSort(), IntSort())
+        arg2_length = Int('arg2_length')
+        arg2_values = Array('arg2_values', IntSort(), IntSort())
+        arg3_length = Int('arg3_length')
+        arg3_values = Array('arg3_values', IntSort(), IntSort())
+
+        # Value assignments
+        for i in range(arg1.ndim):
+            arg1_shape = Store(arg1_shape, i, arg1.shape[i])
+        solver.add(arg2_length == len(arg2))
+        for i in range(len(arg2)):
+            arg2_values = Store(arg2_values, i, arg2[i])
+        solver.add(arg3_length == len(arg3))
+        for i in range(len(arg3)):
+            arg3_values = Store(arg3_values, i, arg3[i])
+
+        # Constraints for rule 73
+        rule_73(solver, {'arg1_shape': arg1_shape, 'arg2_values': arg2_values, 'arg2_length': arg2_length, 'arg3_values': arg3_values, 'arg3_length': arg3_length})
+        return solver.check() == sat
+
+    # Fuzz input generation phase
+    else:
+        rule_73(solver, {'arg1_shape': arg1['shape'], 'arg2_values': arg2['values'], 'arg2_length': arg2['length'], 'arg3_values': arg3['values'], 'arg3_length': arg3['length']}, neg)

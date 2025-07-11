@@ -1,0 +1,219 @@
+>>
+Rule 1 (y_backprop and x must have the same dtype)
+{y_backprop : tensor, x : tensor} |= dtype_(y_backprop) = dtype_(x)
+>>
+Rule 2 (scale must be a 1D tensor of float32)
+{scale : tensor} |= ndim(scale) = 1 ∧ dtype_(scale) = 7
+>>
+Rule 3 (reserve_space_1 and reserve_space_2 must have the same dtype)
+{reserve_space_1 : tensor, reserve_space_2 : tensor} |= dtype_(reserve_space_1) = dtype_(reserve_space_2)
+>>
+Rule 4 (data_format must be either "NHWC" or "NCHW")
+{data_format : str} |= data_format = "NHWC" ∨ data_format = "NCHW"
+>>
+Rule 5 (y_backprop must be half, bfloat16, or float32)
+{y_backprop : tensor} |= dtype_(y_backprop) = 6 ∨ dtype_(y_backprop) = 7
+>>
+Rule 6 (x must be half, bfloat16, or float32)
+{x : tensor} |= dtype_(x) = 6 ∨ dtype_(x) = 7
+>>
+Rule 7 (reserve_space_1 must be float32)
+{reserve_space_1 : tensor} |= dtype_(reserve_space_1) = 7
+>>
+Rule 8 (y_backprop and x must be 4D tensors)
+{y_backprop : tensor, x : tensor} |= ndim(y_backprop) = 4 ∧ ndim(x) = 4
+>>
+Rule 9 (is_training must be a boolean value)
+{is_training : bool} |= is_training = true ∨ is_training = false
+>>
+Rule 10 (epsilon must be greater than or equal to zero)
+{epsilon : float} |= epsilon ≥ 0.0
+>>
+Rule 11 (if is_training is true, reserve_space_1 and reserve_space_2 must be 1D tensors)
+{is_training : bool, reserve_space_1 : tensor, reserve_space_2 : tensor} |= if is_training then ndim(reserve_space_1) = 1 ∧ ndim(reserve_space_2) = 1
+>>
+Rule 12 (scale shape check when data format is NHWC)
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NHWC" then shape(scale,0) = shape(x,3)
+>>
+Rule 13 (scale shape check when data format is NCHW)
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NCHW" then shape(scale,0) = shape(x,1)
+>>
+Rule 14 (y_backprop shape check when data format is NHWC)
+{y_backprop : tensor, x : tensor, data_format : str} |= if data_format = "NHWC" then shape(y_backprop,0) = shape(x,0) ∧ shape(y_backprop,1) = shape(x,1) ∧ shape(y_backprop,2) = shape(x,2) ∧ shape(y_backprop,3) = shape(x,3)
+>>
+Rule 15 (y_backprop shape check when data format is NCHW)
+{y_backprop : tensor, x : tensor, data_format : str} |= if data_format = "NCHW" then shape(y_backprop,0) = shape(x,0) ∧ shape(y_backprop,1) = shape(x,1) ∧ shape(y_backprop,2) = shape(x,2) ∧ shape(y_backprop,3) = shape(x,3)
+>>
+Rule 16 (y_backprop and x must have compatible shapes based on data_format)
+{y_backprop : tensor, x : tensor, data_format : str} |= if data_format = "NHWC" then shape(y_backprop,0) = shape(x,0) ∧ shape(y_backprop,1) = shape(x,1) ∧ shape(y_backprop,2) = shape(x,2) else if data_format = "NCHW" then shape(y_backprop,0) = shape(x,0) ∧ shape(y_backprop,2) = shape(x,2) ∧ shape(y_backprop,3) = shape(x,3)
+>>
+Rule 17 (reserve_space_1 and reserve_space_2 dimensions must match)
+{reserve_space_1 : tensor, reserve_space_2 : tensor} |= shape(reserve_space_1, 0) = shape(reserve_space_2, 0)
+>>
+Rule 18 (If reserve_space_1 exists, its shape must be consistent with the channel dimension of the input tensor when data_format is NHWC)
+{x : tensor, reserve_space_1 : tensor, data_format : str, is_training : bool} |= if is_training then (if data_format = "NHWC" then shape(reserve_space_1, 0) = shape(x, 3))
+>>
+Rule 19 (If reserve_space_1 exists, its shape must be consistent with the channel dimension of the input tensor when data_format is NCHW)
+{x : tensor, reserve_space_1 : tensor, data_format : str, is_training : bool} |= if is_training then (if data_format = "NCHW" then shape(reserve_space_1, 0) = shape(x, 1))
+>>
+Rule 20 (If not training, reserve_space_1 shape equals x channel dim when NHWC)
+{x : tensor, reserve_space_1 : tensor, data_format : str, is_training : bool} |= if is_training = false then (if data_format = "NHWC" then shape(reserve_space_1, 0) = shape(x, 3))
+>>
+Rule 21 (If not training, reserve_space_1 shape equals x channel dim when NCHW)
+{x : tensor, reserve_space_1 : tensor, data_format : str, is_training : bool} |= if is_training = false then (if data_format = "NCHW" then shape(reserve_space_1, 0) = shape(x, 1))
+>>
+Rule 22 (epsilon is a small positive number)
+{epsilon : float} |= epsilon > 0 ∧ epsilon < 1
+>>
+Rule 23 (x and y_backprop have compatible batch sizes)
+{x : tensor, y_backprop : tensor, data_format : str} |= if data_format = "NHWC" then shape(x, 0) = shape(y_backprop, 0) else shape(x,0) = shape(y_backprop,0)
+>>
+Rule 24 (scale tensor should not have any negative values)
+{scale : tensor} |= ∀i ∈ [0, shape(scale,0) - 1] : scale[i] ≥ 0
+>>
+Rule 25 (reserve_space_1 values must be non-negative)
+{reserve_space_1 : tensor} |= ∀i ∈ [0, shape(reserve_space_1, 0) - 1] : reserve_space_1[i] ≥ 0
+>>
+Rule 26 (reserve_space_2 values must be non-negative)
+{reserve_space_2 : tensor} |= ∀i ∈ [0, shape(reserve_space_2, 0) - 1] : reserve_space_2[i] ≥ 0
+>>
+Rule 27 (If training and NHWC, x's channel dimension must be > 0)
+{x : tensor, data_format : str, is_training : bool} |= if is_training ∧ data_format = "NHWC" then shape(x, 3) > 0
+>>
+Rule 28 (If training and NCHW, x's channel dimension must be > 0)
+{x : tensor, data_format : str, is_training : bool} |= if is_training ∧ data_format = "NCHW" then shape(x, 1) > 0
+>>
+Rule 29 (If not training and NHWC, x's channel dimension must be > 0)
+{x : tensor, data_format : str, is_training : bool} |= if is_training = false ∧ data_format = "NHWC" then shape(x, 3) > 0
+>>
+Rule 30 (If not training and NCHW, x's channel dimension must be > 0)
+{x : tensor, data_format : str, is_training : bool} |= if is_training = false ∧ data_format = "NCHW" then shape(x, 1) > 0
+>>
+Rule 32 (x shape must be positive)
+{x : tensor} |= ndim(x) = 4 ∧ shape(x, 0) > 0 ∧ shape(x, 1) > 0 ∧ shape(x, 2) > 0
+>>
+Rule 33 (y_backprop shape must be positive)
+{y_backprop : tensor} |= ndim(y_backprop) = 4 ∧ shape(y_backprop, 0) > 0 ∧ shape(y_backprop, 1) > 0 ∧ shape(y_backprop, 2) > 0
+>>
+Rule 34 (reserve_space_1 tensor shape must be greater than 0)
+{reserve_space_1 : tensor} |= if ndim(reserve_space_1) = 1 then shape(reserve_space_1, 0) > 0
+>>
+Rule 35 (reserve_space_2 tensor shape must be greater than 0)
+{reserve_space_2 : tensor} |= if ndim(reserve_space_2) = 1 then shape(reserve_space_2, 0) > 0
+>>
+Rule 36 (When is_training is false, reserve_space_2 can have any value)
+{is_training : bool, reserve_space_2 : tensor} |= if is_training = false then true else dtype_(reserve_space_2) = 7
+>>
+Rule 37 (When is_training is false, reserve_space_1 can have any value)
+{is_training : bool, reserve_space_1 : tensor} |= if is_training = false then true else dtype_(reserve_space_1) = 7
+>>
+Rule 38 (scale tensor must be float32)
+{scale : tensor} |= dtype_(scale) = 7
+>>
+Rule 39 (y_backprop tensor's third and fourth dimensions greater than 0)
+{y_backprop : tensor, data_format : str} |= if data_format = "NHWC" then shape(y_backprop, 1) > 0 ∧ shape(y_backprop, 2) > 0
+>>
+Rule 40 (x tensor's third and fourth dimensions greater than 0)
+{x : tensor, data_format : str} |= if data_format = "NHWC" then shape(x, 1) > 0 ∧ shape(x, 2) > 0
+>>
+Rule 41 (x tensor's second and third dimensions greater than 0)
+{x : tensor, data_format : str} |= if data_format = "NCHW" then shape(x, 2) > 0 ∧ shape(x, 3) > 0
+>>
+Rule 42 (y_backprop tensor's second and third dimensions greater than 0)
+{y_backprop : tensor, data_format : str} |= if data_format = "NCHW" then shape(y_backprop, 2) > 0 ∧ shape(y_backprop, 3) > 0
+>>
+Rule 43 (When epsilon is provided, it must be a positive float)
+{epsilon : float} |= epsilon > 0
+>>
+Rule 44 (shape of scale must be greater than zero)
+{scale : tensor} |= shape(scale,0) > 0
+>>
+Rule 45 (if is_training is True, reserve space tensors must be float32)
+{is_training : bool, reserve_space_1 : tensor, reserve_space_2 : tensor} |= if is_training then dtype_(reserve_space_1) = 7 ∧ dtype_(reserve_space_2) = 7
+>>
+Rule 46 (reserve_space tensors must have positive values when is_training is true)
+{reserve_space_1 : tensor, reserve_space_2 : tensor, is_training : bool} |= if is_training then (∀i ∈ [0, shape(reserve_space_1, 0) - 1] : reserve_space_1[i] ≥ 0) ∧ (∀i ∈ [0, shape(reserve_space_2, 0) - 1] : reserve_space_2[i] ≥ 0)
+>>
+Rule 47 (y_backprop tensor has valid shape based on NHWC)
+{y_backprop : tensor, data_format : str} |= if data_format = "NHWC" then shape(y_backprop, 1) > 0 ∧ shape(y_backprop, 2) > 0 ∧ shape(y_backprop, 3) > 0
+>>
+Rule 48 (y_backprop tensor has valid shape based on NCHW)
+{y_backprop : tensor, data_format : str} |= if data_format = "NCHW" then shape(y_backprop, 1) > 0 ∧ shape(y_backprop, 2) > 0 ∧ shape(y_backprop, 3) > 0
+>>
+Rule 49 (x tensor has valid shape based on NHWC)
+{x : tensor, data_format : str} |= if data_format = "NHWC" then shape(x, 1) > 0 ∧ shape(x, 2) > 0 ∧ shape(x, 3) > 0
+>>
+Rule 50 (x tensor has valid shape based on NCHW)
+{x : tensor, data_format : str} |= if data_format = "NCHW" then shape(x, 1) > 0 ∧ shape(x, 2) > 0 ∧ shape(x, 3) > 0
+>>
+Rule 51 (If reserve_space_1 is provided, its values should not be NaN)
+{reserve_space_1 : tensor} |= ∃i ∈ [0, shape(reserve_space_1, 0) - 1] : reserve_space_1[i] = reserve_space_1[i]
+>>
+Rule 52 (If reserve_space_2 is provided, its values should not be NaN)
+{reserve_space_2 : tensor} |= ∃i ∈ [0, shape(reserve_space_2, 0) - 1] : reserve_space_2[i] = reserve_space_2[i]
+>>
+Rule 53 (If scale is provided, its values should not be NaN)
+{scale : tensor} |= ∃i ∈ [0, shape(scale, 0) - 1] : scale[i] = scale[i]
+>>
+Rule 63 (If x tensor is provided, all values must be finite)
+{x : tensor} |= ∀i ∈ [0, shape(x, 0) - 1] : ∀j ∈ [0, shape(x, 1) - 1] : ∀k ∈ [0, shape(x, 2) - 1] : ∀l ∈ [0, shape(x, 3) - 1] : min(x) ≠ "inf" ∧ max(x) ≠ "inf" ∧ min(x) ≠ "-inf"
+>>
+Rule 64 (If y_backprop tensor is provided, all values must be finite)
+{y_backprop : tensor} |= ∀i ∈ [0, shape(y_backprop, 0) - 1] : ∀j ∈ [0, shape(y_backprop, 1) - 1] : ∀k ∈ [0, shape(y_backprop, 2) - 1] : ∀l ∈ [0, shape(y_backprop, 3) - 1] :  min(y_backprop) ≠ "inf" ∧ max(y_backprop) ≠ "inf" ∧ min(y_backprop) ≠ "-inf"
+>>
+Rule 65 (x and y_backprop must have valid dtype)
+{x : tensor, y_backprop: tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7) ∧ (dtype_(y_backprop) = 6 ∨ dtype_(y_backprop) = 7)
+>>
+Rule 66 (reserve_space_1 and reserve_space_2 are valid floats)
+{reserve_space_1 : tensor, reserve_space_2 : tensor} |= dtype_(reserve_space_1) = 7 ∧ dtype_(reserve_space_2) = 7
+>>
+Rule 67 (x and y_backprop are tensors of same shape when training is true)
+{x : tensor, y_backprop : tensor, is_training : bool} |= if is_training then (ndim(x) = ndim(y_backprop) ∧ (∀i ∈ [0, ndim(x) - 1] : shape(x, i) = shape(y_backprop, i)))
+>>
+Rule 68 (scale must have non-negative values)
+{scale: tensor} |= ∀i ∈ [0, shape(scale, 0) - 1]: scale[i] ≥ 0
+>>
+Rule 69 (reserve_space_1 and reserve_space_2 must have the correct number of elements)
+{x : tensor, reserve_space_1 : tensor, reserve_space_2 : tensor, data_format : str} |= if data_format = "NHWC" then shape(reserve_space_1, 0) = shape(x, 3) ∧ shape(reserve_space_2, 0) = shape(x, 3) else shape(reserve_space_1, 0) = shape(x, 1) ∧ shape(reserve_space_2, 0) = shape(x, 1)
+>>
+Rule 71 (When data_format is NHWC, the channel dimension of x must be equal to the size of scale)
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NHWC" then shape(x, 3) = shape(scale, 0)
+>>
+Rule 72 (When data_format is NCHW, the channel dimension of x must be equal to the size of scale)
+{x : tensor, scale : tensor, data_format : str} |= if data_format = "NCHW" then shape(x, 1) = shape(scale, 0)
+>>
+Rule 73 (If the channel dimension is not 1, then the others dimension should be greater than 0)
+{x: tensor, data_format: str} |= if data_format = "NHWC" then (if shape(x, 3) ≠ 1 then shape(x, 0) > 0 ∧ shape(x, 1) > 0 ∧ shape(x, 2) > 0) else (if shape(x, 1) ≠ 1 then shape(x, 0) > 0 ∧ shape(x, 2) > 0 ∧ shape(x, 3) > 0)
+>>
+Rule 74 (If the channel dimension is not 1, then the others dimension should be greater than 0 on y_backprop)
+{y_backprop: tensor, data_format: str} |= if data_format = "NHWC" then (if shape(y_backprop, 3) ≠ 1 then shape(y_backprop, 0) > 0 ∧ shape(y_backprop, 1) > 0 ∧ shape(y_backprop, 2) > 0) else (if shape(y_backprop, 1) ≠ 1 then shape(y_backprop, 0) > 0 ∧ shape(y_backprop, 2) > 0 ∧ shape(y_backprop, 3) > 0)
+>>
+Rule 75 (When training is true, reserve_space_1 must be 1D)
+{reserve_space_1 : tensor, is_training : bool} |= if is_training then ndim(reserve_space_1) = 1
+>>
+Rule 76 (When training is true, reserve_space_2 must be 1D)
+{reserve_space_2 : tensor, is_training : bool} |= if is_training then ndim(reserve_space_2) = 1
+>>
+Rule 77 (Epsilon value is smaller than variance of the input)
+{epsilon: float, x: tensor} |= epsilon < max(x) - min(x)
+>>
+Rule 78 (if training, the reserve space tensors should have dtype float32)
+{reserve_space_1: tensor, reserve_space_2: tensor, is_training: bool} |= if is_training then dtype_(reserve_space_1) = 7 ∧ dtype_(reserve_space_2) = 7
+>>
+Rule 79 (x and y_backprop dtypes have to be float16, bfloat16, or float32)
+{x : tensor, y_backprop : tensor} |= (dtype_(x) = 6 ∨ dtype_(x) = 7) ∧ (dtype_(y_backprop) = 6 ∨ dtype_(y_backprop) = 7)
+>>
+Rule 80 (scale must have positive values)
+{scale : tensor} |= ∀i ∈ [0, shape(scale, 0) - 1] : scale[i] > 0
+>>
+Rule 81 (x and y_backprop dimensions should be equal when training is true)
+{x : tensor, y_backprop : tensor, is_training: bool} |= if is_training then ndim(x) = ndim(y_backprop)
+>>
+Rule 82 (when is training is false, reserve_space shapes should be non-zero)
+{reserve_space_1: tensor, reserve_space_2: tensor, is_training: bool} |= if is_training = false then shape(reserve_space_1, 0) > 0 ∧ shape(reserve_space_2, 0) > 0
+>>
+Rule 83 (x and y_backprop must have same shape with NHWC data format)
+{x: tensor, y_backprop: tensor, data_format: str} |= if data_format = "NHWC" then shape(x, 0) = shape(y_backprop, 0) ∧ shape(x, 1) = shape(y_backprop, 1) ∧ shape(x, 2) = shape(y_backprop, 2) ∧ shape(x, 3) = shape(y_backprop, 3)
+>>
+Rule 84 (x and y_backprop must have same shape with NCHW data format)
+{x: tensor, y_backprop: tensor, data_format: str} |= if data_format = "NCHW" then shape(x, 0) = shape(y_backprop, 0) ∧ shape(x, 1) = shape(y_backprop, 1) ∧ shape(x, 2) = shape(y_backprop, 2) ∧ shape(x, 3) = shape(y_backprop, 3)

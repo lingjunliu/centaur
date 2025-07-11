@@ -1,0 +1,90 @@
+>>
+Rule 1 (var, accum, accum_update, lr, rho, epsilon, grad should have the same type)
+{var : tensor, accum : tensor, accum_update : tensor, lr : tensor, rho : tensor, epsilon : tensor, grad : tensor} |= dtype_(var) = dtype_(accum) ∧ dtype_(var) = dtype_(accum_update) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad)
+>>
+Rule 2 (lr, rho, epsilon must be scalar)
+{lr : tensor, rho : tensor, epsilon : tensor} |= ndim(lr) = 0 ∧ ndim(rho) = 0 ∧ ndim(epsilon) = 0
+>>
+Rule 3 (indices must be a vector)
+{indices : tensor} |= ndim(indices) = 1
+>>
+Rule 4 (use_locking is a boolean)
+{use_locking : bool} |= use_locking = true ∨ use_locking = false
+>>
+Rule 5 (shape of accum and var must be same.)
+{var : tensor, accum : tensor} |= ndim(var) = ndim(accum) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum, i)
+>>
+Rule 6 (shape of accum_update and var must be same.)
+{var : tensor, accum_update : tensor} |= ndim(var) = ndim(accum_update) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(accum_update, i)
+>>
+Rule 7 (shape of grad and var must be same.)
+{var : tensor, grad : tensor} |= ndim(var) = ndim(grad) ∧ ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
+>>
+Rule 8 (type of indices must be int32 or int64)
+{indices : tensor} |= dtype_(indices) = 2 ∨ dtype_(indices) = 4
+>>
+Rule 9 (var must be a float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64 tensor)
+{var : tensor} |= dtype_(var) = 7 ∨ dtype_(var) = 8 ∨ dtype_(var) = 3 ∨ dtype_(var) = 5 ∨ dtype_(var) = 2 ∨ dtype_(var) = 1 ∨ dtype_(var) = 9 ∨ dtype_(var) = 4 ∨ dtype_(var) = 13 ∨ dtype_(var) = 14 ∨ dtype_(var) = 15 ∨ dtype_(var) = 6 ∨ dtype_(var) = 16 ∨ dtype_(var) = 17
+>>
+Rule 10 (indices must be int32 or int64 tensor)
+{indices : tensor} |= dtype_(indices) = 3 ∨ dtype_(indices) = 4
+>>
+Rule 11 (number of rows pointed to by indices should be less than or equal to the number of rows in var.)
+{var : tensor, indices : tensor} |= max(indices) ≤ shape(var, 0) - 1
+>>
+Rule 12 (if use_locking is true, then var, accum, and accum_update should be protected by a lock.)
+{use_locking : bool} |= if use_locking = true then true
+>>
+Rule 13 (var, lr, grad should have same number of dimensions)
+{var : tensor, lr : tensor, grad : tensor} |= ndim(var) = ndim(lr) ∧ ndim(var) = ndim(grad)
+>>
+Rule 14 (indices must be less than or equal to int32 max or int64 max depending on the dtype.)
+{indices : tensor} |= if dtype_(indices) = 3 then max(indices) ≤ 2147483647 else if dtype_(indices) = 4 then max(indices) ≤ 9223372036854775807
+>>
+Rule 15 (shape of indices[0] dimension must be less or equal than shape of var[0] dimension)
+{var : tensor, indices : tensor} |= shape(indices, 0) ≤ shape(var, 0)
+>>
+Rule 16 (rho and epsilon must be between 0 and 1 exclusive)
+{rho : tensor, epsilon : tensor} |= min(rho) > 0 ∧ max(rho) < 1 ∧ min(epsilon) > 0 ∧ max(epsilon) < 1
+>>
+Rule 17 (lr, rho and epsilon must have positive values)
+{lr : tensor, rho : tensor, epsilon : tensor} |= min(lr) > 0 ∧ min(rho) > 0 ∧ min(epsilon) > 0
+>>
+Rule 18 (indices should not have duplicate values)
+{indices : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : ∀j ∈ [i + 1, shape(indices, 0) - 1] : indices[i] ≠ indices[j]
+>>
+Rule 19 (var and grad must have the same shape)
+{var : tensor, grad : tensor} |= ∀i ∈ [0, ndim(var) - 1] : shape(var, i) = shape(grad, i)
+>>
+Rule 20 (If use_locking is true, then accum and accum_update should have the same dtype.)
+{use_locking : bool, accum : tensor, accum_update : tensor} |= if use_locking = true then dtype_(accum) = dtype_(accum_update)
+>>
+Rule 21 (If use_locking is true, then var, accum, and accum_update must have the same dtype)
+{use_locking : bool, var : tensor, accum : tensor, accum_update : tensor} |= if use_locking = true then dtype_(var) = dtype_(accum) ∧ dtype_(var) = dtype_(accum_update)
+>>
+Rule 23 (var, accum, accum_update, lr, rho, epsilon and grad tensors should have a rank greater than 0)
+{var : tensor, accum : tensor, accum_update : tensor, lr : tensor, rho : tensor, epsilon : tensor, grad : tensor} |= ndim(var) > 0 ∧ ndim(accum) > 0 ∧ ndim(accum_update) > 0 ∧ ndim(lr) > 0 ∧ ndim(rho) > 0 ∧ ndim(epsilon) > 0 ∧ ndim(grad) > 0
+>>
+Rule 26 (var, accum, accum_update, lr, rho, epsilon and grad must have the same data type if they are not empty)
+{var : tensor, accum : tensor, accum_update : tensor, lr : tensor, rho : tensor, epsilon : tensor, grad : tensor} |= (shape(var, 0) = 0) ∨ (shape(accum, 0) = 0) ∨ (shape(accum_update, 0) = 0) ∨ (shape(lr, 0) = 0) ∨ (shape(rho, 0) = 0) ∨ (shape(epsilon, 0) = 0) ∨ (shape(grad, 0) = 0) ∨ (dtype_(var) = dtype_(accum) ∧ dtype_(var) = dtype_(accum_update) ∧ dtype_(var) = dtype_(lr) ∧ dtype_(var) = dtype_(rho) ∧ dtype_(var) = dtype_(epsilon) ∧ dtype_(var) = dtype_(grad))
+>>
+Rule 27 (The maximum value in indices tensor must be less than the size of the first dimension of var tensor.)
+{var : tensor, indices : tensor} |= max(indices) < shape(var, 0)
+>>
+Rule 28 (rho and epsilon values must be less than 1)
+{rho : tensor, epsilon : tensor} |= max(rho) < 1 ∧ max(epsilon) < 1
+>>
+Rule 29 (rho and epsilon values must be greater than or equal to 0)
+{rho : tensor, epsilon : tensor} |= min(rho) ≥ 0 ∧ min(epsilon) ≥ 0
+>>
+Rule 30 (indices values cannot be negative)
+{indices : tensor} |= min(indices) >= 0
+>>
+Rule 31 (indices and grad must have the same number of elements in the first dimension)
+{indices : tensor, grad : tensor} |= shape(indices, 0) = shape(grad, 0)
+>>
+Rule 32 (If indices and grad are not empty, then their dtypes should correspond with int32 and the type of var, accum, accum_update, lr, rho, and epsilon)
+{indices : tensor, grad : tensor, var : tensor} |= if shape(indices, 0) > 0 ∧ shape(grad, 0) > 0 then (dtype_(indices) = 3 ∧ dtype_(grad) = dtype_(var))
+>>
+Rule 33 (If indices and grad are not empty, and indices' dtype is int64 then var should have dtype of float64 or int64 or complex128)
+{indices : tensor, grad : tensor, var : tensor} |= if shape(indices, 0) > 0 ∧ shape(grad, 0) > 0 ∧ dtype_(indices) = 4 then (dtype_(var) = 8 ∨ dtype_(var) = 4 ∨ dtype_(var) = 10)

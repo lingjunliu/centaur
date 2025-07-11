@@ -1,0 +1,102 @@
+>>
+Rule 1 (DstT must be a valid dtype)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+>>
+Rule 2 (Truncate must be a boolean)
+{v_1 : bool} |= v_1 = true ∨ v_1 = false
+>>
+Rule 5 (Casting to string is not allowed)
+{v_1 : dtype} |= v_1 ≠ 11
+>>
+Rule 9 (Cast from float to int requires Truncate to be true)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ v_2 ≤ 5 then v_3 = true
+>>
+Rule 10 (If truncate is true, then the destination dtype is within a specific range)
+{v_1 : dtype, v_2 : bool} |= if v_2 = true then v_1 ≤ 5
+>>
+Rule 12 (Casting bool to bool does not require truncate to be true)
+{v_1 : dtype, v_2 : bool} |= if v_1 = 0 then v_2 = false ∨ v_2 = true
+>>
+Rule 13 (Casting to a smaller integer type should have truncate set to true)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if dtype_(v_1) = 4 ∧ v_2 < 4 then v_3 = true else if dtype_(v_1) = 3 ∧ v_2 < 3 then v_3 = true else if dtype_(v_1) = 2 ∧ v_2 < 2 then v_3 = true else if dtype_(v_1) = 1 ∧ v_2 < 1 then v_3 = true
+>>
+Rule 14 (Truncate should be false if casting from smaller to larger integer type)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if dtype_(v_1) = 1 ∧ v_2 > 1 then v_3 = false else if dtype_(v_1) = 2 ∧ v_2 > 2 then v_3 = false else if dtype_(v_1) = 3 ∧ v_2 > 3 then v_3 = false else if dtype_(v_1) = 4 ∧ v_2 > 4 then v_3 = false
+>>
+Rule 15 (If truncate is true, and casting from float to int, destination must be int)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if v_3 = true ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6) then v_2 ≤ 5 ∧ v_2 ≥ 1
+>>
+Rule 16 (If truncate is true and dest is int, the values of the tensor must be between the limits of the dest dtype.)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if v_3 = true ∧ v_2 > 0 ∧ v_2 < 6 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647
+>>
+Rule 18 (If truncate is true, then the target dtype cannot be float)
+{v_1 : dtype, v_2 : bool} |= if v_2 = true then v_1 < 7 ∨ v_1 > 8
+>>
+Rule 20 (If casting from a complex type, truncate must be false)
+{v_1 : tensor, v_3 : bool} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_3 = false
+>>
+Rule 22 (If truncate is true, and casting from a larger int to smaller int, ensure no overflow.)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if v_3 = true ∧ dtype_(v_1) = 4 ∧ v_2 = 3 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647 else if v_3 = true ∧ dtype_(v_1) = 3 ∧ v_2 = 2 then min(v_1) ≥ -32768 ∧ max(v_1) ≤ 32767 else if v_3 = true ∧ dtype_(v_1) = 2 ∧ v_2 = 1 then min(v_1) ≥ -128 ∧ max(v_1) ≤ 127
+>>
+Rule 24 (DstT cannot be a tensor.)
+{v_1 : dtype} |= v_1 ≠ 0
+>>
+Rule 27 (If casting from complex to float, truncate must be false)
+{v_1 : tensor, v_2 : dtype, v_3: bool} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (v_2 = 7 ∨ v_2 = 8) then v_3 = false
+>>
+Rule 28 (If truncate is true, and casting from a larger int to smaller int, ensure no overflow. Use dtype to get the bits)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if v_3 = true ∧ dtype_(v_1) = 4 ∧ v_2 = 3 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647 else if v_3 = true ∧ dtype_(v_1) = 4 ∧ v_2 = 2 then false else if v_3 = true ∧ dtype_(v_1) = 4 ∧ v_2 = 1 then false else if v_3 = true ∧ dtype_(v_1) = 3 ∧ v_2 = 2 then min(v_1) ≥ -32768 ∧ max(v_1) ≤ 32767 else if v_3 = true ∧ dtype_(v_1) = 3 ∧ v_2 = 1 then false else if v_3 = true ∧ dtype_(v_1) = 2 ∧ v_2 = 1 then min(v_1) ≥ -128 ∧ max(v_1) ≤ 127
+>>
+Rule 29 (If casting from complex to float or int, truncate must be false)
+{v_1 : tensor, v_2 : dtype, v_3: bool} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then v_3 = false
+>>
+Rule 30 (If casting from string type, truncate must be false)
+{v_1 : tensor, v_3 : bool} |= if dtype_(v_1) = 11 then v_3 = false
+>>
+Rule 31 (Casting from bool to int requires truncate to be false)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if dtype_(v_1) = 0 ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then v_3 = false
+>>
+Rule 33 (If casting to a boolean, truncate must be false)
+{v_1 : dtype, v_2: bool} |= if v_1 = 0 then v_2 = false
+>>
+Rule 35 (Cannot cast from tensor to dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 39 (DstT must be a valid type)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 11
+>>
+Rule 40 (If casting from bool to any other type, truncate is irrelevant.)
+{v_1 : tensor} |= if dtype_(v_1) = 0 then true
+>>
+Rule 41 (Cannot cast a tensor into dtype)
+{v_1 : dtype} |= v_1 ≠ 12
+>>
+Rule 44 (Casting from complex type to int requires truncate = true)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (v_2 > 0 ∧ v_2 < 6) then v_3 = true
+>>
+Rule 46 (If casting from bool to complex type, truncate must be false.)
+{v_1 : tensor, v_2 : dtype, v_3 : bool} |= if dtype_(v_1) = 0 ∧ (v_2 = 9 ∨ v_2 = 10) then v_3 = false
+>>
+Rule 48 (DstT must be one of the allowed types.)
+{v_1 : dtype} |= v_1 = 0 ∨ v_1 = 1 ∨ v_1 = 2 ∨ v_1 = 3 ∨ v_1 = 4 ∨ v_1 = 5 ∨ v_1 = 6 ∨ v_1 = 7 ∨ v_1 = 8 ∨ v_1 = 9 ∨ v_1 = 10 ∨ v_1 = 11
+>>
+Rule 50 (If destination is a string, truncate is irrelevant.)
+{v_1 : dtype} |= if v_1 = 11 then true
+>>
+Rule 51 (If casting to a complex number then source cannot be string)
+{v_1 : tensor, v_2 : dtype} |= if (v_2 = 9 ∨ v_2 = 10) then dtype_(v_1) ≠ 11
+>>
+Rule 52 (If casting from bool to any other type, truncate must be false.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 11) then true
+>>
+Rule 55 (Casting from bool to complex type, truncate must be false.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 ∧ (v_2 = 9 ∨ v_2 = 10) then true
+>>
+Rule 56 (If destination is a string, the values in source tensor must belong to the string list)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 11 then ∀i ∈ [0, shape(v_1, 0)-1] : (v_1[i] = "ii" ∨ v_1[i] = "ii->i" ∨ v_1[i] = "i,j->ij" ∨ v_1[i] = "bij,bjk->bik" ∨ v_1[i] = "...ij->...ji" ∨ v_1[i] = "bn,anm,bm->ba" ∨ v_1[i] = "none" ∨ v_1[i] = "mean" ∨ v_1[i] = "sum" ∨ v_1[i] = "max" ∨ v_1[i] = "min" ∨ v_1[i] = "prod" ∨ v_1[i] = "relu" ∨ v_1[i] = "tanh" ∨ v_1[i] = "sigmoid" ∨ v_1[i] = "softmax" ∨ v_1[i] = "elu" ∨ v_1[i] = "selu" ∨ v_1[i] = "gelu" ∨ v_1[i] = "swish" ∨ v_1[i] = "constant" ∨ v_1[i] = "linear" ∨ v_1[i] = "softplus")
+>>
+Rule 60 (if source is complex and destination is bool, truncate is irrelevant)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ v_2 = 0 then true
+>>
+Rule 63 (Truncate can only be used for numeric types)
+{v_1: dtype, v_2: bool} |= if v_2 = true then v_1 < 9 ∨ v_1 = 11

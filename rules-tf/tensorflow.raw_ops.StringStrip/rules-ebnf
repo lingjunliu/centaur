@@ -1,0 +1,51 @@
+>>
+Rule 1 (input tensor must be of type string)
+{v_1 : tensor} |= dtype_(v_1) = 12
+>>
+Rule 2 (StringStrip input must be a tensor)
+{v_1 : tensor} |= ndim(v_1) ≥ 0
+>>
+Rule 3 (input tensor cannot be empty)
+{v_1 : tensor} |= ∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 5 (string tensor elements must be non-empty strings - assuming a 1D tensor)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ ""
+>>
+Rule 7 (string tensor elements should have reasonable length - assuming a 1D tensor. No length function available, so limit string content.)
+{v_1 : tensor} |= ∀i ∈ [0, shape(v_1, 0) - 1] : v_1[i] ≠ "very_long_string_that_is_unlikely"
+>>
+Rule 8 (StringStrip input tensor can't have dimensions that are too large, avoiding potential overflow issues)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1024
+>>
+Rule 9 (The number of dimensions must not be too large to prevent resource exhaustion)
+{v_1 : tensor} |= ndim(v_1) < 8
+>>
+Rule 10 (The tensor must not have zero dimensions, unless it is a scalar)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≠ 0
+>>
+Rule 11 (If the tensor has more than one dimension, each dimension must be greater than zero)
+{v_1 : tensor} |= if ndim(v_1) > 1 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 14 (Check if the product of the shape is less than limit - avoid potential overflow)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) * shape(v_1, 0) < 1000000
+>>
+Rule 15 (Check if the product of the shape is less than limit - avoid potential overflow. Limiting total number of elements)
+{v_1 : tensor} |= if ndim(v_1) > 0 then shape(v_1, 0) < 1000
+>>
+Rule 16 (If the tensor is a scalar, it must be a string)
+{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 12
+>>
+Rule 18 (String elements in the tensor should be of reasonable length)
+{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0)-1 else 0] : v_1[i] ≠ "long_string"*10
+>>
+Rule 19 (If the input is a scalar string, it should not be an empty string)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 ≠ ""
+>>
+Rule 21 (The input tensor should not contain very short strings, as stripping them is likely unnecessary. Assuming 1D. No length function, so compare directly.)
+{v_1 : tensor} |= ∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0)-1 else 0] : v_1[i] ≠ "a"
+>>
+Rule 22 (If the input is a matrix, ensure that at least one dimension has a reasonable size)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 1 ∨ shape(v_1, 1) > 1
+>>
+Rule 23 (If the tensor is a vector, ensure its size is reasonable)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 1000

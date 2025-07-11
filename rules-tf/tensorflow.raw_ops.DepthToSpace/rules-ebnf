@@ -1,0 +1,102 @@
+>>
+Rule 1 (block_size must be greater than or equal to 2)
+{v_1 : int} |= v_1 ≥ 2
+>>
+Rule 2 (input tensor must have at least 2 dimensions)
+{v_1 : tensor} |= ndim(v_1) ≥ 2
+>>
+Rule 3 (data_format must be one of the allowed values)
+{v_1 : str} |= v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NCHW_VECT_C"
+>>
+Rule 4 (input tensor depth (channels) must be divisible by block_size * block_size when data_format is NHWC or NCHW)
+{v_1 : tensor, v_2 : int, v_3 : str} |= (v_3 = "NHWC" ∨ v_3 = "NCHW") ∧ shape(v_1, if v_3 = "NHWC" then ndim(v_1)-1 else 1) % (v_2 * v_2) = 0
+>>
+Rule 5 (block_size should be a positive integer)
+{v_1 : int} |= v_1 > 0
+>>
+Rule 6 (Shape of the output tensor when data_format is NHWC is dependent on input shape and block_size)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 1) * v_2 > 0 ∧ shape(v_1, 2) * v_2 > 0
+>>
+Rule 7 (Input tensor should have the same dtype as output tensor)
+{v_1 : tensor} |= dtype_(v_1) = dtype_(v_1)
+>>
+Rule 8 (Data format string should not be empty)
+{v_1 : str} |= v_1 ≠ ""
+>>
+Rule 9 (The block size must be less than or equal to the input's height and width)
+{v_1 : tensor, v_2 : int, v_3: str} |= if v_3 = "NHWC" then v_2 ≤ shape(v_1, 1) ∧ v_2 ≤ shape(v_1, 2) else v_2 ≤ shape(v_1, 2) ∧ v_2 ≤ shape(v_1, 3)
+>>
+Rule 10 (if data_format is NCHW_VECT_C, the number of channels must be divisible by 4.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NCHW_VECT_C" then shape(v_1, 1) * 4 % shape(v_1, 1) = 0
+>>
+Rule 12 (when the data format is NCHW_VECT_C, the last dimension of the input should be 4)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NCHW_VECT_C" then shape(v_1, ndim(v_1)-1) = 4
+>>
+Rule 13 (block_size cannot be excessively large compared to input dimensions)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" then v_2 ≤ shape(v_1, 1) ∧ v_2 ≤ shape(v_1, 2) else v_2 ≤ shape(v_1, 2) ∧ v_2 ≤ shape(v_1, 3)
+>>
+Rule 14 (input should have positive dimensions)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 17 (Data format is either NHWC, NCHW, or NCHW_VECT_C)
+{v_1: str} |= v_1 = "NHWC" ∨ v_1 = "NCHW" ∨ v_1 = "NCHW_VECT_C"
+>>
+Rule 18 (Channels must be positive)
+{v_1: tensor, v_2:str} |= if v_2 = "NHWC" then shape(v_1, ndim(v_1) - 1) > 0 else if v_2 = "NCHW" then shape(v_1, 1) > 0 else shape(v_1, 1) > 0
+>>
+Rule 19 (input tensor must have rank of 4 when data_format is NHWC or NCHW)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NHWC" ∨ v_2 = "NCHW" then ndim(v_1) = 4
+>>
+Rule 23 (If block size is 1, operation should be equivalent to identity)
+{v_2 : int} |= if v_2 = 1 then true
+>>
+Rule 27 (The depth of the input tensor must be divisible by block_size * block_size when data_format is NHWC or NCHW)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" ∨ v_3 = "NCHW" then shape(v_1, ndim(v_1)-1) % (v_2 * v_2) = 0
+>>
+Rule 28 (When data_format is NCHW_VECT_C, the channel dimension must be divisible by 4)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NCHW_VECT_C" then shape(v_1, 1) % 4 = 0
+>>
+Rule 30 (If the input tensor has 0 elements, output tensor also has 0 elements)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0)
+>>
+Rule 33 (block_size * block_size should be less than or equal to the total number of channels.)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" then v_2 * v_2 <= shape(v_1, ndim(v_1)-1) else if v_3 = "NCHW" then v_2 * v_2 <= shape(v_1, 1) else v_2 * v_2 <= shape(v_1, 1) * 4
+>>
+Rule 37 (Block size should be less than or equal to the height and width, when data_format is NHWC)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" then v_2 ≤ shape(v_1, 1) ∧ v_2 ≤ shape(v_1, 2)
+>>
+Rule 38 (Block size should be less than or equal to the height and width, when data_format is NCHW)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NCHW" then v_2 ≤ shape(v_1, 2) ∧ v_2 ≤ shape(v_1, 3)
+>>
+Rule 40 (Input tensor rank must be at least 3)
+{v_1 : tensor} |= ndim(v_1) ≥ 3
+>>
+Rule 41 (block_size * block_size should be less than or equal to the total number of channels.)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" then v_2 * v_2 ≤ shape(v_1, ndim(v_1)-1) else if v_3 = "NCHW" then v_2 * v_2 ≤ shape(v_1, 1) else v_2 * v_2 ≤ shape(v_1, 1) * 4
+>>
+Rule 48 (The channel dimension of the tensor must be positive.)
+{v_1 : tensor, v_2 : str} |= if v_2 = "NHWC" then shape(v_1, ndim(v_1)-1) > 0 else shape(v_1, 1) > 0
+>>
+Rule 53 (If block_size is greater than one, then channel dimension must be divisible by block_size squared)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_2 > 1 ∧ v_3 = "NHWC" then shape(v_1, ndim(v_1) - 1) % (v_2 * v_2) = 0 else if v_2 > 1 ∧ v_3 = "NCHW" then shape(v_1, 1) % (v_2 * v_2) = 0 else if v_2 > 1 ∧ v_3 = "NCHW_VECT_C" then shape(v_1, 1) % (v_2 * v_2) = 0
+>>
+Rule 60 (when the data format is NCHW_VECT_C and block_size is greater than 1, the channel dimension of the input must be divisible by 4*block_size squared)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NCHW_VECT_C" ∧ v_2 > 1 then shape(v_1, 1) % (4 * (v_2 * v_2)) = 0
+>>
+Rule 68 (block_size * block_size should be less than or equal to the number of channels if data_format is NHWC, otherwise compared with appropriate channels for other data formats)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" then v_2 * v_2 ≤ shape(v_1, ndim(v_1)-1) else if v_3 = "NCHW" then v_2 * v_2 ≤ shape(v_1, 1) else v_2 * v_2 <= shape(v_1, 1) * 4
+>>
+Rule 75 (If block_size is greater than one, and data_format is specified, channel dimensions must abide to divisibility constraint.)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_2 > 1 ∧ v_3 = "NHWC" then shape(v_1, ndim(v_1) - 1) % (v_2 * v_2) = 0 else if v_2 > 1 ∧ v_3 = "NCHW" then shape(v_1, 1) % (v_2 * v_2) = 0 else if v_2 > 1 ∧ v_3 = "NCHW_VECT_C" then shape(v_1, 1) % (4 * (v_2 * v_2)) = 0
+>>
+Rule 89 (Output height is a multiple of block_size if NHWC or NCHW)
+{v_1: tensor, v_2: int, v_3: str} |= if v_3 = "NHWC" ∨ v_3 = "NCHW" then shape(v_1, 1) % v_2 = 0
+>>
+Rule 109 (The data format affects the output shape.)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" then shape(v_1,1) * v_2 > 0 ∧ shape(v_1,2) * v_2 > 0 else if v_3 = "NCHW" then shape(v_1, 2) * v_2 > 0 ∧ shape(v_1, 3) * v_2 > 0
+>>
+Rule 110 (For NHWC, the product of the height and width must be greater than zero)
+{v_1 : tensor, v_2: str} |= if v_2 = "NHWC" then shape(v_1, 1) * shape(v_1, 2) > 0
+>>
+Rule 115 (The data format affects the output shape.)
+{v_1 : tensor, v_2 : int, v_3 : str} |= if v_3 = "NHWC" then shape(v_1, 1) * v_2 > 0 ∧ shape(v_1, 2) * v_2 > 0 else if v_3 = "NCHW" then shape(v_1, 2) * v_2 > 0 ∧ shape(v_1, 3) * v_2 > 0

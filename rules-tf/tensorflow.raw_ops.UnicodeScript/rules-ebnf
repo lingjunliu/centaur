@@ -1,0 +1,66 @@
+>>
+Rule 1 (input tensor should be of type int32)
+{v_1 : tensor} |= dtype_(v_1) = 3
+>>
+Rule 2 (input tensor should have non-zero dimensions)
+{v_1 : tensor} |= ndim(v_1) > 0
+>>
+Rule 3 (minimum value of input tensor should be greater than or equal to -1)
+{v_1 : tensor} |= min(v_1) ≥ -1
+>>
+Rule 4 (maximum value of input tensor should be less than or equal to the maximum possible unicode code point, e.g., 0x10FFFF, but we'll use a smaller value for practicality to avoid potential overflow issues)
+{v_1 : tensor} |= max(v_1) ≤ 1114111
+>>
+Rule 5 (input tensor's shape should be a tuple of positive integers)
+{v_1 : tensor} |= ndim(v_1) > 0 ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 6 (The shape of the input tensor must be within a reasonable limit, preventing extremely large tensors)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 2048
+>>
+Rule 7 (The input tensor should not have more than 5 dimensions.)
+{v_1 : tensor} |= ndim(v_1) ≤ 5
+>>
+Rule 8 (If the input tensor is a scalar, its value must be a valid unicode code point)
+{v_1 : tensor} |= if ndim(v_1) = 0 then (v_1 ≥ -1 ∧ v_1 ≤ 1114111)
+>>
+Rule 9 (The number of elements in the tensor should not exceed a certain limit to prevent memory issues)
+{v_1 : tensor} |=  if ndim(v_1) = 0 then 1 ≤ 1000000 else (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≤ 1000)
+>>
+Rule 11 (The input tensor's values must be representable by int32 without overflow or underflow if converted from other integer types)
+{v_1 : tensor} |= if dtype_(v_1) = 1 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647 else if dtype_(v_1) = 2 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647 else if dtype_(v_1) = 4 then max(v_1) ≤ 2147483647 else if dtype_(v_1) = 5 then max(v_1) ≤ 2147483647
+>>
+Rule 16 (The total number of elements in the input tensor should be less than or equal to 2^20, a reasonable limit to avoid memory explosion)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else (if ndim(v_1) = 1 then shape(v_1, 0) ≤ 1048576 else (if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) ≤ 1048576 else (if ndim(v_1) = 3 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) ≤ 1048576 else (if ndim(v_1) = 4 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) ≤ 1048576 else (if ndim(v_1) = 5 then shape(v_1, 0) * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) ≤ 1048576)))))
+>>
+Rule 17 (if the input is a scalar tensor, it cannot be a NaN value)
+{v_1 : tensor} |= if ndim(v_1) = 0 then v_1 = v_1
+>>
+Rule 18 (if the input tensor has at least one element, then the minimum value should be greater than or equal to -1.)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ndim(v_1) = 0 then min(v_1) ≥ -1
+>>
+Rule 19 (if the input tensor has at least one element, then the maximum value should be less than or equal to 1114111.)
+{v_1 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0) ∨ ndim(v_1) = 0 then max(v_1) ≤ 1114111
+>>
+Rule 20 (if the input tensor is empty, then the min and max values are not relevant, so we don't need to check them.)
+{v_1 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) ∧ ndim(v_1) > 0 then true else if ndim(v_1) = 0 then true else (min(v_1) ≥ -1 ∧ max(v_1) ≤ 1114111)
+>>
+Rule 21 (if the input is not a scalar, each value in the tensor should be greater than or equal to -1 and less than or equal to 1114111)
+{v_1 : tensor} |= if ndim(v_1) ≠ 0 then ∀i ∈ [0, shape(v_1, 0) - 1] : (if ndim(v_1) = 1 then (v_1[i] ≥ -1 ∧ v_1[i] ≤ 1114111))
+>>
+Rule 23 (for tensors with more than 1 dimension, check if each element satisfies the unicode condition)
+{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, shape(v_1, 0) - 1] : (∀j ∈ [0, shape(v_1, 1) - 1] : (if ndim(v_1) = 2 then (v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1114111))))
+>>
+Rule 24 (for tensors with more than 1 dimension, check if each element satisfies the unicode condition, using recursion)
+{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, shape(v_1, 0) - 1] : (if ndim(v_1) = 2 then (v_1[i * shape(v_1, 1) + 0] ≥ -1 ∧ v_1[i * shape(v_1, 1) + 0] ≤ 1114111 ∧ (∀j ∈ [1, shape(v_1, 1) - 1] : v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1114111))))
+>>
+Rule 25 (for tensors with more than 1 dimension, check if each element satisfies the unicode condition, generalized for up to 5 dimensions)
+{v_1 : tensor} |= if ndim(v_1) > 1 then (∀i ∈ [0, shape(v_1, 0) - 1] : (if ndim(v_1) = 2 then (∀j ∈ [0, shape(v_1, 1) - 1] : (v_1[i * shape(v_1, 1) + j] ≥ -1 ∧ v_1[i * shape(v_1, 1) + j] ≤ 1114111)) else if ndim(v_1) = 3 then (∀j ∈ [0, shape(v_1, 1) - 1] : (∀k ∈ [0, shape(v_1, 2) - 1] : (v_1[i * shape(v_1, 1) * shape(v_1, 2) + j * shape(v_1, 2) + k] ≥ -1 ∧ v_1[i * shape(v_1, 1) * shape(v_1, 2) + j * shape(v_1, 2) + k] ≤ 1114111))) else if ndim(v_1) = 4 then (∀j ∈ [0, shape(v_1, 1) - 1] : (∀k ∈ [0, shape(v_1, 2) - 1] : (∀l ∈ [0, shape(v_1, 3) - 1] : (v_1[i * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) + j * shape(v_1, 2) * shape(v_1, 3) + k * shape(v_1, 3) + l] ≥ -1 ∧ v_1[i * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) + j * shape(v_1, 2) * shape(v_1, 3) + k * shape(v_1, 3) + l] ≤ 1114111)))) else if ndim(v_1) = 5 then (∀j ∈ [0, shape(v_1, 1) - 1] : (∀k ∈ [0, shape(v_1, 2) - 1] : (∀l ∈ [0, shape(v_1, 3) - 1] : (∀m ∈ [0, shape(v_1, 4) - 1] : (v_1[i * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) + j * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) + k * shape(v_1, 3) * shape(v_1, 4) + l * shape(v_1, 4) + m] ≥ -1 ∧ v_1[i * shape(v_1, 1) * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) + j * shape(v_1, 2) * shape(v_1, 3) * shape(v_1, 4) + k * shape(v_1, 3) * shape(v_1, 4) + l * shape(v_1, 4) + m] ≤ 1114111)))))))
+>>
+Rule 26 (The input cannot have a dimension of size zero if ndim > 0)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 27 (if the tensor is empty, then it should have ndim = 0)
+{v_1 : tensor} |= if (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then ndim(v_1) = 0
+>>
+Rule 28 (if the tensor is empty, the operation is trivially valid)
+{v_1 : tensor} |= if (∃i ∈ [0, if ndim(v_1) > 0 then ndim(v_1) - 1 else 0] : shape(v_1, i) = 0) ∨ ndim(v_1) = 0 then true

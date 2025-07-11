@@ -1,0 +1,177 @@
+>>
+Rule 1 (Input and Output types cannot be the same)
+{v_1 : dtype, v_2 : dtype} |= v_1 ≠ v_2
+>>
+Rule 2 (If input dtype is larger than output dtype, shape changes, so ndim should be kept or increased.)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 9 ∨ dtype_(v_1) = 10) ∧ (v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5) then ndim(v_1) ≤ ndim(v_1)
+>>
+Rule 3 (If output dtype is larger than input dtype, the last dimension needs to match, but only for some dtypes)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5) ∧ (v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10) then shape(v_1, ndim(v_1) - 1) = 0
+>>
+Rule 4 (Input tensor cannot be a string)
+{v_1 : tensor} |= dtype_(v_1) ≠ 11
+>>
+Rule 5 (Type parameter must be within valid range)
+{v_1 : dtype} |= v_1 ≥ 0 ∧ v_1 ≤ 12
+>>
+Rule 6 (Complex types require careful handling; bitcast is often disallowed, so enforce that when input is complex, output is too)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 ∨ dtype_(v_1) = 10 then v_2 = 9 ∨ v_2 = 10
+>>
+Rule 7 (Ensure input is not a quantized type (15-19 are excluded) to avoid unexpected behavior)
+{v_1 : tensor} |= dtype_(v_1) < 15 ∨ dtype_(v_1) > 19
+>>
+Rule 8 (If the input is int32 or int64, the output cannot be bool)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then v_2 ≠ 0
+>>
+Rule 9 (If the input is bool, the output cannot be complex64 or complex128)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 0 then v_2 ≠ 9 ∧ v_2 ≠ 10
+>>
+Rule 10 (If input is float64, the output should not be bool, int8, int16, int32, or int64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 8 then v_2 ≠ 0 ∧ v_2 ≠ 1 ∧ v_2 ≠ 2 ∧ v_2 ≠ 3 ∧ v_2 ≠ 4
+>>
+Rule 11 (If the output is float16 and the input is complex64 or complex128, it should not happen)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 then dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10
+>>
+Rule 12 (Input cannot be type dtype)
+{v_1 : tensor} |= dtype_(v_1) ≠ 12
+>>
+Rule 14 (The shape must remain the same if both input and output are the same datatype)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = v_2 then ndim(v_1) = ndim(v_1)
+>>
+Rule 15 (If input is a bfloat16 the output should not be complex128)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 13 then v_2 ≠ 10
+>>
+Rule 16 (If input is int8, the output should not be a float64.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 1 then v_2 ≠ 8
+>>
+Rule 17 (Output should not be a string)
+{v_2 : dtype} |= v_2 ≠ 11
+>>
+Rule 18 (If input is complex64, the output should not be a float64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 9 then v_2 ≠ 8
+>>
+Rule 19 (If input is uint32 or uint64, the output can be uint8)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2 = 5
+>>
+Rule 20 (If the output is complex64 or complex128, the input must also be)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 9 ∨ v_2 = 10 then dtype_(v_1) = 9 ∨ dtype_(v_1) = 10
+>>
+Rule 21 (The shape of output should relate to the division if T is larger than type.)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 4 ∧ v_2 = 3) then shape(v_1, ndim(v_1) - 1) = 2
+>>
+Rule 22 (If input is uint8, output must be one of the valid types.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 5 then v_2 = 0 ∨ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 9 ∨ v_2 = 10 ∨ v_2 = 13
+>>
+Rule 23 (If output is int32 and input is int8, the last dimension size of input should be four)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 3 ∧ dtype_(v_1) = 1 then shape(v_1, ndim(v_1) - 1) = 4
+>>
+Rule 24 (If input is float32 and output is uint8, last dimension size of input should be four)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 7 ∧ v_2 = 5 then shape(v_1, ndim(v_1) - 1) = 4
+>>
+Rule 25 (If output is float32 and input is int32, last dimension size of output should be one fourth)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 3 ∧ v_2 = 7 then shape(v_1, ndim(v_1) - 1) = 4
+>>
+Rule 26 (Bitcasting to bool changes shape to account for size difference.)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 0 then ndim(v_1) ≤ ndim(v_1) + 3
+>>
+Rule 27 (If Input and output are the same non-complex type, the shapes have to align.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = v_2 ∧ dtype_(v_1) ≠ 9 ∧ dtype_(v_1) ≠ 10 then ndim(v_1) = ndim(v_1) ∧ ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_1, i)
+>>
+Rule 28 (If output is int64 and input is int8, last dimension of the input must be 8)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 4 ∧ dtype_(v_1) = 1 then shape(v_1, ndim(v_1)-1) = 8
+>>
+Rule 29 (If input is float64 and output is uint8, the last dim size of the input should be 8)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 8 ∧ v_2 = 5 then shape(v_1, ndim(v_1)-1) = 8
+>>
+Rule 31 (If Input is quint8, output can be of the listed types only)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 15 then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 13
+>>
+Rule 32 (If Input is complex128, output cannot be bool, int or float)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 10 then v_2 ≠ 0 ∧ v_2 ≠ 1 ∧ v_2 ≠ 2 ∧ v_2 ≠ 3 ∧ v_2 ≠ 4 ∧ v_2 ≠ 6 ∧ v_2 ≠ 7 ∧ v_2 ≠ 8
+>>
+Rule 33 (If Output is complex128, Input cannot be bool, int or float)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 10 then dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1 ∧ dtype_(v_1) ≠ 2 ∧ dtype_(v_1) ≠ 3 ∧ dtype_(v_1) ≠ 4 ∧ dtype_(v_1) ≠ 6 ∧ dtype_(v_1) ≠ 7 ∧ dtype_(v_1) ≠ 8
+>>
+Rule 34 (If Input is qint8, output can be of the listed types only)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 14 then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8 ∨ v_2 = 13
+>>
+Rule 35 (If the output is uint16 and the input is int8, last dimension size should be 2)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 6 ∧ dtype_(v_1) = 1 then shape(v_1, ndim(v_1) - 1) = 2
+>>
+Rule 36 (If the input is uint16 and the output is uint8, the last dimension size of the input must be 2)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 6 ∧ v_2 = 5 then shape(v_1, ndim(v_1) - 1) = 2
+>>
+Rule 37 (if Input is int16, output cannot be float64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 2 then v_2 ≠ 8
+>>
+Rule 38 (if the Output is float64, the Input must be of the list type only)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 8 then dtype_(v_1) = 13 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 3
+>>
+Rule 39 (If input is half, output shouldnt be larger than float)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 13 then v_2 ≠ 8
+>>
+Rule 40 (If input is uint64, output must not be smaller than int32)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 8 then v_2 ≥ 3
+>>
+Rule 41 (if output is int16, then input is of allowed types)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 2 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 13
+>>
+Rule 42 (If input is int32, output cannot be uint64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 3 then v_2 ≠ 8
+>>
+Rule 43 (If output is quint16, then the input should be of the allowed types)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 16 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 13
+>>
+Rule 44 (If input is float16, output cannot be int64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 6 then v_2 ≠ 4
+>>
+Rule 45 (If output is bfloat16, then input must be from allowlist)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 13 then dtype_(v_1) = 13 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 9
+>>
+Rule 46 (If the input is qint16, the output can be int8, int16, uint16)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 16 then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 6
+>>
+Rule 47 (If the input is quint16 and the output is uint8, last dimension size of input should be 2)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 17 ∧ v_2 = 5 then shape(v_1, ndim(v_1) - 1) = 2
+>>
+Rule 48 (If input is a string, output cannot be any number types or tensor)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 11 then v_2 = 11
+>>
+Rule 49 (If the input is qint32, the output can be int8, int16, uint16)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 18 then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5 ∨ v_2 = 6 ∨ v_2 = 7 ∨ v_2 = 8
+>>
+Rule 50 (If the output is quint8, then the input must be from list allowed datatypes only.)
+{v_1: tensor, v_2: dtype} |= if v_2 = 15 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 51 (If the output is qint16, the input must be from the list of supported data types)
+{v_1: tensor, v_2: dtype} |= if v_2 = 17 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 13
+>>
+Rule 52 (If the input is qint16, the output cant be anything larger than a int32, or a float32.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 17 then v_2 < 4 ∨ v_2 < 8
+>>
+Rule 53 (If output is qint8, input must be of specific types)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 14 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13
+>>
+Rule 54 (If Input is quint32, then output shouldnt be complex128 or complex64 or string)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 19 then v_2 ≠ 9 ∧ v_2 ≠ 10 ∧ v_2 ≠ 11
+>>
+Rule 55 (if output is quint32, the input must be a specific list of dtypes only)
+{v_1: tensor, v_2: dtype} |= if v_2 = 19 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13
+>>
+Rule 56 (If input and output are both quantized types, disallow it.)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) ≥ 14 ∧ dtype_(v_1) ≤ 19 then v_2 < 14 ∨ v_2 > 19
+>>
+Rule 57 (If output is quint16, The last dimension of input must be power of 2 and should at least have a length of 2.)
+{v_1: tensor, v_2: dtype} |= if v_2 = 17 then shape(v_1, ndim(v_1)-1) ≥ 2 ∧ ∃p ∈ [1,8]: shape(v_1, ndim(v_1)-1) = 2 * p
+>>
+Rule 58 (If the input is int16 or int32 or int64 and the output is bool the shape is different.)
+{v_1 : tensor, v_2 : dtype} |= if (dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4) ∧ v_2 = 0 then shape(v_1, ndim(v_1)-1) = 2 ∨ shape(v_1, ndim(v_1)-1) = 4 ∨ shape(v_1, ndim(v_1)-1) = 8
+>>
+Rule 59 (If Output is qint32, then input needs to be from an allowed list of datatypes.)
+{v_1: tensor, v_2: dtype} |= if v_2 = 18 then dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 5 ∨ dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 13
+>>
+Rule 60 (if Input is qint16, output needs to be from the following.)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 17 then v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 6
+>>
+Rule 61 (If input is quint8, the output cant be complex numbers)
+{v_1: tensor, v_2: dtype} |= if dtype_(v_1) = 15 then v_2 ≠ 9 ∧ v_2 ≠ 10

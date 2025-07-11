@@ -1,0 +1,111 @@
+>>
+Rule 1 (Input tensors x and q must have the same type, which must be float32 or float64)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 2 (Input tensor x must be float32 or float64)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 4 (Input tensors x and q must have the same shape)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ (if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = shape(v_2, i)))
+>>
+Rule 5 (shape of tensor x must be positive)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 7 (The rank of input tensors x and q should be less than or equal to a maximum value, say 5)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≤ 5 ∧ ndim(v_2) ≤ 5
+>>
+Rule 8 (If one of the inputs is a scalar (rank 0), the other input should have a rank greater than or equal to zero)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0 ∨ ndim(v_2) = 0)
+>>
+Rule 9 (The size of any dimension of the input tensors cannot exceed a reasonable limit)
+{v_1 : tensor, v_2 : tensor} |= (if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 1024) ∧ (if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) < 1024)
+>>
+Rule 11 (If the input tensors have the same number of dimensions, ensure the dimensions are within a reasonable range.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = ndim(v_2) then (if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) < 2048 ∧ shape(v_2, i) < 2048)
+>>
+Rule 13 (If x is a scalar, then q must also be a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 0 then ndim(v_2) = 0
+>>
+Rule 14 (If q is a scalar, then x must also be a scalar)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_2) = 0 then ndim(v_1) = 0
+>>
+Rule 15 (Check that the size of tensor 'x' is not zero if its rank is positive)
+{v_1 : tensor} |= if ndim(v_1) > 0 then (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0)
+>>
+Rule 17 (Check if the total number of elements in the input tensor x is below a certain threshold.  Note: No prod function so manual implementation.)
+{v_1 : tensor} |= if ndim(v_1) = 0 then true else (if ndim(v_1) = 1 then shape(v_1, 0) < 10000000 else if ndim(v_1) = 2 then shape(v_1, 0) * shape(v_1, 1) < 10000000)
+>>
+Rule 21 (If the input tensors x and q are 1D, then their sizes should be the same)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 1 ∧ ndim(v_2) = 1 then shape(v_1, 0) = shape(v_2, 0)
+>>
+Rule 23 (If x and q are matrices (2D tensors), the number of columns of x should match the number of rows of q)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 1) = shape(v_2, 0)
+>>
+Rule 26 (If the input tensors x and q have different number of dimensions, the tensor with fewer dimensions must have size 1 in all dimensions.)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) ≠ ndim(v_2) then (if ndim(v_1) < ndim(v_2) then (if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 1) else (if ndim(v_2) > 0 then ∀i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 1))
+>>
+Rule 29 (If the dimensions of 'x' are greater than one, ensure the leading dimension is large enough, say bigger than 4)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1,0) > 4
+>>
+Rule 31 (Check that the minimum value of tensor 'x' is greater than a reasonable lower bound, to prevent numerical instability)
+{v_1 : tensor} |= min(v_1) > -100
+>>
+Rule 32 (Check that the maximum value of tensor 'x' is less than a reasonable upper bound, to prevent overflow issues)
+{v_1 : tensor} |= max(v_1) < 100
+>>
+Rule 33 (Check that the minimum value of tensor 'q' is greater than a reasonable lower bound, to prevent issues close to the singularity)
+{v_1 : tensor} |= min(v_1) > 0.0001
+>>
+Rule 35 (If any dimension of x is zero, then every dimension of q must be zero)
+{v_1 : tensor, v_2 : tensor} |= if (∃i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0) then (∃i ∈ [0, ndim(v_2) - 1] : shape(v_2, i) = 0)
+>>
+Rule 37 (Check that the element type of tensor q is the same as element type of tensor x.)
+{v_1 : tensor, v_2 : tensor} |= dtype_(v_1) = dtype_(v_2)
+>>
+Rule 42 (Check that dtype of x is float32 if x is rank 0)
+{v_1 : tensor} |= if ndim(v_1) = 0 then dtype_(v_1) = 7
+>>
+Rule 44 (If x has ndim=2 then shape(x,0) must be greater than 1)
+{v_1 : tensor} |= if ndim(v_1) = 2 then shape(v_1, 0) > 1
+>>
+Rule 46 (Check that dtype of x is float64 if x is rank 1)
+{v_1 : tensor} |= if ndim(v_1) = 1 then dtype_(v_1) = 8
+>>
+Rule 48 (If the shape of tensor 'x' is greater than one, check that the second element is greater than zero)
+{v_1 : tensor} |= if ndim(v_1) > 1 then shape(v_1, 1) > 0
+>>
+Rule 51 (Check that dtype of x is float16, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 53 (If x has ndim greater than 0, then all its dimensions must be greater than 0)
+{v_1 : tensor} |= if ndim(v_1) > 0 then ∀i ∈ [0, ndim(v_1)-1] : shape(v_1, i) > 0
+>>
+Rule 56 (The output tensor must have the same data type as input tensor x.)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 6
+>>
+Rule 57 (If input x is a vector, its length should not exceed 10000)
+{v_1 : tensor} |= if ndim(v_1) = 1 then shape(v_1, 0) < 10000
+>>
+Rule 63 (If x has a large number of dimensions (e.g., > 5), then the total number of elements should not exceed a certain limit.)
+{v_1 : tensor} |= if ndim(v_1) > 5 then true
+>>
+Rule 64 (q must be non-negative and must be greater than the minimum possible value for it's dtype.)
+{v_1 : tensor} |= min(v_1) > 0
+>>
+Rule 65 (Check that x is a scalar if and only if q is a scalar)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) = 0) = (ndim(v_2) = 0)
+>>
+Rule 68 (If x has ndim > 1 and shape(x, 0) is very large (say, exceeds 1000), then its dtype cannot be float16)
+{v_1 : tensor} |= if ndim(v_1) > 1 ∧ shape(v_1, 0) > 1000 then dtype_(v_1) ≠ 6
+>>
+Rule 70 (If both x and q are matrices (ndim == 2), then the number of rows should be at least 1)
+{v_1 : tensor, v_2 : tensor} |= if ndim(v_1) = 2 ∧ ndim(v_2) = 2 then shape(v_1, 0) > 0 ∧ shape(v_2, 0) > 0
+>>
+Rule 71 (Check that the maximum value of tensor 'x' is finite)
+{v_1 : tensor} |= max(v_1) < 1000000
+>>
+Rule 72 (Check that the minimum value of tensor 'q' is small enough to avoid overflow errors.)
+{v_1 : tensor} |= min(v_1) < 10000
+>>
+Rule 73 (Check that the maximum value of tensor 'q' is small enough to avoid overflow errors.)
+{v_1 : tensor} |= max(v_1) < 10000
