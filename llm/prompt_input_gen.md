@@ -1,5 +1,5 @@
 For the api {api}, give me at least 10 valid inputs. These are the criteria:
-- The inputs should be in numpy format (e.g. tensors should be converted to numpy, types should be numpy types etc.)
+- The inputs should be in numpy format (e.g. tensors should be numpy arrays, types should be numpy dtypes etc.)
 - **IMPORTANT** Strictly follow a specific signature. The signature for this api is:
   {signature}
 - Only use inputs of the type described in the signature, even if the api accepts other types. For example, if a parameter `other` supports both "tensor" and "float" types but the signature strictly mentions "tensor", do not generate inputs with "float" type and only generate "tensor" type inputs.
