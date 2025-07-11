@@ -9869,3 +9869,5754 @@ signatures["tf.nn.l2_loss"] = {
     },
     "inner": {}
 }
+signatures["tf.raw_ops.Abort"] = {
+    "args": {},
+    "kwargs": {
+        "error_msg": "string",
+        "exit_without_error": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Abs"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AccumulateNV2"] = {
+    "args": {
+        "inputs": "tensor_list",
+        "shape": "list" # Could also be tensor, depending on how tf.TensorShape is represented
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AccumulatorApplyGradient"] = {
+    "args": {
+        "handle": "tensor", # Should be string, but closest is tensor
+        "local_step": "tensor", # Should be int64, but closest is tensor
+        "gradient": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AccumulatorNumAccumulated"] = {
+    "args": {
+        "handle": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AccumulatorSetGlobalStep"] = {
+    "args": {
+        "handle": "tensor",
+        "new_global_step": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AccumulatorTakeGradient"] = {
+    "args": {
+        "handle": "tensor",
+        "num_required": "tensor",
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Acos"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Acosh"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Add"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AddManySparseToTensorsMap"] = {
+    "args": {
+        "sparse_indices": "tensor",
+        "sparse_values": "tensor",
+        "sparse_shape": "tensor"
+    },
+    "kwargs": {
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AddSparseToTensorsMap"] = {
+    "args": {
+        "sparse_indices": "tensor",
+        "sparse_values": "tensor",
+        "sparse_shape": "tensor"
+    },
+    "kwargs": {
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AddV2"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AdjustHue"] = {
+    "args": {
+        "images": "tensor",
+        "delta": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AdjustSaturation"] = {
+    "args": {
+        "images": "tensor",
+        "scale": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.All"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AllCandidateSampler"] = {
+    "args": {
+        "true_classes": "tensor",
+        "num_true": "integer",
+        "num_sampled": "integer"
+    },
+    "kwargs": {
+        "unique": "boolean",
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Angle"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "Tout": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Any"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor" # Could be int32 or int64, representing the dimensions
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyAdadelta"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "accum_update": "tensor",
+        "lr": "tensor",
+        "rho": "tensor",
+        "epsilon": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyAdagrad"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "lr": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "update_slots": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyAdagradDA"] = {
+    "args": {
+        "var": "tensor",
+        "gradient_accumulator": "tensor",
+        "gradient_squared_accumulator": "tensor",
+        "grad": "tensor",
+        "lr": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "global_step": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyAdam"] = {
+    "args": {
+        "var": "tensor",
+        "m": "tensor",
+        "v": "tensor",
+        "beta1_power": "tensor",
+        "beta2_power": "tensor",
+        "lr": "tensor",
+        "beta1": "tensor",
+        "beta2": "tensor",
+        "epsilon": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "use_nesterov": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyAddSign"] = {
+    "args": {
+        "var": "tensor",
+        "m": "tensor",
+        "lr": "tensor",
+        "alpha": "tensor",
+        "sign_decay": "tensor",
+        "beta": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyCenteredRMSProp"] = {
+    "args": {
+        "var": "tensor",
+        "mg": "tensor",
+        "ms": "tensor",
+        "mom": "tensor",
+        "lr": "tensor",
+        "rho": "tensor",
+        "momentum": "tensor",
+        "epsilon": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyFtrl"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "linear": "tensor",
+        "grad": "tensor",
+        "lr": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "lr_power": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "multiply_linear_by_lr": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyFtrlV2"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "linear": "tensor",
+        "grad": "tensor",
+        "lr": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "l2_shrinkage": "tensor",
+        "lr_power": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "multiply_linear_by_lr": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyGradientDescent"] = {
+    "args": {
+        "var": "tensor",
+        "alpha": "tensor",
+        "delta": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyMomentum"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "lr": "tensor",
+        "grad": "tensor",
+        "momentum": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "use_nesterov": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyPowerSign"] = {
+    "args": {
+        "var": "tensor",
+        "m": "tensor",
+        "lr": "tensor",
+        "logbase": "tensor",
+        "sign_decay": "tensor",
+        "beta": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyProximalAdagrad"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "lr": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyProximalGradientDescent"] = {
+    "args": {
+        "var": "tensor",
+        "alpha": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "delta": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApplyRMSProp"] = {
+    "args": {
+        "var": "tensor",
+        "ms": "tensor",
+        "mom": "tensor",
+        "lr": "tensor",
+        "rho": "tensor",
+        "momentum": "tensor",
+        "epsilon": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApproxTopK"] = {
+    "args": {
+        "input": "tensor",
+        "k": "integer"
+    },
+    "kwargs": {
+        "reduction_dimension": "integer",
+        "recall_target": "float",
+        "is_max_k": "boolean",
+        "reduction_input_size_override": "integer",
+        "aggregate_to_topk": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ApproximateEqual"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "tolerance": "float",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ArgMax"] = {
+    "args": {
+        "input": "tensor",
+        "dimension": "tensor" # Could also be an integer, but tensor seems more general
+    },
+    "kwargs": {
+        "output_type": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ArgMin"] = {
+    "args": {
+        "input": "tensor",
+        "dimension": "tensor" # Could also be integer since it is described as int32 or int64. Keeping it as tensor as the argument is a Tensor.
+    },
+    "kwargs": {
+        "output_type": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Asin"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Asinh"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Assign"] = {
+    "args": {
+        "ref": "tensor",
+        "value": "tensor"
+    },
+    "kwargs": {
+        "validate_shape": "boolean",
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AssignAdd"] = {
+    "args": {
+        "ref": "tensor",
+        "value": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AssignSub"] = {
+    "args": {
+        "ref": "tensor",
+        "value": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Atan"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Atan2"] = {
+    "args": {
+        "y": "tensor",
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Atanh"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AvgPool"] = {
+    "args": {
+        "value": "tensor",
+        "ksize": "list",
+        "strides": "list",
+        "padding": "string"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AvgPool3D"] = {
+    "args": {
+        "input": "tensor",
+        "ksize": "list", # it's a list of ints
+        "strides": "list", # it's a list of ints
+        "padding": "string"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.AvgPool3DGrad"] = {
+    "args": {
+        "orig_input_shape": "tensor",
+        "grad": "tensor",
+        "ksize": "list",
+        "strides": "list",
+        "padding": "string"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Barrier"] = {
+    "args": {
+        "component_types": "list" # List of dtypes
+    },
+    "kwargs": {
+        "shapes": "list", # List of shapes
+        "capacity": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BarrierClose"] = {
+    "args": {
+        "handle": "tensor"
+    },
+    "kwargs": {
+        "cancel_pending_enqueues": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BarrierIncompleteSize"] = {
+    "args": {
+        "handle": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BarrierInsertMany"] = {
+    "args": {
+        "handle": "tensor",
+        "keys": "tensor",
+        "values": "tensor",
+        "component_index": "integer"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BarrierReadySize"] = {
+    "args": {
+        "handle": "tensor" # The documentation says it's a mutable string, but since it's a tensor, I'm choosing tensor
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BarrierTakeMany"] = {
+    "args": {
+        "handle": "tensor",
+        "num_elements": "tensor",
+        "component_types": "list" # list of dtypes
+    },
+    "kwargs": {
+        "allow_small_batch": "boolean",
+        "wait_for_incomplete": "boolean",
+        "timeout_ms": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BatchMatMul"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "adj_x": "boolean",
+        "adj_y": "boolean",
+        "grad_x": "boolean",
+        "grad_y": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BatchMatMulV2"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "adj_x": "boolean",
+        "adj_y": "boolean",
+        "grad_x": "boolean",
+        "grad_y": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BatchMatMulV3"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor",
+        "Tout": "dtype"
+    },
+    "kwargs": {
+        "adj_x": "boolean",
+        "adj_y": "boolean",
+        "grad_x": "boolean",
+        "grad_y": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BatchToSpace"] = {
+    "args": {
+        "input": "tensor",
+        "crops": "tensor",
+        "block_size": "integer"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BatchToSpaceND"] = {
+    "args": {
+        "input": "tensor",
+        "block_shape": "tensor",
+        "crops": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Betainc"] = {
+    "args": {
+        "a": "tensor",
+        "b": "tensor",
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BiasAdd"] = {
+    "args": {
+        "value": "tensor",
+        "bias": "tensor"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BiasAddGrad"] = {
+    "args": {
+        "out_backprop": "tensor"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Bincount"] = {
+    "args": {
+        "arr": "tensor",
+        "size": "tensor",
+        "weights": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Bitcast"] = {
+    "args": {
+        "input": "tensor",
+        "type": "dtype"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.BroadcastTo"] = {
+    "args": {
+        "input": "tensor",
+        "shape": "tensor"  # A 1-D `int` Tensor, so tensor type is suitable
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Bucketize"] = {
+    "args": {
+        "input": "tensor",
+        "boundaries": "list" # Should be a list of floats, but the closest type is list
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Cast"] = {
+    "args": {
+        "x": "tensor",
+        "DstT": "dtype"
+    },
+    "kwargs": {
+        "Truncate": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Ceil"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.CheckNumerics"] = {
+    "args": {
+        "tensor": "tensor",
+        "message": "string"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ClipByValue"] = {
+    "args": {
+        "t": "tensor",
+        "clip_value_min": "tensor",
+        "clip_value_max": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.CombinedNonMaxSuppression"] = {
+    "args": {
+        "boxes": "tensor",
+        "scores": "tensor",
+        "max_output_size_per_class": "tensor", # Should this be integer instead?
+        "max_total_size": "tensor", # Should this be integer instead?
+        "iou_threshold": "tensor", # Should this be float instead?
+        "score_threshold": "tensor" # Should this be float instead?
+    },
+    "kwargs": {
+        "pad_per_class": "boolean",
+        "clip_boxes": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Complex"] = {
+    "args": {
+        "real": "tensor",
+        "imag": "tensor"
+    },
+    "kwargs": {
+        "Tout": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ComplexAbs"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "Tout": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ComputeAccidentalHits"] = {
+    "args": {
+        "true_classes": "tensor",
+        "sampled_candidates": "tensor",
+        "num_true": "integer"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ConditionalAccumulator"] = {
+    "args": {
+        "dtype": "dtype",
+        "shape": "list" # Actually a TensorShape
+    },
+    "kwargs": {
+        "container": "string",
+        "shared_name": "string",
+        "reduction_type": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ConjugateTranspose"] = {
+    "args": {
+        "x": "tensor",
+        "perm": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ControlTrigger"] = {
+    "args": {},
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Conv2D"] = {
+    "args": {
+        "input": "tensor",
+        "filter": "tensor",
+        "strides": "list",
+        "padding": "string"
+    },
+    "kwargs": {
+        "use_cudnn_on_gpu": "boolean",
+        "explicit_paddings": "list",
+        "data_format": "string",
+        "dilations": "list",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Conv2DBackpropFilter"] = {
+    "args": {
+        "input": "tensor",
+        "filter_sizes": "tensor",
+        "out_backprop": "tensor"
+    },
+    "kwargs": {
+        "strides": "list",
+        "padding": "string",
+        "use_cudnn_on_gpu": "boolean",
+        "explicit_paddings": "list",
+        "data_format": "string",
+        "dilations": "list",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Conv2DBackpropInput"] = {
+    "args": {
+        "input_sizes": "tensor",
+        "filter": "tensor",
+        "out_backprop": "tensor"
+    },
+    "kwargs": {
+        "strides": "list",
+        "padding": "string",
+        "use_cudnn_on_gpu": "boolean",
+        "explicit_paddings": "list",
+        "data_format": "string",
+        "dilations": "list",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Conv3D"] = {
+    "args": {
+        "input": "tensor",
+        "filter": "tensor",
+        "strides": "list"
+    },
+    "kwargs": {
+        "padding": "string",
+        "data_format": "string",
+        "dilations": "list",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Conv3DBackpropFilterV2"] = {
+    "args": {
+        "input": "tensor",
+        "filter_sizes": "tensor",
+        "out_backprop": "tensor"
+    },
+    "kwargs": {
+        "strides": "list",
+        "padding": "string",
+        "data_format": "string",
+        "dilations": "list",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Conv3DBackpropInputV2"] = {
+    "args": {
+        "input_sizes": "tensor",
+        "filter": "tensor",
+        "out_backprop": "tensor"
+    },
+    "kwargs": {
+        "strides": "list",
+        "padding": "string",
+        "data_format": "string",
+        "dilations": "list",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Cos"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Cosh"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.CountUpTo"] = {
+    "args": {
+        "ref": "tensor",
+        "limit": "integer"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.CropAndResize"] = {
+    "args": {
+        "image": "tensor",
+        "boxes": "tensor",
+        "box_ind": "tensor",
+        "crop_size": "tensor"
+    },
+    "kwargs": {
+        "method": "string",
+        "extrapolation_value": "float",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.CropAndResizeGradBoxes"] = {
+    "args": {
+        "grads": "tensor",
+        "image": "tensor",
+        "boxes": "tensor",
+        "box_ind": "tensor"
+    },
+    "kwargs": {
+        "method": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.CropAndResizeGradImage"] = {
+    "args": {
+        "grads": "tensor",
+        "boxes": "tensor",
+        "box_ind": "tensor",
+        "image_size": "tensor",
+        "T": "dtype"
+    },
+    "kwargs": {
+        "method": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Cross"] = {
+    "args": {
+        "a": "tensor",
+        "b": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Cumprod"] = {
+    "args": {
+        "x": "tensor",
+        "axis": "tensor"
+    },
+    "kwargs": {
+        "exclusive": "boolean",
+        "reverse": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Cumsum"] = {
+    "args": {
+        "x": "tensor",
+        "axis": "tensor"
+    },
+    "kwargs": {
+        "exclusive": "boolean",
+        "reverse": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DataFormatDimMap"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "src_format": "string",
+        "dst_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DataFormatVecPermute"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "src_format": "string",
+        "dst_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DebugGradientIdentity"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DebugGradientRefIdentity"] = {
+    "args": {
+        "input": "tensor" # Mutable Tensor should be represented by "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeAndCropJpeg"] = {
+    "args": {
+        "contents": "tensor",
+        "crop_window": "tensor"
+    },
+    "kwargs": {
+        "channels": "integer",
+        "ratio": "integer",
+        "fancy_upscaling": "boolean",
+        "try_recover_truncated": "boolean",
+        "acceptable_fraction": "float",
+        "dct_method": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeBase64"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeBmp"] = {
+    "args": {
+        "contents": "string"  # The BMP-encoded image is a string.
+    },
+    "kwargs": {
+        "channels": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeCompressed"] = {
+    "args": {
+        "bytes": "tensor"
+    },
+    "kwargs": {
+        "compression_type": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeGif"] = {
+    "args": {
+        "contents": "string" # A `Tensor` of type `string` but 0-D. Choosing string as best match.
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeImage"] = {
+    "args": {
+        "contents": "tensor"
+    },
+    "kwargs": {
+        "channels": "integer",
+        "dtype": "dtype",
+        "expand_animations": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeJSONExample"] = {
+    "args": {
+        "json_examples": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeJpeg"] = {
+    "args": {
+        "contents": "tensor"
+    },
+    "kwargs": {
+        "channels": "integer",
+        "ratio": "integer",
+        "fancy_upscaling": "boolean",
+        "try_recover_truncated": "boolean",
+        "acceptable_fraction": "float",
+        "dct_method": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodePaddedRaw"] = {
+    "args": {
+        "input_bytes": "tensor",
+        "fixed_length": "tensor", # Tensor of type `int32` is a tensor
+        "out_type": "dtype"
+    },
+    "kwargs": {
+        "little_endian": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodePng"] = {
+    "args": {
+        "contents": "string"
+    },
+    "kwargs": {
+        "channels": "integer",
+        "dtype": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DecodeRaw"] = {
+    "args": {
+        "bytes": "tensor",
+        "out_type": "dtype"
+    },
+    "kwargs": {
+        "little_endian": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DeepCopy"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DeleteSessionTensor"] = {
+    "args": {
+        "handle": "string" # The handle is a string Tensor
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DenseBincount"] = {
+    "args": {
+        "input": "tensor",
+        "size": "tensor",
+        "weights": "tensor"
+    },
+    "kwargs": {
+        "binary_output": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DepthToSpace"] = {
+    "args": {
+        "input": "tensor",
+        "block_size": "integer"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DepthwiseConv2dNative"] = {
+    "args": {
+        "input": "tensor",
+        "filter": "tensor",
+        "strides": "list", # It's a list of ints
+        "padding": "string"
+    },
+    "kwargs": {
+        "explicit_paddings": "list", # It's a list of ints
+        "data_format": "string",
+        "dilations": "list", # It's a list of ints
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DepthwiseConv2dNativeBackpropFilter"] = {
+    "args": {
+        "input": "tensor",
+        "filter_sizes": "tensor",
+        "out_backprop": "tensor"
+    },
+    "kwargs": {
+        "strides": "list",
+        "padding": "string",
+        "explicit_paddings": "list",
+        "data_format": "string",
+        "dilations": "list",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DepthwiseConv2dNativeBackpropInput"] = {
+    "args": {
+        "input_sizes": "tensor",
+        "filter": "tensor",
+        "out_backprop": "tensor"
+    },
+    "kwargs": {
+        "strides": "list",
+        "padding": "string",
+        "explicit_paddings": "list", # Should be list of integers?
+        "data_format": "string",
+        "dilations": "list", # Should be list of integers?
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Dequantize"] = {
+    "args": {
+        "input": "tensor",
+        "min_range": "tensor",
+        "max_range": "tensor"
+    },
+    "kwargs": {
+        "mode": "string",
+        "narrow_range": "boolean",
+        "axis": "integer",
+        "dtype": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DeserializeManySparse"] = {
+    "args": {
+        "serialized_sparse": "tensor",
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DestroyTemporaryVariable"] = {
+    "args": {
+        "ref": "tensor",
+        "var_name": "string"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Diag"] = {
+    "args": {
+        "diagonal": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DiagPart"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Digamma"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Dilation2D"] = {
+    "args": {
+        "input": "tensor",
+        "filter": "tensor"
+    },
+    "kwargs": {
+        "strides": "list",
+        "rates": "list",
+        "padding": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Dilation2DBackpropFilter"] = {
+    "args": {
+        "input": "tensor",
+        "filter": "tensor",
+        "out_backprop": "tensor",
+        "strides": "list",
+        "rates": "list",
+        "padding": "string"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Dilation2DBackpropInput"] = {
+    "args": {
+        "input": "tensor",
+        "filter": "tensor",
+        "out_backprop": "tensor"
+    },
+    "kwargs": {
+        "strides": "list", # Could also be tuple
+        "rates": "list", # Could also be tuple
+        "padding": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Div"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DivNoNan"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DrawBoundingBoxes"] = {
+    "args": {
+        "images": "tensor",
+        "boxes": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DrawBoundingBoxesV2"] = {
+    "args": {
+        "images": "tensor",
+        "boxes": "tensor",
+        "colors": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DynamicPartition"] = {
+    "args": {
+        "data": "tensor",
+        "partitions": "tensor",
+        "num_partitions": "integer"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.DynamicStitch"] = {
+    "args": {
+        "indices": "tensor_list",
+        "data": "tensor_list"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.EditDistance"] = {
+    "args": {
+        "hypothesis_indices": "tensor",
+        "hypothesis_values": "tensor",
+        "hypothesis_shape": "tensor",
+        "truth_indices": "tensor",
+        "truth_values": "tensor",
+        "truth_shape": "tensor"
+    },
+    "kwargs": {
+        "normalize": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Elu"] = {
+    "args": {
+        "features": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Empty"] = {
+    "args": {
+        "shape": "tensor", # A `Tensor` of type `int32` is best represented as a generic tensor
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "init": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.EncodeBase64"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "pad": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.EncodeJpeg"] = {
+    "args": {
+        "image": "tensor"
+    },
+    "kwargs": {
+        "format": "string",
+        "quality": "integer",
+        "progressive": "boolean",
+        "optimize_size": "boolean",
+        "chroma_downsampling": "boolean",
+        "density_unit": "string",
+        "x_density": "integer",
+        "y_density": "integer",
+        "xmp_metadata": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.EncodeJpegVariableQuality"] = {
+    "args": {
+        "images": "tensor",
+        "quality": "tensor" # Should be integer but is represented as a tensor
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.EncodePng"] = {
+    "args": {
+        "image": "tensor"
+    },
+    "kwargs": {
+        "compression": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.EnsureShape"] = {
+    "args": {
+        "input": "tensor",
+        "shape": "list" # Could also be a tensor, but list seems closer to tf.TensorShape
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Equal"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "incompatible_shape_error": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Erf"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Erfc"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Erfinv"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.EuclideanNorm"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Exp"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ExpandDims"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor" # Should this be "integer"? The doc says it is a Tensor of int32 or int64
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Expm1"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ExtractGlimpse"] = {
+    "args": {
+        "input": "tensor",
+        "size": "tensor",
+        "offsets": "tensor"
+    },
+    "kwargs": {
+        "centered": "boolean",
+        "normalized": "boolean",
+        "uniform_noise": "boolean",
+        "noise": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ExtractImagePatches"] = {
+    "args": {
+        "images": "tensor",
+        "ksizes": "list",
+        "strides": "list",
+        "rates": "list"
+    },
+    "kwargs": {
+        "padding": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ExtractJpegShape"] = {
+    "args": {
+        "contents": "tensor"
+    },
+    "kwargs": {
+        "output_type": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ExtractVolumePatches"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "ksizes": "list", # list of integers
+        "strides": "list", # list of integers
+        "padding": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FIFOQueue"] = {
+    "args": {
+        "component_types": "list" # List of dtypes
+    },
+    "kwargs": {
+        "shapes": "list", # List of shapes (each a tf.TensorShape or list of ints)
+        "capacity": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Fact"] = {
+    "args": {},
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FakeQuantWithMinMaxArgs"] = {
+    "args": {
+        "inputs": "tensor"
+    },
+    "kwargs": {
+        "min": "float",
+        "max": "float",
+        "num_bits": "integer",
+        "narrow_range": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FakeQuantWithMinMaxArgsGradient"] = {
+    "args": {
+        "gradients": "tensor",
+        "inputs": "tensor"
+    },
+    "kwargs": {
+        "min": "float",
+        "max": "float",
+        "num_bits": "integer",
+        "narrow_range": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FakeQuantWithMinMaxVars"] = {
+    "args": {
+        "inputs": "tensor",
+        "min": "tensor",
+        "max": "tensor"
+    },
+    "kwargs": {
+        "num_bits": "integer",
+        "narrow_range": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FakeQuantWithMinMaxVarsGradient"] = {
+    "args": {
+        "gradients": "tensor",
+        "inputs": "tensor",
+        "min": "tensor",
+        "max": "tensor"
+    },
+    "kwargs": {
+        "num_bits": "integer",
+        "narrow_range": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FakeQuantWithMinMaxVarsPerChannel"] = {
+    "args": {
+        "inputs": "tensor",
+        "min": "tensor",
+        "max": "tensor"
+    },
+    "kwargs": {
+        "num_bits": "integer",
+        "narrow_range": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FakeQuantWithMinMaxVarsPerChannelGradient"] = {
+    "args": {
+        "gradients": "tensor",
+        "inputs": "tensor",
+        "min": "tensor",
+        "max": "tensor"
+    },
+    "kwargs": {
+        "num_bits": "integer",
+        "narrow_range": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Fill"] = {
+    "args": {
+        "dims": "tensor",
+        "value": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Fingerprint"] = {
+    "args": {
+        "data": "tensor",
+        "method": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FixedUnigramCandidateSampler"] = {
+    "args": {
+        "true_classes": "tensor",
+        "num_true": "integer",
+        "num_sampled": "integer",
+        "unique": "boolean",
+        "range_max": "integer"
+    },
+    "kwargs": {
+        "vocab_file": "string",
+        "distortion": "float",
+        "num_reserved_ids": "integer",
+        "num_shards": "integer",
+        "shard": "integer",
+        "unigrams": "list",  # Could be a list of floats, but going with list for simplicity
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Floor"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FloorDiv"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FloorMod"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FractionalAvgPool"] = {
+    "args": {
+        "value": "tensor",
+        "pooling_ratio": "list" # Actually a list of floats, but list is the closest type
+    },
+    "kwargs": {
+        "pseudo_random": "boolean",
+        "overlapping": "boolean",
+        "deterministic": "boolean",
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FractionalMaxPool"] = {
+    "args": {
+        "value": "tensor",
+        "pooling_ratio": "list" # Could also be tuple?
+    },
+    "kwargs": {
+        "pseudo_random": "boolean",
+        "overlapping": "boolean",
+        "deterministic": "boolean",
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FusedBatchNorm"] = {
+    "args": {
+        "x": "tensor",
+        "scale": "tensor",
+        "offset": "tensor",
+        "mean": "tensor",
+        "variance": "tensor"
+    },
+    "kwargs": {
+        "epsilon": "float",
+        "exponential_avg_factor": "float",
+        "data_format": "string",
+        "is_training": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FusedBatchNormGrad"] = {
+    "args": {
+        "y_backprop": "tensor",
+        "x": "tensor",
+        "scale": "tensor",
+        "reserve_space_1": "tensor",
+        "reserve_space_2": "tensor"
+    },
+    "kwargs": {
+        "epsilon": "float",
+        "data_format": "string",
+        "is_training": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FusedBatchNormGradV2"] = {
+    "args": {
+        "y_backprop": "tensor",
+        "x": "tensor",
+        "scale": "tensor",
+        "reserve_space_1": "tensor",
+        "reserve_space_2": "tensor"
+    },
+    "kwargs": {
+        "epsilon": "float",
+        "data_format": "string",
+        "is_training": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FusedBatchNormGradV3"] = {
+    "args": {
+        "y_backprop": "tensor",
+        "x": "tensor",
+        "scale": "tensor",
+        "reserve_space_1": "tensor",
+        "reserve_space_2": "tensor",
+        "reserve_space_3": "tensor"
+    },
+    "kwargs": {
+        "epsilon": "float",
+        "data_format": "string",
+        "is_training": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FusedBatchNormV2"] = {
+    "args": {
+        "x": "tensor",
+        "scale": "tensor",
+        "offset": "tensor",
+        "mean": "tensor",
+        "variance": "tensor"
+    },
+    "kwargs": {
+        "epsilon": "float",
+        "exponential_avg_factor": "float",
+        "data_format": "string",
+        "is_training": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FusedBatchNormV3"] = {
+    "args": {
+        "x": "tensor",
+        "scale": "tensor",
+        "offset": "tensor",
+        "mean": "tensor",
+        "variance": "tensor"
+    },
+    "kwargs": {
+        "epsilon": "float",
+        "exponential_avg_factor": "float",
+        "data_format": "string",
+        "is_training": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FusedPadConv2D"] = {
+    "args": {
+        "input": "tensor",
+        "paddings": "tensor",
+        "filter": "tensor"
+    },
+    "kwargs": {
+        "mode": "string",
+        "strides": "list",  # List of ints
+        "padding": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.FusedResizeAndPadConv2D"] = {
+    "args": {
+        "input": "tensor",
+        "size": "tensor",
+        "paddings": "tensor",
+        "filter": "tensor",
+        "mode": "string",
+        "strides": "list", # it is a list of ints
+        "padding": "string"
+    },
+    "kwargs": {
+        "resize_align_corners": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Gather"] = {
+    "args": {
+        "params": "tensor",
+        "indices": "tensor"
+    },
+    "kwargs": {
+        "validate_indices": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.GatherNd"] = {
+    "args": {
+        "params": "tensor",
+        "indices": "tensor"
+    },
+    "kwargs": {
+        "bad_indices_policy": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.GatherV2"] = {
+    "args": {
+        "params": "tensor",
+        "indices": "tensor",
+        "axis": "tensor" # Could also be integer, but it's passed as a Tensor.
+    },
+    "kwargs": {
+        "batch_dims": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.GetSessionHandle"] = {
+    "args": {
+        "value": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.GetSessionHandleV2"] = {
+    "args": {
+        "value": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.GetSessionTensor"] = {
+    "args": {
+        "handle": "tensor",
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Greater"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.GreaterEqual"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.GuaranteeConst"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.HSVToRGB"] = {
+    "args": {
+        "images": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.HistogramFixedWidth"] = {
+    "args": {
+        "values": "tensor",
+        "value_range": "tensor",
+        "nbins": "tensor" # Should be "integer" since it is a scalar int32 tensor, but choosing "tensor" as the closet matching type.
+    },
+    "kwargs": {
+        "dtype": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.HistogramSummary"] = {
+    "args": {
+        "tag": "tensor",
+        "values": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Identity"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Igamma"] = {
+    "args": {
+        "a": "tensor", # could be more specific with dtype, but choosing "tensor" as per instructions
+        "x": "tensor" # could be more specific with dtype, but choosing "tensor" as per instructions
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Igammac"] = {
+    "args": {
+        "a": "tensor",
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Imag"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "Tout": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ImmutableConst"] = {
+    "args": {
+        "dtype": "dtype",
+        "shape": "list",  # Could also be a tuple, but list seems more appropriate given "list of ints"
+        "memory_region_name": "string"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.InTopK"] = {
+    "args": {
+        "predictions": "tensor",
+        "targets": "tensor",
+        "k": "integer"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.InTopKV2"] = {
+    "args": {
+        "predictions": "tensor",
+        "targets": "tensor",
+        "k": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.InplaceAdd"] = {
+    "args": {
+        "x": "tensor",
+        "i": "tensor",
+        "v": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.InplaceSub"] = {
+    "args": {
+        "x": "tensor",
+        "i": "tensor",
+        "v": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.InplaceUpdate"] = {
+    "args": {
+        "x": "tensor",
+        "i": "tensor", # A vector of int32, but we represent it as a tensor
+        "v": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Inv"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.InvertPermutation"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.IsFinite"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.IsInf"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.IsNan"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.IsVariableInitialized"] = {
+    "args": {
+        "ref": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.L2Loss"] = {
+    "args": {
+        "t": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LMDBReader"] = {
+    "args": {},
+    "kwargs": {
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LRN"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "depth_radius": "integer",
+        "bias": "float",
+        "alpha": "float",
+        "beta": "float",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LearnedUnigramCandidateSampler"] = {
+    "args": {
+        "true_classes": "tensor"
+    },
+    "kwargs": {
+        "num_true": "integer",
+        "num_sampled": "integer",
+        "unique": "boolean",
+        "range_max": "integer",
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Less"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LessEqual"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Lgamma"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Log"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Log1p"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LogSoftmax"] = {
+    "args": {
+        "logits": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LogUniformCandidateSampler"] = {
+    "args": {
+        "true_classes": "tensor",
+        "num_true": "integer",
+        "num_sampled": "integer",
+        "unique": "boolean",
+        "range_max": "integer"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LogicalAnd"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LogicalNot"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LogicalOr"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.LoopCond"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MapClear"] = {
+    "args": {
+        "dtypes": "list" # A list of `tf.DTypes`.
+    },
+    "kwargs": {
+        "capacity": "integer", # An optional `int` that is `>= 0`. Defaults to `0`.
+        "memory_limit": "integer", # An optional `int` that is `>= 0`. Defaults to `0`.
+        "container": "string", # An optional `string`. Defaults to `""`.
+        "shared_name": "string", # An optional `string`. Defaults to `""`.
+        "name": "string" # A name for the operation (optional).
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MapIncompleteSize"] = {
+    "args": {
+        "dtypes": "list" # list of dtype
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MapPeek"] = {
+    "args": {
+        "key": "tensor",
+        "indices": "tensor",
+        "dtypes": "list" # Should this be a list of dtypes?
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MapSize"] = {
+    "args": {
+        "dtypes": "list" # List of dtypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MapUnstage"] = {
+    "args": {
+        "key": "tensor",
+        "indices": "tensor",
+        "dtypes": "list" # List of dtypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MapUnstageNoKey"] = {
+    "args": {
+        "indices": "tensor",
+        "dtypes": "list" # List of tf.DTypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatMul"] = {
+    "args": {
+        "a": "tensor",
+        "b": "tensor"
+    },
+    "kwargs": {
+        "transpose_a": "boolean",
+        "transpose_b": "boolean",
+        "grad_a": "boolean",
+        "grad_b": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatchingFiles"] = {
+    "args": {
+        "pattern": "string" # The documentation says it's a Tensor of type string but I'm assuming it can be a string
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixBandPart"] = {
+    "args": {
+        "input": "tensor",
+        "num_lower": "tensor",
+        "num_upper": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixDiag"] = {
+    "args": {
+        "diagonal": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixDiagPart"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixDiagPartV2"] = {
+    "args": {
+        "input": "tensor",
+        "k": "tensor",  # Could be an integer or a tuple of integers. Representing as tensor for generality
+        "padding_value": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixDiagPartV3"] = {
+    "args": {
+        "input": "tensor",
+        "k": "tensor", # Should it be integer or tensor? The description says "A Tensor of type int32"
+        "padding_value": "tensor"
+    },
+    "kwargs": {
+        "align": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixDiagV2"] = {
+    "args": {
+        "diagonal": "tensor",
+        "k": "tensor", # Originally int32 Tensor, but representing it as a tensor. Could also be an integer
+        "num_rows": "tensor", # Originally int32 Tensor, but representing it as a tensor. Could also be an integer
+        "num_cols": "tensor", # Originally int32 Tensor, but representing it as a tensor. Could also be an integer
+        "padding_value": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixDiagV3"] = {
+    "args": {
+        "diagonal": "tensor",
+        "k": "tensor", # Originally int32 Tensor
+        "num_rows": "tensor", # Originally int32 Tensor
+        "num_cols": "tensor", # Originally int32 Tensor
+        "padding_value": "tensor"
+    },
+    "kwargs": {
+        "align": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixSetDiag"] = {
+    "args": {
+        "input": "tensor",
+        "diagonal": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixSetDiagV2"] = {
+    "args": {
+        "input": "tensor",
+        "diagonal": "tensor",
+        "k": "tensor" # Should be integer but it's a Tensor of type int32.
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MatrixSetDiagV3"] = {
+    "args": {
+        "input": "tensor",
+        "diagonal": "tensor",
+        "k": "tensor" # Should be integer, but it's a tensor of type int32
+    },
+    "kwargs": {
+        "align": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Max"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPool"] = {
+    "args": {
+        "input": "tensor",
+        "ksize": "list", # list of integers
+        "strides": "list", # list of integers
+        "padding": "string"
+    },
+    "kwargs": {
+        "explicit_paddings": "list", # list of integers
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPool3D"] = {
+    "args": {
+        "input": "tensor",
+        "ksize": "list",
+        "strides": "list",
+        "padding": "string"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPool3DGrad"] = {
+    "args": {
+        "orig_input": "tensor",
+        "orig_output": "tensor",
+        "grad": "tensor"
+    },
+    "kwargs": {
+        "ksize": "list", # could also be tuple
+        "strides": "list", # could also be tuple
+        "padding": "string",
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPool3DGradGrad"] = {
+    "args": {
+        "orig_input": "tensor",
+        "orig_output": "tensor",
+        "grad": "tensor",
+        "ksize": "list",
+        "strides": "list"
+    },
+    "kwargs": {
+        "padding": "string",
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPoolGradGrad"] = {
+    "args": {
+        "orig_input": "tensor",
+        "orig_output": "tensor",
+        "grad": "tensor",
+        "ksize": "list",
+        "strides": "list",
+        "padding": "string"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPoolGradGradV2"] = {
+    "args": {
+        "orig_input": "tensor",
+        "orig_output": "tensor",
+        "grad": "tensor",
+        "ksize": "tensor", # Actually a Tensor of type `int32`
+        "strides": "tensor", # Actually a Tensor of type `int32`
+        "padding": "string"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPoolGradGradWithArgmax"] = {
+    "args": {
+        "input": "tensor",
+        "grad": "tensor",
+        "argmax": "tensor"
+    },
+    "kwargs": {
+        "ksize": "list",
+        "strides": "list",
+        "padding": "string",
+        "include_batch_in_index": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPoolGradV2"] = {
+    "args": {
+        "orig_input": "tensor",
+        "orig_output": "tensor",
+        "grad": "tensor",
+        "ksize": "tensor", # Tensor of type `int32`
+        "strides": "tensor" # Tensor of type `int32`
+    },
+    "kwargs": {
+        "padding": "string",
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPoolV2"] = {
+    "args": {
+        "input": "tensor",
+        "ksize": "tensor", # A Tensor of type `int32`
+        "strides": "tensor", # A Tensor of type `int32`
+        "padding": "string"
+    },
+    "kwargs": {
+        "data_format": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MaxPoolWithArgmax"] = {
+    "args": {
+        "input": "tensor",
+        "ksize": "list",
+        "strides": "list",
+        "padding": "string"
+    },
+    "kwargs": {
+        "Targmax": "dtype",
+        "include_batch_in_index": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Maximum"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Mean"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Merge"] = {
+    "args": {
+        "inputs": "tensor_list"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MergeSummary"] = {
+    "args": {
+        "inputs": "tensor_list"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MergeV2Checkpoints"] = {
+    "args": {
+        "checkpoint_prefixes": "tensor",
+        "destination_prefix": "tensor"
+    },
+    "kwargs": {
+        "delete_old_dirs": "boolean",
+        "allow_missing_files": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Min"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Minimum"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MirrorPad"] = {
+    "args": {
+        "input": "tensor",
+        "paddings": "tensor"
+    },
+    "kwargs": {
+        "mode": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Mod"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.MulNoNan"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Multinomial"] = {
+    "args": {
+        "logits": "tensor",
+        "num_samples": "tensor" # A Tensor of type `int32` is represented by an integer.
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "output_dtype": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Ndtri"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NextAfter"] = {
+    "args": {
+        "x1": "tensor",
+        "x2": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NextIteration"] = {
+    "args": {
+        "data": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NoOp"] = {
+    "args": {},
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NonMaxSuppression"] = {
+    "args": {
+        "boxes": "tensor",
+        "scores": "tensor",
+        "max_output_size": "tensor" #  A scalar integer tensor is closest to tensor type
+    },
+    "kwargs": {
+        "iou_threshold": "float",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NonMaxSuppressionV2"] = {
+    "args": {
+        "boxes": "tensor",
+        "scores": "tensor",
+        "max_output_size": "tensor", # Should be "integer" since it is an int32 scalar tensor
+        "iou_threshold": "tensor" # Should be "float" since it is a 0-D float tensor
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NonMaxSuppressionV3"] = {
+    "args": {
+        "boxes": "tensor",
+        "scores": "tensor",
+        "max_output_size": "integer", # A scalar integer tensor
+        "iou_threshold": "tensor",
+        "score_threshold": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NonMaxSuppressionV4"] = {
+    "args": {
+        "boxes": "tensor",
+        "scores": "tensor",
+        "max_output_size": "tensor", # Should be integer, but scalar integer tensor is a tensor
+        "iou_threshold": "tensor", # Should be float, but 0-D float tensor is a tensor
+        "score_threshold": "tensor" # Should be float, but 0-D float tensor is a tensor
+    },
+    "kwargs": {
+        "pad_to_max_output_size": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NonMaxSuppressionV5"] = {
+    "args": {
+        "boxes": "tensor",
+        "scores": "tensor",
+        "max_output_size": "tensor",
+        "iou_threshold": "tensor",
+        "score_threshold": "tensor",
+        "soft_nms_sigma": "tensor"
+    },
+    "kwargs": {
+        "pad_to_max_output_size": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NonMaxSuppressionWithOverlaps"] = {
+    "args": {
+        "overlaps": "tensor",
+        "scores": "tensor",
+        "max_output_size": "tensor", # A scalar integer tensor is a tensor
+        "overlap_threshold": "tensor", # A 0-D float tensor is a tensor
+        "score_threshold": "tensor" # A 0-D float tensor is a tensor
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NotEqual"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "incompatible_shape_error": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.NthElement"] = {
+    "args": {
+        "input": "tensor",
+        "n": "tensor" # Although the doc says "A `Tensor` of type `int32`" it can be seen as a generic tensor in this context
+    },
+    "kwargs": {
+        "reverse": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.OneHot"] = {
+    "args": {
+        "indices": "tensor",
+        "depth": "tensor",
+        "on_value": "tensor",
+        "off_value": "tensor"
+    },
+    "kwargs": {
+        "axis": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.OnesLike"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.OrderedMapClear"] = {
+    "args": {
+        "dtypes": "list"  # List of dtypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.OrderedMapIncompleteSize"] = {
+    "args": {
+        "dtypes": "list" # A list of `tf.DTypes`.
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.OrderedMapPeek"] = {
+    "args": {
+        "key": "tensor",
+        "indices": "tensor",
+        "dtypes": "list" # list of dtypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.OrderedMapSize"] = {
+    "args": {
+        "dtypes": "list"  # List of dtype, could be more specific
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.OrderedMapUnstage"] = {
+    "args": {
+        "key": "tensor",
+        "indices": "tensor",
+        "dtypes": "list" #A list of tf.DTypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.OrderedMapUnstageNoKey"] = {
+    "args": {
+        "indices": "tensor",
+        "dtypes": "list" # This should probably be a list of dtypes, but "list" is the closest option
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Pad"] = {
+    "args": {
+        "input": "tensor",
+        "paddings": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.PadV2"] = {
+    "args": {
+        "input": "tensor",
+        "paddings": "tensor",
+        "constant_values": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.PaddingFIFOQueue"] = {
+    "args": {
+        "component_types": "list" # List of dtypes
+    },
+    "kwargs": {
+        "shapes": "list", # List of shapes (each a tf.TensorShape or list of ints)
+        "capacity": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ParallelConcat"] = {
+    "args": {
+        "values": "tensor_list",
+        "shape": "list" # could also be tensor, but list seems closer to tf.TensorShape
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ParallelDynamicStitch"] = {
+    "args": {
+        "indices": "tensor_list",
+        "data": "tensor_list"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ParameterizedTruncatedNormal"] = {
+    "args": {
+        "shape": "tensor",
+        "means": "tensor",
+        "stdevs": "tensor",
+        "minvals": "tensor",
+        "maxvals": "tensor"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ParseTensor"] = {
+    "args": {
+        "serialized": "tensor",
+        "out_type": "dtype"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Placeholder"] = {
+    "args": {
+        "dtype": "dtype",
+    },
+    "kwargs": {
+        "shape": "list", # Could also be a tuple of integers, but list is a closer match
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.PlaceholderWithDefault"] = {
+    "args": {
+        "input": "tensor",
+        "shape": "list" # Could also be tuple, but list is more general
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Polygamma"] = {
+    "args": {
+        "a": "tensor",
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Pow"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.PreventGradient"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "message": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.PrintV2"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "output_stream": "string",
+        "end": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.PriorityQueue"] = {
+    "args": {
+        "shapes": "list" # List of TensorShapes or list of ints, so I chose list
+    },
+    "kwargs": {
+        "component_types": "list", # list of tf.DTypes, so I chose list
+        "capacity": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Prod"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizeAndDequantizeV2"] = {
+    "args": {
+        "input": "tensor",
+        "input_min": "tensor",
+        "input_max": "tensor"
+    },
+    "kwargs": {
+        "signed_input": "boolean",
+        "num_bits": "integer",
+        "range_given": "boolean",
+        "round_mode": "string",
+        "narrow_range": "boolean",
+        "axis": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizeAndDequantizeV3"] = {
+    "args": {
+        "input": "tensor",
+        "input_min": "tensor",
+        "input_max": "tensor",
+        "num_bits": "tensor"
+    },
+    "kwargs": {
+        "signed_input": "boolean",
+        "range_given": "boolean",
+        "narrow_range": "boolean",
+        "axis": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizeAndDequantizeV4"] = {
+    "args": {
+        "input": "tensor",
+        "input_min": "tensor",
+        "input_max": "tensor"
+    },
+    "kwargs": {
+        "signed_input": "boolean",
+        "num_bits": "integer",
+        "range_given": "boolean",
+        "round_mode": "string",
+        "narrow_range": "boolean",
+        "axis": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizeAndDequantizeV4Grad"] = {
+    "args": {
+        "gradients": "tensor",
+        "input": "tensor",
+        "input_min": "tensor",
+        "input_max": "tensor"
+    },
+    "kwargs": {
+        "axis": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizeDownAndShrinkRange"] = {
+    "args": {
+        "input": "tensor",
+        "input_min": "tensor",
+        "input_max": "tensor",
+        "out_type": "dtype"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizeV2"] = {
+    "args": {
+        "input": "tensor",
+        "min_range": "tensor",
+        "max_range": "tensor",
+        "T": "dtype"
+    },
+    "kwargs": {
+        "mode": "string",
+        "round_mode": "string",
+        "narrow_range": "boolean",
+        "axis": "integer",
+        "ensure_minimum_range": "float",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedAdd"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor",
+        "min_x": "tensor",
+        "max_x": "tensor",
+        "min_y": "tensor",
+        "max_y": "tensor"
+    },
+    "kwargs": {
+        "Toutput": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedAvgPool"] = {
+    "args": {
+        "input": "tensor",
+        "min_input": "tensor",
+        "max_input": "tensor",
+        "ksize": "list", #list of ints
+        "strides": "list", #list of ints
+        "padding": "string"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedBatchNormWithGlobalNormalization"] = {
+    "args": {
+        "t": "tensor",
+        "t_min": "tensor",
+        "t_max": "tensor",
+        "m": "tensor",
+        "m_min": "tensor",
+        "m_max": "tensor",
+        "v": "tensor",
+        "v_min": "tensor",
+        "v_max": "tensor",
+        "beta": "tensor",
+        "beta_min": "tensor",
+        "beta_max": "tensor",
+        "gamma": "tensor",
+        "gamma_min": "tensor",
+        "gamma_max": "tensor",
+        "out_type": "dtype"
+    },
+    "kwargs": {
+        "variance_epsilon": "float",
+        "scale_after_normalization": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedBiasAdd"] = {
+    "args": {
+        "input": "tensor",
+        "bias": "tensor",
+        "min_input": "tensor",
+        "max_input": "tensor",
+        "min_bias": "tensor",
+        "max_bias": "tensor",
+    },
+    "kwargs": {
+        "out_type": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedConcat"] = {
+    "args": {
+        "concat_dim": "tensor", # Should this be integer instead?
+        "values": "tensor_list",
+        "input_mins": "tensor_list",
+        "input_maxes": "tensor_list"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedConv2D"] = {
+    "args": {
+        "input": "tensor",
+        "filter": "tensor",
+        "min_input": "tensor",
+        "max_input": "tensor",
+        "min_filter": "tensor",
+        "max_filter": "tensor",
+        "strides": "list",  # List of ints
+        "padding": "string"
+    },
+    "kwargs": {
+        "out_type": "dtype",
+        "dilations": "list", # List of ints
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedInstanceNorm"] = {
+    "args": {
+        "x": "tensor",
+        "x_min": "tensor",
+        "x_max": "tensor"
+    },
+    "kwargs": {
+        "output_range_given": "boolean",
+        "given_y_min": "float",
+        "given_y_max": "float",
+        "variance_epsilon": "float",
+        "min_separation": "float",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedMatMul"] = {
+    "args": {
+        "a": "tensor",
+        "b": "tensor",
+        "min_a": "tensor",
+        "max_a": "tensor",
+        "min_b": "tensor",
+        "max_b": "tensor"
+    },
+    "kwargs": {
+        "Toutput": "dtype",
+        "transpose_a": "boolean",
+        "transpose_b": "boolean",
+        "Tactivation": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedMaxPool"] = {
+    "args": {
+        "input": "tensor",
+        "min_input": "tensor",
+        "max_input": "tensor",
+        "ksize": "list",
+        "strides": "list",
+        "padding": "string"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedMul"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor",
+        "min_x": "tensor",
+        "max_x": "tensor",
+        "min_y": "tensor",
+        "max_y": "tensor"
+    },
+    "kwargs": {
+        "Toutput": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedRelu"] = {
+    "args": {
+        "features": "tensor",
+        "min_features": "tensor",
+        "max_features": "tensor"
+    },
+    "kwargs": {
+        "out_type": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedRelu6"] = {
+    "args": {
+        "features": "tensor",
+        "min_features": "tensor",
+        "max_features": "tensor"
+    },
+    "kwargs": {
+        "out_type": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedReluX"] = {
+    "args": {
+        "features": "tensor",
+        "max_value": "tensor",
+        "min_features": "tensor",
+        "max_features": "tensor"
+    },
+    "kwargs": {
+        "out_type": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QuantizedResizeBilinear"] = {
+    "args": {
+        "images": "tensor",
+        "size": "tensor", # A 1-D int32 Tensor of 2 elements
+        "min": "tensor",
+        "max": "tensor"
+    },
+    "kwargs": {
+        "align_corners": "boolean",
+        "half_pixel_centers": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QueueClose"] = {
+    "args": {
+        "handle": "tensor"
+    },
+    "kwargs": {
+        "cancel_pending_enqueues": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QueueDequeue"] = {
+    "args": {
+        "handle": "tensor",
+        "component_types": "list" # List of dtypes
+    },
+    "kwargs": {
+        "timeout_ms": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QueueDequeueMany"] = {
+    "args": {
+        "handle": "tensor",
+        "n": "tensor",
+        "component_types": "list"
+    },
+    "kwargs": {
+        "timeout_ms": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QueueDequeueUpTo"] = {
+    "args": {
+        "handle": "tensor", # string tensor seems closest to tensor
+        "n": "tensor",
+        "component_types": "list" # list of dtypes
+    },
+    "kwargs": {
+        "timeout_ms": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QueueIsClosed"] = {
+    "args": {
+        "handle": "tensor" # mutable string is represented as a tensor.
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.QueueSize"] = {
+    "args": {
+        "handle": "tensor" # A `Tensor` of type mutable `string`. Should this be "string"?
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RGBToHSV"] = {
+    "args": {
+        "images": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RaggedBincount"] = {
+    "args": {
+        "splits": "tensor",
+        "values": "tensor",
+        "size": "tensor",
+        "weights": "tensor"
+    },
+    "kwargs": {
+        "binary_output": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RandomGamma"] = {
+    "args": {
+        "shape": "tensor",
+        "alpha": "tensor"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RandomPoissonV2"] = {
+    "args": {
+        "shape": "tensor",
+        "rate": "tensor"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "dtype": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RandomShuffle"] = {
+    "args": {
+        "value": "tensor"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RandomShuffleQueue"] = {
+    "args": {
+        "component_types": "list" # A list of tf.DTypes
+    },
+    "kwargs": {
+        "shapes": "list", # A list of shapes
+        "capacity": "integer",
+        "min_after_dequeue": "integer",
+        "seed": "integer",
+        "seed2": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RandomUniform"] = {
+    "args": {
+        "shape": "tensor", # Could be integer?
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RandomUniformInt"] = {
+    "args": {
+        "shape": "tensor",
+        "minval": "tensor",
+        "maxval": "tensor"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Range"] = {
+    "args": {
+        "start": "tensor",
+        "limit": "tensor",
+        "delta": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReadFile"] = {
+    "args": {
+        "filename": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReaderNumRecordsProduced"] = {
+    "args": {
+        "reader_handle": "tensor"  # A `Tensor` of type mutable `string`
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReaderNumWorkUnitsCompleted"] = {
+    "args": {
+        "reader_handle": "tensor"  # The documentation says "Tensor of type mutable string", but "tensor" is the closest option.
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReaderRead"] = {
+    "args": {
+        "reader_handle": "tensor",
+        "queue_handle": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReaderReadUpTo"] = {
+    "args": {
+        "reader_handle": "tensor",
+        "queue_handle": "tensor",
+        "num_records": "tensor" # Should be integer
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReaderReset"] = {
+    "args": {
+        "reader_handle": "tensor" # mutable string is represented as a tensor handle
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReaderRestoreState"] = {
+    "args": {
+        "reader_handle": "tensor", # Mutable string tensor is still a tensor
+        "state": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReaderSerializeState"] = {
+    "args": {
+        "reader_handle": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Real"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "Tout": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RealDiv"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Reciprocal"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RecordInput"] = {
+    "args": {
+        "file_pattern": "string"
+    },
+    "kwargs": {
+        "file_random_seed": "integer",
+        "file_shuffle_shift_ratio": "float",
+        "file_buffer_size": "integer",
+        "file_parallelism": "integer",
+        "batch_size": "integer",
+        "compression_type": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ReduceJoin"] = {
+    "args": {
+        "inputs": "tensor",
+        "reduction_indices": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "separator": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RefNextIteration"] = {
+    "args": {
+        "data": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RefSelect"] = {
+    "args": {
+        "index": "tensor", # A scalar int32 tensor is still a tensor
+        "inputs": "tensor_list"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RefSwitch"] = {
+    "args": {
+        "data": "tensor",
+        "pred": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RegexFullMatch"] = {
+    "args": {
+        "input": "tensor",
+        "pattern": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RegexReplace"] = {
+    "args": {
+        "input": "tensor",
+        "pattern": "tensor",
+        "rewrite": "tensor"
+    },
+    "kwargs": {
+        "replace_global": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Relu"] = {
+    "args": {
+        "features": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Relu6"] = {
+    "args": {
+        "features": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RequantizationRange"] = {
+    "args": {
+        "input": "tensor",
+        "input_min": "tensor",
+        "input_max": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Requantize"] = {
+    "args": {
+        "input": "tensor",
+        "input_min": "tensor",
+        "input_max": "tensor",
+        "requested_output_min": "tensor",
+        "requested_output_max": "tensor",
+        "out_type": "dtype"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ResizeArea"] = {
+    "args": {
+        "images": "tensor",
+        "size": "tensor" # A 1-D int32 Tensor of 2 elements, but treating as tensor
+    },
+    "kwargs": {
+        "align_corners": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ResizeBicubic"] = {
+    "args": {
+        "images": "tensor",
+        "size": "tensor"  # A 1-D int32 Tensor of 2 elements
+    },
+    "kwargs": {
+        "align_corners": "boolean",
+        "half_pixel_centers": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ResizeBilinear"] = {
+    "args": {
+        "images": "tensor",
+        "size": "tensor" # A 1-D int32 Tensor of 2 elements. Ideally it could be a tuple/list of integers but choosing "tensor"
+    },
+    "kwargs": {
+        "align_corners": "boolean",
+        "half_pixel_centers": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ResizeNearestNeighbor"] = {
+    "args": {
+        "images": "tensor",
+        "size": "tensor" # Should be a tensor of integers, but approximating as tensor
+    },
+    "kwargs": {
+        "align_corners": "boolean",
+        "half_pixel_centers": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Restore"] = {
+    "args": {
+        "file_pattern": "tensor",
+        "tensor_name": "tensor",
+        "dt": "dtype"
+    },
+    "kwargs": {
+        "preferred_shard": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RestoreSlice"] = {
+    "args": {
+        "file_pattern": "tensor",
+        "tensor_name": "tensor",
+        "shape_and_slice": "tensor",
+        "dt": "dtype"
+    },
+    "kwargs": {
+        "preferred_shard": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.RestoreV2"] = {
+    "args": {
+        "prefix": "tensor",
+        "tensor_names": "tensor",
+        "shape_and_slices": "tensor",
+        "dtypes": "list" # List of tf.DTypes
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Rint"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Round"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Rsqrt"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SampleDistortedBoundingBox"] = {
+    "args": {
+        "image_size": "tensor",
+        "bounding_boxes": "tensor"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "min_object_covered": "float",
+        "aspect_ratio_range": "list",
+        "area_range": "list",
+        "max_attempts": "integer",
+        "use_image_if_no_bounding_boxes": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SampleDistortedBoundingBoxV2"] = {
+    "args": {
+        "image_size": "tensor",
+        "bounding_boxes": "tensor",
+        "min_object_covered": "tensor"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "aspect_ratio_range": "list", # actually a list of floats
+        "area_range": "list", # actually a list of floats
+        "max_attempts": "integer",
+        "use_image_if_no_bounding_boxes": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScalarSummary"] = {
+    "args": {
+        "tags": "tensor",
+        "values": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScaleAndTranslate"] = {
+    "args": {
+        "images": "tensor",
+        "size": "tensor",
+        "scale": "tensor",
+        "translation": "tensor"
+    },
+    "kwargs": {
+        "kernel_type": "string",
+        "antialias": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterAdd"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterDiv"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterMax"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterMin"] = {
+    "args": {
+        "ref": "tensor", # Mutable tensor
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterMul"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterNdAdd"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "bad_indices_policy": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterNdSub"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "bad_indices_policy": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterNdUpdate"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "bad_indices_policy": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterSub"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ScatterUpdate"] = {
+    "args": {
+        "ref": "tensor",
+        "indices": "tensor",
+        "updates": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SegmentMax"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SegmentMean"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SegmentMin"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SegmentProd"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SegmentSum"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SelectV2"] = {
+    "args": {
+        "condition": "tensor",
+        "t": "tensor",
+        "e": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Selu"] = {
+    "args": {
+        "features": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SerializeTensor"] = {
+    "args": {
+        "tensor": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ShardedFilename"] = {
+    "args": {
+        "basename": "tensor",
+        "shard": "tensor",
+        "num_shards": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ShardedFilespec"] = {
+    "args": {
+        "basename": "string", # A `Tensor` of type `string`.
+        "num_shards": "integer" # A `Tensor` of type `int32`.
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Sigmoid"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Sign"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Sin"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Sinh"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Softmax"] = {
+    "args": {
+        "logits": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SoftmaxCrossEntropyWithLogits"] = {
+    "args": {
+        "features": "tensor",
+        "labels": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Softplus"] = {
+    "args": {
+        "features": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Softsign"] = {
+    "args": {
+        "features": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseAccumulatorApplyGradient"] = {
+    "args": {
+        "handle": "tensor", # mutable string seems to be a tensor that represents a string.
+        "local_step": "tensor", # int64 is a tensor of integers.
+        "gradient_indices": "tensor", # int64 is a tensor of integers.
+        "gradient_values": "tensor",
+        "gradient_shape": "tensor", # int64 is a tensor of integers.
+    },
+    "kwargs": {
+        "has_known_shape": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseAccumulatorTakeGradient"] = {
+    "args": {
+        "handle": "tensor", # mutable string is still a tensor
+        "num_required": "tensor", # int32 is a tensor
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseAdd"] = {
+    "args": {
+        "a_indices": "tensor",
+        "a_values": "tensor",
+        "a_shape": "tensor",
+        "b_indices": "tensor",
+        "b_values": "tensor",
+        "b_shape": "tensor",
+        "thresh": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseAddGrad"] = {
+    "args": {
+        "backprop_val_grad": "tensor",
+        "a_indices": "tensor",
+        "b_indices": "tensor",
+        "sum_indices": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyAdadelta"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "accum_update": "tensor",
+        "lr": "tensor",
+        "rho": "tensor",
+        "epsilon": "tensor",
+        "grad": "tensor",
+        "indices": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyAdagrad"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "lr": "tensor",
+        "grad": "tensor",
+        "indices": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "update_slots": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyAdagradDA"] = {
+    "args": {
+        "var": "tensor",
+        "gradient_accumulator": "tensor",
+        "gradient_squared_accumulator": "tensor",
+        "grad": "tensor",
+        "indices": "tensor",
+        "lr": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "global_step": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyCenteredRMSProp"] = {
+    "args": {
+        "var": "tensor",
+        "mg": "tensor",
+        "ms": "tensor",
+        "mom": "tensor",
+        "lr": "tensor",
+        "rho": "tensor",
+        "momentum": "tensor",
+        "epsilon": "tensor",
+        "grad": "tensor",
+        "indices": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyFtrl"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "linear": "tensor",
+        "grad": "tensor",
+        "indices": "tensor",
+        "lr": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "lr_power": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "multiply_linear_by_lr": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyFtrlV2"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "linear": "tensor",
+        "grad": "tensor",
+        "indices": "tensor",
+        "lr": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "l2_shrinkage": "tensor",
+        "lr_power": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "multiply_linear_by_lr": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyMomentum"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "lr": "tensor",
+        "grad": "tensor",
+        "indices": "tensor",
+        "momentum": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "use_nesterov": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyProximalAdagrad"] = {
+    "args": {
+        "var": "tensor",
+        "accum": "tensor",
+        "lr": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "grad": "tensor",
+        "indices": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyProximalGradientDescent"] = {
+    "args": {
+        "var": "tensor",
+        "alpha": "tensor",
+        "l1": "tensor",
+        "l2": "tensor",
+        "grad": "tensor",
+        "indices": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseApplyRMSProp"] = {
+    "args": {
+        "var": "tensor",
+        "ms": "tensor",
+        "mom": "tensor",
+        "lr": "tensor",
+        "rho": "tensor",
+        "momentum": "tensor",
+        "epsilon": "tensor",
+        "grad": "tensor",
+        "indices": "tensor"
+    },
+    "kwargs": {
+        "use_locking": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseBincount"] = {
+    "args": {
+        "indices": "tensor",
+        "values": "tensor",
+        "dense_shape": "tensor",
+        "size": "tensor"
+    },
+    "kwargs": {
+        "weights": "tensor",
+        "binary_output": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseConcat"] = {
+    "args": {
+        "indices": "tensor_list",
+        "values": "tensor_list",
+        "shapes": "tensor_list",
+        "concat_dim": "integer"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseConditionalAccumulator"] = {
+    "args": {
+        "dtype": "dtype",
+        "shape": "list" # Could also be a tensor, but list seems closer
+    },
+    "kwargs": {
+        "container": "string",
+        "shared_name": "string",
+        "reduction_type": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseDenseCwiseAdd"] = {
+    "args": {
+        "sp_indices": "tensor",
+        "sp_values": "tensor",
+        "sp_shape": "tensor",
+        "dense": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseDenseCwiseDiv"] = {
+    "args": {
+        "sp_indices": "tensor",
+        "sp_values": "tensor",
+        "sp_shape": "tensor",
+        "dense": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseDenseCwiseMul"] = {
+    "args": {
+        "sp_indices": "tensor",
+        "sp_values": "tensor",
+        "sp_shape": "tensor",
+        "dense": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseFillEmptyRows"] = {
+    "args": {
+        "indices": "tensor",
+        "values": "tensor",
+        "dense_shape": "tensor",
+        "default_value": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseFillEmptyRowsGrad"] = {
+    "args": {
+        "reverse_index_map": "tensor",
+        "grad_values": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseMatMul"] = {
+    "args": {
+        "a": "tensor",
+        "b": "tensor"
+    },
+    "kwargs": {
+        "transpose_a": "boolean",
+        "transpose_b": "boolean",
+        "a_is_sparse": "boolean",
+        "b_is_sparse": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseReduceMax"] = {
+    "args": {
+        "input_indices": "tensor",
+        "input_values": "tensor",
+        "input_shape": "tensor",
+        "reduction_axes": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseReduceMaxSparse"] = {
+    "args": {
+        "input_indices": "tensor",
+        "input_values": "tensor",
+        "input_shape": "tensor",
+        "reduction_axes": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseReduceSum"] = {
+    "args": {
+        "input_indices": "tensor",
+        "input_values": "tensor",
+        "input_shape": "tensor",
+        "reduction_axes": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseReduceSumSparse"] = {
+    "args": {
+        "input_indices": "tensor",
+        "input_values": "tensor",
+        "input_shape": "tensor",
+        "reduction_axes": "tensor"
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseReorder"] = {
+    "args": {
+        "input_indices": "tensor",
+        "input_values": "tensor",
+        "input_shape": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseReshape"] = {
+    "args": {
+        "input_indices": "tensor",
+        "input_shape": "tensor",
+        "new_shape": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentMean"] = {
+    "args": {
+        "data": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor"
+    },
+    "kwargs": {
+        "sparse_gradient": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentMeanGrad"] = {
+    "args": {
+        "grad": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor",
+        "output_dim0": "tensor" # Originally of type int32, representing dimension, so tensor is a close match.
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentMeanWithNumSegments"] = {
+    "args": {
+        "data": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor",
+        "num_segments": "tensor"
+    },
+    "kwargs": {
+        "sparse_gradient": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentSqrtN"] = {
+    "args": {
+        "data": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor"
+    },
+    "kwargs": {
+        "sparse_gradient": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentSqrtNGrad"] = {
+    "args": {
+        "grad": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor",
+        "output_dim0": "tensor" # This is a tensor of type int32, but it's representing a dimension, so "integer" might also be appropriate
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentSqrtNWithNumSegments"] = {
+    "args": {
+        "data": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor",
+        "num_segments": "tensor"
+    },
+    "kwargs": {
+        "sparse_gradient": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentSum"] = {
+    "args": {
+        "data": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor"
+    },
+    "kwargs": {
+        "sparse_gradient": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentSumGrad"] = {
+    "args": {
+        "grad": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor",
+        "output_dim0": "tensor" # Should ideally be integer, but using tensor since its a Tensor of type int32
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSegmentSumWithNumSegments"] = {
+    "args": {
+        "data": "tensor",
+        "indices": "tensor",
+        "segment_ids": "tensor",
+        "num_segments": "tensor"
+    },
+    "kwargs": {
+        "sparse_gradient": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSlice"] = {
+    "args": {
+        "indices": "tensor",
+        "values": "tensor",
+        "shape": "tensor",
+        "start": "tensor",
+        "size": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSliceGrad"] = {
+    "args": {
+        "backprop_val_grad": "tensor",
+        "input_indices": "tensor",
+        "input_start": "tensor",
+        "output_indices": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSoftmax"] = {
+    "args": {
+        "sp_indices": "tensor",
+        "sp_values": "tensor",
+        "sp_shape": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSoftmaxCrossEntropyWithLogits"] = {
+    "args": {
+        "features": "tensor",
+        "labels": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSparseMaximum"] = {
+    "args": {
+        "a_indices": "tensor",
+        "a_values": "tensor",
+        "a_shape": "tensor",
+        "b_indices": "tensor",
+        "b_values": "tensor",
+        "b_shape": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSparseMinimum"] = {
+    "args": {
+        "a_indices": "tensor",
+        "a_values": "tensor",
+        "a_shape": "tensor",
+        "b_indices": "tensor",
+        "b_values": "tensor",
+        "b_shape": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseSplit"] = {
+    "args": {
+        "split_dim": "tensor",
+        "indices": "tensor",
+        "values": "tensor",
+        "shape": "tensor",
+    },
+    "kwargs": {
+        "num_split": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseTensorDenseAdd"] = {
+    "args": {
+        "a_indices": "tensor",
+        "a_values": "tensor",
+        "a_shape": "tensor",
+        "b": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SparseTensorDenseMatMul"] = {
+    "args": {
+        "a_indices": "tensor",  # Could be more specific about the type of tensor
+        "a_values": "tensor",
+        "a_shape": "tensor",
+        "b": "tensor"
+    },
+    "kwargs": {
+        "adjoint_a": "boolean",
+        "adjoint_b": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Sqrt"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Square"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.SquaredDifference"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StageClear"] = {
+    "args": {
+        "dtypes": "list"  # List of tf.DTypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StagePeek"] = {
+    "args": {
+        "index": "tensor",
+        "dtypes": "list"  # List of dtypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StageSize"] = {
+    "args": {
+        "dtypes": "list"  # List of tf.DTypes
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StatelessSampleDistortedBoundingBox"] = {
+    "args": {
+        "image_size": "tensor",
+        "bounding_boxes": "tensor",
+        "min_object_covered": "tensor",
+        "seed": "tensor"
+    },
+    "kwargs": {
+        "aspect_ratio_range": "list", # Actually list of floats, but the option is not available
+        "area_range": "list", # Actually list of floats, but the option is not available
+        "max_attempts": "integer",
+        "use_image_if_no_bounding_boxes": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringJoin"] = {
+    "args": {
+        "inputs": "tensor_list"
+    },
+    "kwargs": {
+        "separator": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringLength"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "unit": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringLower"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "encoding": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringNGrams"] = {
+    "args": {
+        "data": "tensor",
+        "data_splits": "tensor",
+        "separator": "string",
+        "ngram_widths": "list", # List of ints
+        "left_pad": "string",
+        "right_pad": "string",
+        "pad_width": "integer",
+        "preserve_short_sequences": "boolean"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringSplit"] = {
+    "args": {
+        "input": "tensor",
+        "delimiter": "tensor"
+    },
+    "kwargs": {
+        "skip_empty": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringSplitV2"] = {
+    "args": {
+        "input": "tensor",
+        "sep": "tensor"
+    },
+    "kwargs": {
+        "maxsplit": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringStrip"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringToHashBucket"] = {
+    "args": {
+        "string_tensor": "tensor",
+        "num_buckets": "integer"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringToHashBucketFast"] = {
+    "args": {
+        "input": "tensor",
+        "num_buckets": "integer"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringToHashBucketStrong"] = {
+    "args": {
+        "input": "tensor",
+        "num_buckets": "integer",
+        "key": "list"  # The doc says "list of ints", but "list" is the closest type.
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringToNumber"] = {
+    "args": {
+        "string_tensor": "tensor"
+    },
+    "kwargs": {
+        "out_type": "dtype",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.StringUpper"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "encoding": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Substr"] = {
+    "args": {
+        "input": "tensor",
+        "pos": "tensor",
+        "len": "tensor"
+    },
+    "kwargs": {
+        "unit": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Sum"] = {
+    "args": {
+        "input": "tensor",
+        "axis": "tensor" # Could be integer, but it accepts a tensor of int32 or int64
+    },
+    "kwargs": {
+        "keep_dims": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Switch"] = {
+    "args": {
+        "data": "tensor",
+        "pred": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.TakeManySparseFromTensorsMap"] = {
+    "args": {
+        "sparse_handles": "tensor",
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Tan"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Tanh"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.TemporaryVariable"] = {
+    "args": {
+        "shape": "list", # Could also be a tuple, but list is closer to TensorShape
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "var_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.TensorSummary"] = {
+    "args": {
+        "tensor": "tensor"
+    },
+    "kwargs": {
+        "description": "string",
+        "labels": "list", # list of strings
+        "display_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.TensorSummaryV2"] = {
+    "args": {
+        "tag": "tensor",
+        "tensor": "tensor",
+        "serialized_summary_metadata": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Timestamp"] = {
+    "args": {},
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.TruncateDiv"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.TruncateMod"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.TruncatedNormal"] = {
+    "args": {
+        "shape": "tensor",
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.UnicodeScript"] = {
+    "args": {
+        "input": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.UnicodeTranscode"] = {
+    "args": {
+        "input": "tensor",
+        "input_encoding": "string",
+        "output_encoding": "string"
+    },
+    "kwargs": {
+        "errors": "string",
+        "replacement_char": "integer",
+        "replace_control_characters": "boolean",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.UniformCandidateSampler"] = {
+    "args": {
+        "true_classes": "tensor",
+        "num_true": "integer",
+        "num_sampled": "integer",
+        "unique": "boolean",
+        "range_max": "integer"
+    },
+    "kwargs": {
+        "seed": "integer",
+        "seed2": "integer",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.UnsortedSegmentMax"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor",
+        "num_segments": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.UnsortedSegmentMin"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor",
+        "num_segments": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.UnsortedSegmentProd"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor",
+        "num_segments": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.UnsortedSegmentSum"] = {
+    "args": {
+        "data": "tensor",
+        "segment_ids": "tensor",
+        "num_segments": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Unstage"] = {
+    "args": {
+        "dtypes": "list" # List of dtype
+    },
+    "kwargs": {
+        "capacity": "integer",
+        "memory_limit": "integer",
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Variable"] = {
+    "args": {
+        "shape": "list", # tf.TensorShape is represented as a list of ints
+        "dtype": "dtype"
+    },
+    "kwargs": {
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Where"] = {
+    "args": {
+        "condition": "tensor" # Could also be boolean, but tensor is more general
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.WholeFileReader"] = {
+    "args": {},
+    "kwargs": {
+        "container": "string",
+        "shared_name": "string",
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.WriteFile"] = {
+    "args": {
+        "filename": "string", # A `Tensor` of type `string` but scalar, so string
+        "contents": "string"  # A `Tensor` of type `string` but scalar, so string
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Xdivy"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Xlog1py"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Xlogy"] = {
+    "args": {
+        "x": "tensor",
+        "y": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.ZerosLike"] = {
+    "args": {
+        "x": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
+signatures["tf.raw_ops.Zeta"] = {
+    "args": {
+        "x": "tensor",
+        "q": "tensor"
+    },
+    "kwargs": {
+        "name": "string"
+    },
+    "inner": {}
+}
