@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Margin should be positive if reduction is sum, mean or none and P = 0 (Rule 106)
@@ -34,7 +34,7 @@ def rule_106_func(arg1, arg2, arg3, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_value == arg1)
-        solver.add(arg2_value == list_of_string_values_torch.torch.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
         solver.add(arg3_value == int(arg3))
 
         # Constraints for rule 106

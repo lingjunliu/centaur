@@ -1,6 +1,6 @@
 from generator.rules import check_rules
-from generator.rules_auto_z3 import check_rules_z3, check_rules_z3_invalid_inputs
-from generator.z3 import reduce_ruleset, create_z3_args
+from generator.rules_auto_z3 import check_rules_z3
+from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints
 from .inputs import get_inputs
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_api_suffix
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir
@@ -31,6 +31,109 @@ def print_rules(api, ruleset):
             print(f"- {rule_name} with arity {arity} on args {args}")
     else:
         print(f"No rules passed for {api}.")
+
+def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=30, print_details=False, lib="torch"):
+    """
+    If after removing a rule, all generated inputs are still valid,
+    then the rule is filtered out from the ruleset.
+    This stage run until max_trial trials for each rule OR time_budget seconds,
+    whichever comes first.
+    """
+    use_reference = False   # no reduction for reference rulesets
+    rules_to_keep = set()
+    n_rules_original = len(ruleset)
+    base_validity_ratio = 0.0
+    base_validity_ratio = 0.0
+
+    time_budget_per_rule = time_budget / (n_rules_original + 1) # Adding 1 for calculating the initial validity ratio
+    for rule in [None] + list(ruleset):
+        trial = 0
+        valid = 0
+        valid = 0
+        block_all = set()
+        perma_block = set()
+
+        start_time = time.time()
+        while time.time() - start_time < time_budget_per_rule and trial < max_trial:
+            block_one = []
+            remaining_ruleset = set(ruleset)
+            if rule is not None: 
+                remaining_ruleset.remove(rule)
+
+            solver = Solver()
+            initial_constraints(solver, signature, z3_args, lib=lib)
+            collect_constraints(solver, api, remaining_ruleset, z3_args, use_reference=use_reference)
+            # collect_neg_constraint(solver, api, rule, z3_args, use_reference=use_reference)
+    
+            sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
+            solver.add(*sampled_blocks)
+            solver.add(*perma_block)
+
+            if solver.check() != sat:
+                trial += 1
+                continue
+                trial += 1
+                continue
+    
+            model = solver.model()
+            for decl in model.decls():
+                if decl.arity() != 0:
+                    continue
+                var, val = decl(), model[decl]
+                name_parts = str(decl.name()).rsplit("_", 1)
+
+                if len(name_parts) == 2:
+                    prefix, suffix = name_parts
+                else:
+                    prefix, suffix = name_parts[0], None
+
+                if val.sort().kind() == Z3_ARRAY_SORT:                
+                    array_len = None
+                    if suffix == "shape" or suffix == "values":
+                        for other_decl in model.decls():
+                            if str(other_decl.name()) in [f"{prefix}_ndim", f"{prefix}_length"]:
+                                array_len = model.eval(other_decl(), model_completion=True).as_long()
+                        if array_len is None:
+                            array_len = MAX_N_DIM
+                    elif suffix == "range":
+                        array_len = 2
+                    for i in range(array_len):
+                        block_one.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                    
+                    # Do not dim_size to be 0 more than once for a dimension in the shape
+                    if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
+                        perma_block.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                else:
+                    block_one.append(var != val)
+                    
+                    if suffix == "ndim" and val.as_long() == 0:
+                        perma_block.add(var != val)
+    
+            for elem in block_one:
+                if elem not in block_all:
+                    block_all.add(elem)
+    
+            concrete_input, abstract_input = instantiate_args(model, signature, z3_args, lib=lib)
+            status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
+            
+            if status != "invalid":
+                valid += 1
+
+            trial += 1
+
+        if rule is None:
+            base_validity_ratio = valid / trial
+        elif valid / trial < base_validity_ratio:
+            rules_to_keep.add(rule)
+
+    print(f"{bcolors.OKBLUE}Rules reduced from {n_rules_original} to {len(rules_to_keep)}{bcolors.ENDC}")
+    if print_details and rules_to_keep:
+        print(f"Refined rules for {api}:")
+        for arity, rule_name, *args in rules_to_keep:
+            print(f"- {rule_name} with arity {arity} on args {args}")
+
+    return rules_to_keep
+
 
 def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=60, min_val_inp=100, seed=42, z3=False, suffix=0, use_reference=False):
     '''
@@ -110,10 +213,10 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                         print(f"Input {idx} is valid")
                     # Check rules for the input dictionary
                     if not initialized:
-                        ruleset = check_rules_z3(api, input_dict) if z3 else check_rules(input_dict)
+                        ruleset = check_rules_z3(api, input_dict, lib=lib) if z3 else check_rules(input_dict)
                         initialized = True
                     else:
-                        ruleset = ruleset.intersection(check_rules_z3(api, input_dict) if z3 else check_rules(input_dict))
+                        ruleset = ruleset.intersection(check_rules_z3(api, input_dict, lib=lib) if z3 else check_rules(input_dict))
                     valid += 1
             print(f"Invariant inference took {time.time()-start_time:.2f} seconds\n")
 

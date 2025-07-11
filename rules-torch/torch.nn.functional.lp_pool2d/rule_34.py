@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # ceil_mode cannot be none when padding and dilation are used. (Rule 34)
@@ -33,7 +33,7 @@ def rule_34_func(arg1, arg2, arg3, solver=None, neg=False):
         arg3_length = Int('arg3_length')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.torch.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
         solver.add(arg2_length == len(arg2))
         solver.add(arg3_length == len(arg3))
 

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # if nonlinearity is specified, tensor must be at least 2 dimensional (Rule 8)
@@ -30,7 +30,7 @@ def rule_8_func(arg1, arg2, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == list_of_string_values_torch.torch.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 8
         rule_8(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})

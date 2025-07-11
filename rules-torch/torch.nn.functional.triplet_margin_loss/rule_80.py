@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Margin and P and swap are non negative only if all tensors have same floating point data type and reduction is not constant. (Rule 80)
@@ -55,7 +55,7 @@ def rule_80_func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, solver=None, neg=Fals
         solver.add(arg4_value == arg4)
         solver.add(arg5_value == int(arg5))
         solver.add(arg6_value == arg6)
-        solver.add(arg7_value == list_of_string_values_torch.torch.index(arg7))
+        solver.add(arg7_value == list_of_string_values_torch.index(arg7))
 
         # Constraints for rule 80
         rule_80(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_value': arg4_value, 'arg5_value': arg5_value, 'arg6_value': arg6_value, 'arg7_value': arg7_value})

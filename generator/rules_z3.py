@@ -1046,7 +1046,7 @@ order_agnostic_rules = {
     2: ['rule_1', 'rule_3', 'rule_4', 'rule_12', 'rule_15']
 }
 
-def check_rules_z3(input_dict, print_rules=False):
+def check_rules_z3(input_dict, print_rules=False, lib="torch"):
     rule_func_map = get_rules_map()
     set_of_rules_passed = set()
     

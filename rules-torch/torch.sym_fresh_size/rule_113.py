@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # check for float range and multiply by an int, string is mean, if dtype is not int.  (Rule 113)
@@ -40,7 +40,7 @@ def rule_113_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg1_value == arg1)
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == list_of_available_dtypes.index(np_dtype(arg3)))
-        solver.add(arg4_value == list_of_string_values_torch.torch.index(arg4))
+        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
 
         # Constraints for rule 113
         rule_113(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value, 'arg4_value': arg4_value})

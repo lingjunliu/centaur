@@ -138,7 +138,7 @@ The code is organized as follow:
  ```
  3. Coverage:
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ pip install instrumented_pytorch/torch*
+ (venv) ~/dll-fuzzing-with-input-invariants$ pip install instrumented_pytorch/torch-2.2.0*
  (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.coverage <api>
  ```
 

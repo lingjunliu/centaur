@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If the reduction is sum, mean or none, tensors should have a floating-point dtype (Rule 85)
@@ -37,7 +37,7 @@ def rule_85_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         arg4_dtype = Int('arg4_dtype')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.torch.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
         solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
         solver.add(arg4_dtype == list_of_available_dtypes.index(arg4.dtype))

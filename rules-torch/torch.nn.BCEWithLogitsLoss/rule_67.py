@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 #  If the target and the input have different sizes (different number of elements (Rule 67)
@@ -43,7 +43,7 @@ def rule_67_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])
-        solver.add(arg4_value == list_of_string_values_torch.torch.index(arg4))
+        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
 
         # Constraints for rule 67
         rule_67(solver, {'arg1_shape': arg1_shape, 'arg2_shape': arg2_shape, 'arg3_shape': arg3_shape, 'arg4_value': arg4_value})

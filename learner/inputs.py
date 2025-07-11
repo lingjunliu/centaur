@@ -6,8 +6,6 @@ from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 from eval.oracle import oracle_crash
 from utils.defaults import domain_limits_torch, domain_limits_tf
-import llm.valid_inputs_torch as valid_inputs_torch
-import llm.valid_inputs_tf as valid_inputs_tf
 import numpy as np
 import os
 import traceback
@@ -308,9 +306,9 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffi
     list_of_inputs = []
     
     if lib == "torch":
-        valid_inputs = valid_inputs_torch
+        import llm.valid_inputs_torch as valid_inputs
     elif lib == "tf":
-        valid_inputs = valid_inputs_tf
+        import llm.valid_inputs_tf as valid_inputs
     else:
         raise ValueError(f"Invalid library: {lib}")
     
@@ -372,9 +370,9 @@ def main():
     
     lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
     if lib == "torch":
-        valid_inputs = valid_inputs_torch
+        import llm.valid_inputs_torch as valid_inputs
     elif lib == "tf":
-        valid_inputs = valid_inputs_tf
+        import llm.valid_inputs_tf as valid_inputs
     else:
         raise ValueError(f"Invalid library: {lib}")
     

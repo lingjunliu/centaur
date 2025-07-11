@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # if reduction is other than none, then input and target dimensions should be same (Rule 39)
@@ -35,7 +35,7 @@ def rule_39_func(arg1, arg2, arg3, solver=None, neg=False):
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
         solver.add(arg2_ndim == arg2.ndim)
-        solver.add(arg3_value == list_of_string_values_torch.torch.index(arg3))
+        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
 
         # Constraints for rule 39
         rule_39(solver, {'arg1_ndim': arg1_ndim, 'arg2_ndim': arg2_ndim, 'arg3_value': arg3_value})

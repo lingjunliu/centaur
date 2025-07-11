@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If the size_average or reduce is specified, then the reduction should not be specified (Rule 25)
@@ -35,7 +35,7 @@ def rule_25_func(arg1, arg2, arg3, solver=None, neg=False):
         # Value assignments
         solver.add(arg1_value == arg1)
         solver.add(arg2_value == arg2)
-        solver.add(arg3_value == list_of_string_values_torch.torch.index(arg3))
+        solver.add(arg3_value == list_of_string_values_torch.index(arg3))
 
         # Constraints for rule 25
         rule_25(solver, {'arg1_value': arg1_value, 'arg2_value': arg2_value, 'arg3_value': arg3_value})

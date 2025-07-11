@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # P value must be non negative and the reduction has to be sum, mean or none, also the first shape of each tensor has to be positive (Rule 98)
@@ -42,7 +42,7 @@ def rule_98_func(arg1, arg2, arg3, arg4, arg5, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_value == int(arg1))
-        solver.add(arg2_value == list_of_string_values_torch.torch.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])
         for i in range(arg4.ndim):

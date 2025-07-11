@@ -3,10 +3,10 @@
 export slurm_time="2:00:00" # Time limit is 2 hours
 export max_parallel=690     # Fix number of slurm jobs to 690
 
-n_inputs=${1:-500}
-method=${2:-lcov}     # Method to run, default is lcov
+n_inputs=${1:--1}     # Pass -1 to run for all inputs, otherwise, mention value
+method=${2:-html}     # Method to run, default is html (supports lcov too)
 native=${3:-False}    # Limit the coverage to the native folder only (only applicable to the html method)
-lib_v=${4:-2.6.0}     # Library version to use
+lib_v=${4:-2.2.0}     # Library version to use
 debug=${5:-0}         # To debug coverage difference with titanfuzz, pass 1
 
 # Only torch is supported for coverage for now

@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If the reduction is none, the output must be a tensor (Rule 53)
@@ -30,7 +30,7 @@ def rule_53_func(arg1, arg2, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_ndim == arg1.ndim)
-        solver.add(arg2_value == list_of_string_values_torch.torch.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 53
         rule_53(solver, {'arg1_ndim': arg1_ndim, 'arg2_value': arg2_value})

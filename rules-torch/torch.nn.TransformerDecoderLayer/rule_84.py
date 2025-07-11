@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Complete condition check for all parameters (Rule 84)
@@ -61,7 +61,7 @@ def rule_84_func(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, solver=No
         solver.add(arg2_value == int(arg2))
         solver.add(arg3_value == int(arg3))
         solver.add(arg4_value == arg4)
-        solver.add(arg5_value == list_of_string_values_torch.torch.index(arg5))
+        solver.add(arg5_value == list_of_string_values_torch.index(arg5))
         solver.add(arg6_value == arg6)
         solver.add(arg7_value == arg7)
         solver.add(arg8_value == arg8)

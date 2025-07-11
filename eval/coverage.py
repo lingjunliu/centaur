@@ -26,7 +26,7 @@ def compute_coverage(api, cov_results, driver_file, lib="torch", save_lcov=False
 
 def main():
     api = sys.argv[1]
-    gen_html = sys.argv[2].lower() == "html" if len(sys.argv) > 2 else False
+    gen_html = sys.argv[2].lower() == "html" if len(sys.argv) > 2 else True
     native_only = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
     save_lcov = int(sys.argv[4]) == 1 if len(sys.argv) > 4 else False
 

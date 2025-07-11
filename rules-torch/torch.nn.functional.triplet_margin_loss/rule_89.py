@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Reduction should be sum, mean, or none if at least a dimension of the input is bigger than 0 and margin and P are more than 0 (Rule 89)
@@ -48,7 +48,7 @@ def rule_89_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
         arg6_value = Int('arg6_value')
 
         # Value assignments
-        solver.add(arg1_value == list_of_string_values_torch.torch.index(arg1))
+        solver.add(arg1_value == list_of_string_values_torch.index(arg1))
         solver.add(arg2_ndim == arg2.ndim)
         for i in range(arg2.ndim):
             arg2_shape = Store(arg2_shape, i, arg2.shape[i])

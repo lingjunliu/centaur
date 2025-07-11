@@ -39,3 +39,12 @@ do
 done
 
 echo "Fuzzing results saved in ${result}"
+
+crash_results=$PROJECT_DIR/.tmp/crash_logs
+crash_log=$PROJECT_DIR/.tmp/crashes.log
+for filename in ${crash_results}/*.log
+do
+    cat ${filename} >> ${crash_log}
+done
+
+echo "Crashes saved in ${crash_log}"

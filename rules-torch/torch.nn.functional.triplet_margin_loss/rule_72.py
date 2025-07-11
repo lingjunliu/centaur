@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # If tensors all have positive dimensions, and margin > 0, reduction must be sum, mean or none and the p value should be positive too. (Rule 72)
@@ -58,7 +58,7 @@ def rule_72_func(arg1, arg2, arg3, arg4, arg5, arg6, solver=None, neg=False):
         for i in range(arg3.ndim):
             arg3_shape = Store(arg3_shape, i, arg3.shape[i])
         solver.add(arg4_value == arg4)
-        solver.add(arg5_value == list_of_string_values_torch.torch.index(arg5))
+        solver.add(arg5_value == list_of_string_values_torch.index(arg5))
         solver.add(arg6_value == int(arg6))
 
         # Constraints for rule 72

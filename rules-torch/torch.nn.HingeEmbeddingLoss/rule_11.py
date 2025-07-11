@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Input tensor should be a floating-point or complex dtype if reduction is mean (Rule 11)
@@ -30,7 +30,7 @@ def rule_11_func(arg1, arg2, solver=None, neg=False):
 
         # Value assignments
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
-        solver.add(arg2_value == list_of_string_values_torch.torch.index(arg2))
+        solver.add(arg2_value == list_of_string_values_torch.index(arg2))
 
         # Constraints for rule 11
         rule_11(solver, {'arg1_dtype': arg1_dtype, 'arg2_value': arg2_value})

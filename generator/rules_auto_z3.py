@@ -6,14 +6,14 @@ import importlib.util
 import inspect
 from itertools import permutations
 
-def get_rules_map(api, use_reference=False):
+def get_rules_map(api, use_reference=False, lib="torch"):
     parts = api.split(".")
     last = parts[-1]
     match = re.match(r"^(.*?)(_\d+)?$", last)
     stripped_last = match.group(1) if match else last
     base_api = ".".join(parts[:-1] + [stripped_last])
 
-    RULES_DIR = os.path.join(os.path.dirname(__file__), "..", "rules", base_api) if not use_reference else os.path.join(os.path.dirname(__file__), "..", "references")
+    RULES_DIR = os.path.join(os.path.dirname(__file__), "..", f"rules-{lib}", base_api) if not use_reference else os.path.join(os.path.dirname(__file__), "..", "references")
     rule_func_map = {}
 
     for filename in os.listdir(RULES_DIR):
@@ -50,8 +50,8 @@ def get_rules_map(api, use_reference=False):
     
     return rule_func_map
 
-def check_rules_z3(api, input_dict, print_rules=False, use_reference=False):
-    rule_func_map = get_rules_map(api, use_reference=use_reference)
+def check_rules_z3(api, input_dict, print_rules=False, use_reference=False, lib="torch"):
+    rule_func_map = get_rules_map(api, use_reference=use_reference, lib=lib)
     set_of_rules_passed = set()
     
     if len(input_dict.keys()) < 1:
@@ -79,9 +79,9 @@ def check_rules_z3(api, input_dict, print_rules=False, use_reference=False):
             print(f"Arity {arity} Rule {rule_name} passed between {args}")
     return set_of_rules_passed
 
-def check_rules_z3_invalid_inputs(api, invalid_inputs, rule, use_reference=False):
+def check_rules_z3_invalid_inputs(api, invalid_inputs, rule, use_reference=False, lib="torch"):
     arity, rule_name, *args = rule
-    rule_func_map = get_rules_map(api, use_reference=use_reference)
+    rule_func_map = get_rules_map(api, use_reference=use_reference, lib=lib)
 
     z3_func = rule_func_map.get(arity, {}).get(rule_name)
     if z3_func is None:

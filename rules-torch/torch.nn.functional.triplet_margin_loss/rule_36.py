@@ -2,7 +2,7 @@ import numpy as np
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch.torch, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_torch, np_dtype
 from z3 import *
 
 # Input tensors must be floating point, and reduction must be sum, mean, or none. (Rule 36)
@@ -40,7 +40,7 @@ def rule_36_func(arg1, arg2, arg3, arg4, solver=None, neg=False):
         solver.add(arg1_dtype == list_of_available_dtypes.index(arg1.dtype))
         solver.add(arg2_dtype == list_of_available_dtypes.index(arg2.dtype))
         solver.add(arg3_dtype == list_of_available_dtypes.index(arg3.dtype))
-        solver.add(arg4_value == list_of_string_values_torch.torch.index(arg4))
+        solver.add(arg4_value == list_of_string_values_torch.index(arg4))
 
         # Constraints for rule 36
         rule_36(solver, {'arg1_dtype': arg1_dtype, 'arg2_dtype': arg2_dtype, 'arg3_dtype': arg3_dtype, 'arg4_value': arg4_value})
