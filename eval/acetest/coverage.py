@@ -8,7 +8,7 @@ def main():
     lib = "torch"
     
     # Debugging flags
-    gen_html = False
+    gen_html = True
     save_lcov = False
     
     api = get_lib_version(api, lib=lib)
