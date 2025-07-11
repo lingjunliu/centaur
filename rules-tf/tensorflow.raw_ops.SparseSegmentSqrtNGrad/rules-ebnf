@@ -1,0 +1,213 @@
+>>
+Rule 1 (grad must be one of the allowed dtypes)
+{grad : tensor} |= dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8
+>>
+Rule 2 (indices must be one of the allowed dtypes)
+{indices : tensor} |= dtype_(indices) = 2 ∨ dtype_(indices) = 3
+>>
+Rule 3 (segment_ids must be one of the allowed dtypes)
+{segment_ids : tensor} |= dtype_(segment_ids) = 2 ∨ dtype_(segment_ids) = 3
+>>
+Rule 4 (output_dim0 must be an int32)
+{output_dim0 : tensor} |= dtype_(output_dim0) = 2
+>>
+Rule 5 (indices and segment_ids must have the same shape[0])
+{indices : tensor, segment_ids : tensor} |= shape(indices, 0) = shape(segment_ids, 0)
+>>
+Rule 6 (output_dim0 must be greater or equal to zero)
+{output_dim0 : tensor} |= min(output_dim0) ≥ 0
+>>
+Rule 7 (shape of output_dim0 must be scalar)
+{output_dim0 : tensor} |= ndim(output_dim0) = 0
+>>
+Rule 8 (length of indices must be greater than 0 if grad is not empty)
+{grad : tensor, indices : tensor} |= if shape(grad,0) > 0 then shape(indices, 0) > 0
+>>
+Rule 9 (segment_ids elements must be less than output_dim0)
+{segment_ids : tensor, output_dim0 : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < output_dim0
+>>
+Rule 10 (grad shape[0] can be zero only if output_dim0 is zero)
+{grad : tensor, output_dim0 : tensor} |= if shape(grad, 0) = 0 then output_dim0 = 0
+>>
+Rule 11 (grad must be bfloat16, half, float32, or float64 based on type encoding)
+{grad : tensor} |= dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8 ∨ dtype_(grad) = 9
+>>
+Rule 15 (indices and segment_ids must have rank 1)
+{indices : tensor, segment_ids : tensor} |= ndim(indices) = 1 ∧ ndim(segment_ids) = 1
+>>
+Rule 17 (segment_ids values should be non-negative)
+{segment_ids : tensor} |= ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≥ 0
+>>
+Rule 18 (indices values should be non-negative)
+{indices : tensor} |= ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] ≥ 0
+>>
+Rule 19 (if grad is a scalar, then indices and segment_ids must be empty)
+{grad : tensor, indices : tensor, segment_ids : tensor} |= if ndim(grad) = 0 then shape(indices,0) = 0 ∧ shape(segment_ids, 0) = 0
+>>
+Rule 20 (if grad is empty then indices and segment_ids should be empty)
+{grad : tensor, indices : tensor, segment_ids : tensor} |= if shape(grad,0) = 0 then shape(indices,0) = 0 ∧ shape(segment_ids, 0) = 0
+>>
+Rule 22 (indices must have non-decreasing values)
+{indices : tensor} |= if shape(indices, 0) > 1 then ∀i ∈ [0, shape(indices, 0) - 2] : indices[i] ≤ indices[i+1]
+>>
+Rule 23 (segment_ids values must be sorted)
+{segment_ids : tensor} |= if shape(segment_ids, 0) > 1 then ∀i ∈ [0, shape(segment_ids, 0) - 2] : segment_ids[i] ≤ segment_ids[i+1]
+>>
+Rule 24 (The first dimension of grad tensor should be greater or equal to the maximum value of the indices tensor)
+{grad: tensor, indices: tensor} |= if shape(indices, 0) > 0 then max(indices) < shape(grad, 0)
+>>
+Rule 25 (The shapes of grad should be the same after the first dimension)
+{grad : tensor} |= if ndim(grad) > 1 then ∀i ∈ [1, ndim(grad) - 1] : shape(grad, i) = shape(grad, i)
+>>
+Rule 29 (output_dim0's value must be greater than max(segment_ids))
+{segment_ids: tensor, output_dim0: tensor} |= if shape(segment_ids, 0) > 0 then output_dim0 > max(segment_ids)
+>>
+Rule 30 (if indices and segment_ids are not empty, the maximum segment_id should be less than output_dim0)
+{segment_ids: tensor, output_dim0: tensor} |= if shape(segment_ids, 0) > 0 then max(segment_ids) < output_dim0
+>>
+Rule 31 (if grad is not scalar, output_dim0 must be greater than 0)
+{grad : tensor, output_dim0 : tensor} |= if ndim(grad) > 0 then output_dim0 > 0
+>>
+Rule 32 (if segment_ids is not empty, the maximum index should be less than the number of rows in data that segment_ids refer to)
+{indices: tensor, grad: tensor} |= if shape(indices, 0) > 0 then max(indices) < shape(grad, 0)
+>>
+Rule 33 (if segment_ids and indices are not empty, they must have the same length)
+{segment_ids : tensor, indices : tensor} |= if shape(segment_ids, 0) > 0 ∧ shape(indices, 0) > 0 then shape(segment_ids, 0) = shape(indices, 0)
+>>
+Rule 34 (if grad is not empty, then output_dim0 has to be greater than 0)
+{grad: tensor, output_dim0: tensor} |= if shape(grad, 0) > 0 then output_dim0 > 0
+>>
+Rule 37 (output_dim0 must be greater or equal than max(segment_ids) + 1 if segment_ids is not empty)
+{output_dim0 : tensor, segment_ids : tensor} |= if shape(segment_ids,0) > 0 then output_dim0 > max(segment_ids)
+>>
+Rule 38 (The dtype of the returned tensor is the same as grad's dtype)
+{grad : tensor} |= dtype_(grad) = dtype_(grad)
+>>
+Rule 39 (The first dimension of indices and segment_ids must be equal)
+{indices: tensor, segment_ids: tensor} |= shape(indices, 0) = shape(segment_ids, 0)
+>>
+Rule 40 (If grad is empty, output_dim0 should also be zero)
+{grad: tensor, output_dim0: tensor} |= if shape(grad, 0) = 0 then output_dim0 = 0
+>>
+Rule 42 (If grad is not empty, the values of indices should be valid)
+{grad: tensor, indices: tensor} |= if shape(grad, 0) > 0 then ∀i ∈ [0, shape(indices, 0) - 1]: indices[i] < shape(grad, 0)
+>>
+Rule 43 (If grad is not empty, the values of segment_ids should be valid)
+{segment_ids: tensor, output_dim0: tensor} |= if output_dim0 > 0 then ∀i ∈ [0, shape(segment_ids, 0) - 1]: segment_ids[i] < output_dim0
+>>
+Rule 45 (segment_ids must be in the range [0, output_dim0))
+{segment_ids: tensor, output_dim0: tensor} |= if shape(segment_ids, 0) > 0 then ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < output_dim0 ∧ segment_ids[i] ≥ 0
+>>
+Rule 46 (The values in indices must be less than the size of grad's dimension 0, and greater or equal to 0)
+{indices: tensor, grad: tensor} |= if shape(indices, 0) > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < shape(grad, 0) ∧ indices[i] ≥ 0
+>>
+Rule 47 (If the indices are all zero, the grad must also be all zeros (or small values))
+{indices: tensor, grad: tensor} |= if ∀i ∈ [0, shape(indices, 0) -1]: indices[i] = 0 then ∀j ∈ [0, shape(grad, 0) -1]: grad[j] < 0.000001 ∧ grad[j] > -0.000001
+>>
+Rule 48 (if output_dim0 is equal to zero, shape of grad's first dimension should also be zero)
+{output_dim0: tensor, grad: tensor} |= if output_dim0 = 0 then shape(grad, 0) = 0
+>>
+Rule 49 (if the values in indices are sorted, then the values in segment_ids should also be sorted accordingly)
+{indices: tensor, segment_ids: tensor} |= if shape(indices, 0) > 1 then ∀i ∈ [0, shape(indices, 0) - 2]: if indices[i] < indices[i+1] then segment_ids[i] ≤ segment_ids[i+1]
+>>
+Rule 50 (grad's dtype must be one of the following)
+{grad: tensor} |= dtype_(grad) = 6 ∨ dtype_(grad) = 7 ∨ dtype_(grad) = 8 ∨ dtype_(grad) = 9
+>>
+Rule 57 (if indices is empty, then segment_ids must be empty)
+{indices: tensor, segment_ids: tensor} |= if shape(indices, 0) = 0 then shape(segment_ids, 0) = 0
+>>
+Rule 58 (if segment_ids is empty, then indices must also be empty)
+{segment_ids: tensor, indices: tensor} |= if shape(segment_ids, 0) = 0 then shape(indices, 0) = 0
+>>
+Rule 59 (if number of indices is 0, output_dim0 can be zero )
+{indices: tensor, output_dim0: tensor} |= if shape(indices, 0) = 0 then output_dim0 ≥ 0
+>>
+Rule 60 (if the shape of grad at dimension 0 is zero, then the shape of indices and segment_ids should be zero.)
+{grad: tensor, indices: tensor, segment_ids: tensor} |= if shape(grad, 0) = 0 then shape(indices, 0) = 0 ∧ shape(segment_ids, 0) = 0
+>>
+Rule 61 (output_dim0 should be greater or equal to 0)
+{output_dim0: tensor} |= output_dim0 ≥ 0
+>>
+Rule 62 (The indices and segment_ids should have at most one dimension)
+{indices: tensor, segment_ids: tensor} |= ndim(indices) ≤ 1 ∧ ndim(segment_ids) ≤ 1
+>>
+Rule 63 (If indices is not empty then all its values should be non negative)
+{indices: tensor} |= if shape(indices, 0) > 0 then ∀i ∈ [0, shape(indices, 0) - 1]: indices[i] ≥ 0
+>>
+Rule 64 (If segment_ids is not empty then all its values should be non negative)
+{segment_ids: tensor} |= if shape(segment_ids, 0) > 0 then ∀i ∈ [0, shape(segment_ids, 0) - 1]: segment_ids[i] ≥ 0
+>>
+Rule 65 (If the number of dimensions of grad is greater than zero then grad should have first dimension greater than zero)
+{grad: tensor} |= if ndim(grad) > 0 then shape(grad, 0) > 0
+>>
+Rule 66 (if grad and indices are both non-empty, each index must correspond to a valid row in grad.)
+{grad: tensor, indices: tensor} |= if shape(grad,0) > 0 ∧ shape(indices, 0) > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < shape(grad, 0)
+>>
+Rule 67 (If grad and segment_ids are non-empty then each segment id must be valid)
+{grad : tensor, segment_ids : tensor, output_dim0 : tensor} |= if shape(grad, 0) > 0 ∧ shape(segment_ids, 0) > 0 then ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < output_dim0
+>>
+Rule 69 (if indices and segment_ids have elements then output_dim0 must be at least max(segment_ids)+1)
+{indices: tensor, segment_ids: tensor, output_dim0: tensor} |= if shape(indices, 0) > 0 ∧ shape(segment_ids, 0) > 0 then output_dim0 > max(segment_ids)
+>>
+Rule 70 (If indices and segment_ids have elements, all elements in indices must be less than the size of dimension 0 of grad.)
+{grad: tensor, indices: tensor} |= if shape(grad, 0) > 0 ∧ shape(indices, 0) > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < shape(grad, 0)
+>>
+Rule 74 (If indices and segment_ids are not empty the segment_ids must be non-decreasing)
+{indices: tensor, segment_ids: tensor} |= if shape(indices, 0) > 1 ∧ shape(segment_ids,0) > 1 then ∀i ∈ [0, shape(segment_ids, 0) - 2]: segment_ids[i] ≤ segment_ids[i+1]
+>>
+Rule 75 (All segment_ids should be less than output_dim0 when segment_ids is non-empty)
+{segment_ids: tensor, output_dim0: tensor} |= if shape(segment_ids, 0) > 0 then ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] < output_dim0
+>>
+Rule 76 (All the values inside the indices must be smaller than the grad's first dimension when the indices is non-empty)
+{indices: tensor, grad: tensor} |= if shape(indices, 0) > 0 then ∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < shape(grad, 0)
+>>
+Rule 79 (If indices and segment_ids are empty then the size of the grad in dimension 0 and output_dim0 can be anything)
+{indices: tensor, segment_ids: tensor} |= if shape(indices, 0) = 0 ∧ shape(segment_ids, 0) = 0 then true
+>>
+Rule 80 (When segment_ids is not empty, segment_ids must be sorted in ascending order)
+{segment_ids: tensor} |= if shape(segment_ids, 0) > 1 then ∀i ∈ [0, shape(segment_ids, 0) - 2] : segment_ids[i] ≤ segment_ids[i+1]
+>>
+Rule 81 (If grad is not a scalar, shapes after the first dimension should be the same)
+{grad: tensor} |= if ndim(grad) > 1 then ∃i ∈ [1, ndim(grad) - 1] : shape(grad, i) = shape(grad, i)
+>>
+Rule 82 (The grad must have at least one dimension if output_dim0 is greater than zero)
+{grad: tensor, output_dim0: tensor} |= if output_dim0 > 0 then ndim(grad) > 0
+>>
+Rule 83 (segment_ids values must be sorted if segment_ids and indices are not empty)
+{segment_ids: tensor, indices: tensor} |= if shape(segment_ids, 0) > 1 ∧ shape(indices, 0) > 1 then ∀i ∈ [0, shape(segment_ids, 0) - 2] : segment_ids[i] ≤ segment_ids[i+1]
+>>
+Rule 84 (If grad has only one dimension then output_dim0 has to be greater or equal to max segment ids +1 )
+{grad: tensor, output_dim0: tensor, segment_ids: tensor} |= if ndim(grad) = 1 then if shape(segment_ids, 0) > 0 then output_dim0 > max(segment_ids)
+>>
+Rule 86 (The data type of the indices must match the data type of segment_ids)
+{indices: tensor, segment_ids: tensor} |= dtype_(indices) = dtype_(segment_ids)
+>>
+Rule 88 (if grad has more than one dimension all shapes except first should match in all other dimensions or an exception will be thrown)
+{grad: tensor} |= if ndim(grad) > 1 then ∃i ∈ [1, ndim(grad) - 1]: shape(grad, i) = shape(grad, i)
+>>
+Rule 90 (The output_dim0 should be greater than or equal to the number of unique segment_ids)
+{segment_ids: tensor, output_dim0: tensor} |= if shape(segment_ids, 0) > 0 then output_dim0 ≥ max(segment_ids) + 1
+>>
+Rule 91 (Except the first dimension , shape of grad should remain same as other dimensions)
+{grad: tensor} |= if ndim(grad) > 1 then ∃i ∈ [1, ndim(grad)-1] : shape(grad, i) = shape(grad, i)
+>>
+Rule 92 (if number of segments == number of indices, then it is equivalent to normal sqrtN)
+{segment_ids: tensor, indices: tensor, output_dim0: tensor} |= if shape(segment_ids, 0) = shape(indices, 0) then output_dim0 > 0
+>>
+Rule 93 (if indices and segment_ids are not empty, the values must be within the range)
+{indices: tensor, segment_ids: tensor, grad: tensor, output_dim0: tensor} |= if shape(indices, 0) > 0 ∧ shape(segment_ids, 0) > 0 then (∀i ∈ [0, shape(indices, 0) - 1] : indices[i] < shape(grad, 0)) ∧ (∀j ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[j] < output_dim0)
+>>
+Rule 94 (If grad is float64, indices must be int64, If grad is not float64, indices can be int32)
+{grad: tensor, indices: tensor} |= if dtype_(grad) = 8 then dtype_(indices) = 3 else dtype_(indices) = 2 ∨ dtype_(indices) = 3
+>>
+Rule 95 (If grad is float64, segment_ids must be int64, If grad is not float64, segment_ids can be int32)
+{grad: tensor, segment_ids: tensor} |= if dtype_(grad) = 8 then dtype_(segment_ids) = 3 else dtype_(segment_ids) = 2 ∨ dtype_(segment_ids) = 3
+>>
+Rule 96 (If grad is half, indices must be int32 or int64)
+{grad: tensor, indices: tensor} |= if dtype_(grad) = 7 then dtype_(indices) = 2 ∨ dtype_(indices) = 3
+>>
+Rule 97 (If grad is half, segment_ids must be int32 or int64)
+{grad: tensor, segment_ids: tensor} |= if dtype_(grad) = 7 then dtype_(segment_ids) = 2 ∨ dtype_(segment_ids) = 3
+>>
+Rule 98 (All elements of segment_ids must be less than or equal to max value of segment_ids)
+{segment_ids: tensor} |= if shape(segment_ids, 0) > 0 then ∀i ∈ [0, shape(segment_ids, 0) - 1] : segment_ids[i] ≤ max(segment_ids)

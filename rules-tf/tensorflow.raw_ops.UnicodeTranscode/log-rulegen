@@ -1,0 +1,3354 @@
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 1 (input_encoding must be a valid string)
+{v_1 : str} |= true
+** REDUNDANT VARIABLES ** (num_failures: 1)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 2 (output_encoding must be one of the allowed strings)
+{v_1 : str} |= v_1 = "UTF-8" ∨ v_1 = "UTF-16-BE" ∨ v_1 = "UTF-32-BE"
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 3 (errors must be one of the allowed strings)
+{v_1 : str} |= v_1 = "strict" ∨ v_1 = "replace" ∨ v_1 = "ignore"
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 4 (replacement_char must be a valid unicode codepoint, i.e., a non-negative integer)
+{v_1 : int} |= v_1 ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 5 (replace_control_characters must be a boolean value)
+{v_1 : bool} |= true
+** REDUNDANT VARIABLES ** (num_failures: 2)
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 6 (input tensor should have non-negative dimensions.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 27 (reduction over valid dimensions)
+{v_1 : tensor, v_2 : tuple(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 7 (If errors is replace, then replacement_char must be specified.)
+{v_1 : str, v_2 : int} |= if v_1 = "replace" then v_2 ≥ 0
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : str} |= true (Unused: v_1)
+Redundant variables: {v_1 : bool} |= true (Unused: v_1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 8 (output_encoding must be UTF-8, UTF-16-BE, or UTF-32-BE when input is tensor of strings)
+{v_1 : tensor, v_2 : str} |= ∃i ∈ [0, ndim(v_1) - 1]: dtype_(v_1) = 11 ∧ (v_2 = "UTF-8" ∨ v_2 = "UTF-16-BE" ∨ v_2 = "UTF-32-BE")
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : str} |= true (Unused: v_1)
+Redundant variables: {v_1 : bool} |= true (Unused: v_1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 9 (replacement_char should be less than or equal to max unicode value when errors='replace')
+{v_1 : str, v_2 : int} |= if v_1 = "replace" then v_2 ≤ 1114111
+** SUCCESS **
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : str} |= true (Unused: v_1)
+Redundant variables: {v_1 : bool} |= true (Unused: v_1)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 23 (3-dimensional tensor with all positive shape dimensions)
+{v_1 : tensor} |= ndim(v_1) = 3 ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 10 (input_encoding and output_encoding cannot be the same when replace_control_characters is true)
+{v_1 : str, v_2 : str, v_3 : bool} |= if v_3 = true then v_1 ≠ v_2
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 11 (If errors is strict, replace_char and replace_control_characters must not be specified)
+{v_1 : str, v_2 : int, v_3 : bool} |= if v_1 = "strict" then v_2 = 65533 ∧ v_3 = false
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 12 (If replace_control_characters is true, then replacement_char must be a valid unicode scalar value)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≥ 0 ∧ v_2 ≤ 1114111
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 24 (tuple of ints represents valid shape dimensions)
+{v_1 : tuple(int)} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] > 0
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+Rule 22 (valid step size for a range)
+{v_1 : int ⊎ float, v_2 : int ⊎ float, v_3 : int ⊎ float} |= if v_1 > 0 then v_2 ≤ v_3 else if v_1 < 0 then v_2 ≥ v_3 else true
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 13 (input_encoding should be a supported encoding when input is a string tensor)
+{v_1 : tensor, v_2 : str} |= ∃i ∈ [0, ndim(v_1) - 1]: dtype_(v_1) = 11 ∧ (v_2 = "UTF-16" ∨ v_2 = "US ASCII" ∨ v_2 = "UTF-8")
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+Rule 17 (primitive type variable must be non-negative)
+{v_1 : int ⊎ float} |= v_1 ≥ 0
+
+Rule 25 (tensor shape matches given tuple shape)
+{v_1 : tensor, v_2 : tuple(int)} |= ndim(v_1) = v_2.len ∧ ∀i ∈ [0, v_2.len - 1] : shape(v_1, i) = v_2[i]
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 15 (broadcasting compatibility for tensor shapes)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ ∀i ∈ [0, if ndim(v_1) ≥ ndim(v_2) then ndim(v_1) − 1 else ndim(v_2) − 1] : ndim(v_1) − i − 1 < 0 ∨ ndim(v_2) − i − 1 < 0 ∨ shape(v_1, ndim(v_1) − i − 1) = 1 ∨ shape(v_2, ndim(v_2) − i − 1) = 1 ∨ shape(v_1, ndim(v_1) − i − 1) = shape(v_2, ndim(v_2) − i − 1)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 14 (If errors is ignore, then replacement_char and replace_control_characters have no effect)
+{v_1 : str, v_2 : int, v_3 : bool} |= if v_1 = "ignore" then true
+** REDUNDANT VARIABLES ** (num_failures: 3)
+
+>>> PROMPT
+[Feedback Message from Prior Run]
+Redundant variables: {v_1 : str, v_2 : int, v_3 : bool} |= if v_1 = "ignore" then true (Unused: v_2, v_3)
+
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 15 (If errors is ignore, then replacement_char and replace_control_characters values do not matter)
+{v_1 : str} |= if v_1 = "ignore" then true
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 1 (tensor shapes should be the same)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2) ∧ ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = shape(v_2, i)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 16 (If replace_control_characters is true, replacement_char must be specified.)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 ≠ 65533
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 7 (first dimension of a tensor matches second dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) ≥ 1 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, 0) = shape(v_2, 1)
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 17 (replacement_char should preserve byte alignment for UTF-16-BE and UTF-16-LE)
+{v_1 : str, v_2 : int} |= if v_1 = "UTF-16-BE" ∨ v_1 = "UTF-16" then v_2 < 65536
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 26 (tuple of ints used as kernel size must have length 2)
+{v_1 : tuple(int)} |= v_1.len = 2 ∧ ∀i ∈ [0, 1] : v_1[i] > 0
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 28 (list of ints used as dimensions/axes, all non-negative and valid for tensor shape)
+{v_1 : tensor, v_2 : list(int)} |= ∀i ∈ [0, v_2.len - 1] : 0 ≤ v_2[i] ∧ v_2[i] < ndim(v_1)
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+Rule 6 (last dimension of a tensor matches first dimension of the other)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) > 0 ∧ ndim(v_2) > 0 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0)
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 18 (If replace_control_characters is true, then the replacement_char should not be a C0 control character)
+{v_1 : bool, v_2 : int} |= if v_1 = true then v_2 > 31
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 12 (a primitive type variable is smaller than the other)
+{v_1 : int ⊎ float, v_2 : int ⊎ float} |= v_1 ≤ v_2
+
+Rule 5 (index tensor (v_2) should be within the range of input tensor)
+{v_1 : tensor, v_2 : tensor} |= min(v_2) ≥ 0 ∧ ∀i ∈ [0, ndim(v_1) − 1] : max(v_2) ≤ shape(v_1, i) − 1
+
+Rule 3 (input tensors must have the same number of dimensions)
+{v_1 : tensor, v_2 : tensor} |= ndim(v_1) = ndim(v_2)
+
+Rule 18 (input tensor is empty or only contains non-negative values)
+{v_1 : tensor} |= (∃i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) = 0) ∨ min(v_1) ≥ 0
+
+Rule 10 (valid 2D transposed convolution)
+{v_1 : tensor, v_2 : tensor, v_3 : int, v_4 : int} |= ndim(v_1) = 4 ∧ ndim(v_2) = 4 ∧ v_3 ≥ 1 ∧ v_4 ≥ 0 ∧ v_3 × (shape(v_1, 2) − 1) + shape(v_2, 2) − 2 × v_4 > 0 ∧ v_3 × (shape(v_1, 3) − 1) + shape(v_2, 3) − 2 × v_4 > 0
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 19 (input_encoding and output_encoding must be different)
+{v_1 : str, v_2 : str} |= v_1 ≠ v_2
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 14 (tensor should not be empty)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) − 1] : shape(v_1, i) > 0
+
+Rule 4 (tensor data types should match)
+{v_1 : tensor, v_2 : tensor} |= dtype(v_1) = dtype(v_2)
+
+Rule 8 (tensor must have an integer dtype: 1–5)
+{v1: tensor} |= 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5
+
+Rule 20 (input tensor must be 1-dimensional)
+{v_1 : tensor} |= ndim(v_1) = 1
+
+Rule 19 (compatibility of integer or float (data) type tensor and variable)
+{v1 : tensor, v2 : int ⊎ float} |= if 1 ≤ dtype(v1) ∧ dtype(v1) ≤ 5 then 1 ≤ v2 ∧ v2 ≤ 5 else if 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8 then 1 ≤ v2 ∧ v2 ≤ 8 else false
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 20 (If errors is 'strict' then replace_control_characters should be false)
+{v_1 : str, v_2 : bool} |= if v_1 = "strict" then v_2 = false
+** SUCCESS **
+
+>>> PROMPT
+[Rule Grammar in EBNF Notation]
+<rule> ::= "{" <binding_list> "}" "|=" <expr>
+
+<binding_list> ::= <binding> ("," <binding>)*
+<binding> ::= <VAR> ":" <type>
+
+<type> ::= "tensor"
+         | "int"
+         | "float"
+         | "bool"
+         | "dtype"
+         | "str"
+         | "list" "(" <type> ")"
+         | "tuple" "(" <type> ")"
+         | <type> "⊎" <type>
+
+<expr> ::= <and_expr>
+<and_expr> ::= <or_expr> | <and_expr> "∧" <or_expr>
+<or_expr> ::= <quant_expr> | <or_expr> "∨" <quant_expr>
+<quant_expr> ::= "∀" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | "∃" <PRIMVAR> "∈" "[" <expr> "," <expr> "]" ":" <expr>
+               | <if_expr>
+               | <compare_expr>
+
+<if_expr> ::= "if" <expr> "then" <expr> [ "else" <expr> ]
+<compare_expr> ::= <arith_expr> | <arith_expr> <COMPOP> <arith_expr>
+<arith_expr> ::= <arith_expr> <ADDOP> <arith_term> | <arith_term>
+<arith_term> ::= <arith_term> <MULOP> <arith_factor> | <arith_factor>
+<arith_factor> ::= <TUPLEVAR> <tuple_access> | <func_call> | <constant> | <PRIMVAR> | "(" <expr> ")"
+
+<tuple_access>  ::= "[" <expr> "]" | ".len"
+<func_call> ::= <FUNC> "(" <TENSORVAR> [ "," <expr> ] ")"
+<constant> ::= <NUMBER> | "true" | "false" | <STRING>
+<COMPOP> ::= "=" | "≠" | ">" | "<" | "≥" | "≤"
+<ADDOP> ::= "+" | "-"
+<MULOP> ::= "*" | "/" | "%"
+<FUNC> ::= "ndim" | "shape" | "dtype_" | "min" | "max"
+<PRIMVAR> ::= any variable name (e.g., matches [a-zA-Z_][a-zA-Z_0-9]*)
+<TENSORVAR> ::= same format as PRIMVAR
+<TUPLEVAR> ::= same format as PRIMVAR
+
+<VAR> ::= same format as PRIMVAR
+<NUMBER> ::= any integer or decimal number (e.g., -5, 0.3, +7)
+<STRING> ::= any quoted string (e.g., "hello", 'world')
+
+[Task Description]
+Define rules that tensorflow.raw_ops.UnicodeTranscode API parameters should satisfy. Refer to the API documentation. 
+
+Type is encoded as an integer (index of the following list):
+[bool, np.int8, np.int16, np.int32, np.int64, np.uint8, np.float16, np.float32, np.float64, np.complex64, np.complex128, str, np.dtype]
+
+String value should be selected from the following list:
+["ii", "ii->i", "i,j->ij", "bij,bjk->bik", "...ij->...ji", "bn,anm,bm->ba", "none", "mean", "sum", "max", "min", "prod", "relu", "tanh", "sigmoid", "softmax", "elu", "selu", "gelu", "swish", "constant", "linear", "softplus"]
+
+[API Documentation]
+Transcode the input text from a source encoding to a destination encoding.
+
+  The input is a string tensor of any shape. The output is a string tensor of
+  the same shape containing the transcoded strings. Output strings are always
+  valid unicode. If the input contains invalid encoding positions, the
+  `errors` attribute sets the policy for how to deal with them. If the default
+  error-handling policy is used, invalid formatting will be substituted in the
+  output by the `replacement_char`. If the errors policy is to `ignore`, any
+  invalid encoding positions in the input are skipped and not included in the
+  output. If it set to `strict` then any invalid formatting will result in an
+  InvalidArgument error.
+
+  This operation can be used with `output_encoding = input_encoding` to enforce
+  correct formatting for inputs even if they are already in the desired encoding.
+
+  If the input is prefixed by a Byte Order Mark needed to determine encoding
+  (e.g. if the encoding is UTF-16 and the BOM indicates big-endian), then that
+  BOM will be consumed and not emitted into the output. If the input encoding
+  is marked with an explicit endianness (e.g. UTF-16-BE), then the BOM is
+  interpreted as a non-breaking-space and is preserved in the output (including
+  always for UTF-8).
+
+  The end result is that if the input is marked as an explicit endianness the
+  transcoding is faithful to all codepoints in the source. If it is not marked
+  with an explicit endianness, the BOM is not considered part of the string itself
+  but as metadata, and so is not preserved in the output.
+
+  Examples:
+
+  >>> tf.strings.unicode_transcode(["Hello", "TensorFlow", "2.x"], "UTF-8", "UTF-16-BE")
+  <tf.Tensor: shape=(3,), dtype=string, numpy=
+  array([b'\x00H\x00e\x00l\x00l\x00o',
+         b'\x00T\x00e\x00n\x00s\x00o\x00r\x00F\x00l\x00o\x00w',
+         b'\x002\x00.\x00x'], dtype=object)>
+  >>> tf.strings.unicode_transcode(["A", "B", "C"], "US ASCII", "UTF-8").numpy()
+  array([b'A', b'B', b'C'], dtype=object)
+
+  Args:
+    input: A `Tensor` of type `string`.
+      The text to be processed. Can have any shape.
+    input_encoding: A `string`.
+      Text encoding of the input strings. This is any of the encodings supported
+      by ICU ucnv algorithmic converters. Examples: `"UTF-16", "US ASCII", "UTF-8"`.
+    output_encoding: A `string` from: `"UTF-8", "UTF-16-BE", "UTF-32-BE"`.
+      The unicode encoding to use in the output. Must be one of
+      `"UTF-8", "UTF-16-BE", "UTF-32-BE"`. Multi-byte encodings will be big-endian.
+    errors: An optional `string` from: `"strict", "replace", "ignore"`. Defaults to `"replace"`.
+      Error handling policy when there is invalid formatting found in the input.
+      The value of 'strict' will cause the operation to produce a InvalidArgument
+      error on any invalid input formatting. A value of 'replace' (the default) will
+      cause the operation to replace any invalid formatting in the input with the
+      `replacement_char` codepoint. A value of 'ignore' will cause the operation to
+      skip any invalid formatting in the input and produce no corresponding output
+      character.
+    replacement_char: An optional `int`. Defaults to `65533`.
+      The replacement character codepoint to be used in place of any invalid
+      formatting in the input when `errors='replace'`. Any valid unicode codepoint may
+      be used. The default value is the default unicode replacement character is
+      0xFFFD or U+65533.)
+
+      Note that for UTF-8, passing a replacement character expressible in 1 byte, such
+      as ' ', will preserve string alignment to the source since invalid bytes will be
+      replaced with a 1-byte replacement. For UTF-16-BE and UTF-16-LE, any 1 or 2 byte
+      replacement character will preserve byte alignment to the source.
+    replace_control_characters: An optional `bool`. Defaults to `False`.
+      Whether to replace the C0 control characters (00-1F) with the
+      `replacement_char`. Default is false.
+    name: A name for the operation (optional).
+
+  Returns:
+    A `Tensor` of type `string`.
+
+[Output Format]
+Rule {Number} ({Description})\n{Rule Definition}
+Ex) Rule 21 (primitive type variable should not be zero)
+    {v_1 : int ⊎ float} |= v_1 ≠ 0
+
+[Example Rules]
+Rule 32 (Integer indices only valid with int-compatible dtype)
+{v_1 : tuple(int), v_2 : dtype} |= ∀i ∈ [0, v_1.len - 1] : v_1[i] ≥ 0 ∧ v_2 = 1 ∨ v_2 = 2 ∨ v_2 = 3 ∨ v_2 = 4 ∨ v_2 = 5
+
+Rule 29 (list of floats for weights must match length of a tensor dimension)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len = shape(v_1, 0) ∧ ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ 0
+
+Rule 16 (shape alignment for matrix multiplication)
+{v_1 : tensor, v_2 : tensor} |= (ndim(v_1) ≥ 2 ∧ ndim(v_2) ≥ 2 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, ndim(v_2) − 2)) ∨ (ndim(v_1) ≥ 2 ∧ ndim(v_2) = 1 ∧ shape(v_1, ndim(v_1) − 1) = shape(v_2, 0))
+
+Rule 2 (v_2 should be a valid dimension of input tensor)
+{v_1 : tensor, v_2 : int} |= −1 × ndim(v_1) ≤ v_2 ∧ v_2 ≤ ndim(v_1) − 1
+
+Rule 13 (tensor must have a floating-point dtype: 6–8)
+{v1: tensor} |= 6 ≤ dtype(v1) ∧ dtype(v1) ≤ 8
+
+** IMPORTANT: The rule definition should be a new one and strictly follow the grammar. **
+** IMPORTANT: Rules should span diverse types (tensor, int, float, bool, dtype, str, tuple, list, union), properties, and numbers of parameters. **
+** IMPORTANT: Variables should be named v_1, v_2, and so on. **
+** IMPORTANT: Bindings should be API parameters and include only variables that are used in the expression. **
+
+<<< RESPONSE
+Rule 21 (replacement_char value is dependent on output_encoding)
+{v_1 : str, v_2 : int} |= if v_1 = "UTF-8" then v_2 < 256 else if v_1 = "UTF-16-BE" then v_2 < 65536
+** SUCCESS **
+

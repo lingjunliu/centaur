@@ -1,0 +1,96 @@
+>>
+Rule 1 (input tensor must be 4-D)
+{v_1 : tensor} |= ndim(v_1) = 4
+>>
+Rule 2 (paddings tensor must be int32)
+{v_2 : tensor} |= dtype_(v_2) = 3
+>>
+Rule 3 (paddings tensor must be a matrix)
+{v_2 : tensor} |= ndim(v_2) = 2
+>>
+Rule 4 (filter tensor must be 4-D)
+{v_3 : tensor} |= ndim(v_3) = 4
+>>
+Rule 5 (input and filter tensor must have same dtype)
+{v_1 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_3)
+>>
+Rule 6 (strides list must have length 4)
+{v_5 : list(int)} |= v_5.len = 4
+>>
+Rule 7 (paddings tensor rows must be equal to input tensor rank)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = ndim(v_1)
+>>
+Rule 8 (each value in strides list must be greater than 0)
+{v_5 : list(int)} |= ∀i ∈ [0, v_5.len - 1] : v_5[i] > 0
+>>
+Rule 9 (mode string must be either REFLECT or SYMMETRIC)
+{v_4 : str} |= v_4 = "REFLECT" ∨ v_4 = "SYMMETRIC"
+>>
+Rule 10 (padding string must be either SAME or VALID)
+{v_6 : str} |= v_6 = "SAME" ∨ v_6 = "VALID"
+>>
+Rule 11 (input tensor dtype must be half, bfloat16, float32, or float64, represented by 6, 7, 8)
+{v_1 : tensor} |= dtype_(v_1) = 6 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 12 (paddings tensor second dimension must be 2)
+{v_2 : tensor} |= shape(v_2, 1) = 2
+>>
+Rule 13 (filter height must be positive)
+{v_3 : tensor} |= shape(v_3, 0) > 0
+>>
+Rule 14 (filter width must be positive)
+{v_3 : tensor} |= shape(v_3, 1) > 0
+>>
+Rule 15 (filter in_channels dimension must be the same as input in_channels dimension)
+{v_1 : tensor, v_3 : tensor} |= shape(v_1, 3) = shape(v_3, 2)
+>>
+Rule 17 (input batch size must be positive)
+{v_1 : tensor} |= shape(v_1, 0) > 0
+>>
+Rule 18 (input in_height must be positive)
+{v_1 : tensor} |= shape(v_1, 1) > 0
+>>
+Rule 19 (input in_width must be positive)
+{v_1 : tensor} |= shape(v_1, 2) > 0
+>>
+Rule 20 (filter out_channels must be positive)
+{v_3 : tensor} |= shape(v_3, 3) > 0
+>>
+Rule 22 (input in_channels must be positive)
+{v_1 : tensor} |= shape(v_1, 3) > 0
+>>
+Rule 23 (filter_height and filter_width must be smaller than input height and width, respectively)
+{v_1 : tensor, v_3 : tensor} |= shape(v_3, 0) ≤ shape(v_1, 1) ∧ shape(v_3, 1) ≤ shape(v_1, 2)
+>>
+Rule 31 (paddings must have non negative values - alternative formulation)
+{v_2 : tensor} |= min(v_2) ≥ 0
+>>
+Rule 32 (filter in_channels must be positive)
+{v_3 : tensor} |= shape(v_3, 2) > 0
+>>
+Rule 33 (strides list cannot contain zero values)
+{v_5 : list(int)} |= ∃i ∈ [0, v_5.len - 1] : v_5[i] ≠ 0
+>>
+Rule 34 (If padding is SAME, then strides must be 1)
+{v_6 : str, v_5 : list(int)} |= if v_6 = "SAME" then ∀i ∈ [0, v_5.len - 1] : v_5[i] = 1
+>>
+Rule 35 (if padding is VALID, then filter height and width must be smaller than input height and width, considering stride)
+{v_1 : tensor, v_3 : tensor, v_5 : list(int), v_6 : str} |= if v_6 = "VALID" then shape(v_3, 0) ≤ shape(v_1, 1) + (shape(v_5,1)-1) ∧ shape(v_3, 1) ≤ shape(v_1, 2) + (shape(v_5,2)-1)
+>>
+Rule 37 (if padding is VALID, the filter and input dimensions must be compatible)
+{v_1 : tensor, v_3 : tensor, v_6 : str} |= if v_6 = "VALID" then shape(v_1, 1) ≥ shape(v_3, 0) ∧ shape(v_1, 2) ≥ shape(v_3, 1)
+>>
+Rule 42 (if mode is REFLECT, paddings must be smaller than input dimensions - revised)
+{v_1 : tensor, v_2 : tensor, v_4 : str} |= if v_4 = "REFLECT" then min(v_2) < shape(v_1, 1) ∧ min(v_2) < shape(v_1, 2) ∧ min(v_2) < shape(v_1, 3)
+>>
+Rule 44 (If mode is SYMMETRIC, paddings must be smaller than half of the input dimensions)
+{v_1 : tensor, v_2 : tensor, v_4 : str} |= if v_4 = "SYMMETRIC" then min(v_2) < shape(v_1, 1) / 2 ∧ min(v_2) < shape(v_1, 2) / 2 ∧ min(v_2) < shape(v_1, 3) / 2
+>>
+Rule 52 (if the mode is SYMMETRIC, then the minimum and maximum padding values should be same)
+{v_2: tensor, v_4: str} |= if v_4 = "SYMMETRIC" then min(v_2) = max(v_2)
+>>
+Rule 53 (paddings tensor must have even number of rows if mode is symmetric)
+{v_2: tensor, v_4: str} |= if v_4 = "SYMMETRIC" then shape(v_2, 0) % 2 = 0
+>>
+Rule 55 (If the input has batch size 1, the filter must have the same number of in_channels and out_channels)
+{v_1: tensor, v_3: tensor} |= if shape(v_1, 0) = 1 then shape(v_3, 2) = shape(v_3, 3)

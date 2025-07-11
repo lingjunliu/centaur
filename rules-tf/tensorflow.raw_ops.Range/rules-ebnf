@@ -1,0 +1,123 @@
+>>
+Rule 1 (start, limit, and delta must have the same type)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= dtype_(v_1) = dtype_(v_2) ∧ dtype_(v_1) = dtype_(v_3)
+>>
+Rule 2 (start, limit and delta must be scalar tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= ndim(v_1) = 0 ∧ ndim(v_2) = 0 ∧ ndim(v_3) = 0
+>>
+Rule 3 (The type of start must be in the allowed set)
+{v_1 : tensor} |= dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 4 (delta cannot be zero)
+{v_3 : tensor} |= v_3 ≠ 0
+>>
+Rule 5 (start must be less than limit if delta is positive, and vice versa)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then v_1 < v_2 else if v_3 < 0 then v_1 > v_2
+>>
+Rule 6 (start, limit and delta must be of type int or float)
+{v_1 : tensor} |= dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 7 (if delta is not specified it defaults to one and is thus positive)
+{v_1 : tensor, v_2 : tensor} |= v_1 < v_2
+>>
+Rule 8 (delta should be a small value compared to the range)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then v_3 ≤ (v_2 - v_1) else if v_3 < 0 then v_3 ≥ (v_2 - v_1)
+>>
+Rule 9 (limit should be greater than start if delta is positive)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then v_2 > v_1
+>>
+Rule 10 (delta should result in a finite sequence)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then (v_2 - v_1) / v_3 > 0 else if v_3 < 0 then (v_2-v_1) / v_3 < 0 else false
+>>
+Rule 13 (if start equals limit, then sequence is empty and delta can have any value as long as it's not NaN or infinite, or if sequence is not empty, delta must not be zero)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_1 = v_2 then true else v_3 ≠ 0
+>>
+Rule 15 (The number of elements in the sequence should not exceed the maximum representable value of an integer.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then (v_2 - v_1) / v_3 < 2147483647 else if v_3 < 0 then (v_1 - v_2) / (0 - v_3) < 2147483647
+>>
+Rule 16 (The number of elements in the sequence should not exceed the maximum representable value of an integer.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then (v_2 - v_1) / v_3 < 2147483647 ∧ (v_2 - v_1) / v_3 ≥ 0 else if v_3 < 0 then (v_1 - v_2) / (0 - v_3) < 2147483647 ∧ (v_1 - v_2) / (0 - v_3) ≥ 0
+>>
+Rule 17 (If start is greater than limit and delta is positive or start is less than limit and delta is negative, then delta value must not be chosen such that limit is skipped)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_1 > v_2 ∧ v_3 > 0 then false else if v_1 < v_2 ∧ v_3 < 0 then false
+>>
+Rule 18 (If delta is a very small number, then the range must be appropriately small)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > -0.000001 ∧ v_3 < 0.000001 then (v_2 - v_1) > -0.000001 ∧ (v_2 - v_1) < 0.000001
+>>
+Rule 19 (If the sequence would have more elements than can be represented by the data type, it's an error)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 then if v_3 > 0 then (v_2 - v_1) / v_3 < 127 ∧ (v_2 - v_1) / v_3 > -128 else if v_3 < 0 then (v_1 - v_2) / (0 - v_3) < 127 ∧ (v_1 - v_2) / (0 - v_3) > -128
+>>
+Rule 20 (If the data type is uint8, sequence elements must be within the range of 0 to 255)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 5 then if v_3 > 0 then v_1 ≥ 0 ∧ v_2 ≤ 255 else if v_3 < 0 then v_1 ≤ 255 ∧ v_2 ≥ 0
+>>
+Rule 21 (If delta is positive, and start is already greater or equal to limit, it will return an empty tensor)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then if v_1 ≥ v_2 then true
+>>
+Rule 22 (If the data type is float, then result must also be finite. The calculation between start,limit and delta must not result in NaN or inf.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then (v_2 - v_1) / v_3 ≠ "NaN" ∧ (v_2 - v_1) / v_3 ≠ "inf"
+>>
+Rule 23 (The resulting tensor must not be larger than the maximum tensor size)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then (v_2 - v_1) / v_3 < 1000000 else if v_3 < 0 then (v_1 - v_2) / (0 - v_3) < 1000000
+>>
+Rule 24 (Delta should have the same sign as the difference between limit and start for non-empty tensors)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2 > v_1 then v_3 > 0 else if v_2 < v_1 then v_3 < 0
+>>
+Rule 25 (If delta is positive, the number of steps from start to limit must be an integer)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then (v_2 - v_1) % v_3 = 0
+>>
+Rule 26 (If delta is negative, the number of steps from start to limit must be an integer)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 < 0 then (v_1 - v_2) % (0 - v_3) = 0
+>>
+Rule 27 (If delta is a floating point number, there must be at least one element in the sequence)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 7 ∨ dtype_(v_3) = 8 then if v_3 > 0 then v_2 > v_1 else if v_3 < 0 then v_2 < v_1
+>>
+Rule 28 (Limit must not overflow when added to or subtracted to start by delta, when multiplied by a scaling factor or when the number of sequence elements is calculated.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_3) = 2 ∨ dtype_(v_3) = 3 ∨ dtype_(v_3) = 4 then (v_2 + v_3 < 2147483647 ∧ v_2 + v_3 > -2147483648) ∧ (v_2-v_3 < 2147483647 ∧ v_2 - v_3 > -2147483648) ∧ (v_2 * v_3 < 2147483647 ∧ v_2 * v_3 > -2147483648) ∧ ((v_2-v_1)/v_3 < 2147483647 ∧ (v_2-v_1)/v_3 > -2147483648)
+>>
+Rule 29 (Delta should not be extremely small compared to Start and Limit to prevent infinite loop or very long execution time)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 > 0 then v_3 > (v_2 - v_1) / 1000000 else if v_3 < 0 then v_3 < (v_2 - v_1) / 1000000
+>>
+Rule 30 (If dtype is float16, the number of sequence elements must not exceed representable range for float16)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 6 then if v_3 > 0 then (v_2 - v_1) / v_3 < 65504 else if v_3 < 0 then (v_1 - v_2) / (0 - v_3) < 65504
+>>
+Rule 31 (If dtype is int8, int16, int32 or int64, the resulting sequence tensor must not overflow. The sum of the elements in the sequence must fit within the data type range.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then (v_2 + v_1)*( (v_2 - v_1) / v_3 ) / 2 < 2147483647
+>>
+Rule 32 (If delta is specified as zero, the range must be zero in length and Start and Limit must be equal)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 = 0 then v_1 = v_2
+>>
+Rule 33 (If start and limit have opposite signs, then delta should be such that it reaches the other)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if (v_1 > 0 ∧ v_2 < 0) ∨ (v_1 < 0 ∧ v_2 > 0) then if v_3 > 0 then true
+>>
+Rule 35 (If start and limit are very close but not the same, and delta is default of 1, then the sequence should return just one element.)
+{v_1 : tensor, v_2 : tensor} |= if v_1 < v_2 ∧ v_2 - v_1 < 0.000001 then true
+>>
+Rule 37 (If start and limit are very close but not the same, and delta is some non-default small value, then no elements should exist in the sequence.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_1 < v_2 ∧ v_2 - v_1 < min(v_3, 0 - v_3) then true
+>>
+Rule 38 (If start and limit are very close but not the same, and delta is some non-default small value, then no elements should exist in the sequence.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_1 < v_2 ∧ v_2 - v_1 < (if v_3 > 0 then v_3 else 0 - v_3) then true
+>>
+Rule 39 (The number of steps calculated, (limit-start)/delta, must be an integer if the types are ints.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 1 ∨ dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 then ((v_2 - v_1) / v_3) = ( (v_2 - v_1) / v_3 )
+>>
+Rule 40 (If dtype is uint16, uint32, the resulting sequence tensor must not overflow.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if dtype_(v_1) = 6 then (v_2 + v_1)*( (v_2 - v_1) / v_3 ) / 2 < 65535
+>>
+Rule 41 (If delta is negative, then start should be greater than limit for a non-empty output.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 < 0 then v_1 > v_2
+>>
+Rule 42 (If delta and (limit-start) are zero, the sequence will be empty. Avoid this scenario as it results in invalid output.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_2 - v_1 = 0 then v_3 ≠ 0
+>>
+Rule 44 (If the datatypes are such that there will be data loss with the division operation involved with number of steps, an error will occur. For int types, result after division should still be representable as int. If start is bfloat16/half, data loss is unacceptable and will cause a crash.)
+{v_1 : tensor} |= dtype_(v_1) ≠ 0 ∧ dtype_(v_1) ≠ 1
+>>
+Rule 46 (If the result will be a half tensor, delta must be appropriately small)
+{v_1 : tensor, v_3 : tensor} |= if dtype_(v_1) = 0 then (if v_3 > 0 then v_3 < 65500 else if v_3 < 0 then v_3 > -65500)
+>>
+Rule 48 (limit and start must be representable by the data type to prevent data loss)
+{v_1 : tensor, v_2 : tensor} |= if dtype_(v_1) = 1 then v_1 < 127 ∧ v_2 < 127
+>>
+Rule 49 (If the resulting sequence is to be greater than zero, then start < limit and delta must be positive, else if start > limit, then delta must be negative. If the resulting sequence has a length zero, either start can be equal to limit or, if delta will skip over limit, then it will have length zero.)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= (if ((v_2 - v_1) / v_3) > 0 then v_1 < v_2 ∧ v_3 > 0 else if ((v_2-v_1) / v_3 ) < 0 then v_1 > v_2 ∧ v_3 < 0)

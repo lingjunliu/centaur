@@ -127,7 +127,10 @@ def write_rules(dir, rules_file, lib="torch"):
 
 def main():
     lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
-    base_dir = os.path.abspath("../rules-torch")
+    if lib == "torch":
+        base_dir = os.path.abspath("../rules-torch")
+    else:
+        base_dir = os.path.abspath("../rules-tf")
     rules_file = "rules-ebnf"
 
     for entry in os.listdir(base_dir):

@@ -1,0 +1,105 @@
+>>
+Rule 1 (values must be int32, int64, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 2 (value_range must be a tensor of shape [2] and same dtype as values)
+{v_1 : tensor, v_2 : tensor} |= shape(v_2, 0) = 2 ∧ ndim(v_2) = 1 ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 3 (nbins must be a scalar int32 Tensor)
+{v_1 : tensor} |= dtype_(v_1) = 3 ∧ ndim(v_1) = 0
+>>
+Rule 4 (values <= value_range[0])
+{v_1 : tensor, v_2 : tensor} |= min(v_1) ≤ shape(v_2, 0)
+>>
+Rule 5 (values >= value_range[1])
+{v_1 : tensor, v_2 : tensor} |= max(v_1) ≥ shape(v_2, 1)
+>>
+Rule 6 (dtype must be int32 or int64)
+{v_1 : dtype} |= v_1 = 3 ∨ v_1 = 4
+>>
+Rule 7 (value_range values must be ordered)
+{v_1 : tensor} |= shape(v_1, 0) = 2 ∧ v_1[0] ≤ v_1[1]
+>>
+Rule 8 (values tensor must have at least one element if nbins > 0)
+{v_1 : tensor, v_2 : tensor} |= (shape(v_1, 0) > 0) ∨ (v_2 > 0)
+>>
+Rule 9 (if dtype is specified values must be of a numeric type compatible with the specified dtype)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 3 then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) else if v_2 = 4 then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8)
+>>
+Rule 10 (nbins must be positive)
+{v_1 : tensor} |= v_1 > 0
+>>
+Rule 11 (if values is empty value_range should not matter)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then true else v_2[0] ≤ v_2[1]
+>>
+Rule 12 (value range should not be infinite)
+{v_1 : tensor} |= ∀i ∈ [0, 1] : v_1[i] ≠ "inf" ∧ v_1[i] ≠ "-inf"
+>>
+Rule 13 (if nbins is 1, all values will map to same bin)
+{v_1 : tensor, v_2 : tensor, v_3 : tensor} |= if v_3 = 1 then true else v_2[0] < v_2[1] ∧ dtype_(v_1) = dtype_(v_2)
+>>
+Rule 14 (values and value_range must be numeric tensors)
+{v_1 : tensor, v_2 : tensor} |= (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 15 (the dtype of return tensor depends on dtype arg)
+{v_1 : tensor, v_2 : dtype} |= if v_2 = 3 then dtype_(v_1) = 3 else if v_2 = 4 then dtype_(v_1) = 4
+>>
+Rule 16 (nbins must be less than or equal to the number of elements in values for a meaningful histogram)
+{v_1 : tensor, v_2 : tensor} |= v_2 ≤ shape(v_1, 0) ∨ ndim(v_1) > 1
+>>
+Rule 17 (If value range min and max are equal, and number of bins is greater than 1, then all bins except first and last will be empty)
+{v_1 : tensor, v_2 : tensor} |= if v_2[0] = v_2[1] then true else ndim(v_1) ≥ 0
+>>
+Rule 18 (values should be a 1D tensor if nbins equals number of values)
+{v_1 : tensor, v_2 : tensor} |= if shape(v_1, 0) = v_2 then ndim(v_1) = 1
+>>
+Rule 19 (If values dtype is int64 and dtype argument isn't specified then the output dtype defaults to int64)
+{v_1 : tensor, v_2 : dtype} |= if dtype_(v_1) = 4 ∧ v_2 = 3 then false
+>>
+Rule 21 (The number of elements of the returned tensor equals nbins)
+{v_1 : tensor, v_2 : tensor} |= shape(v_1, 0) = v_2
+>>
+Rule 22 (if value range min is greater than max values tensor must be empty)
+{v_1 : tensor, v_2 : tensor} |= if v_2[0] > v_2[1] then shape(v_1, 0) = 0
+>>
+Rule 23 (if value_range values are the same and nbins is greater than one, all values will be mapped to boundary bins)
+{v_1 : tensor, v_2 : tensor} |= if v_2[0] = v_2[1] ∧ v_1 > 1 then true
+>>
+Rule 24 (if nbins is greater than the number of elements in values the histogram may have empty bins)
+{v_1 : tensor, v_2 : tensor} |= if v_2 > shape(v_1, 0) then ∃i ∈ [0, v_2 - 1] : true
+>>
+Rule 25 (values should be a scalar or vector)
+{v_1 : tensor} |= ndim(v_1) ≤ 1
+>>
+Rule 28 (value_range values should not be NaN)
+{v_1 : tensor} |= ∀i ∈ [0, 1] : v_1[i] ≠ "NaN"
+>>
+Rule 29 (if nbins is 0 the resulting histogram should have zero elements)
+{v_1 : tensor, v_2 : tensor} |= if v_2 = 0 then shape(v_1,0) = 0
+>>
+Rule 30 (the number of bins cannot be negative)
+{v_1 : tensor} |= v_1 ≥ 0
+>>
+Rule 33 (if nbins is 1 the output will be a tensor of shape [1])
+{v_1 : tensor, v_2 : tensor} |= if v_2 = 1 then shape(v_1, 0) = 1
+>>
+Rule 34 (values and value_range should not contain infinite or NaN values)
+{v_1 : tensor, v_2 : tensor} |= (∀i ∈ [0, if ndim(v_1) > 0 then shape(v_1, 0) - 1 else 0] : v_1[i] ≠ "inf" ∧ v_1[i] ≠ "-inf" ∧ v_1[i] ≠ "NaN") ∧ (∀i ∈ [0, 1] : v_2[i] ≠ "inf" ∧ v_2[i] ≠ "-inf" ∧ v_2[i] ≠ "NaN")
+>>
+Rule 35 (If values is empty, the output tensor should also be empty irrespective of nbins.)
+{v_1: tensor, v_2 : tensor} |= if shape(v_1, 0) = 0 then shape(v_2, 0) = 0
+>>
+Rule 36 (the returned tensor's dtype must be int32 or int64)
+{v_1: tensor} |= dtype_(v_1) = 3 ∨ dtype_(v_1) = 4
+>>
+Rule 37 (if the returned dtype is int64 nbins value shouldn't be too big in order to avoid overflow)
+{v_1: tensor, v_2: tensor} |= if dtype_(v_1) = 4 then v_2 < 2147483647
+>>
+Rule 39 (The value_range must be specified even if the values tensor is empty)
+{v_1 : tensor} |= ndim(v_1) = 1 ∧ shape(v_1, 0) = 2
+>>
+Rule 40 (If dtype is specified values and value_range must be compatible with dtype)
+{v_1 : tensor, v_2 : tensor, v_3 : dtype} |= if v_3 = 3 then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8) else if v_3 = 4 then (dtype_(v_1) = 3 ∨ dtype_(v_1) = 4 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ (dtype_(v_2) = 3 ∨ dtype_(v_2) = 4 ∨ dtype_(v_2) = 7 ∨ dtype_(v_2) = 8)
+>>
+Rule 42 (value_range must be rank 1 tensor)
+{v_1: tensor} |= ndim(v_1) = 1

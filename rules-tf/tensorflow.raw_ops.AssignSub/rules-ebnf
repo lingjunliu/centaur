@@ -1,0 +1,183 @@
+>>
+Rule 1 (ref and value must have the same data type)
+{ref : tensor, value : tensor} |= dtype_(ref) = dtype_(value)
+>>
+Rule 3 (ref must be one of the allowed types (float32, float64, int32, uint8, int16, int8, complex64, int64, qint8, quint8, qint32, bfloat16, qint16, quint16, uint16, complex128, half, uint32, uint64))
+{ref : tensor} |= dtype_(ref) = 7 ∨ dtype_(ref) = 8 ∨ dtype_(ref) = 3 ∨ dtype_(ref) = 6 ∨ dtype_(ref) = 2 ∨ dtype_(ref) = 1 ∨ dtype_(ref) = 10 ∨ dtype_(ref) = 4
+>>
+Rule 5 (ref and value tensors should have compatible shapes for subtraction)
+{ref : tensor, value : tensor} |= if ndim(ref) = ndim(value) then ∀i ∈ [0, ndim(ref) - 1] : shape(ref, i) = shape(value, i) else false
+>>
+Rule 6 (ref and value tensors should have at least one dimension)
+{ref : tensor, value : tensor} |= ndim(ref) > 0 ∧ ndim(value) > 0
+>>
+Rule 7 (if use_locking is true, then ref must have at least shape (1,1))
+{ref : tensor, use_locking : bool} |= if use_locking then ndim(ref) = 2 ∧ shape(ref, 0) ≥ 1 ∧ shape(ref, 1) ≥ 1
+>>
+Rule 8 (value tensor must have a shape less than or equal to ref)
+{ref : tensor, value : tensor} |= ndim(value) ≤ ndim(ref) ∧ ∀i ∈ [0, if ndim(value) < ndim(ref) then ndim(value) else ndim(ref) -1 ] : shape(value, ndim(value) - i -1) = shape(ref, ndim(ref) - i - 1)
+>>
+Rule 9 (if the ref is a scalar, then the value must also be a scalar)
+{ref : tensor, value : tensor} |= if ndim(ref) = 0 then ndim(value) = 0
+>>
+Rule 10 (if value has a shape of (1,), ref must have shape of (N,) where N >= 1)
+{ref : tensor, value : tensor} |= if ndim(value) = 1 ∧ shape(value, 0) = 1 then ndim(ref) = 1 ∧ shape(ref, 0) ≥ 1
+>>
+Rule 11 (if ref has shape (N,1) and value has shape (1,M), then N must equal M.)
+{ref : tensor, value : tensor} |= if ndim(ref) = 2 ∧ ndim(value) = 2 ∧ shape(ref, 1) = 1 ∧ shape(value, 0) = 1 then shape(ref, 0) = shape(value, 1)
+>>
+Rule 12 (If use_locking is set to true, then the dtype of ref must be either int32, int64, or float32)
+{ref : tensor, use_locking : bool} |= if use_locking then dtype_(ref) = 3 ∨ dtype_(ref) = 4 ∨ dtype_(ref) = 7
+>>
+Rule 14 (If ref is a matrix, value must have compatible dimensions for subtraction)
+{ref : tensor, value : tensor} |= if ndim(ref) = 2 then (ndim(value) = 0) ∨ (ndim(value) = 1 ∧ shape(ref, 1) = shape(value, 0)) ∨ (ndim(value) = 2 ∧ shape(ref, 0) = shape(value, 0) ∧ shape(ref, 1) = shape(value, 1))
+>>
+Rule 15 (if ref is a vector of length N, then value must have dimension 0 or vector of length N)
+{ref : tensor, value : tensor} |= if ndim(ref) = 1 then (ndim(value) = 0) ∨ (ndim(value) = 1 ∧ shape(ref, 0) = shape(value, 0))
+>>
+Rule 17 (if value has more dimensions than ref, the shapes must still be compatible)
+{ref : tensor, value : tensor} |= if ndim(value) > ndim(ref) then ∀i ∈ [0, ndim(ref) - 1] : shape(ref, i) = shape(value, ndim(value) - ndim(ref) + i)
+>>
+Rule 19 (if the ref is a 3D tensor with shape (B,H,W) then value can be a 1D tensor of shape (W))
+{ref : tensor, value : tensor} |= if ndim(ref) = 3 then if ndim(value) = 1 then shape(ref, 2) = shape(value, 0)
+>>
+Rule 20 (If ref is a 2D tensor and value is a 1D tensor then the second dimension of ref must equal the dimension of value)
+{ref : tensor, value : tensor} |= if ndim(ref) = 2 ∧ ndim(value) = 1 then shape(ref, 1) = shape(value, 0)
+>>
+Rule 21 (if ref is a tensor, then the shape of value should be broadcastable to the shape of ref)
+{ref : tensor, value : tensor} |= if ndim(ref) > 0 ∧ ndim(value) > 0 then true
+>>
+Rule 22 (The rank of value must be less than or equal to the rank of ref)
+{ref : tensor, value : tensor} |= ndim(value) ≤ ndim(ref)
+>>
+Rule 24 (If value is a scalar then the shape of ref cannot be zero)
+{ref : tensor, value: tensor} |= if ndim(value) = 0 then ∀i ∈ [0, ndim(ref) - 1] : shape(ref, i) > 0
+>>
+Rule 25 (The data type of ref should be numerical)
+{ref : tensor} |= dtype_(ref) = 1 ∨ dtype_(ref) = 2 ∨ dtype_(ref) = 3 ∨ dtype_(ref) = 4 ∨ dtype_(ref) = 5 ∨ dtype_(ref) = 6 ∨ dtype_(ref) = 7 ∨ dtype_(ref) = 8 ∨ dtype_(ref) = 9 ∨ dtype_(ref) = 10
+>>
+Rule 26 (If value is a scalar then all shapes of ref must be greater than zero)
+{ref : tensor, value : tensor} |= if ndim(value) = 0 then ∀i ∈ [0, ndim(ref)-1] : shape(ref, i) > 0
+>>
+Rule 28 (if ref is a 4D tensor, value should also be a 4D tensor)
+{ref : tensor, value : tensor} |= if ndim(ref) = 4 then ndim(value) = 4
+>>
+Rule 31 (The tensor value cannot be of type string)
+{value: tensor} |= dtype_(value) ≠ 11
+>>
+Rule 33 (If value has higher rank than ref then value dimensions must be 1 up to the ref rank)
+{ref: tensor, value: tensor} |= if ndim(value) > ndim(ref) then ∀i ∈ [0, ndim(ref)-1] : shape(value, ndim(value)-ndim(ref)+i) = shape(ref, i)
+>>
+Rule 35 (The value's shape must be broadcastable to ref's shape given their data types match)
+{ref: tensor, value: tensor} |= dtype_(ref) = dtype_(value)
+>>
+Rule 36 (ref and value can be of any dimension if both are scalars)
+{ref: tensor, value: tensor} |= if ndim(ref) = 0 ∧ ndim(value) = 0 then true
+>>
+Rule 37 (ref must be a tensor of numerical type)
+{ref: tensor} |= dtype_(ref) = 1 ∨ dtype_(ref) = 2 ∨ dtype_(ref) = 3 ∨ dtype_(ref) = 4 ∨ dtype_(ref) = 5 ∨ dtype_(ref) = 6 ∨ dtype_(ref) = 7 ∨ dtype_(ref) = 8 ∨ dtype_(ref) = 9 ∨ dtype_(ref) = 10
+>>
+Rule 38 (if ref is complex64 or complex128, then value must also be complex64 or complex128)
+{ref: tensor, value: tensor} |= if dtype_(ref) = 9 ∨ dtype_(ref) = 10 then dtype_(value) = 9 ∨ dtype_(value) = 10
+>>
+Rule 40 (ref cannot have zero elements)
+{ref: tensor} |= ∃i ∈ [0, ndim(ref) -1] : shape(ref, i) > 0
+>>
+Rule 41 (if value is complex, ref must be complex)
+{ref: tensor, value: tensor} |= if dtype_(value) = 9 ∨ dtype_(value) = 10 then dtype_(ref) = 9 ∨ dtype_(ref) = 10
+>>
+Rule 42 (if the number of elements in value is one, the data type of ref and value should be same)
+{ref: tensor, value: tensor} |= if ndim(value) = 0 then dtype_(ref) = dtype_(value)
+>>
+Rule 43 (if use_locking is true then ref must be of type int32, int64 or float32)
+{ref: tensor, use_locking: bool} |= if use_locking then dtype_(ref) = 3 ∨ dtype_(ref) = 4 ∨ dtype_(ref) = 7
+>>
+Rule 44 (if the dtype of ref is bfloat16, then the dtype of value must also be bfloat16)
+{ref: tensor, value: tensor} |= if dtype_(ref) = 12 then dtype_(value) = 12
+>>
+Rule 46 (The rank of ref must be at least zero)
+{ref: tensor} |= ndim(ref) ≥ 0
+>>
+Rule 48 (The value must have the same shape and data type as `ref`)
+{ref: tensor, value: tensor} |= shape(ref,0) = shape(value,0) ∧ dtype_(ref) = dtype_(value)
+>>
+Rule 49 (Value shape should be broadcastable to ref if the number of dimension are different)
+{ref: tensor, value: tensor} |= if ndim(ref) != ndim(value) then ∀i ∈ [0, if ndim(ref) < ndim(value) then ndim(ref) else ndim(value)-1] : shape(ref, ndim(ref) - i -1) = shape(value, ndim(value) - i - 1)
+>>
+Rule 50 (if ref is of type half then the value should also be of type half.)
+{ref: tensor, value: tensor} |= if dtype_(ref) = 16 then dtype_(value) = 16
+>>
+Rule 51 (if use_locking is enabled then the shape of ref and value must be same)
+{ref: tensor, value: tensor, use_locking: bool} |= if use_locking then shape(ref, 0) = shape(value, 0)
+>>
+Rule 52 (if use_locking is true and ref is of type int32, then value must be of type int32)
+{ref: tensor, value: tensor, use_locking: bool} |= if use_locking ∧ dtype_(ref) = 3 then dtype_(value) = 3
+>>
+Rule 54 (The shape of the `value` tensor should be broadcastable to the shape of the `ref` tensor)
+{ref: tensor, value: tensor} |= ∀i ∈ [0, if ndim(value) < ndim(ref) then ndim(value)-1 else ndim(ref)-1]: (shape(value, ndim(value) - 1 -i) = shape(ref, ndim(ref)-1-i)) ∨ (shape(value, ndim(value) - 1 -i) = 1)
+>>
+Rule 56 (if dtype of ref is qint8, quint8, qint32, qint16 or quint16, then dtype of value should be the same)
+{ref: tensor, value: tensor} |= if dtype_(ref) = 5 ∨ dtype_(ref) = 6 ∨ dtype_(ref) = 7 ∨ dtype_(ref) = 8 ∨ dtype_(ref) = 9 then dtype_(value) = dtype_(ref)
+>>
+Rule 58 (if ndim of ref and value are equal to one, then size of both tensors should be equal)
+{ref : tensor, value : tensor} |= if ndim(ref) = 1 ∧ ndim(value) = 1 then shape(ref, 0) = shape(value, 0)
+>>
+Rule 59 (if the ref and value tensors are of different ranks then, subtraction can happen if and only if the tensor of lower rank has one element only)
+{ref : tensor, value : tensor} |= if ndim(ref) ≠ ndim(value) then (ndim(ref) < ndim(value) ∧ (ndim(ref)=0 ∨ (ndim(ref)=1 ∧ shape(ref,0)=1))) ∨ (ndim(value) < ndim(ref) ∧ (ndim(value)=0 ∨ (ndim(value)=1 ∧ shape(value,0)=1)))
+>>
+Rule 60 (the `value` tensor must be of the same type as the `ref` tensor if the number of elements in both tensors are different )
+{ref: tensor, value: tensor} |= if ∃i ∈ [0, ndim(ref)-1]: shape(ref, i) != shape(value, i) then dtype_(ref) = dtype_(value)
+>>
+Rule 62 (The `value` tensor must have compatible dimensions with the `ref` tensor for element-wise subtraction.)
+{ref: tensor, value: tensor} |= (ndim(ref) > 0 ∧ ndim(value) > 0) ∧  ∀i ∈ [0, if ndim(ref) < ndim(value) then ndim(ref) else ndim(value) -1 ] : shape(ref, ndim(ref) - i -1) = shape(value, ndim(value) - i - 1)
+>>
+Rule 63 (The data type for ref cannot be bool, str or dtype)
+{ref: tensor} |= dtype_(ref) ≠ 0 ∧ dtype_(ref) ≠ 11 ∧ dtype_(ref) ≠ 12
+>>
+Rule 64 (if the shapes don't match, ensure the smaller tensor can be broadcast to the larger one based on numpy broadcasting rules where trailing dimensions are compared)
+{ref: tensor, value: tensor} |= ∀i ∈ [0, if ndim(ref) < ndim(value) then ndim(ref) else ndim(value) - 1] : (shape(ref, ndim(ref) - 1 - i) = shape(value, ndim(value) - 1 - i)) ∨ (shape(ref, ndim(ref) - 1 - i) = 1) ∨ (shape(value, ndim(value) - 1 - i) = 1)
+>>
+Rule 65 (If use_locking is True the shape must be exactly equal, no broadcasting allowed)
+{ref: tensor, value: tensor, use_locking: bool} |= if use_locking then ndim(ref) = ndim(value) ∧ ∀i ∈ [0, ndim(ref) - 1] : shape(ref, i) = shape(value, i)
+>>
+Rule 66 (if Ref dtype is float64 and value dtype is float32, this might overflow the precision, it is not allowed.)
+{ref: tensor, value: tensor} |= if dtype_(ref) = 8 ∧ dtype_(value) = 7 then false
+>>
+Rule 68 (Value tensor's dtype should be smaller or equal to the ref tensor's dtype)
+{ref: tensor, value: tensor} |= dtype_(value) <= dtype_(ref)
+>>
+Rule 69 (When use_locking is true, the ref tensor cannot have a shape containing zero.)
+{ref: tensor, use_locking: bool} |= if use_locking then ∀i ∈ [0, ndim(ref) - 1] : shape(ref, i) > 0
+>>
+Rule 70 (If ref is a scalar, then the type and shape of the value are irrelevant)
+{ref : tensor} |= if ndim(ref) = 0 then true
+>>
+Rule 74 (The total size of the value must be less than or equal to the total size of the ref, measured in bytes)
+{ref: tensor, value: tensor} |= shape(ref, 0) >= shape(value, 0)
+>>
+Rule 75 (If ndim is zero for value, then ref should have ndim of 0 or 1)
+{ref: tensor, value: tensor} |= if ndim(value) = 0 then (ndim(ref) = 0) ∨ (ndim(ref) = 1)
+>>
+Rule 80 (If the rank is greater than 0 then for all dimensions the size should be positive)
+{ref : tensor} |= if ndim(ref) > 0 then ∀i ∈ [0, ndim(ref)-1] : shape(ref, i) > 0
+>>
+Rule 81 (value's rank should be smaller than or equal to ref's)
+{ref: tensor, value: tensor} |= ndim(value) <= ndim(ref)
+>>
+Rule 84 (value's rank should be smaller than or equal to ref's rank or value is scalar)
+{ref: tensor, value: tensor} |= ndim(value) <= ndim(ref) ∨ ndim(value) = 0
+>>
+Rule 87 (if ref's ndim and values's ndim is different than value's shape must be broadcastable to ref.)
+{ref: tensor, value: tensor} |= if ndim(ref) != ndim(value) then ∀i ∈ [0, if ndim(value) < ndim(ref) then ndim(value) else ndim(ref) -1] : (shape(value, ndim(value) - i - 1) = shape(ref, ndim(ref) - i - 1)) ∨ (shape(value, ndim(value) - i - 1) = 1)
+>>
+Rule 93 (If value's type is not in allowed list then this operation is not allowed)
+{value: tensor} |= dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 3 ∨ dtype_(value) = 6 ∨ dtype_(value) = 2 ∨ dtype_(value) = 1 ∨ dtype_(value) = 10
+>>
+Rule 95 (If value's type is not in allowed list then this operation is not allowed)
+{value: tensor} |= dtype_(value) = 7 ∨ dtype_(value) = 8 ∨ dtype_(value) = 3 ∨ dtype_(value) = 6 ∨ dtype_(value) = 2 ∨ dtype_(value) = 1 ∨ dtype_(value) = 10 ∨ dtype_(value) = 12
+>>
+Rule 96 (If ref tensor shape is dynamic, all shape dimensions of value must also be dynamic.)
+{ref: tensor, value: tensor} |= if ∃i ∈ [0, ndim(ref) - 1] : shape(ref, i) = -1 then ∀j ∈ [0, ndim(value) - 1]: shape(value, j) = -1
+>>
+Rule 99 (If ref tensor shape is dynamic, all shape dimensions of value must also be dynamic or 1 or -1.)
+{ref: tensor, value: tensor} |= if ∃i ∈ [0, ndim(ref) - 1] : shape(ref, i) = -1 then ∀j ∈ [0, ndim(value) - 1]: shape(value, j) = -1 ∨ shape(value, j) = 1

@@ -1,0 +1,111 @@
+>>
+Rule 1 (input tensor should be of type int32, int64, float32, or float64)
+{v_1 : tensor} |= dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 ∨ dtype_(v_1) = 7 ∨ dtype_(v_1) = 8
+>>
+Rule 2 (boundaries must be a list of floats and non-empty)
+{v_2 : list(float)} |= v_2.len > 0
+>>
+Rule 3 (boundaries must be sorted in ascending order)
+{v_2 : list(float)} |= ∀i ∈ [0, v_2.len - 2] : v_2[i] ≤ v_2[i+1]
+>>
+Rule 4 (input tensor shape must be greater or equal to 1)
+{v_1 : tensor} |= ndim(v_1) ≥ 1
+>>
+Rule 5 (Number of boundaries should be less than a certain value)
+{v_2 : list(float)} |= v_2.len < 1024
+>>
+Rule 6 (The values in the boundaries list should be finite)
+{v_2 : list(float)} |= ∀i ∈ [0, v_2.len - 1] : (v_2[i] < 10000000000.0) ∧ (v_2[i] > -10000000000.0)
+>>
+Rule 7 (If the input is an integer type, boundaries should have integer values)
+{v_1 : tensor, v_2 : list(float)} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 then ∀i ∈ [0, v_2.len - 1] : v_2[i] = ((v_2[i] + 0.5) - (v_2[i] + 0.5) % 1)
+>>
+Rule 8 (Input tensor can't have zero dimensions.)
+{v_1 : tensor} |= ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) > 0
+>>
+Rule 9 (Boundaries list length should be reasonable with input tensor size)
+{v_1 : tensor, v_2 : list(float)} |= v_2.len < 100 * shape(v_1, 0)
+>>
+Rule 10 (If input tensor is empty, boundaries also should be empty)
+{v_1 : tensor, v_2 : list(float)} |= if shape(v_1, 0) = 0 then v_2.len = 0
+>>
+Rule 11 (The boundaries list should not contain NaN values)
+{v_2 : list(float)} |= ∀i ∈ [0, v_2.len - 1] : v_2[i] = v_2[i]
+>>
+Rule 13 (If input tensor is int type, then min(v_1) >= -2147483648 and max(v_1) <= 2147483647)
+{v_1 : tensor} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 then min(v_1) ≥ -2147483648 ∧ max(v_1) ≤ 2147483647
+>>
+Rule 14 (If input tensor is float type, then max(v_1) < infinity)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then max(v_1) < 10000000000.0
+>>
+Rule 16 (If the input tensor is int32, then the boundaries values should be in the range of int32)
+{v_1 : tensor, v_2 : list(float)} |= if dtype_(v_1) = 2 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -2147483648 ∧ v_2[i] ≤ 2147483647
+>>
+Rule 17 (If the input tensor is int64, then the boundaries values should be in the range of int64)
+{v_1 : tensor, v_2 : list(float)} |= if dtype_(v_1) = 3 then ∀i ∈ [0, v_2.len - 1] : v_2[i] ≥ -9223372036854775808 ∧ v_2[i] ≤ 9223372036854775807
+>>
+Rule 18 (Check if the boundaries contains the min and max values of the input tensor, if the input tensor is not empty)
+{v_1 : tensor, v_2 : list(float)} |= if shape(v_1, 0) > 0 then ∃i ∈ [0, v_2.len - 1] : v_2[i] = min(v_1) ∧ ∃i ∈ [0, v_2.len - 1] : v_2[i] = max(v_1)
+>>
+Rule 19 (For float input tensors, boundaries cannot be empty)
+{v_1 : tensor, v_2 : list(float)} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then v_2.len > 0
+>>
+Rule 20 (The input tensor should not contain inf values if the type is float)
+{v_1 : tensor} |= if dtype_(v_1) = 7 ∨ dtype_(v_1) = 8 then min(v_1) > -10000000000.0 ∧ max(v_1) < 10000000000.0
+>>
+Rule 21 (If the input tensor's dimension is larger than 1, the boundaries list length should be smaller than the first dimension)
+{v_1 : tensor, v_2 : list(float)} |= if ndim(v_1) > 1 then v_2.len < shape(v_1, 0)
+>>
+Rule 22 (If the boundaries list is not empty, the minimum value of the input tensor should be less than or equal to the first element of the boundaries.)
+{v_1 : tensor, v_2 : list(float)} |= if v_2.len > 0 then min(v_1) <= v_2[0]
+>>
+Rule 23 (If the boundaries list is not empty, the maximum value of the input tensor should be greater than or equal to the last element of the boundaries.)
+{v_1 : tensor, v_2 : list(float)} |= if v_2.len > 0 then max(v_1) ≥ v_2[v_2.len - 1]
+>>
+Rule 24 (If the input tensor is a scalar (ndim = 0), boundaries should be empty)
+{v_1 : tensor, v_2 : list(float)} |= if ndim(v_1) = 0 then v_2.len = 0
+>>
+Rule 25 (Boundaries cannot be infinite if the input is int.)
+{v_1 : tensor, v_2 : list(float)} |= if dtype_(v_1) = 2 ∨ dtype_(v_1) = 3 then ∀i ∈ [0, v_2.len - 1] : (v_2[i] > -1000000000.0) ∧ (v_2[i] < 1000000000.0)
+>>
+Rule 26 (Boundaries can be empty only when input tensor has zero elements.)
+{v_1 : tensor, v_2 : list(float)} |= if v_2.len = 0 then ∀i ∈ [0, ndim(v_1) - 1] : shape(v_1, i) = 0
+>>
+Rule 27 (The size of the boundaries list should be smaller than the maximum allowed buckets number.)
+{v_2 : list(float)} |= v_2.len < 2048
+>>
+Rule 28 (When the input tensor is one dimension, the boundary values cannot be equal to each other.)
+{v_1 : tensor, v_2 : list(float)} |= if ndim(v_1) = 1 ∧ v_2.len > 1 then ∀i ∈ [0, v_2.len - 2] : v_2[i] ≠ v_2[i + 1]
+>>
+Rule 29 (When the input tensor is one dimension and the boundaries list is not empty, the first boundary should be smaller than the maximum value of the input tensor)
+{v_1 : tensor, v_2 : list(float)} |= if ndim(v_1) = 1 ∧ v_2.len > 0 then v_2[0] < max(v_1)
+>>
+Rule 30 (When the input tensor is one dimension and the boundaries list is not empty, the last boundary should be greater than the minimum value of the input tensor)
+{v_1 : tensor, v_2 : list(float)} |= if ndim(v_1) = 1 ∧ v_2.len > 0 then v_2[v_2.len - 1] > min(v_1)
+>>
+Rule 31 (If the tensor is a matrix, then boundary values should fall within the min and max values of the tensor)
+{v_1: tensor, v_2: list(float)} |= if ndim(v_1) = 2 ∧ v_2.len > 0 then min(v_1) <= v_2[0] ∧ max(v_1) >= v_2[v_2.len -1]
+>>
+Rule 32 (If boundary list is not empty, then first element of boundary should be less or equal to second element of boundary)
+{v_2: list(float)} |= if v_2.len > 1 then v_2[0] <= v_2[1]
+>>
+Rule 33 (if ndim of input is 2, the length of the boundary list cannot be larger than the second dimension)
+{v_1 : tensor, v_2 : list(float)} |= if ndim(v_1) = 2 then v_2.len < shape(v_1, 1)
+>>
+Rule 34 (If boundary list contains only one element, it cannot be NAN)
+{v_2 : list(float)} |= if v_2.len = 1 then v_2[0] = v_2[0]
+>>
+Rule 35 (If boundary list contains more than one element, the first element must be less than or equal to the maximum value of the input tensor)
+{v_1 : tensor, v_2 : list(float)} |= if v_2.len > 1 then v_2[0] <= max(v_1)
+>>
+Rule 36 (If the input tensor has floating point values and the boundaries list is empty, then the number of dimensions should be 0)
+{v_1 : tensor, v_2 : list(float)} |= if (dtype_(v_1) = 7 ∨ dtype_(v_1) = 8) ∧ v_2.len = 0 then ndim(v_1) = 0
+>>
+Rule 37 (If the boundaries list is not empty, then the last element must be greater or equal to the minimum value of the input tensor.)
+{v_1 : tensor, v_2 : list(float)} |= if v_2.len > 0 then v_2[v_2.len - 1] ≥ min(v_1)
+>>
+Rule 38 (If the boundaries list is not empty, then the first element should be smaller than the maximum value.)
+{v_1 : tensor, v_2 : list(float)} |= if v_2.len > 0 then v_2[0] < max(v_1)
+>>
+Rule 39 (If boundary list contains more than 1 element then the last element must be greater than or equal to the first element)
+{v_2 : list(float)} |= if v_2.len > 1 then v_2[v_2.len - 1] ≥ v_2[0]
