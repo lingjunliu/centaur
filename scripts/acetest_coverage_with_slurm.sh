@@ -8,6 +8,17 @@ dir=$1
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
+lib=torch
+export elements_file=${lib}_apis.txt
+
+export setup_env=0       # Do not setup the environment again inside slurm script
+
+python3.12 -m venv venv
+source venv/bin/activate
+pip install -r $PROJECT_DIR/requirements.txt
+# Installing specified version of the library (torch)
+pip install torch==2.2.0
+
 job_name=apat
 echo "Patching code before running coverage script"
 bash $slurm_sh "python -m eval.acetest.patching" ${job_name} ${dir}
@@ -17,9 +28,7 @@ if ! command -v python3.12 &> /dev/null; then
     echo "Error: python3.12 is not installed. Please install it before running this script."
     exit 1
 fi
-python3.12 -m venv venv
-source venv/bin/activate
-pip install torch==2.2.0
+
 # Install instrumented pytorch
 if [ ! -f $PROJECT_DIR/instrumented_pytorch/torch-2.2.0* ]; then  # Download only if not already downloaded
     pip install gdown
