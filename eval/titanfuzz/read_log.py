@@ -1,10 +1,7 @@
 import sys
-from utils.misc import map_torch_to_driver
 
 def main():
     log_file = sys.argv[1]
-
-    torch_to_driver, driver_to_torch = map_torch_to_driver()
 
     read_valid = False
     read_total = False
@@ -33,8 +30,6 @@ def main():
     
     print("api,valid,total,valid_prcnt")
     for k, v in stat_dict.items():
-        if k in torch_to_driver:
-            k = torch_to_driver[k]
         if len(v) == 2:
             print(f"{k},{int(v[0])},{int(v[1])},{float(int(v[0])*100/int(v[1]) if int(v[0]) > 0 else 0):.2f}")
         else:
