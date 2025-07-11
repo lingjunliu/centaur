@@ -82,7 +82,7 @@ fi
 # Aggregating and saving results: coverage
 cov_results=$PROJECT_DIR/.tmp/coverage_results
 result=$PROJECT_DIR/.tmp/coverage.csv
-echo "api,coverage,line_coverage,return_code" > ${result}
+echo "api,SLATE,line_cov_SLATE" > ${result}
 for filename in ${cov_results}/*.csv
 do
     cat ${filename} >> ${result}

@@ -10,11 +10,14 @@ def compute_coverage(api, cov_results, driver_file, lib="torch", save_lcov=False
     out_file = os.path.join(cov_results, f"{api}.csv")
     num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python {driver_file}", prefix=prefix, capture_output=True, gen_html=gen_html, save_lcov=save_lcov, native_only=native_only)
 
-    with open(out_file, "w") as f:
-        f.write(f"{api},{num_branches},{num_lines},{return_code}\n")
-    
-    if return_code != 0:
+    if return_code > 0:
         print(f"ERROR: Execution for {api} failed and returned {return_code}")
+    elif return_code < 0:
+        print(f"[CRASH] Raised a signal: {return_code}")
+    else:
+        with open(out_file, "w") as f:
+            f.write(f"{api},{num_branches},{num_lines}\n")
+    
     print(f"Coverage results for {api}:")
     print(f"Branch coverage: {num_branches}")
     print(f"Line coverage: {num_lines}")

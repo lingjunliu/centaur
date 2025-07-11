@@ -56,7 +56,7 @@ if (sota == "FreeFuzz") {
 if (sota == "Pathfinder") {
   ylim <- c(2500, 10000)
 } else {
-  ylim <- c(10000, 13000)
+  ylim <- c(9000, 11500)
 }
 
 data <- read.csv(csv)
