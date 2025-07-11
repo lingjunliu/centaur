@@ -42,7 +42,7 @@ def main():
     
     print(f"{dir}/driver.py")
     prefix = api.replace(".", "_")
-    num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python {dir}/driver.py {dir}", prefix=prefix, capture_output=True)
+    num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python {dir}/driver.py {dir}", prefix=prefix, capture_output=True, gen_html=True)
 
     if return_code != 0:
         print(f"ERROR: Execution for {api} failed and returned {return_code}")
