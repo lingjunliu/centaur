@@ -13,8 +13,8 @@ fi
 
 export elements_file=${lib}_variations.txt
 
-# Add 2 minutes (120 seconds)
-total_seconds=$((duration + 120))
+# Add 10 minutes (600 seconds)
+total_seconds=$((duration + 600))
 
 # Convert to HH:MM:SS
 hours=$((total_seconds / 3600))
