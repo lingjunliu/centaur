@@ -1,18 +1,15 @@
 import time
 import numpy as np
 from z3 import *
-from .input_generators import get_ll, abstract_print
-from .rules_auto_z3 import get_rules_map
+from .input_generators import abstract_print
 from .definitions import get_definition
 from .serialize import load_model, save_model
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits_torch, domain_limits_tf, list_of_string_values_torch, list_of_string_values_tf, int_buckets, float_buckets
+from utils.defaults import MAX_N_DIM, int_buckets, float_buckets
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors
 from utils.new_api_utils import get_lib_version, get_api_suffix
 from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints
 from eval.oracle import oracle_crash
-from functools import reduce
 import os
-import random
 import json
 from utils.proc import get_memory_usage
 import shutil
@@ -70,7 +67,7 @@ def variable_bounds(assertions):
         vars_found = set()
         def walk(e):
             if is_const(e) and e.decl().kind() == Z3_OP_UNINTERPRETED:
-                if e.sort().kind() != Z3_ARRAY_SORT:
+                if e.sort().kind() != Z3_ARRAY_SORT and e.sort().kind() != Z3_BOOL_SORT:
                     vars_found.add(e)
             elif e.decl().kind() == Z3_OP_SELECT:
                 arr, idx = e.children()
@@ -92,12 +89,10 @@ def variable_bounds(assertions):
         sort_kind = var.sort().kind()
         if sort_kind == Z3_REAL_SORT:
             default_buckets = float_buckets
-        elif sort_kind == Z3_BOOL_SORT:
-            default_buckets = [False, True]
         else:
             default_buckets = int_buckets
         
-        default_buckets = add_negative_buckets(default_buckets) if sort_kind != Z3_BOOL_SORT else default_buckets
+        default_buckets = add_negative_buckets(default_buckets)
         
         opt_min = Optimize()
         opt_min.set("timeout", 1000)
@@ -121,32 +116,32 @@ def variable_bounds(assertions):
     return bounds
 
 # Add assertions for sampled values from partitions
-def sample_partitions(var_values_map, p):
+def sample_partitions(var_values_map, p, rng=np.random.default_rng(42)):
     sampled_partitions = set()
     all_vars = list(var_values_map.keys())
 
     sample_size = int(len(all_vars) * p)
-    sampled_vars = random.sample(all_vars, sample_size)
+    sampled_vars = rng.choice(all_vars, sample_size, replace=False)
 
     for var in sampled_vars:
         values = sorted(var_values_map[var])
         if len(values) < 2:
             continue
 
-        idx = random.randint(0, len(values) - 2)
+        idx = rng.integers(0, len(values) - 1)
         v1, v2 = values[idx], values[idx + 1]
 
         sort_kind = var.sort().kind()
         if sort_kind == Z3_INT_SORT:
-            if int(v2) - int(v1) <= 1:
+            if int(v2) - int(v1) < 2:
                 continue 
-            v = random.randint(int(v1) + 1, int(v2) - 1)
+            v = rng.integers(int(v1) + 1, int(v2))
         elif sort_kind == Z3_REAL_SORT:
             if abs(v2 - v1) <= 1e-6:
                 continue
-            v = random.uniform(v1 + 1e-6, v2 - 1e-6)
+            v = rng.uniform(v1 + 1e-6, v2 - 1e-6)
         elif sort_kind == Z3_BOOL_SORT:
-            v = random.choice([v1, v2])
+            v = rng.choice([False, True])
         else:
             continue
 
@@ -188,7 +183,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
         one_solver.add(*solver.assertions())
 
         # Strategy #1: Adding blocking constraints with probability p_1
-        sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
+        sampled_blocks = rng.choice(list(block_all), int(len(block_all) * 0.3), replace=False)
         one_solver.add(*sampled_blocks)
         one_solver.add(*perma_block)
 
@@ -266,8 +261,6 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                         var_values_map[actual_key].add(val.as_long())
                     elif var.sort().kind() == Z3_REAL_SORT:
                         var_values_map[actual_key].add(float(val.as_fraction()))
-                    elif var.sort().kind() == Z3_BOOL_SORT:
-                        var_values_map[actual_key].add(is_true(val))
                 
                 if suffix == "ndim" and val.as_long() == 0:
                     perma_block.add(var != val)

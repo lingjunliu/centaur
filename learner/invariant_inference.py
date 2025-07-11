@@ -4,10 +4,12 @@ from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints
 from .inputs import get_inputs
 from utils.new_api_utils import get_n_variations, get_lib_version, get_signature, get_api_suffix
 from utils.misc import get_dir_in_root, get_tmp_dir, create_subdir
+from utils.defaults import MAX_N_DIM
 from generator.input_generators import abstract_print, get_abstract_input
 from eval.oracle import oracle_crash
 import os, sys
-import time
+import time, random
+from z3 import *
 
 def save_invariants(api, ruleset, invariant_file):
     if len(ruleset) > 0:
@@ -72,8 +74,6 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
             if solver.check() != sat:
                 trial += 1
                 continue
-                trial += 1
-                continue
     
             model = solver.model()
             for decl in model.decls():
@@ -126,11 +126,7 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
         elif valid / trial < base_validity_ratio:
             rules_to_keep.add(rule)
 
-    print(f"{bcolors.OKBLUE}Rules reduced from {n_rules_original} to {len(rules_to_keep)}{bcolors.ENDC}")
-    if print_details and rules_to_keep:
-        print(f"Refined rules for {api}:")
-        for arity, rule_name, *args in rules_to_keep:
-            print(f"- {rule_name} with arity {arity} on args {args}")
+    print(f"\n-- Rules reduced from {n_rules_original} to {len(rules_to_keep)} --\n")
 
     return rules_to_keep
 
@@ -219,6 +215,8 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
                         ruleset = ruleset.intersection(check_rules_z3(api, input_dict, lib=lib) if z3 else check_rules(input_dict))
                     valid += 1
             print(f"Invariant inference took {time.time()-start_time:.2f} seconds\n")
+            if print_details:
+                print_rules(variant, ruleset)
 
             # Refining stage: If removing a rule does not decrease the validity ratio, remove it
             print(f"Started rule refinement stage for api {api} (suffix {suff})")
