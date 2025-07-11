@@ -4,16 +4,16 @@ import copy
 import os
 import pickle
 import sys
-import logging
 
 from z3 import *
-from .definitions import get_definition
 from .z3 import load_existing_models
 from utils.z3_utils import instantiate_args, create_z3_args
-from utils.new_api_utils import get_n_variations, get_lib_version
+from utils.new_api_utils import get_n_variations, get_lib_version, get_signature
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root
 from generator.input_generators import abstract_print
 from eval.oracle import oracle_crash
+
+import logging
 
 def save_state(api, n_models, nominal, invalid, crash, excp, generated_inputs, tmp_results, input_dir, lib="torch"):
     total = nominal + invalid + crash + excp
@@ -37,15 +37,22 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
     logfile = os.path.join(log_dir, f"{api}.log")
 
     logger = logging.getLogger(__name__)
-    # Configure logging
-    logging.basicConfig(
-        level=logging.INFO,                                     # Minimum log level
-        format='%(asctime)s - %(levelname)s - %(message)s',     # Log format
-        filename=logfile,                                       # Log file path
-        filemode="w"                                            # Append/Write mode
-    )
+    # Configure logging for this specific logger
+    logger.setLevel(logging.INFO)
+    
+    # Create file handler
+    file_handler = logging.FileHandler(logfile, mode="w")
+    file_handler.setLevel(logging.INFO)
+    
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    
+    # Add handler to logger
+    logger.addHandler(file_handler)
     
     print(f"Fuzzing {api} with a {duration} second budget using {lib} library.")
+    print(f"Logging details to {logfile}")
     execution_time = 0
     elapsed = 0
     last_saved = 0
@@ -73,14 +80,14 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
 
     for suffix in model_collection.keys():
         model_dir = os.path.join(get_dir_in_root(corpus_dir), f"{api}_{suffix}" if suffix > 0 else api)
-        definition = get_definition(api, z3=True, lib=lib, suffix=suffix, use_reference=use_reference)
-        if len(definition["ruleset"]) == 0:
-            print(f"No invariants learned for {api}_{suffix}. Skipping.")
-            continue
-        model_collection[suffix]["z3_args"] = create_z3_args(definition["signature"])
-        if os.path.exists(corpus_dir):
+        cur_sig = get_signature(api, lib=lib, suffix=suffix)
+        model_collection[suffix]["z3_args"] = create_z3_args(cur_sig)
+        if os.path.exists(model_dir):
             model_collection[suffix]["models"] = load_existing_models(model_dir, model_collection[suffix]["z3_args"])
-        
+        else:
+            print(f"No existing models directory found for {api}_{suffix} (expected {model_dir}). Skipping.")
+            continue
+
         if len(model_collection[suffix]['models']) == 0:
             print(f"No existing models found for {api}_{suffix} in {corpus_dir}. Skipping.")
             continue
@@ -118,13 +125,13 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         # Select a variation of the API (e.g. a different signature) at random
         selected_model = rng_model.integers(len(temp_model_collection[selected_suffix]['models']))
         model = temp_model_collection[selected_suffix]['models'][selected_model]
-        definition = get_definition(api, z3=True, lib=lib, suffix=selected_suffix, use_reference=use_reference)
+        cur_sig = get_signature(api, lib=lib, suffix=selected_suffix)
         
-        concrete_input, abstract_input = instantiate_args(model, definition["signature"], model_collection[selected_suffix]['z3_args'], seed=seed)
+        concrete_input, abstract_input = instantiate_args(model, cur_sig, model_collection[selected_suffix]['z3_args'], seed=seed)
         generated_inputs.append((0, abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency
         
         # Print the abstract input if print_details is True
-        abstract_str = f"[{total}] Abstract input (seed {seed}, suffix: {selected_suffix})\n{abstract_print(abstract_input, definition['signature'])}"
+        abstract_str = f"[{total}] Abstract input (seed {seed}, suffix: {selected_suffix})\n{abstract_print(abstract_input, cur_sig)}"
         logger.info(abstract_str)
         if print_details:
             print(f"\n{abstract_str}")
@@ -149,19 +156,19 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
             log_func = logger.error
             print(f"\n[{status}]\n{exception_message}")
             if not print_details:   # if print_details is True, the abstract input is already printed
-                print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
+                print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, cur_sig)}")
         elif status.endswith("_crash"):
             crash += 1
             # Always log crashes
             log_func = logger.error
             print(f"\n[{status}]\n{exception_message}")
             if not print_details:   # if print_details is True, the abstract input is already printed
-                print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, definition['signature'])}")
+                print(f"\nAbstract input (seed {seed}):\n{abstract_print(abstract_input, cur_sig)}")
         else:
             if print_details:
                 print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
         
-        log_func(f"Status: {status}, Exception: {exception_message}")
+        log_func(f"Status: {status}, Exception: {exception_message}") if exception_message else log_func(f"Status: {status}")
         execution_time = execution_time + time.time() - start_execution
         print_str = f"Nominal: {nominal} | Invalid: {invalid} | Crash: {crash} | Exception: {excp} | Last saved: {round(elapsed-last_saved, 2)}s ago"
         

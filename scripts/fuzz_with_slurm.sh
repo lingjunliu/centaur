@@ -4,6 +4,7 @@ duration=${1:-300}    # seconds
 n_max=${2:-0}         # define maximum number of inputs to generate, 0 means no max
 lib=${3:-torch}       # library: torch or tf
 seed=${4:-200}        # random seed for the generator
+print_details=${5:-False} # pring additional details
 
 # alias
 if [ "$lib" = "pytorch" ]; then
@@ -26,7 +27,7 @@ export slurm_time=$(printf "%02d:%02d:%02d" $hours $minutes $seconds)
 job_name=dllf
 slurm_sh=`dirname "$(realpath "$0")"`/slurm_base.sh # base script for slurm
 
-bash $slurm_sh "python -m generator.fuzz" ${job_name} ${duration} ${n_max} ${lib} ${seed}
+bash $slurm_sh "python -m generator.fuzz" ${job_name} ${duration} ${n_max} ${lib} ${seed} ${print_details}
 
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
 # Aggregating and saving results

@@ -3,7 +3,7 @@ import copy
 import time
 from utils.new_api_utils import get_signature, get_lib_version, get_n_variations, match_signature_to_input
 from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_root, bcolors
-from generator.input_generators import get_random_input, get_abstract_input, concretize_input
+from generator.input_generators import get_random_input, get_abstract_input, concretize_input, abstract_print
 from eval.oracle import oracle_crash
 from utils.defaults import domain_limits_torch, domain_limits_tf
 import numpy as np
@@ -293,7 +293,7 @@ def augment_inputs(list_of_inputs, signature, lib="torch"):
     
     return original_inputs + mutated_inputs
 
-def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffix=0):
+def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffix=0, print_details=False):
     """
     Get inputs for an API.
     If LLM generated inputs are available, append them to the list.
@@ -323,7 +323,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffi
     variation = f"{lib_api}_{suffix}" if suffix > 0 else lib_api
     # Return LLM generated inputs if available
     if variation in valid_inputs.generated_inputs:
-        print(f"Adding LLM generated inputs for {variation}")
+        print(f"\nAdding LLM generated inputs for {variation}\n")
         list_of_inputs = valid_inputs.generated_inputs[variation]
 
     input_file = os.path.join(get_dir_in_root(f"valid_inputs_{lib}"), f"{api}.pkl")
@@ -339,7 +339,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffi
             list_of_inputs.append(concretize_input(abs_inp, api_signature, rng))
     
     # Generate and append new inputs
-    print(f"Generating inputs for {api} (suffix: {suffix}) with time budget {time_budget} seconds and minimum valid inputs {min_val_inp}")
+    print(f"\nGenerating inputs for {api} (suffix: {suffix}) with time budget {time_budget} seconds and minimum valid inputs {min_val_inp}\n")
     valid = 0
     abstract_inputs = []
     
@@ -347,6 +347,8 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffi
     while (time.time() - start_time < time_budget) and (valid < min_val_inp):
         rng = np.random.default_rng(seed)
         input_dict, abs_inp = get_random_input(api_signature, rng, lib=lib)
+        if print_details:
+            print(f"\nAbstract input (seed {seed}, suffix {suffix})\n{abstract_print(abs_inp, api_signature)}")
         status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
         if status == "nominal":
             valid += 1

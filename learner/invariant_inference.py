@@ -169,12 +169,12 @@ def infer_invariants(api, print_details=False, regen=False, lib="torch", time_bu
             print(f"No reference invariants found for {variant}. Skipping inference.")
             continue
         else:   # Inference
-            print(f"Started invariant inference for {api} (suffix {suff})")
+            print(f"\nStarted invariant inference for {api} (suffix {suff})\n")
             start_time = time.time()
             if os.path.isfile(invariant_file):
                 print(f"Removing existing invariants file for {variant} at {invariant_file}")
                 os.remove(invariant_file)
-            list_of_inputs = get_inputs(api, lib=lib, time_budget=time_budget_learner, min_val_inp=min_val_inp, seed=seed, suffix=suff)
+            list_of_inputs = get_inputs(api, lib=lib, time_budget=time_budget_learner, min_val_inp=min_val_inp, seed=seed, suffix=suff, print_details=print_details)
             ruleset = set()
             initialized = False
             print(f"Inferring invariants for {variant} with {len(list_of_inputs)} inputs\n")
