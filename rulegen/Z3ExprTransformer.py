@@ -3,7 +3,7 @@ import sys
 from lark import Transformer
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils.defaults import MAX_N_DIM, list_of_string_values
+from utils.defaults import MAX_N_DIM, list_of_string_values_torch, list_of_string_values_tf
 
 '''
 # For TensorFlow
@@ -15,9 +15,10 @@ list_of_string_values = [
 '''
 
 class Z3ExprTransformer(Transformer):
-    def __init__(self, var_map, var_types):
+    def __init__(self, var_map, var_types, lib="torch"):
         self.var_map = var_map
         self.var_types = var_types
+        self.list_of_string_values = list_of_string_values_torch if lib == "torch" else list_of_string_values_tf
 
     def start(self, items):
         return items[0]
@@ -152,8 +153,8 @@ class Z3ExprTransformer(Transformer):
 
     def string(self, items):
         v = items[0].value.strip('"') 
-        if v in list_of_string_values:
-            return str(list_of_string_values.index(v))
+        if v in self.list_of_string_values:
+            return str(self.list_of_string_values.index(v))
         else:
             raise Exception(f" unsupported string '{v}'")
 

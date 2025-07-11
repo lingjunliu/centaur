@@ -10,7 +10,7 @@ from .input_generators import get_random_input
 from learner.invariant_inference import infer_invariants
 from utils.api_utils import get_driver
 from utils.misc import create_subdir, get_tmp_dir
-from utils.defaults import domain_limits
+from utils.defaults import domain_limits_torch as domain_limits
 from eval.oracle import oracle_crash
 
 ############### api definition examples ################
@@ -487,7 +487,7 @@ def run_api_with_duration(api, duration, n_max=0, limit=30, print_details=False,
         seed += 1
         config = Configuration(definition, seed)
         # TODO: Debug why initializing random candidate makes optimizer slow
-        config.random_candidate, _ = get_random_input(definition["signature"], config.rng)
+        config.random_candidate, _ = get_random_input(definition["signature"], config.rng, lib=lib)
         # config.set_random_candidate(map_defs[api]["random_candidate"])
         mutator = Mutator(config)
         (best_distance, best_input) = optimize(config, mutator, duration=limit)

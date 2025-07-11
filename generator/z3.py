@@ -5,7 +5,7 @@ from .input_generators import get_ll, abstract_print
 from .rules_auto_z3 import get_rules_map
 from .definitions import get_definition
 from .serialize import load_model, save_model
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits, list_of_string_values_torch, list_of_string_values_tf, int_buckets, float_buckets
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, MAX_SZ_TENSOR, list_of_available_dtypes, domain_limits_torch, domain_limits_tf, list_of_string_values_torch, list_of_string_values_tf, int_buckets, float_buckets
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors
 from utils.new_api_utils import get_lib_version, get_api_suffix
 from eval.oracle import oracle_crash
@@ -68,7 +68,8 @@ def create_z3_args(signature):
             raise ValueError(f"Unsupported type: {typ}")
     return z3_args
 
-def initial_constraints(solver, signature, z3_args):
+def initial_constraints(solver, signature, z3_args, lib="torch"):
+    domain_limits = domain_limits_torch if lib == "torch" else domain_limits_tf
     for param_name, z3_var in z3_args.items():
         param_type = signature[param_name]
 
@@ -253,7 +254,7 @@ def variable_bounds(assertions):
             default_buckets = float_buckets
         elif sort_kind == Z3_BOOL_SORT:
             default_buckets = [False, True]
-        else
+        else:
             default_buckets = int_buckets
         
         default_buckets = add_negative_buckets(default_buckets) if sort_kind != Z3_BOOL_SORT else default_buckets
@@ -343,7 +344,7 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
                 remaining_ruleset.remove(rule)
 
             solver = Solver()
-            initial_constraints(solver, signature, z3_args)
+            initial_constraints(solver, signature, z3_args, lib=lib)
             collect_constraints(solver, api, remaining_ruleset, z3_args, use_reference=use_reference)
             # collect_neg_constraint(solver, api, rule, z3_args, use_reference=use_reference)
     
@@ -423,7 +424,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     # initialization
     solver = Solver()
     models, num_model = [], 0
-    initial_constraints(solver, definition["signature"], z3_args)
+    initial_constraints(solver, definition["signature"], z3_args, lib=lib)
     collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference)
     block_all = set()
     perma_block = set()
@@ -462,7 +463,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
             if stale > saturation:
                 # restart the solver
                 solver = Solver()
-                initial_constraints(solver, definition["signature"], z3_args)
+                initial_constraints(solver, definition["signature"], z3_args, lib=lib)
                 collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference)
                 stale = 0
                 seed += 1

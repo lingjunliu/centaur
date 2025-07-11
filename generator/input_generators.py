@@ -1,8 +1,8 @@
 import numpy as np
-from utils.defaults import domain_limits, list_of_available_dtypes, MAX_SZ_TENSOR
+from utils.defaults import domain_limits_torch, domain_limits_tf, list_of_available_dtypes, MAX_SZ_TENSOR
 from utils.misc import get_tensor_size
 
-def gen_ran_ll(domain, rng=np.random.default_rng(42)):
+def gen_ran_ll(domain, rng=np.random.default_rng(42), lib="torch"):
     '''
         Generate a random list of lists for a domain with a random generator
         passed as an argument. For tensors, this list of list will be an
@@ -12,6 +12,7 @@ def gen_ran_ll(domain, rng=np.random.default_rng(42)):
         For tensors, if the generated tensor is larger than MAX_SZ_TENSOR,
         try again.
     '''
+    domain_limits = domain_limits_torch if lib == "torch" else domain_limits_tf
     if domain not in domain_limits or f'{domain}_dtype' not in domain_limits or f'{domain}_value_range' not in domain_limits:
         raise NotImplementedError(f"Limits not implemented for {domain}")
     
@@ -30,7 +31,7 @@ def gen_ran_ll(domain, rng=np.random.default_rng(42)):
         ll.append(l)
         
     if domain == "tensor" and get_tensor_size(ll) > MAX_SZ_TENSOR:   # Too large, try again
-        return gen_ran_ll(domain, rng)
+        return gen_ran_ll(domain, rng, lib=lib)
     
     return ll
 
@@ -167,7 +168,7 @@ def abstract_print(abstract, signature):
         
     return printable
 
-def get_random_input(signature, rng=np.random.default_rng(42)):
+def get_random_input(signature, rng=np.random.default_rng(42), lib="torch"):
     '''
         Generate random input according to signature and concretize it
     '''
@@ -178,7 +179,7 @@ def get_random_input(signature, rng=np.random.default_rng(42)):
         if domain == "tensor_list":
             domain = "tensor"   # hack until tensor_list is supported
         
-        ll = gen_ran_ll(domain, rng)    # get abstract form
+        ll = gen_ran_ll(domain, rng, lib=lib)    # get abstract form
         abstract_inp[arg] = ll          # save abstract input
         input_dict[arg] = gen_concrete_input(domain, ll, arg=arg, rng=rng) # concretize
         

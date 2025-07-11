@@ -5,7 +5,7 @@ from utils.new_api_utils import get_signature, get_lib_version, get_n_variations
 from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_root, bcolors
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input
 from eval.oracle import oracle_crash
-from utils.defaults import domain_limits
+from utils.defaults import domain_limits_torch, domain_limits_tf
 import llm.valid_inputs_torch as valid_inputs_torch
 import llm.valid_inputs_tf as valid_inputs_tf
 import numpy as np
@@ -13,7 +13,7 @@ import os
 import traceback
 import sys
 
-def introduce_float_types(input_dict, signature):
+def introduce_float_types(input_dict, signature, lib="torch"):
     """
     Mutation to prevent learning rule_8 incorrectly
     """
@@ -40,7 +40,7 @@ def introduce_float_types(input_dict, signature):
     
     return mutated_inputs
 
-def introduce_floats(input_dict, signature):
+def introduce_floats(input_dict, signature, lib="torch"):
     """
     Mutation to introduce random float values for float-type fields,
     float-typed tensors, or float-valued tuples/lists.
@@ -48,6 +48,7 @@ def introduce_floats(input_dict, signature):
     seed = 42
     mutated_inputs = []
     rng = np.random.default_rng(seed)
+    domain_limits = domain_limits_torch if lib == "torch" else domain_limits_tf
     float_min, float_max = domain_limits['float'][:2]
 
     for arg, domain in signature.items():
@@ -91,7 +92,7 @@ def introduce_floats(input_dict, signature):
 
     return mutated_inputs
 
-def introduce_integer_types(input_dict, signature):
+def introduce_integer_types(input_dict, signature, lib="torch"):
     """
     Mutation to prevent learning rule_13 incorrectly
     """
@@ -118,7 +119,7 @@ def introduce_integer_types(input_dict, signature):
     
     return mutated_inputs
 
-def introduce_integers(input_dict, signature):
+def introduce_integers(input_dict, signature, lib="torch"):
     """
     Mutation to introduce random integer values for int-type fields,
     int-typed tensors, or int-valued tuples/lists.
@@ -126,6 +127,7 @@ def introduce_integers(input_dict, signature):
     seed = 42
     mutated_inputs = []
     rng = np.random.default_rng(seed)
+    domain_limits = domain_limits_torch if lib == "torch" else domain_limits_tf
     int_min, int_max = domain_limits['integer'][:2]
 
     for arg, domain in signature.items():
@@ -169,7 +171,7 @@ def introduce_integers(input_dict, signature):
 
     return mutated_inputs
 
-def introduce_empty_tensors(input_dict, signature):
+def introduce_empty_tensors(input_dict, signature, lib="torch"):
     """
     Mutation to prevent learning rule_14 incorrectly
     """
@@ -182,7 +184,7 @@ def introduce_empty_tensors(input_dict, signature):
     
     return mutated_inputs
 
-def introduce_zeros(input_dict, signature):
+def introduce_zeros(input_dict, signature, lib="torch"):
     """
     Mutation to prevent learning rule_21 incorrectly
     """
@@ -221,7 +223,7 @@ def introduce_zeros(input_dict, signature):
 
     return mutated_inputs
 
-def introduce_opposite_bools(input_dict, signature):
+def introduce_opposite_bools(input_dict, signature, lib="torch"):
     """
     Mutation to increase diversity
     """
@@ -234,7 +236,7 @@ def introduce_opposite_bools(input_dict, signature):
             
     return mutated_inputs
 
-def introduce_negatives(input_dict, signature):
+def introduce_negatives(input_dict, signature, lib="torch"):
     """
     Mutation to prevent learning rule_17 and rule_18 incorrectly
     """
@@ -275,7 +277,7 @@ def introduce_negatives(input_dict, signature):
 
     return mutated_inputs
 
-def augment_inputs(list_of_inputs, signature):
+def augment_inputs(list_of_inputs, signature, lib="torch"):
     """
     Mutate inputs to have diversity to ensure wrong invariants are not learned
     And return the original inputs + mutated inputs
@@ -289,7 +291,7 @@ def augment_inputs(list_of_inputs, signature):
             continue  # Skip inputs that do not match the signature
         original_inputs.append(input_dict)
         for mutator in mutators:
-            mutated_inputs += mutator(input_dict, signature)
+            mutated_inputs += mutator(input_dict, signature, lib=lib)
     
     return original_inputs + mutated_inputs
 
@@ -346,7 +348,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffi
     start_time = time.time()
     while (time.time() - start_time < time_budget) and (valid < min_val_inp):
         rng = np.random.default_rng(seed)
-        input_dict, abs_inp = get_random_input(api_signature, rng)
+        input_dict, abs_inp = get_random_input(api_signature, rng, lib=lib)
         status, exception_message = oracle_crash(api, input_dict, cpu=True, lib=lib)
         if status == "nominal":
             valid += 1
@@ -358,7 +360,7 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffi
     # Save abstract inputs to file
     save_to_new_pkl(input_file, abstract_inputs)
     
-    list_of_inputs = augment_inputs(list_of_inputs, api_signature)
+    list_of_inputs = augment_inputs(list_of_inputs, api_signature, lib=lib)
     
     return list_of_inputs
 

@@ -1,8 +1,9 @@
 import re
 import os
 from helpers import create_rule_expr, create_func_body
+import sys
 
-def create_py(header: str, directory: str = "../rules"):
+def create_py(header: str, directory: str = "../rules", lib="torch"):
     match = re.match(r"Rule\s+(\d+)\s+\((.*?)\)", header)
     if not match:
         raise ValueError(f"Could not extract rule number and description from header: {header}")
@@ -18,7 +19,7 @@ def create_py(header: str, directory: str = "../rules"):
 import torch 
 import tensorflow as tf
 
-from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values, np_dtype
+from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes, list_of_string_values_{lib}, np_dtype
 from z3 import *
 
 # {description} (Rule {rule_number})''')
@@ -90,7 +91,7 @@ def rule_{rule_number}_func({param_str}):
     with open(filename, "a", encoding="utf-8") as f:
         f.write(func_code)
 
-def write_rules(dir, rules_file):
+def write_rules(dir, rules_file, lib="torch"):
     rules = []
     with open(rules_file, "r", encoding="utf-8") as f:
         content = f.read()
@@ -104,8 +105,8 @@ def write_rules(dir, rules_file):
             rules.append((header, rule_def))
 
     for i, (header, rule_def) in enumerate(rules, 1):
-        rule_number, rules_filename = create_py(header, directory=dir)
-        result = create_rule_expr(rule_number, rule_def, filename=rules_filename)
+        rule_number, rules_filename = create_py(header, directory=dir, lib=lib)
+        result = create_rule_expr(rule_number, rule_def, filename=rules_filename, lib=lib)
         if result is None:
             continue
         var_map, var_types = result
@@ -117,7 +118,7 @@ def write_rules(dir, rules_file):
             print(f"Function template creation failed for rule {rule_number}\n{e}")
             continue
         try:
-            create_func_body(rule_number, rule_def, var_map, var_types, rules_filename)
+            create_func_body(rule_number, rule_def, var_map, var_types, rules_filename, lib=lib)
         except Exception as e:
             if os.path.exists(rules_filename):
                 os.remove(rules_filename)
@@ -125,6 +126,7 @@ def write_rules(dir, rules_file):
             continue
 
 def main():
+    lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
     base_dir = os.path.abspath("../rules-torch")
     rules_file = "rules-ebnf"
 
@@ -133,7 +135,7 @@ def main():
         if os.path.isdir(sub_path):
             rule_path = os.path.join(sub_path, rules_file)
             if os.path.exists(rule_path):
-                write_rules(sub_path, rule_path)
+                write_rules(sub_path, rule_path, lib=lib)
 
 if __name__ == "__main__":
     main()

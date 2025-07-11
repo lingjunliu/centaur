@@ -36,13 +36,15 @@ def match_types(arg, domain):
     else:
         return False
         
-def match_values(arg, domain):
+def match_values(arg, domain, lib="torch"):
     invalid_dtype = 0
     invalid_length = 0
     invalid_value = 0
     invalid_ndim = 0
     invalid_dimsize = 0
     invalid_range = 0
+    list_of_string_values = list_of_string_values_torch if lib == "torch" else list_of_string_values_tf
+    domain_limits = domain_limits_torch if lib == "torch" else domain_limits_tf
     if domain == "dtype":
         if match_types(arg, domain):
             if not arg in list_of_available_dtypes:
@@ -94,6 +96,7 @@ def main():
     multiply = "branch"  # set this to "branch" to multiply by the new_branches, "count" to count the instances only
 
     api = sys.argv[1]
+    lib = "torch"
 
     api = get_lib_version(api, lib="torch")  # Get the API version
 

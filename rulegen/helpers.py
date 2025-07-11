@@ -9,7 +9,7 @@ with open("grammar.lark", "r", encoding="utf-8") as f:
 
 parser = Lark(grammar, start="start", parser="lalr", lexer="contextual")
 
-def create_rule_expr(rule_number, rule_def, filename):
+def create_rule_expr(rule_number, rule_def, filename, lib="torch"):
     try:
         bindings_text = re.findall(r"\{([^}]+)\}", rule_def)[0]
         bindings = [b.strip() for b in bindings_text.split(",")]
@@ -28,7 +28,7 @@ def create_rule_expr(rule_number, rule_def, filename):
             print(f"Parsing failed for rule {rule_number}\n{''.join(str(e).splitlines())}")
             return None
         try:
-            transformer = Z3ExprTransformer(var_map, var_types)
+            transformer = Z3ExprTransformer(var_map, var_types, lib=lib)
             z3_expr = transformer.transform(tree)
         except Exception as e:
             if os.path.exists(filename):
@@ -47,7 +47,7 @@ def create_rule_expr(rule_number, rule_def, filename):
 
     return var_map, var_types
 
-def create_func_body(rule_number, rule_def, var_map, var_types, filename):
+def create_func_body(rule_number, rule_def, var_map, var_types, filename, lib="torch"):
     tree = parser.parse(rule_def)
 
     collector = UsedVarsCollector()
@@ -131,7 +131,7 @@ def create_func_body(rule_number, rule_def, var_map, var_types, filename):
                 lines.append(f"{eindent}solver.add({arg}_value == {arg})")
         elif typ == "str":
             if "value" in entries:
-                lines.append(f"{eindent}solver.add({arg}_value == list_of_string_values.index({arg}))")
+                lines.append(f"{eindent}solver.add({arg}_value == list_of_string_values_{lib}.index({arg}))")
         elif typ == "dtype":
             if "value" in entries:
                 lines.append(f"{eindent}solver.add({arg}_value == list_of_available_dtypes.index(np_dtype({arg})))")

@@ -30,7 +30,7 @@ def random_fuzz(api, seed, duration, n_max=0, n_valid=0, lib="torch", logfile=No
         rng = np.random.default_rng(seed)
         suffix = 0 if n_variants == 1 else rng.integers(1, n_variants+1)
         api_signature = get_signature(api, lib=lib, suffix=suffix)
-        input_dict, abs_inp = get_random_input(api_signature, rng)
+        input_dict, abs_inp = get_random_input(api_signature, rng, lib=lib)
         status, exception_message, traceback = oracle_crash(api, input_dict, cpu=True, lib=lib, include_traceback=True)
         if len(exception_message.splitlines()) > 1:
             exception_message = ' '.join(exception_message.splitlines())
