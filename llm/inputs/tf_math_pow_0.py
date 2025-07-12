@@ -13,51 +13,79 @@ def tf_math_pow_inputs():
 
     # Input 1: Basic integer powers
     x = np.array([[2, 3], [4, 5]], dtype=np.int32)
-    y = np.array([[2, 3], [2, 1]], dtype=np.int32)
-    name = "pow_int"
-    input_dict = {"x": tf.convert_to_tensor(x), "y": tf.convert_to_tensor(y), "name": name}
+    y = np.array([[2, 3], [1, 0]], dtype=np.int32)
+    name = "int_powers"
+    input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Float powers
+    # Input 2: Floating point powers
     x = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float32)
-    y = np.array([[2.0, 0.5], [1.0, 2.0]], dtype=np.float32)
-    name = "pow_float"
-    input_dict = {"x": tf.convert_to_tensor(x), "y": tf.convert_to_tensor(y), "name": name}
+    y = np.array([[2.0, 0.5], [1.5, 1.0]], dtype=np.float32)
+    name = "float_powers"
+    input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative powers
+    # Input 3: Mixed integer and floating point (but both should be float to work generally)
     x = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float32)
-    y = np.array([[-1.0, -2.0], [-0.5, 1.0]], dtype=np.float32)
-    name = "pow_negative"
-    input_dict = {"x": tf.convert_to_tensor(x), "y": tf.convert_to_tensor(y), "name": name}
+    y = np.array([[2.0, 0.5], [1.5, 1.0]], dtype=np.float32)
+    name = "mixed_powers"
+    input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Complex powers
+    # Input 4: Negative powers
+    x = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float32)
+    y = np.array([[-2.0, -0.5], [-1.5, -1.0]], dtype=np.float32)
+    name = "negative_powers"
+    input_dict = {"x": x, "y": y, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Multi-dimensional tensors
+    x = np.array([[[2.0, 3.0], [4.0, 5.0]], [[6.0, 7.0], [8.0, 9.0]]], dtype=np.float32)
+    y = np.array([[[2.0, 0.5], [1.5, 1.0]], [[0.0, -0.5], [1.0, 2.0]]], dtype=np.float32)
+    name = "multi_dim_powers"
+    input_dict = {"x": x, "y": y, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Integer tensor with large values
+    x = np.array([[2, 3], [4, 5]], dtype=np.int64)
+    y = np.array([[2, 3], [1, 0]], dtype=np.int64)
+    name = "int64_powers"
+    input_dict = {"x": x, "y": y, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Float tensor with large values
+    x = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float64)
+    y = np.array([[2.0, 0.5], [1.5, 1.0]], dtype=np.float64)
+    name = "float64_powers"
+    input_dict = {"x": x, "y": y, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Complex numbers
     x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    y = np.array([[2+0j, 0+1j], [1+0j, 2+1j]], dtype=np.complex64)
-    name = "pow_complex"
-    input_dict = {"x": tf.convert_to_tensor(x), "y": tf.convert_to_tensor(y), "name": name}
+    y = np.array([[1, 2], [0.5, 1]], dtype=np.complex64) # Keep y as complex
+    name = "complex64_powers"
+    input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different shapes, but broadcastable
-    x = np.array([2, 3, 4], dtype=np.int32)
-    y = np.array([2], dtype=np.int32)
-    name = "pow_broadcast"
-    input_dict = {"x": tf.convert_to_tensor(x), "y": tf.convert_to_tensor(y), "name": name}
+     # Input 9: Zero values
+    x = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
+    y = np.array([[2.0, 0.5], [1.5, 1.0]], dtype=np.float32)
+    name = "zero_values"
+    input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Zero power
-    x = np.array([[2, 3], [4, 5]], dtype=np.int32)
-    y = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    name = "pow_zero"
-    input_dict = {"x": tf.convert_to_tensor(x), "y": tf.convert_to_tensor(y), "name": name}
+    # Input 10: One value
+    x = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
+    y = np.array([[2.0, 0.5], [1.5, 1.0]], dtype=np.float32)
+    name = "one_value"
+    input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: One power
-    x = np.array([[2, 3], [4, 5]], dtype=np.int32)
-    y = np.array([[1, 1], [1, 1]], dtype=np.int32)
-    name = "pow_one"
-    input_dict = {"x": tf.convert_to_tensor(x), "y": tf.convert_to_tensor(y), "name": name}
+    # Input 11: Different shaped tensors where broadcasting is applicable
+    x = np.array([[2.0, 3.0]], dtype=np.float32)
+    y = np.array([[2.0], [0.5]], dtype=np.float32)
+    name = "broadcast_powers"
+    input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

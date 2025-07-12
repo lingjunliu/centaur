@@ -12,50 +12,164 @@ def tf_nn_moments_inputs():
     list_of_inputs = []
 
     # Input 1
-    x = tf.constant(np.array([1, 2, 3, 4, 5], dtype=np.float32))
+    x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
     axes = [0]
-    shift = tf.constant(np.array(0.0, dtype=np.float32))
+    shift = np.array(0, dtype=np.float32)
     keepdims = False
     name = "moments_1"
-    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    x = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.float32))
+    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
     axes = [0]
-    shift = tf.constant(np.array(0.0, dtype=np.float32))
-    keepdims = False
+    shift = np.array(0, dtype=np.float32)
+    keepdims = True
     name = "moments_2"
-    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    x = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.float32))
+    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
     axes = [1]
-    shift = tf.constant(np.array(0.0, dtype=np.float32))
+    shift = np.array(0, dtype=np.float32)
     keepdims = False
     name = "moments_3"
-    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    x = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.float32))
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
     axes = [0, 1]
-    shift = tf.constant(np.array(0.0, dtype=np.float32))
-    keepdims = False
+    shift = np.array(0, dtype=np.float32)
+    keepdims = True
     name = "moments_4"
-    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    x = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32))
-    axes = [0]
-    shift = tf.constant(np.array(0.0, dtype=np.float32))
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    axes = [0, 2]
+    shift = np.array(0, dtype=np.float32)
     keepdims = False
     name = "moments_5"
-    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 6
+    x = np.array([[-1, -2], [-3, -4]], dtype=np.float32)
+    axes = [0]
+    shift = np.array(0, dtype=np.float32)
+    keepdims = True
+    name = "moments_6"
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 7
+    x = np.array([1.5, 2.5, 3.5, 4.5, 5.5], dtype=np.float32)
+    axes = [0]
+    shift = np.array(0, dtype=np.float32)
+    keepdims = False
+    name = "moments_7"
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    axes = [0, 1]
+    shift = np.array(0, dtype=np.float32)
+    keepdims = False
+    name = "moments_8"
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    axes = [0, 1, 2]
+    shift = np.array(0, dtype=np.float32)
+    keepdims = False
+    name = "moments_9"
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    x = np.random.rand(5).astype(np.float32)
+    axes = [0]
+    shift = np.array(0, dtype=np.float32)
+    keepdims = True
+    name = "moments_10"
+
+    input_dict = {
+        "x": x,
+        "axes": axes,
+        "shift": shift,
+        "keepdims": keepdims,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

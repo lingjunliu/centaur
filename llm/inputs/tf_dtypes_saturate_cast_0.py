@@ -11,60 +11,74 @@ import copy
 def tf_dtypes_saturate_cast_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic cast from float32 to int32
-    value = tf.constant(np.array([1.5, 2.7, 3.9], dtype=np.float32))
-    dtype = tf.int32
-    name = "float_to_int"
-    input_dict = {"value": value.numpy(), "dtype": dtype, "name": name}
+    # Input 1
+    value = np.array([-1.5, 0.0, 2.3, 5.7]).astype(np.float32)
+    dtype = np.int32
+    name = "saturate_cast_1"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Cast from int64 to float16
-    value = tf.constant(np.array([1000000000, 2000000000, 3000000000], dtype=np.int64))
-    dtype = tf.float16
-    name = "int64_to_float16"
-    input_dict = {"value": value.numpy(), "dtype": dtype, "name": name}
+    # Input 2
+    value = np.array([-100, 0, 100, 200]).astype(np.int64)
+    dtype = np.int8
+    name = "saturate_cast_2"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Cast from int8 to uint8 (with negative values)
-    value = tf.constant(np.array([-10, 0, 10, 127], dtype=np.int8))
-    dtype = tf.uint8
-    name = "int8_to_uint8"
-    input_dict = {"value": value.numpy(), "dtype": dtype, "name": name}
+    # Input 3
+    value = np.array([[-1.0, 2.0], [3.0, -4.0]]).astype(np.float64)
+    dtype = np.int16
+    name = "saturate_cast_3"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Cast from float64 to int8 (with values exceeding limits)
-    value = tf.constant(np.array([-200.0, 0.0, 200.0], dtype=np.float64))
-    dtype = tf.int8
-    name = "float64_to_int8"
-    input_dict = {"value": value.numpy(), "dtype": dtype, "name": name}
+    # Input 4
+    value = np.array([256, -257]).astype(np.int32)
+    dtype = np.int8
+    name = "saturate_cast_4"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Cast from uint16 to int16 (with values exceeding limits)
-    value = tf.constant(np.array([0, 32767, 65000], dtype=np.uint16))
-    dtype = tf.int16
-    name = "uint16_to_int16"
-    input_dict = {"value": value.numpy(), "dtype": dtype, "name": name}
+    # Input 5
+    value = np.array([1.0, 0.0, -1.0]).astype(np.float32)
+    dtype = np.uint8
+    name = "saturate_cast_5"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Cast from float32 to bfloat16
-    value = tf.constant(np.array([-1.0, 0.0, 1.0], dtype=np.float32))
-    dtype = tf.bfloat16
-    name = "float32_to_bfloat16"
-    input_dict = {"value": value.numpy(), "dtype": dtype, "name": name}
+    # Input 6
+    value = np.array([65536, -65537]).astype(np.int64)
+    dtype = np.int16
+    name = "saturate_cast_6"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Multidimensional tensor from int32 to float32
-    value = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    dtype = tf.float32
-    name = "int32_to_float32_multi"
-    input_dict = {"value": value.numpy(), "dtype": dtype, "name": name}
+    # Input 7
+    value = np.array([1.5, 2.5, 3.5]).astype(np.float32)
+    dtype = np.int32
+    name = "saturate_cast_7"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Cast from float32 to int32 with negative and positive large values
-    value = tf.constant(np.array([-2147483647.0, 0.0, 2147483647.0], dtype=np.float32))
-    dtype = tf.int32
-    name = "float32_to_int32_limits"
-    input_dict = {"value": value.numpy(), "dtype": dtype, "name": name}
+
+    # Input 8
+    value = np.array([[-1000.0, 1000.0], [-500.0, 500.0]]).astype(np.float32)
+    dtype = np.int8
+    name = "saturate_cast_8"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    value = np.array([0.0, 1.0, 2.0, 3.0]).astype(np.float64)
+    dtype = np.uint8
+    name = "saturate_cast_9"
+    input_dict = {"value": value, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    value = np.array([-1, 0, 1]).astype(np.int32)
+    dtype = np.float32
+    name = None
+    input_dict = {"value": value, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

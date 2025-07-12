@@ -15,72 +15,72 @@ def tf_experimental_numpy_cumsum_inputs():
     a = np.array([1, 2, 3, 4, 5])
     axis = 0
     dtype = np.int32
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     a = np.array([[1, 2, 3], [4, 5, 6]])
     axis = 0
     dtype = np.float32
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     a = np.array([[1, 2, 3], [4, 5, 6]])
     axis = 1
     dtype = np.int64
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axis = 0
     dtype = np.float64
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axis = 1
-    dtype = np.int8
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
+    dtype = np.int16
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axis = 2
-    dtype = np.int16
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
+    dtype = np.float16
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    a = np.array([-1, -2, -3, -4, -5])
+   # Input 7: Negative values
+    a = np.array([-1, 2, -3, 4, -5])
     axis = 0
     dtype = np.int32
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    a = np.array([[-1, -2], [-3, -4]])
+    # Input 8: Larger array
+    a = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+    axis = 1
+    dtype = np.int32
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Different data type for input array
+    a = np.array([[1.5, 2.5], [3.5, 4.5]])
     axis = 0
     dtype = np.float32
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    a = np.array([[-1, -2], [-3, -4]])
-    axis = 1
-    dtype = np.int64
-    input_dict = {"a": tf.constant(a), "axis": int(axis), "dtype": np.dtype(dtype)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 10
-    a = np.array([1, 2, 3, 4, 5], dtype=np.int32)
-    axis = None
-    dtype = np.float32
-    input_dict = {"a": tf.constant(a), "axis": axis, "dtype": np.dtype(dtype)}
+    a = np.array([1, 2, 3, 4, 5])
+    axis = -1
+    dtype = np.int32
+    input_dict = {"a": a, "axis": axis, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

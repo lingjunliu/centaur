@@ -11,66 +11,49 @@ import copy
 def tf_broadcast_dynamic_shape_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Simple case
     shape_x = np.array([1, 2, 3], dtype=np.int32)
     shape_y = np.array([5, 1, 3], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
+    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    shape_x = np.array([2, 3], dtype=np.int32)
-    shape_y = np.array([1, 3], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    shape_x = np.array([5, 4], dtype=np.int32)
-    shape_y = np.array([5, 1], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
+    # Input 2: Broadcasting a scalar
     shape_x = np.array([1], dtype=np.int32)
-    shape_y = np.array([5], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
+    shape_y = np.array([5, 4, 3], dtype=np.int32)
+    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    shape_x = np.array([2, 1, 5], dtype=np.int32)
-    shape_y = np.array([3, 1, 5], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
+    # Input 3: Broadcasting with same shapes
+    shape_x = np.array([2, 3, 4], dtype=np.int32)
+    shape_y = np.array([2, 3, 4], dtype=np.int32)
+    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    shape_x = np.array([1, 4, 5], dtype=np.int32)
-    shape_y = np.array([4, 1, 5], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
+    # Input 4: Broadcasting with leading 1s
+    shape_x = np.array([1, 5, 3], dtype=np.int32)
+    shape_y = np.array([5, 1, 3], dtype=np.int32)
+    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    shape_x = np.array([2, 3, 4, 5], dtype=np.int32)
-    shape_y = np.array([1, 3, 1, 5], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
+    # Input 5: Different lengths but compatible
+    shape_x = np.array([3], dtype=np.int32)
+    shape_y = np.array([5, 1, 3], dtype=np.int32)
+    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    shape_x = np.array([1, 2, 3, 4], dtype=np.int32)
-    shape_y = np.array([5, 1, 3, 4], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
+    # Input 6: More dimensions
+    shape_x = np.array([1, 4, 1, 2], dtype=np.int32)
+    shape_y = np.array([3, 1, 5, 2], dtype=np.int32)
+    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 9
-    shape_x = np.array([2, 3], dtype=np.int32)
-    shape_y = np.array([2, 3], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
+    # Input 7: Different dtypes, explicitly specified
+    shape_x = np.array([1, 2, 3], dtype=np.int64).astype(np.int32)
+    shape_y = np.array([5, 1, 3], dtype=np.int64).astype(np.int32)
+    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    shape_x = np.array([1, 5, 1], dtype=np.int32)
-    shape_y = np.array([7, 5, 6], dtype=np.int32)
-    input_dict = {"shape_x": tf.constant(shape_x), "shape_y": tf.constant(shape_y)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs = {}

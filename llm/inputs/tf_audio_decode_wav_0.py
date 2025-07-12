@@ -7,90 +7,118 @@ generated_inputs = dict()
 import tensorflow as tf
 import numpy as np
 import copy
+import wave
+import io
+
+def create_wav_data(num_channels, sample_rate, duration, amplitude):
+    num_frames = int(sample_rate * duration)
+    comptype = "NONE"
+    compname = "not compressed"
+    data = np.zeros(num_frames, dtype=np.int16)
+    for i in range(num_frames):
+        data[i] = int(amplitude * np.sin(2 * np.pi * 440 * i / sample_rate))
+    
+    buf = io.BytesIO()
+    wf = wave.open(buf, 'wb')
+    wf.setparams((num_channels, 2, sample_rate, num_frames, comptype, compname))
+    wf.writeframes(data.tobytes())
+    wav_data = buf.getvalue()
+    wf.close()
+    return wav_data
 
 def tf_audio_decode_wav_inputs():
     list_of_inputs = []
 
-    # Input 1:  Valid input with proper WAV header and minimal data
-    contents = np.array(b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x08\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
+    # Input 1
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
     desired_channels = -1
     desired_samples = -1
-    name = None
+    name = "decode_wav_1"
     input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Specify desired channels
-    contents = np.array(b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x08\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
+    # Input 2
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
+    desired_channels = 1
+    desired_samples = 2000
+    name = "decode_wav_2"
+    input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    wav_data = create_wav_data(2, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
+    desired_channels = 1
+    desired_samples = 1000
+    name = "decode_wav_3"
+    input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
+    desired_channels = -1
+    desired_samples = 5000
+    name = "decode_wav_4"
+    input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 5
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
     desired_channels = 2
     desired_samples = -1
-    name = None
+    name = "decode_wav_5"
     input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Specify desired samples
-    contents = np.array(b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x08\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
-    desired_samples = 4
-    desired_channels = -1
-    name = None
-    input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Specify both desired channels and samples
-    contents = np.array(b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x08\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
+    # Input 6
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
     desired_channels = 1
-    desired_samples = 2
-    name = None
-    input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: With name
-    contents = np.array(b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x08\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
-    desired_channels = -1
-    desired_samples = -1
-    name = "my_decode"
-    input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Shorter data section, adjusted RIFF size - minimal valid data
-    contents = np.array(b"RIFF\x1c\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x00\x00\x00\x00", dtype=np.string_)
-    desired_channels = -1
     desired_samples = -1
     name = None
     input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Zero desired channels
-    contents = np.array(b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x08\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
-    desired_channels = 0
-    desired_samples = -1
-    name = None
-    input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Zero desired samples
-    contents = np.array(b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x08\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
-    desired_channels = -1
+    # Input 7
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
+    desired_channels = 1
     desired_samples = 0
-    name = None
+    name = "decode_wav_7"
     input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Both zero
-    contents = np.array(b"RIFF$\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x01\x00\x44\xAC\x00\x00\x88\x58\x01\x00\x02\x00\x10\x00data\x08\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
+    # Input 8
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
     desired_channels = 0
-    desired_samples = 0
-    name = None
+    desired_samples = 1
+    name = "decode_wav_8"
     input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Different valid WAV
-    contents = np.array(b"RIFF,\x00\x00\x00WAVEfmt \x10\x00\x00\x00\x01\x00\x02\x00D\xAC\x00\x00\x10\xB1\x02\x00\x04\x00\x10\x00data\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00", dtype=np.string_)
+    # Input 9
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
+    desired_channels = -1
+    desired_samples = 1
+    name = "decode_wav_9"
+    input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    wav_data = create_wav_data(1, 44100, 0.1, 10000)
+    contents = np.array(wav_data, dtype=np.string_)
     desired_channels = -1
     desired_samples = -1
     name = None
     input_dict = {"contents": contents, "desired_channels": desired_channels, "desired_samples": desired_samples, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs = {}

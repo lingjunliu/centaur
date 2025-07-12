@@ -11,73 +11,73 @@ import copy
 def tf_math_minimum_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32
+    # Input 1
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    y = np.array([2.0, 1.0, 4.0], dtype=np.float32)
-    name = "minimum_1"
+    y = np.array([1.5, 2.5, 2.8], dtype=np.float32)
+    name = "minimum_example_1"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic int32
-    x = np.array([1, 2, 3], dtype=np.int32)
-    y = np.array([2, 1, 4], dtype=np.int32)
-    name = "minimum_2"
+    # Input 2
+    x = np.array([-1, 0, 1], dtype=np.int32)
+    y = np.array([0, -1, 2], dtype=np.int32)
+    name = "minimum_example_2"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative values, int64
-    x = np.array([-1, -2, -3], dtype=np.int64)
-    y = np.array([-2, -1, -4], dtype=np.int64)
-    name = "minimum_3"
+    # Input 3
+    x = np.array([[1, 2], [3, 4]], dtype=np.float64)
+    y = np.array([[0, 3], [2, 5]], dtype=np.float64)
+    name = "minimum_example_3"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Float64, different values
-    x = np.array([1.5, 2.5, 3.5], dtype=np.float64)
-    y = np.array([2.5, 1.5, 4.5], dtype=np.float64)
-    name = "minimum_4"
+    # Input 4
+    x = np.array([1, 2, 3, 4], dtype=np.int16)
+    y = np.array([5], dtype=np.int16)
+    name = "minimum_example_4"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D array, int16
-    x = np.array([[1, 2], [3, 4]], dtype=np.int16)
-    y = np.array([[2, 1], [4, 3]], dtype=np.int16)
-    name = "minimum_5"
+    # Input 5
+    x = np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float32)
+    y = np.array([[0.5, -1.0], [-2.0, 3.0]], dtype=np.float32)
+    name = "minimum_example_5"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D array, uint8
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint8)
-    y = np.array([[[2, 1], [4, 3]], [[6, 5], [8, 7]]], dtype=np.uint8)
-    name = "minimum_6"
+    # Input 6
+    x = np.array([10, 20, 30], dtype=np.uint8)
+    y = np.array([5, 25, 35], dtype=np.uint8)
+    name = "minimum_example_6"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 4D array, int8
-    x = np.random.randint(-10, 10, size=(2, 2, 2, 2), dtype=np.int8)
-    y = np.random.randint(-10, 10, size=(2, 2, 2, 2), dtype=np.int8)
-    name = "minimum_10"
+    # Input 7
+    x = np.array([1, 2, 3], dtype=np.int64)
+    y = np.array([-1, -2, -3], dtype=np.int64)
+    name = "minimum_example_7"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float32 scalar
-    x = np.array(5.0, dtype=np.float32)
-    y = np.array(2.0, dtype=np.float32)
-    name = "minimum_11"
+    # Input 8
+    x = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    y = np.array([0.2], dtype=np.float32)
+    name = "minimum_example_8"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float16
-    x = np.array([1.0, 2.0], dtype=np.float16)
-    y = np.array([3.0, 0.5], dtype=np.float16)
-    name = "minimum_12"
+    # Input 9
+    x = np.array([100, 200], dtype=np.int32)
+    y = np.array([50, 250], dtype=np.int32)
+    name = "minimum_example_9"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: uint16
-    x = np.array([10, 20], dtype=np.uint16)
-    y = np.array([5, 25], dtype=np.uint16)
-    name = "minimum_13"
+    # Input 10
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    y = np.array([[[0, 3], [2, 5]], [[4, 7], [6, 9]]], dtype=np.int32)
+    name = "minimum_example_10"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

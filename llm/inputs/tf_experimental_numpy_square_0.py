@@ -12,50 +12,55 @@ def tf_experimental_numpy_square_inputs():
     list_of_inputs = []
 
     # Input 1: Scalar
-    x = tf.constant(5)
+    x = np.array(5)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 1D array with positive values
-    x = tf.constant([1, 2, 3, 4, 5])
+    # Input 2: 1D array
+    x = np.array([1, 2, 3, 4, 5])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D array with negative values
-    x = tf.constant([-1, -2, -3, -4, -5])
+    # Input 3: 2D array
+    x = np.array([[1, 2], [3, 4]])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 1D array with mixed positive and negative values
-    x = tf.constant([-1, 2, -3, 4, -5])
+    # Input 4: 3D array
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D array
-    x = tf.constant([[1, 2], [3, 4]])
+    # Input 5: Negative values
+    x = np.array([-1, -2, -3, -4, -5])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Array with float values
-    x = tf.constant([1.5, 2.5, 3.5])
+    # Input 6: Mixed positive and negative values
+    x = np.array([-1, 2, -3, 4, -5])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Array with mixed float and integer values
-    x = tf.constant([1, 2.5, -3, -4.5])
+    # Input 7: Array with zeros
+    x = np.array([0, 1, 0, -1, 0])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Zero tensor
-    x = tf.constant([0, 0, 0])
+    # Input 8: Floating-point numbers
+    x = np.array([1.5, 2.5, 3.5, 4.5, 5.5])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Single element tensor
-    x = tf.constant([7])
+    # Input 9: Array with large values
+    x = np.array([1000, 2000, 3000])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10: Array with different dtypes
+    x = np.array([1, 2, 3], dtype=np.int64)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

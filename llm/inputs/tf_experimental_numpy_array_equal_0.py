@@ -8,6 +8,8 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+tf.experimental.numpy.experimental_enable_numpy_behavior()
+
 def tf_experimental_numpy_array_equal_inputs():
     list_of_inputs = []
 
@@ -35,52 +37,44 @@ def tf_experimental_numpy_array_equal_inputs():
     input_dict = {"a1": a1, "a2": a2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Arrays with negative values, equal
-    a1 = tf.constant(np.array([-1, -2, -3]))
-    a2 = tf.constant(np.array([-1, -2, -3]))
+    # Input 5: Float arrays, equal
+    a1 = tf.constant(np.array([1.0, 2.0, 3.0]))
+    a2 = tf.constant(np.array([1.0, 2.0, 3.0]))
     input_dict = {"a1": a1, "a2": a2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Arrays with negative values, unequal
-    a1 = tf.constant(np.array([-1, -2, -3]))
-    a2 = tf.constant(np.array([-1, -2, -4]))
+    # Input 6: Float arrays, unequal
+    a1 = tf.constant(np.array([1.0, 2.0, 3.0]))
+    a2 = tf.constant(np.array([1.0, 2.1, 3.0]))
     input_dict = {"a1": a1, "a2": a2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Arrays with zeros
-    a1 = tf.constant(np.array([0, 0, 0]))
-    a2 = tf.constant(np.array([0, 0, 0]))
-    input_dict = {"a1": a1, "a2": a2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Arrays with different dtypes but equal values. Explicitly cast to tf.int32
-    a1 = tf.constant(np.array([1, 2, 3]).astype(np.int32))
-    a2 = tf.constant(np.array([1, 2, 3]).astype(np.int32))
-    input_dict = {"a1": a1, "a2": a2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: 3D arrays, unequal
-    a1 = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    a2 = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 9]]]))
-    input_dict = {"a1": a1, "a2": a2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Different dtypes float32 and int32 but same value - removed
-    # Input 13: Boolean arrays, equal
+    # Input 7: Boolean arrays, equal
     a1 = tf.constant(np.array([True, False, True]))
     a2 = tf.constant(np.array([True, False, True]))
     input_dict = {"a1": a1, "a2": a2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 14: Boolean arrays, unequal
+    # Input 8: Boolean arrays, unequal
     a1 = tf.constant(np.array([True, False, True]))
     a2 = tf.constant(np.array([True, True, True]))
+    input_dict = {"a1": a1, "a2": a2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Different dtypes (int32 and int64, but ensure they are equal)
+    a1 = tf.constant(np.array([1, 2, 3], dtype=np.int32))
+    a2 = tf.constant(np.array([1, 2, 3], dtype=np.int64))
+    input_dict = {"a1": a1, "a2": a2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: More dimensions
+    a1 = tf.constant(np.random.rand(2,3,4))
+    a2 = tf.constant(np.random.rand(2,3,4) + 0.001) #make sure they are different
     input_dict = {"a1": a1, "a2": a2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.experimental.numpy.array_equal"] = tf_experimental_numpy_array_equal_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

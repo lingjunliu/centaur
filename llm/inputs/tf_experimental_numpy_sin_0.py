@@ -11,63 +11,63 @@ import copy
 def tf_experimental_numpy_sin_inputs():
     list_of_inputs = []
 
-    # Input 1: Scalar
-    x = tf.constant(0.0, dtype=tf.float32)
+    # Input 1: Scalar input
+    x = np.array(0.0)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 1D array
-    x = tf.constant(np.array([0, np.pi/2, np.pi]), dtype=np.float32)
+    x = np.array([0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: 2D array
-    x = tf.constant(np.array([[0, np.pi/2], [np.pi, 3*np.pi/2]]), dtype=np.float32)
+    x = np.array([[0, np.pi/4], [np.pi/2, np.pi]])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 3D array
-    x = tf.constant(np.random.rand(2, 3, 4), dtype=tf.float32)
+    # Input 4: Negative values
+    x = np.array([-np.pi/2, -np.pi, -3*np.pi/2])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Negative values
-    x = tf.constant(np.array([-np.pi/2, -np.pi]), dtype=np.float32)
+    # Input 5: Small values
+    x = np.array([0.1, 0.01, 0.001])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Large values
-    x = tf.constant(np.array([100*np.pi, 200*np.pi]), dtype=np.float32)
+    # Input 6: Mixed positive and negative
+    x = np.array([-np.pi, 0, np.pi])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Array with zeros
-    x = tf.constant(np.array([0, 0, 0]), dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Mixed positive and negative
-    x = tf.constant(np.array([-1, 0, 1, -2]), dtype=np.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: High-dimensional array
-    x = tf.constant(np.random.rand(2, 2, 2, 2), dtype=tf.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Float64
-    x = tf.constant(np.array([0, np.pi/2, np.pi]), dtype=np.float64)
+    # Input 7: Float64
+    x = np.array([np.pi/6, np.pi/3], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11: scalar float64
-    x = tf.constant(0.0, dtype=tf.float64)
+    # Input 8: Large Values
+    x = np.array([100.0, 200.0])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 12: Scalar complex64
-    x = tf.constant(1+1j, dtype=tf.complex64)
+    # Input 9: Simple tensor
+    x = np.array([1.0,2.0,3.0])
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: All zero values
+    x = np.array([0.0,0.0,0.0])
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: 3D Array
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Negative and large
+    x = np.array([-100.0, -200.0])
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

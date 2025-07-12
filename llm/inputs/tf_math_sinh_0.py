@@ -11,54 +11,64 @@ import copy
 def tf_math_sinh_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, 1D array
+    # Input 1: float32, 1D
     x = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    name = "sinh_1"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64, 2D array
-    x = np.array([[-2.0, -1.0], [1.0, 2.0]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": "sinh_example"}
+    # Input 2: float64, 2D
+    x = np.array([[-2.0, -1.0], [0.0, 1.0], [2.0, 3.0]], dtype=np.float64)
+    name = "sinh_2"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float16, scalar
-    x = np.array(-0.25, dtype=np.float16)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 3: bfloat16, 1D with inf.  Numpy does not directly support bfloat16.
+    x = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
+    name = "sinh_3"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: half, 3D array
-    x = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float16)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 4: half, 1D
+    x = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float16)
+    name = "sinh_4"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: complex64, 1D array
-    x = np.array([1+1j, 2-2j, -1+0j], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 5: complex64, 1D
+    x = np.array([1+1j, 2-2j, 3+0j, 0-4j], dtype=np.complex64)
+    name = "sinh_5"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: complex128, scalar
-    x = np.array(1j, dtype=np.complex128)
-    input_dict = {"x": tf.constant(x), "name": "complex_sinh"}
+    # Input 6: complex128, 2D
+    x = np.array([[1+1j, 2-2j], [3+0j, 0-4j]], dtype=np.complex128)
+    name = "sinh_6"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float32, all zeros
-    x = np.zeros((2, 3), dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 7: float32, 3D
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    name = "sinh_7"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float64, large values
-    x = np.array([-100, 100], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 8: float64, scalar
+    x = np.array(1.5, dtype=np.float64)
+    name = "sinh_8"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float32, mixed positive and negative values
-    x = np.array([-5, -2.5, 0, 2.5, 5], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 9: float32, large values
+    x = np.array([-100.0, 0.0, 100.0], dtype=np.float32)
+    name = "sinh_9"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: half, different shape
-    x = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float16).reshape((2,2))
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 10: float64, small values
+    x = np.array([-0.0001, 0.0, 0.0001], dtype=np.float64)
+    name = "sinh_10"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

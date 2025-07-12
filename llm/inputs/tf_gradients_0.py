@@ -18,62 +18,62 @@ def tf_gradients_inputs():
     name = "gradients1"
     gate_gradients = False
     aggregation_method = None
-    stop_gradients = [tf.constant(3.0)]
-    unconnected_gradients = "none"
+    stop_gradients = None
+    unconnected_gradients = 'none'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": [stop_gradients[0]],
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    ys = [tf.constant([1.0, 2.0])]
-    xs = [tf.constant([3.0, 4.0])]
-    grad_ys = [tf.constant([1.0, 1.0])]
+    ys = [tf.constant(np.array([1.0, 2.0]))]
+    xs = [tf.constant(np.array([3.0, 4.0]))]
+    grad_ys = [tf.constant(np.array([1.0, 1.0]))]
     name = "gradients2"
     gate_gradients = True
     aggregation_method = "ADD_N"
-    stop_gradients = [tf.constant([5.0, 6.0])]
-    unconnected_gradients = "zero"
+    stop_gradients = None
+    unconnected_gradients = 'zero'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": [stop_gradients[0]],
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    ys = [tf.constant([[1.0, 2.0], [3.0, 4.0]])]
-    xs = [tf.constant([[5.0, 6.0], [7.0, 8.0]])]
-    grad_ys = [tf.constant([[1.0, 1.0], [1.0, 1.0]])]
+    ys = [tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]]))]
+    xs = [tf.constant(np.array([[5.0, 6.0], [7.0, 8.0]]))]
+    grad_ys = [tf.constant(np.array([[1.0, 1.0], [1.0, 1.0]]))]
     name = "gradients3"
     gate_gradients = False
     aggregation_method = "MEAN"
-    stop_gradients = [tf.constant([[9.0, 10.0], [11.0, 12.0]])]
-    unconnected_gradients = "none"
+    stop_gradients = None
+    unconnected_gradients = 'none'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-       "stop_gradients": [stop_gradients[0]],
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -83,154 +83,176 @@ def tf_gradients_inputs():
     grad_ys = [tf.constant(1.0), tf.constant(1.0)]
     name = "gradients4"
     gate_gradients = True
-    aggregation_method = "SUM"
-    stop_gradients = [tf.constant(5.0), tf.constant(6.0)]
-    unconnected_gradients = "zero"
+    aggregation_method = "EXPERIMENTAL_ACCUMULATE_N"
+    stop_gradients = None
+    unconnected_gradients = 'zero'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": [stop_gradients[0]],
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    ys = [tf.constant(1.0)]
-    xs = [tf.constant(2.0)]
-    grad_ys = None
+    ys = [tf.constant(np.array([1.0, 2.0]))]
+    xs = [tf.constant(np.array([3.0, 4.0]))]
+    grad_ys = [tf.constant(np.array([1.0, 1.0]))]
     name = "gradients5"
     gate_gradients = False
-    aggregation_method = "EXPERIMENTAL_ACCUMULATE_N"
-    stop_gradients = [tf.constant(7.0)]
-    unconnected_gradients = "none"
+    aggregation_method = None
+    stop_gradients = None
+    unconnected_gradients = 'none'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": [stop_gradients[0]],
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    ys = [tf.constant(1.0)]
-    xs = [tf.constant(2.0)]
-    grad_ys = [tf.constant(1.0)]
+   # Input 6
+    ys = [tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]]))]
+    xs = [tf.constant(np.array([[5.0, 6.0], [7.0, 8.0]]))]
+    grad_ys = [tf.constant(np.array([[1.0, 1.0], [1.0, 1.0]]))]
     name = "gradients6"
-    gate_gradients = False
-    aggregation_method = None
-    stop_gradients = []
-    unconnected_gradients = "none"
+    gate_gradients = True
+    aggregation_method = "SUM"
+    stop_gradients = None
+    unconnected_gradients = 'zero'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": stop_gradients,
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    ys = [tf.constant([1.0, 2.0])]
-    xs = [tf.constant([3.0, 4.0])]
-    grad_ys = [tf.constant([1.0, 1.0])]
+    ys = [tf.constant(np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]]))]
+    xs = [tf.constant(np.array([[[9.0, 10.0], [11.0, 12.0]], [[13.0, 14.0], [15.0, 16.0]]]))]
+    grad_ys = [tf.constant(np.array([[[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]]]))]
     name = "gradients7"
-    gate_gradients = True
-    aggregation_method = "ADD_N"
-    stop_gradients = []
-    unconnected_gradients = "zero"
+    gate_gradients = False
+    aggregation_method = None
+    stop_gradients = None
+    unconnected_gradients = 'none'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": stop_gradients,
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    ys = [tf.constant([[1.0, 2.0], [3.0, 4.0]])]
-    xs = [tf.constant([[5.0, 6.0], [7.0, 8.0]])]
-    grad_ys = [tf.constant([[1.0, 1.0], [1.0, 1.0]])]
+    ys = [tf.constant(np.array([1.0, 2.0, 3.0]))]
+    xs = [tf.constant(np.array([4.0, 5.0, 6.0]))]
+    grad_ys = [tf.constant(np.array([0.5, 0.5, 0.5]))]
     name = "gradients8"
-    gate_gradients = False
-    aggregation_method = "MEAN"
-    stop_gradients = []
-    unconnected_gradients = "none"
+    gate_gradients = True
+    aggregation_method = "ADD_N"
+    stop_gradients = None
+    unconnected_gradients = 'zero'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": stop_gradients,
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    ys = [tf.constant(1.0), tf.constant(2.0)]
-    xs = [tf.constant(3.0), tf.constant(4.0)]
-    grad_ys = [tf.constant(1.0), tf.constant(1.0)]
+    ys = [tf.constant(1.0)]
+    xs = [tf.constant(2.0)]
+    grad_ys = [tf.constant(1.0)]
     name = "gradients9"
-    gate_gradients = True
-    aggregation_method = "SUM"
-    stop_gradients = []
-    unconnected_gradients = "zero"
+    gate_gradients = False
+    aggregation_method = "MEAN"
+    stop_gradients = None
+    unconnected_gradients = 'none'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": stop_gradients,
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    ys = [tf.constant(1.0)]
-    xs = [tf.constant(2.0)]
-    grad_ys = None
+    ys = [tf.constant(np.array([1.0, 2.0]))]
+    xs = [tf.constant(np.array([3.0, 4.0]))]
+    grad_ys = [tf.constant(np.array([1.0, 1.0]))]
     name = "gradients10"
-    gate_gradients = False
-    aggregation_method = "EXPERIMENTAL_ACCUMULATE_N"
-    stop_gradients = []
-    unconnected_gradients = "none"
+    gate_gradients = True
+    aggregation_method = None
+    stop_gradients = None
+    unconnected_gradients = 'zero'
 
     input_dict = {
-        "ys": ys,
-        "xs": xs,
-        "grad_ys": grad_ys,
-        "name": name,
-        "gate_gradients": gate_gradients,
-        "aggregation_method": aggregation_method,
-        "stop_gradients": stop_gradients,
-        "unconnected_gradients": unconnected_gradients
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 11
+    ys = [tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]]))]
+    xs = [tf.constant(np.array([[5.0, 6.0], [7.0, 8.0]]))]
+    grad_ys = [tf.constant(np.array([[1.0, 1.0], [1.0, 1.0]]))]
+    name = "gradients11"
+    gate_gradients = False
+    aggregation_method = "SUM"
+    stop_gradients = [tf.constant(5.0)]
+    unconnected_gradients = 'none'
+
+    input_dict = {
+        'ys': ys,
+        'xs': xs,
+        'grad_ys': grad_ys,
+        'name': name,
+        'gate_gradients': gate_gradients,
+        'aggregation_method': aggregation_method,
+        'stop_gradients': stop_gradients,
+        'unconnected_gradients': unconnected_gradients
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

@@ -11,73 +11,57 @@ import copy
 def tf_experimental_numpy_remainder_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic integers
-    x1 = tf.constant(np.array([10, 12, 15]))
-    x2 = tf.constant(np.array([3, 4, 5]))
+    # Input 1: Basic case with positive integers
+    x1 = np.array([10, 17, 25], dtype=np.int32)
+    x2 = np.array([3, 5, 7], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different shapes, integer
-    x1 = tf.constant(np.array([[10, 12], [15, 16]]))
-    x2 = tf.constant(np.array([3, 4]))
+    # Input 2: Negative integers
+    x1 = np.array([-10, -17, -25], dtype=np.int32)
+    x2 = np.array([3, -5, 7], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Floating-point numbers
-    x1 = tf.constant(np.array([10.5, 12.3, 15.7]))
-    x2 = tf.constant(np.array([3.0, 4.0, 5.0]))
+    x1 = np.array([10.5, 17.2, 25.8], dtype=np.float32)
+    x2 = np.array([3.0, 5.5, 7.1], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Negative numbers
-    x1 = tf.constant(np.array([-10, 12, -15]))
-    x2 = tf.constant(np.array([3, -4, 5]))
+    # Input 4: Mixed positive and negative floats
+    x1 = np.array([-10.5, 17.2, -25.8], dtype=np.float32)
+    x2 = np.array([3.0, -5.5, 7.1], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Broadcasting
-    x1 = tf.constant(np.array([[10, 12], [15, 16]]))
-    x2 = tf.constant(np.array([3]))
+    # Input 5: 2D arrays
+    x1 = np.array([[10, 17], [25, 30]], dtype=np.int32)
+    x2 = np.array([[3, 5], [7, 9]], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Larger numbers
-    x1 = tf.constant(np.array([1000, 2000, 3000]))
-    x2 = tf.constant(np.array([300, 700, 1100]))
+    # Input 6: 2D arrays with floats
+    x1 = np.array([[10.5, 17.2], [25.8, 30.1]], dtype=np.float32)
+    x2 = np.array([[3.0, 5.5], [7.1, 9.2]], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different dtypes that can be converted
-    x1 = tf.constant(np.array([10, 12, 15], dtype=np.float64))
-    x2 = tf.constant(np.array([3, 4, 5], dtype=np.int32))
-    x1 = tf.cast(x1, tf.float32)
-    x2 = tf.cast(x2, tf.float32)
+    # Input 7: Different dtypes
+    x1 = np.array([10, 17, 25], dtype=np.int64)
+    x2 = np.array([3, 5, 7], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: More complex shape
-    x1 = tf.constant(np.random.rand(2, 3, 4))
-    x2 = tf.constant(np.random.rand(4))
-    x1 = tf.cast(x1, tf.float32)
-    x2 = tf.cast(x2, tf.float32)
+    # Input 8: Broadcasting
+    x1 = np.array([10, 17, 25], dtype=np.int32)
+    x2 = np.array(3, dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: All zeros
-    x1 = tf.constant(np.array([0, 0, 0]))
-    x2 = tf.constant(np.array([1, 2, 3]))
-    input_dict = {"x1": x1, "x2": x2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Zeros in x2
-    x1 = tf.constant(np.array([10, 12, 15]))
-    x2 = tf.constant(np.array([3, 0, 5]))
-    input_dict = {"x1": x1, "x2": x2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Rank 0 tensors
-    x1 = tf.constant(10)
-    x2 = tf.constant(3)
+    # Input 9: Large numbers
+    x1 = np.array([1000000000, 1700000000, 2500000000], dtype=np.int64)
+    x2 = np.array([3, 5, 7], dtype=np.int64)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

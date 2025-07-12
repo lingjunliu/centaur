@@ -13,104 +13,65 @@ def tf_ragged_map_flat_values_inputs():
 
     # Input 1
     rt = tf.ragged.constant([[1, 2, 3], [], [4, 5], [6]])
-    op = lambda x: tf.ones_like(x)
-    args = [rt]
-
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    op = tf.ones_like
+    input_dict = {"op": op, "*args": [rt]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     rt = tf.ragged.constant([[1, 2, 3], [], [4, 5], [6]])
-    op = lambda x, y: tf.multiply(x, y)
-    args = [rt, rt]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    op = tf.math.multiply
+    input_dict = {"op": op, "*args": [rt, rt]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     rt = tf.ragged.constant([[1, 2, 3], [], [4, 5], [6]])
-    op = lambda x, y: tf.add(x, y)
-    args = [rt, tf.constant(5)]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    const_val = tf.constant(5)
+    op = lambda x, const_val=const_val: tf.math.add(x, const_val)
+    input_dict = {"op": op, "*args": [rt]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     rt = tf.ragged.constant([[-1, -2, -3], [], [-4, -5], [-6]])
-    op = lambda x: tf.abs(x)
-    args = [rt]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    op = tf.abs
+    input_dict = {"op": op, "*args": [rt]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    rt = tf.ragged.constant([[1.0, 2.0, 3.0], [], [4.0, 5.0], [6.0]])
-    op = lambda x: tf.math.sin(x)
-    args = [rt]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    rt1 = tf.ragged.constant([[1, 2], [3, 4, 5]])
+    rt2 = tf.ragged.constant([[6, 7], [8, 9, 10]])
+    op = tf.math.add
+    input_dict = {"op": op, "*args": [rt1, rt2]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    rt1 = tf.ragged.constant([[1, 2], [3], [4, 5, 6]])
-    rt2 = tf.ragged.constant([[7, 8], [9], [10, 11, 12]])
-    op = lambda x, y: tf.add(x, y)
-    args = [rt1, rt2]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    rt = tf.ragged.constant([[[1, 2], [3]], [[4, 5, 6]]])
+    op = tf.negative
+    input_dict = {"op": op, "*args": [rt]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    rt = tf.ragged.constant([[[1, 2], [3]], [[4, 5, 6]]])
-    op = lambda x: tf.negative(x)
-    args = [rt]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    rt = tf.ragged.constant([[1.0, 2.0], [], [3.0, 4.0, 5.0]])
+    op = tf.math.sqrt
+    input_dict = {"op": op, "*args": [rt]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    rt = tf.ragged.constant([[1, 2, 3], [], [4, 5], [6]])
-    op = lambda x, dtype: tf.cast(x, dtype)
-    args = [rt, tf.float32]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    rt = tf.ragged.constant([[], [1, 2], [3]])
+    op = tf.math.square
+    input_dict = {"op": op, "*args": [rt]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    rt = tf.ragged.constant([[1, 2, 3], [], [4, 5], [6]])
-    op = lambda x: tf.math.square(x)
-    args = [rt]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    rt = tf.ragged.constant([[1, 2, 3], [4]])
+    op = lambda x: tf.cast(x, tf.float32)
+    input_dict = {"op": op, "*args": [rt]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    rt = tf.ragged.constant([[1, 2, 3], [], [4, 5], [6]])
-    op = lambda x: tf.identity(x)
-    args = [rt]
-    input_dict = {
-        "op": op,
-        "*args": args
-    }
+    rt1 = tf.ragged.constant([[1, 2], [3, 4, 5]], dtype=tf.int64)
+    rt2 = tf.ragged.constant([[6, 7], [8, 9, 10]], dtype=tf.int64)
+    op = tf.math.floordiv
+    input_dict = {"op": op, "*args": [rt1, rt2]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

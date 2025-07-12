@@ -12,44 +12,62 @@ def tf_math_sqrt_inputs():
     list_of_inputs = []
 
     # Input 1: float32, positive values
-    x = tf.constant(np.array([[4.0, 9.0], [16.0, 25.0]], dtype=np.float32))
-    name = None
+    x = np.array([[4.0, 9.0], [16.0, 25.0]], dtype=np.float32)
+    name = "sqrt_input_1"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, positive and zero values
-    x = tf.constant(np.array([[0.0, 1.0], [2.25, 4.0]], dtype=np.float64))
-    name = "sqrt_op"
+    x = np.array([[0.0, 1.0], [4.0, 9.0]], dtype=np.float64)
+    name = "sqrt_input_2"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: complex64, positive values
-    x = tf.constant(np.array([[1.0+0j, 4.0+0j], [9.0+0j, 16.0+0j]], dtype=np.complex64))
-    name = None
+    # Input 3: float16, positive values
+    x = np.array([[1.0, 4.0], [9.0, 16.0]], dtype=np.float16)
+    name = "sqrt_input_3"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: complex128, negative values (imaginary result)
-    x = tf.constant(np.array([[-1.0+0j, -4.0+0j], [9.0+0j, 16.0+0j]], dtype=np.complex128))
-    name = "sqrt_complex"
+    # Input 4: float32, negative values (will result in NaN)
+    x = np.array([[-1.0, 4.0], [-9.0, 16.0]], dtype=np.float32)
+    name = "sqrt_input_5"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float32, multi-dimensional array
-    x = tf.constant(np.array([[[1.0, 4.0], [9.0, 16.0]], [[25.0, 36.0], [49.0, 64.0]]], dtype=np.float32))
-    name = None
+    # Input 5: complex64
+    x = np.array([[1+1j, 4+0j], [0-9j, 16+2j]], dtype=np.complex64)
+    name = "sqrt_input_6"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float64, single value
-    x = tf.constant(np.array(2.0, dtype=np.float64))
-    name = "single_value"
+    # Input 6: complex128
+    x = np.array([[1+1j, 4+0j], [0-9j, 16+2j]], dtype=np.complex128)
+    name = "sqrt_input_7"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: complex128, with both real and imaginary parts
-    x = tf.constant(np.array([[1.0+1j, 4.0-2j], [-9.0+3j, 16.0-4j]], dtype=np.complex128))
-    name = "complex_values"
+    # Input 7: float32, 3D tensor
+    x = np.array([[[4.0, 9.0], [16.0, 25.0]], [[1.0, 0.0], [36.0, 49.0]]], dtype=np.float32)
+    name = "sqrt_input_8"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: float64, 1D tensor
+    x = np.array([1.0, 4.0, 9.0, 16.0], dtype=np.float64)
+    name = "sqrt_input_9"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: float32, empty array
+    x = np.array([], dtype=np.float32)
+    name = "sqrt_input_10"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: float32, scalar
+    x = np.array(9.0, dtype=np.float32)
+    name = "sqrt_input_11"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

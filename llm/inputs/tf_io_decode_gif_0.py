@@ -11,77 +11,86 @@ import copy
 def tf_io_decode_gif_inputs():
     list_of_inputs = []
 
-    # Input 1: Empty GIF
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = None
-    input_dict = {"contents": contents, "name": name}
+    # Input 1: Simple valid GIF data (replace with actual valid gif bytes)
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": "gif_1"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Minimal GIF (invalid but tests the string type)
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = "gif1"
-    input_dict = {"contents": contents, "name": name}
+    # Input 2: Another valid GIF data with a different name
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": "gif_2"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Another minimal GIF with name
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = "gif2"
-    input_dict = {"contents": contents, "name": name}
+    # Input 3: Short name
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": "a"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: GIF with a slightly longer "name"
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = "long_gif_name"
-    input_dict = {"contents": contents, "name": name}
+    # Input 4: Long name
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": "very_long_name_for_a_gif"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: GIF with special characters in the name
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = "gif_with_chars#$% "
-    input_dict = {"contents": contents, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: GIF with a unicode name
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = "gif_unicode_name"
-    input_dict = {"contents": contents, "name": name}
+    # Input 5: Valid GIF data as bytes
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: GIF with numbers in the name
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = "gif1234"
-    input_dict = {"contents": contents, "name": name}
+    # Input 6: Name as empty string
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x21\xf9\x04\x01\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: GIF with longer content but still likely invalid
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = None
-    input_dict = {"contents": contents, "name": name}
+    # Input 7: Another valid gif
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x05\x00\x05\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x05\x00\x05\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": "valid_gif"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Short JPEG content with name
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = "jpeg_name"
-    input_dict = {"contents": contents, "name": name}
+    # Input 8: Another valid gif, different name
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x05\x00\x05\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x05\x00\x05\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": "valid_gif_2"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Short PNG content with name
-    contents = tf.io.encode_png(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = "png_name"
-    input_dict = {"contents": contents, "name": name}
+    # Input 9: Valid PNG data
+    png_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\xfc\xff\xff?\x03\x00\x06\xfc\x02\xfe\xa7\xcc\x00\x00\x00\x00IEND\xaeB`\x82'
+    input_dict = {
+        "contents": tf.constant(png_data),
+        "name": "valid_png"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: GIF with empty name
-    contents = tf.io.encode_jpeg(tf.constant([[[0, 0, 0]]], dtype=tf.uint8)).numpy().decode('utf-8').encode('utf-8')
-    name = ""
-    input_dict = {"contents": contents, "name": name}
+
+    # Input 10: empty name
+    gif_data = b'\x47\x49\x46\x38\x39\x61\x05\x00\x05\x00\x80\x00\x00\x00\x00\x00\xff\xff\xff\x21\xf9\x04\x01\x00\x00\x00\x00\x00\x2c\x00\x00\x00\x00\x05\x00\x05\x00\x00\x02\x02\x44\x01\x00\x3b'
+    input_dict = {
+        "contents": tf.constant(gif_data),
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Empty string
-    contents = ""
-    name = "empty_gif"
-    input_dict = {"contents": contents, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

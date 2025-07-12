@@ -12,28 +12,23 @@ def tf_experimental_numpy_atleast_3d_inputs():
     list_of_inputs = []
 
     # Input 1: Scalar
-    ary1 = np.array(1)
-    input_dict = {"arys": [tf.constant(ary1)]}
+    arys = [np.array(1)]
+    input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: 1D array
-    ary2 = np.array([1, 2, 3])
-    input_dict = {"arys": [tf.constant(ary2)]}
+    arys = [np.array([1, 2, 3])]
+    input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: 2D array
-    ary3 = np.array([[1, 2], [3, 4]])
-    input_dict = {"arys": [tf.constant(ary3)]}
+    arys = [np.array([[1, 2], [3, 4]])]
+    input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Already 3D array
-    ary5 = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    input_dict = {"arys": [tf.constant(ary5)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5:  Negative values
-    ary6 = np.array([[-1, -2, -3], [-4, -5, -6]])
-    input_dict = {"arys": [tf.constant(ary6)]}
+    arys = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
+    input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

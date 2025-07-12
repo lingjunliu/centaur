@@ -6,66 +6,40 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
+import copy
 
 def tf_data_experimental_get_single_element_inputs():
     list_of_inputs = []
 
-    # Input 1: Dataset with a single integer element
-    element = np.array(1)
-    dataset = tf.data.Dataset.from_tensors(element)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 2: Dataset with a single float element
-    element = np.array(3.14)
-    dataset = tf.data.Dataset.from_tensors(element)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 3: Dataset with a single string element
-    element = np.array("hello")
-    dataset = tf.data.Dataset.from_tensors(element)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 4: Dataset with a single numpy array element (1D)
+    # Input 1: Simple dataset with one element
     element = np.array([1, 2, 3])
     dataset = tf.data.Dataset.from_tensors(element)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 5: Dataset with a single numpy array element (2D)
-    element = np.array([[1, 2], [3, 4]])
+    # Input 2: Dataset with one element, a tuple
+    element1 = np.array([1, 2])
+    element2 = np.array([3, 4])
+    dataset = tf.data.Dataset.from_tensors((element1, element2))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 3: Dataset with one element, a dictionary
+    element_a = np.array([1, 2])
+    element_b = np.array([3, 4])
+    element = {"a": element_a, "b": element_b}
     dataset = tf.data.Dataset.from_tensors(element)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 6: Dataset with a single numpy array element (3D)
+    # Input 4: Dataset with one element, a multi-dimensional array
     element = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     dataset = tf.data.Dataset.from_tensors(element)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 7: Dataset with a single element of mixed data types (tuple)
-    element = (np.array(1), np.array("hello"), np.array([1.0, 2.0]))
-    dataset = tf.data.Dataset.from_tensors(element)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 8: Dataset with a single element of mixed data types (dictionary)
-    element = {"a": np.array(1), "b": np.array("hello")}
-    dataset = tf.data.Dataset.from_tensors(element)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 9: Dataset with a single negative integer element
-    element = np.array(-5)
-    dataset = tf.data.Dataset.from_tensors(element)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-    
-    # Input 10: Dataset with a single element of complex type
-    element = np.array([1+1j, 2+2j])
+    # Input 5: Dataset with one element, a string
+    element = np.array("hello")
     dataset = tf.data.Dataset.from_tensors(element)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)

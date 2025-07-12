@@ -19,30 +19,30 @@ def tf_experimental_numpy_arange_inputs():
     input_dict = {"start": start, "stop": stop, "step": step, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Range with a different start and step
-    start = tf.constant(5, dtype=tf.int32)
-    stop = tf.constant(20, dtype=tf.int32)
-    step = tf.constant(3, dtype=tf.int32)
+    # Input 2: Negative start and stop
+    start = tf.constant(-5, dtype=tf.int32)
+    stop = tf.constant(5, dtype=tf.int32)
+    step = tf.constant(2, dtype=tf.int32)
     dtype = tf.int32
     input_dict = {"start": start, "stop": stop, "step": step, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative step
-    start = tf.constant(10, dtype=tf.int32)
-    stop = tf.constant(0, dtype=tf.int32)
-    step = tf.constant(-1, dtype=tf.int32)
-    dtype = tf.int32
-    input_dict = {"start": start, "stop": stop, "step": step, "dtype": dtype}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Floating-point range
+    # Input 3: Float range
     start = tf.constant(0.0, dtype=tf.float32)
     stop = tf.constant(1.0, dtype=tf.float32)
     step = tf.constant(0.1, dtype=tf.float32)
     dtype = tf.float32
     input_dict = {"start": start, "stop": stop, "step": step, "dtype": dtype}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 4: Negative float range
+    start = tf.constant(-1.0, dtype=tf.float32)
+    stop = tf.constant(1.0, dtype=tf.float32)
+    step = tf.constant(0.2, dtype=tf.float32)
+    dtype = tf.float32
+    input_dict = {"start": start, "stop": stop, "step": step, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

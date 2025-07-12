@@ -12,62 +12,62 @@ def tf_experimental_numpy_flip_inputs():
     list_of_inputs = []
 
     # Input 1
-    m = tf.constant(np.array([1, 2, 3]))
+    m = np.array([[1, 2], [3, 4]])
     axis = 0
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    m = tf.constant(np.array([[1, 2], [3, 4]]))
-    axis = 0
-    input_dict = {"m": m, "axis": axis}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    m = tf.constant(np.array([[1, 2], [3, 4]]))
+    m = np.array([[1, 2], [3, 4]])
     axis = 1
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 3
+    m = np.array([1, 2, 3, 4])
+    axis = 0
+    input_dict = {"m": m, "axis": axis}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 4
-    m = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
+    m = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axis = 0
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    m = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
+    m = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axis = 1
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    m = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
+    m = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axis = 2
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    m = tf.constant(np.array([1, 2, 3, 4, 5]))
-    axis = 0
+    m = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axis = -1
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    m = tf.constant(np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]))
-    axis = 2
+    m = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axis = -2
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 9
-    m = tf.constant(np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]))
-    axis = 0
+    m = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axis = -3
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    m = tf.constant(np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]))
-    axis = 1
+    m = np.array([1, 2, 3])
+    axis = -1
     input_dict = {"m": m, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

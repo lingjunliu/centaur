@@ -11,53 +11,56 @@ import numpy as np
 def tf_data_experimental_to_variant_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple dataset
-    dataset = tf.data.Dataset.from_tensor_slices([1, 2, 3, 4, 5])
+    # Input 1: Empty dataset
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 2: Dataset with a tuple of tensors
-    dataset = tf.data.Dataset.from_tensor_slices(([1, 2, 3], [4, 5, 6]))
+    # Input 2: Dataset with a single element
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 3: Dataset with a dictionary of tensors
-    dataset = tf.data.Dataset.from_tensor_slices({"a": [1, 2, 3], "b": [4, 5, 6]})
+    # Input 3: Dataset with multiple elements
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4, 5]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 4: Empty dataset
-    dataset = tf.data.Dataset.from_tensor_slices([])
+    # Input 4: Dataset with strings
+    dataset = tf.data.Dataset.from_tensor_slices(np.array(["a", "b", "c"]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 5: Dataset with different data types
-    dataset = tf.data.Dataset.from_tensor_slices([1.0, 2.0, 3.0])
+    # Input 5: Dataset with only integers in tuples, ensuring consistent types
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([(1, 2), (3, 4)]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 6: Dataset with strings
-    dataset = tf.data.Dataset.from_tensor_slices(["a", "b", "c"])
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 7: Dataset with boolean values
-    dataset = tf.data.Dataset.from_tensor_slices([True, False, True])
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 8: Dataset with multiple dimensions
-    dataset = tf.data.Dataset.from_tensor_slices([[1, 2], [3, 4], [5, 6]])
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 9: Dataset created from a range
+    # Input 6: Dataset created from a range
     dataset = tf.data.Dataset.range(10)
+    dataset = tf.data.Dataset.from_tensor_slices(np.array(list(dataset.as_numpy_iterator())))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
-    
-    # Input 10: Scalar tensor
-    dataset = tf.data.Dataset.from_tensors(tf.constant(1))
+
+    # Input 7: Dataset created from a tensor
+    tensor = tf.constant([[1, 2], [3, 4]])
+    dataset = tf.data.Dataset.from_tensor_slices(tensor)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 8: Dataset with a map function
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3])).map(lambda x: tf.cast(x * 2, tf.int64)) #Explicitly cast to avoid errors in some backends.
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 9: Dataset with a filter function
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4, 5])).filter(lambda x: x % 2 == 0)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 10: Dataset from numpy array with different shape
+
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2, 3],[4,5,6]]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 

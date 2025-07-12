@@ -11,60 +11,57 @@ import copy
 def tf_experimental_numpy_atleast_2d_inputs():
     list_of_inputs = []
 
-    # Input 1: Single 1D tensor
-    arys = [tf.constant([1, 2, 3])]
+    # Input 1: Single 0-D array
+    arys = [np.array(1)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Single 0D tensor (scalar)
-    arys = [tf.constant(5)]
+    # Input 2: Single 1-D array
+    arys = [np.array([1, 2, 3])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multiple 1D tensors
-    arys = [tf.constant([1, 2]), tf.constant([3, 4, 5])]
+    # Input 3: Single 2-D array
+    arys = [np.array([[1, 2], [3, 4]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Mix of 0D and 1D tensors
-    arys = [tf.constant(7), tf.constant([8, 9])]
+    # Input 4: Multiple 0-D arrays
+    arys = [np.array(1), np.array(2)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Single 2D tensor (already 2D)
-    arys = [tf.constant([[1, 2], [3, 4]])]
+    # Input 5: Multiple 1-D arrays
+    arys = [np.array([1, 2]), np.array([3, 4])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Multiple 2D tensors
-    arys = [tf.constant([[1, 2], [3, 4]]), tf.constant([[5, 6], [7, 8]])]
+    # Input 6: Mixed 0-D and 1-D arrays
+    arys = [np.array(1), np.array([2, 3])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Mix of 1D and 2D tensors
-    arys = [tf.constant([1, 2]), tf.constant([[3, 4], [5, 6]])]
+    # Input 7: Mixed 1-D and 2-D arrays
+    arys = [np.array([1, 2]), np.array([[3, 4], [5, 6]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Single 3D tensor - removing this because it is likely the source of the issue.
-    # arys = [tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
-    # input_dict = {"arys": arys}
-    # list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Single tensor with negative values
-    arys = [tf.constant([-1, -2, -3])]
+    # Input 8: Negative values
+    arys = [np.array([-1, -2])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: 1D Tensor with shape (0,)
-    arys = [tf.constant([], dtype=tf.int32)]
+    # Input 9: Empty array with defined dtype
+    arys = [np.array([], dtype=np.int32)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10: Multiple arrays with different dtypes
+    arys = [np.array([1, 2], dtype=np.int32), np.array([3.0, 4.0], dtype=np.float32)]
+    input_dict = {"arys": arys}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
-
-generated_inputs = {}
-generated_inputs["tf.experimental.numpy.atleast_2d"] = tf_experimental_numpy_atleast_2d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

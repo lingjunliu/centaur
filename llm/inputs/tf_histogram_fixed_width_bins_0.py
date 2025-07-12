@@ -11,96 +11,87 @@ import copy
 def tf_histogram_fixed_width_bins_inputs():
     list_of_inputs = []
 
-    # Input 1
-    values = tf.constant([1, 2, 3, 4, 5], dtype=tf.int32)
-    value_range = tf.constant([0, 6], dtype=tf.int32)
-    nbins = 6
+    # Input 1: Basic test case
+    values = np.array([0.5, 1.5, 2.5, 3.5, 4.5], dtype=np.float32)
+    value_range = np.array([0.0, 5.0], dtype=np.float32)
+    nbins = 5
     dtype = tf.int32
-    name = "histogram1"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
+    name = "basic_histogram"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    values = tf.constant([-1, 0, 1, 2, 3], dtype=tf.int32)
-    value_range = tf.constant([-2, 4], dtype=tf.int32)
+    # Input 2: Negative values
+    values = np.array([-1.0, 0.0, 1.0, 2.0, 3.0], dtype=np.float32)
+    value_range = np.array([-2.0, 4.0], dtype=np.float32)
     nbins = 6
     dtype = tf.int32
-    name = "histogram2"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
+    name = "negative_values"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    values = tf.constant([1, 2, 3, 4], dtype=tf.int32)
-    value_range = tf.constant([1, 5], dtype=tf.int32)
+    # Input 3: Different nbins
+    values = np.array([1, 2, 3, 4, 5], dtype=np.float32)
+    value_range = np.array([0, 6], dtype=np.float32)
+    nbins = 3
+    dtype = tf.int32
+    name = "different_nbins"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Values outside range
+    values = np.array([-2, -1, 0, 1, 2, 3, 4, 5, 6], dtype=np.float32)
+    value_range = np.array([0, 4], dtype=np.float32)
     nbins = 4
     dtype = tf.int32
-    name = "histogram3"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
+    name = "values_outside_range"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    values = tf.constant([0, 0, 0, 0, 0], dtype=tf.int32)
-    value_range = tf.constant([0, 1], dtype=tf.int32)
+    # Input 5: Small value range
+    values = np.array([1.1, 1.2, 1.3, 1.4, 1.5], dtype=np.float32)
+    value_range = np.array([1.0, 2.0], dtype=np.float32)
     nbins = 5
     dtype = tf.int32
-    name = "histogram4"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
+    name = "small_value_range"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    values = tf.constant([10, 20, 30, 40, 50], dtype=tf.int32)
-    value_range = tf.constant([0, 60], dtype=tf.int32)
-    nbins = 6
-    dtype = tf.int32
-    name = "histogram5"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    values = tf.constant([1, 2, 3, 4, 5], dtype=tf.int32)
-    value_range = tf.constant([0, 5], dtype=tf.int32)
-    nbins = 5
-    dtype = tf.int64
-    name = "histogram6"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    values = tf.constant([[-1, 0], [1, 2]], dtype=tf.int32)
-    value_range = tf.constant([-2, 3], dtype=tf.int32)
+    # Input 6: All values the same
+    values = np.array([2.0, 2.0, 2.0, 2.0, 2.0], dtype=np.float32)
+    value_range = np.array([0.0, 5.0], dtype=np.float32)
     nbins = 5
     dtype = tf.int32
-    name = "histogram7"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
+    name = "all_same_values"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    values = tf.constant([[-1, -2], [3, 4]], dtype=tf.int32)
-    value_range = tf.constant([-3, 5], dtype=tf.int32)
-    nbins = 8
-    dtype = tf.int32
-    name = "histogram8"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    values = tf.constant([1, 1, 1, 1, 1], dtype=tf.int32)
-    value_range = tf.constant([1, 2], dtype=tf.int32)
+    # Input 7: Edge case with value_range
+    values = np.array([0.0, 5.0], dtype=np.float32)
+    value_range = np.array([0.0, 5.0], dtype=np.float32)
     nbins = 5
     dtype = tf.int32
-    name = "histogram9"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
+    name = "edge_value_range"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    values = tf.constant([1, 1, 1, 1, 1], dtype=tf.int32)
-    value_range = tf.constant([1, 2], dtype=tf.int32)
-    nbins = 1
+    # Input 8: 2D values
+    values = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    value_range = np.array([0.0, 5.0], dtype=np.float32)
+    nbins = 5
     dtype = tf.int32
-    name = "histogram10"
-    input_dict = {"values": values.numpy(), "value_range": value_range.numpy(), "nbins": nbins, "dtype": dtype, "name": name}
+    name = "2d_values"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 9: Larger number of bins
+    values = np.array([i for i in range(100)], dtype=np.float32)
+    value_range = np.array([0.0, 100.0], dtype=np.float32)
+    nbins = 200
+    dtype = tf.int32
+    name = "larger_nbins"
+    input_dict = {"values": values, "value_range": value_range, "nbins": nbins, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

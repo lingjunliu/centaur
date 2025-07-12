@@ -5,59 +5,59 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_experimental_numpy_atleast_1d_inputs():
     list_of_inputs = []
 
-    # Input 1: Single 0-D tensor
-    arys = [tf.constant(5)]
+    # Input 1: Single scalar
+    arys = [np.array(5)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Single 1-D tensor
-    arys = [tf.constant([1, 2, 3])]
+    # Input 2: Single 0D array
+    arys = [np.array(10)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Single 2-D tensor
-    arys = [tf.constant([[1, 2], [3, 4]])]
+    # Input 3: Single 1D array
+    arys = [np.array([1, 2, 3])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multiple 0-D tensors
-    arys = [tf.constant(5), tf.constant(10)]
+    # Input 4: Single 2D array
+    arys = [np.array([[1, 2], [3, 4]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Multiple tensors with different dimensions
-    arys = [tf.constant(5), tf.constant([1, 2, 3])]
+    # Input 5: Multiple scalars
+    arys = [np.array(1), np.array(2), np.array(3)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Single 0-D float tensor
-    arys = [tf.constant(5.0)]
+    # Input 6: Multiple 1D arrays
+    arys = [np.array([1, 2]), np.array([3, 4]), np.array([5, 6])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Single 0-D bool tensor
-    arys = [tf.constant(True)]
+    # Input 7: Mixed scalars and arrays
+    arys = [np.array(1), np.array([2, 3]), np.array([[4, 5], [6, 7]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Single 1-D string tensor
-    arys = [tf.constant(["a", "b", "c"])]
+    # Input 8: Single array with negative values
+    arys = [np.array([-1, -2, -3])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Single 3D tensor
-    arys = [tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
+    # Input 9: Array with different dtype (float)
+    arys = [np.array([1.0, 2.0, 3.0])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Tensor with negative values
-    arys = [tf.constant([-1, -2, -3])]
+    # Input 10: Array with different dtype (bool)
+    arys = [np.array([True, False, True])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

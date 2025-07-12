@@ -11,163 +11,133 @@ import copy
 def tf_feature_column_numeric_column_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
-    key = 'feature_a'
-    shape = (1,)
-    default_value = [0.0]
-    dtype = tf.float32
-    normalizer_fn = None
-
+    # Input 1
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_a',
+        'shape': (1,),
+        'default_value': [0.0],
+        'dtype': tf.float32,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid
-    key = 'feature_b'
-    shape = (2,)
-    default_value = [1.0, 2.0]
-    dtype = tf.float32
-    normalizer_fn = None
-
+    # Input 2
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_b',
+        'shape': (2, 2),
+        'default_value': [1.0, 2.0, 3.0, 4.0],
+        'dtype': tf.float64,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3, valid
-    key = 'feature_c'
-    shape = (1, 3)
-    default_value = [1.0, 2.0, 3.0]
-    dtype = tf.float32
-    normalizer_fn = None
-
+    # Input 3
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_c',
+        'shape': (3,),
+        'default_value': [-1, 0, 1],
+        'dtype': tf.int32,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4, valid
-    key = 'feature_d'
-    shape = (1,)
-    default_value = [-1.0]
-    dtype = tf.float32
-    normalizer_fn = None
-
+    # Input 4
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_d',
+        'shape': (1, 1, 1),
+        'default_value': [2.5],
+        'dtype': tf.float16,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5, valid, int dtype
-    key = 'feature_e'
-    shape = (1,)
-    default_value = [1]
-    dtype = tf.int32
-    normalizer_fn = None
-
+    # Input 5
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_e',
+        'shape': (4,),
+        'default_value': [1, 2, 3, 4],
+        'dtype': tf.int64,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6, valid, multiple dimensions, int dtype
-    key = 'feature_f'
-    shape = (2, 2)
-    default_value = [1, 2, 3, 4]
-    dtype = tf.int32
-    normalizer_fn = None
-
+   # Input 6
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_f',
+        'shape': (2,),
+        'default_value': [-1.5, 2.5],
+        'dtype': tf.float32,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7, valid, normalizer function
-    key = 'feature_g'
-    shape = (1,)
-    default_value = [5.0]
-    dtype = tf.float32
-    normalizer_fn = lambda x: (x - 3.0) / 4.2
-
+    # Input 7
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': [normalizer_fn]
+        'key': 'feature_g',
+        'shape': (1,),
+        'default_value': [1000],
+        'dtype': tf.int16,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8, valid, different shape
-    key = 'feature_h'
-    shape = (3,)
-    default_value = [1.1, 2.2, 3.3]
-    dtype = tf.float32
-    normalizer_fn = None
-
+    # Input 8
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_h',
+        'shape': (5,),
+        'default_value': [0.1, 0.2, 0.3, 0.4, 0.5],
+        'dtype': tf.float32,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9, valid, large shape
-    key = 'feature_i'
-    shape = (2, 3, 4)
-    default_value = list(range(24))
-    dtype = tf.int32
-    normalizer_fn = None
-
+    # Input 9
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_i',
+        'shape': (1, 2),
+        'default_value': [5, 6],
+        'dtype': tf.int8,
+        'normalizer_fn': None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10, valid, large negative values
-    key = 'feature_j'
-    shape = (1,)
-    default_value = [-1000.0]
-    dtype = tf.float32
-    normalizer_fn = None
-
+    # Input 10
     input_dict = {
-        'key': key,
-        'shape': shape,
-        'default_value': default_value,
-        'dtype': dtype,
-        'normalizer_fn': normalizer_fn if normalizer_fn is not None else []
+        'key': 'feature_j',
+        'shape': (2, 1),
+        'default_value': [7, 8],
+        'dtype': tf.int32,
+        'normalizer_fn': None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11 with normalizer_fn
+    input_dict = {
+        'key': 'feature_k',
+        'shape': (1,),
+        'default_value': [2.0],
+        'dtype': tf.float32,
+        'normalizer_fn': lambda x: x / 2.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12 with normalizer_fn that returns different type
+    input_dict = {
+        'key': 'feature_l',
+        'shape': (1,),
+        'default_value': [5.0],
+        'dtype': tf.float32,
+        'normalizer_fn': lambda x: tf.cast(x, tf.int32)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13 with normalizer fn
+    input_dict = {
+        'key': 'feature_m',
+        'shape': (1,),
+        'default_value': [10.0],
+        'dtype': tf.float32,
+        'normalizer_fn': lambda x: (x - 5.0) / 2.0
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

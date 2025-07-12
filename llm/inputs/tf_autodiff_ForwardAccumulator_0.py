@@ -8,66 +8,66 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_autodiff_ForwardAccumulator_inputs():
+def tf_autodiff_forwardaccumulator_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple float primal and tangent
-    primals = tf.constant(1.0)
-    tangents = tf.constant(1.0)
+    # Input 1
+    primals = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    tangents = np.array([[0.0, 1.0], [1.0, 0.0]], dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Simple float primal and tangent
-    primals = tf.constant(1.0)
-    tangents = tf.constant(1.0)
+    # Input 2
+    primals = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    tangents = np.array([0.5, -0.2, 1.0], dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Primal and Tangent as rank 1 tensor
-    primals = tf.constant([1.0, 2.0, 3.0])
-    tangents = tf.constant([0.5, 1.0, 1.5])
+    # Input 3
+    primals = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    tangents = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Primal and Tangent as rank 2 tensor
-    primals = tf.constant([[1.0, 2.0], [3.0, 4.0]])
-    tangents = tf.constant([[0.5, 1.0], [1.5, 2.0]])
+    # Input 4
+    primals = np.array([1.0], dtype=np.float32)
+    tangents = np.array([-1.0], dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Primal and Tangent as rank 3 tensor
-    primals = tf.constant([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    tangents = tf.constant([[[0.5, 1.0], [1.5, 2.0]], [[2.5, 3.0], [3.5, 4.0]]])
+    # Input 5
+    primals = np.array([1, 2, 3], dtype=np.int32).astype(np.float32)
+    tangents = np.array([0.1, 0.2, 0.3], dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Primal as variable
-    primals = tf.Variable(1.0)
-    tangents = tf.constant(1.0)
+    # Input 6
+    primals = np.array(5.0, dtype=np.float32)
+    tangents = np.array(2.0, dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Primal and tangent with negative values
-    primals = tf.constant([-1.0, 2.0, -3.0])
-    tangents = tf.constant([0.5, -1.0, 1.5])
+    # Input 7
+    primals = np.zeros((2, 3), dtype=np.float32)
+    tangents = np.ones((2, 3), dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Primal and tangent with zeros
-    primals = tf.constant([0.0, 2.0, 0.0])
-    tangents = tf.constant([0.0, -1.0, 0.0])
+    # Input 8
+    primals = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    tangents = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Primal and tangent with different shapes but broadcastable
-    primals = tf.constant([[1.0], [2.0]])
-    tangents = tf.constant([0.5, 1.0])
+    # Input 9
+    primals = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    tangents = np.array([[-0.5, 0.5], [0.5, -0.5]], dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Larger primal and tangent
-    primals = tf.constant(np.random.rand(10, 10).astype(np.float32))
-    tangents = tf.constant(np.random.rand(10, 10).astype(np.float32))
+    # Input 10
+    primals = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    tangents = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
     input_dict = {"primals": primals, "tangents": tangents}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -75,20 +75,7 @@ def tf_autodiff_ForwardAccumulator_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_autodiff_ForwardAccumulator_inputs()
-for input_dict in inputs:
-    if isinstance(input_dict["primals"], tf.Variable):
-        input_dict["primals"] = input_dict["primals"].numpy()
-    if isinstance(input_dict["tangents"], tf.Variable):
-        input_dict["tangents"] = input_dict["tangents"].numpy()
-
-    primals_np = input_dict["primals"]
-    tangents_np = input_dict["tangents"]
-    
-    input_dict["primals"] = tf.convert_to_tensor(primals_np, dtype=tf.float32)
-    input_dict["tangents"] = tf.convert_to_tensor(tangents_np, dtype=tf.float32)
-
-generated_inputs["tf.autodiff.ForwardAccumulator"] = inputs
+generated_inputs["tf.autodiff.ForwardAccumulator"] = tf_autodiff_forwardaccumulator_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

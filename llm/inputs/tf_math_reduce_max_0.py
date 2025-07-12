@@ -11,86 +11,85 @@ import copy
 def tf_math_reduce_max_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple 1D array, no axis specified
+    # Input 1: Simple 1D array
     input_tensor = np.array([1, 5, 2, 8, 3], dtype=np.int32)
-    axis = None
+    axis = [0]
     keepdims = False
-    name = "reduce_max_1"
+    name = "max_reduction_1"
     input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D array, axis=0
+    # Input 2: 2D array, reduce along axis 0
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
     axis = [0]
     keepdims = False
-    name = "reduce_max_2"
+    name = "max_reduction_2"
     input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D array, axis=1
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
+    # Input 3: 2D array, reduce along axis 1, keepdims=True
+    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
     axis = [1]
-    keepdims = False
-    name = "reduce_max_3"
+    keepdims = True
+    name = "max_reduction_3"
     input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D array, axis=[0, 1]
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
+    # Input 4: 3D array, reduce along multiple axes
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
     axis = [0, 1]
     keepdims = False
-    name = "reduce_max_4"
+    name = "max_reduction_4"
     input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D array, axis=0, keepdims=True
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    # Input 5: Negative values and float type
+    input_tensor = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
+    axis = [0]
+    keepdims = False
+    name = "max_reduction_5"
+    input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: All dimensions reduced
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    axis = [0, 1]
+    keepdims = False
+    name = "max_reduction_6"
+    input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Keepdims true
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
     axis = [0]
     keepdims = True
-    name = "reduce_max_5"
+    name = "max_reduction_7"
     input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D array, axis= (0, 2)
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    axis = [0, 2]
+   # Input 8: Empty tensor
+    input_tensor = np.array([], dtype=np.int32)
+    axis = [0]
     keepdims = False
-    name = "reduce_max_6"
+    name = "max_reduction_8"
     input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 3D array, axis = (1,2), keepdims = True
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    # Input 9: 3D tensor, different axes
+    input_tensor = np.random.rand(2, 3, 4).astype(np.float32)
     axis = [1, 2]
     keepdims = True
-    name = "reduce_max_7"
+    name = "max_reduction_9"
     input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Negative values, 2D array, axis=0
-    input_tensor = np.array([[-1, -2, -3], [-4, -5, -6]], dtype=np.int32)
-    axis = [0]
+    # Input 10: Tensor with large values
+    input_tensor = np.array([[1000, 2000], [3000, 4000]], dtype=np.int32)
+    axis = [1]
     keepdims = False
-    name = "reduce_max_8"
+    name = "max_reduction_10"
     input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Float values with nan and inf
-    input_tensor = np.array([[1.0, np.nan, 3.0], [np.inf, 5.0, 6.0]], dtype=np.float32)
-    axis = [0]
-    keepdims = False
-    name = "reduce_max_9"
-    input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: 1D array, negative axis
-    input_tensor = np.array([1, 5, 2, 8, 3], dtype=np.int32)
-    axis = [-1]
-    keepdims = False
-    name = "reduce_max_10"
-    input_dict = {"input_tensor": input_tensor, "axis": axis, "keepdims": keepdims, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
 
     return list_of_inputs
 

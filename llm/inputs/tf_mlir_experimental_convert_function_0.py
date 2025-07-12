@@ -10,133 +10,97 @@ import copy
 def tf_mlir_experimental_convert_function_inputs():
     list_of_inputs = []
 
-    @tf.function
-    def add(a, b):
-        return a + b
+    # Helper function to serialize concrete functions
+    def serialize_concrete_function(concrete_function):
+        return concrete_function.name
 
     # Input 1
-    concrete_function = add.get_concrete_function(
-        tf.TensorSpec(None, tf.dtypes.float32),
-        tf.TensorSpec(None, tf.dtypes.float32))
+    concrete_function = tf.function(lambda x: x + 1).get_concrete_function(tf.TensorSpec(None, tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": False
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'tf-standard-pipeline',
+        'show_debug_info': False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    concrete_function = add.get_concrete_function(
-        tf.TensorSpec(None, tf.dtypes.int32),
-        tf.TensorSpec(None, tf.dtypes.int32))
+    concrete_function = tf.function(lambda x: x * 2).get_concrete_function(tf.TensorSpec(None, tf.int32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": True
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': '',
+        'show_debug_info': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    @tf.function
-    def multiply(a, b):
-        return a * b
-
     # Input 3
-    concrete_function = multiply.get_concrete_function(
-        tf.TensorSpec(None, tf.dtypes.float32),
-        tf.TensorSpec(None, tf.dtypes.float32))
+    concrete_function = tf.function(lambda x, y: tf.matmul(x, y)).get_concrete_function(tf.TensorSpec([None, 2], tf.float32), tf.TensorSpec([2, None], tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "builtin.module(func.func(tf-standard-pipeline))",
-        "show_debug_info": False
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'func.func(tf-lower-graph)',
+        'show_debug_info': False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    concrete_function = multiply.get_concrete_function(
-        tf.TensorSpec(None, tf.dtypes.int32),
-        tf.TensorSpec(None, tf.dtypes.int32))
+    concrete_function = tf.function(lambda x: tf.nn.relu(x)).get_concrete_function(tf.TensorSpec(None, tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": True
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'tf-opt',
+        'show_debug_info': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    @tf.function
-    def subtract(a, b):
-        return a - b
-
     # Input 5
-    concrete_function = subtract.get_concrete_function(
-        tf.TensorSpec(None, tf.dtypes.float32),
-        tf.TensorSpec(None, tf.dtypes.float32))
+    concrete_function = tf.function(lambda x: tf.sin(x)).get_concrete_function(tf.TensorSpec(None, tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": False
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'cse',
+        'show_debug_info': False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    concrete_function = subtract.get_concrete_function(
-        tf.TensorSpec(None, tf.dtypes.int32),
-        tf.TensorSpec(None, tf.dtypes.int32))
+    concrete_function = tf.function(lambda x: tf.cos(x)).get_concrete_function(tf.TensorSpec(None, tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": True
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'canonicalize',
+        'show_debug_info': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    @tf.function
-    def divide(a, b):
-        return a / b
-
     # Input 7
-    concrete_function = divide.get_concrete_function(
-        tf.TensorSpec(None, tf.dtypes.float32),
-        tf.TensorSpec(None, tf.dtypes.float32))
+    concrete_function = tf.function(lambda x: tf.sqrt(x)).get_concrete_function(tf.TensorSpec(None, tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": False
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'tf-shape-inference',
+        'show_debug_info': False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    concrete_function = divide.get_concrete_function(
-        tf.TensorSpec(None, tf.dtypes.int32),
-        tf.TensorSpec(None, tf.dtypes.int32))
+    concrete_function = tf.function(lambda x: tf.math.exp(x)).get_concrete_function(tf.TensorSpec(None, tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": True
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'eliminate-dead-code',
+        'show_debug_info': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    @tf.function
-    def matmul(a, b):
-        return tf.matmul(a, b)
-
     # Input 9
-    concrete_function = matmul.get_concrete_function(
-        tf.TensorSpec([None, None], tf.dtypes.float32),
-        tf.TensorSpec([None, None], tf.dtypes.float32))
+    concrete_function = tf.function(lambda x: tf.reshape(x, [1, -1])).get_concrete_function(tf.TensorSpec([None], tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": False
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'inliner',
+        'show_debug_info': False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    concrete_function = matmul.get_concrete_function(
-        tf.TensorSpec([None, None], tf.dtypes.int32),
-        tf.TensorSpec([None, None], tf.dtypes.int32))
+    concrete_function = tf.function(lambda x: tf.cast(x, tf.int32)).get_concrete_function(tf.TensorSpec(None, tf.float32))
     input_dict = {
-        "concrete_function": repr(concrete_function),
-        "pass_pipeline": "tf-standard-pipeline",
-        "show_debug_info": True
+        'concrete_function': serialize_concrete_function(concrete_function),
+        'pass_pipeline': 'loop-fusion',
+        'show_debug_info': True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

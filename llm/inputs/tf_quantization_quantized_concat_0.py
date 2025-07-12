@@ -11,165 +11,166 @@ import copy
 def tf_quantized_concat_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
+    # Input 1
     concat_dim = np.int32(0)
     values = [np.array([[1, 2], [3, 4]], dtype=np.int8), np.array([[5, 6], [7, 8]], dtype=np.int8)]
     input_mins = [np.float32(0.0), np.float32(5.0)]
     input_maxes = [np.float32(4.0), np.float32(8.0)]
-    name = "concat1"
+    name = "concat_example_1"
 
     input_dict = {
         "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid
+    # Input 2
     concat_dim = np.int32(1)
     values = [np.array([[1, 2], [3, 4]], dtype=np.int8), np.array([[5, 6], [7, 8]], dtype=np.int8)]
-    input_mins = [np.float32(-1.0), np.float32(4.0)]
-    input_maxes = [np.float32(5.0), np.float32(9.0)]
-    name = "concat2"
+    input_mins = [np.float32(-1.0), np.float32(-5.0)]
+    input_maxes = [np.float32(4.0), np.float32(2.0)]
+    name = "concat_example_2"
 
     input_dict = {
         "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3, valid
+    # Input 3
+    concat_dim = np.int32(0)
+    values = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int8), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int8)]
+    input_mins = [np.float32(1.0), np.float32(9.0)]
+    input_maxes = [np.float32(8.0), np.float32(16.0)]
+    name = "concat_example_3"
+
+    input_dict = {
+        "concat_dim": concat_dim,
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 4
+    concat_dim = np.int32(2)
+    values = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int8), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int8)]
+    input_mins = [np.float32(-1.0), np.float32(-9.0)]
+    input_maxes = [np.float32(8.0), np.float32(16.0)]
+    name = "concat_example_4"
+
+    input_dict = {
+        "concat_dim": concat_dim,
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    concat_dim = np.int32(0)
+    values = [np.array([1, 2, 3], dtype=np.int8), np.array([4, 5, 6], dtype=np.int8), np.array([7, 8, 9], dtype=np.int8)]
+    input_mins = [np.float32(1.0), np.float32(4.0), np.float32(7.0)]
+    input_maxes = [np.float32(3.0), np.float32(6.0), np.float32(9.0)]
+    name = "concat_example_5"
+
+    input_dict = {
+        "concat_dim": concat_dim,
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
     concat_dim = np.int32(0)
     values = [np.array([1, 2, 3], dtype=np.int8), np.array([4, 5, 6], dtype=np.int8)]
-    input_mins = [np.float32(1.0), np.float32(4.0)]
+    input_mins = [np.float32(-1.0), np.float32(-4.0)]
     input_maxes = [np.float32(3.0), np.float32(6.0)]
-    name = "concat3"
+    name = "concat_example_6"
 
     input_dict = {
         "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4, valid
-    concat_dim = np.int32(1)
-    values = [np.array([[-1, -2], [-3, -4]], dtype=np.int8), np.array([[-5, -6], [-7, -8]], dtype=np.int8)]
-    input_mins = [np.float32(-4.0), np.float32(-8.0)]
-    input_maxes = [np.float32(-1.0), np.float32(-5.0)]
-    name = "concat4"
-
-    input_dict = {
-        "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5, valid
+    # Input 7
     concat_dim = np.int32(0)
-    values = [np.array([1], dtype=np.int8), np.array([2], dtype=np.int8), np.array([3], dtype=np.int8)]
+    values = [np.array([[1]], dtype=np.int8), np.array([[2]], dtype=np.int8), np.array([[3]], dtype=np.int8)]
     input_mins = [np.float32(1.0), np.float32(2.0), np.float32(3.0)]
     input_maxes = [np.float32(1.0), np.float32(2.0), np.float32(3.0)]
-    name = "concat5"
+    name = "concat_example_7"
 
     input_dict = {
         "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6, valid, 3D tensors
-    concat_dim = np.int32(2)
-    values = [np.array([[[1, 2], [3, 4]]], dtype=np.int8), np.array([[[5, 6], [7, 8]]], dtype=np.int8)]
-    input_mins = [np.float32(0.0), np.float32(5.0)]
-    input_maxes = [np.float32(4.0), np.float32(8.0)]
-    name = "concat6"
-
-    input_dict = {
-        "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7, valid, different shapes that can be concatenated
-    concat_dim = np.int32(0)
-    values = [np.array([[1, 2]], dtype=np.int8), np.array([[3, 4]], dtype=np.int8), np.array([[5, 6]], dtype=np.int8)]
-    input_mins = [np.float32(1.0), np.float32(3.0), np.float32(5.0)]
-    input_maxes = [np.float32(2.0), np.float32(4.0), np.float32(6.0)]
-    name = "concat7"
-
-    input_dict = {
-        "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 8, valid, concat_dim = 0, single element tensors
-    concat_dim = np.int32(0)
-    values = [np.array([1], dtype=np.int8), np.array([2], dtype=np.int8)]
-    input_mins = [np.float32(1.0), np.float32(2.0)]
-    input_maxes = [np.float32(1.0), np.float32(2.0)]
-    name = "concat8"
-
-    input_dict = {
-        "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9, valid, concat_dim = 1, single element tensors
+    # Input 8
     concat_dim = np.int32(1)
     values = [np.array([[1]], dtype=np.int8), np.array([[2]], dtype=np.int8)]
-    input_mins = [np.float32(1.0), np.float32(2.0)]
+    input_mins = [np.float32(-1.0), np.float32(-2.0)]
     input_maxes = [np.float32(1.0), np.float32(2.0)]
-    name = "concat9"
+    name = "concat_example_8"
 
     input_dict = {
         "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10, valid, concat_dim = 0, negative and positive values
+    # Input 9
     concat_dim = np.int32(0)
-    values = [np.array([-1, 2], dtype=np.int8), np.array([-3, 4], dtype=np.int8)]
-    input_mins = [np.float32(-1.0), np.float32(-3.0)]
-    input_maxes = [np.float32(2.0), np.float32(4.0)]
-    name = "concat10"
+    values = [np.array([[[1]]], dtype=np.int8), np.array([[[2]]], dtype=np.int8)]
+    input_mins = [np.float32(0.0), np.float32(0.0)]
+    input_maxes = [np.float32(1.0), np.float32(2.0)]
+    name = "concat_example_9"
 
     input_dict = {
         "concat_dim": concat_dim,
-        "values": [tf.constant(v, dtype=tf.int8) for v in values],
-        "input_mins": [tf.constant(m, dtype=tf.float32) for m in input_mins],
-        "input_maxes": [tf.constant(m, dtype=tf.float32) for m in input_maxes],
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    concat_dim = np.int32(2)
+    values = [np.array([[[1, 2]]], dtype=np.int8), np.array([[[3, 4]]], dtype=np.int8)]
+    input_mins = [np.float32(1.0), np.float32(3.0)]
+    input_maxes = [np.float32(2.0), np.float32(4.0)]
+    name = "concat_example_10"
+
+    input_dict = {
+        "concat_dim": concat_dim,
+        "values": [tf.constant(v) for v in values],
+        "input_mins": input_mins,
+        "input_maxes": input_maxes,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

@@ -12,79 +12,62 @@ def tf_math_is_inf_inputs():
     list_of_inputs = []
 
     # Input 1
-    x = np.array([5.0, np.inf, -np.inf, 0.0], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
+    x = np.array([5.0, np.inf, 6.8, -np.inf], dtype=np.float32)
     name = "input_1"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     x = np.array([[np.inf, 2.0], [3.0, -np.inf]], dtype=np.float64)
-    x = tf.convert_to_tensor(x)
-    name = None
+    name = "input_2"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    x = np.array([np.nan, np.inf, -np.inf], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
+    x = np.array([np.nan, np.inf, -np.inf, 0.0], dtype=np.float32)
     name = "input_3"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
+    x = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
     name = "input_4"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    x = np.array([[[1.0, np.inf], [3.0, 4.0]], [[5.0, 6.0], [7.0, -np.inf]]], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
+    x = np.array([np.inf], dtype=np.float32)
     name = "input_5"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    x = np.array([-np.inf, -1.0, 0.0, 1.0, np.inf], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
+     # Input 6
+    x = np.array([-np.inf], dtype=np.float64)
     name = "input_6"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    x = np.array([0.0], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
+    x = np.array([[-np.inf, 1.0], [2.0, np.inf]], dtype=np.float32)
     name = "input_7"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    x = np.array([np.inf], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
+    x = np.array([1.0, -1.0, np.inf, -np.inf], dtype=np.float64)
     name = "input_8"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    x = np.array([-np.inf], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
+    x = np.array([[[np.inf, 1.0], [2.0, -np.inf]], [[3.0, 4.0], [5.0, 6.0]]], dtype=np.float32)
     name = "input_9"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    x = np.array([1.0, 2.0, np.inf, 4.0, 5.0, -np.inf], dtype=np.float32)
-    x = tf.convert_to_tensor(x)
-    name = "input_10"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11, bfloat16
-    x = np.array([np.inf, 1.0, -np.inf, 0.0], dtype=np.float32)
-    x = tf.convert_to_tensor(x, dtype=tf.bfloat16)
-    name = "input_11"
+    # Input 10
+    x = np.array([], dtype=np.float64)
+    name = "input_10"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

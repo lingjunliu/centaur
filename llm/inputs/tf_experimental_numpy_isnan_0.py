@@ -11,57 +11,60 @@ import copy
 def tf_experimental_numpy_isnan_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic NaN values
-    x = tf.constant([np.nan, 1.0, np.nan, 2.0], dtype=tf.float32)
+    # Input 1: Basic float array with NaN
+    x = np.array([1.0, np.nan, 3.0, np.nan], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: No NaN values
-    x = tf.constant([1.0, 2.0, 3.0, 4.0], dtype=tf.float32)
+    # Input 2: Array with only NaNs
+    x = np.array([np.nan, np.nan, np.nan], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Only NaN values
-    x = tf.constant([np.nan, np.nan, np.nan], dtype=tf.float32)
+    # Input 3: Array with no NaNs
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Integer type (no NaN representation)
-    x = tf.constant([1, 2, 3, 4], dtype=tf.int32)
+    # Input 4: Multi-dimensional array with mixed values
+    x = np.array([[1.0, np.nan, 3.0], [np.nan, 5.0, 6.0]], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D array with NaN
-    x = tf.constant([[np.nan, 1.0], [2.0, np.nan]], dtype=tf.float64)
+    # Input 5: Array with positive and negative NaNs
+    x = np.array([np.nan, -np.nan, 1.0], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D array with NaN and regular values
-    x = tf.constant([[[np.nan, 1.0], [2.0, 3.0]], [[4.0, 5.0], [6.0, np.nan]]], dtype=tf.float32)
+    # Input 6: 3D array with NaNs
+    x = np.array([[[1.0, np.nan], [3.0, 4.0]], [[5.0, 6.0], [np.nan, 8.0]]], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Complex number with NaN in real part
-    x = tf.constant([complex(np.nan, 1.0), complex(2.0, 3.0)], dtype=tf.complex128)
+    # Input 7: Zero-dimensional array (scalar) with NaN
+    x = np.array(np.nan, dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Complex number with NaN in imaginary part
-    x = tf.constant([complex(1.0, np.nan), complex(2.0, 3.0)], dtype=tf.complex64)
+    # Input 8: Array with a mix of positive, negative, zero, and NaN
+    x = np.array([1.0, -1.0, 0.0, np.nan, -np.nan], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Tensor with mixed NaN and inf values
-    x = tf.constant([np.nan, np.inf, 1.0, -np.inf], dtype=tf.float32)
+    # Input 9: Larger array
+    x = np.random.randn(10, 10)
+    x[0,0] = np.nan
+    x[5,5] = np.nan
+    x[9,9] = np.nan
+    x = x.astype(np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty tensor
-    x = tf.constant(np.array([]), dtype=tf.float32)
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    x = tf.constant(np.array([np.nan]), dtype=tf.float32)
+    # Input 10: Higher dimensional array
+    x = np.random.randn(2, 3, 4, 5)
+    x[0,0,0,0] = np.nan
+    x[1,2,3,4] = np.nan
+    x = x.astype(np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

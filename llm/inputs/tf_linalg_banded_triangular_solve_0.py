@@ -21,7 +21,7 @@ def tf_linalg_banded_triangular_solve_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Basic upper triangular solve
-    bands = np.array([[2., 2., 3.], [0., 3., 0.]]).astype(np.float32)
+    bands = np.array([[2., 3., 4.], [0., 2., 3.]]).astype(np.float32)
     rhs = np.array([[1.], [1.], [1.]]).astype(np.float32)
     lower = False
     adjoint = False
@@ -29,93 +29,75 @@ def tf_linalg_banded_triangular_solve_inputs():
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Matrix rhs
+    # Input 3: Multiple RHS vectors
     bands = np.array([[2., 0., 0.], [1., 2., 0.]]).astype(np.float32)
     rhs = np.array([[1., 2.], [1., 2.], [1., 2.]]).astype(np.float32)
     lower = True
     adjoint = False
-    name = "matrix_rhs"
+    name = "multiple_rhs"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Batch of matrices
     bands = np.array([[[2., 0., 0.], [1., 2., 0.]], [[3., 0., 0.], [2., 3., 0.]]]).astype(np.float32)
-    rhs = np.array([[[1.], [1.], [1.]], [[2.], [2.], [2.]]]).astype(np.float32)
+    rhs = np.array([[1., 1., 1.], [2., 2., 2.]]).astype(np.float32)
     lower = True
     adjoint = False
-    name = "batch_matrices"
+    name = "batch"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Adjoint (transpose) solve
+    # Input 5: Different shaped RHS
+    bands = np.array([[2., 0.], [1., 2.]]).astype(np.float32)
+    rhs = np.array([[1., 2.], [1., 2.]]).astype(np.float32)
+    lower = True
+    adjoint = False
+    name = "different_rhs"
+    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: adjoint=True
     bands = np.array([[2., 0., 0.], [1., 2., 0.]]).astype(np.float32)
     rhs = np.array([[1.], [1.], [1.]]).astype(np.float32)
     lower = True
     adjoint = True
-    name = "adjoint"
+    name = "adjoint_true"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6: Different size bands
-    bands = np.array([[2., 3., 4.], [1., 2., 3.]]).astype(np.float32)
-    rhs = np.array([[1.], [1.], [1.]]).astype(np.float32)
+    # Input 7: float64
+    bands = np.array([[2., 0., 0.], [1., 2., 0.]]).astype(np.float64)
+    rhs = np.array([[1.], [1.], [1.]]).astype(np.float64)
     lower = True
     adjoint = False
-    name = "diff_bands"
+    name = "float64"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Negative values in bands and rhs
-    bands = np.array([[2., 0., 0.], [-1., 2., 0.]]).astype(np.float32)
-    rhs = np.array([[-1.], [1.], [-1.]]).astype(np.float32)
-    lower = True
-    adjoint = False
-    name = "negative_values"
-    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8:  adjoint=True, lower=False
-    bands = np.array([[2., 2., 3.], [0., 3., 1.]]).astype(np.float32)
-    rhs = np.array([[1.], [1.], [1.]]).astype(np.float32)
+    # Input 8: Simple upper triangular solve - Modified to ensure invertibility
+    bands = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]).astype(np.float32)
+    rhs = np.array([[1.0], [1.0], [1.0]]).astype(np.float32)
     lower = False
-    adjoint = True
-    name = "adjoint_upper"
+    adjoint = False
+    name = "simple_upper"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9:  3D Bands
-    bands = np.array([[[2., 0., 0.], [1., 2., 0.]], [[3., 0., 0.], [2., 3., 0.]]]).astype(np.float32)
-    rhs = np.array([[[1.], [1.], [1.]], [[2.], [2.], [2.]]]).astype(np.float32)
+   # Input 9: Non square rhs
+    bands = np.array([[2., 0.], [1., 2.]]).astype(np.float32)
+    rhs = np.array([[1., 2.], [1., 3.]]).astype(np.float32)
     lower = True
     adjoint = False
-    name = "3d_bands"
+    name = "non_square_rhs"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: Complex numbers
-    bands = np.array([[2+1j, 0., 0.], [1.+0j, 2.-1j, 0.]]).astype(np.complex64)
-    rhs = np.array([[1.+1j], [1.-1j], [1.+0j]]).astype(np.complex64)
+
+    # Input 10: Different bands
+    bands = np.array([[3., 0., 0.], [1., 3., 0.]]).astype(np.float32)
+    rhs = np.array([[1.], [1.], [1.]]).astype(np.float32)
     lower = True
     adjoint = False
-    name = "complex_numbers"
-    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Another example with complex numbers and matrix rhs
-    bands = np.array([[2+1j, 0., 0.], [1.+0j, 2.-1j, 0.]]).astype(np.complex64)
-    rhs = np.array([[1.+1j, 2-1j], [1.-1j, 3+0j], [1.+0j, 4-2j]]).astype(np.complex64)
-    lower = True
-    adjoint = False
-    name = "complex_matrix_rhs"
-    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Complex with Batch
-    bands = np.array([[[2+1j, 0., 0.], [1.+0j, 2.-1j, 0.]], [[3+0j, 0., 0.], [2.+1j, 3-1j, 0.]]]).astype(np.complex64)
-    rhs = np.array([[[1.+1j], [1.-1j], [1.+0j]], [[2+0j], [2.-1j], [2.+1j]]]).astype(np.complex64)
-    lower = True
-    adjoint = False
-    name = "complex_batch"
+    name = "different_bands"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

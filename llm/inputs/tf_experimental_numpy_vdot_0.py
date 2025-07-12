@@ -11,63 +11,65 @@ import copy
 def tf_experimental_numpy_vdot_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with positive integers
-    a = tf.constant(np.array([1, 2, 3], dtype=np.int32))
-    b = tf.constant(np.array([4, 5, 6], dtype=np.int32))
+    # Input 1: Basic test with integer arrays
+    a = np.array([1, 2, 3, 4, 5])
+    b = np.array([2, 3, 4, 5, 6])
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: With negative integers
-    a = tf.constant(np.array([-1, 2, -3], dtype=np.int32))
-    b = tf.constant(np.array([4, -5, 6], dtype=np.int32))
+    # Input 2: Basic test with float arrays
+    a = np.array([1.0, 2.0, 3.0])
+    b = np.array([2.0, 3.0, 4.0])
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: With floating-point numbers
-    a = tf.constant(np.array([1.5, 2.5, 3.5], dtype=np.float32))
-    b = tf.constant(np.array([4.5, 5.5, 6.5], dtype=np.float32))
+    # Input 3: Test with different shapes (must be flattened)
+    a = np.array([[1, 2], [3, 4]])
+    b = np.array([[5, 6], [7, 8]])
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: With a scalar
-    a = tf.constant(np.array(5, dtype=np.int32))
-    b = tf.constant(np.array(2, dtype=np.int32))
+    # Input 4: Test with negative values
+    a = np.array([-1, -2, -3])
+    b = np.array([1, 2, 3])
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: With different shapes (should work due to flattening)
-    a = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    b = tf.constant(np.array([5, 6, 7, 8], dtype=np.int32))
+    # Input 5: Test with a single element array
+    a = np.array([5])
+    b = np.array([10])
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Larger values
-    a = tf.constant(np.array([1000, 2000, 3000], dtype=np.int32))
-    b = tf.constant(np.array([4000, 5000, 6000], dtype=np.int32))
+    # Input 6: Test with complex numbers
+    a = np.array([1 + 1j, 2 + 2j])
+    b = np.array([3 + 3j, 4 + 4j])
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Multi-dimensional arrays with different shapes but compatible sizes.
-    a = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    b = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.int32))
+    # Input 7: Test with zero values
+    a = np.array([0, 0, 0])
+    b = np.array([1, 2, 3])
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Single element arrays.
-    a = tf.constant(np.array([5], dtype=np.int32))
-    b = tf.constant(np.array([2], dtype=np.int32))
+    # Input 8: Test with large numbers
+    a = np.array([1e9, 2e9])
+    b = np.array([3e9, 4e9])
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: A mix of positive and negative floats.
-    a = tf.constant(np.array([-1.5, 2.5, -3.5], dtype=np.float32))
-    b = tf.constant(np.array([4.5, -5.5, 6.5], dtype=np.float32))
+    # Input 9: Test with multi-dimensional arrays of same shapes
+    a = np.array([[1, 2, 3]])
+    b = np.array([[4, 5, 6]])
+
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Complex numbers
-    a = tf.constant(np.array([1+1j, 2+2j], dtype=np.complex64))
-    b = tf.constant(np.array([3+3j, 4+4j], dtype=np.complex64))
+    # Input 10: Test with multi-dimensional arrays of same shapes
+    a = np.array([1, 2, 3])
+    b = np.array([4, 5, 6])
+
     input_dict = {"a": a, "b": b}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

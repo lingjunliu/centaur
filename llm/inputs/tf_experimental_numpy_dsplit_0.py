@@ -12,63 +12,63 @@ def tf_experimental_numpy_dsplit_inputs():
     list_of_inputs = []
 
     # Input 1
-    ary = np.arange(16.0).reshape(2, 2, 4)
+    ary = np.arange(16).reshape(2, 2, 4)
     indices_or_sections = 2
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    ary = np.arange(27.0).reshape(3, 3, 3)
-    indices_or_sections = 3
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    ary = np.arange(24).reshape(2, 3, 4)
+    indices_or_sections = 4
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    ary = np.arange(64.0).reshape(4, 4, 4)
-    indices_or_sections = 4
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    ary = np.arange(48).reshape(2, 4, 6)
+    indices_or_sections = 3
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    ary = np.arange(24.0).reshape(2, 3, 4)
+    ary = np.arange(32).reshape(4, 2, 4)
     indices_or_sections = 2
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    ary = np.arange(24.0).reshape(4, 2, 3)
-    indices_or_sections = 3
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    ary = np.arange(64).reshape(4, 4, 4)
+    indices_or_sections = 4
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    ary = np.arange(48.0).reshape(2, 4, 6)
-    indices_or_sections = 2
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    ary = np.arange(12).reshape(1, 2, 6)
+    indices_or_sections = 3
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    ary = np.arange(48.0).reshape(2, 4, 6)
-    indices_or_sections = 3
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    ary = np.arange(20).reshape(1, 5, 4)
+    indices_or_sections = 4
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    ary = np.arange(48.0).reshape(2, 4, 6)
-    indices_or_sections = 6
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    ary = np.arange(18).reshape(3, 1, 6)
+    indices_or_sections = 2
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    ary = np.arange(72.0).reshape(3, 4, 6)
-    indices_or_sections = 2
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    ary = np.arange(120.0).reshape(5, 4, 6)
+    ary = np.arange(36).reshape(3, 2, 6)
     indices_or_sections = 3
-    input_dict = {"ary": tf.convert_to_tensor(np.array(ary, dtype=np.float32)), "indices_or_sections": indices_or_sections}
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    ary = np.arange(60).reshape(3, 5, 4)
+    indices_or_sections = 2
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

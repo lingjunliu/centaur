@@ -11,69 +11,74 @@ import copy
 def tf_math_special_bessel_k1_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic test with positive floats
+    # Input 1: Basic float32 tensor
     x = np.array([0.5, 1.0, 2.0], dtype=np.float32)
     name = None
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Test with float64
+    # Input 2: float64 tensor
     x = np.array([0.5, 1.0, 2.0], dtype=np.float64)
     name = "bessel_k1_float64"
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Test with a larger array and positive values
-    x = np.array([0.1, 0.5, 1.0, 2.0, 5.0, 10.0], dtype=np.float32)
-    name = None
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Test with scalar value
-    x = np.array(1.5, dtype=np.float32)
-    name = None
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Test with rank 2 tensor
-    x = np.array([[0.5, 1.0], [2.0, 3.0]], dtype=np.float32)
-    name = "bessel_k1_rank2"
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Test with small values close to zero
-    x = np.array([0.01, 0.05, 0.1], dtype=np.float32)
-    name = None
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Test with large values
-    x = np.array([10.0, 20.0, 50.0], dtype=np.float32)
-    name = "bessel_k1_large"
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Test with a rank 3 tensor
-    x = np.array([[[0.5, 1.0], [1.5, 2.0]], [[2.5, 3.0], [3.5, 4.0]]], dtype=np.float32)
-    name = "bessel_k1_rank3"
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Test with all same values
-    x = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    name = None
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: test half type
+    # Input 3: half tensor
     x = np.array([0.5, 1.0, 2.0], dtype=np.float16)
+    name = "bessel_k1_float16"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 2D float32 tensor
+    x = np.array([[0.5, 1.0], [2.0, 3.0]], dtype=np.float32)
     name = None
-    input_dict = {"x": tf.convert_to_tensor(x), "name": name}
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 2D float64 tensor
+    x = np.array([[0.5, 1.0], [2.0, 3.0]], dtype=np.float64)
+    name = "bessel_k1_2d_float64"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Higher values
+    x = np.array([5.0, 10.0, 20.0], dtype=np.float32)
+    name = None
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensor with a single element
+    x = np.array([1.5], dtype=np.float32)
+    name = "single_element"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 3D float32 tensor
+    x = np.array([[[0.5, 1.0], [2.0, 3.0]], [[3.5, 4.0], [4.5, 5.0]]], dtype=np.float32)
+    name = None
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9:  Float32 tensor with zero value
+    x = np.array([0.0], dtype=np.float32)
+    name = None
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Float32 tensor with larger numbers
+    x = np.array([100., 200., 300.], dtype=np.float32)
+    name = None
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Scalar float32
+    x = np.array(1.0, dtype=np.float32)
+    name = None
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.math.special.bessel_k1"] = tf_math_special_bessel_k1_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

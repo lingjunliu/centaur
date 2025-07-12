@@ -11,144 +11,84 @@ import copy
 def tf_fill_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple case with integers
+    # Input 1
     dims = [2, 3]
-    value = tf.constant(5)
-    name = "fill_example_1"
+    value = np.int32(9)
+    name = "fill_tensor_1"
     layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different dimensions and data type
+    # Input 2
+    dims = [5]
+    value = np.float32(3.14)
+    name = "fill_tensor_2"
+    layout = None
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
     dims = [1, 4, 2]
-    value = tf.constant(3.14, dtype=tf.float32)
-    name = "fill_example_2"
+    value = np.int64(-1)
+    name = "fill_tensor_3"
     layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Zero dimension
-    dims = [0, 5]
-    value = tf.constant(10)
-    name = "fill_example_3"
+    # Input 4
+    dims = [2, 2, 2, 2]
+    value = np.bool_(True)
+    name = "fill_tensor_4"
     layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Larger dimensions
-    dims = [10, 10]
-    value = tf.constant(-1, dtype=tf.int32)
-    name = "fill_example_4"
+    # Input 5
+    dims = [3, 1]
+    value = np.array("hello").astype(np.object_) # Changed to object type
+    name = "fill_tensor_5"
     layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: String value
-    dims = [2, 2]
-    value = tf.constant("hello", dtype=tf.string)
-    name = "fill_example_5"
+    # Input 6
+    dims = [1]
+    value = np.int32(0)
+    name = "fill_tensor_6"
     layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Boolean value
-    dims = [3, 3]
-    value = tf.constant(True, dtype=tf.bool)
-    name = "fill_example_6"
+    # Input 7
+    dims = [4, 4]
+    value = np.float64(1.618)
+    name = "fill_tensor_7"
     layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: One dimensional tensor
-    dims = [7]
-    value = tf.constant(77)
-    name = "fill_example_7"
-    layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Large integer
-    dims = [1, 2]
-    value = tf.constant(2**31 - 1, dtype=tf.int32)
-    name = "fill_example_8"
+    # Input 8
+    dims = [1, 1, 1, 1, 1]
+    value = np.uint8(255)
+    name = "fill_tensor_8"
     layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Negative float
-    dims = [2, 1]
-    value = tf.constant(-2.71, dtype=tf.float32)
-    name = "fill_example_9"
+    # Input 9
+    dims = [2]
+    value = np.float16(-1.0)
+    name = "fill_tensor_9"
     layout = None
-
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Higher rank tensor
-    dims = [1, 1, 1, 1]
-    value = tf.constant(1)
-    name = "fill_example_10"
+    # Input 10
+    dims = [3, 2, 1]
+    value = np.int16(1000)  # reduced to avoid overflow.
+    name = "fill_tensor_10"
     layout = None
-    
-    input_dict = {
-        "dims": dims,
-        "value": value,
-        "name": name,
-        "layout": layout
-    }
+    input_dict = {"dims": dims, "value": value, "name": name, "layout": layout}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

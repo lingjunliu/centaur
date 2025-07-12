@@ -11,25 +11,136 @@ import copy
 def tf_data_experimental_group_by_window_inputs():
     list_of_inputs = []
 
-    def key_func_1(element):
-        return tf.cast(element % 2, tf.int64)
-
-    def reduce_func_1(key, dataset):
-        return dataset.batch(tf.cast(key + 1, tf.int64))
-
-    # Input 1, valid
-    key_func = [key_func_1]
-    reduce_func = [reduce_func_1]
+    # Input 1
+    key_func = [lambda x: tf.cast(x % 2, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(10)]
     window_size = tf.constant(5, dtype=tf.int64)
-    window_size_func = []
 
     input_dict = {
         "key_func": key_func,
         "reduce_func": reduce_func,
         "window_size": window_size,
+        "window_size_func": [tf.constant(0, dtype=tf.int64)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    key_func = [lambda x: tf.cast(x % 3, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key + 1, tf.int64))]
+    window_size_func = [lambda key: tf.cast(key + 2, tf.int64)]
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": None,
         "window_size_func": window_size_func
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    key_func = [lambda x: tf.cast(x % 4, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key + 3, tf.int64))]
+    window_size = tf.constant(7, dtype=tf.int64)
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": window_size,
+        "window_size_func": [tf.constant(0, dtype=tf.int64)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    key_func = [lambda x: tf.cast(x % 5, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key + 4, tf.int64))]
+    window_size_func = [lambda key: tf.cast(key + 5, tf.int64)]
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": None,
+        "window_size_func": window_size_func
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    key_func = [lambda x: tf.cast(x % 2 + 1, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key + 5, tf.int64))]
+    window_size = tf.constant(12, dtype=tf.int64)
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": window_size,
+        "window_size_func": [tf.constant(0, dtype=tf.int64)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6
+    key_func = [lambda x: tf.cast(x % 7, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key * 2, tf.int64) + 1)]
+    window_size_func = [lambda key: tf.cast(key * 2, tf.int64) + 1]
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": None,
+        "window_size_func": window_size_func
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 7
+    key_func = [lambda x: tf.cast(x % 8 + 2, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key * 2, tf.int64) + 1)]
+    window_size = tf.constant(3, dtype=tf.int64)
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": window_size,
+        "window_size_func": [tf.constant(0, dtype=tf.int64)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    key_func = [lambda x: tf.cast(x % 9, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key * 2, tf.int64) + 1)]
+    window_size_func = [lambda key: tf.cast(key * 2, tf.int64) + 1]
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": None,
+        "window_size_func": window_size_func
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    key_func = [lambda x: tf.cast(x % 10 + 3, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key * 2, tf.int64) + 1)]
+    window_size = tf.constant(15, dtype=tf.int64)
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": window_size,
+        "window_size_func": [tf.constant(0, dtype=tf.int64)]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    key_func = [lambda x: tf.cast(x % 11, tf.int64)]
+    reduce_func = [lambda key, dataset: dataset.batch(tf.cast(key * 2, tf.int64) + 1)]
+    window_size_func = [lambda key: tf.cast(key * 2, tf.int64) + 1]
+
+    input_dict = {
+        "key_func": key_func,
+        "reduce_func": reduce_func,
+        "window_size": None,
+        "window_size_func": window_size_func
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

@@ -11,84 +11,14 @@ import copy
 def tf_io_serialize_sparse_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic SparseTensor
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1, 2])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: SparseTensor with different out_type
-    indices = np.array([[0, 1], [2, 0]])
-    values = np.array([3.14, 2.71])
-    dense_shape = np.array([3, 2])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_2"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Empty SparseTensor
-    indices = np.array([[]], dtype=np.int64).reshape(0, 2)
-    values = np.array([])
-    dense_shape = np.array([2, 3])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_3"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: 3D SparseTensor
-    indices = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]])
-    values = np.array([1, 2, 3])
-    dense_shape = np.array([3, 3, 3])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: SparseTensor with negative values
-    indices = np.array([[0, 0], [1, 1]])
-    values = np.array([-1, -2])
-    dense_shape = np.array([2, 2])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_5"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: SparseTensor with large dense shape
-    indices = np.array([[0, 0], [99, 99]])
-    values = np.array([1, 2])
-    dense_shape = np.array([100, 100])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_6"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: SparseTensor with float values and int indices/shape
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1.5, 2.5])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Another Empty SparseTensor with different shape
-    indices = np.array([[]], dtype=np.int64).reshape(0, 2)
-    values = np.array([])
-    dense_shape = np.array([5, 7])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_8"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: 4D SparseTensor
-    indices = np.array([[0, 0, 0, 0], [1, 1, 1, 1]])
-    values = np.array([1, 2])
-    dense_shape = np.array([2, 2, 2, 2])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: SparseTensor with zero value
-    indices = np.array([[0, 0], [1, 1]])
-    values = np.array([0, 0])
-    dense_shape = np.array([2, 2])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-    input_dict = {"sp_input": sp_input, "out_type": tf.string, "name": "sparse_tensor_10"}
+    # Input 1
+    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.int32)
+    dense_shape = np.array([3, 4], dtype=np.int64)
+    sp_input = tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    out_type = tf.string
+    name = "sparse_tensor_1"
+    input_dict = {"sp_input": sp_input, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

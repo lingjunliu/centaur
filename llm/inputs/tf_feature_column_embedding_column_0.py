@@ -11,247 +11,160 @@ import copy
 def tf_feature_column_embedding_column_inputs():
     list_of_inputs = []
 
-    def create_initializer(dimension, num_buckets):
-        return tf.constant(tf.compat.v1.truncated_normal(shape=(num_buckets, dimension), mean=0.0, stddev=1.0))
+    categorical_column_1 = tf.feature_column.categorical_column_with_identity(num_buckets=10, key='test1')
+    categorical_column_2 = tf.feature_column.categorical_column_with_vocabulary_list(vocabulary_list=['a', 'b', 'c'], key='test2')
+    categorical_column_3 = tf.feature_column.categorical_column_with_hash_bucket(hash_bucket_size=100, key='test3')
+    #categorical_column_4 = tf.feature_column.categorical_column_with_integerized_feature(vocabulary_list=[1, 5, 10], key='test4') # Removed due to AttributeError
+    
+    def initializer_1(shape, dtype=None, partition_info=None):
+        return np.random.normal(size=shape).astype(np.float32)
+
+    def initializer_2(shape, dtype=None, partition_info=None):
+        return np.zeros(shape).astype(np.float32)
+    
+    def initializer_3(shape, dtype=None, partition_info=None):
+      return np.ones(shape).astype(np.float32)
+    
+    ckpt_file = "model.ckpt"
+    tensor_name = "embedding_weights"
 
     # Input 1
-    categorical_column = [tf.feature_column.categorical_column_with_identity(key='test', num_buckets=10)]
-    dimension = 8
-    combiner = 'mean'
-    initializer = create_initializer(dimension, 10)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = None
-    trainable = True
-    use_safe_embedding_lookup = True
-
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_1],
+        "dimension": np.int32(8),
+        "combiner": 'mean',
+        "initializer": initializer_1,
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": None,
+        "trainable": True,
+        "use_safe_embedding_lookup": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_list(key='colors', vocabulary_list=['red', 'green', 'blue'])]
-    dimension = 16
-    combiner = 'sqrtn'
-    initializer = create_initializer(dimension, 3)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = 1.0
-    trainable = False
-    use_safe_embedding_lookup = False
-
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_2],
+        "dimension": np.int32(16),
+        "combiner": 'sqrtn',
+        "initializer": initializer_2,
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": np.float32(1.0),
+        "trainable": False,
+        "use_safe_embedding_lookup": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(key='text', hash_bucket_size=1000)]
-    dimension = 4
-    combiner = 'sum'
-    initializer = create_initializer(dimension, 1000)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = 0.5
-    trainable = True
-    use_safe_embedding_lookup = True
-
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_3],
+        "dimension": np.int32(4),
+        "combiner": 'sum',
+        "initializer": initializer_3,
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": np.float32(0.5),
+        "trainable": True,
+        "use_safe_embedding_lookup": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 4
-    categorical_column = [tf.feature_column.categorical_column_with_identity(key='id', num_buckets=50)]
-    dimension = 32
-    combiner = 'mean'
-    initializer = create_initializer(dimension, 50)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = 2.0
-    trainable = False
-    use_safe_embedding_lookup = False
-
+    # Input 4
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_1],
+        "dimension": np.int32(32),
+        "combiner": 'mean',
+        "initializer": initializer_1,
+        "ckpt_to_load_from": ckpt_file,
+        "tensor_name_in_ckpt": tensor_name,
+        "max_norm": None,
+        "trainable": False,
+        "use_safe_embedding_lookup": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 5
-    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_file(key='words', vocabulary_file='vocab.txt', vocabulary_size=100)]
-
-    dimension = 64
-    combiner = 'sqrtn'
-    initializer = create_initializer(dimension, 100)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = None
-    trainable = True
-    use_safe_embedding_lookup = True
-
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_2],
+        "dimension": np.int32(64),
+        "combiner": 'sqrtn',
+        "initializer": initializer_2,
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": np.float32(1.5),
+        "trainable": True,
+        "use_safe_embedding_lookup": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(key='feature', hash_bucket_size=2000)]
-    dimension = 128
-    combiner = 'sum'
-    initializer = create_initializer(dimension, 2000)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = 1.5
-    trainable = False
-    use_safe_embedding_lookup = False
-
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_3],
+        "dimension": np.int32(2),
+        "combiner": 'sum',
+        "initializer": initializer_3,
+        "ckpt_to_load_from": ckpt_file,
+        "tensor_name_in_ckpt": tensor_name,
+        "max_norm": np.float32(0.1),
+        "trainable": False,
+        "use_safe_embedding_lookup": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    categorical_column = [tf.feature_column.categorical_column_with_identity(key='small_id', num_buckets=2)]
-    dimension = 2
-    combiner = 'mean'
-    initializer = create_initializer(dimension, 2)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = 0.1
-    trainable = True
-    use_safe_embedding_lookup = True
-
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_1],
+        "dimension": np.int32(128),
+        "combiner": 'mean',
+        "initializer": initializer_1,
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": np.float32(2.0),
+        "trainable": True,
+        "use_safe_embedding_lookup": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_list(key='symbols', vocabulary_list=['a', 'b', 'c', 'd', 'e'])]
-    dimension = 10
-    combiner = 'sqrtn'
-    initializer = create_initializer(dimension, 5)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = None
-    trainable = False
-    use_safe_embedding_lookup = False
-
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_2],
+        "dimension": np.int32(1),
+        "combiner": 'sqrtn',
+        "initializer": initializer_2,
+        "ckpt_to_load_from": ckpt_file,
+        "tensor_name_in_ckpt": tensor_name,
+        "max_norm": None,
+        "trainable": False,
+        "use_safe_embedding_lookup": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    categorical_column = [tf.feature_column.categorical_column_with_identity(key='bucket_id', num_buckets=100)]
-    dimension = 256
-    combiner = 'sum'
-    initializer = create_initializer(dimension, 100)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = 3.0
-    trainable = True
-    use_safe_embedding_lookup = True
 
+    # Input 9
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_3],
+        "dimension": np.int32(3),
+        "combiner": 'sum',
+        "initializer": initializer_3,
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": np.float32(0.01),
+        "trainable": True,
+        "use_safe_embedding_lookup": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(key='long_feature', hash_bucket_size=10000)]
-    dimension = 512
-    combiner = 'mean'
-    initializer = create_initializer(dimension, 10000)
-    ckpt_to_load_from = ''
-    tensor_name_in_ckpt = ''
-    max_norm = None
-    trainable = False
-    use_safe_embedding_lookup = False
-
     input_dict = {
-        'categorical_column': categorical_column,
-        'dimension': dimension,
-        'combiner': combiner,
-        'initializer': initializer,
-        'ckpt_to_load_from': ckpt_to_load_from,
-        'tensor_name_in_ckpt': tensor_name_in_ckpt,
-        'max_norm': max_norm,
-        'trainable': trainable,
-        'use_safe_embedding_lookup': use_safe_embedding_lookup
+        "categorical_column": [categorical_column_1],
+        "dimension": np.int32(100),
+        "combiner": 'mean',
+        "initializer": initializer_1,
+        "ckpt_to_load_from": ckpt_file,
+        "tensor_name_in_ckpt": tensor_name,
+        "max_norm": np.float32(10.0),
+        "trainable": False,
+        "use_safe_embedding_lookup": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

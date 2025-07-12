@@ -5,16 +5,16 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_group_inputs():
     list_of_inputs = []
 
-    # Input 1: Empty input list
+    # Input 1: Empty list of tensors
     input_dict = {
         "inputs": [],
-        "name": "group_empty"
+        "name": "group_1"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -22,10 +22,18 @@ def tf_group_inputs():
     a = tf.constant([1, 2, 3])
     input_dict = {
         "inputs": [a],
-        "name": "group_single"
+        "name": "group_2"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 3: Multiple tensors
+    a = tf.constant([1, 2, 3])
+    b = tf.constant([4, 5, 6])
+    input_dict = {
+        "inputs": [a, b],
+        "name": "group_3"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
 generated_inputs = {}

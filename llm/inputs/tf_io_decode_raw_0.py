@@ -12,92 +12,119 @@ def tf_io_decode_raw_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_bytes = tf.constant(b"1234")
+    input_bytes = np.array(b"1234", dtype=np.object_)
     out_type = np.uint8
     little_endian = True
     fixed_length = None
-    name = "decode_example_1"
+    name = "decode_1"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_bytes = tf.constant(b"abcd")
-    out_type = np.int16
+    input_bytes = np.array([b"12", b"34"], dtype=np.object_)
+    out_type = np.uint16
     little_endian = False
     fixed_length = None
-    name = "decode_example_2"
+    name = "decode_2"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_bytes = tf.constant([b"12", b"34", b"56"])
-    out_type = np.uint16
+    input_bytes = np.array(b"12345678", dtype=np.object_)
+    out_type = np.int64
     little_endian = True
-    fixed_length = 4
-    name = "decode_example_3"
+    fixed_length = None
+    name = "decode_3"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_bytes = tf.constant([[b"1234", b"5678"], [b"9012", b"3456"]])
-    out_type = np.int32
-    little_endian = False
+    input_bytes = np.array([[b"1234", b"5678"], [b"9012", b"3456"]], dtype=np.object_)
+    out_type = np.int16
+    little_endian = True
     fixed_length = 8
-    name = "decode_example_4"
+    name = "decode_4"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_bytes = tf.constant(b"abcdefgh")
-    out_type = np.int64
-    little_endian = True
+    input_bytes = np.array([b'\x0a\x0b', b'\x0c\x0d'], dtype=np.object_)
+    out_type = np.int16
+    little_endian = False
     fixed_length = None
-    name = "decode_example_5"
+    name = "decode_5"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_bytes = tf.constant(b"87654321")
-    out_type = np.uint8
-    little_endian = False
-    fixed_length = 8
-    name = "decode_example_6"
+    input_bytes = np.array([b'\x0a\x0b\x0c\x0d'], dtype=np.object_)
+    out_type = np.int32
+    little_endian = True
+    fixed_length = None
+    name = "decode_6"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_bytes = tf.constant([b"123456", b"789012"])
-    out_type = np.int8
-    little_endian = True
-    fixed_length = 6
-    name = "decode_example_7"
+    input_bytes = np.array([b'\x0a\x0b\x0c\x0d'], dtype=np.object_)
+    out_type = np.int32
+    little_endian = False
+    fixed_length = 4
+    name = "decode_7"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_bytes = tf.constant(b"12345678")
-    out_type = np.uint32
+    input_bytes = np.array([b"12345678", b"87654321"], dtype=np.object_)
+    out_type = np.int16
     little_endian = True
     fixed_length = 8
-    name = "decode_example_8"
+    name = "decode_8"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_bytes = tf.constant([[b"12345678"], [b"23456789"]])
-    out_type = np.int16
-    little_endian = False
-    fixed_length = 8
-    name = "decode_example_9"
+    input_bytes = np.array([b'\x01\x02\x03\x04'], dtype=np.object_)
+    out_type = np.uint16
+    little_endian = True
+    fixed_length = 4
+    name = "decode_9"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 10
-    input_bytes = tf.constant([b"1234567890123456", b"5678901234567890"])
-    out_type = np.int64
+    # Input 10
+    input_bytes = np.array([b'\x01\x02\x03\x04'], dtype=np.object_)
+    out_type = np.uint16
+    little_endian = False
+    fixed_length = 4
+    name = "decode_10"
+    input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    input_bytes = np.array(b"", dtype=np.object_)
+    out_type = np.uint8
     little_endian = True
-    fixed_length = 16
-    name = "decode_example_10"
+    fixed_length = None
+    name = "decode_11"
+    input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12
+    input_bytes = np.array([[b"1", b"2345678"]], dtype=np.object_)
+    out_type = np.uint8
+    little_endian = True
+    fixed_length = 8
+    name = "decode_12"
+    input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13
+    input_bytes = np.array(b"123", dtype=np.object_)
+    out_type = np.uint8
+    little_endian = True
+    fixed_length = None
+    name = "decode_13"
     input_dict = {"input_bytes": input_bytes, "out_type": out_type, "little_endian": little_endian, "fixed_length": fixed_length, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

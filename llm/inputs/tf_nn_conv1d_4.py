@@ -12,113 +12,203 @@ def tf_nn_conv1d_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float32)
-    filter_tensor = np.random.rand(3, 3, 3).astype(np.float32)
-    stride = [1]
-    padding = 'VALID'
-    data_format = 'NWC'
-    dilations = 1
-    name = 'conv1d_1'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+    input_tensor = np.random.rand(1, 5, 3).astype(np.float32)
+    filters_tensor = np.random.rand(2, 3, 4).astype(np.float32)
+    stride_val = [1]
+    padding_val = 'VALID'
+    data_format_val = 'NWC'
+    dilations_val = 1
+    name_val = 'conv1d_1'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.random.rand(2, 20, 4).astype(np.float32)
-    filter_tensor = np.random.rand(5, 4, 4).astype(np.float32)
-    stride = [2]
-    padding = 'SAME'
-    data_format = 'NWC'
-    dilations = 1
-    name = 'conv1d_2'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+    input_tensor = np.random.rand(2, 7, 5).astype(np.float32)
+    filters_tensor = np.random.rand(3, 5, 2).astype(np.float32)
+    stride_val = [2]
+    padding_val = 'SAME'
+    data_format_val = 'NWC'
+    dilations_val = 1
+    name_val = 'conv1d_2'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.random.rand(1, 15, 2).astype(np.float32)
-    filter_tensor = np.random.rand(4, 2, 2).astype(np.float32)
-    stride = [1]
-    padding = 'VALID'
-    data_format = 'NWC'
-    dilations = 2
-    name = 'conv1d_3'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+    input_tensor = np.random.rand(1, 10, 1).astype(np.float32)
+    filters_tensor = np.random.rand(4, 1, 8).astype(np.float32)
+    stride_val = [3]
+    padding_val = 'VALID'
+    data_format_val = 'NWC'
+    dilations_val = 2
+    name_val = 'conv1d_3'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.random.rand(3, 12, 5).astype(np.float32)
-    filter_tensor = np.random.rand(2, 5, 5).astype(np.float32)
-    stride = [3]
-    padding = 'SAME'
-    data_format = 'NWC'
-    dilations = 1
-    name = 'conv1d_4'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+    input_tensor = np.random.rand(3, 12, 4).astype(np.float32)
+    filters_tensor = np.random.rand(5, 4, 6).astype(np.float32)
+    stride_val = [1]
+    padding_val = 'SAME'
+    data_format_val = 'NWC'
+    dilations_val = 3
+    name_val = 'conv1d_4'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.random.rand(1, 8, 3).astype(np.float32)
-    filter_tensor = np.random.rand(3, 3, 3).astype(np.float32)
-    stride = [1]
-    padding = 'VALID'
-    data_format = 'NWC'
-    dilations = 3
-    name = 'conv1d_5'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+    input_tensor = np.random.rand(1, 8, 2).astype(np.float32)
+    filters_tensor = np.random.rand(2, 2, 3).astype(np.float32)
+    stride_val = [4]
+    padding_val = 'VALID'
+    data_format_val = 'NWC'
+    dilations_val = 1
+    name_val = 'conv1d_5'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.random.rand(1, 5, 3).astype(np.float32)
-    filter_tensor = np.random.rand(2, 3, 4).astype(np.float32)
-    stride = [1]
-    padding = 'SAME'
-    data_format = 'NWC'
-    dilations = 1
-    name = 'conv1d_6'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+    input_tensor = np.random.rand(2, 6, 7).astype(np.float32)
+    filters_tensor = np.random.rand(3, 7, 1).astype(np.float32)
+    stride_val = [2]
+    padding_val = 'SAME'
+    data_format_val = 'NWC'
+    dilations_val = 2
+    name_val = 'conv1d_6'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float16)
-    filter_tensor = np.random.rand(3, 3, 3).astype(np.float16)
-    stride = [1]
-    padding = 'VALID'
-    data_format = 'NWC'
-    dilations = 1
-    name = 'conv1d_7'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+   # Input 7: NCW data format
+    input_tensor = np.random.rand(1, 3, 5).astype(np.float32)
+    filters_tensor = np.random.rand(2, 3, 4).astype(np.float32)
+    stride_val = [1]
+    padding_val = 'VALID'
+    data_format_val = 'NCW'
+    dilations_val = 1
+    name_val = 'conv1d_7'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    input_tensor = np.random.rand(2, 20, 4).astype(np.float64)
-    filter_tensor = np.random.rand(5, 4, 4).astype(np.float64)
-    stride = [2]
-    padding = 'SAME'
-    data_format = 'NWC'
-    dilations = 1
-    name = 'conv1d_8'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+    # Input 8: NCW data format, different stride
+    input_tensor = np.random.rand(2, 5, 7).astype(np.float32)
+    filters_tensor = np.random.rand(3, 5, 2).astype(np.float32)
+    stride_val = [2]
+    padding_val = 'SAME'
+    data_format_val = 'NCW'
+    dilations_val = 1
+    name_val = 'conv1d_8'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    input_tensor = np.random.rand(1, 10, 3).astype(np.float32)
-    filter_tensor = np.random.rand(3, 3, 3).astype(np.float32)
-    stride = [1]
-    padding = 'VALID'
-    data_format = 'NCW'
-    dilations = 1
-    name = 'conv1d_9'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+
+   # Input 9: Float16
+    input_tensor = np.random.rand(1, 5, 3).astype(np.float16)
+    filters_tensor = np.random.rand(2, 3, 4).astype(np.float16)
+    stride_val = [1]
+    padding_val = 'VALID'
+    data_format_val = 'NWC'
+    dilations_val = 1
+    name_val = 'conv1d_9'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    input_tensor = np.random.rand(2, 20, 4).astype(np.float32)
-    filter_tensor = np.random.rand(5, 4, 4).astype(np.float32)
-    stride = [2]
-    padding = 'SAME'
-    data_format = 'NCW'
-    dilations = 1
-    name = 'conv1d_10'
-    input_dict = {'input': input_tensor, 'filters': filter_tensor, 'stride': stride, 'padding': padding, 'data_format': data_format, 'dilations': dilations, 'name': name}
+
+    # Input 10: Float64
+    input_tensor = np.random.rand(2, 7, 5).astype(np.float64)
+    filters_tensor = np.random.rand(3, 5, 2).astype(np.float64)
+    stride_val = [2]
+    padding_val = 'SAME'
+    data_format_val = 'NWC'
+    dilations_val = 1
+    name_val = 'conv1d_10'
+
+    input_dict = {
+        'input': input_tensor,
+        'filters': filters_tensor,
+        'stride': stride_val,
+        'padding': padding_val,
+        'data_format': data_format_val,
+        'dilations': dilations_val,
+        'name': name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

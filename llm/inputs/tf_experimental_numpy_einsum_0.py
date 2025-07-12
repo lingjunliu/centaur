@@ -11,66 +11,118 @@ import copy
 def tf_experimental_numpy_einsum_inputs():
     list_of_inputs = []
 
-    # Input 1
-    a = np.array([1, 2, 3])
-    b = np.array([4, 5, 6])
-    input_dict = {"subscripts": "i,i->", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
+    # Input 1: Basic dot product
     a = np.array([[1, 2], [3, 4]])
     b = np.array([[5, 6], [7, 8]])
-    input_dict = {"subscripts": "ij,ij->ij", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    subscripts = "ij,jk->ik"
+    operands = [a, b]
+
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
+    # Input 2: Trace
+    a = np.array([[1, 2], [3, 4]])
+    subscripts = "ii->"
+    operands = [a]
+
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Transpose
+    a = np.array([[1, 2], [3, 4]])
+    subscripts = "ij->ji"
+    operands = [a]
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Sum
+    a = np.array([[1, 2], [3, 4]])
+    subscripts = "ij->"
+    operands = [a]
+
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Matrix-vector multiplication
     a = np.array([[1, 2], [3, 4]])
     b = np.array([5, 6])
-    input_dict = {"subscripts": "ij,j->i", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    subscripts = "ij,j->i"
+    operands = [a, b]
+
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([[5, 6], [7, 8]])
-    input_dict = {"subscripts": "ij,ji->i", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    # Input 6: Batch matrix multiplication
+    a = np.random.rand(2, 3, 4).astype(np.float32)
+    b = np.random.rand(2, 4, 5).astype(np.float32)
+    subscripts = "ijk,ikl->ijl"
+    operands = [a, b]
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    b = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])
-    input_dict = {"subscripts": "ijk,ijk->ijk", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    b = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])
-    input_dict = {"subscripts": "ijk,lmn->", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([5, 6])
-    input_dict = {"subscripts": "ij,j->ij", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
+    # Input 7: Outer product
     a = np.array([1, 2, 3])
-    b = np.array([[4, 5, 6], [7,8,9]])
-    input_dict = {"subscripts": "i,ij->j", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    b = np.array([4, 5])
+    subscripts = "i,j->ij"
+    operands = [a, b]
+
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    a = np.array([[-1, 2], [3, -4]])
-    b = np.array([[5, -6], [-7, 8]])
-    input_dict = {"subscripts": "ij,ji->", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    # Input 8: More complex contraction
+    a = np.random.rand(3, 4, 5).astype(np.float32)
+    b = np.random.rand(4, 6).astype(np.float32)
+    c = np.random.rand(5, 6, 7).astype(np.float32)
+    subscripts = "ijk,jl,klm->im"
+    operands = [a, b, c]
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    a = np.random.rand(2,3,4)
-    b = np.random.rand(4,5)
-    input_dict = {"subscripts": "ijk,kl->ijl", "operands": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+
+    # Input 9: Repeated indices
+    a = np.array([[1, 2], [3, 4]])
+    subscripts = "ii->"
+    operands = [a]
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 10:
+    a = np.array([1,2,3])
+    b = np.array([4,5,6])
+    subscripts = "i,i->"
+    operands = [a,b]
+    input_dict = {
+        "subscripts": subscripts,
+        "operands": [tf.convert_to_tensor(op) for op in operands]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

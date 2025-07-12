@@ -11,53 +11,50 @@ import copy
 def tf_experimental_numpy_vstack_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 2D arrays
-    tup = (np.array([[1, 2, 3]]), np.array([[4, 5, 6]]))
+    # Input 1: Tuple of 1D arrays
+    tup = (np.array([1, 2, 3]), np.array([4, 5, 6]))
     input_dict = {"tup": tup}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different shaped 1D arrays
-    tup = (np.array([1, 2]), np.array([3, 4]))
-    input_dict = {"tup": tup}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Only 2D arrays, more than two
+    # Input 2: Tuple of 2D arrays
     tup = (np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]]))
     input_dict = {"tup": tup}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Arrays with negative values
+    # Input 3: Tuple of arrays with different shapes but compatible for vstack
+    tup = (np.array([[1, 2, 3]]), np.array([[4, 5, 6]]))
+    input_dict = {"tup": tup}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    # Input 5: Tuple of 3D arrays
+    tup = (np.array([[[1, 2], [3, 4]]]), np.array([[[9, 10], [11, 12]]]))
+    input_dict = {"tup": tup}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tuple of single element arrays
+    tup = (np.array([1]), np.array([2]))
+    input_dict = {"tup": tup}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tuple of arrays with negative values
     tup = (np.array([-1, -2, -3]), np.array([-4, -5, -6]))
     input_dict = {"tup": tup}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Single array as a tuple
-    tup = (np.array([[1, 2, 3]]),)
+    # Input 8: Tuple of arrays with zeros
+    tup = (np.array([0, 0, 0]), np.array([0, 0, 0]))
     input_dict = {"tup": tup}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Reshaping to 2D equivalent
-    tup = (np.array([[1,2],[3,4]]), np.array([[5,6],[7,8]]))
+    # Input 9: Tuple of arrays with a mix of positive and negative values
+    tup = (np.array([1, -2, 3]), np.array([-4, 5, -6]))
     input_dict = {"tup": tup}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Arrays with different data types (will be cast to a common type)
-    tup = (np.array([1, 2, 3], dtype=np.int32), np.array([4, 5, 6], dtype=np.int32))
-    input_dict = {"tup": tup}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Different data types and shapes
-    tup = (np.array([[1, 2]]), np.array([[3, 4], [5, 6]]))
-    input_dict = {"tup": tup}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Ensuring that it can handle more dimensions.
-    tup = (np.array([[[1, 2], [3, 4]]]), np.array([[[5, 6], [7, 8]]]))
-    input_dict = {"tup": tup}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Single dimension with different size.
-    tup = (np.array([1, 2, 3]), np.array([4, 5, 6]))
+    # Input 11: Tuple of same array multiple times
+    arr = np.array([1,2,3])
+    tup = (arr,arr,arr)
     input_dict = {"tup": tup}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

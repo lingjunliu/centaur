@@ -6,131 +6,140 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import copy
-import numpy as np
 
 def tf_random_normal_initializer_inputs():
     list_of_inputs = []
 
     # Input 1
-    mean = np.float32(0.0)
-    stddev = np.float32(0.05)
+    mean = 0.0
+    stddev = 0.05
     seed = None
 
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [2,3],
+        "dtype": tf.float32,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    mean = np.float32(1.0)
-    stddev = np.float32(2.0)
+    mean = 1.0
+    stddev = 0.1
     seed = 123
 
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
+
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [5, 5],
+        "dtype": tf.float64,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    mean = np.float32(-1.0)
-    stddev = np.float32(0.5)
-    seed = 42
+    mean = -1.0
+    stddev = 0.2
+    seed = 456
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
 
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [10],
+        "dtype": tf.float32,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    mean = np.float32(0.5)
-    stddev = np.float32(1.5)
-    seed = 0
+    mean = 0.5
+    stddev = 0.01
+    seed = 789
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
 
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [1, 1, 1],
+        "dtype": tf.float64,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    mean = np.float32(-0.5)
-    stddev = np.float32(0.25)
-    seed = -1
+    mean = -0.5
+    stddev = 0.02
+    seed = 101
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
 
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [4, 4, 4],
+        "dtype": tf.float32,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    mean = np.float32(10.0)
-    stddev = np.float32(5.0)
-    seed = 1000
+    mean = 2.0
+    stddev = 0.5
+    seed = 202
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
 
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [2, 2, 2, 2],
+        "dtype": tf.float64,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    mean = np.float32(-5.0)
-    stddev = np.float32(2.5)
-    seed = -500
+    mean = -2.0
+    stddev = 0.7
+    seed = 303
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
 
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [16],
+        "dtype": tf.float32,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    mean = np.float32(0.1)
-    stddev = np.float32(0.01)
-    seed = 1
-
+    mean = 0.123
+    stddev = 0.045
+    seed = 404
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [8, 8],
+        "dtype": tf.float64,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    mean = np.float32(-0.1)
-    stddev = np.float32(0.005)
-    seed = -10
+    mean = -0.345
+    stddev = 0.067
+    seed = 505
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
 
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [3, 3, 3],
+        "dtype": tf.float32,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    mean = np.float32(100.0)
-    stddev = np.float32(10.0)
-    seed = 9999
+    mean = 1.5
+    stddev = 0.3
+    seed = 606
+    initializer = tf.random_normal_initializer(mean=mean, stddev=stddev, seed=seed)
 
     input_dict = {
-        "mean": mean,
-        "stddev": stddev,
-        "seed": seed
+        "shape": [6, 6, 6, 6],
+        "dtype": tf.float64,
+        "initializer": initializer
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs = {}

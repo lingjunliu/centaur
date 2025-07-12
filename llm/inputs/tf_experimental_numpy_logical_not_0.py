@@ -13,52 +13,52 @@ def tf_experimental_numpy_logical_not_inputs():
 
     # Input 1: Basic boolean array
     x = np.array([True, False, True, False])
-    input_dict = {"x": tf.convert_to_tensor(x)}
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Integer array (interpreted as boolean)
+    # Input 2: Integer array (treated as boolean)
     x = np.array([1, 0, 2, -1])
-    input_dict = {"x": tf.convert_to_tensor(x)}
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Float array (interpreted as boolean)
-    x = np.array([1.0, 0.0, 2.5, -0.5])
-    input_dict = {"x": tf.convert_to_tensor(x)}
+    # Input 3: Float array (treated as boolean)
+    x = np.array([1.0, 0.0, -1.0, 2.5])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multi-dimensional boolean array
+    # Input 4: 2D boolean array
     x = np.array([[True, False], [False, True]])
-    input_dict = {"x": tf.convert_to_tensor(x)}
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Multi-dimensional integer array
-    x = np.array([[1, 0], [0, -1]])
-    input_dict = {"x": tf.convert_to_tensor(x)}
+    # Input 5: 3D integer array
+    x = np.array([[[1, 0], [0, 1]], [[0, 1], [1, 0]]])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Empty array
+    # Input 6: Array with mixed types (will be converted to boolean)
+    x = np.array([True, 0, 1.0, False])
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Large array
+    x = np.random.choice([True, False], size=(100,))
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Array with negative values
+    x = np.array([-1, -2, -3, 0, 1, 2])
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Empty array
     x = np.array([])
-    input_dict = {"x": tf.convert_to_tensor(x)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: array with only zeros
-    x = np.array([0, 0, 0])
-    input_dict = {"x": tf.convert_to_tensor(x)}
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: array with a mix of data types
-    x = np.array([1, 0.0, True, False])
-    input_dict = {"x": tf.convert_to_tensor(x)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: 3D array
-    x = np.array([[[True, False], [False, True]], [[False, True], [True, False]]])
-    input_dict = {"x": tf.convert_to_tensor(x)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: array with negative and positive numbers
-    x = np.array([-1, -2, 0, 1, 2])
-    input_dict = {"x": tf.convert_to_tensor(x)}
+    # Input 10: Multi-dimensional array with a mix of positive and negative numbers
+    x = np.array([[[1, -1, 0], [0, 1, -1]], [[-1, 0, 1], [1, -1, 0]]])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

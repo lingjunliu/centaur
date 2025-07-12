@@ -11,25 +11,18 @@ import copy
 def tf_nn_sampled_softmax_loss_inputs():
     list_of_inputs = []
 
-    # Helper function to create a tuple of sampled values
-    def create_sampled_values(num_sampled, num_classes, batch_size, num_true):
-        sampled_candidates = tf.constant(np.random.randint(0, num_classes, size=(num_sampled,)), dtype=tf.int64).numpy()
-        true_expected_count = tf.constant(np.random.rand(batch_size, num_true, 1), dtype=tf.float32).numpy()
-        sampled_expected_count = tf.constant(np.random.rand(num_sampled), dtype=tf.float32).numpy()
-        return (sampled_candidates, true_expected_count, sampled_expected_count)
-
     # Input 1
-    weights = tf.constant(np.random.rand(100, 128), dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(100), dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 100, size=(32, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(32, 128), dtype=tf.float32).numpy()
+    weights = np.random.rand(1000, 128).astype(np.float32)
+    biases = np.random.rand(1000).astype(np.float32)
+    labels = np.random.randint(0, 1000, size=(32, 1), dtype=np.int64)
+    inputs = np.random.rand(32, 128).astype(np.float32)
     num_sampled = 25
-    num_classes = 100
+    num_classes = 1000
     num_true = 1
     sampled_values = None
     remove_accidental_hits = True
     seed = 123
-    name = "loss1"
+    name = "sampled_softmax_loss_1"
 
     input_dict = {
         "weights": weights,
@@ -47,17 +40,17 @@ def tf_nn_sampled_softmax_loss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    weights = tf.constant(np.random.rand(50, 64), dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(50), dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 50, size=(16, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(16, 64), dtype=tf.float32).numpy()
+    weights = np.random.rand(500, 64).astype(np.float32)
+    biases = np.random.rand(500).astype(np.float32)
+    labels = np.random.randint(0, 500, size=(64, 1), dtype=np.int64)
+    inputs = np.random.rand(64, 64).astype(np.float32)
     num_sampled = 10
-    num_classes = 50
+    num_classes = 500
     num_true = 1
     sampled_values = None
     remove_accidental_hits = False
     seed = 456
-    name = "loss2"
+    name = "sampled_softmax_loss_2"
 
     input_dict = {
         "weights": weights,
@@ -75,45 +68,17 @@ def tf_nn_sampled_softmax_loss_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    weights = tf.constant(np.random.rand(200, 256), dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(200), dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 200, size=(64, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(64, 256), dtype=tf.float32).numpy()
+    weights = np.random.rand(2000, 256).astype(np.float32)
+    biases = np.random.rand(2000).astype(np.float32)
+    labels = np.random.randint(0, 2000, size=(16, 1), dtype=np.int64)
+    inputs = np.random.rand(16, 256).astype(np.float32)
     num_sampled = 50
-    num_classes = 200
+    num_classes = 2000
     num_true = 1
-    sampled_values = create_sampled_values(num_sampled, num_classes, 64, num_true)
+    sampled_values = None
     remove_accidental_hits = True
-    seed = None
-    name = "loss3"
-
-    input_dict = {
-        "weights": weights,
-        "biases": biases,
-        "labels": labels,
-        "inputs": inputs,
-        "num_sampled": num_sampled,
-        "num_classes": num_classes,
-        "num_true": num_true,
-        "sampled_values": sampled_values,
-        "remove_accidental_hits": remove_accidental_hits,
-        "seed": seed,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    weights = tf.constant(np.random.rand(80, 32), dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(80), dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 80, size=(8, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(8, 32), dtype=tf.float32).numpy()
-    num_sampled = 5
-    num_classes = 80
-    num_true = 1
-    sampled_values = create_sampled_values(num_sampled, num_classes, 8, num_true)
-    remove_accidental_hits = False
     seed = 789
-    name = "loss4"
+    name = "sampled_softmax_loss_3"
 
     input_dict = {
         "weights": weights,
@@ -130,18 +95,18 @@ def tf_nn_sampled_softmax_loss_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    weights = tf.constant(np.random.rand(150, 100), dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(150), dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 150, size=(48, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(48, 100), dtype=tf.float32).numpy()
-    num_sampled = 30
-    num_classes = 150
-    num_true = 1
-    sampled_values = create_sampled_values(num_sampled, num_classes, 48, num_true)
+    # Input 4: Multiple true labels
+    weights = np.random.rand(100, 10).astype(np.float32)
+    biases = np.random.rand(100).astype(np.float32)
+    labels = np.random.randint(0, 100, size=(8, 3), dtype=np.int64)
+    inputs = np.random.rand(8, 10).astype(np.float32)
+    num_sampled = 10
+    num_classes = 100
+    num_true = 3
+    sampled_values = None
     remove_accidental_hits = True
     seed = 101
-    name = "loss5"
+    name = "sampled_softmax_loss_4"
 
     input_dict = {
         "weights": weights,
@@ -157,131 +122,160 @@ def tf_nn_sampled_softmax_loss_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: num_true = 2
-    weights = tf.constant(np.random.rand(120, 80), dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(120), dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 120, size=(24, 2)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(24, 80), dtype=tf.float32).numpy()
-    num_sampled = 20
-    num_classes = 120
+
+   # Input 5: Small number of classes
+    weights = np.random.rand(10, 5).astype(np.float32)
+    biases = np.random.rand(10).astype(np.float32)
+    labels = np.random.randint(0, 10, size=(4, 1), dtype=np.int64)
+    inputs = np.random.rand(4, 5).astype(np.float32)
+    num_sampled = 5
+    num_classes = 10
+    num_true = 1
+    sampled_values = None
+    remove_accidental_hits = True
+    seed = 202
+    name = "sampled_softmax_loss_5"
+
+    input_dict = {
+        "weights": weights,
+        "biases": biases,
+        "labels": labels,
+        "inputs": inputs,
+        "num_sampled": num_sampled,
+        "num_classes": num_classes,
+        "num_true": num_true,
+        "sampled_values": sampled_values,
+        "remove_accidental_hits": remove_accidental_hits,
+        "seed": seed,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 6: Different batch size
+    weights = np.random.rand(1000, 128).astype(np.float32)
+    biases = np.random.rand(1000).astype(np.float32)
+    labels = np.random.randint(0, 1000, size=(128, 1), dtype=np.int64)
+    inputs = np.random.rand(128, 128).astype(np.float32)
+    num_sampled = 25
+    num_classes = 1000
+    num_true = 1
+    sampled_values = None
+    remove_accidental_hits = True
+    seed = 303
+    name = "sampled_softmax_loss_6"
+
+    input_dict = {
+        "weights": weights,
+        "biases": biases,
+        "labels": labels,
+        "inputs": inputs,
+        "num_sampled": num_sampled,
+        "num_classes": num_classes,
+        "num_true": num_true,
+        "sampled_values": sampled_values,
+        "remove_accidental_hits": remove_accidental_hits,
+        "seed": seed,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    weights = np.random.rand(500, 32).astype(np.float32)
+    biases = np.random.rand(500).astype(np.float32)
+    labels = np.random.randint(0, 500, size=(64, 1), dtype=np.int64)
+    inputs = np.random.rand(64, 32).astype(np.float32)
+    num_sampled = 5
+    num_classes = 500
+    num_true = 1
+    sampled_values = None
+    remove_accidental_hits = False
+    seed = 404
+    name = "sampled_softmax_loss_7"
+
+    input_dict = {
+        "weights": weights,
+        "biases": biases,
+        "labels": labels,
+        "inputs": inputs,
+        "num_sampled": num_sampled,
+        "num_classes": num_classes,
+        "num_true": num_true,
+        "sampled_values": sampled_values,
+        "remove_accidental_hits": remove_accidental_hits,
+        "seed": seed,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Different embedding dimension
+    weights = np.random.rand(200, 16).astype(np.float32)
+    biases = np.random.rand(200).astype(np.float32)
+    labels = np.random.randint(0, 200, size=(32, 1), dtype=np.int64)
+    inputs = np.random.rand(32, 16).astype(np.float32)
+    num_sampled = 5
+    num_classes = 200
+    num_true = 1
+    sampled_values = None
+    remove_accidental_hits = True
+    seed = 505
+    name = "sampled_softmax_loss_8"
+
+    input_dict = {
+        "weights": weights,
+        "biases": biases,
+        "labels": labels,
+        "inputs": inputs,
+        "num_sampled": num_sampled,
+        "num_classes": num_classes,
+        "num_true": num_true,
+        "sampled_values": sampled_values,
+        "remove_accidental_hits": remove_accidental_hits,
+        "seed": seed,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: sampled values not none, but still valid
+    sampled_candidates = np.array([1, 2, 3], dtype=np.int64)
+    true_expected_count = np.array([0.5, 0.3, 0.2], dtype=np.float32)
+    sampled_expected_count = np.array([0.1, 0.4, 0.5], dtype=np.float32)
+
+    weights = np.random.rand(1000, 128).astype(np.float32)
+    biases = np.random.rand(1000).astype(np.float32)
+    labels = np.random.randint(0, len(sampled_candidates), size=(32, 1), dtype=np.int64)
+    inputs = np.random.rand(32, 128).astype(np.float32)
+    num_sampled = len(sampled_candidates)
+    num_classes = 1000
+    num_true = 1
+
+    input_dict = {
+        "weights": weights,
+        "biases": biases,
+        "labels": labels,
+        "inputs": inputs,
+        "num_sampled": num_sampled,
+        "num_classes": num_classes,
+        "num_true": num_true,
+        "sampled_values": (sampled_candidates, true_expected_count, sampled_expected_count),
+        "remove_accidental_hits": True,
+        "seed": 101,
+        "name": "sampled_softmax_loss_9"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    # Input 10 : num_true more than 1
+    weights = np.random.rand(100, 5).astype(np.float32)
+    biases = np.random.rand(100).astype(np.float32)
+    labels = np.random.randint(0, 100, size=(4, 2), dtype=np.int64)
+    inputs = np.random.rand(4, 5).astype(np.float32)
+    num_sampled = 5
+    num_classes = 100
     num_true = 2
-    sampled_values = create_sampled_values(num_sampled, num_classes, 24, num_true)
-    remove_accidental_hits = False
-    seed = 222
-    name = "loss6"
-
-    input_dict = {
-        "weights": weights,
-        "biases": biases,
-        "labels": labels,
-        "inputs": inputs,
-        "num_sampled": num_sampled,
-        "num_classes": num_classes,
-        "num_true": num_true,
-        "sampled_values": sampled_values,
-        "remove_accidental_hits": remove_accidental_hits,
-        "seed": seed,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: with sampled_values
-    weights = tf.constant(np.random.rand(70, 48), dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(70), dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 70, size=(12, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(12, 48), dtype=tf.float32).numpy()
-    num_sampled = 15
-    num_classes = 70
-    num_true = 1
-    sampled_values = create_sampled_values(num_sampled, num_classes, 12, num_true)
+    sampled_values = None
     remove_accidental_hits = True
-    seed = 333
-    name = "loss7"
-
-    input_dict = {
-        "weights": weights,
-        "biases": biases,
-        "labels": labels,
-        "inputs": inputs,
-        "num_sampled": num_sampled,
-        "num_classes": num_classes,
-        "num_true": num_true,
-        "sampled_values": sampled_values,
-        "remove_accidental_hits": remove_accidental_hits,
-        "seed": seed,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Different batch size and dimensions
-    weights = tf.constant(np.random.rand(90, 72), dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(90), dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 90, size=(36, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(36, 72), dtype=tf.float32).numpy()
-    num_sampled = 18
-    num_classes = 90
-    num_true = 1
-    sampled_values = create_sampled_values(num_sampled, num_classes, 36, num_true)
-    remove_accidental_hits = False
-    seed = 444
-    name = "loss8"
-
-    input_dict = {
-        "weights": weights,
-        "biases": biases,
-        "labels": labels,
-        "inputs": inputs,
-        "num_sampled": num_sampled,
-        "num_classes": num_classes,
-        "num_true": num_true,
-        "sampled_values": sampled_values,
-        "remove_accidental_hits": remove_accidental_hits,
-        "seed": seed,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: smaller values
-    weights = tf.constant(np.random.rand(30, 16) * 0.1, dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(30) * 0.1, dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 30, size=(6, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(6, 16) * 0.1, dtype=tf.float32).numpy()
-    num_sampled = 6
-    num_classes = 30
-    num_true = 1
-    sampled_values = create_sampled_values(num_sampled, num_classes, 6, num_true)
-    remove_accidental_hits = True
-    seed = 555
-    name = "loss9"
-
-    input_dict = {
-        "weights": weights,
-        "biases": biases,
-        "labels": labels,
-        "inputs": inputs,
-        "num_sampled": num_sampled,
-        "num_classes": num_classes,
-        "num_true": num_true,
-        "sampled_values": sampled_values,
-        "remove_accidental_hits": remove_accidental_hits,
-        "seed": seed,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Larger Values
-    weights = tf.constant(np.random.rand(40, 24) * 10, dtype=tf.float32).numpy()
-    biases = tf.constant(np.random.rand(40) * 10, dtype=tf.float32).numpy()
-    labels = tf.constant(np.random.randint(0, 40, size=(10, 1)), dtype=tf.int64).numpy()
-    inputs = tf.constant(np.random.rand(10, 24) * 10, dtype=tf.float32).numpy()
-    num_sampled = 8
-    num_classes = 40
-    num_true = 1
-    sampled_values = create_sampled_values(num_sampled, num_classes, 10, num_true)
-    remove_accidental_hits = False
-    seed = 666
-    name = "loss10"
+    seed = 202
+    name = "sampled_softmax_loss_10"
 
     input_dict = {
         "weights": weights,

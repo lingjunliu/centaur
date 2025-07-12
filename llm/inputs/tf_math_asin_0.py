@@ -11,54 +11,70 @@ import copy
 def tf_math_asin_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, single value
-    x = np.array(0.5, dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 1: float32, 1D array
+    x = np.array([0.0, 0.5, -0.5, 0.9, -0.9], dtype=np.float32)
+    name = "asin_float32_1d"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32, multiple values
-    x = np.array([-0.5, 0, 0.5, 1.0], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": "asin_test"}
+    # Input 2: float64, 2D array
+    x = np.array([[0.2, 0.4], [-0.6, -0.8]], dtype=np.float64)
+    name = "asin_float64_2d"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float64, multiple values
-    x = np.array([-1.0, -0.707, 0.0, 0.707, 1.0], dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 3: half, 1D array
+    x = np.array([0.1, -0.3, 0.7], dtype=np.float16)
+    name = "asin_half_1d"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: complex64, single value
-    x = np.complex64(0.5 + 0.5j)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 4: float16, scalar
+    x = np.array(0.9, dtype=np.float16)
+    name = "asin_float16_scalar"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: complex128, multiple values
-    x = np.array([0.0 + 0.0j, 0.5 + 0.5j, -0.5 - 0.5j], dtype=np.complex128)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": "complex_test"}
+    # Input 5: complex64, 1D array
+    x = np.array([0.1+0j, -0.2+0j, 0.3+0j], dtype=np.complex64)
+    name = "asin_complex64_1d"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float32, 2D array
-    x = np.array([[-0.8, 0.2], [0.5, 0.9]], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 6: complex128, 2D array
+    x = np.array([[0.4+0j, -0.5+0j], [0.6+0j, -0.7+0j]], dtype=np.complex128)
+    name = "asin_complex128_2d"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float64, 3D array
-    x = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 7: float32, 3D array
+    x = np.array([[[0.1, 0.2], [0.3, 0.4]], [[-0.1, -0.2], [-0.3, -0.4]]], dtype=np.float32)
+    name = "asin_float32_3d"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: bfloat16 - convert to numpy array AND convert back to tf.bfloat16
-    x = np.array([-0.25, 0.75], dtype=np.float32).astype(np.float16)
-    input_dict = {"x": tf.cast(tf.convert_to_tensor(x), dtype=tf.bfloat16), "name": None}
+    # Input 8: float64, scalar
+    x = np.array(0.6, dtype=np.float64)
+    name = "asin_float64_scalar"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: half
-    x = np.array([-0.25, 0.75], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 9: float32, 1D array with values close to 1 and -1
+    x = np.array([0.99, -0.99, 0.0], dtype=np.float32)
+    name = "asin_float32_close_to_limit"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float32, values close to the boundary
-    x = np.array([-0.99, 0.99], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 10: half, 2D array with edge cases
+    x = np.array([[0.0, 0.9], [-0.9, 0.5]], dtype=np.float16)
+    name = "asin_half_2d_edge_cases"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+     # Input 11: float32, with zero
+    x = np.array([0.0], dtype=np.float32)
+    name = "asin_float32_zero"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

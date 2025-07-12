@@ -12,93 +12,93 @@ def tf_nn_sufficient_statistics_inputs():
     list_of_inputs = []
 
     # Input 1
-    x = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
     axes = [0]
-    shift = np.array(0.0, dtype=np.float32)
+    shift = np.array(2.0, dtype=np.float32)
     keepdims = False
-    name = "sufficient_stats_1"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    name = "stats_1"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
     axes = [0, 1]
-    shift = np.array(2.0, dtype=np.float32)
+    shift = np.array(2.5, dtype=np.float32)
     keepdims = True
-    name = "sufficient_stats_2"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    name = "stats_2"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
     axes = [0]
-    shift = np.array(1.5, dtype=np.float32)
+    shift = np.array(4.0, dtype=np.float32)
     keepdims = False
-    name = "sufficient_stats_3"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    name = "stats_3"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    axes = [0, 1]
-    shift = np.array(4.0, dtype=np.float32)
+    x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
+    axes = [0]
+    shift = None
     keepdims = False
-    name = "sufficient_stats_4"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    name = "stats_4"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    x = np.array([1, 2, 3, 4], dtype=np.int32).astype(np.float32)
-    axes = [0]
+    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    axes = [1]
     shift = np.array(2.0, dtype=np.float32)
-    keepdims = False
-    name = "sufficient_stats_5"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    keepdims = True
+    name = "stats_5"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    x = np.array([-1.0, -2.0, -3.0, -4.0], dtype=np.float32)
+     # Input 6
+    x = np.array([-1, -2, -3, -4, -5], dtype=np.float32)
     axes = [0]
-    shift = np.array(-2.5, dtype=np.float32)
+    shift = np.array(-2.0, dtype=np.float32)
     keepdims = False
-    name = "sufficient_stats_6"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    name = "stats_6"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    axes = [1]
-    shift = np.array(0.0, dtype=np.float32)
-    keepdims = False
-    name = "sufficient_stats_7"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
+    axes = [0]
+    shift = np.array(5.0, dtype=np.float32)
+    keepdims = True
+    name = "stats_7"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    axes = [0]
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    axes = [0, 1, 2]
     shift = np.array(0.0, dtype=np.float32)
     keepdims = False
-    name = "sufficient_stats_8"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    name = "stats_8"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    axes = [1]
-    shift = np.array(0.0, dtype=np.float32)
-    keepdims = False
-    name = "sufficient_stats_9"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    x = np.array([1, 2, 3], dtype=np.float32)
+    axes = [0]
+    shift = np.array(1.5, dtype=np.float32)
+    keepdims = True
+    name = "stats_9"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    axes = [2]
+    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    axes = [0]
     shift = np.array(0.0, dtype=np.float32)
     keepdims = False
-    name = "sufficient_stats_10"
-    input_dict = {"x": tf.constant(x), "axes": axes, "shift": tf.constant(shift), "keepdims": keepdims, "name": name}
+    name = "stats_10"
+    input_dict = {"x": x, "axes": axes, "shift": shift, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

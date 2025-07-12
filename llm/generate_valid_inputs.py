@@ -259,8 +259,11 @@ def main():
         raise ValueError(f"Invalid library: {lib}")
     
     generated_inputs = valid_inputs.generated_inputs
+    existing_inputs = set(generated_inputs.keys())
+    variations = [v for v in variations if v not in existing_inputs]
     total = len(variations)
     durations = []
+    print(f"Existing inputs: {len(existing_inputs)} | Variations to generate: {total}\n")
     
     for idx, variation in enumerate(variations):
         if variation in generated_inputs:

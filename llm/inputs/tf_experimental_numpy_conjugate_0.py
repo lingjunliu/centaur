@@ -11,53 +11,53 @@ import copy
 def tf_experimental_numpy_conjugate_inputs():
     list_of_inputs = []
 
-    # Input 1: Real tensor
-    x = tf.constant(np.array([1, 2, 3]))
+    # Input 1: Real numbers
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Complex tensor
-    x = tf.constant(np.array([1+1j, 2+2j, 3+3j]))
+    # Input 2: Complex numbers
+    x = np.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=np.complex64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multidimensional complex tensor
-    x = tf.constant(np.array([[1+1j, 2+2j], [3+3j, 4+4j]]))
+    # Input 3: Negative complex numbers
+    x = np.array([-1 - 1j, -2 - 2j, -3 - 3j], dtype=np.complex64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Real tensor with negative values
-    x = tf.constant(np.array([-1, -2, -3]))
+    # Input 4: Zero complex numbers
+    x = np.array([0 + 0j, 0 + 0j, 0 + 0j], dtype=np.complex64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Complex tensor with negative real and imaginary parts
-    x = tf.constant(np.array([-1-1j, -2-2j, -3-3j]))
+    # Input 5: 2D array of complex numbers
+    x = np.array([[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]], dtype=np.complex64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Tensor with mixed positive and negative complex numbers
-    x = tf.constant(np.array([1-1j, -2+2j, 3+0j]))
+    # Input 6: 3D array of complex numbers
+    x = np.array([[[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]], [[5 + 5j, 6 + 6j], [7 + 7j, 8 + 8j]]], dtype=np.complex64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Higher dimensional complex tensor
-    x = tf.constant(np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]]))
+    # Input 7: Mixed positive and negative complex numbers
+    x = np.array([1 - 1j, -2 + 2j, 3 - 3j], dtype=np.complex64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Scalar
-    x = tf.constant(1+1j)
+    # Input 8: Real numbers with float64 dtype
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Empty tensor
-    x = tf.constant(np.array([]))
+    # Input 9: Complex numbers with complex128 dtype
+    x = np.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=np.complex128)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Large values
-    x = tf.constant(np.array([1e9+1e9j, 2e9+2e9j]))
+    # Input 10: Array with only imaginary components.
+    x = np.array([1j, 2j, 3j], dtype=np.complex64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

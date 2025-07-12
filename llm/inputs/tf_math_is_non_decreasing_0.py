@@ -11,48 +11,78 @@ import copy
 def tf_math_is_non_decreasing_inputs():
     list_of_inputs = []
 
-    # Input 1: Non-decreasing sequence
-    x = tf.constant(np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32))
-    name = "non_decreasing_test"
+    # Input 1: Non-decreasing 1D array
+    x = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    name = "non_decreasing_1d"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Decreasing sequence
-    x = tf.constant(np.array([5.0, 4.0, 3.0, 2.0, 1.0], dtype=np.float32))
-    name = "decreasing_test"
+    # Input 2: Decreasing 1D array
+    x = np.array([5.0, 4.0, 3.0, 2.0, 1.0], dtype=np.float32)
+    name = "decreasing_1d"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Sequence with equal elements
-    x = tf.constant(np.array([2.0, 2.0, 2.0, 2.0, 2.0], dtype=np.float32))
-    name = "equal_elements_test"
+    # Input 3: Non-decreasing with duplicates
+    x = np.array([1.0, 1.0, 2.0, 2.0, 3.0], dtype=np.float32)
+    name = "non_decreasing_duplicates"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Mixed increasing and equal
-    x = tf.constant(np.array([1.0, 2.0, 2.0, 3.0, 4.0], dtype=np.float32))
-    name = "mixed_increasing_test"
+    # Input 4: Mixed increasing and decreasing
+    x = np.array([1.0, 2.0, 1.0, 2.0, 3.0], dtype=np.float32)
+    name = "mixed_increasing_decreasing"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Mixed decreasing and equal
-    x = tf.constant(np.array([4.0, 3.0, 3.0, 2.0, 1.0], dtype=np.float32))
-    name = "mixed_decreasing_test"
+    # Input 5: Single element array
+    x = np.array([5.0], dtype=np.float32)
+    name = "single_element"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Small sequence
-    x = tf.constant(np.array([1.0, 2.0], dtype=np.float32))
-    name = "small_sequence_test"
+    # Input 6: Empty array
+    x = np.array([], dtype=np.float32)
+    name = "empty_array"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: One element sequence
-    x = tf.constant(np.array([1.0], dtype=np.float32))
-    name = "one_element_test"
+    # Input 7: Non-decreasing 2D array
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    name = "non_decreasing_2d"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Decreasing 2D array
+    x = np.array([[5.0, 4.0], [3.0, 2.0]], dtype=np.float32)
+    name = "decreasing_2d"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Mixed 2D array
+    x = np.array([[1.0, 3.0], [2.0, 4.0]], dtype=np.float32)
+    name = "mixed_2d"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 10: Non-decreasing int array
+    x = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    name = "non_decreasing_int"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Negative values
+    x = np.array([-5, -4, -3, -2, -1], dtype=np.int32)
+    name = "negative_values"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Mixed positive and negative
+    x = np.array([-1, 0, 1, 2, 3], dtype=np.int32)
+    name = "mixed_pos_neg"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

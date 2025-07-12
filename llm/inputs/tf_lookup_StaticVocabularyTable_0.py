@@ -8,123 +8,93 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_lookup_static_vocabulary_table_inputs():
+def tf_lookup_StaticVocabularyTable_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic valid input
+    keys = np.array(['apple', 'banana', 'cherry'])
+    values = np.array([0, 1, 2], dtype=np.int64)
+    num_oov_buckets = 5
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: num_oov_buckets = 0
+    keys = np.array(['dog', 'cat', 'mouse'])
+    values = np.array([10, 11, 12], dtype=np.int64)
+    num_oov_buckets = 0
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Larger vocabulary and number of buckets
+    keys = np.array([f'word_{i}' for i in range(10)])
+    values = np.array(list(range(10)), dtype=np.int64)
+    num_oov_buckets = 2
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different value dtype
+    keys = np.array(['one', 'two', 'three'])
+    values = np.array([100, 200, 300], dtype=np.int64)
+    num_oov_buckets = 1
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Empty vocabulary
+    keys = np.array([])
+    values = np.array([], dtype=np.int64)
+    num_oov_buckets = 3
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Vocabulary with non-string keys (but still string)
+    keys = np.array(['1', '2', '3'])
+    values = np.array([1, 2, 3], dtype=np.int64)
+    num_oov_buckets = 1
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Single item vocabulary
+    keys = np.array(['solo'])
+    values = np.array([42], dtype=np.int64)
+    num_oov_buckets = 1
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 8: Key with special characters
+    keys = np.array(['!@#', '$%^', '&*()'])
+    values = np.array([10, 11, 12], dtype=np.int64)
+    num_oov_buckets = 1
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Unicode keys
+    keys = np.array(['你好', '世界', '你好世界'])
+    values = np.array([0, 1, 2], dtype=np.int64)
+    num_oov_buckets = 1
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: num_oov_buckets=1
     keys = np.array(['a', 'b', 'c'])
     values = np.array([0, 1, 2], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(1)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    keys = np.array(['a', 'b', 'c'])
-    values = np.array([10, 20, 30], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(5)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    keys = np.array(['one', 'two', 'three', 'four'])
-    values = np.array([1, 2, 3, 4], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(0)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    keys = np.array(['red', 'green', 'blue'])
-    values = np.array([0, -1, -2], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(2)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    keys = np.array(['x', 'y', 'z', 'w'])
-    values = np.array([100, 200, 300, 400], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(10)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    keys = np.array(['apple', 'banana'])
-    values = np.array([5, 6], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(3)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Larger vocabulary size
-    keys = np.array([str(i) for i in range(100)])
-    values = np.array(list(range(100)), dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(1)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 8: Init with empty vocabulary
-    keys = np.array([], dtype=np.string_)
-    values = np.array([], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(5)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Large Number of OOV Buckets
-    keys = np.array(['cat', 'dog'])
-    values = np.array([7, 8], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(100)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    keys = np.array(['aa', 'bb', 'cc', 'dd', 'ee'])
-    values = np.array([11, 22, 33, 44, 55], dtype=np.int64)
-    init = tf.lookup.KeyValueTensorInitializer(
-        keys=tf.constant(keys),
-        values=tf.constant(values)
-    )
-    num_oov_buckets = np.int32(4)
-    input_dict = {"initializer": init, "num_oov_buckets": num_oov_buckets}
+    num_oov_buckets = 1
+    initializer = tf.lookup.KeyValueTensorInitializer(tf.constant(keys), tf.constant(values))
+    input_dict = {"initializer": initializer, "num_oov_buckets": num_oov_buckets}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.lookup.StaticVocabularyTable"] = tf_lookup_static_vocabulary_table_inputs()
+generated_inputs["tf.lookup.StaticVocabularyTable"] = tf_lookup_StaticVocabularyTable_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

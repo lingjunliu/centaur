@@ -11,62 +11,66 @@ import copy
 def tf_experimental_numpy_bitwise_or_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple case with positive integers
-    x1 = tf.constant(np.array([1, 2, 3, 4]))
-    x2 = tf.constant(np.array([4, 3, 2, 1]))
+    # Input 1: Basic case with positive integers
+    x1 = np.array([1, 2, 3, 4], dtype=np.int32)
+    x2 = np.array([4, 3, 2, 1], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: With negative integers
-    x1 = tf.constant(np.array([-1, -2, -3, -4]))
-    x2 = tf.constant(np.array([4, 3, -2, -1]))
+    # Input 2: Case with negative integers
+    x1 = np.array([-1, -2, -3, -4], dtype=np.int32)
+    x2 = np.array([4, 3, 2, -1], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: With different data types
-    x1 = tf.constant(np.array([1, 2, 3, 4], dtype=np.int32))
-    x2 = tf.constant(np.array([4, 3, 2, 1], dtype=np.int32))
-
-
+    # Input 3: Case with zeros
+    x1 = np.array([0, 1, 0, 1], dtype=np.int32)
+    x2 = np.array([1, 0, 1, 0], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: With zeros
-    x1 = tf.constant(np.array([0, 0, 0, 0]))
-    x2 = tf.constant(np.array([1, 2, 3, 4]))
+    # Input 4: Case with large integers
+    x1 = np.array([2**31 - 1, 2**30, 2**20], dtype=np.int64)
+    x2 = np.array([2**30, 2**20, 2**10], dtype=np.int64)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Multi-dimensional arrays
-    x1 = tf.constant(np.array([[1, 2], [3, 4]]))
-    x2 = tf.constant(np.array([[4, 3], [2, 1]]))
+    # Input 5: Case with boolean arrays
+    x1 = np.array([True, False, True, False], dtype=np.bool_)
+    x2 = np.array([False, True, False, True], dtype=np.bool_)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different shapes, but broadcastable
-    x1 = tf.constant(np.array([1, 2, 3]))
-    x2 = tf.constant(np.array([[4], [3], [2]]))
+    # Input 6: Multi-dimensional array (2D)
+    x1 = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    x2 = np.array([[4, 3], [2, 1]], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Larger integers
-    x1 = tf.constant(np.array([255, 65535]))
-    x2 = tf.constant(np.array([128, 32768]))
+    # Input 7: Multi-dimensional array (3D)
+    x1 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    x2 = np.array([[[8, 7], [6, 5]], [[4, 3], [2, 1]]], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Booleans (treated as 0 and 1)
-    x1 = tf.constant(np.array([True, False, True]))
-    x2 = tf.constant(np.array([False, True, False]))
+    # Input 8: Mixed positive and negative numbers with different dtypes.
+    x1 = np.array([1, -2, 3, -4], dtype=np.int64)
+    x2 = np.array([-4, 3, -2, 1], dtype=np.int64)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Reshape bool to int32
-    x1 = tf.cast(tf.constant(np.array([True, False, True])), tf.int32)
-    x2 = tf.cast(tf.constant(np.array([False, True, False])), tf.int32)
+    # Input 9: All same numbers in both arrays.
+    x1 = np.array([5, 5, 5, 5], dtype=np.int32)
+    x2 = np.array([5, 5, 5, 5], dtype=np.int32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+   # Input 10: More complex mix of positive, negative and zero values
+    x1 = np.array([-5, 0, 5, -10], dtype=np.int32)
+    x2 = np.array([10, -5, 0, 5], dtype=np.int32)
+    input_dict = {"x1": x1, "x2": x2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

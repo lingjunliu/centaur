@@ -11,70 +11,69 @@ import copy
 def tf_experimental_numpy_transpose_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 2D array transpose
-    a = tf.constant(np.array([[1, 2], [3, 4]]))
-    axes = (1, 0)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
+    # Input 1: 2D array, no axes specified
+    a = np.array([[1, 2], [3, 4]])
+    axes = None
+    input_dict = {"a": a, "axes": () if axes is None else tuple()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 3D array transpose
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
+    # Input 2: 2D array, standard transpose
+    a = np.array([[1, 2, 3], [4, 5, 6]])
+    axes = (1, 0)
+    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D array, different permutation
+    a = np.arange(24).reshape((2, 3, 4))
     axes = (0, 2, 1)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
+    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D array transpose (should not raise error but effectively no change)
-    a = tf.constant(np.array([1, 2, 3]))
-    axes = (0,)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
+    # Input 4: 1D array, axes specified (should be same as no axes)
+    a = np.array([1, 2, 3])
+    axes = None
+    input_dict = {"a": a, "axes": () if axes is None else tuple()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 4D array transpose
-    a = tf.constant(np.random.rand(2, 3, 4, 5).astype(np.float32))
-    axes = (3, 1, 0, 2)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
+    # Input 5: 4D array, reverse the order
+    a = np.arange(120).reshape((2, 3, 4, 5))
+    axes = (3, 2, 1, 0)
+    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: 3D array, no permutations
+    a = np.arange(27).reshape((3, 3, 3))
+    axes = (0, 1, 2) #axes = (0, 0, 2) # This may cause issues
+    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: 2D array of floats
+    a = np.array([[1.5, 2.5], [3.5, 4.5]])
+    axes = (1,0)
+    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Empty array
-    a = tf.constant(np.array([]))
-    axes = ()
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6:  Different data types
-    a = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int64))
-    axes = (1, 0)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: 3D array with different axes order
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
+    # Input 8: 3D array with different data type
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
     axes = (2, 0, 1)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
+    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Transpose with identical axes
-    a = tf.constant(np.array([[1, 2], [3, 4]]))
-    axes = (0, 1)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
+    # Input 9: Higher dimensional array
+    a = np.arange(2*3*4*5*6).reshape((2, 3, 4, 5, 6))
+    axes = (4, 2, 3, 1, 0)
+    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: another 4D
-    a = tf.constant(np.random.rand(5, 4, 3, 2).astype(np.float32))
-    axes = (1, 3, 0, 2)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: test with dimension with value of 1
-    a = tf.constant(np.random.rand(1, 4, 3, 2).astype(np.float32))
-    axes = (1, 3, 0, 2)
-    input_dict = {"a": a, "axes": tuple(np.int32(axes))}
+    
+    # Input 10: empty array
+    a = np.array([])
+    axes = None
+    input_dict = {"a": a, "axes": () if axes is None else tuple()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.transpose"] = tf_experimental_numpy_transpose_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

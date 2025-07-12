@@ -12,25 +12,25 @@ def tf_linalg_linear_operator_tridiag_inputs():
     list_of_inputs = []
 
     # Input 1
-    diagonals = np.array([[1., 2.], [3., 4.], [5., 6.]])
+    diagonals = np.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]], dtype=np.float32)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
         "is_non_singular": True,
         "is_self_adjoint": False,
-        "is_positive_definite": False,
+        "is_positive_definite": None,
         "is_square": True,
         "name": "tridiag_op_1"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    diagonals = np.array([[[1., 2.], [3., 4.], [5., 6.]], [[7., 8.], [9., 10.], [11., 12.]]])
+    diagonals = np.array([[-1., -2., -3.], [-4., -5., -6.], [-7., -8., -9.]], dtype=np.float32)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
         "is_non_singular": False,
-        "is_self_adjoint": True,
+        "is_self_adjoint": False,
         "is_positive_definite": False,
         "is_square": True,
         "name": "tridiag_op_2"
@@ -38,22 +38,22 @@ def tf_linalg_linear_operator_tridiag_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    diagonals = np.array([[[1., 2.], [3., 4.], [5., 6.]], [[7., 8.], [9., 10.], [11., 12.]]], dtype=np.float64)
+    diagonals = np.array([[[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]], [[9., 8., 7.], [6., 5., 4.], [3., 2., 1.]]], dtype=np.float32)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
         "is_non_singular": None,
         "is_self_adjoint": None,
         "is_positive_definite": None,
-        "is_square": None,
+        "is_square": True,
         "name": "tridiag_op_3"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    diagonals = np.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]])
+    diagonals = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]], dtype=np.float64)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
         "is_non_singular": True,
         "is_self_adjoint": True,
@@ -64,64 +64,64 @@ def tf_linalg_linear_operator_tridiag_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    diagonals = np.array([[-1., -2.], [-3., -4.], [-5., -6.]])
+    diagonals = np.array([[[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]], [[0., 1., 0.], [1., 0., 0.], [0., 0., 1.]]], dtype=np.float32)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
-        "is_non_singular": False,
-        "is_self_adjoint": False,
-        "is_positive_definite": False,
+        "is_non_singular": True,
+        "is_self_adjoint": True,
+        "is_positive_definite": None,
         "is_square": True,
         "name": "tridiag_op_5"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    diagonals = np.array([[[1., 0.], [0., 1.], [1., 0.]], [[0., 1.], [1., 0.], [0., 1.]]])
+   # Input 6
+    diagonals = np.array([[[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]], [[9., 8., 7.], [6., 5., 4.], [3., 2., 1.]]], dtype=np.float64)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
-        "is_non_singular": True,
-        "is_self_adjoint": True,
-        "is_positive_definite": True,
+        "is_non_singular": False,
+        "is_self_adjoint": False,
+        "is_positive_definite": False,
         "is_square": True,
         "name": "tridiag_op_6"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    diagonals = np.array([[[1., 2.], [3., 4.], [5., 6.]], [[7., 8.], [9., 10.], [11., 12.]]], dtype=np.complex64)
+    diagonals = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
         "is_non_singular": None,
-        "is_self_adjoint": False,
-        "is_positive_definite": False,
+        "is_self_adjoint": True,
+        "is_positive_definite": True,
         "is_square": True,
         "name": "tridiag_op_7"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    diagonals = np.array([[[1., 2.], [3., 4.], [5., 6.]], [[7., 8.], [9., 10.], [11., 12.]]])
+    # Input 8:
+    diagonals = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
-        "is_non_singular": True,
+        "is_non_singular": False,
         "is_self_adjoint": False,
-        "is_positive_definite": True,
-        "is_square": True,
+        "is_positive_definite": False,
+        "is_square": False,
         "name": "tridiag_op_8"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
-    diagonals = np.array([[[1., 2.], [3., 4.], [5., 6.]], [[7., 8.], [9., 10.], [11., 12.]]])
+    # Input 9
+    diagonals = np.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]], dtype=np.float32)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
-        "is_non_singular": None,
-        "is_self_adjoint": True,
+        "is_non_singular": False,
+        "is_self_adjoint": None,
         "is_positive_definite": None,
         "is_square": True,
         "name": "tridiag_op_9"
@@ -129,12 +129,12 @@ def tf_linalg_linear_operator_tridiag_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    diagonals = np.array([[[1., 2.], [3., 4.], [5., 6.]]])
+    diagonals = np.array([[[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]], [[9., 8., 7.], [6., 5., 4.], [3., 2., 1.]]], dtype=np.float32)
     input_dict = {
-        "diagonals": tf.constant(diagonals),
+        "diagonals": diagonals,
         "diagonals_format": "compact",
         "is_non_singular": True,
-        "is_self_adjoint": True,
+        "is_self_adjoint": False,
         "is_positive_definite": True,
         "is_square": True,
         "name": "tridiag_op_10"

@@ -11,66 +11,62 @@ import copy
 def tf_experimental_numpy_log_inputs():
     list_of_inputs = []
 
-    # Input 1: Positive scalar
-    x = tf.constant(2.0)
+    tf.experimental.numpy.experimental_enable_numpy_behavior()
+
+    # Input 1: Basic positive values
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Positive 1D array
-    x = tf.constant([1.0, 2.0, 3.0])
+    # Input 2: Small positive values close to zero
+    x = np.array([1e-5, 1e-10, 1e-15], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Positive 2D array
-    x = tf.constant([[1.0, 2.0], [3.0, 4.0]])
+    # Input 3: 2D array
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Positive 3D array
-    x = tf.constant([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5: Array with a very small positive value
-    x = tf.constant([1e-8, 1.0, 2.0])
+    # Input 4: Array with mixed values
+    x = np.array([0.1, 1.0, 10.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Larger values
-    x = tf.constant([100.0, 1000.0, 10000.0])
+    # Input 5: Array with integer type, which will be implicitly converted to float
+    x = np.array([1, 2, 3], dtype=np.int32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Float64 tensor
-    x = tf.constant(np.array([1.0, 2.0], dtype=np.float64))
-    input_dict = {"x": x}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Small positive values
-    x = tf.constant([0.1, 0.01, 0.001])
+    # Input 6: Single value
+    x = np.array(5.0, dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Multidimensional array with varying values
-    x = tf.constant([[0.5, 1.5], [2.5, 3.5]])
+    # Input 7: 3D array
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Mixed large and small numbers
-    x = tf.constant([0.0001, 1000.0, 2.0])
+    # Input 8
+    x = np.array([2.5, 7.2, 10.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Tensor full of ones
-    x = tf.ones((2, 3))
+    # Input 9
+    x = np.array([[0.5, 1.5], [2.5, 3.5]], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: tf.range
-    x = tf.range(1, 6, dtype=tf.float32)
+
+    # Input 10
+    x = np.array([1, 5, 10], dtype=np.int64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

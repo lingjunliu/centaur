@@ -11,63 +11,61 @@ import copy
 def tf_experimental_numpy_float_power_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic positive floats
-    x1 = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    x2 = tf.constant(np.array([2.0, 0.5, 1.0], dtype=np.float32))
+    # Input 1: Basic case with positive numbers
+    x1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    x2 = np.array([2.0, 0.5, 1.0], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Zero values
-    x1 = tf.constant(np.array([0.0, 2.0, 3.0], dtype=np.float32))
-    x2 = tf.constant(np.array([2.0, 0.0, 1.0], dtype=np.float32))
+    # Input 2: Negative base with integer exponent
+    x1 = np.array([-2.0, -3.0], dtype=np.float32)
+    x2 = np.array([2.0, 3.0], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different shapes (matching ranks)
-    x1 = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    x2 = tf.constant(np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float32))
+    # Input 3: Zero base
+    x1 = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    x2 = np.array([0.5, 1.0, 2.0], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Higher dimensions
-    x1 = tf.constant(np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32))
-    x2 = tf.constant(np.array([[[0.5, 1.0], [1.5, 2.0]], [[2.5, 3.0], [3.5, 4.0]]], dtype=np.float32))
+    # Input 4: Fractional exponents
+    x1 = np.array([4.0, 9.0], dtype=np.float32)
+    x2 = np.array([0.5, 0.5], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Large values
-    x1 = tf.constant(np.array([100.0, 200.0, 300.0], dtype=np.float32))
-    x2 = tf.constant(np.array([2.0, 0.5, 1.0], dtype=np.float32))
+    # Input 5: Multidimensional arrays
+    x1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    x2 = np.array([[0.5, 1.0], [2.0, 0.5]], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Small values
-    x1 = tf.constant(np.array([0.1, 0.2, 0.3], dtype=np.float32))
-    x2 = tf.constant(np.array([2.0, 0.5, 1.0], dtype=np.float32))
+    # Input 6: Mixed positive and negative exponents
+    x1 = np.array([2.0, 3.0, 4.0], dtype=np.float32)
+    x2 = np.array([1.0, -1.0, 0.5], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: x1 all ones
-    x1 = tf.constant(np.array([1.0, 1.0, 1.0], dtype=np.float32))
-    x2 = tf.constant(np.array([2.0, 3.0, 4.0], dtype=np.float32))
+    # Input 7: Larger exponents
+    x1 = np.array([2.0, 3.0], dtype=np.float32)
+    x2 = np.array([5.0, 4.0], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Mixed positive and negative exponents
-    x1 = tf.constant(np.array([4.0, 9.0, 16.0], dtype=np.float32))
-    x2 = tf.constant(np.array([0.5, -0.5, 0.25], dtype=np.float32))
+    # Input 8: Broadcasting example
+    x1 = np.array([1.0, 2.0], dtype=np.float32)
+    x2 = np.array(2.0, dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Scalar inputs
-    x1 = tf.constant(2.0, dtype=np.float32)
-    x2 = tf.constant(3.0, dtype=np.float32)
+    x1 = np.array(2.0, dtype=np.float32)
+    x2 = np.array(3.0, dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Larger tensor with positive base and exponents
-    x1 = tf.constant(np.random.rand(5, 5).astype(np.float32) + 1e-6)
-    x2 = tf.constant(np.random.rand(5, 5).astype(np.float32))
+    x1 = np.array([0.5, 0.75], dtype=np.float32)
+    x2 = np.array([-1.0, -2.0], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

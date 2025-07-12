@@ -16,191 +16,79 @@ def tf_image_stateless_random_contrast_inputs():
     lower = 0.2
     upper = 0.5
     seed = np.array([1, 2], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    image = np.random.rand(100, 100, 3).astype(np.float32)
+    image = np.random.rand(10, 10, 3).astype(np.float32)
     lower = 0.5
     upper = 1.5
     seed = np.array([123, 456], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    image = np.random.rand(28, 28, 1).astype(np.float32)
-    lower = 0.7
-    upper = 1.3
+    image = np.random.rand(5, 5, 5, 3).astype(np.float32)
+    lower = 0.1
+    upper = 0.9
     seed = np.array([789, 101], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    image = np.random.rand(50, 50, 4).astype(np.float32)
-    lower = 0.1
-    upper = 0.9
-    seed = np.array([112, 131], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    image = np.array([[[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]]], dtype=np.float32)
+    lower = 0.7
+    upper = 1.3
+    seed = np.array([202, 303], dtype=np.int32)
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    image = np.array([[[0.0, 0.0, 0.0], [1.0, 1.0, 1.0]], [[0.5, 0.5, 0.5], [0.2, 0.2, 0.2]]], dtype=np.float32)
-    lower = 0.3
-    upper = 0.7
-    seed = np.array([141, 516], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 6
-    image = np.random.rand(32, 32, 3).astype(np.float32)
+    image = np.random.rand(28, 28, 1).astype(np.float32)
     lower = 0.6
     upper = 1.4
-    seed = np.array([517, 181], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    seed = np.array([404, 505], dtype=np.int32)
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 7
-    image = np.random.rand(64, 64, 3).astype(np.float32)
-    lower = 0.4
-    upper = 1.6
-    seed = np.array([192, 203], dtype=np.int32)
+    # Input 6
+    image = np.random.rand(32, 32, 3).astype(np.float32)
+    lower = 0.8
+    upper = 1.2
+    seed = np.array([606, 707], dtype=np.int32)
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    # Input 7
+    image = np.ones((4, 4, 3), dtype=np.float32)
+    lower = 0.9
+    upper = 1.1
+    seed = np.array([808, 909], dtype=np.int32)
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    image = np.random.rand(128, 128, 3).astype(np.float32)
-    lower = 0.8
-    upper = 1.2
-    seed = np.array([214, 252], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    image = np.zeros((4, 4, 3), dtype=np.float32)
+    lower = 0.4
+    upper = 0.6
+    seed = np.array([1010, 1111], dtype=np.int32)
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    image = np.random.rand(256, 256, 3).astype(np.float32)
-    lower = 0.9
-    upper = 1.1
-    seed = np.array([263, 274], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    image = np.random.rand(1, 256, 256, 3).astype(np.float32)
+    lower = 0.3
+    upper = 0.7
+    seed = np.array([1212, 1313], dtype=np.int32)
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    image = np.random.rand(1, 1, 3).astype(np.float32)
-    lower = 0.0
-    upper = 1.0
-    seed = np.array([285, 296], dtype=np.int32)
-
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Example with int64 seed and smaller image
-    image = np.random.rand(5, 5, 3).astype(np.float32)
-    lower = 0.5
-    upper = 0.8
-    seed = np.array([2000000000, 3000000000], dtype=np.int64)
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int64)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: Example with int32 seed and smaller image
-    image = np.random.rand(3, 3, 3).astype(np.float32)
-    lower = 0.6
-    upper = 0.9
-    seed = np.array([150, 250], dtype=np.int32)
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13: Single channel image
-    image = np.random.rand(10, 10, 1).astype(np.float32)
-    lower = 0.2
-    upper = 0.6
-    seed = np.array([300, 400], dtype=np.int32)
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 14: Image with different shape
-    image = np.random.rand(4, 4, 5).astype(np.float32)
-    lower = 0.3
-    upper = 0.8
-    seed = np.array([500, 600], dtype=np.int32)
-    input_dict = {
-        "image": tf.convert_to_tensor(image, dtype=tf.float32),
-        "lower": lower,
-        "upper": upper,
-        "seed": tf.convert_to_tensor(seed, dtype=tf.int32)
-    }
+    image = np.random.rand(64, 64, 3).astype(np.float32)
+    lower = 0.25
+    upper = 0.75
+    seed = np.array([1414, 1515], dtype=np.int32)
+    input_dict = {"image": image, "lower": lower, "upper": upper, "seed": seed}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

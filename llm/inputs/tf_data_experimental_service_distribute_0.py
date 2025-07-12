@@ -13,211 +13,31 @@ def tf_data_experimental_service_distribute_inputs():
 
     # Input 1
     input_dict = {
-        'processing_mode': "parallel_epochs",
-        'service': "localhost:5000",
-        'job_name': "job1",
+        'processing_mode': 'distributed_epoch',
+        'service': 'grpc://localhost:5000',
+        'job_name': 'job1',
         'consumer_index': None,
         'num_consumers': None,
         'max_outstanding_requests': None,
         'data_transfer_protocol': None,
-        'compression': "AUTO",
+        'compression': 'AUTO',
         'cross_trainer_cache': (),
-        'target_workers': "AUTO"
+        'target_workers': 'AUTO'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     input_dict = {
-        'processing_mode': "distributed_epoch",
-        'service': "grpc://localhost:5001",
-        'job_name': "job2",
-        'consumer_index': 0,
-        'num_consumers': 2,
-        'max_outstanding_requests': 10,
-        'data_transfer_protocol': "grpc",
-        'compression': None,
-        'cross_trainer_cache': (),
-        'target_workers': "ANY"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    input_dict = {
-        'processing_mode': "parallel_epochs",
-        'service': "localhost:5002",
-        'job_name': "job3",
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 50,
-        'data_transfer_protocol': None,
-        'compression': "GZIP",
-        'cross_trainer_cache': (),
-        'target_workers': "LOCAL"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_dict = {
-        'processing_mode': "distributed_epoch",
-        'service': "localhost:5003",
-        'job_name': "job4",
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 100,
-        'data_transfer_protocol': "grpc",
-        'compression': "ZLIB",
-        'cross_trainer_cache': (),
-        'target_workers': "AUTO"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input_dict = {
-        'processing_mode': "parallel_epochs",
-        'service': "grpc://localhost:5004",
-        'job_name': "job5",
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 20,
-        'data_transfer_protocol': None,
-        'compression': "AUTO",
-        'cross_trainer_cache': (),
-        'target_workers': "ANY"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_dict = {
-        'processing_mode': "distributed_epoch",
-        'service': "localhost:5005",
-        'job_name': "job6",
+        'processing_mode': 'parallel_epochs',
+        'service': 'grpc://127.0.0.1:6000',
+        'job_name': 'job2',
         'consumer_index': None,
         'num_consumers': None,
         'max_outstanding_requests': None,
-        'data_transfer_protocol': "grpc",
+        'data_transfer_protocol': None,
         'compression': None,
         'cross_trainer_cache': (),
-        'target_workers': "LOCAL"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 7
-    input_dict = {
-        'processing_mode': "parallel_epochs",
-        'service': "localhost:5006",
-        'job_name': "job7",
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 1,
-        'data_transfer_protocol': None,
-        'compression': "GZIP",
-        'cross_trainer_cache': (),
-        'target_workers': "AUTO"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_dict = {
-        'processing_mode': "distributed_epoch",
-        'service': "grpc://localhost:5007",
-        'job_name': "job8",
-        'consumer_index': 0,
-        'num_consumers': 2,
-        'max_outstanding_requests': 25,
-        'data_transfer_protocol': "grpc",
-        'compression': "ZLIB",
-        'cross_trainer_cache': (),
-        'target_workers': "ANY"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_dict = {
-        'processing_mode': "parallel_epochs",
-        'service': "localhost:5008",
-        'job_name': "job9",
-        'consumer_index': 1,
-        'num_consumers': 2,
-        'max_outstanding_requests': 75,
-        'data_transfer_protocol': None,
-        'compression': "AUTO",
-        'cross_trainer_cache': (),
-        'target_workers': "LOCAL"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_dict = {
-        'processing_mode': "distributed_epoch",
-        'service': "localhost:5009",
-        'job_name': "job10",
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': None,
-        'data_transfer_protocol': "grpc",
-        'compression': None,
-        'cross_trainer_cache': (),
-        'target_workers': "AUTO"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11
-    input_dict = {
-        'processing_mode': "distributed_epoch",
-        'service': "localhost:5009",
-        'job_name': "job11",
-        'consumer_index': 0,
-        'num_consumers': 4,
-        'max_outstanding_requests': 10,
-        'data_transfer_protocol': "grpc",
-        'compression': None,
-        'cross_trainer_cache': (),
-        'target_workers': "AUTO"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12
-    input_dict = {
-        'processing_mode': "parallel_epochs",
-        'service': "localhost:5010",
-        'job_name': "job12",
-        'consumer_index': 1,
-        'num_consumers': 4,
-        'max_outstanding_requests': None,
-        'data_transfer_protocol': None,
-        'compression': "AUTO",
-        'cross_trainer_cache': (),
-        'target_workers': "AUTO"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13
-    input_dict = {
-        'processing_mode': "parallel_epochs",
-        'service': "localhost:5011",
-        'job_name': "job13",
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 1000,
-        'data_transfer_protocol': None,
-        'compression': "AUTO",
-        'cross_trainer_cache': (),
-        'target_workers': "AUTO"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14
-    input_dict = {
-        'processing_mode': "distributed_epoch",
-        'service': "localhost:5012",
-        'job_name': "job14",
-        'consumer_index': 0,
-        'num_consumers': 10,
-        'max_outstanding_requests': 500,
-        'data_transfer_protocol': "grpc",
-        'compression': "GZIP",
-        'cross_trainer_cache': (),
-        'target_workers': "LOCAL"
+        'target_workers': 'ANY'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

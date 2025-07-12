@@ -11,68 +11,73 @@ import copy
 def tf_get_static_value_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple constant tensor, partial=False
-    tensor = tf.constant(10)
+    # Input 1: tf.constant
+    tensor = tf.constant(10).numpy()
     partial = False
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Simple constant tensor, partial=True
-    tensor = tf.constant(20)
+    # Input 2: tf.constant with partial=True
+    tensor = tf.constant(20).numpy()
     partial = True
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D constant tensor, partial=False
-    tensor = tf.constant([1, 2, 3])
+    # Input 3: tf.add of two constants
+    a = tf.constant(5).numpy()
+    b = tf.constant(7).numpy()
+    tensor = a + b
     partial = False
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D constant tensor, partial=True
-    tensor = tf.constant([[4, 5], [6, 7]])
+    # Input 4: tf.multiply of two constants with partial=True
+    a = tf.constant(3).numpy()
+    b = tf.constant(4).numpy()
+    tensor = a * b
     partial = True
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D constant tensor, partial=False
-    tensor = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    # Input 5: numpy array
+    tensor = np.array([1, 2, 3])
     partial = False
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Tensor with negative values, partial=True
-    tensor = tf.constant([-1, -2, -3])
+    # Input 6: numpy array and partial=True
+    tensor = np.array([4, 5, 6])
     partial = True
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Tensor with zeros, partial=False
-    tensor = tf.constant([0, 0, 0])
+    # Input 7: 2D numpy array
+    tensor = np.array([[1, 2], [3, 4]])
     partial = False
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Tensor with mixed positive and negative values, partial=True
-    tensor = tf.constant([-1, 2, -3, 4])
+    # Input 8: 2D numpy array and partial=True
+    tensor = np.array([[5, 6], [7, 8]])
     partial = True
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Tensor with different data type, partial=False
-    tensor = tf.constant([1.0, 2.0, 3.0], dtype=tf.float32)
+    # Input 9: negative value
+    tensor = np.array(-5)
     partial = False
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Tensor with shape (0,), partial=True
-    tensor = tf.constant([], dtype=tf.int32)
+    # Input 10: negative value and partial=True
+    tensor = np.array(-10)
     partial = True
     input_dict = {"tensor": tensor, "partial": partial}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.get_static_value"] = tf_get_static_value_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

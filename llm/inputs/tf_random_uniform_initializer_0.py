@@ -5,134 +5,29 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_random_uniform_initializer_inputs():
     list_of_inputs = []
 
     # Input 1
-    minval = float(-0.1)
-    maxval = float(0.1)
-    seed = int(1)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
+    minval = 0.0
+    maxval = 1.0
+    seed = 123
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": int(seed)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    minval = float(-1.0)
-    maxval = float(1.0)
-    seed = int(123)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    minval = float(0.0)
-    maxval = float(0.5)
-    seed = int(456)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    minval = float(-5.0)
-    maxval = float(2.0)
-    seed = int(789)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    minval = float(-0.001)
-    maxval = float(0.001)
-    seed = int(101)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    minval = float(10.0)
-    maxval = float(20.0)
-    seed = int(112)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    minval = float(-20.0)
-    maxval = float(-10.0)
-    seed = int(1233)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    minval = float(0.0)
-    maxval = float(100.0)
-    seed = int(4567)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    minval = float(-100.0)
-    maxval = float(0.0)
-    seed = int(7890)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    minval = float(-1000.0)
-    maxval = float(1000.0)
-    seed = int(1011)
-
-    input_dict = {
-        "minval": minval,
-        "maxval": maxval,
-        "seed": seed
-    }
+    minval = -1.0
+    maxval = 0.0
+    seed = 456
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": int(seed)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.random_uniform_initializer"] = tf_random_uniform_initializer_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

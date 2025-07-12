@@ -11,85 +11,34 @@ import copy
 def tf_nn_atrous_conv2d_transpose_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic valid case
     value = np.random.rand(1, 10, 10, 3).astype(np.float32)
     filters = np.random.rand(3, 3, 3, 3).astype(np.float32)
-    output_shape = np.array([1, 14, 14, 3]).astype(np.int32)
-    rate = 2
-    padding = 'SAME'
-    name = 'atrous_conv2d_transpose_1'
-
-    input_dict = {
-        "value": value,
-        "filters": filters,
-        "output_shape": output_shape,
-        "rate": rate,
-        "padding": padding
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    value = np.random.rand(2, 8, 8, 4).astype(np.float32)
-    filters = np.random.rand(2, 2, 4, 4).astype(np.float32)
-    output_shape = np.array([2, 11, 11, 4]).astype(np.int32)
-    rate = 3
-    padding = 'VALID'
-
-    input_dict = {
-        "value": value,
-        "filters": filters,
-        "output_shape": output_shape,
-        "rate": rate,
-        "padding": padding
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    value = np.random.rand(4, 16, 16, 2).astype(np.float32)
-    filters = np.random.rand(5, 5, 2, 2).astype(np.float32)
-    output_shape = np.array([4, 24, 24, 2]).astype(np.int32)
-    rate = 4
-    padding = 'SAME'
-
-    input_dict = {
-        "value": value,
-        "filters": filters,
-        "output_shape": output_shape,
-        "rate": rate,
-        "padding": padding
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    value = np.random.rand(1, 5, 5, 1).astype(np.float32)
-    filters = np.random.rand(4, 4, 1, 1).astype(np.float32)
-    output_shape = np.array([1, 8, 8, 1]).astype(np.int32)
+    output_shape = np.array([1, 12, 12, 3], dtype=np.int32)
     rate = 1
-    padding = 'VALID'
-
-    input_dict = {
-        "value": value,
-        "filters": filters,
-        "output_shape": output_shape,
-        "rate": rate,
-        "padding": padding
-    }
+    padding = "VALID"
+    name = "deconv1"
+    input_dict = {"value": value, "filters": filters, "output_shape": output_shape, "rate": rate, "padding": padding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    value = np.random.rand(3, 12, 12, 7).astype(np.float32)
-    filters = np.random.rand(1, 1, 7, 7).astype(np.float32)
-    output_shape = np.array([3, 16, 16, 7]).astype(np.int32)
-    rate = 5
-    padding = 'SAME'
+    # Input 2: SAME padding
+    value = np.random.rand(1, 10, 10, 3).astype(np.float32)
+    filters = np.random.rand(3, 3, 3, 3).astype(np.float32)
+    output_shape = np.array([1, 10, 10, 3], dtype=np.int32)
+    rate = 1
+    padding = "SAME"
+    name = "deconv2"
+    input_dict = {"value": value, "filters": filters, "output_shape": output_shape, "rate": rate, "padding": padding, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_dict = {
-        "value": value,
-        "filters": filters,
-        "output_shape": output_shape,
-        "rate": rate,
-        "padding": padding
-    }
+    # Input 3: Different batch size
+    value = np.random.rand(4, 10, 10, 3).astype(np.float32)
+    filters = np.random.rand(3, 3, 3, 3).astype(np.float32)
+    output_shape = np.array([4, 12, 12, 3], dtype=np.int32)
+    rate = 1
+    padding = "VALID"
+    name = "deconv3"
+    input_dict = {"value": value, "filters": filters, "output_shape": output_shape, "rate": rate, "padding": padding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

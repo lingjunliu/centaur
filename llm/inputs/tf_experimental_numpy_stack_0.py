@@ -11,86 +11,62 @@ import copy
 def tf_experimental_numpy_stack_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple 1D arrays, axis=0
+    # Input 1
     arrays = [np.array([1, 2, 3]), np.array([4, 5, 6])]
     axis = 0
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D arrays, axis=0
-    arrays = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
-    axis = 0
-    input_dict = {"arrays": arrays, "axis": axis}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: 2D arrays, axis=1
+    # Input 2
     arrays = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
     axis = 1
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D arrays, axis=-1
-    arrays = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
-    axis = -1
-    input_dict = {"arrays": arrays, "axis": axis}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 3D arrays, axis=0
+    # Input 3
     arrays = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
+    axis = 2
+    input_dict = {"arrays": arrays, "axis": axis}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    arrays = [np.array([1, 2]), np.array([3, 4]), np.array([5, 6])]
     axis = 0
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 1D arrays with negative values
-    arrays = [np.array([-1, -2, -3]), np.array([-4, -5, -6])]
-    axis = 0
-    input_dict = {"arrays": arrays, "axis": axis}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: 2D arrays, axis=-2
-    arrays = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
-    axis = -2
-    input_dict = {"arrays": arrays, "axis": axis}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Single array
-    arrays = [np.array([1, 2, 3])]
-    axis = 0
-    input_dict = {"arrays": arrays, "axis": axis}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: 3D arrays, axis=1
-    arrays = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
+    # Input 5
+    arrays = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]]), np.array([[9, 10], [11, 12]])]
     axis = 1
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: 2D arrays, axis = 0, different types
-    arrays = [np.array([[1, 2], [3, 4]], dtype=np.int32), np.array([[5, 6], [7, 8]], dtype=np.int32)]
+    # Input 6
+    arrays = [np.array([1]), np.array([2]), np.array([3])]
     axis = 0
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: With floats
-    arrays = [np.array([1.1, 2.2, 3.3]), np.array([4.4, 5.5, 6.6])]
+
+    # Input 7
+    arrays = [np.array([1, 2, 3, 4, 5]), np.array([6, 7, 8, 9, 10])]
     axis = 0
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Complex numbers
-    arrays = [np.array([1+1j, 2+2j, 3+3j]), np.array([4+4j, 5+5j, 6+6j])]
+
+    # Input 8
+    arrays = [np.array([1, 2]), np.array([3, 4])]
     axis = 0
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: Bool
-    arrays = [np.array([True, False, True]), np.array([False, True, False])]
-    axis = 0
+
+   # Input 9: Different shapes that can be broadcasted
+    arrays = [np.array([[1], [2]]), np.array([[3], [4]])]
+    axis = 1
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14: Mixed types (should error)
-    arrays = [np.array([1, 2, 3]), np.array([1.1, 2.2, 3.3])]
+
+    # Input 10
+    arrays = [np.array([1]),np.array([2]), np.array([3])]
     axis = 0
     input_dict = {"arrays": arrays, "axis": axis}
     list_of_inputs.append(copy.deepcopy(input_dict))

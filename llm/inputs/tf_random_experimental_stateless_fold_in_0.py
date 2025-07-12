@@ -11,26 +11,76 @@ import copy
 def tf_random_experimental_stateless_fold_in_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic example with int32 seed and data
     seed = np.array([1, 2], dtype=np.int32)
     data = np.int32(3)
     alg = 'auto_select'
     input_dict = {"seed": seed, "data": data, "alg": alg}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    seed = np.array([100, 200], dtype=np.int32)
-    data = np.int32(-5)
-    alg = 'philox'
+    # Input 2: Basic example with int64 seed and data
+    seed = np.array([1, 2], dtype=np.int64)
+    data = np.int64(3)
+    alg = 'auto_select'
     input_dict = {"seed": seed, "data": data, "alg": alg}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    seed = np.array([12345, 67890], dtype=np.int64)
-    data = np.int64(1000)
-    alg = 'threefry'
+    # Input 3: Larger int32 values
+    seed = np.array([100000, 200000], dtype=np.int32)
+    data = np.int32(300000)
+    alg = 'auto_select'
     input_dict = {"seed": seed, "data": data, "alg": alg}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger int64 values
+    seed = np.array([100000, 200000], dtype=np.int64)
+    data = np.int64(300000)
+    alg = 'auto_select'
+    input_dict = {"seed": seed, "data": data, "alg": alg}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Different seed values
+    seed = np.array([5, 10], dtype=np.int32)
+    data = np.int32(15)
+    alg = 'auto_select'
+    input_dict = {"seed": seed, "data": data, "alg": alg}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Negative int32 data
+    seed = np.array([1, 2], dtype=np.int32)
+    data = np.int32(-3)
+    alg = 'auto_select'
+    input_dict = {"seed": seed, "data": data, "alg": alg}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Negative int64 data
+    seed = np.array([1, 2], dtype=np.int64)
+    data = np.int64(-3)
+    alg = 'auto_select'
+    input_dict = {"seed": seed, "data": data, "alg": alg}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Large negative int32 data
+    seed = np.array([1, 2], dtype=np.int32)
+    data = np.int32(-1000000)
+    alg = 'auto_select'
+    input_dict = {"seed": seed, "data": data, "alg": alg}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Zero data
+    seed = np.array([1, 2], dtype=np.int32)
+    data = np.int32(0)
+    alg = 'auto_select'
+    input_dict = {"seed": seed, "data": data, "alg": alg}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different alg
+    seed = np.array([1, 2], dtype=np.int32)
+    data = np.int32(3)
+    alg = 'philox'
+    input_dict = {"seed": seed, "data": data, "alg": alg}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

@@ -11,66 +11,59 @@ import numpy as np
 def tf_data_experimental_cardinality_inputs():
     list_of_inputs = []
 
-    # Input 1: Dataset with a known finite cardinality (converted to numpy array)
-    dataset1 = tf.data.Dataset.range(10)
-    input_dict1 = {"dataset": np.array([i for i in dataset1.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict1)
+    # Input 1: Dataset with a known cardinality
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([0,1,2,3,4,5,6,7,8,9]))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 2: Dataset with a different known finite cardinality (converted to numpy array)
-    dataset2 = tf.data.Dataset.range(100)
-    input_dict2 = {"dataset": np.array([i for i in dataset2.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict2)
+    # Input 2: Dataset with a larger known cardinality
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(100)]))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 3: Dataset created from a list (converted to numpy array)
-    dataset3 = tf.data.Dataset.from_tensor_slices(tf.constant([1, 2, 3, 4, 5]))
-    input_dict3 = {"dataset": np.array([i for i in dataset3.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict3)
+    # Input 3: Dataset created from a list
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1], [2], [3], [4], [5]]))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 4: Dataset created from a tuple (converted to numpy array)
-    dataset4 = tf.data.Dataset.from_tensor_slices(tf.constant([1, 2, 3]))
-    input_dict4 = {"dataset": np.array([i for i in dataset4.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict4)
+    # Input 4: Dataset created from a tuple
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([[6], [7], [8], [9], [10]]))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
     # Input 5: Dataset created from a numpy array
-    dataset5 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4]))
-    input_dict5 = {"dataset": np.array([i for i in dataset5.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict5)
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([[11], [12], [13], [14], [15]]))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 7: Dataset that is filtered (cardinality might be unknown - converted to numpy array)
-    dataset7 = tf.data.Dataset.range(10).filter(lambda x: x > 5)
-    input_dict7 = {"dataset": np.array([i for i in dataset7.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict7)
+    # Input 6: Dataset with a map transformation, maintaining cardinality
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([0,1,2,3,4])).map(lambda x: x * 2)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 8: Dataset that is mapped (cardinality should be the same - converted to numpy array)
-    dataset8 = tf.data.Dataset.range(5).map(lambda x: x * 2)
-    input_dict8 = {"dataset": np.array([i for i in dataset8.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict8)
+    # Input 7: Dataset with take, reducing cardinality
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(10)])).take(5)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 9: Dataset that is batched (cardinality is number of batches - converted to numpy array)
-    dataset9 = tf.data.Dataset.range(12).batch(4)
-    input_dict9 = {"dataset": np.array([i for i in dataset9.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict9)
+    # Input 8: Dataset with skip, maintaining cardinality if skip < cardinality, otherwise 0
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(10)])).skip(2)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 10: Dataset from tensor slices with 2D array (converted to numpy array)
-    dataset10 = tf.data.Dataset.from_tensor_slices(tf.constant([[1, 2], [3, 4], [5, 6]]))
-    input_dict10 = {"dataset": np.array([i for i in dataset10.as_numpy_iterator()])}
-    list_of_inputs.append(input_dict10)
+    # Input 9: Dataset with shuffle
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(10)])).shuffle(buffer_size=10)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    #Input 11: Empty numpy array
-    input_dict11 = {"dataset": np.array([])}
-    list_of_inputs.append(input_dict11)
+    # Input 10: Dataset with a simple filter
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(10)])).filter(lambda x: x < 5)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
     
-    # Input 12: 1D numpy array
-    input_dict12 = {"dataset": np.array([1, 2, 3])}
-    list_of_inputs.append(input_dict12)
-
-    # Input 13: 2D numpy array
-    input_dict13 = {"dataset": np.array([[1, 2], [3, 4]])}
-    list_of_inputs.append(input_dict13)
-
-
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.data.experimental.cardinality"] = tf_data_experimental_cardinality_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

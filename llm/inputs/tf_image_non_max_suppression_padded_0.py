@@ -12,318 +12,144 @@ def tf_image_non_max_suppression_padded_inputs():
     list_of_inputs = []
 
     # Input 1
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.0)
-    pad_to_max_output_size = False
-    name = "nms1"
-    sorted_input = False
-    canonicalized_coordinates = False
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(5)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.0)
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.5
+    score_threshold = 0.4
     pad_to_max_output_size = True
-    name = "nms2"
+    name = "nms_padded_1"
     sorted_input = False
     canonicalized_coordinates = False
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3 - Batched input
-    boxes = np.array([[[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]],
-                      [[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]]], dtype=np.float32)
-    scores = np.array([[0.9, 0.75, 0.6], [0.8, 0.7, 0.5]], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.0)
+    # Input 2 - Batch input
+    boxes = np.array([[[0, 0, 1, 1], [0, 0.5, 1, 1.5]], [[0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]]], dtype=np.float32)
+    scores = np.array([[0.9, 0.75], [0.6, 0.95]], dtype=np.float32)
+    max_output_size = 2
+    iou_threshold = 0.5
+    score_threshold = 0.4
     pad_to_max_output_size = True
-    name = "nms3"
+    name = "nms_padded_2"
     sorted_input = False
     canonicalized_coordinates = False
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4 - sorted input
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.0)
-    pad_to_max_output_size = False
-    name = "nms4"
+    # Input 3 - Different iou threshold
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.9
+    score_threshold = 0.4
+    pad_to_max_output_size = True
+    name = "nms_padded_3"
+    sorted_input = False
+    canonicalized_coordinates = False
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4 - Different score threshold
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.5
+    score_threshold = 0.8
+    pad_to_max_output_size = True
+    name = "nms_padded_4"
+    sorted_input = False
+    canonicalized_coordinates = False
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5 - Sorted input
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
+    scores = np.array([0.95, 0.9, 0.75, 0.6], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.5
+    score_threshold = 0.4
+    pad_to_max_output_size = True
+    name = "nms_padded_5"
     sorted_input = True
     canonicalized_coordinates = False
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5 - negative score threshold
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.7)
-    pad_to_max_output_size = False
-    name = "nms6"
-    sorted_input = False
-    canonicalized_coordinates = False
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7 - Different tile size
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.0)
-    pad_to_max_output_size = False
-    name = "nms7"
-    sorted_input = False
-    canonicalized_coordinates = False
-    tile_size = np.int32(128)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 8 - iou_threshold 1.0
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(1.0)
-    score_threshold = np.float32(0.0)
-    pad_to_max_output_size = False
-    name = "nms8"
-    sorted_input = False
-    canonicalized_coordinates = False
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9 - zero boxes - REMOVED canonicalized_coordinates to make it pass - REMOVED pad to max to make it pass
-    boxes = np.array([], dtype=np.float32).reshape(0,4)
-    scores = np.array([], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.0)
-    pad_to_max_output_size = False # changed to False to avoid error
-    name = "nms9"
-    sorted_input = False
-    canonicalized_coordinates = True # Set to True since boxes are empty
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10 - iou_threshold zero
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.0)
-    score_threshold = np.float32(0.0)
-    pad_to_max_output_size = False
-    name = "nms10"
-    sorted_input = False
-    canonicalized_coordinates = False
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11 - very high score threshold
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(1.0)
-    pad_to_max_output_size = False
-    name = "nms11"
-    sorted_input = False
-    canonicalized_coordinates = False
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 12 - empty boxes and scores with pad_to_max_output_size = True - Set max output to 0
-    boxes = np.array([], dtype=np.float32).reshape(0,4)
-    scores = np.array([], dtype=np.float32)
-    max_output_size = np.int32(0)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.0)
+    # Input 6 - Different tile size
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.5
+    score_threshold = 0.4
     pad_to_max_output_size = True
-    name = "nms12"
+    name = "nms_padded_7"
     sorted_input = False
-    canonicalized_coordinates = True
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
+    canonicalized_coordinates = False
+    tile_size = 128
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 13 - Box with 2 dimensions only, adding canonicalized coords.
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.int32(2)
-    iou_threshold = np.float32(0.5)
-    score_threshold = np.float32(0.0)
-    pad_to_max_output_size = False
-    name = "nms13"
+    # Input 7 - Negative coordinates
+    boxes = np.array([[-1, -1, 0, 0], [0, 0, 1, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.5
+    score_threshold = 0.4
+    pad_to_max_output_size = True
+    name = "nms_padded_9"
     sorted_input = False
-    canonicalized_coordinates = True
-    tile_size = np.int32(512)
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_to_max_output_size": pad_to_max_output_size,
-        "name": name,
-        "sorted_input": sorted_input,
-        "canonicalized_coordinates": canonicalized_coordinates,
-        "tile_size": tile_size
-    }
+    canonicalized_coordinates = False
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 8 - Very high score
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
+    scores = np.array([100000000000.0, 0.75], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.5
+    score_threshold = 0.4
+    pad_to_max_output_size = True
+    name = "nms_padded_10"
+    sorted_input = False
+    canonicalized_coordinates = False
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 - Zero iou and score threshold
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.0
+    score_threshold = 0.0
+    pad_to_max_output_size = True
+    name = "nms_padded_11"
+    sorted_input = False
+    canonicalized_coordinates = False
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 - Negative score threshold
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
+    max_output_size = 3
+    iou_threshold = 0.5
+    score_threshold = -1.0
+    pad_to_max_output_size = True
+    name = "nms_padded_12"
+    sorted_input = False
+    canonicalized_coordinates = False
+    tile_size = 512
+    input_dict = {'boxes': boxes, 'scores': scores, 'max_output_size': max_output_size, 'iou_threshold': iou_threshold, 'score_threshold': score_threshold, 'pad_to_max_output_size': pad_to_max_output_size, 'name': name, 'sorted_input': sorted_input, 'canonicalized_coordinates': canonicalized_coordinates, 'tile_size': tile_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

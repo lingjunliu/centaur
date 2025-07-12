@@ -11,74 +11,88 @@ import copy
 def tf_cast_inputs():
     list_of_inputs = []
 
-    # Input 1
-    x = np.array([1.8, 2.2], dtype=np.float32)
-    dtype = tf.int32
-    name = "cast1"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    x = np.array([-1, 0, 1], dtype=np.int32)
+    # Input 1: Basic int32 to float32
+    x = np.array([1, 2, 3], dtype=np.int32)
     dtype = tf.float32
-    name = "cast2"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
+    name = "int_to_float"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    x = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    dtype = tf.float64
-    name = "cast3"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    dtype = tf.int8
-    name = "cast4"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    x = np.array([1, 2, 3], dtype=np.uint8)
-    dtype = tf.float16
-    name = "cast5"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    x = np.array([1.0 + 1j, 2.0 + 2j], dtype=np.complex64)
-    dtype = tf.float32
-    name = "cast6"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    x = np.array([1.0, 2.0], dtype=np.float32)
-    dtype = tf.complex64
-    name = "cast7"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    x = np.array([1, 2, 3, 4], dtype=np.int16)
+    # Input 2: float64 to int64
+    x = np.array([1.5, 2.7, 3.9], dtype=np.float64)
     dtype = tf.int64
-    name = "cast8"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
+    name = "float_to_int"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: int8 to float16
+    x = np.array([-1, 0, 1], dtype=np.int8)
+    dtype = tf.float16
+    name = "int_to_float16"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: complex64 to float32
+    x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
+    dtype = tf.float32
+    name = "complex_to_float"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: float32 to complex128
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    dtype = tf.complex128
+    name = "float_to_complex"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: int32 to int8 (with clipping)
+    x = np.array([100, -50, 200], dtype=np.int32)
+    dtype = tf.int8
+    name = "int_to_smaller_int"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Multi-dimensional array (float32 to int32)
+    x = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)
+    dtype = tf.int32
+    name = "2d_float_to_int"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: bfloat16 to float32 - REMOVED
+    #x = np.array([1.0, 2.0, 3.0], dtype=tf.bfloat16.as_numpy_dtype)
+    #dtype = tf.float32
+    #name = "bfloat16_to_float32"
+    #input_dict = {"x": x, "dtype": dtype, "name": name}
+    #list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: int64 to float64
+    x = np.array([1, 2, 3], dtype=np.int64)
+    dtype = tf.float64
+    name = "int64_to_float64"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9
-    x = np.array([1.5, -2.5, 3.5], dtype=np.float32)
-    dtype = tf.int32
-    name = "cast9"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    # Input 12: int16 to float64
+    x = np.array([1, -2, 3], dtype=np.int16)
     dtype = tf.float64
-    name = "cast10"
-    input_dict = {"x": tf.convert_to_tensor(x), "dtype": dtype, "name": name}
+    name = "int16_to_float64"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13: float16 to float32
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    dtype = tf.float32
+    name = "float16_to_float32"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 14: float32 to float64
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    dtype = tf.float64
+    name = "float32_to_float64"
+    input_dict = {"x": x, "dtype": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

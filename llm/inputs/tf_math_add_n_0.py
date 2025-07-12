@@ -11,34 +11,64 @@ import copy
 def tf_math_add_n_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic test with integers
-    inputs = [tf.constant(np.array([[1, 2], [3, 4]])), tf.constant(np.array([[5, 6], [7, 8]]))]
-    name = "add_n_test1"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 1: Basic addition of two matrices
+    inputs = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Test with negative integers
-    inputs = [tf.constant(np.array([[-1, 2], [-3, 4]])), tf.constant(np.array([[5, -6], [7, -8]]))]
-    name = "add_n_test2"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 2: Addition of three matrices with a name
+    inputs = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]]), np.array([[9, 10], [11, 12]])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": "sum_of_matrices"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Test with floats
-    inputs = [tf.constant(np.array([[1.5, 2.5], [3.5, 4.5]])), tf.constant(np.array([[5.5, 6.5], [7.5, 8.5]]))]
-    name = "add_n_test3"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 3: Addition of matrices with negative values
+    inputs = [np.array([[-1, 2], [3, -4]]), np.array([[5, -6], [-7, 8]])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Test with 3 tensors
-    inputs = [tf.constant(np.array([[1, 2], [3, 4]])), tf.constant(np.array([[5, 6], [7, 8]])), tf.constant(np.array([[9, 10], [11, 12]]))]
-    name = "add_n_test5"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 4: Addition of matrices with zero values
+    inputs = [np.array([[0, 2], [3, 0]]), np.array([[5, 0], [0, 8]])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Test with 1D tensors
-    inputs = [tf.constant(np.array([1, 2, 3])), tf.constant(np.array([4, 5, 6]))]
-    name = "add_n_test6"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 5: Addition of 3D tensors
+    inputs = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Addition of 1D tensors (vectors)
+    inputs = [np.array([1, 2, 3]), np.array([4, 5, 6])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Addition of a single tensor (should return the tensor itself)
+    inputs = [np.array([[1, 2], [3, 4]])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Larger matrices
+    inputs = [np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]), np.array([[13, 14, 15, 16], [17, 18, 19, 20], [21, 22, 23, 24]])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Adding 2 1D tensors with negative values
+    inputs = [np.array([-1, 2, -3]), np.array([4, -5, 6])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": "negative_sum"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Addition of a list of identical tensors
+    inputs = [np.array([[1, 1], [1, 1]]), np.array([[1, 1], [1, 1]]), np.array([[1, 1], [1, 1]]), np.array([[1, 1], [1, 1]])]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: 4D tensors
+    inputs = [np.random.rand(2, 3, 4, 5), np.random.rand(2, 3, 4, 5)]
+    input_dict = {"inputs": [tf.convert_to_tensor(x, dtype=tf.float32) for x in inputs], "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: float64
+    inputs = [np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64), np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64)]
+    input_dict = {"inputs": [tf.convert_to_tensor(x) for x in inputs], "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

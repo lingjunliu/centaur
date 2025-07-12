@@ -11,86 +11,103 @@ import copy
 def tf_experimental_numpy_take_inputs():
     list_of_inputs = []
 
-    tf.experimental.numpy.experimental_enable_numpy_behavior()
-
     # Input 1
-    a = tf.constant(np.array([4, 3, 5, 7, 6, 8]))
-    indices = tf.constant(np.array([0, 1, 4]))
-    axis = tf.constant(0)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([1, 2, 3, 4, 5])
+    indices = np.array([0, 2, 4])
+    axis = 0
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    a = tf.constant(np.array([[1, 2], [3, 4]]))
-    indices = tf.constant(np.array([0, 1]))
-    axis = tf.constant(0)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([[1, 2], [3, 4]])
+    indices = np.array([0, 1, 0])
+    axis = 0
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    a = tf.constant(np.array([[1, 2], [3, 4]]))
-    indices = tf.constant(np.array([0, 1]))
-    axis = tf.constant(1)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([[1, 2], [3, 4]])
+    indices = np.array([0, 1])
+    axis = 1
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    a = tf.constant(np.array([4, 3, 5, 7, 6, 8]))
-    indices = tf.constant(np.array([-1, -2]))
-    axis = tf.constant(0)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([1, 2, 3, 4, 5])
+    indices = np.array([-1, -2])
+    axis = 0
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    a = tf.constant(np.array([[1, 2, 3], [4, 5, 6]]))
-    indices = tf.constant(np.array([0, 1]))
-    axis = tf.constant(0)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    indices = np.array([0, 2])
+    axis = 0
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    a = tf.constant(np.array([1, 2, 3, 4, 5]))
-    indices = tf.constant(np.array([2, 4]))
-    axis = tf.constant(0)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    indices = np.array([1, 2])
+    axis = 1
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    indices = tf.constant(np.array([0, 1]))
-    axis = tf.constant(0)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+     # Input 7
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([0, 1])
+    axis = 0
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    indices = tf.constant(np.array([0, 1]))
-    axis = tf.constant(1)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([0, 1])
+    axis = 1
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    indices = tf.constant(np.array([0, 1]))
-    axis = tf.constant(2)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([0, 1])
+    axis = 2
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    a = tf.constant(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]))
-    indices = tf.constant(np.array([0, 2]))
-    axis = tf.constant(0)
-    mode = tf.constant('clip')
-    input_dict = {"a": a, "indices": indices, "axis": axis, "mode": mode}
+    a = np.array([1, 2, 3])
+    indices = np.array([0, 0, 0])
+    axis = 0
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    a = np.array([[1, 2], [3, 4]])
+    indices = np.array([0, 0])
+    axis = 0
+    out = None
+    mode = 'clip'
+    input_dict = {"a": a, "indices": indices, "axis": axis, "out": out, "mode": mode}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

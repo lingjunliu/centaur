@@ -10,66 +10,55 @@ import copy
 
 def tf_experimental_numpy_iscomplexobj_inputs():
     list_of_inputs = []
-    tf.experimental.numpy.experimental_enable_numpy_behavior()
 
     # Input 1: Complex scalar
     x = np.complex64(1 + 1j)
-    input_dict = {"x": tf.constant(x)}
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Real scalar
     x = np.float32(1.0)
-    input_dict = {"x": tf.constant(x)}
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Complex 1D array
-    x = np.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x)}
+    x = np.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=np.complex128)
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Real 1D array
-    x = np.array([1, 2, 3], dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
+    x = np.array([1, 2, 3], dtype=np.int32)
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Complex 2D array
     x = np.array([[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x)}
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Real 2D array
-    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
+    x = np.array([[1, 2], [3, 4]], dtype=np.float64)
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Complex higher dimensional array
-    x = np.array([[[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]], [[5 + 5j, 6 + 6j], [7 + 7j, 8 + 8j]]], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x)}
+    # Input 7: Complex 3D array
+    x = np.array([[[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]], [[5 + 5j, 6 + 6j], [7 + 7j, 8 + 8j]]], dtype=np.complex128)
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Real higher dimensional array
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
+    # Input 8: Real 3D array
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int16)
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Complex array with only zero imaginary parts
-    x = np.array([1 + 0j, 2 + 0j, 3 + 0j], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x)}
+    # Input 9: Complex scalar with negative components
+    x = np.complex64(-1 - 1j)
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty array
-    x = np.array([], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Empty array
-    x = np.array([], dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: int array
-    x = np.array([1, 2, 3], dtype=np.int32)
-    input_dict = {"x": tf.constant(x)}
+    # Input 10: Real scalar, negative value
+    x = np.float32(-1.0)
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

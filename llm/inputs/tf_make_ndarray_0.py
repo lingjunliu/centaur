@@ -5,44 +5,32 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
+import copy
 import numpy as np
 
 def tf_make_ndarray_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple 2D tensor
-    tensor1 = tf.make_tensor_proto(tf.constant([[1, 2, 3], [4, 5, 6]]))
-    input_dict1 = {"tensor": tensor1}
-    list_of_inputs.append(input_dict1)
+    # Input 1: 1D int32 array
+    a = tf.constant([1, 2, 3, 4, 5], dtype=tf.int32)
+    tensor_proto = tf.make_tensor_proto(a)
+    input_dict = {"tensor": tensor_proto}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 1D tensor
-    tensor2 = tf.make_tensor_proto(tf.constant([1, 2, 3, 4, 5]))
-    input_dict2 = {"tensor": tensor2}
-    list_of_inputs.append(input_dict2)
+    # Input 2: 2D float32 array
+    a = tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float32)
+    tensor_proto = tf.make_tensor_proto(a)
+    input_dict = {"tensor": tensor_proto}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D tensor
-    tensor3 = tf.make_tensor_proto(tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    input_dict3 = {"tensor": tensor3}
-    list_of_inputs.append(input_dict3)
-
-    # Input 4: Tensor with float32
-    tensor4 = tf.make_tensor_proto(tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float32))
-    input_dict4 = {"tensor": tensor4}
-    list_of_inputs.append(input_dict4)
-
-    # Input 5: Tensor with int64
-    tensor5 = tf.make_tensor_proto(tf.constant([[1, 2], [3, 4]], dtype=tf.int64))
-    input_dict5 = {"tensor": tensor5}
-    list_of_inputs.append(input_dict5)
-
-    # Input 6: Tensor with bool
-    tensor6 = tf.make_tensor_proto(tf.constant([[True, False], [False, True]]))
-    input_dict6 = {"tensor": tensor6}
-    list_of_inputs.append(input_dict6)
-
+    # Input 3: 3D complex64 array
+    a = tf.constant([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=tf.complex64)
+    tensor_proto = tf.make_tensor_proto(a)
+    input_dict = {"tensor": tensor_proto}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.make_ndarray"] = tf_make_ndarray_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

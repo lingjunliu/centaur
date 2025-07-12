@@ -16,30 +16,68 @@ def tf_ragged_cross_inputs():
               tf.ragged.constant([['d'], ['e']]),
               tf.ragged.constant([['f'], ['g']])]
     name = None
-    input_dict = {'inputs': inputs, 'name': name}
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    inputs = [tf.ragged.constant([['1'], ['2', '3']]),
-              tf.ragged.constant([['4'], ['5']])]
-    name = "feature_cross"
-    input_dict = {'inputs': inputs, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
     inputs = [tf.ragged.constant([['a', 'b'], ['c']]),
               tf.ragged.constant([['d'], ['e', 'f']])]
-    name = None
-    input_dict = {'inputs': inputs, 'name': name}
+    name = "cross_product"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    inputs = [tf.ragged.constant([['a']]),
-              tf.ragged.constant([['b']]),
-              tf.ragged.constant([['c']])]
-    name = "test_cross"
-    input_dict = {'inputs': inputs, 'name': name}
+    # Input 3 - Tensors instead of RaggedTensors
+    inputs = [tf.constant([['a'], ['b']]),
+              tf.constant([['c'], ['d']])]
+    name = None
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5 - Mixed types
+    inputs = [tf.ragged.constant([['a'], ['b']]),
+              tf.constant([['c'], ['d']])]
+    name = None
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - Single input
+    inputs = [tf.ragged.constant([['a', 'b'], ['c', 'd']])]
+    name = None
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 - More ragged inputs
+    inputs = [tf.ragged.constant([['a'], ['b', 'c', 'd']]),
+              tf.ragged.constant([['e'], ['f']])]
+    name = None
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 -  with numpy arrays
+    inputs = [tf.constant(np.array([['a'], ['b']])),
+              tf.constant(np.array([['c'], ['d']]))]
+    name = None
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    inputs = [tf.constant([['a', 'b'], ['c', 'd']]),
+              tf.constant([['e', 'f'], ['g', 'h']])]
+    name = None
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11 - No name
+    inputs = [tf.ragged.constant([['a', 'b'], ['c', 'd']]),
+              tf.ragged.constant([['e', 'f'], ['g', 'h']])]
+    input_dict = {"inputs": inputs, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12 - Different shapes
+    inputs = [tf.ragged.constant([['a'], ['b', 'c']]), tf.constant([['d'], ['e']])]
+    input_dict = {"inputs": inputs, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

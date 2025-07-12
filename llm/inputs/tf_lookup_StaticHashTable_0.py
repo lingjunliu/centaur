@@ -13,139 +13,164 @@ def tf_lookup_static_hash_table_inputs():
 
     # Input 1
     keys_tensor = tf.constant([1, 2, 3], dtype=tf.int32)
-    vals_tensor = tf.constant([4, 5, 6], dtype=tf.int32)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
-    default_value = tf.constant(-1, dtype=tf.int32)
+    vals_tensor = tf.constant([7, 8, 9], dtype=tf.int32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant(0, dtype=tf.int32)
     name = "table1"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    keys_tensor = tf.constant([1, 2, 3], dtype=tf.int64)
-    vals_tensor = tf.constant([4, 5, 6], dtype=tf.int64)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
-    default_value = tf.constant(0, dtype=tf.int64)
+    keys_tensor = tf.constant([4, 5, 6], dtype=tf.int32)
+    vals_tensor = tf.constant([1.0, 2.0, 3.0], dtype=tf.float32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant(0.0, dtype=tf.float32)
     name = "table2"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    keys_tensor = tf.constant([1, 2, 3], dtype=tf.float32)
-    vals_tensor = tf.constant([4, 5, 6], dtype=tf.float32)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
-    default_value = tf.constant(0.0, dtype=tf.float32)
+    keys_tensor = tf.constant([7, 8, 9], dtype=tf.int32)
+    vals_tensor = tf.constant([True, False, True], dtype=tf.bool)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant(False, dtype=tf.bool)
     name = "table3"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    keys_tensor = tf.constant([True, False], dtype=tf.bool)
-    vals_tensor = tf.constant([1, 0], dtype=tf.int32)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
-    default_value = tf.constant(0, dtype=tf.int32)
+    keys_tensor = tf.constant([10, 20, 30], dtype=tf.int64)
+    vals_tensor = tf.constant([1, 2, 3], dtype=tf.int64)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant(0, dtype=tf.int64)
     name = "table4"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    keys_tensor = tf.constant([[1,2],[3,4]], dtype=tf.int32)
-    vals_tensor = tf.constant([[5,6],[7,8]], dtype=tf.int32)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
+    keys_tensor = tf.constant([1, 2, 3], dtype=tf.int32)
+    vals_tensor = tf.constant([1, 4, 9], dtype=tf.int32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
     default_value = tf.constant(0, dtype=tf.int32)
     name = "table5"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    keys_tensor = tf.constant([1, 2, 3, 4], dtype=tf.int32)
-    vals_tensor = tf.constant([5, 6, 7, 8], dtype=tf.int32)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
-    default_value = tf.constant(100, dtype=tf.int32)
+     # Input 6
+    keys_tensor = tf.constant([1, 2], dtype=tf.int32)
+    vals_tensor = tf.constant([[-1,1], [-2,2]], dtype=tf.int32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant([0, 0], dtype=tf.int32)
     name = "table6"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    keys_tensor = tf.constant([1, 2, 3], dtype=tf.int64)
-    vals_tensor = tf.constant([5, 6, 7], dtype=tf.int64)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
-    default_value = tf.constant(-1, dtype=tf.int64)
+    keys_tensor = tf.constant([1, 2, 3], dtype=tf.int32)
+    vals_tensor = tf.constant([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=tf.float32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant([0.0, 0.0], dtype=tf.float32)
     name = "table7"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8
-    keys_tensor = tf.constant([[1, 2], [3, 4]], dtype=tf.int32)
-    vals_tensor = tf.constant([[5, 6], [7, 8]], dtype=tf.int32)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
-    default_value = tf.constant(-1, dtype=tf.int32)
+    # Input 8
+    keys_tensor = tf.constant([1, 2, 3], dtype=tf.int32)
+    vals_tensor = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=tf.int32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant([0, 0], dtype=tf.int32)
     name = "table8"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
+    # Input 9
     keys_tensor = tf.constant([1, 2], dtype=tf.int32)
-    vals_tensor = tf.constant([5, 6], dtype=tf.int32)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
+    vals_tensor = tf.constant([1, 2], dtype=tf.int32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
     default_value = tf.constant(0, dtype=tf.int32)
     name = "table9"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    keys_tensor = tf.constant([1], dtype=tf.int32)
-    vals_tensor = tf.constant([5], dtype=tf.int32)
-    initializer = tf.lookup.KeyValueTensorInitializer(keys_tensor, vals_tensor)
-    default_value = tf.constant(0, dtype=tf.int32)
+    keys_tensor = tf.constant([1, 2], dtype=tf.int32)
+    vals_tensor = tf.constant([100, 200], dtype=tf.int32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant(-100, dtype=tf.int32)
     name = "table10"
 
     input_dict = {
-        "initializer": initializer,
+        "initializer": tf.stack([initializer_keys, initializer_values]),
+        "default_value": default_value,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    keys_tensor = tf.constant([1, 2], dtype=tf.int32)
+    vals_tensor = tf.constant([1, 2], dtype=tf.int32)
+    initializer_keys = keys_tensor
+    initializer_values = vals_tensor
+    default_value = tf.constant(0, dtype=tf.int32)
+    name = "table11"
+
+    input_dict = {
+        "initializer": tf.stack([initializer_keys, initializer_values]),
         "default_value": default_value,
         "name": name
     }

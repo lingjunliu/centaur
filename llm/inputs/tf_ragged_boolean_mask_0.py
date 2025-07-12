@@ -11,111 +11,82 @@ import copy
 def tf_ragged_boolean_mask_inputs():
     list_of_inputs = []
 
-    # Input 1: 2D Tensor, 2D Mask
+    # Input 1: Basic 2D Tensor mask
     data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    mask = np.array([[True, False, True], [False, True, False], [True, True, False]])
-    name = "mask1"
-    input_dict = {"data": tf.constant(data), "mask": tf.constant(mask, dtype=tf.bool), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: 2D RaggedTensor, 2D Ragged Mask
-    data = tf.ragged.constant([[1, 2, 3], [4], [5, 6]])
-    mask = tf.ragged.constant([[False, False, True], [True], [True, False]])
-    name = "mask2"
+    mask = np.array([[True, False, True], [False, False, False], [True, False, False]])
+    name = "basic_mask"
     input_dict = {"data": data, "mask": mask, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D RaggedTensor, 1D Mask
-    data = tf.ragged.constant([[1, 2, 3], [4], [5, 6]])
-    mask = np.array([True, False, True])
-    name = "mask3"
-    input_dict = {"data": data, "mask": tf.constant(mask, dtype=tf.bool), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: 3D Tensor, 2D Mask
-    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    mask = np.array([[True, False], [False, True]])
-    name = "mask4"
-    input_dict = {"data": tf.constant(data), "mask": tf.constant(mask, dtype=tf.bool), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 3D RaggedTensor, 2D Ragged Mask
-    data = tf.ragged.constant([[[1, 2], [3]], [[4, 5, 6], [7]]])
-    mask = tf.ragged.constant([[True, False], [False, True]])
-    name = "mask5"
+    # Input 2: 2D RaggedTensor mask
+    data = np.array([[1, 2, 3], [4], [5, 6]], dtype=object)
+    mask = np.array([[False, False, True], [False], [True, True]], dtype=object)
+    name = "ragged_mask"
     input_dict = {"data": data, "mask": mask, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D Tensor, 3D Mask (prefix shape)
-    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    mask = np.array([[[True, False], [False, True]], [[True, True], [False, False]]])
-    name = "mask6"
-    input_dict = {"data": tf.constant(data), "mask": tf.constant(mask, dtype=tf.bool), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: 2D Tensor, 1D Mask
-    data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    # Input 3: Mask rows of a 2D RaggedTensor
+    data = np.array([[1, 2, 3], [4], [5, 6]], dtype=object)
     mask = np.array([True, False, True])
-    name = "mask7"
-    input_dict = {"data": tf.constant(data), "mask": tf.constant(mask, dtype=tf.bool), "name": name}
+    name = "row_mask"
+    input_dict = {"data": data, "mask": mask, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 1D Tensor, 1D Mask
+    # Input 4: 3D Tensor mask (prefix match)
+    data = np.arange(1, 28).reshape((3, 3, 3))
+    mask = np.array([[True, False, True], [False, True, False], [True, False, True]])
+    name = "3d_mask"
+    input_dict = {"data": data, "mask": mask, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 1D data and 1D mask
     data = np.array([1, 2, 3, 4, 5])
-    mask = np.array([True, False, True, False, True])
-    name = "mask8"
-    input_dict = {"data": tf.constant(data), "mask": tf.constant(mask, dtype=tf.bool), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: 2D RaggedTensor, 2D Tensor Mask
-    data = tf.ragged.constant([[1, 2, 3], [4], [5, 6]])
-    mask = np.array([[False, False, True], [True, False, False], [True, False, True]], dtype=bool)
-    name = "mask9"
-    input_dict = {"data": data, "mask": tf.constant(mask), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10:  3D RaggedTensor, 2D Mask
-    data = tf.ragged.constant([[[1, 2], [3]], [[4, 5, 6], [7]]])
-    mask = np.array([[True, False], [False, True]], dtype=bool)
-    name = "mask10"
-    input_dict = {"data": data, "mask": tf.constant(mask), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: 1D Ragged Tensor, 1D Mask.
-    data = tf.ragged.constant([1,2,3,4])
-    mask = np.array([True, False, True, False], dtype=bool)
-    name = "mask11"
-    input_dict = {"data": data, "mask": tf.constant(mask), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: Empty Ragged Tensor, Empty Mask.
-    data = tf.ragged.constant([[]])
-    mask = tf.ragged.constant([[False]])
-    name = "mask12"
+    mask = np.array([True, False, True, True, False])
+    name = "1d_mask"
     input_dict = {"data": data, "mask": mask, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 13: Scalar data, Scalar mask
-    data = np.array(1)
-    mask = np.array(True)
-    name = "mask13"
-    input_dict = {"data": tf.constant(data), "mask": tf.constant(mask), "name": name}
+   # Input 6: Ragged 3D
+    data = np.array([[[1,2],[3]], [[4,5,6],[7,8]]], dtype=object)
+    mask = np.array([[[True,False],[True]], [[False,True,True],[False,False]]], dtype=object)
+    name = "ragged_3d"
+    input_dict = {"data": data, "mask": mask, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 14: 1D tensor, 0D mask
-    data = np.array([1, 2, 3])
-    mask = np.array(True)
-    name = "mask14"
-    input_dict = {"data": tf.constant(data), "mask": tf.constant(mask), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 15: 0D tensor, 0D mask
-    data = np.array(5)
-    mask = np.array(False)
-    name = "mask15"
-    input_dict = {"data": tf.constant(data), "mask": tf.constant(mask), "name": name}
+    # Input 7:  Ragged 3D mask prefix
+    data = np.array([[[1,2],[3]], [[4,5,6],[7,8]]], dtype=object)
+    mask = np.array([[True, True], [False, True]])
+    name = "ragged_3d_prefix"
+    input_dict = {"data": data, "mask": mask, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 8: Empty data
+    data = np.array([])
+    mask = np.array([])
+    name = "empty"
+    input_dict = {"data": data, "mask": mask, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Ragged Data with empty rows
+    data = np.array([[], [1,2], [3]], dtype=object)
+    mask = np.array([[], [True, False], [True]], dtype=object)
+    name = "ragged_empty_rows"
+    input_dict = {"data": data, "mask": mask, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Ragged Data with scalar values.
+    data = np.array([[1], [2, 3], [4]], dtype=object)
+    mask = np.array([[True], [False, True], [True]], dtype=object)
+    name = "ragged_scalar_values"
+    input_dict = {"data": data, "mask": mask, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: All false mask
+    data = np.array([[1, 2, 3], [4, 5, 6]])
+    mask = np.array([[False, False, False], [False, False, False]])
+    name = "all_false"
+    input_dict = {"data": data, "mask": mask, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

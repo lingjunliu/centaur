@@ -11,70 +11,70 @@ import copy
 def tf_experimental_numpy_maximum_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D arrays
-    x1 = tf.constant(np.array([1, 5, 2, 8]))
-    x2 = tf.constant(np.array([3, 2, 7, 1]))
-    input_dict = {"x1": x1, "x2": x2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: 2D arrays
-    x1 = tf.constant(np.array([[1, 2], [3, 4]]))
-    x2 = tf.constant(np.array([[5, 6], [7, 8]]))
-    input_dict = {"x1": x1, "x2": x2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Broadcasting
+    # Input 1: Basic positive integers
     x1 = tf.constant(np.array([1, 2, 3]))
-    x2 = tf.constant(np.array(5))
+    x2 = tf.constant(np.array([4, 0, 5]))
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Negative values
-    x1 = tf.constant(np.array([-1, -5, 2, -8]))
-    x2 = tf.constant(np.array([-3, 2, -7, 1]))
+    # Input 2: Mixed positive and negative integers
+    x1 = tf.constant(np.array([-1, 2, -3]))
+    x2 = tf.constant(np.array([4, -2, 5]))
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different dtypes
-    x1 = tf.cast(tf.constant(np.array([1, 2, 3])), tf.float32)
-    x2 = tf.cast(tf.constant(np.array([4, 5, 6])), tf.float32)
+    # Input 3: Floating point numbers
+    x1 = tf.constant(np.array([1.5, 2.0, 3.7]))
+    x2 = tf.constant(np.array([4.2, 0.0, 5.1]))
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D arrays
-    x1 = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    x2 = tf.constant(np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]]))
+    # Input 4: Mixed integers and floats
+    x1 = tf.constant(np.array([1, 2.5, 3]))
+    x2 = tf.constant(np.array([4.0, 0, 5.5]))
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Zeros
-    x1 = tf.constant(np.array([0, 0, 0]))
-    x2 = tf.constant(np.array([1, -1, 0]))
+    # Input 5: 2D arrays
+    x1 = tf.constant(np.array([[1, 2], [3, 4]]))
+    x2 = tf.constant(np.array([[4, 0], [5, 6]]))
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Mixed positive and negative and zeros
-    x1 = tf.constant(np.array([-1, 0, 1]))
-    x2 = tf.constant(np.array([1, -1, 0]))
+    # Input 6: 2D arrays with negative values
+    x1 = tf.constant(np.array([[-1, 2], [-3, 4]]))
+    x2 = tf.constant(np.array([[4, -2], [5, -6]]))
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Different shapes that can broadcast
-    x1 = tf.constant(np.array([[1, 2, 3]]))
-    x2 = tf.constant(np.array([4, 5, 6]))
+    # Input 7: Different shapes (broadcasting)
+    x1 = tf.constant(np.array([1, 2, 3]))
+    x2 = tf.constant(np.array(2))
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Large values
-    x1 = tf.constant(np.array([1e2, 2e2]))
-    x2 = tf.constant(np.array([3e2, 1e2]))
+    # Input 8: Different shapes (broadcasting) - more complex
+    x1 = tf.constant(np.array([[1, 2, 3], [4, 5, 6]]))
+    x2 = tf.constant(np.array([0, 1, 0]))
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 9: All negative values
+    x1 = tf.constant(np.array([-1, -2, -3]))
+    x2 = tf.constant(np.array([-4, -5, -6]))
+    input_dict = {"x1": x1, "x2": x2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Larger values
+    x1 = tf.constant(np.array([100, 200, 300]))
+    x2 = tf.constant(np.array([50, 250, 100]))
+    input_dict = {"x1": x1, "x2": x2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.maximum"] = tf_experimental_numpy_maximum_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

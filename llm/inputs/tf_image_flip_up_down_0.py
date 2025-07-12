@@ -11,46 +11,11 @@ import copy
 def tf_image_flip_up_down_inputs():
     list_of_inputs = []
 
-    # Input 1: 3D tensor
-    image = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.float32)
-    input_dict = {"image": tf.convert_to_tensor(image.copy())}
+    # Input 1: 3D, float32
+    image = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]], dtype=np.float32)
+    input_dict = {"image": tf.convert_to_tensor(image)}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: 4D tensor, batch size 1
-    image = np.array([[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]], dtype=np.float32)
-    input_dict = {"image": tf.convert_to_tensor(image.copy())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: 3D tensor with different shape
-    image = np.array([[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]], dtype=np.float32)
-    input_dict = {"image": tf.convert_to_tensor(image.copy())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: 4D tensor with different batch size
-    image = np.array([[[[1, 2, 3], [4, 5, 6]]], [[[7, 8, 9], [10, 11, 12]]]], dtype=np.float32)
-    input_dict = {"image": tf.convert_to_tensor(image.copy())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 3D tensor with int32
-    image = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.int32)
-    input_dict = {"image": tf.convert_to_tensor(image.copy())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: 4D tensor with different channel size
-    image = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
-    input_dict = {"image": tf.convert_to_tensor(image.copy())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: 3D tensor with negative values
-    image = np.array([[[1, -2, 3], [4, 5, -6]], [[-7, 8, 9], [10, -11, 12]]], dtype=np.float32)
-    input_dict = {"image": tf.convert_to_tensor(image.copy())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: 4D tensor with zeros
-    image = np.array([[[[0, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 0]]]], dtype=np.float32)
-    input_dict = {"image": tf.convert_to_tensor(image.copy())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

@@ -12,103 +12,183 @@ def tf_experimental_numpy_var_inputs():
     list_of_inputs = []
 
     # Input 1
-    a = tf.constant(np.array([1, 2, 3, 4, 5]), dtype=tf.float32)
+    a = np.array([1, 2, 3, 4, 5])
     axis = None
-    dtype = tf.float64
+    dtype = np.float32
     out = None
     ddof = 0
     keepdims = False
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    a = tf.constant(np.array([[1, 2], [3, 4]]), dtype=tf.float32)
+    a = np.array([[1, 2], [3, 4]])
     axis = 0
-    dtype = tf.float32
+    dtype = np.float64
     out = None
     ddof = 1
     keepdims = True
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    a = tf.constant(np.array([[1, 2], [3, 4]]), dtype=tf.int32)
-    axis = 1
-    dtype = tf.float64
+    a = np.array([1.0, 2.0, 3.0])
+    axis = None
+    dtype = np.float32
     out = None
     ddof = 0
     keepdims = False
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), dtype=tf.float32)
-    axis = 2
-    dtype = tf.float32
+    a = np.array([[1, 2, 3], [4, 5, 6]])
+    axis = 1
+    dtype = np.float32
     out = None
-    ddof = 1
-    keepdims = True
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
+    ddof = 0
+    keepdims = False
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    a = tf.constant(np.array([1, 2, 3]), dtype=tf.int32)
-    axis = None
-    dtype = tf.float64
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axis = 0
+    dtype = np.float32
     out = None
-    ddof = 2
-    keepdims = False
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
+    ddof = 0
+    keepdims = True
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    a = tf.constant(np.array([[1, 2, 3], [4, 5, 6]]), dtype=tf.float32)
-    axis = 0
-    dtype = tf.float32
-    out = None
-    ddof = 0
-    keepdims = True
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    a = tf.constant(np.array([1, 2, 3, 4, 5]), dtype=tf.float64)
+    a = np.array([1, 2, 3, 4, 5], dtype=np.int64)
     axis = None
-    dtype = tf.float32
-    out = None
-    ddof = 0
-    keepdims = False
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 8
-    a = tf.constant(np.array([[1, 2], [3, 4]]), dtype=tf.int32)
-    axis = 0
-    dtype = tf.float32
-    out = None
-    ddof = 0
-    keepdims = False
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), dtype=tf.float32)
-    axis = 1
-    dtype = tf.float64
-    out = None
-    ddof = 0
-    keepdims = True
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    a = tf.constant(np.array([[1, 2, 3], [4, 5, 6]]), dtype=tf.int32)
-    axis = 1
-    dtype = tf.float32
+    dtype = np.float32
     out = None
     ddof = 1
     keepdims = False
-    input_dict = {"a": a, "axis": axis, "dtype": dtype, "out": out, "ddof": ddof, "keepdims": keepdims}
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    a = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    axis = 1
+    dtype = np.float64
+    out = None
+    ddof = 0
+    keepdims = True
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    a = np.array([1, 2, 3], dtype=np.float64)
+    axis = None
+    dtype = np.float32
+    out = None
+    ddof = 2
+    keepdims = False
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    a = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
+    axis = 0
+    dtype = np.float32
+    out = None
+    ddof = 1
+    keepdims = True
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
+    axis = 2
+    dtype = np.float32
+    out = None
+    ddof = 0
+    keepdims = False
+
+    input_dict = {
+        "a": a,
+        "axis": axis,
+        "dtype": dtype,
+        "out": out,
+        "ddof": ddof,
+        "keepdims": keepdims
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

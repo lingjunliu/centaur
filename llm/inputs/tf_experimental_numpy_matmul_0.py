@@ -12,67 +12,69 @@ def tf_experimental_numpy_matmul_inputs():
     list_of_inputs = []
 
     # Input 1: Basic 2D matrices
-    x1 = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    x2 = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.int32))
-    input_dict = {"x1": x1, "x2": x2}
+    x1 = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    x2 = np.array([[5, 6], [7, 8]], dtype=np.int32)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Matrix and vector
-    x1 = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.float32))
-    x2 = tf.constant(np.array([5, 6], dtype=np.float32))
-    input_dict = {"x1": x1, "x2": x2}
+    x1 = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    x2 = np.array([5, 6], dtype=np.float32)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Vector and matrix
-    x1 = tf.constant(np.array([1, 2], dtype=np.float64))
-    x2 = tf.constant(np.array([[3, 4], [5, 6]], dtype=np.float64))
-    input_dict = {"x1": x1, "x2": x2}
+    x1 = np.array([1, 2], dtype=np.int64)
+    x2 = np.array([[3, 4], [5, 6]], dtype=np.int64)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Batched matrices
-    x1 = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64))
-    x2 = tf.constant(np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int64))
-    input_dict = {"x1": x1, "x2": x2}
+    x1 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64)
+    x2 = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float64)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D and 2D
-    x1 = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32))
-    x2 = tf.constant(np.array([[9, 10], [11, 12]], dtype=np.float32))
-    input_dict = {"x1": x1, "x2": x2}
+    # Input 5: Higher dimensional tensors
+    x1 = np.random.rand(2, 3, 4, 5).astype(np.float32)
+    x2 = np.random.rand(2, 3, 5, 2).astype(np.float32)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Broadcasting
+    x1 = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    x2 = np.array([5, 6], dtype=np.int32)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 2D and 3D
-    x1 = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.float64))
-    x2 = tf.constant(np.array([[[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.float64))
-    input_dict = {"x1": x1, "x2": x2}
+    # Input 7: Negative values
+    x1 = np.array([[-1, 2], [3, -4]], dtype=np.int32)
+    x2 = np.array([[5, -6], [-7, 8]], dtype=np.int32)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7:  Negative values
-    x1 = tf.constant(np.array([[-1, 2], [3, -4]], dtype=np.int32))
-    x2 = tf.constant(np.array([[5, -6], [-7, 8]], dtype=np.int32))
-    input_dict = {"x1": x1, "x2": x2}
+    # Input 8: Different shapes
+    x1 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
+    x2 = np.array([[7, 8], [9, 10], [11, 12]], dtype=np.float32)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Larger matrices
+    x1 = np.random.rand(100, 50).astype(np.float64)
+    x2 = np.random.rand(50, 75).astype(np.float64)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Identity Matrix
+    x1 = np.eye(3).astype(np.float32)
+    x2 = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
+    input_dict = {"x1": tf.constant(x1), "x2": tf.constant(x2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8:  1D vectors
-    x1 = tf.constant(np.array([1, 2, 3], dtype=np.float32))
-    x2 = tf.constant(np.array([4, 5, 6], dtype=np.float32))
-    input_dict = {"x1": x1, "x2": x2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Different shapes that are incompatible
-    x1 = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    x2 = tf.constant(np.array([[5, 6], [7, 8], [9, 10]], dtype=np.float32))
-    input_dict = {"x1": x1, "x2": x2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Different dtypes
-    x1 = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    x2 = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.float32))
-    input_dict = {"x1": x1, "x2": x2}
-    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
 generated_inputs = {}
+tf.experimental.numpy.experimental_enable_numpy_behavior()
 generated_inputs["tf.experimental.numpy.matmul"] = tf_experimental_numpy_matmul_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

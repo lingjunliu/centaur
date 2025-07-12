@@ -8,111 +8,133 @@ import tensorflow as tf
 import numpy as np
 import copy
 import os
-import shutil
 
 def tf_io_gfile_rename_inputs():
     list_of_inputs = []
 
-    # Create dummy files and directories for testing
-    if not os.path.exists("source_file_1.txt"):
-        open("source_file_1.txt", "w").close()
-    if os.path.exists("dest_file_1.txt"):
-        os.remove("dest_file_1.txt")
-    if not os.path.exists("dest_file_2.txt"):
-        open("dest_file_2.txt", "w").close()
-    if not os.path.exists("source_file_2.txt"):
-        open("source_file_2.txt", "w").close()
-    if not os.path.exists("source_dir_1"):
-        os.makedirs("source_dir_1", exist_ok=True)
-    if os.path.exists("dest_dir_1"):
-        shutil.rmtree("dest_dir_1")
-    if not os.path.exists("dest_dir_2"):
-        os.makedirs("dest_dir_2", exist_ok=True)
-    if not os.path.exists("source_dir_2"):
-        os.makedirs("source_dir_2", exist_ok=True)
-    if not os.path.exists("parent_dir"):
-        os.makedirs("parent_dir", exist_ok=True)
-    if not os.path.exists("similar_name_src.txt"):
-        open("similar_name_src.txt", "w").close()
-    if not os.path.exists("same_name.txt"):
-        open("same_name.txt", "w").close()
-    if not os.path.exists("source.txt"):
-        open("source.txt", "w").close()
-    if not os.path.exists("very_long_source_file_name_with_many_characters.txt"):
-      open("very_long_source_file_name_with_many_characters.txt", "w").close()
-    if os.path.exists("parent_dir/child_dir"):
-        shutil.rmtree("parent_dir/child_dir")
+    # Create dummy files for testing
+    os.makedirs("src_dir1", exist_ok=True)
+    os.makedirs("src_path/to", exist_ok=True)
+    os.makedirs("src_data", exist_ok=True)
+    if not os.path.exists("/tmp"):
+        os.makedirs("/tmp")
 
+    with open("src_file1.txt", "w") as f:
+        f.write("This is a test file.")
+    with open("src_dir1/src_file1.txt", "w") as f:
+        f.write("This is a test file.")
+    with open("src_path/to/my_file.dat", "w") as f:
+        f.write("This is a test file.")
+    with open("src_old_file.log", "w") as f:
+        f.write("This is a test file.")
+    with open("src_data/src_input_file.json", "w") as f:
+        f.write("This is a test file.")
+    with open("src_file_to_move.pdf", "w") as f:
+        f.write("This is a test file.")
+    with open("src_very_long_file_name.txt", "w") as f:
+        f.write("This is a test file.")
+    os.makedirs("./src_data", exist_ok=True)
+    with open("./src_data/src_file1.txt", "w") as f:
+        f.write("This is a test file.")
+    with open("src_source.csv", "w") as f:
+        f.write("This is a test file.")
 
+    with open("/tmp/src_temp_file.txt", "w") as f:
+        f.write("This is a test file.")
 
-
-    # Input 1: Basic rename
-    src = np.str_("source_file_1.txt")
-    dst = np.str_("dest_file_1.txt")
-    overwrite = np.bool_(False)
+    # Input 1
+    src = "src_file1.txt"
+    dst = "dst_file2.txt"
+    overwrite = False
+    if os.path.exists(dst):
+        os.remove(dst)
     input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Overwrite existing destination
-    src = np.str_("source_file_2.txt")
-    dst = np.str_("dest_file_2.txt")
-    overwrite = np.bool_(True)
+    # Input 2
+    src = "src_dir1/src_file1.txt"
+    dst = "dst_dir2/dst_file2.txt"
+    overwrite = True
+    os.makedirs("dst_dir2", exist_ok=True)
+    if os.path.exists(dst):
+        os.remove(dst)
     input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Rename directory
-    src = np.str_("source_dir_1")
-    dst = np.str_("dest_dir_1")
-    overwrite = np.bool_(False)
+    # Input 3
+    src = "src_path/to/my_file.dat"
+    dst = "dst_new_location/my_file.dat"
+    overwrite = False
+    os.makedirs("dst_new_location", exist_ok=True)
+    if os.path.exists(dst):
+        os.remove(dst)
     input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Overwrite existing directory
-    src = np.str_("source_dir_2")
-    dst = np.str_("dest_dir_2")
-    overwrite = np.bool_(True)
+    # Input 4
+    src = "src_old_file.log"
+    dst = "dst_archive/old_file.log"
+    overwrite = True
+    os.makedirs("dst_archive", exist_ok=True)
+    if os.path.exists(dst):
+        os.remove(dst)
     input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5:  Rename with similar names
-    src = np.str_("similar_name_src.txt")
-    dst = np.str_("similar_name_dst.txt")
-    overwrite = np.bool_(False)
-    input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6:  Destination is a subdirectory of source
-    src = np.str_("parent_dir")
-    dst = np.str_("parent_dir/child_dir")
-    overwrite = np.bool_(True)
+    # Input 5
+    src = "/tmp/src_temp_file.txt"
+    dst = "/tmp/dst_final_file.txt"
+    overwrite = False
+    if os.path.exists(dst):
+        os.remove(dst)
     input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Rename with a long file name
-    src = np.str_("very_long_source_file_name_with_many_characters.txt")
-    dst = np.str_("very_long_dest_file_name_with_many_characters.txt")
-    overwrite = np.bool_(False)
-    input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Empty source name
-    src = np.str_("")
-    dst = np.str_("destination.txt")
-    overwrite = np.bool_(False)
+    # Input 6
+    src = "src_source.csv"
+    dst = "dst_destination.csv"
+    overwrite = True
+    if os.path.exists(dst):
+        os.remove(dst)
     input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9:  Empty destination name
-    src = np.str_("source.txt")
-    dst = np.str_("")
-    overwrite = np.bool_(True)
+    # Input 7
+    src = "src_data/src_input_file.json"
+    dst = "dst_output/dst_processed_file.json"
+    overwrite = False
+    os.makedirs("dst_output", exist_ok=True)
+    if os.path.exists(dst):
+        os.remove(dst)
     input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10:  Rename to the same name
-    src = np.str_("same_name.txt")
-    dst = np.str_("same_name.txt")
-    overwrite = np.bool_(False)
+
+    # Input 8
+    src = "src_file_to_move.pdf"
+    dst = "dst_new_folder/file_to_move.pdf"
+    overwrite = True
+    os.makedirs("dst_new_folder", exist_ok=True)
+    if os.path.exists(dst):
+        os.remove(dst)
+    input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    src = "src_very_long_file_name.txt"
+    dst = "dst_short_name.txt"
+    overwrite = False
+    if os.path.exists(dst):
+        os.remove(dst)
+    input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    src = "./src_data/src_file1.txt"
+    dst = "../dst_backup/file1.txt"
+    overwrite = True
+    os.makedirs("../dst_backup", exist_ok=True)
+    if os.path.exists(dst):
+        os.remove(dst)
     input_dict = {"src": src, "dst": dst, "overwrite": overwrite}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -5,6 +5,7 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
+import copy
 import numpy as np
 import os
 import tempfile
@@ -12,127 +13,94 @@ import tempfile
 def tf_io_read_file_inputs():
     list_of_inputs = []
 
-    # Create temporary files for testing
-    file1 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file1 as f1:
-        f1.write("This is file 1.")
-        file1_path = f1.name
+    # Input 1: Valid filename
+    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
+    filename = temp.name
+    with open(filename, "w") as f:
+        f.write("Test data 1")
+    name = "read_file_op_1"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    file2 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file2 as f2:
-        f2.write("Another file with more content.\nLine 2\nLine 3")
-        file2_path = f2.name
-        
-    file3 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file3 as f3:
-        file3_path = f3.name # creates empty file by default
+    # Input 2: Empty file
+    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
+    filename = temp.name
+    open(filename, "w").close()
+    name = "read_file_op_2"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    file4 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt", encoding="utf-8")
-    with file4 as f4:
-        f4.write("你好世界")
-        file4_path = f4.name
+    # Input 3: Filename with spaces
+    filename = "/tmp/test file 3.txt"
+    with open(filename, "w") as f:
+        f.write("Test data 3 with spaces")
+    name = "read_file_op_3"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    file5 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file5 as f5:
-        long_string = "a" * 1024  # Reduced size to avoid potential issues
-        f5.write(long_string)
-        file5_path = f5.name
+    # Input 4:  Long filename
+    filename = "/tmp/" + "a" * 200 + ".txt"
+    with open(filename, "w") as f:
+        f.write("Long filename test")
+    name = "read_file_op_4"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    file6 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file6 as f6:
-        f6.write("This is a file\nwith a newline.")
-        file6_path = f6.name
+    # Input 5: Filename with unicode characters
+    filename = "/tmp/测试文件.txt"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("Unicode characters test")
+    name = "read_file_op_5"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    file7 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file7 as f7:
-        f7.write("~!@#$%^&*()_+=-`")
-        file7_path = f7.name
+    # Input 6: Filename with number
+    filename = "/tmp/test42.txt"
+    with open(filename, "w") as f:
+        f.write("Test data with a number")
+    name = "read_file_op_6"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    file8 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file8 as f8:
-        f8.write("1234567890")
-        file8_path = f8.name
-        
-    file9 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file9 as f9:
-        f9.write("Mixed content 123 abc\n~!@#$")
-        file9_path = f9.name
-        
-    file10 = tempfile.NamedTemporaryFile(delete=True, mode='w', suffix=".txt")
-    with file10 as f10:
-        f10.write("This\tis\ta\ttabbed\tfile")
-        file10_path = f10.name
+    # Input 7: Short name
+    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
+    filename = temp.name
+    with open(filename, "w") as f:
+        f.write("Test data short")
+    name = "s"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 8: Long name
+    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
+    filename = temp.name
+    with open(filename, "w") as f:
+        f.write("Test data long")
+    name = "n" * 200
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 1, valid
-    input_dict = {
-        "filename": file1_path,
-        "name": "read_file_1"
-    }
-    list_of_inputs.append(input_dict)
+    # Input 9: Name with unicode characters
+    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
+    filename = temp.name
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write("Test data with unicode name")
+    name = "名称"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid
-    input_dict = {
-        "filename": file2_path,
-        "name": None
-    }
-    list_of_inputs.append(input_dict)
+    # Input 10: Name with numbers
+    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
+    filename = temp.name
+    with open(filename, "w") as f:
+        f.write("Test data with name numbers")
+    name = "name123"
+    input_dict = {"filename": filename, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 3, valid: Empty file
-    input_dict = {
-        "filename": file3_path,
-        "name": "read_empty_file"
-    }
-    list_of_inputs.append(input_dict)
-
-    # Input 4, valid: Unicode characters
-    input_dict = {
-        "filename": file4_path,
-        "name": "read_unicode_file"
-    }
-    list_of_inputs.append(input_dict)
-    
-    # Input 5, valid: Long file
-    input_dict = {
-        "filename": file5_path,
-        "name": "read_long_file"
-    }
-    list_of_inputs.append(input_dict)
-
-    # Input 6, valid: File with newline
-    input_dict = {
-        "filename": file6_path,
-        "name": "read_newline_file"
-    }
-    list_of_inputs.append(input_dict)
-    
-    # Input 7, valid: File with special characters
-    input_dict = {
-        "filename": file7_path,
-        "name": "read_special_chars_file"
-    }
-    list_of_inputs.append(input_dict)
-
-    # Input 8, valid: File with numbers
-    input_dict = {
-        "filename": file8_path,
-        "name": "read_numbers_file"
-    }
-    list_of_inputs.append(input_dict)
-    
-    # Input 9, valid: File with mixed content
-    input_dict = {
-        "filename": file9_path,
-        "name": "read_mixed_content_file"
-    }
-    list_of_inputs.append(input_dict)
-
-    # Input 10, valid: File with tabs
-    input_dict = {
-        "filename": file10_path,
-        "name": "read_tabs_file"
-    }
-    list_of_inputs.append(input_dict)
+    for input_dict in list_of_inputs:
+        if os.path.exists(input_dict["filename"]):
+          os.remove(input_dict["filename"])
 
     return list_of_inputs
 

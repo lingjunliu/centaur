@@ -12,37 +12,31 @@ def tf_nn_conv3d_transpose_inputs():
     list_of_inputs = []
 
     # Input 1
-    input1 = np.random.rand(1, 5, 5, 5, 3).astype(np.float32)
-    filters1 = np.random.rand(3, 3, 3, 2, 3).astype(np.float32)
-    output_shape1 = np.array([1, 7, 7, 7, 2]).astype(np.int32)
-    strides1 = [1, 1, 1, 1, 1]
-    padding1 = 'SAME'
-    data_format1 = 'NDHWC'
-    dilations1 = [1, 1, 1, 1, 1]
-    name1 = 'transpose_conv1'
+    input_val = np.random.rand(1, 5, 5, 5, 3).astype(np.float32)
+    filters_val = np.random.rand(3, 3, 3, 2, 3).astype(np.float32)
+    output_shape_val = np.array([1, 7, 7, 7, 2]).astype(np.int32)
+    strides_val = [1, 1, 1, 1, 1]
+    padding_val = 'SAME'
+    data_format_val = 'NDHWC'
+    dilations_val = [1, 1, 1, 1, 1]
+    name_val = 'transpose_conv1'
 
-    input_dict1 = {
-        'input': tf.convert_to_tensor(input1),
-        'filters': tf.convert_to_tensor(filters1),
-        'output_shape': tf.convert_to_tensor(output_shape1),
-        'strides': strides1,
-        'padding': padding1,
-        'data_format': data_format1,
-        'dilations': dilations1,
-        'name': name1
+    input_dict = {
+        "input": input_val,
+        "filters": filters_val,
+        "output_shape": output_shape_val,
+        "strides": strides_val,
+        "padding": padding_val,
+        "data_format": data_format_val,
+        "dilations": dilations_val,
+        "name": name_val
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-temp_list = tf_nn_conv3d_transpose_inputs()
-for i in range(len(temp_list)):
-    temp_list[i]['input'] = temp_list[i]['input'].numpy()
-    temp_list[i]['filters'] = temp_list[i]['filters'].numpy()
-    temp_list[i]['output_shape'] = temp_list[i]['output_shape'].numpy()
-
-generated_inputs["tf.nn.conv3d_transpose"] = temp_list
+generated_inputs["tf.nn.conv3d_transpose"] = tf_nn_conv3d_transpose_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

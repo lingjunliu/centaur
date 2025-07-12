@@ -11,74 +11,67 @@ import copy
 def tf_bitcast_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with uint32 to uint8, using tf.constant, and correct dtype
-    input_tensor = tf.constant(np.array([0xffffffff], dtype=np.uint32), dtype=tf.uint32)
-    data_type = tf.uint8
+    # Input 1
+    input_tensor = np.array([1, 2, 3, 4], dtype=np.int32)
+    dtype = tf.uint8
     name = "bitcast_example_1"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32 to int32
-    input_tensor = tf.constant(np.array([1.0, -2.5, 3.75], dtype=np.float32), dtype=tf.float32)
-    data_type = tf.int32
+    # Input 2
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    dtype = tf.uint8
     name = "bitcast_example_2"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: int32 to uint8
-    input_tensor = tf.constant(np.array([1, -2, 3], dtype=np.int32), dtype=tf.int32)
-    data_type = tf.uint8
+    # Input 3
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    dtype = tf.uint8
     name = "bitcast_example_3"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64 to uint8
-    input_tensor = tf.constant(np.array([1.0, -2.5, 3.75], dtype=np.float64), dtype=tf.float64)
-    data_type = tf.uint8
-    name = "bitcast_example_4"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: int64 to int8
-    input_tensor = tf.constant(np.array([1, -2, 3], dtype=np.int64), dtype=tf.int64)
-    data_type = tf.int8
+    # Input 5
+    input_tensor = np.array([-1, -2, -3, -4], dtype=np.int32)
+    dtype = tf.uint8
     name = "bitcast_example_5"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: bfloat16 to uint8
-    input_tensor = tf.constant(np.array([1.0, -2.5], dtype=tf.bfloat16.as_numpy_dtype), dtype=tf.bfloat16)
-    data_type = tf.uint8
+    # Input 6
+    input_tensor = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.uint8)
+    dtype = tf.int8
     name = "bitcast_example_6"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: half to uint8
-    input_tensor = tf.constant(np.array([1.0, -2.5], dtype=tf.float16.as_numpy_dtype), dtype=tf.float16)
-    data_type = tf.uint8
+    # Input 7
+    input_tensor = np.array([1.0 + 1j, 2.0 + 2j], dtype=np.complex64)
+    dtype = tf.float32
     name = "bitcast_example_7"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: complex64 to uint8
-    input_tensor = tf.constant(np.array([1.0 + 1j, -2.5 - 2j], dtype=np.complex64), dtype=tf.complex64)
-    data_type = tf.uint8
+    # Input 8
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    dtype = tf.uint8
     name = "bitcast_example_8"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Multi-dimensional array (2D)
-    input_tensor = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32), dtype=tf.int32)
-    data_type = tf.uint8
+    # Input 9
+    input_tensor = np.array([1, 2, 3, 4], dtype=np.int64)
+    dtype = tf.uint8
     name = "bitcast_example_9"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 10: Multi-dimensional array (3D)
-    input_tensor = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32), dtype=tf.float32)
-    data_type = tf.uint8
+    # Input 10
+    input_tensor = np.array([1, 2, 3, 4], dtype=np.int16)
+    dtype = tf.uint8
     name = "bitcast_example_10"
-    input_dict = {"input": input_tensor, "type": data_type, "name": name}
+    input_dict = {"input": input_tensor, "type": dtype, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -12,160 +12,80 @@ def tf_edit_distance_inputs():
     list_of_inputs = []
 
     # Input 1
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0], [1, 0, 0]],
-        values=np.array(["a", "b"]),
-        dense_shape=[2, 1, 1]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 1, 0], [1, 0, 0], [1, 0, 1], [1, 1, 0]],
-        values=np.array(["a", "b", "c", "a"]),
-        dense_shape=[2, 2, 2]
-    )
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[tf.compat.as_bytes("a")], dense_shape=[1, 1, 1])
+    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[tf.compat.as_bytes("a")], dense_shape=[1, 1, 1])
     normalize = True
     name = "edit_distance_1"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["apple"]),
-        dense_shape=[1, 1, 1]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["orange"]),
-        dense_shape=[1, 1, 1]
-    )
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[tf.compat.as_bytes("b")], dense_shape=[1, 1, 1])
+    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[tf.compat.as_bytes("a")], dense_shape=[1, 1, 1])
     normalize = False
     name = "edit_distance_2"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["a"]),
-        dense_shape=[1, 1, 1]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0], [0, 0, 1]],
-        values=np.array(["a", "b"]),
-        dense_shape=[1, 1, 2]
-    )
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b")], dense_shape=[2, 1, 1])
+    truth = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b")], dense_shape=[2, 1, 1])
     normalize = True
     name = "edit_distance_3"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0], [0, 0, 1]],
-        values=np.array(["a", "b"]),
-        dense_shape=[1, 1, 2]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["a"]),
-        dense_shape=[1, 1, 1]
-    )
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b")], dense_shape=[2, 1, 1])
+    truth = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("b"), tf.compat.as_bytes("a")], dense_shape=[2, 1, 1])
     normalize = False
     name = "edit_distance_4"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["cat"]),
-        dense_shape=[1, 1, 1]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["cat"]),
-        dense_shape=[1, 1, 1]
-    )
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b")], dense_shape=[2, 1, 1])
+    truth = tf.SparseTensor(indices=[[0, 0, 0], [0, 0, 1], [1, 0, 0], [1, 0, 1]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("c"), tf.compat.as_bytes("b"), tf.compat.as_bytes("d")], dense_shape=[2, 1, 2])
     normalize = True
     name = "edit_distance_5"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array([""]),
-        dense_shape=[1, 1, 1]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["a"]),
-        dense_shape=[1, 1, 1]
-    )
-    normalize = True
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [0, 0, 1]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b")], dense_shape=[1, 1, 2])
+    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[tf.compat.as_bytes("a")], dense_shape=[1, 1, 1])
+    normalize = False
     name = "edit_distance_6"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["abcdef"]),
-        dense_shape=[1, 1, 1]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0]],
-        values=np.array(["abcdef"]),
-        dense_shape=[1, 1, 1]
-    )
-    normalize = False
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[tf.compat.as_bytes("a")], dense_shape=[1, 1, 1])
+    truth = tf.SparseTensor(indices=[[0, 0, 0], [0, 0, 1]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b")], dense_shape=[1, 1, 2])
+    normalize = True
     name = "edit_distance_7"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 8
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0], [0, 0, 1]],
-        values=np.array(["a", "b"]),
-        dense_shape=[1, 1, 2]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0], [0, 0, 1]],
-        values=np.array(["a", "c"]),
-        dense_shape=[1, 1, 2]
-    )
+    # Input 8
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b")], dense_shape=[2, 1, 1])
+    truth = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("c")], dense_shape=[2, 1, 1])
     normalize = True
     name = "edit_distance_8"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0], [0, 0, 1], [0, 0, 2]],
-        values=np.array(["a", "b", "c"]),
-        dense_shape=[1, 1, 3]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0], [0, 0, 1], [0, 0, 2], [0, 0, 3]],
-        values=np.array(["a", "b", "c", "d"]),
-        dense_shape=[1, 1, 4]
-    )
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b")], dense_shape=[2, 1, 1])
+    truth = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("c")], dense_shape=[2, 1, 1])
     normalize = False
     name = "edit_distance_9"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0], [1, 0, 0]],
-        values=np.array(["abc", "def"]),
-        dense_shape=[2, 1, 1]
-    )
-    truth = tf.SparseTensor(
-        indices=[[0, 0, 0], [1, 0, 0]],
-        values=np.array(["abd", "de"]),
-        dense_shape=[2, 1, 1]
-    )
+    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [0, 0, 1], [1, 0, 0]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b"), tf.compat.as_bytes("c")], dense_shape=[2, 1, 2])
+    truth = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0], [1, 0, 1]], values=[tf.compat.as_bytes("a"), tf.compat.as_bytes("b"), tf.compat.as_bytes("d")], dense_shape=[2, 1, 2])
     normalize = True
     name = "edit_distance_10"
     input_dict = {"hypothesis": hypothesis, "truth": truth, "normalize": normalize, "name": name}
@@ -173,7 +93,6 @@ def tf_edit_distance_inputs():
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.edit_distance"] = tf_edit_distance_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

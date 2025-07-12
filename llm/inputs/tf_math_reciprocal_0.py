@@ -13,52 +13,62 @@ def tf_math_reciprocal_inputs():
 
     # Input 1: float32, 1D array
     x = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": "reciprocal_1"}
+    name = "reciprocal_1"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float64, 2D array
     x = np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": "reciprocal_2"}
+    name = "reciprocal_2"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: complex64, 1D array
     x = np.array([1 + 1j, 2 - 2j, 3 + 0j], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x), "name": "reciprocal_3"}
+    name = "reciprocal_3"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: complex128, 2D array
-    x = np.array([[1 + 1j, 2 - 2j], [3 + 0j, -4j]], dtype=np.complex128)
-    input_dict = {"x": tf.constant(x), "name": "reciprocal_4"}
+    x = np.array([[1 + 1j, 2 - 2j], [3 + 0j, 0 + 4j]], dtype=np.complex128)
+    name = "reciprocal_4"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: float32, 3D array
-    x = np.random.rand(2, 3, 4).astype(np.float32)
-    input_dict = {"x": tf.constant(x), "name": "reciprocal_5"}
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    name = "reciprocal_5"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float64, scalar
-    x = np.array(5.0, dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": "reciprocal_6"}
+    # Input 8: bfloat16, 1D array
+    x = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32).astype(np.float16) #cast to float16
+    name = "reciprocal_8"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: float16, 1D array
-    x = np.array([1.0, -2.0, 3.0], dtype=np.float16)
-    input_dict = {"x": tf.constant(x), "name": "reciprocal_7"}
+    
+    # Input 9: half, 2D array
+    x = np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float32).astype(np.float16)
+    name = "reciprocal_9"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: half, 2D array
-    x = np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float16)
-    input_dict = {"x": tf.constant(x), "name": "reciprocal_8"}
+    
+    # Input 10: float32 with zero
+    x = np.array([0.01, 0.1, 1.0, 0.0], dtype=np.float32)
+    name = "reciprocal_10"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: int32
-    x = np.array([-1, 2, -3, 4], dtype=np.int32)
-    input_dict = {"x": tf.cast(tf.constant(x), tf.float32), "name": "reciprocal_9"}
+    
+    # Input 11: float64, scalar value
+    x = np.array(2.5, dtype=np.float64)
+    name = "reciprocal_11"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: int64
-    x = np.array([-1, 2, -3, 4], dtype=np.int64)
-    input_dict = {"x": tf.cast(tf.constant(x), tf.float64), "name": "reciprocal_10"}
+    
+    # Input 12: float32, empty array
+    x = np.array([], dtype=np.float32)
+    name = "reciprocal_12"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

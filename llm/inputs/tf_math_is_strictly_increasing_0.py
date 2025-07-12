@@ -11,87 +11,63 @@ import copy
 def tf_math_is_strictly_increasing_inputs():
     list_of_inputs = []
 
-    # Input 1: Strictly increasing, 1D
-    x = tf.constant(np.array([1, 2, 3, 4, 5], dtype=np.float32))
-    name = "strictly_increasing_1d"
+    # Input 1: Basic increasing sequence
+    x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
+    name = "increasing_sequence"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Not strictly increasing, 1D
-    x = tf.constant(np.array([1, 2, 3, 3, 5], dtype=np.float32))
-    name = "not_strictly_increasing_1d"
+    # Input 2: Decreasing sequence
+    x = np.array([5, 4, 3, 2, 1], dtype=np.float32)
+    name = "decreasing_sequence"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Strictly increasing, 2D
-    x = tf.constant(np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32))
-    name = "strictly_increasing_2d"
+    # Input 3: Sequence with equal elements
+    x = np.array([1, 2, 2, 3, 4], dtype=np.float32)
+    name = "equal_elements"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Not strictly increasing, 2D
-    x = tf.constant(np.array([[1, 2], [3, 4], [5, 5]], dtype=np.int32))
-    name = "not_strictly_increasing_2d"
+    # Input 4: Empty sequence
+    x = np.array([], dtype=np.float32)
+    name = "empty_sequence"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Strictly increasing, 3D
-    x = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64))
-    name = "strictly_increasing_3d"
+    # Input 5: Single element sequence
+    x = np.array([5], dtype=np.float32)
+    name = "single_element"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Not strictly increasing, 3D
-    x = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 7]]], dtype=np.float64))
-    name = "not_strictly_increasing_3d"
+    # Input 6: Sequence with negative values
+    x = np.array([-5, -4, -3, -2, -1], dtype=np.float32)
+    name = "negative_values"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Negative values, strictly increasing
-    x = tf.constant(np.array([-5, -4, -3, -2, -1], dtype=np.int64))
-    name = "negative_strictly_increasing"
+    # Input 7: Sequence with mixed positive and negative values
+    x = np.array([-2, -1, 0, 1, 2], dtype=np.float32)
+    name = "mixed_values"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Mixed positive and negative, strictly increasing
-    x = tf.constant(np.array([-1, 0, 1, 2, 3], dtype=np.int32))
-    name = "mixed_strictly_increasing"
+    # Input 8: Non-strictly increasing sequence (allows equality)
+    x = np.array([1, 2, 3, 3, 4], dtype=np.float32)
+    name = "non_strictly_increasing"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Tensor with zero
-    x = tf.constant(np.array([0, 1, 2, 3, 4], dtype=np.float32))
-    name = "zero_strictly_increasing"
+    # Input 9: Sequence with integers
+    x = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    name = "integer_sequence"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty tensor, should return True
-    x = tf.constant(np.array([], dtype=np.float32))
-    name = "empty_tensor"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Single element tensor, should return True
-    x = tf.constant(np.array([5], dtype=np.float32))
-    name = "single_element_tensor"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Large values, strictly increasing
-    x = tf.constant(np.array([1e9, 1e9 + 1, 1e9 + 2], dtype=np.float32))
-    name = "large_values_strictly_increasing"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: Small values, strictly increasing
-    x = tf.constant(np.array([1e-9, 1e-8, 1e-7], dtype=np.float32))
-    name = "small_values_strictly_increasing"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14: Mixed small and large values, not strictly increasing
-    x = tf.constant(np.array([1e-9, 1e-8, 1e-7, 0.0000001, 1e9, 1e9 + 1, 1e9 + 2, 1e9], dtype=np.float32))
-    name = "mixed_small_large_not_strictly_increasing"
+    # Input 10: Sequence with some duplicates and not increasing
+    x = np.array([1, 2, 1, 4, 5], dtype=np.float64)
+    name = "not_strictly_increasing2"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -11,48 +11,72 @@ import copy
 def tf_experimental_numpy_hsplit_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 2D array, split into 2
-    ary = tf.constant(np.array([[1, 2, 3, 4], [5, 6, 7, 8]]))
+    # Input 1: 2D array, equal sections
+    ary = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
     indices_or_sections = [2]
     input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D array, split into 4 equal sections
-    ary = tf.constant(np.array([[1, 2, 3, 4], [5, 6, 7, 8]]))
-    indices_or_sections = [4]
+    # Input 2: 2D array, different sections
+    ary = np.array([[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12]])
+    indices_or_sections = [2, 5]
     input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D array, split at multiple indices
-    ary = tf.constant(np.array([[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12]]))
+    # Input 3: 3D array, equal sections
+    ary = np.array([[[1, 2, 3, 4], [5, 6, 7, 8]], [[9, 10, 11, 12], [13, 14, 15, 16]]])
+    indices_or_sections = [2]
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D array, different sections
+    ary = np.array([[[1, 2, 3, 4, 5, 6], [7, 8, 9, 10, 11, 12]], [[13, 14, 15, 16, 17, 18], [19, 20, 21, 22, 23, 24]]])
     indices_or_sections = [2, 4]
     input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 3D array, split into 2 sections along the horizontal axis (axis 1)
-    ary = tf.constant(np.array([[[1, 2, 3, 4], [5, 6, 7, 8]], [[9, 10, 11, 12], [13, 14, 15, 16]]]))
+    # Input 5: 2D array, sections equal to the number of columns
+    ary = np.array([[1, 2, 3], [4, 5, 6]])
+    indices_or_sections = [1, 2]
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 1D array, splitting into sections
+    ary = np.array([1, 2, 3, 4])
     indices_or_sections = [2]
     input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D array, split into 4 equal sections along axis 1
-    ary = tf.constant(np.array([[[1, 2, 3, 4], [5, 6, 7, 8]], [[9, 10, 11, 12], [13, 14, 15, 16]]]))
-    indices_or_sections = [4]
+    # Input 7: large array, splitting into multiple sections
+    ary = np.random.rand(10, 20)
+    indices_or_sections = [5, 10, 15]
     input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 1D array, should be treated as a 2D array (row vector)
-    ary = tf.constant(np.array([1, 2, 3, 4]))
+    # Input 8: array with different data type
+    ary = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
     indices_or_sections = [2]
     input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different data type (float)
-    ary = tf.constant(np.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]]))
-    indices_or_sections = [2]
+    # Input 9: empty list as indices_or_sections
+    ary = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
+    indices_or_sections = []  # This is a valid input.
     input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10: ary with only one column
+    ary = np.array([[1], [2], [3]])
+    indices_or_sections = [1]  # Splitting at an impossible location will result in an empty array.
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: splitting into more parts than possible
+    ary = np.array([[1,2,3]])
+    indices_or_sections = [1,2,3,4] # Should still run, but not produce error
+    input_dict = {"ary": ary, "indices_or_sections": indices_or_sections}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

@@ -6,51 +6,110 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
-import copy
 import sys
-import absl.logging
+import copy
 
 def tf_print_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with stdout
-    inputs = [np.array([1, 2, 3])]
-    input_dict = {'inputs': inputs, 'output_stream': 'sys.stdout', 'summarize': 3, 'sep': ' ', 'end': '\n', 'name': 'print_op_1'}
+    # Input 1
+    inputs = [np.array([1, 2, 3, 4, 5])]
+    output_stream = "file:///tmp/foo.out"
+    summarize = None
+    sep = " "
+    end = "\n"
+    name = "print_op_1"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Using stderr, different separator, no summarization
-    inputs = [np.array([4, 5, 6]), np.array([7, 8, 9])]
-    input_dict = {'inputs': inputs, 'output_stream': 'sys.stderr', 'summarize': None, 'sep': ',', 'end': '!', 'name': 'print_op_2'}
+    # Input 2
+    inputs = [np.array([[1, 2], [3, 4]]), np.array([5, 6, 7])]
+    output_stream = "sys.stderr"
+    summarize = 2
+    sep = ", "
+    end = "!"
+    name = "print_op_2"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Printing a large array with summarization
-    inputs = [np.arange(20)]
-    input_dict = {'inputs': inputs, 'output_stream': 'sys.stdout', 'summarize': 5, 'sep': ' ', 'end': '\n', 'name': 'print_op_3'}
+    # Input 3
+    inputs = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
+    output_stream = "sys.stdout"
+    summarize = -1
+    sep = " | "
+    end = " END"
+    name = "print_op_3"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Printing a multi-dimensional array
-    inputs = [np.array([[1, 2], [3, 4], [5,6]])]
-    input_dict = {'inputs': inputs, 'output_stream': 'sys.stdout', 'summarize': 2, 'sep': ' ', 'end': '\n', 'name': 'print_op_4'}
+    # Input 4
+    inputs = [np.array([1, 2, 3]), np.array([4, 5])]
+    output_stream = "sys.stderr"
+    summarize = 1
+    sep = "; "
+    end = "."
+    name = "print_op_4"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Printing to a file
-    inputs = [np.array([10, 11, 12])]
-    input_dict = {'inputs': inputs, 'output_stream': 'file:///tmp/test_print.txt', 'summarize': 3, 'sep': ' ', 'end': '\n', 'name': 'print_op_5'}
+    # Input 5
+    inputs = [np.array([-1, -2, -3]), np.array([0.1, 0.2, 0.3])]
+    output_stream = "sys.stdout"
+    summarize = 0
+    sep = " - "
+    end = "!!!"
+    name = "print_op_5"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Using a negative summarize value to print all elements
-    inputs = [np.array([13, 14, 15])]
-    input_dict = {'inputs': inputs, 'output_stream': 'sys.stdout', 'summarize': -1, 'sep': ' ', 'end': '\n', 'name': 'print_op_6'}
+    # Input 6
+    inputs = [np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])]
+    output_stream = "sys.stderr"
+    summarize = 4
+    sep = " + "
+    end = "~~~"
+    name = "print_op_6"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Printing a complex array
-    inputs = [np.array([1 + 1j, 2 + 2j, 3 + 3j])]
-    input_dict = {'inputs': inputs, 'output_stream': 'sys.stdout', 'summarize': 3, 'sep': ' ', 'end': '\n', 'name': 'print_op_7'}
+    # Input 7
+    inputs = [np.array([]), np.array([1])]
+    output_stream = "file:///tmp/foo2.out"
+    summarize = None
+    sep = "..."
+    end = ""
+    name = "print_op_7"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Using absl logging
-    inputs = [np.array([16, 17, 18])]
-    input_dict = {'inputs': inputs, 'output_stream': 'absl.logging.info', 'summarize': 3, 'sep': ' ', 'end': '\n', 'name': 'print_op_8'}
+    # Input 8
+    inputs = [np.array([np.inf, -np.inf, np.nan])]
+    output_stream = "sys.stderr"
+    summarize = -1
+    sep = "!!!"
+    end = "\n"
+    name = "print_op_8"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    inputs = [np.array([[1.1, 2.2], [3.3, 4.4]]), "string_val"]
+    output_stream = "sys.stdout"
+    summarize = 1
+    sep = " -!- "
+    end = "THE_END"
+    name = "print_op_9"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    inputs = [np.array([1, 2, 3]), np.array([4, 5, 6])]
+    output_stream = "sys.stderr"
+    summarize = None
+    sep = " <-> "
+    end = " |||| "
+    name = "print_op_10"
+    input_dict = {"inputs": inputs, "output_stream": output_stream, "summarize": summarize, "sep": sep, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

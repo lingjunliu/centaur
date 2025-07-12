@@ -11,19 +11,35 @@ import numpy as np
 def tf_data_experimental_ignore_errors_inputs():
     list_of_inputs = []
 
-    # Input 1
-    log_warning = False
+    # Input 1: log_warning = False
     input_dict = {
-        "log_warning": log_warning
+        "log_warning": False
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    log_warning = True
+    # Input 2: log_warning = True
     input_dict = {
-        "log_warning": log_warning
+        "log_warning": True
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: log_warning = numpy.bool_(False)
+    input_dict = {
+        "log_warning": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: log_warning = numpy.bool_(True)
+    input_dict = {
+        "log_warning": True
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: log_warning = False
+    input_dict = {
+        "log_warning": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

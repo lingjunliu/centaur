@@ -8,51 +8,59 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+tf.random.set_seed(1)
+
 def tf_experimental_numpy_random_randn_inputs():
     list_of_inputs = []
 
-    tf.random.set_seed(1)
-
-    # Input 1: Scalar
-    input_dict = {"args": ()}
+    # Input 1: Scalar shape
+    input_dict = {"args": (1,)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Single integer
+    # Input 2: 1D shape
     input_dict = {"args": (5,)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Tuple of integers
+    # Input 3: 2D shape
     input_dict = {"args": (2, 3)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Three dimensions
+    # Input 4: 3D shape
     input_dict = {"args": (2, 3, 4)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Larger dimensions
+    # Input 5: Larger shape
     input_dict = {"args": (10, 10)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: One element array
-    input_dict = {"args": (1, 1, 1)}
+    # Input 6: Another 3D shape
+    input_dict = {"args": (5, 2, 1)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Another set of dimensions
-    input_dict = {"args": (4, 2, 5)}
+    # Input 7: 4D shape
+    input_dict = {"args": (2, 2, 2, 2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Different dimension lengths
-    input_dict = {"args": (7, 1, 9)}
+    # Input 8: Empty tuple (results in scalar)
+    input_dict = {"args": ()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Even larger array
-    input_dict = {"args": (20, 20)}
+    # Input 9: Large size
+    input_dict = {"args": (100,)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Four dimensions
-    input_dict = {"args": (2, 3, 4, 5)}
+    # Input 10: Different shape
+    input_dict = {"args": (3, 5, 2)}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
+    # Input 11: Shape as numpy array
+    input_dict = {"args": (np.array([2, 3]),)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Empty numpy array
+    input_dict = {"args": (np.array([]),)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

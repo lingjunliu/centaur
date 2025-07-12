@@ -11,74 +11,74 @@ import copy
 def tf_ensure_shape_inputs():
     list_of_inputs = []
 
-    # Input 1: Valid, simple case
+    # Input 1
     x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
     shape = [2, 3]
-    name = "input_tensor"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
+    name = "input_1"
+    input_dict = {"x": x, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Valid, using None for unknown dimension
-    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    shape = [None, 3]
-    name = "unknown_dim"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Valid, 1D tensor
-    x = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    # Input 2
+    x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
     shape = [5]
-    name = "one_dimensional"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
+    name = "input_2"
+    input_dict = {"x": x, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Valid, 3D tensor
-    x = np.random.rand(2, 3, 4).astype(np.float32)
-    shape = [2, 3, 4]
-    name = "three_dimensional"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
+    # Input 3
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
+    shape = [2, 2, 2]
+    name = "input_3"
+    input_dict = {"x": x, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Valid, different data type
-    x = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    # Input 4
+    x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float64)
+    shape = [3, 2]
+    name = "input_4"
+    input_dict = {"x": x, "shape": shape, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    x = np.array([1, 2, 3], dtype=np.int32)
+    shape = [3]
+    name = "input_5"
+    input_dict = {"x": x, "shape": shape, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
     shape = [2, 3]
-    name = "float_tensor"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
+    name = "input_6"
+    input_dict = {"x": x, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Valid, unknown dimensions
-    x = np.random.rand(5, 7, 2).astype(np.float32)
-    shape = [5, None, 2]
-    name = "float_tensor_none"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
+    # Input 7
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
+    shape = [2, 2, 2]
+    name = "input_7"
+    input_dict = {"x": x, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7: Valid, using tf.float64
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    shape = [2, 2]
-    name = "float64_tensor"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
+    # Input 8
+    x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float64)
+    shape = [3, 2]
+    name = "input_8"
+    input_dict = {"x": x, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Valid, using tf.string
-    x = np.array([["a", "b"], ["c", "d"]]).astype(np.str_)
-    shape = [2, 2]
-    name = "string_tensor"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
+    # Input 9
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
+    shape = [2, 2, 2]
+    name = "input_9"
+    input_dict = {"x": x, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Valid, using tf.bool
-    x = np.array([[True, False], [False, True]])
-    shape = [2, 2]
-    name = "bool_tensor"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Valid, using tf.int64
-    x = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    shape = [2, 2]
-    name = "int64_tensor"
-    input_dict = {"x": tf.convert_to_tensor(x), "shape": shape, "name": name}
+    # Input 10
+    x = np.array([1, 2, 3, 4], dtype=np.int32)
+    shape = [4]
+    name = "input_10"
+    input_dict = {"x": x, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

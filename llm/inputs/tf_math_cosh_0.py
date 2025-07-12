@@ -11,64 +11,70 @@ import copy
 def tf_math_cosh_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, single element
-    x = np.array(1.0, dtype=np.float32)
-    name = None
-    input_dict = {"x": tf.constant(x), "name": name}
+    # Input 1: float32 scalar
+    x = np.float32(0.0)
+    name = "cosh_scalar"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32, 1D array, negative values
-    x = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
+    # Input 2: float32 1D array
+    x = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
     name = "cosh_1d"
-    input_dict = {"x": tf.constant(x), "name": name}
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float64, 2D array
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    name = None
-    input_dict = {"x": tf.constant(x), "name": name}
+    # Input 3: float32 2D array
+    x = np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float32)
+    name = "cosh_2d"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: complex64, single element
-    x = np.complex64(1 + 1j)
-    name = None
-    input_dict = {"x": tf.constant(x), "name": name}
+    # Input 4: float64 scalar
+    x = np.float64(0.5)
+    name = "cosh_scalar_double"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: complex128, 1D array
-    x = np.array([1 + 1j, 2 - 2j, 3 + 0j], dtype=np.complex128)
-    name = "cosh_complex"
-    input_dict = {"x": tf.constant(x), "name": name}
+    # Input 5: float64 1D array
+    x = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float64)
+    name = "cosh_1d_double"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float32, large values
-    x = np.array([100.0, -100.0], dtype=np.float32)
-    name = "cosh_large"
-    input_dict = {"x": tf.constant(x), "name": name}
+    # Input 6: float64 2D array
+    x = np.array([[-2.0, -1.0], [0.0, 1.0], [2.0, 3.0]], dtype=np.float64)
+    name = "cosh_2d_double"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float16, single element, negative
-    x = np.array(-2.5, dtype=np.float16)
-    name = None
-    input_dict = {"x": tf.constant(x, dtype=tf.float16), "name": name}
+    # Input 7: bfloat16 scalar
+    x = np.array(1.0, dtype=np.float16)
+    name = "cosh_bfloat16_scalar"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float64, 3D array, negative and positive
-    x = np.array([[[1.0, -2.0], [3.0, -4.0]], [[-5.0, 6.0], [-7.0, 8.0]]], dtype=np.float64)
-    name = "cosh_3d"
-    input_dict = {"x": tf.constant(x), "name": name}
+    # Input 8: half scalar
+    x = np.array(1.0, dtype=np.float16)
+    name = "cosh_half_scalar"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float32
-    x = np.array([0.0], dtype=np.float32)
-    name = None
-    input_dict = {"x": tf.constant(x), "name": name}
+    # Input 9: complex64 1D array
+    x = np.array([1+1j, 2-2j, 3+0j], dtype=np.complex64)
+    name = "cosh_complex64_1d"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: complex128 2D array
+    x = np.array([[1+1j, 2-2j], [3+0j, 0-1j]], dtype=np.complex128)
+    name = "cosh_complex128_2d"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float32
-    x = np.array([-5.0, 5.0], dtype=np.float32)
-    name = None
-    input_dict = {"x": tf.constant(x), "name": name}
+    # Input 11: float32 scalar negative
+    x = np.float32(-5.0)
+    name = "cosh_scalar_negative"
+    input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

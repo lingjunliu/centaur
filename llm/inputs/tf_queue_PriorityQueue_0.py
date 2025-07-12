@@ -12,124 +12,119 @@ def tf_queue_priority_queue_inputs():
     list_of_inputs = []
 
     # Input 1
-    capacity = 5
-    types = [np.int32]
-    shapes = [()]
-    names = [None]
-    shared_name = None
-    name = None
-    input_dict = {'capacity': capacity, 'types': types.copy(), 'shapes': shapes.copy(), 'names': names.copy(), 'shared_name': shared_name, 'name': name}
+    input_dict = {
+        "capacity": 5,
+        "types": [np.float32],
+        "shapes": [(1,)],
+        "names": ['float_val'],
+        "shared_name": "queue1",
+        "name": "priority_queue_1"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    capacity = 10
-    types = [np.float32, np.int64]
-    shapes = [(), (2,)]
-    names = [None, None]
-    shared_name = None
-    name = None
-    input_dict = {'capacity': capacity, 'types': types.copy(), 'shapes': shapes.copy(), 'names': names.copy(), 'shared_name': shared_name, 'name': name}
+    input_dict = {
+        "capacity": 10,
+        "types": [np.int32, np.float32],
+        "shapes": [(), ()],
+        "names": ['int_val', 'float_val'],
+        "shared_name": "queue2",
+        "name": "priority_queue_2"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    capacity = 2
-    types = [np.string_]
-    shapes = [(3, 4)]
-    names = [None]
-    shared_name = None
-    name = None
-    input_dict = {'capacity': capacity, 'types': types.copy(), 'shapes': shapes.copy(), 'names': names.copy(), 'shared_name': shared_name, 'name': name}
+    input_dict = {
+        "capacity": 20,
+        "types": [np.int64, np.float64, np.bool_],
+        "shapes": [(1, 2), (3,), ()],
+        "names": ['int64_val', 'float64_val', 'bool_val'],
+        "shared_name": "queue3",
+        "name": "priority_queue_3"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    capacity = 7
-    types = [np.bool_]
-    shapes = [()]
-    names = [None]
-    shared_name = None
-    name = None
-    input_dict = {'capacity': capacity, 'types': types.copy(), 'shapes': shapes.copy(), 'names': names.copy(), 'shared_name': shared_name, 'name': name}
+    input_dict = {
+        "capacity": 1,
+        "types": [tf.string],
+        "shapes": [()],
+        "names": ['string_val'],
+        "shared_name": "queue4",
+        "name": "priority_queue_4"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_dict = {
+        "capacity": 7,
+        "types": [np.complex64],
+        "shapes": [(2, 2)],
+        "names": ['complex_val'],
+        "shared_name": "queue5",
+        "name": "priority_queue_5"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_dict = {
+        "capacity": 15,
+        "types": [np.uint8, np.int16],
+        "shapes": [(1,), (2,1,3)],
+        "names": ['uint8_val', 'int16_val'],
+        "shared_name": "queue6",
+        "name": "priority_queue_6"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_dict = {
+        "capacity": 3,
+        "types": [np.float16],
+        "shapes": [()],
+        "names": ['float16_val'],
+        "shared_name": "queue7",
+        "name": "priority_queue_7"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_dict = {
+        "capacity": 12,
+        "types": [tf.dtypes.as_dtype(np.object_)],
+        "shapes": [(1,3,5)],
+        "names": ['object_val'],
+        "shared_name": "queue8",
+        "name": "priority_queue_8"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5
-    capacity = 3
-    types = [np.int32, np.float64]
-    shapes = [(), (2,2)]
-    names = [None, None]
-    shared_name = None
-    name = None
-    input_dict = {'capacity': capacity, 'types': types.copy(), 'shapes': shapes.copy(), 'names': names.copy(), 'shared_name': shared_name, 'name': name}
+    # Input 9
+    input_dict = {
+        "capacity": 8,
+        "types": [np.int8],
+        "shapes": [(4,4)],
+        "names": ['int8_val'],
+        "shared_name": "queue9",
+        "name": "priority_queue_9"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_dict = {
+        "capacity": 2,
+        "types": [np.uint32, np.uint64],
+        "shapes": [(), (1, 1)],
+        "names": ['uint32_val', 'uint64_val'],
+        "shared_name": "queue10",
+        "name": "priority_queue_10"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
 generated_inputs["tf.queue.PriorityQueue"] = tf_queue_priority_queue_inputs()
-
-import sys
-
-def check_valid(api, input_list, lib="tf", suffix=0):
-    from fuzzingbook.GrammarFuzzer import GrammarFuzzer
-    import inspect
-    from api_extractor import get_signature
-    from input_generators import get_abstract_input, generate_values, adapt_type
-    # from models import get_model
-    import numpy as np
-    # from config import CHECK_ALL, API_CONFIG
-    from tensorflow.python.framework import dtypes
-    from inspect import signature
-
-    def get_arg_type(arg):
-      if arg in dtypes.DType.__members__:
-        return dtypes.DType.__members__[arg]
-      else:
-        return arg
-
-    def get_tf_dtype(dtype):
-      if dtype == "int":
-        return tf.int32
-      elif dtype == "float":
-        return tf.float32
-      elif dtype == "string":
-        return tf.string
-      elif dtype == "double":
-        return tf.float64
-      elif dtype == "bool":
-        return tf.bool
-      elif dtype == 'int8':
-        return tf.int8
-      elif dtype == 'int16':
-        return tf.int16
-      elif dtype == 'int32':
-        return tf.int32
-      elif dtype == 'int64':
-        return tf.int64
-      elif dtype == 'uint8':
-        return tf.uint8
-      elif dtype == 'uint16':
-        return tf.uint16
-      elif dtype == 'uint32':
-        return tf.uint32
-      elif dtype == 'uint64':
-        return tf.uint64
-      elif dtype == 'float16':
-        return tf.float16
-      elif dtype == 'float32':
-        return tf.float32
-      elif dtype == 'float64':
-        return tf.float64
-      elif dtype == 'complex64':
-        return tf.complex64
-      elif dtype == 'complex128':
-        return tf.complex128
-      else:
-        return dtype
-
-
-    for input_dict in input_list:
-        # print("current api {}".format(api))
-        # print("current input dict {}".format(input_dict))
-        _ = get_abstract_input(input_dict, get_signature(api, lib=lib, suffix=suffix))
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

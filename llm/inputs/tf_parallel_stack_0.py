@@ -11,48 +11,46 @@ import copy
 def tf_parallel_stack_inputs():
     list_of_inputs = []
 
-    def create_input_dict(values, name):
-        return {"values": values, "name": name}
+    def convert_to_numpy_arrays(values):
+      return [np.array(val) for val in values]
 
-    # Input 1: Basic 1D tensors
-    values = [tf.constant([1, 2, 3]), tf.constant([4, 5, 6])]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_1")))
+    # Input 1: Simple 1D arrays
+    values = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    values = convert_to_numpy_arrays(values)
+    input_dict = {"values": values, "name": "stack_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D tensors
-    values = [tf.constant([[1, 2], [3, 4]]), tf.constant([[5, 6], [7, 8]])]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_2")))
+    # Input 2: 2D arrays
+    values = [[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]]
+    values = convert_to_numpy_arrays(values)
+    input_dict = {"values": values, "name": "stack_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Tensors with different data types (float)
-    values = [tf.constant([1.0, 2.0, 3.0]), tf.constant([4.0, 5.0, 6.0])]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_4")))
+    # Input 3: Different numerical types (int32)
+    values = [[1, 2, 3], [4, 5, 6]]
+    values = convert_to_numpy_arrays(values)
+    values = [arr.astype(np.int32) for arr in values]
+    input_dict = {"values": values, "name": "stack_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Tensors with different data types (bool)
-    values = [tf.constant([True, False, True]), tf.constant([False, True, False])]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_5")))
+    # Input 4: Different numerical types (float32)
+    values = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
+    values = convert_to_numpy_arrays(values)
+    values = [arr.astype(np.float32) for arr in values]
+    input_dict = {"values": values, "name": "stack_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Tensors with negative values
-    values = [tf.constant([-1, -2, -3]), tf.constant([-4, -5, -6])]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_7")))
+    # Input 5: different name
+    values = [[1, 2], [3, 4]]
+    values = convert_to_numpy_arrays(values)
+    input_dict = {"values": values, "name": "another_stack"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6:  Tensors with different shape of type float64
-    values = [tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float64), tf.constant([[5.0, 6.0], [7.0, 8.0]], dtype=tf.float64)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_8")))
-
-    # Input 7:  Tensors with 1 element
-    values = [tf.constant([1]), tf.constant([2])]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_9")))
-
-    # Input 8: Tensors of complex numbers
-    values = [tf.constant([1+1j, 2+2j]), tf.constant([3+3j, 4+4j])]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_10")))
-
-    # Input 9: String tensors
-    values = [tf.constant(["hello", "world"]), tf.constant(["foo", "bar"])]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_12")))
-
-    # Input 10: Rank 0 tensors
-    values = [tf.constant(1), tf.constant(2)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_13")))
+    # Input 6: Negative values
+    values = [[-1, -2], [-3, -4]]
+    values = convert_to_numpy_arrays(values)
+    input_dict = {"values": values, "name": "negative_stack"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

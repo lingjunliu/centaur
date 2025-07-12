@@ -11,56 +11,35 @@ import copy
 def tf_nn_RNNCellDeviceWrapper_inputs():
     list_of_inputs = []
 
-    # Input 1: SimpleRNNCell
-    cell_1 = tf.keras.layers.SimpleRNNCell(units=128)
-    input_dict_1 = {"cell": (cell_1,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: Simple LSTMCell
+    lstm_cell1 = tf.keras.layers.LSTMCell(units=128)
+    input_dict1 = {"cell": (lstm_cell1,)}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: LSTMCell
-    cell_2 = tf.keras.layers.LSTMCell(units=256)
-    input_dict_2 = {"cell": (cell_2,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_2))
+    # Input 2: GRUCell
+    gru_cell2 = tf.keras.layers.GRUCell(units=64)
+    input_dict2 = {"cell": (gru_cell2,)}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: GRUCell
-    cell_3 = tf.keras.layers.GRUCell(units=64)
-    input_dict_3 = {"cell": (cell_3,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_3))
+    # Input 3: Simple RNNCell
+    simple_rnn_cell3 = tf.keras.layers.SimpleRNNCell(units=32)
+    input_dict3 = {"cell": (simple_rnn_cell3,)}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4:  LSTM
-    cell_4 = tf.keras.layers.LSTMCell(units=32)
-    input_dict_4 = {"cell": (cell_4,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    # Input 4: LSTMCell
+    lstm_cell4 = tf.keras.layers.LSTMCell(units=64)
+    input_dict4 = {"cell": (lstm_cell4,)}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5: GRUCell
+    gru_cell5 = tf.keras.layers.GRUCell(units=32)
+    input_dict5 = {"cell": (gru_cell5,)}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-
-    # Input 5: Using LSTMCell again
-    base_cell_5 = tf.keras.layers.LSTMCell(units=128)
-    input_dict_5 = {"cell": (base_cell_5,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_5))
-
-    # Input 6:  Trying SimpleRNN with a different unit size.
-    base_cell_6 = tf.keras.layers.SimpleRNNCell(units=200)
-    input_dict_6 = {"cell": (base_cell_6,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_6))
-
-    # Input 7: Gated Recurrent Unit
-    cell_7 = tf.keras.layers.GRUCell(units=128)
-    input_dict_7 = {"cell": (cell_7,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_7))
-
-    # Input 8:  More LSTM
-    cell_8 = tf.keras.layers.LSTMCell(units=256)
-    input_dict_8 = {"cell": (cell_8,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_8))
-
-    # Input 9: Some GRU
-    cell_9 = tf.keras.layers.GRUCell(units=64)
-    input_dict_9 = {"cell": (cell_9,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_9))
-
-    # Input 10: SimpleRNN
-    cell_10 = tf.keras.layers.SimpleRNNCell(units=128)
-    input_dict_10 = {"cell": (cell_10,)}
-    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    # Input 6: SimpleRNN
+    simple_rnn_cell6 = tf.keras.layers.SimpleRNNCell(units=16)
+    input_dict6 = {"cell": (simple_rnn_cell6,)}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
     return list_of_inputs
 

@@ -11,63 +11,63 @@ import copy
 def tf_experimental_numpy_equal_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic equality with integers
-    x1 = tf.constant(np.array([1, 2, 3]))
-    x2 = tf.constant(np.array([1, 4, 3]))
+    # Input 1: Basic equal arrays
+    x1 = np.array([1, 2, 3])
+    x2 = np.array([1, 2, 3])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Equality with floats
-    x1 = tf.constant(np.array([1.0, 2.5, 3.2]))
-    x2 = tf.constant(np.array([1.0, 2.5, 3.0]))
+    # Input 2: Different arrays
+    x1 = np.array([1, 2, 3])
+    x2 = np.array([4, 5, 6])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Equality with booleans
-    x1 = tf.constant(np.array([True, False, True]))
-    x2 = tf.constant(np.array([True, True, False]))
+    # Input 3: Arrays with different shapes (broadcasting should happen)
+    x1 = np.array([[1, 2, 3], [4, 5, 6]])
+    x2 = np.array([1, 2, 3])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Equality with strings (byte strings)
-    x1 = tf.constant(np.array([b"a", b"b", b"c"]))
-    x2 = tf.constant(np.array([b"a", b"b", b"d"]))
+    # Input 4: Arrays with different data types
+    x1 = np.array([1, 2, 3], dtype=np.int32)
+    x2 = np.array([1, 2, 3], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Equality with multi-dimensional arrays
-    x1 = tf.constant(np.array([[1, 2], [3, 4]]))
-    x2 = tf.constant(np.array([[1, 5], [3, 4]]))
+    # Input 5: Arrays with boolean values
+    x1 = np.array([True, False, True])
+    x2 = np.array([True, True, False])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different shapes (broadcasting)
-    x1 = tf.constant(np.array([1, 2, 3]))
-    x2 = tf.constant(np.array(2))
+    # Input 6: Multi-dimensional arrays
+    x1 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    x2 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different dtypes
-    x1 = tf.constant(np.array([1, 2, 3], dtype=np.int32))
-    x2 = tf.constant(np.array([1, 2, 3], dtype=np.float32))
+    # Input 7: Arrays with negative values
+    x1 = np.array([-1, -2, -3])
+    x2 = np.array([-1, -2, -3])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Negative values
-    x1 = tf.constant(np.array([-1, -2, -3]))
-    x2 = tf.constant(np.array([-1, -2, -4]))
+    # Input 8: Arrays with zero values
+    x1 = np.array([0, 0, 0])
+    x2 = np.array([0, 0, 0])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Complex numbers
-    x1 = tf.constant(np.array([1+1j, 2+2j, 3+3j]))
-    x2 = tf.constant(np.array([1+1j, 2+2j, 4+4j]))
+    # Input 9: Arrays with mixed positive and negative values
+    x1 = np.array([-1, 2, -3])
+    x2 = np.array([-1, 2, -3])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty arrays (using numpy empty array)
-    x1 = tf.constant(np.empty((0,)))
-    x2 = tf.constant(np.empty((0,)))
+    # Input 10: Arrays with different types, but same content after casting (int and float).
+    x1 = np.array([1, 2, 3], dtype=np.int32)
+    x2 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

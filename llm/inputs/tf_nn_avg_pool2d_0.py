@@ -12,201 +12,103 @@ def tf_nn_avg_pool2d_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.random.rand(1, 4, 4, 1).astype(np.float32)
+    input_tensor = np.random.rand(1, 5, 5, 1).astype(np.float32)
     ksize = [1, 2, 2, 1]
-    strides = [1, 2, 2, 1]
+    strides = [1, 1, 1, 1]
     padding = 'VALID'
     data_format = 'NHWC'
-    name = None
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = 'avgpool1'
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    ksize = [1, 4, 4, 1]
+    input_tensor = np.random.rand(1, 10, 10, 3).astype(np.float32)
+    ksize = [1, 3, 3, 1]
     strides = [1, 2, 2, 1]
     padding = 'SAME'
     data_format = 'NHWC'
-    name = "avg_pool_1"
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = 'avgpool2'
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.random.rand(2, 16, 16, 5).astype(np.float32)
-    ksize = [1, 8, 8, 1]
-    strides = [1, 4, 4, 1]
+    input_tensor = np.random.rand(2, 7, 7, 2).astype(np.float32)
+    ksize = [1, 4, 4, 1]
+    strides = [1, 3, 3, 1]
     padding = 'VALID'
     data_format = 'NHWC'
-    name = None
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = 'avgpool3'
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.random.rand(1, 32, 32, 7).astype(np.float32)
-    ksize = [1, 16, 16, 1]
-    strides = [1, 8, 8, 1]
+    input_tensor = np.random.rand(3, 12, 12, 4).astype(np.float32)
+    ksize = [1, 5, 5, 1]
+    strides = [1, 4, 4, 1]
     padding = 'SAME'
     data_format = 'NHWC'
-    name = "avg_pool_2"
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = 'avgpool4'
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5
-    input_tensor = np.random.rand(1, 4, 4, 1).astype(np.float32)
+    # Input 5
+    input_tensor = np.random.rand(1, 8, 8, 1).astype(np.float32)
     ksize = [1, 2, 2, 1]
     strides = [1, 1, 1, 1]
     padding = 'VALID'
     data_format = 'NHWC'
     name = None
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_tensor = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    ksize = [1, 4, 4, 1]
+     # Input 6
+    input_tensor = np.random.rand(1, 10, 10, 3).astype(np.float32)
+    ksize = [1, 3, 3, 1]
     strides = [1, 1, 1, 1]
     padding = 'SAME'
     data_format = 'NHWC'
-    name = "avg_pool_1"
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = None
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = np.random.rand(2, 16, 16, 5).astype(np.float32)
-    ksize = [1, 8, 8, 1]
+    input_tensor = np.random.rand(1, 5, 5, 1).astype(np.float32)
+    ksize = [1, 2, 2, 1]
     strides = [1, 2, 2, 1]
     padding = 'VALID'
     data_format = 'NHWC'
-    name = None
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = 'avgpool7'
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = np.random.rand(1, 32, 32, 7).astype(np.float32)
-    ksize = [1, 16, 16, 1]
-    strides = [1, 4, 4, 1]
+    input_tensor = np.random.rand(1, 10, 10, 3).astype(np.float32)
+    ksize = [1, 3, 3, 1]
+    strides = [1, 1, 1, 1]
     padding = 'SAME'
     data_format = 'NHWC'
-    name = "avg_pool_2"
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = 'avgpool8'
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 9
-    input_tensor = np.random.rand(1, 4, 4, 1).astype(np.float32)
-    ksize = [2, 2]
-    strides = [2, 2]
+    input_tensor = np.random.rand(1, 5, 5, 1).astype(np.float32)
+    ksize = [1,2,2,1]
+    strides = [1,2,2,1]
     padding = 'VALID'
     data_format = 'NHWC'
-    name = None
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = 'avgpool9'
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    ksize = [4, 4]
-    strides = [2, 2]
+    input_tensor = np.random.rand(1, 10, 10, 3).astype(np.float32)
+    ksize = [1,3,3,1]
+    strides = [1,1,1,1]
     padding = 'SAME'
     data_format = 'NHWC'
-    name = "avg_pool_1"
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11
-    input_tensor = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    ksize = [1]
-    strides = [1]
-    padding = 'SAME'
-    data_format = 'NHWC'
-    name = "avg_pool_1"
-
-    input_dict = {
-        "input": tf.convert_to_tensor(input_tensor),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
+    name = 'avgpool10'
+    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

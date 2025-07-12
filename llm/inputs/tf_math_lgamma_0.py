@@ -12,39 +12,60 @@ def tf_math_lgamma_inputs():
     list_of_inputs = []
 
     # Input 1: Basic positive float32
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    input_dict = {"x": x, "name": None}
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.tolist()), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic positive float64
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float64))
-    input_dict = {"x": x, "name": None}
+    # Input 2: Basic negative float32
+    x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.tolist()), "name": "negative_test"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Basic negative float32
-    x = tf.constant(np.array([-1.0, -2.0, -3.0], dtype=np.float32))
-    input_dict = {"x": x, "name": None}
+    # Input 3: Mixed positive and negative float32
+    x = np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.tolist()), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Basic negative float64
-    x = tf.constant(np.array([-1.0, -2.0, -3.0], dtype=np.float64))
-    input_dict = {"x": x, "name": None}
+    # Input 4: float64
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    input_dict = {"x": tf.constant(x.tolist()), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Zero float32
-    x = tf.constant(np.array([0.0], dtype=np.float32))
-    input_dict = {"x": x, "name": None}
+    # Input 5: float16
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    input_dict = {"x": tf.constant(x.tolist()), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Zero float64
-    x = tf.constant(np.array([0.0], dtype=np.float64))
-    input_dict = {"x": x, "name": None}
+    # Input 6: half
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    input_dict = {"x": tf.constant(x.tolist()), "name": "half_test"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Mixed positive and negative float32
-    x = tf.constant(np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float32))
-    input_dict = {"x": x, "name": None}
+    # Input 7: Multi-dimensional float32
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.tolist()), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Multi-dimensional float64
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
+    input_dict = {"x": tf.constant(x.tolist()), "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Values close to zero
+    x = np.array([0.1, 0.5, 0.9], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.tolist()), "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Larger negative values
+    x = np.array([-5.0, -10.0, -15.0], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.tolist()), "name": "large_negative"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Single value
+    x = np.array([5.0], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.tolist()), "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

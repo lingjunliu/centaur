@@ -16,19 +16,19 @@ def tf_data_experimental_make_csv_dataset_inputs():
         'file_pattern': ['file1.csv', 'file2.csv'],
         'batch_size': 32,
         'column_names': ['col1', 'col2', 'col3'],
-        'column_defaults': [np.array(0.0, dtype=np.float32), np.array("", dtype=np.string_), np.array(0, dtype=np.int32)],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float32), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int32)],
         'label_name': 'col3',
         'select_columns': [0, 1, 2],
         'field_delim': ',',
         'use_quote_delim': True,
-        'na_value': '',
+        'na_value': 'NA',
         'header': True,
         'num_epochs': 10,
         'shuffle': True,
         'shuffle_buffer_size': 1000,
         'shuffle_seed': 42,
-        'prefetch_buffer_size': 10,
-        'num_parallel_reads': 1,
+        'prefetch_buffer_size': tf.data.AUTOTUNE,
+        'num_parallel_reads': tf.data.AUTOTUNE,
         'sloppy': False,
         'num_rows_for_inference': 10,
         'compression_type': None,
@@ -39,25 +39,25 @@ def tf_data_experimental_make_csv_dataset_inputs():
 
     # Input 2
     input_dict = {
-        'file_pattern': ['data.csv'],
+        'file_pattern': ['data*.csv'],
         'batch_size': 64,
         'column_names': ['feature1', 'feature2', 'target'],
-        'column_defaults': [np.array(0.0, dtype=np.float64), np.array("", dtype=np.string_), np.array(0, dtype=np.int64)],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float64), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int64)],
         'label_name': 'target',
         'select_columns': [0, 1, 2],
         'field_delim': ';',
         'use_quote_delim': False,
-        'na_value': 'NA',
+        'na_value': '',
         'header': False,
-        'num_epochs': None,
+        'num_epochs': 1,
         'shuffle': False,
         'shuffle_buffer_size': 5000,
-        'shuffle_seed': None,
-        'prefetch_buffer_size': 10,
+        'shuffle_seed': 123,
+        'prefetch_buffer_size': 100,
         'num_parallel_reads': 4,
         'sloppy': True,
         'num_rows_for_inference': 50,
-        'compression_type': None,
+        'compression_type': 'GZIP',
         'ignore_errors': True,
         'encoding': 'latin-1'
     }
@@ -65,74 +65,22 @@ def tf_data_experimental_make_csv_dataset_inputs():
 
     # Input 3
     input_dict = {
-        'file_pattern': ['train.csv', 'val.csv'],
+        'file_pattern': ['test.csv'],
         'batch_size': 128,
-        'column_names': ['a', 'b', 'c', 'd'],
-        'column_defaults': [np.array(0, dtype=np.int32), np.array("", dtype=np.string_), np.array(0.0, dtype=np.float32), np.array(0, dtype=np.int32)],
-        'label_name': 'd',
+        'column_names': ['f1', 'f2', 'f3', 'label'],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float32), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)],
+        'label_name': 'label',
         'select_columns': [0, 1, 2, 3],
         'field_delim': '\t',
         'use_quote_delim': True,
-        'na_value': '?',
+        'na_value': 'unknown',
         'header': True,
-        'num_epochs': 5,
+        'num_epochs': None,
         'shuffle': True,
-        'shuffle_buffer_size': 2000,
-        'shuffle_seed': 123,
-        'prefetch_buffer_size': 10,
-        'num_parallel_reads': 2,
-        'sloppy': False,
-        'num_rows_for_inference': 200,
-        'compression_type': None,
-        'ignore_errors': False,
-        'encoding': 'utf-8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_dict = {
-        'file_pattern': ['test.csv'],
-        'batch_size': 16,
-        'column_names': ['x', 'y', 'z'],
-        'column_defaults': [np.array(0.0, dtype=np.float32), np.array(0.0, dtype=np.float32), np.array(0.0, dtype=np.float32)],
-        'label_name': 'z',
-        'select_columns': [0, 1, 2],
-        'field_delim': ',',
-        'use_quote_delim': True,
-        'na_value': 'NaN',
-        'header': True,
-        'num_epochs': 1,
-        'shuffle': False,
-        'shuffle_buffer_size': 100,
-        'shuffle_seed': 7,
-        'prefetch_buffer_size': 5,
-        'num_parallel_reads': 1,
-        'sloppy': True,
-        'num_rows_for_inference': 1000,
-        'compression_type': None,
-        'ignore_errors': True,
-        'encoding': 'utf-8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input_dict = {
-        'file_pattern': ['*.csv'],
-        'batch_size': 256,
-        'column_names': ['col_a', 'col_b', 'col_c'],
-        'column_defaults': [np.array("", dtype=np.string_), np.array(0, dtype=np.int64), np.array(0.0, dtype=np.float64)],
-        'label_name': 'col_c',
-        'select_columns': [0, 1, 2],
-        'field_delim': ',',
-        'use_quote_delim': True,
-        'na_value': '',
-        'header': False,
-        'num_epochs': 2,
-        'shuffle': True,
-        'shuffle_buffer_size': 8000,
-        'shuffle_seed': 99,
-        'prefetch_buffer_size': 10,
-        'num_parallel_reads': 8,
+        'shuffle_buffer_size': 20000,
+        'shuffle_seed': None,
+        'prefetch_buffer_size': None,
+        'num_parallel_reads': None,
         'sloppy': False,
         'num_rows_for_inference': None,
         'compression_type': None,
@@ -141,103 +89,77 @@ def tf_data_experimental_make_csv_dataset_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6
+    # Input 4
     input_dict = {
-        'file_pattern': ['data1.csv', 'data2.csv'],
-        'batch_size': 8,
-        'column_names': ['f1', 'f2', 'f3', 'l'],
-        'column_defaults': [np.array(0.0, dtype=np.float32), np.array(0, dtype=np.int32), np.array("", dtype=np.string_), np.array(0, dtype=np.int32)],
-        'label_name': 'l',
-        'select_columns': [0, 1, 2, 3],
+        'file_pattern': ['large_data.csv'],
+        'batch_size': 256,
+        'column_names': ['col_a', 'col_b', 'col_c', 'col_d', 'target_col'],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float64), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int64), tf.constant(1.0, dtype=tf.float64), tf.constant(0, dtype=tf.int32)],
+        'label_name': 'target_col',
+        'select_columns': [0, 1, 2, 3, 4],
         'field_delim': ',',
         'use_quote_delim': True,
         'na_value': 'N/A',
         'header': True,
-        'num_epochs': 3,
-        'shuffle': True,
-        'shuffle_buffer_size': 1024,
-        'shuffle_seed': 10,
-        'prefetch_buffer_size': 10,
-        'num_parallel_reads': 2,
-        'sloppy': False,
-        'num_rows_for_inference': 100,
-        'compression_type': None,
-        'ignore_errors': True,
-        'encoding': 'utf-8'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 7
-    input_dict = {
-        'file_pattern': ['single.csv'],
-        'batch_size': 4,
-        'column_names': ['feat1', 'feat2', 'lab'],
-        'column_defaults': [np.array(0.0, dtype=np.float64), np.array("", dtype=np.string_), np.array(0, dtype=np.int64)],
-        'label_name': 'lab',
-        'select_columns': [0, 1, 2],
-        'field_delim': ';',
-        'use_quote_delim': False,
-        'na_value': 'unknown',
-        'header': False,
-        'num_epochs': None,
-        'shuffle': False,
-        'shuffle_buffer_size': 2048,
-        'shuffle_seed': None,
-        'prefetch_buffer_size': 10,
-        'num_parallel_reads': 1,
-        'sloppy': True,
-        'num_rows_for_inference': 50,
-        'compression_type': None,
-        'ignore_errors': False,
-        'encoding': 'latin1'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_dict = {
-        'file_pattern': ['a.csv', 'b.csv', 'c.csv'],
-        'batch_size': 32,
-        'column_names': ['one', 'two', 'three', 'four'],
-        'column_defaults': [np.array("", dtype=np.string_), np.array(0, dtype=np.int32), np.array(0.0, dtype=np.float32), np.array(0, dtype=np.int32)],
-        'label_name': 'four',
-        'select_columns': [0, 1, 2, 3],
-        'field_delim': '\t',
-        'use_quote_delim': True,
-        'na_value': 'None',
-        'header': True,
         'num_epochs': 2,
         'shuffle': True,
-        'shuffle_buffer_size': 4096,
-        'shuffle_seed': 42,
-        'prefetch_buffer_size': 10,
-        'num_parallel_reads': 4,
-        'sloppy': False,
-        'num_rows_for_inference': 20,
-        'compression_type': None,
+        'shuffle_buffer_size': 15000,
+        'shuffle_seed': 99,
+        'prefetch_buffer_size': 500,
+        'num_parallel_reads': 8,
+        'sloppy': True,
+        'num_rows_for_inference': 200,
+        'compression_type': 'ZLIB',
         'ignore_errors': True,
         'encoding': 'ascii'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
+    # Input 5
     input_dict = {
-        'file_pattern': ['mydata.csv'],
-        'batch_size': 64,
-        'column_names': ['A', 'B', 'C'],
-        'column_defaults': [np.array(0.0, dtype=np.float32), np.array(0, dtype=np.int64), np.array("", dtype=np.string_)],
-        'label_name': 'C',
+        'file_pattern': ['data.csv'],
+        'batch_size': 16,
+        'column_names': ['feat1', 'feat2', 'label'],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float32), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int32)],
+        'label_name': 'label',
         'select_columns': [0, 1, 2],
         'field_delim': ',',
         'use_quote_delim': True,
-        'na_value': '',
+        'na_value': '?',
+        'header': True,
+        'num_epochs': 5,
+        'shuffle': True,
+        'shuffle_buffer_size': 8000,
+        'shuffle_seed': 77,
+        'prefetch_buffer_size': 200,
+        'num_parallel_reads': 2,
+        'sloppy': False,
+        'num_rows_for_inference': 75,
+        'compression_type': None,
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_dict = {
+        'file_pattern': ['abc.csv'],
+        'batch_size': 4,
+        'column_names': ['a', 'b', 'c'],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float32), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int32)],
+        'label_name': 'c',
+        'select_columns': [0, 1, 2],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': 'NA',
         'header': True,
         'num_epochs': 1,
         'shuffle': False,
-        'shuffle_buffer_size': 128,
-        'shuffle_seed': 7,
-        'prefetch_buffer_size': 10,
-        'num_parallel_reads': 1,
-        'sloppy': True,
+        'shuffle_buffer_size': 1000,
+        'shuffle_seed': 42,
+        'prefetch_buffer_size': tf.data.AUTOTUNE,
+        'num_parallel_reads': tf.data.AUTOTUNE,
+        'sloppy': False,
         'num_rows_for_inference': 10,
         'compression_type': None,
         'ignore_errors': False,
@@ -245,29 +167,107 @@ def tf_data_experimental_make_csv_dataset_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
+    # Input 7: Different delimiter and quote settings
     input_dict = {
-        'file_pattern': ['all_data.csv'],
-        'batch_size': 128,
-        'column_names': ['feature_1', 'feature_2', 'target_var'],
-        'column_defaults': [np.array(0.0, dtype=np.float32), np.array(0.0, dtype=np.float32), np.array(0, dtype=np.int32)],
-        'label_name': 'target_var',
+        'file_pattern': ['path/to/file.dat'],
+        'batch_size': 8,
+        'column_names': ['col_A', 'col_B', 'label_col'],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float32), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int32)],
+        'label_name': 'label_col',
         'select_columns': [0, 1, 2],
-        'field_delim': ',',
-        'use_quote_delim': True,
-        'na_value': 'nan',
-        'header': True,
+        'field_delim': '|',
+        'use_quote_delim': False,
+        'na_value': 'missing',
+        'header': False,
         'num_epochs': 3,
         'shuffle': True,
-        'shuffle_buffer_size': 256,
+        'shuffle_buffer_size': 500,
         'shuffle_seed': 1234,
-        'prefetch_buffer_size': 10,
-        'num_parallel_reads': 2,
+        'prefetch_buffer_size': 50,
+        'num_parallel_reads': 1,
+        'sloppy': True,
+        'num_rows_for_inference': 5,
+        'compression_type': None,
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Using select_columns with column names
+    input_dict = {
+        'file_pattern': ['another_file.txt'],
+        'batch_size': 10,
+        'column_names': ['id', 'value1', 'value2', 'class'],
+        'column_defaults': [tf.constant(0, dtype=tf.int32), tf.constant(1.0, dtype=tf.float32), tf.constant(1.0, dtype=tf.float32), tf.constant("default", dtype=tf.string)],
+        'label_name': 'class',
+        'select_columns': [0, 1, 3],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': 'None',
+        'header': True,
+        'num_epochs': 1,
+        'shuffle': False,
+        'shuffle_buffer_size': 100,
+        'shuffle_seed': 5678,
+        'prefetch_buffer_size': tf.data.AUTOTUNE,
+        'num_parallel_reads': 4,
         'sloppy': False,
-        'num_rows_for_inference': 100,
+        'num_rows_for_inference': 10,
         'compression_type': None,
         'ignore_errors': True,
         'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9:  compression and encoding settings
+    input_dict = {
+        'file_pattern': ['compressed_data.csv.gz'],
+        'batch_size': 64,
+        'column_names': ['col1', 'col2', 'col3'],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float32), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int32)],
+        'label_name': 'col3',
+        'select_columns': [0, 1, 2],
+        'field_delim': ',',
+        'use_quote_delim': True,
+        'na_value': 'NA',
+        'header': True,
+        'num_epochs': 10,
+        'shuffle': True,
+        'shuffle_buffer_size': 1000,
+        'shuffle_seed': 42,
+        'prefetch_buffer_size': tf.data.AUTOTUNE,
+        'num_parallel_reads': tf.data.AUTOTUNE,
+        'sloppy': False,
+        'num_rows_for_inference': 10,
+        'compression_type': 'GZIP',
+        'ignore_errors': False,
+        'encoding': 'utf-8'
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10. remove file pattern
+    input_dict = {
+        'file_pattern': [],
+        'batch_size': 64,
+        'column_names': ['feature1', 'feature2', 'target'],
+        'column_defaults': [tf.constant(1.0, dtype=tf.float64), tf.constant("default", dtype=tf.string), tf.constant(0, dtype=tf.int64)],
+        'label_name': 'target',
+        'select_columns': [0, 1, 2],
+        'field_delim': ';',
+        'use_quote_delim': False,
+        'na_value': '',
+        'header': False,
+        'num_epochs': 1,
+        'shuffle': False,
+        'shuffle_buffer_size': 5000,
+        'shuffle_seed': 123,
+        'prefetch_buffer_size': 100,
+        'num_parallel_reads': 4,
+        'sloppy': True,
+        'num_rows_for_inference': 50,
+        'compression_type': 'GZIP',
+        'ignore_errors': True,
+        'encoding': 'latin-1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -15,70 +15,70 @@ def tf_experimental_numpy_tensordot_inputs():
     a = np.array([[1, 2], [3, 4]])
     b = np.array([[5, 6], [7, 8]])
     axes = 1
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    b = np.array([[9, 10], [11, 12]])
+    b = np.array([[1, 2], [3, 4]])
     axes = 1
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    a = np.array([1, 2, 3])
-    b = np.array([4, 5, 6])
-    axes = 0
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    a = np.array([[1, 2], [3, 4]])
+    b = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axes = 1
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    a = np.array([[1, 2, 3], [4, 5, 6]])
-    b = np.array([[7, 8], [9, 10], [11, 12]])
+    a = np.array([1, 2, 3])
+    b = np.array([4, 5, 6])
     axes = 1
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    b = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])
-    axes = 2
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    a = np.array([[1, 2, 3], [4, 5, 6]])
+    b = np.array([[7, 8], [9, 10], [11, 12]])
+    axes = 1
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([5, 6])
-    axes = 0
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    a = np.array([1, 2, 3])
+    b = np.array([[4, 5], [6, 7], [8, 9]])
+    axes = 1
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    a = np.array([1, 2, 3, 4, 5])
-    b = np.array([6, 7, 8, 9, 10])
-    axes = 1
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    a = np.array([[1, 2], [3, 4], [5, 6]])
+    b = np.array([7, 8, 9])
+    axes = 0
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    b = np.array([9, 10, 11, 12])
-    axes = 0
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    a = np.array([[[1,2],[3,4]],[[5,6],[7,8]]])
+    b = np.array([[[9,10],[11,12]],[[13,14],[15,16]]])
+    axes = 2
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     a = np.array([[1, 2, 3], [4, 5, 6]])
-    b = np.array([7,8,9])
+    b = np.array([[7, 8, 9], [10, 11, 12]])
     axes = 0
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    a = np.array([1, 2])
-    b = np.array([[3,4],[5,6]])
-    axes = 0
-    input_dict = {"a": tf.constant(a), "b": tf.constant(b), "axes": int(axes)}
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    b = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])
+    axes = 1
+    input_dict = {"a": a, "b": b, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

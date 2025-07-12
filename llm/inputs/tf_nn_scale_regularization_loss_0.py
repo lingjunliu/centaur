@@ -11,33 +11,53 @@ import copy
 def tf_nn_scale_regularization_loss_inputs():
     list_of_inputs = []
 
-    # Input 1: Scalar tensor
-    regularization_loss = tf.constant(1.0)
+    # Input 1: Scalar loss
+    regularization_loss = np.float32(0.1)
     input_dict = {"regularization_loss": regularization_loss}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Positive value
-    regularization_loss = tf.constant(5.0)
+    # Input 2: Small positive loss
+    regularization_loss = np.float32(0.0001)
     input_dict = {"regularization_loss": regularization_loss}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative value
-    regularization_loss = tf.constant(-2.0)
+    # Input 3: Zero loss
+    regularization_loss = np.float32(0.0)
     input_dict = {"regularization_loss": regularization_loss}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Zero value
-    regularization_loss = tf.constant(0.0)
+    # Input 4: Negative loss (although regularization loss should ideally be non-negative)
+    regularization_loss = np.float32(-0.1)
     input_dict = {"regularization_loss": regularization_loss}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Rank 1 tensor
-    regularization_loss = tf.constant([1.0, 2.0, 3.0])
+    # Input 5: Larger loss
+    regularization_loss = np.float32(10.0)
     input_dict = {"regularization_loss": regularization_loss}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Rank 2 tensor
-    regularization_loss = tf.constant([[1.0, 2.0], [3.0, 4.0]])
+    # Input 6: Loss with a different dtype
+    regularization_loss = np.float64(0.1)
+    input_dict = {"regularization_loss": regularization_loss}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Loss with a very small value
+    regularization_loss = np.float32(1e-8)
+    input_dict = {"regularization_loss": regularization_loss}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Large value
+    regularization_loss = np.float32(1e8)
+    input_dict = {"regularization_loss": regularization_loss}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9:  A different small value
+    regularization_loss = np.float32(1e-4)
+    input_dict = {"regularization_loss": regularization_loss}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: A different medium value
+    regularization_loss = np.float32(5.0)
     input_dict = {"regularization_loss": regularization_loss}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -17,7 +17,58 @@ def tf_feature_column_make_parse_example_spec_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Single numeric column
-    feature_columns = [tf.feature_column.numeric_column("feature_a")]
+    feature_columns = [tf.compat.v1.feature_column.numeric_column("feature_a", dtype=tf.float32)]
+    input_dict = {"feature_columns": feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Multiple numeric columns
+    feature_columns = [
+        tf.compat.v1.feature_column.numeric_column("feature_a", dtype=tf.float32),
+        tf.compat.v1.feature_column.numeric_column("feature_b", dtype=tf.float32)
+    ]
+    input_dict = {"feature_columns": feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Single categorical column with vocabulary list
+    feature_columns = [
+        tf.compat.v1.feature_column.categorical_column_with_vocabulary_list(
+            "feature_c", vocabulary_list=["a", "b", "c"], dtype=tf.string)
+    ]
+    input_dict = {"feature_columns": feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Multiple categorical and numeric columns
+    feature_columns = [
+        tf.compat.v1.feature_column.numeric_column("feature_a", dtype=tf.float32),
+        tf.compat.v1.feature_column.categorical_column_with_vocabulary_list(
+            "feature_c", vocabulary_list=["a", "b", "c"], dtype=tf.string),
+        tf.compat.v1.feature_column.numeric_column("feature_b", dtype=tf.float32)
+    ]
+    input_dict = {"feature_columns": feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Bucketized column
+    feature_columns = [
+        tf.compat.v1.feature_column.bucketized_column(
+            tf.compat.v1.feature_column.numeric_column("feature_d", dtype=tf.float32),
+            boundaries=[0, 10, 20, 30])
+    ]
+    input_dict = {"feature_columns": feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Numeric column with default value
+    feature_columns = [
+        tf.compat.v1.feature_column.numeric_column("feature_e", dtype=tf.float32, default_value=0.0)
+    ]
+    input_dict = {"feature_columns": feature_columns}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Indicator column with categorical column
+    feature_columns = [
+        tf.compat.v1.feature_column.indicator_column(
+            tf.compat.v1.feature_column.categorical_column_with_vocabulary_list(
+                "feature_f", vocabulary_list=["x", "y"], dtype=tf.string))
+    ]
     input_dict = {"feature_columns": feature_columns}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

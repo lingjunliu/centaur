@@ -12,81 +12,81 @@ def tf_experimental_numpy_amin_inputs():
     list_of_inputs = []
 
     # Input 1
-    a = tf.constant(np.array([1, 2, 3, 4, 5]))
+    a = np.array([1, 2, 3, 4, 5])
     axis = 0
-    out = tf.constant(np.array([0], dtype=np.int32))
+    out = None
     keepdims = False
     input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    a = tf.constant(np.array([[1, 2, 3], [4, 5, 6]]))
+    a = np.array([[1, 2, 3], [4, 5, 6]])
     axis = 0
-    out = tf.constant(np.array([0, 0, 0], dtype=np.int32))
+    out = None
     keepdims = False
     input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    a = tf.constant(np.array([[1, 2, 3], [4, 5, 6]]))
+    a = np.array([[1, 2, 3], [4, 5, 6]])
     axis = 1
-    out = tf.constant(np.array([0, 0], dtype=np.int32))
+    out = None
     keepdims = False
     input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    a = tf.constant(np.array([[1, 2, 3], [4, 5, 6]]))
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axis = 0
-    out = tf.constant(np.array([[0, 0, 0]], dtype=np.int32))
-    keepdims = True
+    out = None
+    keepdims = False
     input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    axis = 0
-    out = tf.constant(np.array([[0, 0], [0, 0]], dtype=np.int32))
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axis = 1
+    out = None
     keepdims = False
     input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    axis = 1
-    out = tf.constant(np.array([[0, 0], [0, 0]], dtype=np.int32))
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axis = 2
+    out = None
     keepdims = False
     input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    axis = 2
-    out = tf.constant(np.array([[0, 0], [0, 0]], dtype=np.int32))
-    keepdims = False
-    input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    a = tf.constant(np.array([1, -2, 3, -4, 5]))
+    a = np.array([[1, 2, 3], [4, 5, 6]])
     axis = 0
-    out = tf.constant(np.array(0, dtype=np.int32))
-    keepdims = False
-    input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    axis = 0
-    out = tf.constant(np.array([[[0, 0], [0, 0]]], dtype=np.int32))
+    out = None
     keepdims = True
     input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 10
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
+    # Input 8
+    a = np.array([[1, 2, 3], [4, 5, 6]])
     axis = 1
-    out = tf.constant(np.array([[[0, 0], [0, 0]]], dtype=np.int32))
+    out = None
+    keepdims = True
+    input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axis = 0
+    out = None
+    keepdims = True
+    input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axis = 1
+    out = None
     keepdims = True
     input_dict = {"a": a, "axis": axis, "out": out, "keepdims": keepdims}
     list_of_inputs.append(copy.deepcopy(input_dict))
@@ -95,7 +95,6 @@ def tf_experimental_numpy_amin_inputs():
 
 generated_inputs = {}
 generated_inputs["tf.experimental.numpy.amin"] = tf_experimental_numpy_amin_inputs()
-tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

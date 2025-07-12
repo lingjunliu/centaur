@@ -11,27 +11,63 @@ import copy
 def tf_math_ceil_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32 tensor
-    x = tf.constant(np.array([-1.7, -1.5, -0.2, 0.2, 1.5, 1.7, 2.0], dtype=np.float32))
+    # Input 1
+    x = np.array([-1.7, -1.5, -0.2, 0.2, 1.5, 1.7, 2.0], dtype=np.float32)
     name = "ceil_example_1"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Float64 tensor
-    x = tf.constant(np.array([-2.5, -1.0, 0.0, 1.0, 2.5], dtype=np.float64))
+    # Input 2
+    x = np.array([[-1.0, -0.5], [0.0, 1.5]], dtype=np.float64)
     name = "ceil_example_2"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Bfloat16 tensor
-    x = tf.constant(np.array([-0.5, 0.0, 0.5, 1.0], dtype=np.float32), dtype=tf.bfloat16)
-    name = "ceil_example_3"
+    # Input 3
+    x = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float32)
+    name = "ceil_example_4"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Half tensor
-    x = tf.constant(np.array([-0.7, 0.0, 0.7, 1.3], dtype=np.float32), dtype=tf.float16)
-    name = "ceil_example_4"
+    # Input 4
+    x = np.array([[-2.5, -1.5], [0.5, 1.5], [2.5, 3.5]], dtype=np.float32)
+    name = "ceil_example_6"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 5
+    x = np.array([1.1, 2.2, 3.3, 4.4, 5.5], dtype=np.float64)
+    name = "ceil_example_7"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    x = np.array([-0.1, -0.2, -0.3, -0.4, -0.5], dtype=np.float32)
+    name = "ceil_example_8"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    x = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    name = "ceil_example_10"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    x = np.array([[-1.0, -0.5], [0.0, 1.5]], dtype=np.float32)
+    name = "ceil_example_11"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    x = np.array([-1.7, -1.5, -0.2, 0.2, 1.5, 1.7, 2.0], dtype=np.float64)
+    name = "ceil_example_12"
+    input_dict = {"x": x, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    x = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float64)
+    name = "ceil_example_13"
     input_dict = {"x": x, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

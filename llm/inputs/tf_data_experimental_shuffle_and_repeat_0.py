@@ -11,76 +11,126 @@ import copy
 def tf_data_experimental_shuffle_and_repeat_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case
-    buffer_size = np.array(10, dtype=np.int64)
-    count = np.array(2, dtype=np.int64)
-    seed = np.array(42, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 1: Basic positive values
+    buffer_size = np.int64(10)
+    count = np.int64(2)
+    seed = np.int64(42)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Infinite repeat
-    buffer_size = np.array(5, dtype=np.int64)
-    count = None
-    seed = np.array(123, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 2: Indefinite repeat (count=None represented by -1)
+    buffer_size = np.int64(5)
+    count = np.int64(-1)
+    seed = np.int64(123)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Zero count
-    buffer_size = np.array(100, dtype=np.int64)
-    count = np.array(0, dtype=np.int64)
-    seed = np.array(7, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4: Large buffer size
-    buffer_size = np.array(1000, dtype=np.int64)
-    count = np.array(1, dtype=np.int64)
-    seed = np.array(99, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 3: Zero buffer size (should still be valid)
+    buffer_size = np.int64(0)
+    count = np.int64(3)
+    seed = np.int64(0)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Small buffer size
-    buffer_size = np.array(2, dtype=np.int64)
-    count = np.array(3, dtype=np.int64)
-    seed = np.array(1, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 4: Large buffer size and count
+    buffer_size = np.int64(1000)
+    count = np.int64(10)
+    seed = np.int64(999)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Negative count
-    buffer_size = np.array(15, dtype=np.int64)
-    count = np.array(-1, dtype=np.int64)
-    seed = np.array(55, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 5: Small buffer size and count
+    buffer_size = np.int64(2)
+    count = np.int64(1)
+    seed = np.int64(1)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different seed
-    buffer_size = np.array(20, dtype=np.int64)
-    count = np.array(2, dtype=np.int64)
-    seed = np.array(1000, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 6: Another seed
+    buffer_size = np.int64(15)
+    count = np.int64(4)
+    seed = np.int64(666)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Large count
-    buffer_size = np.array(50, dtype=np.int64)
-    count = np.array(10, dtype=np.int64)
-    seed = np.array(2023, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 7: Large seed value
+    buffer_size = np.int64(7)
+    count = np.int64(2)
+    seed = np.int64(2**31 - 1)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: buffer_size is a tensor with shape [1]
-    buffer_size = np.array([25], dtype=np.int64)
-    count = np.array(5, dtype=np.int64)
-    seed = np.array(4, dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 8: Different buffer_size
+    buffer_size = np.int64(30)
+    count = np.int64(5)
+    seed = np.int64(100)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: seed is a tensor with shape [1]
-    buffer_size = np.array(30, dtype=np.int64)
-    count = np.array(3, dtype=np.int64)
-    seed = np.array([6], dtype=np.int64)
-    input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
+    # Input 9: Zero count
+    buffer_size = np.int64(10)
+    count = np.int64(0)
+    seed = np.int64(50)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 10: All small values
+    buffer_size = np.int64(1)
+    count = np.int64(1)
+    seed = np.int64(1)
+
+    input_dict = {
+        "buffer_size": tf.constant(buffer_size),
+        "count": tf.constant(count),
+        "seed": tf.constant(seed)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

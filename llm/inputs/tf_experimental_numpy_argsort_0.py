@@ -11,106 +11,90 @@ import copy
 def tf_experimental_numpy_argsort_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic 1D array, default axis and kind
     a = np.array([3, 1, 4, 1, 5, 9, 2, 6])
     axis = -1
     kind = 'quicksort'
     order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    a = np.array([[0, 3], [2, 2]])
+    # Input 2: 2D array, axis=0
+    a = np.array([[3, 1, 4], [1, 5, 9], [2, 6, 5]])
     axis = 0
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D array, axis=1, 'mergesort'
+    a = np.array([[3, 1, 4], [1, 5, 9], [2, 6, 5]])
+    axis = 1
     kind = 'mergesort'
     order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    a = np.array([[0, 3], [2, 2]])
-    axis = 1
-    kind = 'heapsort'
-    order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    a = np.array([1, 4, 2, 3])
-    axis = 0
-    kind = 'stable'
-    order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    a = np.array([1, 4, 2, 3]).reshape((2,2))
+    # Input 4: 1D array with negative values
+    a = np.array([-3, 1, -4, 1, 5, -9, 2, -6])
     axis = -1
     kind = 'quicksort'
     order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    a = np.array([1, 4, 2, 3]).reshape((2,2))
+    # Input 5: 3D array, axis=0
+    a = np.array([[[3, 1], [4, 1]], [[5, 9], [2, 6]], [[5, 3], [1, 2]]])
     axis = 0
     kind = 'quicksort'
     order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7
-    a = np.array([1, 4, 2, 3]).reshape((2,2))
+    # Input 6: 3D array, axis=1
+    a = np.array([[[3, 1], [4, 1]], [[5, 9], [2, 6]], [[5, 3], [1, 2]]])
     axis = 1
     kind = 'quicksort'
     order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    a = np.array([3, 1, 4, 1, 5, 9, 2, 6]).reshape((2,2,2))
-    axis = 0
-    kind = 'quicksort'
-    order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    a = np.array([3, 1, 4, 1, 5, 9, 2, 6]).reshape((2,2,2))
-    axis = 1
-    kind = 'quicksort'
-    order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    a = np.array([3, 1, 4, 1, 5, 9, 2, 6]).reshape((2,2,2))
+    # Input 7: 3D array, axis=2
+    a = np.array([[[3, 1], [4, 1]], [[5, 9], [2, 6]], [[5, 3], [1, 2]]])
     axis = 2
     kind = 'quicksort'
     order = None
-    input_dict = {"a": tf.convert_to_tensor(a), "axis": axis, "kind": kind, "order": order}
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 'heapsort', 2D array
+    a = np.array([[3, 1, 4], [1, 5, 9], [2, 6, 5]])
+    axis = -1
+    kind = 'heapsort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Empty array
+    a = np.array([])
+    axis = -1
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Single element array
+    a = np.array([5])
+    axis = -1
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-tf.experimental.numpy.experimental_enable_numpy_behavior()
-
-def convert_to_numpy(input_dict):
-  new_dict = {}
-  for k, v in input_dict.items():
-    if isinstance(v, tf.Tensor):
-      new_dict[k] = v.numpy()
-    else:
-      new_dict[k] = v
-  return new_dict
-
-temp_list = tf_experimental_numpy_argsort_inputs()
-numpy_list = []
-for item in temp_list:
-  numpy_list.append(convert_to_numpy(item))
-
-generated_inputs["tf.experimental.numpy.argsort"] = numpy_list
+generated_inputs["tf.experimental.numpy.argsort"] = tf_experimental_numpy_argsort_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):
