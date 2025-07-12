@@ -11,14 +11,14 @@ def main():
     PRINT_INDICES = True
     THRESHOLD = 80  # Thrshold for similarity for exception messages
     
-    if len(sys.argv) < 4:
-        print("Usage: python analyze_inputs.py <api> <lib> <low> <index> <detailed, default: False>")
+    if len(sys.argv) < 2:
+        print("Usage: python analyze_inputs.py <api> <index> <lib> <low> <detailed, default: False>")
         return
     
     api = sys.argv[1]
-    lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
-    low = int(sys.argv[3]) if len(sys.argv) > 3 else 0
-    ind = int(sys.argv[4]) if len(sys.argv) > 4 else None
+    ind = int(sys.argv[2]) if len(sys.argv) > 2 else None
+    lib = sys.argv[3] if len(sys.argv) > 3 else "torch"
+    low = int(sys.argv[4]) if len(sys.argv) > 4 else 0
     detailed = True if len(sys.argv) > 5 and sys.argv[5] == "detailed" else False # for detailed output with all indices with max_diff
     
     # alias
