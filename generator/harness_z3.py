@@ -127,7 +127,7 @@ def run_api_with_duration(api, duration, n_max=0, seed=42, lib="torch", print_de
         model = temp_model_collection[selected_suffix]['models'][selected_model]
         cur_sig = get_signature(api, lib=lib, suffix=selected_suffix)
         
-        concrete_input, abstract_input = instantiate_args(model, cur_sig, model_collection[selected_suffix]['z3_args'], seed=seed)
+        concrete_input, abstract_input = instantiate_args(model, cur_sig, model_collection[selected_suffix]['z3_args'], seed=seed, lib=lib)
         generated_inputs.append((0, abstract_input, seed, selected_suffix))  # first element is distance, set as 0 for consistency
         
         # Print the abstract input if print_details is True
