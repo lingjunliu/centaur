@@ -89,8 +89,8 @@ def initial_constraints(solver, signature, z3_args, lib="torch"):
             value = z3_var['value']
             solver.add(And(value >= 0, value <= len(list_of_available_dtypes) - 3)) 
 
-def collect_constraints(solver, api, ruleset, z3_args, use_reference=False):
-    rule_func_map = get_rules_map(api, use_reference=use_reference)
+def collect_constraints(solver, api, ruleset, z3_args, use_reference=False, lib="torch"):
+    rule_func_map = get_rules_map(api, use_reference=use_reference, lib=lib)
     for rule in ruleset:
         arity, rule_name, *args = rule
         rule_func = rule_func_map[arity][rule_name]

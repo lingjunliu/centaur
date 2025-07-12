@@ -64,7 +64,7 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
 
             solver = Solver()
             initial_constraints(solver, signature, z3_args, lib=lib)
-            collect_constraints(solver, api, remaining_ruleset, z3_args, use_reference=use_reference)
+            collect_constraints(solver, api, remaining_ruleset, z3_args, use_reference=use_reference, lib=lib)
             # collect_neg_constraint(solver, api, rule, z3_args, use_reference=use_reference)
     
             sampled_blocks = random.sample(list(block_all), int(len(block_all) * 0.3))
@@ -118,6 +118,8 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
             
             if status != "invalid":
                 valid += 1
+            elif print_details and exception_message:
+                print(f"Trial {trial} with rule {rule} failed with exception: {exception_message}")
 
             trial += 1
 

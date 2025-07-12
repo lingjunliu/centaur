@@ -131,10 +131,10 @@ def match_signature_to_input(input_dict, signature, match_type=False):
             if arg == "out" and value is None:
                 continue  # out can be None, so we skip it
             if signature[arg] in ["tensor", "tensor_list"]:
-                if not isinstance(value, (torch.Tensor, np.ndarray)):
+                if not isinstance(value, (torch.Tensor, np.ndarray, tf.constant)):
                     return False
             elif signature[arg] == "dtype":
-                if not isinstance(value, (np.dtype, torch.dtype)):
+                if not isinstance(value, (np.dtype, torch.dtype, tf.dtypes.DType, type)):
                     return False
             elif signature[arg] == "string":
                 if not isinstance(value, str):

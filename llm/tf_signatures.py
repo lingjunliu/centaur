@@ -4899,13 +4899,6 @@ signatures["tf.unstack"] = {
     },
     "inner": {}
 }
-signatures["tf.saved_model.contains_saved_model"] = {
-    "args": {
-        "export_dir": "string"
-    },
-    "kwargs": {},
-    "inner": {}
-}
 signatures["tf.nn.sparse_softmax_cross_entropy_with_logits"] = {
     "args": {
         "labels": "tensor", # Could be integer tensor more specifically

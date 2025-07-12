@@ -12,6 +12,7 @@ def get_rules_map(api, use_reference=False, lib="torch"):
     match = re.match(r"^(.*?)(_\d+)?$", last)
     stripped_last = match.group(1) if match else last
     base_api = ".".join(parts[:-1] + [stripped_last])
+    base_api = base_api.replace("tf.", "tensorflow.")
 
     RULES_DIR = os.path.join(os.path.dirname(__file__), "..", f"rules-{lib}", base_api) if not use_reference else os.path.join(os.path.dirname(__file__), "..", "references")
     rule_func_map = {}

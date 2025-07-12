@@ -158,7 +158,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     solver = Solver()
     models, num_model = [], 0
     initial_constraints(solver, definition["signature"], z3_args, lib=lib)
-    collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference)
+    collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference, lib=lib)
     block_all = set()
     perma_block = set()
     stale = 0
@@ -197,7 +197,7 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
                 # restart the solver
                 solver = Solver()
                 initial_constraints(solver, definition["signature"], z3_args, lib=lib)
-                collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference)
+                collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference, lib=lib)
                 stale = 0
                 seed += 1
                 saturation += 10    # Making it more difficult to reach stale
@@ -356,7 +356,7 @@ def run_model_gen(variant, duration, n_max, lib, seed, regen, use_reference=Fals
             shutil.rmtree(corpus_dir)
         os.makedirs(corpus_dir, exist_ok=True)
         start_time = time.time()
-        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference)
+        models = gen_models(definition, api, z3_args, duration, max_model=n_max, seed=seed, print_details=print_details, corpus_dir=corpus_dir, return_models=False, use_reference=use_reference, lib=lib)
         print(f"{bcolors.OKBLUE}Model generation took {time.time()-start_time} s{bcolors.ENDC}")
     
 

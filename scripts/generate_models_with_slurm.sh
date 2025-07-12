@@ -13,12 +13,6 @@ elif [ "$lib" = "tensorflow" ]; then
   lib=tf
 fi
 
-# TODO: Implement for tensorflow, currently only pytorch is supported
-if [ "$lib" != "torch" ]; then
-    echo "Currently only torch is supported, please use 'torch' as the library argument."
-    exit 1
-fi
-
 export elements_file=${lib}_variations.txt
 export OMP_NUM_THREADS=1    # To prevent issues with coverage collection due to multithreading
 
