@@ -15,150 +15,166 @@ def tf_nn_max_pool2d_inputs():
     input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
     ksize = 2
     strides = [1, 1, 1, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_1"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
+    data_format = 'NHWC'
+    name = "pool1"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     input_tensor = np.array([[[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]], dtype=np.float32)
     ksize = 2
-    strides = [2, 2]
-    padding = "SAME"
-    data_format = "NHWC"
-    name = "max_pool_2"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+    strides = [1, 2, 2, 1]
+    padding = "VALID"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": 'NHWC',
+        "name": "pool2"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
-    ksize = [1, 2, 2, 1]
-    strides = [1, 2, 2, 1]
-    padding = [[0, 0], [1, 1], [1, 1], [0, 0]]
-    data_format = "NHWC"
-    name = "max_pool_3"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+    ksize = 2
+    strides = [2, 2]
+    padding = "SAME"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": 'NHWC',
+        "name": "pool3"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array([[[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]]], dtype=np.float32)
-    ksize = 2
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
+    ksize = 1
     strides = [1, 1]
     padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_4"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": 'NHWC',
+        "name": "pool4"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
-    ksize = 1
-    strides = [1, 1, 1, 1]
-    padding = "SAME"
-    data_format = "NHWC"
-    name = "max_pool_5"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+    input_tensor = np.array([[[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]]], dtype=np.float32)
+    ksize = 2
+    strides = [2, 2, 2, 2]
+    padding = "VALID"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": 'NHWC',
+        "name": "pool5"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
+    input_tensor = np.array([[[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]]], dtype=np.float32)
     ksize = 2
-    strides = [1, 2]
-    padding = [[0, 0], [0, 0], [0, 0], [0, 0]]
-    data_format = "NHWC"
-    name = "max_pool_6"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+    strides = [2, 2, 2, 2]
+    padding = "SAME"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": 'NHWC',
+        "name": "pool6"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
-    ksize = 2
-    strides = [1, 1, 1, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    name = None
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 8
-    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]], dtype=np.float32)
-    ksize = 2
-    strides = [1, 1, 1, 1]
-    padding = "SAME"
-    data_format = "NHWC"
-    name = "max_pool_8"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
-    ksize = 2
-    strides = [1, 1, 1, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_9"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
     input_tensor = np.array([[[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]]], dtype=np.float32)
     ksize = 2
-    strides = [2, 2]
-    padding = "SAME"
-    data_format = "NHWC"
-    name = "max_pool_10"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+    strides = [1, 1, 1, 1]
+    padding = [[0, 0], [1, 1], [1, 1], [0, 0]]
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": 'NHWC',
+        "name": "pool7"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11
-    input_tensor = np.array([[[[-1, -2], [-3, -4]], [[-5, -6], [-7, -8]]]], dtype=np.float32)
+
+    # Input 8
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
     ksize = 2
     strides = [1, 1, 1, 1]
     padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_11"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.float32)
-    ksize = 2
-    strides = [2, 2]
-    padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_12"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+    data_format = 'NHWC'
+    name = "pool8"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 13
+   # Input 9
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
+    ksize = 2
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
+    data_format = 'NHWC'
+    name = "pool9"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 10
     input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]]]], dtype=np.float32)
     ksize = 1
-    strides = [1, 1, 1, 1]
-    padding = "SAME"
-    data_format = "NHWC"
-    name = "max_pool_13"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 14
-    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]]]], dtype=np.float32)
-    ksize = 2
-    strides = [1, 1, 1, 1]
-    padding = [[0, 0], [0, 1], [0, 0], [0, 0]]
-    data_format = "NHWC"
-    name = "max_pool_14"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 15
-    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]]]], dtype=np.float32)
-    ksize = 1
-    strides = [2, 2]
+    strides = [1,1,1,1]
     padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_15"
-    input_dict = {'input': input_tensor, 'ksize': ksize, 'strides': strides, 'padding': padding, 'data_format': data_format, 'name': name}
+
+    input_dict = {
+        "input": input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": 'NHWC',
+        "name": "pool10"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

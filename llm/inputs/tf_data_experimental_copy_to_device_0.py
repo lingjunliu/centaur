@@ -26,67 +26,73 @@ def tf_data_experimental_copy_to_device_inputs():
 
     # Input 3
     input_dict = {
-        "target_device": "/device:TPU:0",
-        "source_device": "/device:CPU:0"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_dict = {
         "target_device": "/device:GPU:0",
         "source_device": "/device:GPU:1"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_dict = {
-        "target_device": "/device:CPU:1",
-        "source_device": "/device:CPU:0"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_dict = {
-        "target_device": "/device:GPU:2",
-        "source_device": "/device:GPU:0"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7
+    # Input 4
     input_dict = {
         "target_device": "/device:CPU:0",
         "source_device": "/device:GPU:0"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 5
+    input_dict = {
+        "target_device": "/job:worker/task:0/device:GPU:0",
+        "source_device": "/device:CPU:0"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_dict = {
+        "target_device": "/job:worker/task:1/device:GPU:1",
+        "source_device": "/device:CPU:0"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_dict = {
+        "target_device": "/job:ps/task:0/device:CPU:0",
+        "source_device": "/device:GPU:0"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 8
     input_dict = {
-        "target_device": "/device:GPU:0",
-        "source_device": "/device:TPU:0"
+        "target_device": "/device:XLA_GPU:0",
+        "source_device": "/device:CPU:0"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     input_dict = {
-        "target_device": "/device:CPU:1",
-        "source_device": "/device:TPU:0"
+        "target_device": "/device:TPU:0",
+        "source_device": "/device:CPU:0"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     input_dict = {
-        "target_device": "/device:GPU:3",
-        "source_device": "/device:GPU:2"
+        "target_device": "/device:TPU:1",
+        "source_device": "/device:GPU:0"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11
+    # Input 11. Keep it simple.
     input_dict = {
-        "target_device": "/job:localhost/replica:0/task:0/device:GPU:0",
-        "source_device": "/job:localhost/replica:0/task:0/device:CPU:0"
+        "target_device": "/device:GPU:0",
+        "source_device": "/device:CPU:0"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 12. Keep it simple.
+    input_dict = {
+        "target_device": "/device:CPU:0",
+        "source_device": "/device:CPU:0"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
 generated_inputs = {}

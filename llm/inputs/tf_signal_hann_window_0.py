@@ -12,13 +12,13 @@ def tf_signal_hann_window_inputs():
     list_of_inputs = []
 
     # Input 1
-    window_length = np.int32(5)
+    window_length = np.array(5, dtype=np.int32)
     periodic = True
     dtype = tf.float32
     name = "hann_window_1"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
@@ -26,13 +26,13 @@ def tf_signal_hann_window_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    window_length = np.int32(10)
+    window_length = np.array(10, dtype=np.int32)
     periodic = False
     dtype = tf.float64
     name = "hann_window_2"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
@@ -40,13 +40,13 @@ def tf_signal_hann_window_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    window_length = np.int32(1)
+    window_length = np.array(1, dtype=np.int32)
     periodic = True
-    dtype = tf.float32
+    dtype = tf.float16
     name = "hann_window_3"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
@@ -54,27 +54,27 @@ def tf_signal_hann_window_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    window_length = np.int32(20)
+    window_length = np.array(20, dtype=np.int32)
     periodic = False
-    dtype = tf.float64
+    dtype = tf.float32
     name = "hann_window_4"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    window_length = np.int32(7)
+   # Input 5
+    window_length = np.array(7, dtype=np.int32)
     periodic = True
-    dtype = tf.float16
+    dtype = tf.float64
     name = "hann_window_5"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
@@ -82,13 +82,13 @@ def tf_signal_hann_window_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    window_length = np.int32(15)
+    window_length = np.array(15, dtype=np.int32)
     periodic = False
     dtype = tf.float16
     name = "hann_window_6"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
@@ -96,27 +96,27 @@ def tf_signal_hann_window_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    window_length = np.int32(3)
+    window_length = np.array(3, dtype=np.int32)
     periodic = True
     dtype = tf.float32
-    name = None
+    name = "hann_window_7"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 8
-    window_length = np.int32(25)
+    # Input 8
+    window_length = np.array(30, dtype=np.int32)
     periodic = False
     dtype = tf.float64
-    name = None
+    name = "hann_window_8"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
@@ -124,13 +124,13 @@ def tf_signal_hann_window_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    window_length = np.int32(9)
+    window_length = np.array(4, dtype=np.int32)
     periodic = True
     dtype = tf.float16
     name = "hann_window_9"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
@@ -138,19 +138,19 @@ def tf_signal_hann_window_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    window_length = np.int32(30)
+    window_length = np.array(2, dtype=np.int32)
     periodic = False
     dtype = tf.float32
     name = "hann_window_10"
 
     input_dict = {
-        "window_length": tf.constant(window_length, dtype=tf.int32),
+        "window_length": window_length,
         "periodic": periodic,
         "dtype": dtype,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

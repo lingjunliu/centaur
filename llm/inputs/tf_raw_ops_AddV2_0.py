@@ -11,63 +11,63 @@ import copy
 def tf_raw_ops_addv2_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple addition of two scalars
-    x = np.array(5, dtype=np.float32)
-    y = np.array(3, dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Addition of two 1D arrays
+    # Input 1: Basic addition with integers
     x = np.array([1, 2, 3], dtype=np.int32)
     y = np.array([4, 5, 6], dtype=np.int32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Addition of two 2D arrays
-    x = np.array([[1, 2], [3, 4]], dtype=np.float64)
-    y = np.array([[5, 6], [7, 8]], dtype=np.float64)
+    # Input 2: Addition with floats
+    x = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    y = np.array([4.5, 5.5, 6.5], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "float_add"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Addition with negative values
+    x = np.array([-1, -2, -3], dtype=np.int32)
+    y = np.array([4, 5, 6], dtype=np.int32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Addition with negative values
-    x = np.array([-1, -2, -3], dtype=np.int64)
-    y = np.array([1, 2, 3], dtype=np.int64)
+    # Input 4: 2D array addition
+    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    y = np.array([[5, 6], [7, 8]], dtype=np.int32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Addition with different data types (half)
-    x = np.array([1, 2, 3], dtype=np.float16)
-    y = np.array([4, 5, 6], dtype=np.float16)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 5: 3D array addition with floats
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    y = np.array([[[9.0, 10.0], [11.0, 12.0]], [[13.0, 14.0], [15.0, 16.0]]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "3d_add"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Addition with complex numbers
-    x = np.array([1 + 1j, 2 + 2j], dtype=np.complex64)
-    y = np.array([3 + 3j, 4 + 4j], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Addition with uint8
+    # Input 6: Addition with uint8
     x = np.array([1, 2, 3], dtype=np.uint8)
     y = np.array([4, 5, 6], dtype=np.uint8)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Addition with int8
+
+    # Input 7: Addition with int8
     x = np.array([-1, 2, -3], dtype=np.int8)
     y = np.array([4, -5, 6], dtype=np.int8)
-    input_dict = {"x": x, "y": y, "name": "int8_add"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Addition of two 3D arrays
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Larger numbers
-    x = np.array([1000, 2000], dtype=np.int32)
-    y = np.array([3000, 4000], dtype=np.int32)
+    # Input 8: Addition with complex64
+    x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
+    y = np.array([4+4j, 5+5j, 6+6j], dtype=np.complex64)
+    input_dict = {"x": x, "y": y, "name": "complex_add"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Addition with complex128
+    x = np.array([1+1j, 2+2j], dtype=np.complex128)
+    y = np.array([3+3j, 4+4j], dtype=np.complex128)
+    input_dict = {"x": x, "y": y, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Addition with float16
+    x = np.array([1, 2, 3], dtype=np.float16)
+    y = np.array([4, 5, 6], dtype=np.float16)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

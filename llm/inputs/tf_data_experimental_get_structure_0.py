@@ -11,62 +11,44 @@ import copy
 def tf_data_experimental_get_structure_inputs():
     list_of_inputs = []
 
-    # Input 1: Dataset from a single tensor
+    # Input 1: Dataset from tensor slices
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
+    input_dict = {"dataset_or_iterator": (dataset,)}
+    list_of_inputs.append(input_dict)
+
+    # Input 2: Dataset from a numpy array with shape (2, 3)
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2, 3], [4, 5, 6]]))
+    input_dict = {"dataset_or_iterator": (dataset,)}
+    list_of_inputs.append(input_dict)
+
+    # Input 3: Dataset from a numpy array with dtype float32
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    input_dict = {"dataset_or_iterator": (dataset,)}
+    list_of_inputs.append(input_dict)
+
+    # Input 4: Dataset from a numpy array with dtype string
+    dataset = tf.data.Dataset.from_tensor_slices(np.array(['a', 'b', 'c']))
+    input_dict = {"dataset_or_iterator": (dataset,)}
+    list_of_inputs.append(input_dict)
+
+    # Input 5: Dataset from a tuple of numpy arrays
+    dataset = tf.data.Dataset.from_tensor_slices((np.array([1, 2, 3]), np.array(['a', 'b', 'c'])))
+    input_dict = {"dataset_or_iterator": (dataset,)}
+    list_of_inputs.append(input_dict)
+
+    # Input 6: Iterator from tensor slices
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
+    iterator = iter(dataset)
+    input_dict = {"dataset_or_iterator": (iterator,)}
+    list_of_inputs.append(input_dict)
+
+    # Input 7: Dataset with nested structure (tuple of datasets)
     dataset1 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
-    input_dict1 = {"dataset_or_iterator": dataset1}
-    list_of_inputs.append(input_dict1)
+    dataset2 = tf.data.Dataset.from_tensor_slices(np.array(['a', 'b', 'c']))
+    dataset = tf.data.Dataset.zip((dataset1, dataset2))
+    input_dict = {"dataset_or_iterator": (dataset,)}
+    list_of_inputs.append(input_dict)
 
-    # Input 2: Dataset from a tuple of tensors
-    dataset2 = tf.data.Dataset.from_tensor_slices((np.array([1, 2, 3]), np.array(['a', 'b', 'c'])))
-    input_dict2 = {"dataset_or_iterator": dataset2}
-    list_of_inputs.append(input_dict2)
-
-    # Input 3: Iterator from a Dataset (single tensor)
-    dataset7 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
-    iterator7 = iter(dataset7)
-    input_dict7 = {"dataset_or_iterator": iterator7}
-    list_of_inputs.append(input_dict7)
-
-    # Input 4: Dataset from a tensor with negative values
-    dataset9 = tf.data.Dataset.from_tensor_slices(np.array([-1, 0, 1]))
-    input_dict9 = {"dataset_or_iterator": dataset9}
-    list_of_inputs.append(input_dict9)
-
-    # Input 5: Dataset from a 3D tensor
-    dataset10 = tf.data.Dataset.from_tensor_slices(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    input_dict10 = {"dataset_or_iterator": dataset10}
-    list_of_inputs.append(input_dict10)
-
-    # Input 6: Dataset from a single string tensor
-    dataset11 = tf.data.Dataset.from_tensor_slices(np.array(["hello", "world"]))
-    input_dict11 = {"dataset_or_iterator": dataset11}
-    list_of_inputs.append(input_dict11)
-
-    # Input 7: Dataset from a tf.constant tensor
-    tensor = tf.constant([1, 2, 3])
-    dataset12 = tf.data.Dataset.from_tensor_slices(tensor)
-    input_dict12 = {"dataset_or_iterator": dataset12}
-    list_of_inputs.append(input_dict12)
-
-    # Input 8: Dataset from a tuple with tf.constant
-    tensor1 = tf.constant([1, 2, 3])
-    tensor2 = tf.constant(['a', 'b', 'c'])
-    dataset13 = tf.data.Dataset.from_tensor_slices((tensor1, tensor2))
-    input_dict13 = {"dataset_or_iterator": dataset13}
-    list_of_inputs.append(input_dict13)
-
-    # Input 9: Iterator with constant tensors
-    tensor1 = tf.constant([1, 2, 3])
-    dataset14 = tf.data.Dataset.from_tensor_slices(tensor1)
-    iterator14 = iter(dataset14)
-    input_dict14 = {"dataset_or_iterator": iterator14}
-    list_of_inputs.append(input_dict14)
-
-    # Input 10: Dataset from tensor with rank 4
-    dataset15 = tf.data.Dataset.from_tensor_slices(np.random.rand(2, 3, 4, 5).astype(np.float32))
-    input_dict15 = {"dataset_or_iterator": dataset15}
-    list_of_inputs.append(input_dict15)
-    
     return list_of_inputs
 
 generated_inputs = {}

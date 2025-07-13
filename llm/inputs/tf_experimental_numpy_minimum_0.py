@@ -12,62 +12,74 @@ def tf_experimental_numpy_minimum_inputs():
     list_of_inputs = []
 
     # Input 1: Basic case with positive integers
-    x1 = tf.constant(np.array([1, 2, 3, 4]))
-    x2 = tf.constant(np.array([4, 3, 2, 1]))
+    x1 = np.array([1, 2, 3])
+    x2 = np.array([4, 1, 6])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: With negative integers
-    x1 = tf.constant(np.array([-1, -2, 3, -4]))
-    x2 = tf.constant(np.array([4, -3, -2, 1]))
+    # Input 2: Negative integers
+    x1 = np.array([-1, -2, -3])
+    x2 = np.array([-4, -1, -6])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: With floating-point numbers
-    x1 = tf.constant(np.array([1.5, 2.7, 3.0, 4.2]))
-    x2 = tf.constant(np.array([4.1, 3.2, 2.9, 1.0]))
+    # Input 3: Mixed positive and negative integers
+    x1 = np.array([-1, 2, -3])
+    x2 = np.array([4, -1, -6])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D arrays
-    x1 = tf.constant(np.array([[1, 2], [3, 4]]))
-    x2 = tf.constant(np.array([[4, 3], [2, 1]]))
+    # Input 4: Floating point numbers
+    x1 = np.array([1.5, 2.7, 3.9])
+    x2 = np.array([4.1, 1.2, 6.8])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D arrays with floats
-    x1 = tf.constant(np.array([[1.1, 2.2], [3.3, 4.4]]))
-    x2 = tf.constant(np.array([[4.4, 3.3], [2.2, 1.1]]))
+    # Input 5: Mixed integers and floats
+    x1 = np.array([1, 2.5, 3])
+    x2 = np.array([4.5, 1, 6.2])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D arrays
-    x1 = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))
-    x2 = tf.constant(np.array([[[8, 7], [6, 5]], [[4, 3], [2, 1]]]))
+    # Input 6: 2D arrays
+    x1 = np.array([[1, 2], [3, 4]])
+    x2 = np.array([[4, 1], [6, 2]])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Broadcasting example
-    x1 = tf.constant(np.array([1, 2, 3]))
-    x2 = tf.constant(np.array(2))
+    # Input 7: 3D arrays
+    x1 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    x2 = np.array([[[4, 1], [6, 2]], [[8, 3], [10, 4]]])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: All negative values
-    x1 = tf.constant(np.array([-1, -2, -3, -4]))
-    x2 = tf.constant(np.array([-4, -3, -2, -1]))
+    # Input 8: Broadcasting - x1 is a scalar
+    x1 = np.array(2)
+    x2 = np.array([1, 3, 5])
+    input_dict = {"x1": x1, "x2": x2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Broadcasting - x2 is a scalar
+    x1 = np.array([1, 3, 5])
+    x2 = np.array(2)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Mixed positive and negative floats
-    x1 = tf.constant(np.array([-1.5, 2.7, -3.0, 4.2]))
-    x2 = tf.constant(np.array([4.1, -3.2, 2.9, -1.0]))
+    # Input 10: Different dtypes (but both numeric)
+    x1 = np.array([1, 2, 3], dtype=np.int32)
+    x2 = np.array([4.0, 1.0, 6.0], dtype=np.float64)
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Scalar tensors
-    x1 = tf.constant(np.array([5]))
-    x2 = tf.constant(np.array([2]))
+    # Input 11: Larger numbers
+    x1 = np.array([1000, 2000, 3000])
+    x2 = np.array([4000, 100, 6000])
+    input_dict = {"x1": x1, "x2": x2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: Negative and Large numbers
+    x1 = np.array([-1000, 2000, -3000])
+    x2 = np.array([4000, -100, -6000])
     input_dict = {"x1": x1, "x2": x2}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

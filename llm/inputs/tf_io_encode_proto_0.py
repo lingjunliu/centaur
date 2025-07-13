@@ -11,204 +11,105 @@ import copy
 def tf_io_encode_proto_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic example
     sizes = np.array([[1, 1]], dtype=np.int32)
-    values = [np.array([[1]], dtype=np.int32), np.array([[1.0]], dtype=np.float32)]
-    field_names = ["int_field", "float_field"]
-    message_type = "MyMessage"
+    values = [np.array([["test1"]], dtype=np.string_), np.array([[10]], dtype=np.int64)]
+    field_names = ["field1", "field2"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_1"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
+    # Input 2: Multiple repeats
     sizes = np.array([[2, 1]], dtype=np.int32)
-    values = [np.array([[1, 2]], dtype=np.int32), np.array([[1.0]], dtype=np.float32)]
-    field_names = ["int_field", "float_field"]
-    message_type = "MyMessage"
-    descriptor_source = ""
-    name = None
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    sizes = np.array([[[1, 1], [1, 1]]], dtype=np.int32)
-    values = [np.array([[[1], [2]]], dtype=np.int32), np.array([[[1.0], [2.0]]], dtype=np.float32)]
-    field_names = ["int_field", "float_field"]
-    message_type = "MyMessage"
+    values = [np.array([["test1", "test2"]], dtype=np.string_), np.array([[10]], dtype=np.int64)]
+    field_names = ["field1", "field2"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op2"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_2"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    sizes = np.array([[1, 2, 1]], dtype=np.int32)
-    values = [np.array([[1]], dtype=np.int32), np.array([[1, 2]], dtype=np.int64), np.array([[1.0]], dtype=np.float32)]
-    field_names = ["int_field", "long_field", "float_field"]
-    message_type = "MyMessage"
+    # Input 3: Different data types
+    sizes = np.array([[1, 1, 1]], dtype=np.int32)
+    values = [np.array([[1.0]], dtype=np.float32), np.array([[True]], dtype=np.bool_), np.array([[100]], dtype=np.int32)]
+    field_names = ["field1", "field2", "field3"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op3"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_3"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    sizes = np.array([[1]], dtype=np.int32)
-    values = [np.array([[b"test_string"]], dtype=np.string_)]
-    field_names = ["string_field"]
-    message_type = "MyMessage"
+    # Input 4: Empty values
+    sizes = np.array([[0]], dtype=np.int32)
+    values = [np.array([[]], dtype=np.string_)]
+    field_names = ["field1"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op4"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_4"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6
-    sizes = np.array([[0, 0]], dtype=np.int32)
-    values = [np.array([[]], dtype=np.int32), np.array([[]], dtype=np.float32)]
-    field_names = ["int_field", "float_field"]
-    message_type = "MyMessage"
+    # Input 5: Multiple fields
+    sizes = np.array([[1, 1, 1]], dtype=np.int32)
+    values = [np.array([["test"]], dtype=np.string_), np.array([[10]], dtype=np.int64), np.array([[3.14]], dtype=np.float32)]
+    field_names = ["field1", "field2", "field3"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op5"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_5"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    sizes = np.array([[1,1,1,1]], dtype=np.int32)
-    values = [np.array([[1]], dtype=np.int32), np.array([[1]], dtype=np.int64), np.array([[1.0]], dtype=np.float32), np.array([[True]], dtype=np.bool_)]
-    field_names = ["int_field", "long_field", "float_field", "bool_field"]
-    message_type = "MyMessage"
-    descriptor_source = "local://"
-    name = "encode_proto_op6"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8 - different batch shape
+    # Input 6: Batch size > 1, only two values
     sizes = np.array([[1, 1], [1, 1]], dtype=np.int32)
-    values = [np.array([[1], [2]], dtype=np.int32), np.array([[1.0], [2.0]], dtype=np.float32)]
-    field_names = ["int_field", "float_field"]
-    message_type = "MyMessage"
+    values = [np.array([["test1"], ["test2"]], dtype=np.string_), np.array([[10], [20]], dtype=np.int64)]
+    field_names = ["field1", "field2"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op7"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_6"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9 - Mixed types, different sizes
-    sizes = np.array([[1, 2, 1]], dtype=np.int32)
-    values = [np.array([[1]], dtype=np.int32), np.array([[1,2]], dtype=np.int64), np.array([[b"test"]], dtype=np.string_)]
-    field_names = ["int_field", "long_field", "string_field"]
-    message_type = "MyMessage"
+    # Input 7: Zero size for all fields
+    sizes = np.array([[0, 0]], dtype=np.int32)
+    values = [np.array([[]], dtype=np.string_), np.array([[]], dtype=np.int64)]
+    field_names = ["field1", "field2"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op8"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_7"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10 - Empty values, 0 sizes
-    sizes = np.array([[0,0,0]], dtype=np.int32)
-    values = [np.array([[]], dtype=np.int32), np.array([[]], dtype=np.int64), np.array([[]], dtype=np.string_)]
-    field_names = ["int_field", "long_field", "string_field"]
-    message_type = "MyMessage"
+    # Input 8: Negative int
+    sizes = np.array([[1]], dtype=np.int32)
+    values = [np.array([[-10]], dtype=np.int64)]
+    field_names = ["field1"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op9"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_8"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11 - Empty list of values, empty sizes
-    sizes = np.empty((0, 0), dtype=np.int32)
-    values = []
-    field_names = []
-    message_type = "MyMessage"
+
+    # Input 9: Using Bytes
+    sizes = np.array([[1, 1]], dtype=np.int32)
+    values = [np.array([[b"test1"]], dtype=np.string_), np.array([[10]], dtype=np.int64)]
+    field_names = ["field1", "field2"]
+    message_type = "TestMessage"
+    descriptor_source = "bytes://some_bytes"
+    name = "encode_proto_op_9"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different order in fields and values.
+    sizes = np.array([[1, 1]], dtype=np.int32)
+    values = [np.array([[10]], dtype=np.int64), np.array([["test1"]], dtype=np.string_)]
+    field_names = ["field2", "field1"]
+    message_type = "TestMessage"
     descriptor_source = "local://"
-    name = "encode_proto_op10"
-
-    input_dict = {
-        "sizes": sizes,
-        "values": values,
-        "field_names": field_names,
-        "message_type": message_type,
-        "descriptor_source": descriptor_source,
-        "name": name
-    }
+    name = "encode_proto_op_10"
+    input_dict = {"sizes": sizes, "values": values, "field_names": field_names, "message_type": message_type, "descriptor_source": descriptor_source, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
 
     return list_of_inputs
 

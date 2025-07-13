@@ -11,22 +11,29 @@ import copy
 def tf_data_experimental_group_by_reducer_inputs():
     list_of_inputs = []
 
-    class Reducer:
+    class DummyReducer:
         def __init__(self, init_func, reduce_func, finalize_func):
             self.init_func = init_func
             self.reduce_func = reduce_func
             self.finalize_func = finalize_func
 
-    # Input 1
-    key_func = lambda x: tf.cast(x % 2, tf.int64)
-    reducer = Reducer(
-        init_func=lambda: tf.constant(0, dtype=tf.int64),
-        reduce_func=lambda x, y: x + tf.cast(y, tf.int64),
-        finalize_func=lambda x: x
-    )
-    input_dict = {"key_func": [key_func], "reducer": [reducer]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Simple reducer
+    def init_func():
+        return tf.constant(0, dtype=tf.int64)
+    def reduce_func(state, element):
+        return state + element
+    def finalize_func(state):
+        return state * 2
+    reducer = DummyReducer(init_func, reduce_func, finalize_func)
+    def key_func(x):
+        return x % 2
 
+    input_dict = {
+        "key_func": [key_func],
+        "reducer": [reducer]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

@@ -11,135 +11,245 @@ import copy
 def tf_raw_ops_apply_power_sign_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with float32
+    # Input 1: Basic float32 test
     var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     m = np.array([0.0, 0.0, 0.0], dtype=np.float32)
     lr = np.array(0.1, dtype=np.float32)
     logbase = np.array(2.0, dtype=np.float32)
-    sign_decay = np.array(0.9, dtype=np.float32)
+    sign_decay = np.array(0.5, dtype=np.float32)
     beta = np.array(0.9, dtype=np.float32)
-    grad = np.array([0.5, -0.5, 0.0], dtype=np.float32)
+    grad = np.array([0.5, -0.5, 1.0], dtype=np.float32)
     use_locking = False
-    name = "apply_power_sign_1"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    name = "power_sign_1"
 
-    # Input 2: Different learning rate and gradient
-    var = np.array([4.0, 5.0, 6.0], dtype=np.float32)
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different float32 values, locking enabled
+    var = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
     m = np.array([0.1, -0.1, 0.2], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
     logbase = np.array(1.5, dtype=np.float32)
-    sign_decay = np.array(0.8, dtype=np.float32)
+    sign_decay = np.array(0.2, dtype=np.float32)
     beta = np.array(0.8, dtype=np.float32)
-    grad = np.array([-1.0, 1.0, 0.5], dtype=np.float32)
+    grad = np.array([-0.2, 0.3, -0.1], dtype=np.float32)
     use_locking = True
-    name = "apply_power_sign_2"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    name = "power_sign_2"
 
-    # Input 3: int32 data type
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: float64 test
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    m = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+    lr = np.array(0.1, dtype=np.float64)
+    logbase = np.array(2.0, dtype=np.float64)
+    sign_decay = np.array(0.5, dtype=np.float64)
+    beta = np.array(0.9, dtype=np.float64)
+    grad = np.array([0.5, -0.5, 1.0], dtype=np.float64)
+    use_locking = False
+    name = "power_sign_3"
+
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: int32 test
     var = np.array([1, 2, 3], dtype=np.int32)
     m = np.array([0, 0, 0], dtype=np.int32)
     lr = np.array(1, dtype=np.int32)
     logbase = np.array(2, dtype=np.int32)
     sign_decay = np.array(1, dtype=np.int32)
-    beta = np.array(1, dtype=np.int32)
-    grad = np.array([1, -1, 0], dtype=np.int32)
+    beta = np.array(0, dtype=np.int32)
+    grad = np.array([1, -1, 2], dtype=np.int32)
     use_locking = False
-    name = "apply_power_sign_3"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    name = "power_sign_4"
 
-    # Input 4: float64 data type
-    var = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    m = np.array([0.0, 0.0, 0.0], dtype=np.float64)
-    lr = np.array(0.1, dtype=np.float64)
-    logbase = np.array(2.0, dtype=np.float64)
-    sign_decay = np.array(0.9, dtype=np.float64)
-    beta = np.array(0.9, dtype=np.float64)
-    grad = np.array([0.5, -0.5, 0.0], dtype=np.float64)
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: complex64 test
+    var = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
+    m = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex64)
+    lr = np.array(0.1+0j, dtype=np.complex64)
+    logbase = np.array(2+0j, dtype=np.complex64)
+    sign_decay = np.array(0.5+0j, dtype=np.complex64)
+    beta = np.array(0.9+0j, dtype=np.complex64)
+    grad = np.array([0.5-0.5j, -0.5+0.5j, 1+0j], dtype=np.complex64)
     use_locking = False
-    name = "apply_power_sign_4"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    name = "power_sign_5"
 
-    # Input 5: Negative lr, logbase, sign_decay, beta, grad
-    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    m = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    lr = np.array(-0.1, dtype=np.float32)
-    logbase = np.array(-2.0, dtype=np.float32)
-    sign_decay = np.array(-0.9, dtype=np.float32)
-    beta = np.array(-0.9, dtype=np.float32)
-    grad = np.array([-0.5, 0.5, 0.0], dtype=np.float32)
-    use_locking = False
-    name = "apply_power_sign_5"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6: Complex64
-    var = np.array([1.0 + 1j, 2.0 - 2j, 3.0 + 0j], dtype=np.complex64)
-    m = np.array([0.0 + 0j, 0.0 + 0j, 0.0 + 0j], dtype=np.complex64)
-    lr = np.array(0.1 + 0j, dtype=np.complex64)
-    logbase = np.array(2.0 + 0j, dtype=np.complex64)
-    sign_decay = np.array(0.9 + 0j, dtype=np.complex64)
-    beta = np.array(0.9 + 0j, dtype=np.complex64)
-    grad = np.array([0.5 - 0.5j, -0.5 + 0.5j, 0.0 + 0j], dtype=np.complex64)
-    use_locking = False
-    name = "apply_power_sign_6"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 6: int64 test, negative values
+    var = np.array([-1, -2, -3], dtype=np.int64)
+    m = np.array([0, 0, 0], dtype=np.int64)
+    lr = np.array(-1, dtype=np.int64)
+    logbase = np.array(2, dtype=np.int64)
+    sign_decay = np.array(1, dtype=np.int64)
+    beta = np.array(0, dtype=np.int64)
+    grad = np.array([-1, 1, -2], dtype=np.int64)
+    use_locking = True
+    name = "power_sign_6"
 
-    # Input 7: uint8 data type
-    var = np.array([1, 2, 3], dtype=np.uint8)
-    m = np.array([0, 0, 0], dtype=np.uint8)
-    lr = np.array(1, dtype=np.uint8)
-    logbase = np.array(2, dtype=np.uint8)
-    sign_decay = np.array(1, dtype=np.uint8)
-    beta = np.array(1, dtype=np.uint8)
-    grad = np.array([1, 0, 1], dtype=np.uint8)
-    use_locking = False
-    name = "apply_power_sign_7"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 2D arrays
-    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    m = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
-    lr = np.array(0.1, dtype=np.float32)
-    logbase = np.array(2.0, dtype=np.float32)
-    sign_decay = np.array(0.9, dtype=np.float32)
-    beta = np.array(0.9, dtype=np.float32)
-    grad = np.array([[0.5, -0.5], [-0.5, 0.5]], dtype=np.float32)
-    use_locking = False
-    name = "apply_power_sign_8"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
-
-    # Input 9: float16
+   # Input 7: half test
     var = np.array([1.0, 2.0, 3.0], dtype=np.float16)
     m = np.array([0.0, 0.0, 0.0], dtype=np.float16)
     lr = np.array(0.1, dtype=np.float16)
     logbase = np.array(2.0, dtype=np.float16)
-    sign_decay = np.array(0.9, dtype=np.float16)
+    sign_decay = np.array(0.5, dtype=np.float16)
     beta = np.array(0.9, dtype=np.float16)
-    grad = np.array([0.5, -0.5, 0.0], dtype=np.float16)
+    grad = np.array([0.5, -0.5, 1.0], dtype=np.float16)
     use_locking = False
-    name = "apply_power_sign_9"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    name = "power_sign_8"
 
-    # Input 10: Complex128
-    var = np.array([1.0 + 1j, 2.0 - 2j, 3.0 + 0j], dtype=np.complex128)
-    m = np.array([0.0 + 0j, 0.0 + 0j, 0.0 + 0j], dtype=np.complex128)
-    lr = np.array(0.1 + 0j, dtype=np.complex128)
-    logbase = np.array(2.0 + 0j, dtype=np.complex128)
-    sign_decay = np.array(0.9 + 0j, dtype=np.complex128)
-    beta = np.array(0.9 + 0j, dtype=np.complex128)
-    grad = np.array([0.5 - 0.5j, -0.5 + 0.5j, 0.0 + 0j], dtype=np.complex128)
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: uint32
+    var = np.array([1, 2, 3], dtype=np.uint32)
+    m = np.array([0, 0, 0], dtype=np.uint32)
+    lr = np.array(1, dtype=np.uint32)
+    logbase = np.array(2, dtype=np.uint32)
+    sign_decay = np.array(1, dtype=np.uint32)
+    beta = np.array(0, dtype=np.uint32)
+    grad = np.array([1, 0, 2], dtype=np.uint32)
     use_locking = False
-    name = "apply_power_sign_10"
-    input_dict = {"var": var, "m": m, "lr": lr, "logbase": logbase, "sign_decay": sign_decay, "beta": beta, "grad": grad, "use_locking": use_locking, "name": name}
-    list_of_inputs.append(input_dict)
+    name = "power_sign_9"
+
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: uint64 test
+    var = np.array([1, 2, 3], dtype=np.uint64)
+    m = np.array([0, 0, 0], dtype=np.uint64)
+    lr = np.array(1, dtype=np.uint64)
+    logbase = np.array(2, dtype=np.uint64)
+    sign_decay = np.array(1, dtype=np.uint64)
+    beta = np.array(0, dtype=np.uint64)
+    grad = np.array([1, 0, 2], dtype=np.uint64)
+    use_locking = False
+    name = "power_sign_10"
+
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: complex128 test
+    var = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128)
+    m = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex128)
+    lr = np.array(0.1+0j, dtype=np.complex128)
+    logbase = np.array(2+0j, dtype=np.complex128)
+    sign_decay = np.array(0.5+0j, dtype=np.complex128)
+    beta = np.array(0.9+0j, dtype=np.complex128)
+    grad = np.array([0.5-0.5j, -0.5+0.5j, 1+0j], dtype=np.complex128)
+    use_locking = False
+    name = "power_sign_11"
+
+    input_dict = {
+        'var': var,
+        'm': m,
+        'lr': lr,
+        'logbase': logbase,
+        'sign_decay': sign_decay,
+        'beta': beta,
+        'grad': grad,
+        'use_locking': use_locking,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

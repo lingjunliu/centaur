@@ -17,7 +17,7 @@ def tf_random_stateless_binomial_inputs():
     counts = np.array([10], dtype=np.float32)
     probs = np.array([0.5], dtype=np.float32)
     output_dtype = tf.int32
-    name = "binomial_1"
+    name = "binomial_sample_1"
 
     input_dict = {
         "shape": shape,
@@ -32,10 +32,10 @@ def tf_random_stateless_binomial_inputs():
     # Input 2
     shape = np.array([2, 3], dtype=np.int32)
     seed = np.array([789, 101], dtype=np.int32)
-    counts = np.array([10], dtype=np.float32)
-    probs = np.array([0.7], dtype=np.float32)
+    counts = np.array([10, 10, 10], dtype=np.float32)
+    probs = np.array([0.4, 0.4, 0.4], dtype=np.float32)
     output_dtype = tf.int64
-    name = "binomial_2"
+    name = "binomial_sample_2"
 
     input_dict = {
         "shape": shape,
@@ -48,12 +48,12 @@ def tf_random_stateless_binomial_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    shape = np.array([4, 2, 3], dtype=np.int32)
-    seed = np.array([112, 131], dtype=np.int32)
-    counts = np.array([12], dtype=np.float32)
-    probs = np.array([0.6], dtype=np.float32)
+    shape = np.array([4, 2], dtype=np.int32)
+    seed = np.array([222, 333], dtype=np.int32)
+    counts = np.array([35, 35, 35, 35], dtype=np.float32).reshape((4,1))
+    probs = np.array([0.1, 0.1, 0.1, 0.1], dtype=np.float32).reshape((4,1))
     output_dtype = tf.int32
-    name = "binomial_3"
+    name = "binomial_sample_3"
 
     input_dict = {
         "shape": shape,
@@ -67,11 +67,11 @@ def tf_random_stateless_binomial_inputs():
 
     # Input 4
     shape = np.array([10], dtype=np.int32)
-    seed = np.array([141, 151], dtype=np.int32)
+    seed = np.array([444, 555], dtype=np.int32)
     counts = np.array([50], dtype=np.float32)
     probs = np.array([0.95], dtype=np.float32)
     output_dtype = tf.int32
-    name = "binomial_4"
+    name = "binomial_sample_4"
 
     input_dict = {
         "shape": shape,
@@ -83,13 +83,13 @@ def tf_random_stateless_binomial_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5
-    shape = np.array([2, 2, 2], dtype=np.int32)
-    seed = np.array([161, 171], dtype=np.int32)
-    counts = np.array([20], dtype=np.float32)
-    probs = np.array([0.1], dtype=np.float32)
+    # Input 5
+    shape = np.array([3, 3, 3], dtype=np.int32)
+    seed = np.array([666, 777], dtype=np.int32)
+    counts = np.array([10], dtype=np.float32)
+    probs = np.array([0.5], dtype=np.float32)
     output_dtype = tf.int64
-    name = "binomial_5"
+    name = "binomial_sample_5"
 
     input_dict = {
         "shape": shape,
@@ -102,12 +102,12 @@ def tf_random_stateless_binomial_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    shape = np.array([3, 4], dtype=np.int32)
-    seed = np.array([181, 191], dtype=np.int32)
-    counts = np.array([7], dtype=np.float32)
-    probs = np.array([0.6], dtype=np.float32)
+    shape = np.array([7], dtype=np.int32)
+    seed = np.array([888, 999], dtype=np.int32)
+    counts = np.array([100], dtype=np.float32)
+    probs = np.array([0.05], dtype=np.float32)
     output_dtype = tf.int32
-    name = "binomial_6"
+    name = "binomial_sample_6"
 
     input_dict = {
         "shape": shape,
@@ -120,12 +120,12 @@ def tf_random_stateless_binomial_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    shape = np.array([2, 1, 3], dtype=np.int32)
-    seed = np.array([201, 211], dtype=np.int32)
-    counts = np.array([20], dtype=np.float32)
-    probs = np.array([0.9], dtype=np.float32)
-    output_dtype = tf.int32
-    name = "binomial_7"
+    shape = np.array([2, 5], dtype=np.int32)
+    seed = np.array([1000, 1001], dtype=np.int32)
+    counts = np.array([50, 50, 50, 50, 50], dtype=np.float32)
+    probs = np.array([0.6, 0.6, 0.6, 0.6, 0.6], dtype=np.float32)
+    output_dtype = tf.int64
+    name = "binomial_sample_7"
 
     input_dict = {
         "shape": shape,
@@ -138,12 +138,12 @@ def tf_random_stateless_binomial_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    shape = np.array([7], dtype=np.int32)
-    seed = np.array([221, 231], dtype=np.int32)
-    counts = np.array([15], dtype=np.float32)
-    probs = np.array([0.75], dtype=np.float32)
+    shape = np.array([1, 1, 1], dtype=np.int32)
+    seed = np.array([1002, 1003], dtype=np.int32)
+    counts = np.array([100.], dtype=np.float32)
+    probs = np.array([0.9], dtype=np.float32)
     output_dtype = tf.int32
-    name = "binomial_8"
+    name = "binomial_sample_8"
 
     input_dict = {
         "shape": shape,
@@ -156,12 +156,13 @@ def tf_random_stateless_binomial_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    shape = np.array([1, 1, 1], dtype=np.int32)
-    seed = np.array([241, 251], dtype=np.int32)
-    counts = np.array([50.0], dtype=np.float32)
-    probs = np.array([0.5], dtype=np.float32)
-    output_dtype = tf.int32
-    name = "binomial_9"
+    shape = np.array([2, 2, 2, 2], dtype=np.int32)
+    seed = np.array([1004, 1005], dtype=np.int32)
+    counts = np.array([20], dtype=np.float32)
+    probs = np.array([0.6], dtype=np.float32)
+
+    output_dtype = tf.int64
+    name = "binomial_sample_9"
 
     input_dict = {
         "shape": shape,
@@ -174,12 +175,12 @@ def tf_random_stateless_binomial_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    shape = np.array([4, 5, 6], dtype=np.int32)
-    seed = np.array([261, 271], dtype=np.int32)
-    counts = np.array([10], dtype=np.float32)
-    probs = np.array([0.1], dtype=np.float32)
+    shape = np.array([4], dtype=np.int32)
+    seed = np.array([1006, 1007], dtype=np.int32)
+    counts = np.array([10, 11, 12, 13], dtype=np.float32)
+    probs = np.array([0.5, 0.5, 0.5, 0.5], dtype=np.float32)
     output_dtype = tf.int32
-    name = "binomial_10"
+    name = "binomial_sample_10"
 
     input_dict = {
         "shape": shape,

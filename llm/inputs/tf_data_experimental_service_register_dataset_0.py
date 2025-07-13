@@ -5,91 +5,51 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
+import numpy as np
 
 def tf_data_experimental_service_register_dataset_inputs():
     list_of_inputs = []
 
-    # Input 1: Minimal valid input
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
-    input_dict = {
-        "service": "grpc://localhost:5000",
-        "dataset": dataset,
-        "compression": "AUTO",
-        "dataset_id": "dataset_1"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1
+    service = np.array("grpc://localhost:50051", dtype=np.str_)
+    dataset = tf.constant(np.array([1, 2, 3], dtype=np.int64))
+    compression = np.array("AUTO", dtype=np.str_)
+    dataset_id = np.array("dataset_1", dtype=np.str_)
+    input_dict = {"service": service, "dataset": dataset, "compression": compression, "dataset_id": dataset_id}
+    list_of_inputs.append(input_dict)
 
-    # Input 2: Different service address
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([4, 5, 6]))
-    input_dict = {
-        "service": "grpc://127.0.0.1:6000",
-        "dataset": dataset,
-        "compression": "AUTO",
-        "dataset_id": "dataset_2"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2
+    service = np.array("grpc://localhost:50052", dtype=np.str_)
+    dataset = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int64))
+    compression = np.array("", dtype=np.str_)
+    dataset_id = np.array("dataset_2", dtype=np.str_)
+    input_dict = {"service": service, "dataset": dataset, "compression": compression, "dataset_id": dataset_id}
+    list_of_inputs.append(input_dict)
 
-    # Input 3: No compression
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([7, 8, 9]))
-    input_dict = {
-        "service": "grpc://localhost:5000",
-        "dataset": dataset,
-        "compression": None,
-        "dataset_id": "dataset_3"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3
+    service = np.array("grpc://localhost:50053", dtype=np.str_)
+    dataset = tf.constant(np.array([1,2,3,4,5,6,7,8,9,10], dtype=np.int64))
+    compression = np.array("AUTO", dtype=np.str_)
+    dataset_id = np.array("dataset_3", dtype=np.str_)
+    input_dict = {"service": service, "dataset": dataset, "compression": compression, "dataset_id": dataset_id}
+    list_of_inputs.append(input_dict)
 
-    # Input 4: Different dataset ID
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([10, 11, 12]))
-    input_dict = {
-        "service": "grpc://localhost:5000",
-        "dataset": dataset,
-        "compression": "AUTO",
-        "dataset_id": "another_dataset"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4
+    service = np.array("grpc://localhost:50054", dtype=np.str_)
+    dataset = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float64))
+    compression = np.array("", dtype=np.str_)
+    dataset_id = np.array("dataset_4", dtype=np.str_)
+    input_dict = {"service": service, "dataset": dataset, "compression": compression, "dataset_id": dataset_id}
+    list_of_inputs.append(input_dict)
 
-    # Input 5: More complex dataset
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4], [5, 6]]))
-    input_dict = {
-        "service": "grpc://localhost:5000",
-        "dataset": dataset,
-        "compression": "AUTO",
-        "dataset_id": "complex_dataset"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Dataset with string elements
-    dataset = tf.data.Dataset.from_tensor_slices(np.array(["a", "b", "c"]))
-    input_dict = {
-        "service": "grpc://localhost:5000",
-        "dataset": dataset,
-        "compression": "AUTO",
-        "dataset_id": "string_dataset"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Dataset with different data type
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([1.1, 2.2, 3.3]))
-    input_dict = {
-        "service": "grpc://localhost:5000",
-        "dataset": dataset,
-        "compression": "AUTO",
-        "dataset_id": "float_dataset"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Long dataset ID
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
-    input_dict = {
-        "service": "grpc://localhost:5000",
-        "dataset": dataset,
-        "compression": "AUTO",
-        "dataset_id": "this_is_a_very_long_dataset_id_that_should_still_work"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5
+    service = np.array("grpc://localhost:50055", dtype=np.str_)
+    dataset = tf.constant(np.array(["a", "b", "c"], dtype=np.str_))
+    compression = np.array("AUTO", dtype=np.str_)
+    dataset_id = np.array("dataset_5", dtype=np.str_)
+    input_dict = {"service": service, "dataset": dataset, "compression": compression, "dataset_id": dataset_id}
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

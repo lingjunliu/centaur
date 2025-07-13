@@ -11,46 +11,48 @@ import copy
 def tf_parallel_stack_inputs():
     list_of_inputs = []
 
-    def convert_to_numpy_arrays(values):
-      return [np.array(val) for val in values]
+    def create_input_dict(values, name):
+        return {"values": values, "name": name}
 
-    # Input 1: Simple 1D arrays
-    values = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    values = convert_to_numpy_arrays(values)
-    input_dict = {"values": values, "name": "stack_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic example with integers
+    values = [np.array([1, 2, 3]), np.array([4, 5, 6])]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_1")))
 
-    # Input 2: 2D arrays
-    values = [[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]]
-    values = convert_to_numpy_arrays(values)
-    input_dict = {"values": values, "name": "stack_2"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Example with floats
+    values = [np.array([1.0, 2.5, 3.0]), np.array([4.0, 5.5, 6.0])]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_2")))
 
-    # Input 3: Different numerical types (int32)
-    values = [[1, 2, 3], [4, 5, 6]]
-    values = convert_to_numpy_arrays(values)
-    values = [arr.astype(np.int32) for arr in values]
-    input_dict = {"values": values, "name": "stack_4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Example with 2D arrays (matrices)
+    values = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_3")))
 
-    # Input 4: Different numerical types (float32)
-    values = [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]
-    values = convert_to_numpy_arrays(values)
-    values = [arr.astype(np.float32) for arr in values]
-    input_dict = {"values": values, "name": "stack_5"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Example with negative numbers
+    values = [np.array([-1, -2, -3]), np.array([-4, -5, -6])]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_6")))
 
-    # Input 5: different name
-    values = [[1, 2], [3, 4]]
-    values = convert_to_numpy_arrays(values)
-    input_dict = {"values": values, "name": "another_stack"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Example with zeros
+    values = [np.array([0, 0, 0]), np.array([0, 0, 0])]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_7")))
 
-    # Input 6: Negative values
-    values = [[-1, -2], [-3, -4]]
-    values = convert_to_numpy_arrays(values)
-    input_dict = {"values": values, "name": "negative_stack"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Different data type (int32)
+    values = [np.array([1, 2, 3], dtype=np.int32), np.array([4, 5, 6], dtype=np.int32)]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_12")))
+
+    # Input 7: 2D arrays with float data type
+    values = [np.array([[1.5, 2.5], [3.5, 4.5]]), np.array([[5.5, 6.5], [7.5, 8.5]])]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_14")))
+
+    # Input 8: bool array
+    values = [np.array([True, False]), np.array([False, True])]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_15")))
+
+    # Input 9: Mix of positive and negative
+    values = [np.array([-1, 2, -3]), np.array([4, -5, 6])]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_11")))
+    
+    # Input 10: Empty list of arrays
+    values = []
+    list_of_inputs.append(copy.deepcopy(create_input_dict(values, "stack_example_18")))
 
     return list_of_inputs
 

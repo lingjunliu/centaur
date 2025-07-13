@@ -11,73 +11,73 @@ import copy
 def tf_raw_ops_add_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic addition of two matrices
-    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    y = np.array([[5, 6], [7, 8]], dtype=np.int32)
-    name = "add_example_1"
+    # Input 1: Basic addition of two scalars
+    x = np.array(5, dtype=np.int32)
+    y = np.array(3, dtype=np.int32)
+    name = "add_scalar"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Addition with negative values
-    x = np.array([[-1, 2], [-3, 4]], dtype=np.int32)
-    y = np.array([[5, -6], [7, -8]], dtype=np.int32)
-    name = "add_example_2"
+    # Input 2: Addition of two 1D arrays
+    x = np.array([1, 2, 3], dtype=np.float32)
+    y = np.array([4, 5, 6], dtype=np.float32)
+    name = "add_1d_array"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Addition of two 1D arrays
-    x = np.array([1, 2, 3, 4], dtype=np.int32)
-    y = np.array([5, 6, 7, 8], dtype=np.int32)
-    name = "add_example_3"
+    # Input 3: Addition of two 2D arrays
+    x = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    y = np.array([[5, 6], [7, 8]], dtype=np.int64)
+    name = "add_2d_array"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Addition with floating point numbers
-    x = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float32)
-    y = np.array([[5.5, 6.5], [7.5, 8.5]], dtype=np.float32)
-    name = "add_example_4"
+    # Input 4: Addition with negative numbers
+    x = np.array([-1, -2, -3], dtype=np.float64)
+    y = np.array([4, 5, -6], dtype=np.float64)
+    name = "add_negative"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Addition with complex numbers
-    x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    y = np.array([[5+5j, 6+6j], [7+7j, 8+8j]], dtype=np.complex64)
-    name = "add_example_5"
+    # Input 5: Addition with broadcasting (scalar + array)
+    x = np.array(2, dtype=np.int16)
+    y = np.array([1, 2, 3], dtype=np.int16)
+    name = "add_broadcast_scalar"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Addition with different shapes (broadcasting)
-    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    y = np.array([5, 6], dtype=np.int32)
-    name = "add_example_6"
+    # Input 6: Addition with complex numbers
+    x = np.array([1+1j, 2+2j], dtype=np.complex64)
+    y = np.array([3+3j, 4+4j], dtype=np.complex64)
+    name = "add_complex"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Addition with uint8 type
-    x = np.array([[1, 2], [3, 4]], dtype=np.uint8)
-    y = np.array([[5, 6], [7, 8]], dtype=np.uint8)
-    name = "add_example_7"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Addition with int8 type and negative numbers
-    x = np.array([[-1, 2], [3, -4]], dtype=np.int8)
-    y = np.array([[5, -6], [-7, 8]], dtype=np.int8)
-    name = "add_example_8"
+    # Input 7: Addition with different shapes (broadcasting)
+    x = np.array([[1, 2, 3]], dtype=np.float32)
+    y = np.array([4, 5, 6], dtype=np.float32)
+    name = "add_broadcast_shape"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Addition with rank 3 tensor
-    x = np.random.randint(0, 10, size=(2, 3, 4), dtype=np.int32)
-    y = np.random.randint(0, 10, size=(2, 3, 4), dtype=np.int32)
-    name = "add_example_9"
+    # Input 8: Addition with unsigned integers
+    x = np.array([1, 2, 3], dtype=np.uint8)
+    y = np.array([4, 5, 6], dtype=np.uint8)
+    name = "add_uint8"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Addition with float64 type
-    x = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float64)
-    y = np.array([[5.5, 6.5], [7.5, 8.5]], dtype=np.float64)
-    name = "add_example_10"
+    # Input 9: Addition with bfloat16
+    x = np.array([1, 2, 3], dtype=np.float16)
+    y = np.array([4, 5, 6], dtype=np.float16)
+    name = "add_bfloat16"
+    input_dict = {"x": x, "y": y, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Addition with a 3D array
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32)
+    name = "add_3d_array"
     input_dict = {"x": x, "y": y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

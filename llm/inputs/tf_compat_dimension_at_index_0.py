@@ -5,75 +5,69 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
+import numpy as np
 
 def tf_compat_dimension_at_index_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple valid case
-    shape = tf.TensorShape([10, 20, 30])
-    index = 0
+    # Input 1
+    shape = tf.TensorShape([1, 2, 3])
+    index = np.int32(0)
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Another valid case with different index
-    shape = tf.TensorShape([10, 20, 30])
-    index = 1
+    # Input 2
+    shape = tf.TensorShape([None, 2, 3])
+    index = np.int32(0)
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Using the last index
-    shape = tf.TensorShape([10, 20, 30])
-    index = 2
-    input_dict = {"shape": shape, "index": index}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 4: Shape with only one dimension
-    shape = tf.TensorShape([10])
-    index = 0
+    # Input 3
+    shape = tf.TensorShape([1, None, 3])
+    index = np.int32(1)
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Shape with unknown dimensions
-    shape = tf.TensorShape([None, 20, None])
-    index = 0
+    # Input 4
+    shape = tf.TensorShape([1, 2, None])
+    index = np.int32(2)
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Shape with unknown dimensions and different index
-    shape = tf.TensorShape([None, 20, None])
-    index = 1
+    # Input 5
+    shape = tf.TensorShape([None, None, None])
+    index = np.int32(0)
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Shape with a dimension of 1
+
+    # Input 6
     shape = tf.TensorShape([1])
-    index = 0
+    index = np.int32(0)
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Shape with many dimensions
-    shape = tf.TensorShape([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    index = 5
-    input_dict = {"shape": shape, "index": index}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Another shape with many dimensions and different index
-    shape = tf.TensorShape([1, 2, 3, 4, 5, 6, 7, 8, 9])
-    index = 0
-    input_dict = {"shape": shape, "index": index}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Shape with a single unknown dimension
+    # Input 7
     shape = tf.TensorShape([None])
-    index = 0
+    index = np.int32(0)
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Shape with mixed known and unknown dimensions
-    shape = tf.TensorShape([10, None, 30, None])
-    index = 1
+
+    # Input 8
+    shape = tf.TensorShape([1, 2, 3, 4, 5])
+    index = np.int32(4)
+    input_dict = {"shape": shape, "index": index}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    shape = tf.TensorShape([1, 2])
+    index = np.int32(1)
+    input_dict = {"shape": shape, "index": index}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    shape = tf.TensorShape([None, 2])
+    index = np.int32(1)
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

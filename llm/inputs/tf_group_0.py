@@ -14,26 +14,90 @@ def tf_group_inputs():
     # Input 1: Empty list of tensors
     input_dict = {
         "inputs": [],
-        "name": "group_1"
+        "name": "empty_group"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Single tensor
-    a = tf.constant([1, 2, 3])
+    a = tf.constant(np.array([1, 2, 3], dtype=np.int32))
     input_dict = {
         "inputs": [a],
-        "name": "group_2"
+        "name": "single_tensor"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multiple tensors
-    a = tf.constant([1, 2, 3])
-    b = tf.constant([4, 5, 6])
+    # Input 3: Two 1D tensors of same dtype but different values
+    a = tf.constant(np.array([1, 2], dtype=np.int32))
+    b = tf.constant(np.array([3, 4], dtype=np.int32))
     input_dict = {
         "inputs": [a, b],
-        "name": "group_3"
+        "name": "two_1d_tensors"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensors with different data types, same shape
+    a = tf.constant(np.array([1, 2], dtype=np.int32))
+    b = tf.constant(np.array([4.0, 5.0], dtype=np.float32))
+    input_dict = {
+        "inputs": [a, b],
+        "name": "tensors_diff_dtypes"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Scalar tensor and a 1D tensor
+    a = tf.constant(np.array(10, dtype=np.int32))
+    b = tf.constant(np.array([3.14, 2.71], dtype=np.float32))
+    input_dict = {
+        "inputs": [a, b],
+        "name": "scalar_tensors"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensors with negative values
+    a = tf.constant(np.array([-1, -2], dtype=np.int32))
+    b = tf.constant(np.array([-4.5, -5.6], dtype=np.float32))
+    input_dict = {
+        "inputs": [a, b],
+        "name": "negative_values"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensors with zero values
+    a = tf.constant(np.array([0, 0], dtype=np.int32))
+    b = tf.constant(np.array([0.0, 0.0], dtype=np.float32))
+    input_dict = {
+        "inputs": [a, b],
+        "name": "zero_values"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8:  Two larger tensors of same shape
+    a = tf.constant(np.random.rand(5, 5).astype(np.float32))
+    b = tf.constant(np.random.rand(5, 5).astype(np.int32))
+    input_dict = {
+        "inputs": [a, b],
+        "name": "larger_tensors"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9:  Three 1D tensors
+    a = tf.constant(np.array([1], dtype=np.int32))
+    b = tf.constant(np.array([2], dtype=np.int32))
+    c = tf.constant(np.array([3], dtype=np.int32))
+    input_dict = {
+        "inputs": [a, b, c],
+        "name": "more_tensors"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 10: Single 2D Tensor
+    a = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
+    input_dict = {
+        "inputs": [a],
+        "name": "single_2d_tensor"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

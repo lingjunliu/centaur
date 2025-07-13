@@ -12,75 +12,99 @@ def tf_data_experimental_make_saveable_from_iterator_inputs():
     list_of_inputs = []
 
     # Input 1
-    init_tensor = tf.constant(1)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "fail"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'fail'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    init_tensor = tf.constant(2)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "warn"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4, 5]))
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'warn'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    init_tensor = tf.constant(3)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "ignore"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4]]))
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'ignore'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    init_tensor = tf.constant(4)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "fail"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset = tf.data.Dataset.range(10).batch(2)
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'fail'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    init_tensor = tf.constant(5)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "warn"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset = tf.data.Dataset.from_tensor_slices((np.array([1, 2, 3]), np.array([4, 5, 6])))
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'warn'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    init_tensor = tf.constant(6)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "ignore"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        a = np.array([1, 2, 3])
+        b = np.array([4, 5, 6])
+        dataset = tf.data.Dataset.from_tensor_slices({"a": a, "b": b})
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'ignore'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    init_tensor = tf.constant(7)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "fail"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset = tf.data.Dataset.from_tensor_slices(np.random.uniform(size=(10, 5)))
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'fail'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    init_tensor = tf.constant(8)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "warn"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset = tf.data.Dataset.range(10).map(lambda x: x * 2)
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'warn'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    init_tensor = tf.constant(9)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "ignore"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset1 = tf.data.Dataset.range(5)
+        dataset2 = tf.data.Dataset.range(5,10)
+        dataset = tf.data.Dataset.zip((dataset1, dataset2))
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'ignore'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    init_tensor = tf.constant(10)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "fail"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    with tf.compat.v1.Graph().as_default():
+        dataset = tf.data.Dataset.from_generator(lambda: range(5), output_types=tf.int64)
+        iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
+        iterator_tensor = iterator.initializer
+        external_state_policy = 'fail'
+        input_dict = {"iterator": iterator_tensor, "external_state_policy": external_state_policy}
+        list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11
-    init_tensor = tf.constant(11)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "warn"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12
-    init_tensor = tf.constant([[1, 2], [3, 4]])
-    input_dict = {"iterator": init_tensor, "external_state_policy": "ignore"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13
-    init_tensor = tf.constant([1.0, 2.0, 3.0])
-    input_dict = {"iterator": init_tensor, "external_state_policy": "fail"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 14
-    init_tensor = tf.constant(-1)
-    input_dict = {"iterator": init_tensor, "external_state_policy": "warn"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

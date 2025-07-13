@@ -11,56 +11,68 @@ import numpy as np
 def tf_data_experimental_cardinality_inputs():
     list_of_inputs = []
 
+    # Helper function to convert dataset to a tensor (if possible)
+    def dataset_to_tensor(dataset):
+        try:
+            return tf.constant(list(dataset.as_numpy_iterator()))
+        except:
+            return None
+
     # Input 1: Dataset with a known cardinality
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([0,1,2,3,4,5,6,7,8,9]))
-    input_dict = {"dataset": dataset}
+    dataset = tf.data.Dataset.range(10)
+    tensor = dataset_to_tensor(dataset)
+    if tensor is not None:
+        input_dict = {"dataset": tensor.numpy()}
+        list_of_inputs.append(input_dict)
+
+    # Input 2: Dataset with a different known cardinality
+    dataset = tf.data.Dataset.range(100)
+    tensor = dataset_to_tensor(dataset)
+    if tensor is not None:
+        input_dict = {"dataset": tensor.numpy()}
+        list_of_inputs.append(input_dict)
+
+
+    # Input 3: Dataset from tensor slices (known cardinality)
+    tensor = tf.constant([1, 2, 3, 4, 5])
+    input_dict = {"dataset": tensor.numpy()}
     list_of_inputs.append(input_dict)
 
-    # Input 2: Dataset with a larger known cardinality
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(100)]))
-    input_dict = {"dataset": dataset}
+    # Input 4: Dataset from tensors (known cardinality of 1)
+    tensor = tf.constant([1, 2, 3])
+    input_dict = {"dataset": tensor.numpy()}
     list_of_inputs.append(input_dict)
 
-    # Input 3: Dataset created from a list
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1], [2], [3], [4], [5]]))
-    input_dict = {"dataset": dataset}
+    # Input 5: Scalar tensor
+    tensor = tf.constant(5)
+    input_dict = {"dataset": tensor.numpy()}
     list_of_inputs.append(input_dict)
 
-    # Input 4: Dataset created from a tuple
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([[6], [7], [8], [9], [10]]))
-    input_dict = {"dataset": dataset}
+    # Input 6: Dataset from numpy array
+    np_array = np.array([1, 2, 3, 4, 5])
+    input_dict = {"dataset": np_array}
     list_of_inputs.append(input_dict)
 
-    # Input 5: Dataset created from a numpy array
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([[11], [12], [13], [14], [15]]))
-    input_dict = {"dataset": dataset}
+    # Input 7: numpy array
+    np_array = np.array([[1, 2], [3, 4]])
+    input_dict = {"dataset": np_array}
     list_of_inputs.append(input_dict)
 
-    # Input 6: Dataset with a map transformation, maintaining cardinality
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([0,1,2,3,4])).map(lambda x: x * 2)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 7: Dataset with take, reducing cardinality
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(10)])).take(5)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 8: Dataset with skip, maintaining cardinality if skip < cardinality, otherwise 0
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(10)])).skip(2)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 9: Dataset with shuffle
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(10)])).shuffle(buffer_size=10)
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 10: Dataset with a simple filter
-    dataset = tf.data.Dataset.from_tensor_slices(np.array([i for i in range(10)])).filter(lambda x: x < 5)
-    input_dict = {"dataset": dataset}
+    # Input 8: numpy array with different dtype
+    np_array = np.array([1.0, 2.0, 3.0])
+    input_dict = {"dataset": np_array}
     list_of_inputs.append(input_dict)
     
+    # Input 9: zero dimensional numpy array
+    np_array = np.array(10)
+    input_dict = {"dataset": np_array}
+    list_of_inputs.append(input_dict)
+
+    # Input 10: empty numpy array
+    np_array = np.array([])
+    input_dict = {"dataset": np_array}
+    list_of_inputs.append(input_dict)
+
     return list_of_inputs
 
 generated_inputs = {}

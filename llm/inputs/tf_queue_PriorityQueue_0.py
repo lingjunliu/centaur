@@ -12,115 +12,192 @@ def tf_queue_priority_queue_inputs():
     list_of_inputs = []
 
     # Input 1
+    capacity = 5
+    types = [tf.int32]
+    shapes = [[]]
+    names = ['priority']
+    shared_name = 'queue1'
+    name = 'priority_queue_1'
     input_dict = {
-        "capacity": 5,
-        "types": [np.float32],
-        "shapes": [(1,)],
-        "names": ['float_val'],
-        "shared_name": "queue1",
-        "name": "priority_queue_1"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
+    capacity = 10
+    types = [tf.float32, tf.int64]
+    shapes = [[], []]
+    names = ['priority', 'data']
+    shared_name = 'queue2'
+    name = 'priority_queue_2'
     input_dict = {
-        "capacity": 10,
-        "types": [np.int32, np.float32],
-        "shapes": [(), ()],
-        "names": ['int_val', 'float_val'],
-        "shared_name": "queue2",
-        "name": "priority_queue_2"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
+    capacity = 2
+    types = [tf.string, tf.float64, tf.int32]
+    shapes = [[], [], []]
+    names = ['priority', 'feature1', 'feature2']
+    shared_name = 'queue3'
+    name = 'priority_queue_3'
     input_dict = {
-        "capacity": 20,
-        "types": [np.int64, np.float64, np.bool_],
-        "shapes": [(1, 2), (3,), ()],
-        "names": ['int64_val', 'float64_val', 'bool_val'],
-        "shared_name": "queue3",
-        "name": "priority_queue_3"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
+    capacity = 7
+    types = [tf.int32, tf.float32]
+    shapes = [[2], [3]]
+    names = ['priority', 'vector']
+    shared_name = 'queue4'
+    name = 'priority_queue_4'
     input_dict = {
-        "capacity": 1,
-        "types": [tf.string],
-        "shapes": [()],
-        "names": ['string_val'],
-        "shared_name": "queue4",
-        "name": "priority_queue_4"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
+   # Input 5
+    capacity = 3
+    types = [tf.int32, tf.float32, tf.string]
+    shapes = [[], [2, 2], []]
+    names = ['priority', 'matrix', 'message']
+    shared_name = 'queue5'
+    name = 'priority_queue_5'
     input_dict = {
-        "capacity": 7,
-        "types": [np.complex64],
-        "shapes": [(2, 2)],
-        "names": ['complex_val'],
-        "shared_name": "queue5",
-        "name": "priority_queue_5"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
+    capacity = 1
+    types = [tf.int32]
+    shapes = [[1, 1, 1]]
+    names = ['priority']
+    shared_name = 'queue6'
+    name = 'priority_queue_6'
     input_dict = {
-        "capacity": 15,
-        "types": [np.uint8, np.int16],
-        "shapes": [(1,), (2,1,3)],
-        "names": ['uint8_val', 'int16_val'],
-        "shared_name": "queue6",
-        "name": "priority_queue_6"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
+    capacity = 4
+    types = [tf.int64, tf.float64]
+    shapes = [[], [4, 4]]
+    names = ['priority', 'data']
+    shared_name = 'queue7'
+    name = 'priority_queue_7'
     input_dict = {
-        "capacity": 3,
-        "types": [np.float16],
-        "shapes": [()],
-        "names": ['float16_val'],
-        "shared_name": "queue7",
-        "name": "priority_queue_7"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
+    capacity = 6
+    types = [tf.string, tf.int32]
+    shapes = [[], []]
+    names = ['priority', 'count']
+    shared_name = 'queue8'
+    name = 'priority_queue_8'
     input_dict = {
-        "capacity": 12,
-        "types": [tf.dtypes.as_dtype(np.object_)],
-        "shapes": [(1,3,5)],
-        "names": ['object_val'],
-        "shared_name": "queue8",
-        "name": "priority_queue_8"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 9
+    capacity = 8
+    types = [tf.int32]
+    shapes = [[]]
+    names = ['priority']
+    shared_name = ''
+    name = 'priority_queue_9'
     input_dict = {
-        "capacity": 8,
-        "types": [np.int8],
-        "shapes": [(4,4)],
-        "names": ['int8_val'],
-        "shared_name": "queue9",
-        "name": "priority_queue_9"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
+    capacity = 9
+    types = [tf.int32, tf.float32]
+    shapes = [[], []]
+    names = ['priority', 'value']
+    shared_name = 'queue10'
+    name = ''
     input_dict = {
-        "capacity": 2,
-        "types": [np.uint32, np.uint64],
-        "shapes": [(), (1, 1)],
-        "names": ['uint32_val', 'uint64_val'],
-        "shared_name": "queue10",
-        "name": "priority_queue_10"
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 11 - Added back since it might be required to have a shape to at least pass the shape check
+    capacity = 2
+    types = [tf.int32]
+    shapes = [[]]
+    names = ["priority"]
+    shared_name = "queue11"
+    name = "priority_queue_11"
+    input_dict = {
+        'capacity': capacity,
+        'types': types,
+        'shapes': shapes,
+        'names': names,
+        'shared_name': shared_name,
+        'name': name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

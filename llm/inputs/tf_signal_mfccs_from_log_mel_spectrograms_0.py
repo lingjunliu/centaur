@@ -11,58 +11,65 @@ import copy
 def tf_signal_mfccs_from_log_mel_spectrograms_inputs():
     list_of_inputs = []
 
-    def to_numpy(tensor):
-        return tensor.numpy()
+    # Input 1
+    log_mel_spectrograms = np.random.rand(10, 80).astype(np.float32)
+    name = None
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 1: Basic 2D input
-    log_mel_spectrograms = np.random.rand(10, 20).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2
+    log_mel_spectrograms = np.random.rand(5, 128).astype(np.float64)
+    name = "mfcc_calculation"
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 2: 3D input
-    log_mel_spectrograms = np.random.rand(5, 10, 20).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": "mfcc_test"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3
+    log_mel_spectrograms = np.random.rand(1, 40).astype(np.float32)
+    name = ""
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 3: Different shape
-    log_mel_spectrograms = np.random.rand(20, 40).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4
+    log_mel_spectrograms = np.random.rand(2, 3, 64).astype(np.float32)
+    name = "mfcc_features"
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 4: Larger values
-    log_mel_spectrograms = (np.random.rand(10, 20) * 100).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5
+    log_mel_spectrograms = np.random.rand(32, 80).astype(np.float32) - 0.5 # Negative values
+    name = None
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 5: Small values
-    log_mel_spectrograms = (np.random.rand(10, 20) * 0.01).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6
+    log_mel_spectrograms = np.zeros((10, 60), dtype=np.float32)
+    name = "zero_input"
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 6: Float64 input
-    log_mel_spectrograms = np.random.rand(10, 20).astype(np.float64)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7
+    log_mel_spectrograms = np.random.rand(4, 5, 6, 32).astype(np.float32)
+    name = "multi_dimensional"
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 7: 4D input
-    log_mel_spectrograms = np.random.rand(2, 5, 10, 20).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8
+    log_mel_spectrograms = np.random.rand(16, 128).astype(np.float64) - 1.0
+    name = "double_precision"
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 8: Batch of one
-    log_mel_spectrograms = np.random.rand(1, 20).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9
+    log_mel_spectrograms = np.ones((8, 40), dtype=np.float32)
+    name = "ones_input"
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
-    # Input 9: different name
-    log_mel_spectrograms = np.random.rand(10, 20).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": "different_name"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: different name
-    log_mel_spectrograms = np.random.rand(5, 5).astype(np.float32)
-    input_dict = {"log_mel_spectrograms": tf.constant(log_mel_spectrograms), "name": "another_name"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10
+    log_mel_spectrograms = np.random.rand(2, 256).astype(np.float32)
+    name = "larger_mel_bins"
+    input_dict = {"log_mel_spectrograms": log_mel_spectrograms, "name": name}
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

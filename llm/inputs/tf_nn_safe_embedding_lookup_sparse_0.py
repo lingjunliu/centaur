@@ -18,37 +18,224 @@ def tf_nn_safe_embedding_lookup_sparse_inputs():
     combiner = "mean"
     default_id = 0
     max_norm = None
-    name = "embedding_lookup_1"
+    name = "embedding_lookup"
     allow_fast_lookup = False
-    input_dict = {'embedding_weights': embedding_weights, 'sparse_ids': sparse_ids, 'sparse_weights': sparse_weights, 'combiner': combiner, 'default_id': default_id, 'max_norm': max_norm, 'name': name, 'allow_fast_lookup': allow_fast_lookup}
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    embedding_weights = [np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float32)]
-    sparse_ids = tf.SparseTensor(indices=[[0, 0], [0, 1], [1, 0], [1,1]], values=[0, 1, -1, 3], dense_shape=[2, 2])
-    sparse_weights = tf.SparseTensor(indices=[[0, 0], [0, 1], [1, 0], [1,1]], values=[1.0, 2.0, 3.0, 0.5], dense_shape=[2, 2])
+    embedding_weights = [np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)]
+    sparse_ids = tf.SparseTensor(indices=[[0, 0], [1, 0]], values=[0, 1], dense_shape=[2, 1])
+    sparse_weights = tf.SparseTensor(indices=[[0, 0], [1, 0]], values=[1.0, 1.0], dense_shape=[2, 1])
     combiner = "sum"
-    default_id = 1
+    default_id = 0
     max_norm = 1.0
-    name = "embedding_lookup_2"
+    name = None
     allow_fast_lookup = True
-    input_dict = {'embedding_weights': embedding_weights, 'sparse_ids': sparse_ids, 'sparse_weights': sparse_weights, 'combiner': combiner, 'default_id': default_id, 'max_norm': max_norm, 'name': name, 'allow_fast_lookup': allow_fast_lookup}
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    embedding_weights = [np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)]
-    sparse_ids = tf.SparseTensor(indices=[[0, 0], [1, 1]], values=[0, 1], dense_shape=[2, 2])
+    embedding_weights = [np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)]
+    sparse_ids = tf.SparseTensor(indices=[[0, 0], [0, 1], [1, 0], [1, 1]], values=[0, 1, 0, 1], dense_shape=[2, 2])
     sparse_weights = None
+    combiner = "sqrtn"
+    default_id = 0
+    max_norm = None
+    name = None
+    allow_fast_lookup = False
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    embedding_weights = [np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32),
+                         np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)]
+    sparse_ids = tf.SparseTensor(indices=[[0, 0], [1, 0]], values=[0, 1], dense_shape=[2, 1])
+    sparse_weights = tf.SparseTensor(indices=[[0, 0], [1, 0]], values=[1.0, 1.0], dense_shape=[2, 1])
     combiner = "mean"
     default_id = 0
     max_norm = None
-    name = "embedding_lookup_4"
+    name = None
     allow_fast_lookup = False
-    input_dict = {'embedding_weights': embedding_weights, 'sparse_ids': sparse_ids, 'sparse_weights': sparse_weights, 'combiner': combiner, 'default_id': default_id, 'max_norm': max_norm, 'name': name, 'allow_fast_lookup': allow_fast_lookup}
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 5
+    embedding_weights = [np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)]
+    sparse_ids = tf.SparseTensor(indices=[[0, 0], [1, 0]], values=[0, -1], dense_shape=[2, 1])
+    sparse_weights = tf.SparseTensor(indices=[[0, 0], [1, 0]], values=[1.0, 1.0], dense_shape=[2, 1])
+    combiner = "sum"
+    default_id = 1
+    max_norm = None
+    name = None
+    allow_fast_lookup = False
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: No weights and default id !=0
+    embedding_weights = [np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)]
+    sparse_ids = tf.SparseTensor(indices=[[0, 0], [1, 0]], values=[0, 1], dense_shape=[2, 1])
+    sparse_weights = None
+    combiner = "sum"
+    default_id = 1
+    max_norm = 1.0
+    name = None
+    allow_fast_lookup = True
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 7: RaggedTensor, no weights
+    embedding_weights = [np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)]
+    sparse_ids = tf.ragged.constant([[0, 1], [0]])
+    sparse_weights = None
+    combiner = "sum"
+    default_id = 0
+    max_norm = 1.0
+    name = None
+    allow_fast_lookup = True
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    # Input 8: default_id > 0
+    embedding_weights = [np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)]
+    sparse_ids = tf.SparseTensor(indices=[[0, 0], [0, 1], [1, 0]], values=[0, 1, 2], dense_shape=[2, 2])
+    sparse_weights = tf.SparseTensor(indices=[[0, 0], [0, 1], [1, 0]], values=[1.0, 2.0, 3.0], dense_shape=[2, 2])
+    combiner = "mean"
+    default_id = 1
+    max_norm = None
+    name = "embedding_lookup"
+    allow_fast_lookup = False
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: RaggedTensor for sparse_ids and sparse_weights and default_id
+    embedding_weights = [np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)]
+    sparse_ids = tf.ragged.constant([[0, 1], [2]])
+    sparse_weights = tf.ragged.constant([[1.0, 2.0], [3.0]])
+    combiner = "mean"
+    default_id = 1
+    max_norm = None
+    name = "embedding_lookup"
+    allow_fast_lookup = False
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Default id and negative values, Ragged
+    embedding_weights = [np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)]
+    sparse_ids = tf.ragged.constant([[0, -1], [-2, 1]])
+    sparse_weights = tf.ragged.constant([[1.0, 2.0], [3.0, 4.0]])
+    combiner = "sum"
+    default_id = 1
+    max_norm = None
+    name = None
+    allow_fast_lookup = False
+
+    input_dict = {
+        "embedding_weights": embedding_weights,
+        "sparse_ids": sparse_ids,
+        "sparse_weights": sparse_weights,
+        "combiner": combiner,
+        "default_id": default_id,
+        "max_norm": max_norm,
+        "name": name,
+        "allow_fast_lookup": allow_fast_lookup
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.nn.safe_embedding_lookup_sparse"] = tf_nn_safe_embedding_lookup_sparse_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

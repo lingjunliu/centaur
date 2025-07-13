@@ -11,55 +11,56 @@ import copy
 def tf_experimental_numpy_fix_inputs():
     list_of_inputs = []
 
-    # Input 1: Scalar float
-    x = np.array(2.7, dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
+    # Input 1: Scalar
+    x = np.array(2.7)
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Scalar negative float
-    x = np.array(-3.14, dtype=np.float64)
-    input_dict = {"x": tf.constant(x)}
+    # Input 2: 1D array, positive
+    x = np.array([1.1, 2.5, 3.9])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D array of floats
-    x = np.array([1.2, 2.8, -3.5, 4.9], dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
+    # Input 3: 1D array, negative
+    x = np.array([-1.1, -2.5, -3.9])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D array of floats
-    x = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x)}
+    # Input 4: 1D array, mixed positive and negative
+    x = np.array([-1.1, 2.5, -3.9, 4.2])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D array of floats
-    x = np.array([[[1.5, 2.5], [3.5, 4.5]], [[5.5, 6.5], [7.5, 8.5]]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
+    # Input 5: 2D array
+    x = np.array([[1.1, 2.5], [3.9, 4.2]])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 1D array of integers
-    x = np.array([1, 2, -3, 4], dtype=np.int32)
-    input_dict = {"x": tf.cast(tf.constant(x), dtype=tf.float32)}
+    # Input 6: 2D array, negative
+    x = np.array([[-1.1, -2.5], [-3.9, -4.2]])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 2D array of integers
-    x = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    input_dict = {"x": tf.cast(tf.constant(x), dtype=tf.float32)}
+    # Input 7: 3D array
+    x = np.array([[[1.1, 2.5], [3.9, 4.2]], [[5.5, 6.7], [7.1, 8.3]]])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Large float
-    x = np.array(123456789.987, dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
+    # Input 8: Large values
+    x = np.array([1000.1, -2000.5, 3000.9])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Small float
-    x = np.array(0.0000001, dtype=np.float64)
-    input_dict = {"x": tf.constant(x)}
+    # Input 9: Small values close to zero
+    x = np.array([0.1, -0.2, 0.3])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: 1D array with mixed positive and negative floats
-    x = np.array([-2.3, 1.7, -0.5, 4.2, -5.8], dtype=np.float32)
-    input_dict = {"x": tf.constant(x)}
+    # Input 10: Array with zeros and integers
+    x = np.array([0.0, 1.0, -2.0, 3.5])
+    input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

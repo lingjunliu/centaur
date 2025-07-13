@@ -6,6 +6,7 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import copy
+import numpy as np
 
 def tf_random_set_global_generator_inputs():
     list_of_inputs = []
@@ -22,6 +23,51 @@ def tf_random_set_global_generator_inputs():
 
     # Input 3
     generator = tf.random.Generator.from_seed(0)
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    generator = tf.random.Generator.from_seed(2**31 - 1)
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    generator = tf.random.Generator.from_seed(-1) # Negative seed is allowed
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    generator = tf.random.Generator.from_seed(1234567890)
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    generator = tf.random.Generator.from_seed(42)
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    generator = tf.random.Generator.from_seed(1000)
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Create a generator with a specific algorithm
+    generator = tf.random.Generator.from_seed(123, alg='philox')
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Generator with different seed
+    generator = tf.random.Generator.from_seed(5000, alg='threefry')
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Create a generator with auto selection
+    generator = tf.random.Generator.from_seed(2147483647, alg='auto_select')
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Larger Seed
+    generator = tf.random.Generator.from_seed(2147483648, alg='philox')
     input_dict = {"generator": generator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

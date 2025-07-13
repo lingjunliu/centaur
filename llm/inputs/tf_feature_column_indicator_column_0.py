@@ -5,91 +5,17 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_feature_column_indicator_column_inputs():
     list_of_inputs = []
 
-    # Input 1:  categorical_column_with_vocabulary_list
-    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_list(
-        'color', ['red', 'green', 'blue'])]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: categorical_column_with_identity
-    categorical_column = [tf.feature_column.categorical_column_with_identity(
-        key='user_id', num_buckets=5)]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: crossed_column
-    feature_columns = [
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'color', vocabulary_list=('red', 'green', 'blue')),
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'size', vocabulary_list=('S', 'M', 'L'))
-    ]
-    categorical_column = [tf.feature_column.crossed_column(
-        feature_columns, hash_bucket_size=10)]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: categorical_column_with_hash_bucket
-    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
-        'occupation', hash_bucket_size=1000)]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Multiple categorical columns in a list (single column)
-    categorical_column = [
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'city', ['New York', 'London', 'Paris'])
-    ]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6:  Different type of vocabulary list
-    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_list(
-        'number', ['1', '2', '3'])]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Crossed column without hash bucket
-    feature_columns = [
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'color', vocabulary_list=('red', 'green', 'blue')),
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'size', vocabulary_list=('S', 'M', 'L')),
-    ]
-    categorical_column = [tf.feature_column.crossed_column(
-        feature_columns, hash_bucket_size=1000)]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Large identity bucket
-    categorical_column = [tf.feature_column.categorical_column_with_identity(
-        key='item_id', num_buckets=10000)]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: numerical values with identity
-    categorical_column = [tf.feature_column.categorical_column_with_identity(
-        key='price', num_buckets=100)]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Crossed column with single vocabulary
-    feature_columns = [
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'feature1', vocabulary_list=['a']),
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'feature2', vocabulary_list=['b'])
-    ]
-    categorical_column = [tf.feature_column.crossed_column(
-        feature_columns, hash_bucket_size=100)]
-    input_dict = {'categorical_column': categorical_column}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: categorical_column_with_vocabulary_list
+    categorical_column_1 = tf.feature_column.categorical_column_with_vocabulary_list(
+        key='color', vocabulary_list=['red', 'green', 'blue'])
+    input_dict_1 = {'categorical_column': [categorical_column_1]}
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
     return list_of_inputs
 

@@ -11,14 +11,81 @@ import copy
 def tf_sparse_add_inputs():
     list_of_inputs = []
 
-    # Input 1: SparseTensor + Dense Tensor, threshold = 0
-    a_indices = np.array([[0, 0], [1, 2]])
-    a_values = np.array([1, 2], dtype=np.float32)
-    a_shape = np.array([2, 3])
-    a = tf.SparseTensor(indices=a_indices, values=a_values, dense_shape=a_shape)
-    b = tf.constant([[3, 0, 1], [0, 2, 0]], dtype=np.float32)
-    threshold = tf.constant(0.0, dtype=np.float32)
+    def get_range(tensor):
+        if isinstance(tensor, tf.sparse.SparseTensor):
+            return [np.min(tensor.values.numpy()), np.max(tensor.values.numpy())] if tf.size(tensor.values).numpy() > 0 else [0, 0]
+        elif isinstance(tensor, tf.Tensor):
+            return [np.min(tensor.numpy()), np.max(tensor.numpy())] if tensor.numpy().size > 0 else [0, 0]
+        else:
+            return [np.min(tensor), np.max(tensor)]
 
+    # Input 1: SparseTensor + Tensor
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
+    b = tf.constant([[1, 0, 0], [0, 0, 3]], dtype=tf.int32)
+    threshold = tf.constant(0.0, dtype=tf.float32)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Tensor + SparseTensor
+    a = tf.constant([[1, 0, 0], [0, 0, 3]], dtype=tf.int32)
+    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
+    threshold = tf.constant(0.0, dtype=tf.float32)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: SparseTensor + SparseTensor, threshold = 0
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
+    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[3, -2], dense_shape=[2, 3])
+    threshold = tf.constant(0.0, dtype=tf.float32)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: SparseTensor + SparseTensor, threshold > 0
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
+    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[-1, 2], dense_shape=[2, 3])
+    threshold = tf.constant(0.5, dtype=tf.float32)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 3D SparseTensor + Tensor
+    a = tf.sparse.SparseTensor(indices=[[0, 0, 0], [1, 1, 2]], values=[1, 2], dense_shape=[2, 2, 3])
+    b = tf.constant([[[1, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 3]]], dtype=tf.int32)
+    threshold = tf.constant(0.0, dtype=tf.float32)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensor + 3D SparseTensor
+    a = tf.constant([[[1, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 3]]], dtype=tf.int32)
+    b = tf.sparse.SparseTensor(indices=[[0, 0, 0], [1, 1, 2]], values=[1, 2], dense_shape=[2, 2, 3])
+    threshold = tf.constant(0.0, dtype=tf.float32)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: SparseTensor + SparseTensor, float32 values
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1.0, 2.0], dense_shape=[2, 3])
+    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[3.0, -2.0], dense_shape=[2, 3])
+    threshold = tf.constant(0.0, dtype=tf.float32)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: SparseTensor + SparseTensor, float32 values, threshold > 0
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1.0, 2.0], dense_shape=[2, 3])
+    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[-1.0, 2.0], dense_shape=[2, 3])
+    threshold = tf.constant(0.5, dtype=tf.float32)
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Complex SparseTensor
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1 + 1j, 2 + 2j], dense_shape=[2, 3])
+    b = tf.constant([[1, 0, 0], [0, 0, 3]], dtype=tf.complex128)
+    threshold = tf.constant(0.0, dtype=tf.float64) # Threshold should be float64 for complex128
+    input_dict = {"a": a, "b": b, "threshold": threshold}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: SparseTensor + Tensor, with negative values and float64
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[-1.5, 2.5], dense_shape=[2, 3])
+    b = tf.constant([[1.0, 0.0, 0.0], [0.0, 0.0, -3.0]], dtype=tf.float64)
+    threshold = tf.constant(0.0, dtype=tf.float64)
     input_dict = {"a": a, "b": b, "threshold": threshold}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -11,126 +11,69 @@ import copy
 def tf_random_Generator_inputs():
     list_of_inputs = []
 
-    # Input 1
-    state = np.array([1, 0], dtype=np.int64)
-    copy_from = None
-    alg = "philox"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
+    # Input 1: Valid input with seed and philox algorithm
+    state1 = np.array([123, 0, 0], dtype=np.int64)
+    input_dict1 = {
+        "copy_from": None,
+        "state": state1,
+        "alg": "philox"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2
-    state = np.array([1234, 0], dtype=np.int64)
-    copy_from = None
-    alg = "philox"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
+    # Input 2: Valid input with seed and threefry algorithm
+    state2 = np.array([123, 0], dtype=np.int64)
+    input_dict2 = {
+        "copy_from": None,
+        "state": state2,
+        "alg": "threefry"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3
-    state = np.array([5678, 0, 0], dtype=np.int64)
-    copy_from = None
-    alg = "threefry"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
+    # Input 3: Valid input with state containing negative values and philox algorithm
+    state3 = np.array([-123, 0, 0], dtype=np.int64)
+    input_dict3 = {
+        "copy_from": None,
+        "state": state3,
+        "alg": "philox"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4
-    state = np.array([9101, 0], dtype=np.int64)
-    copy_from = None
-    alg = "philox"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
+    # Input 4: Valid input with state containing large values and threefry algorithm
+    state4 = np.array([2**32, 0], dtype=np.int64)
+    input_dict4 = {
+        "copy_from": None,
+        "state": state4,
+        "alg": "threefry"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5
-    state = np.array([11213, 0, 0], dtype=np.int64)
-    copy_from = None
-    alg = "threefry"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
+    # Input 5:  Valid input with zero state and philox
+    state5 = np.array([0, 0, 0], dtype=np.int64)
+    input_dict5 = {
+        "copy_from": None,
+        "state": state5,
+        "alg": "philox"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 6
-    state = np.array([1415, 0], dtype=np.int64)
-    copy_from = None
-    alg = "philox"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
+    # Input 9: Valid input with different state values and threefry algorithm
+    state9 = np.array([100, 200], dtype=np.int64)
+    input_dict9 = {
+        "copy_from": None,
+        "state": state9,
+        "alg": "threefry"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict9))
 
-    # Input 7
-    state = np.array([0, 0, 0], dtype=np.int64)
-    copy_from = None
-    alg = "threefry"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
+    # Input 10: Valid input with larger state values and philox
+    state10 = np.array([2**62, 2**60, 0], dtype=np.int64)
+    input_dict10 = {
+        "copy_from": None,
+        "state": state10,
+        "alg": "philox"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 8
-    state = np.array([2**31 - 1, 0], dtype=np.int64)
-    copy_from = None
-    alg = "philox"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    state = np.array([-1, 0, 0], dtype=np.int64)
-    copy_from = None
-    alg = "threefry"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    state = np.array([1, 2], dtype=np.int64)
-    copy_from = None
-    alg = "philox"
-
-    input_dict = {
-        "copy_from": copy_from,
-        "state": state,
-        "alg": alg
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
     return list_of_inputs
 
 generated_inputs = {}

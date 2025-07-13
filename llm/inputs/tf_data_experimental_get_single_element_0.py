@@ -11,36 +11,74 @@ import copy
 def tf_data_experimental_get_single_element_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple dataset with one element
-    element = np.array([1, 2, 3])
-    dataset = tf.data.Dataset.from_tensors(element)
+    # Input 1: Dataset with a single element (scalar)
+    dataset = tf.data.Dataset.from_tensors(np.array([10])).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 2: Dataset with one element, a tuple
-    element1 = np.array([1, 2])
-    element2 = np.array([3, 4])
-    dataset = tf.data.Dataset.from_tensors((element1, element2))
+    # Input 2: Dataset with a single element (1D array)
+    dataset = tf.data.Dataset.from_tensors(np.array([1, 2, 3])).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 3: Dataset with one element, a dictionary
-    element_a = np.array([1, 2])
-    element_b = np.array([3, 4])
-    element = {"a": element_a, "b": element_b}
-    dataset = tf.data.Dataset.from_tensors(element)
+    # Input 3: Dataset with a single element (2D array)
+    dataset = tf.data.Dataset.from_tensors(np.array([[1, 2], [3, 4]])).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 4: Dataset with one element, a multi-dimensional array
-    element = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    dataset = tf.data.Dataset.from_tensors(element)
+    # Input 4: Dataset with a single element (3D array)
+    dataset = tf.data.Dataset.from_tensors(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 5: Dataset with one element, a string
-    element = np.array("hello")
-    dataset = tf.data.Dataset.from_tensors(element)
+    # Input 5: Dataset with a single element (string)
+    dataset = tf.data.Dataset.from_tensors(np.array("hello")).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 6: Dataset with a single element (float)
+    dataset = tf.data.Dataset.from_tensors(np.array(3.14)).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 7: Dataset with a single element (boolean)
+    dataset = tf.data.Dataset.from_tensors(np.array(True)).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 8: Dataset with a single element (complex number)
+    dataset = tf.data.Dataset.from_tensors(np.array(1+1j)).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 9: Dataset with a single element (numpy int64)
+    dataset = tf.data.Dataset.from_tensors(np.int64(2**63 - 1)).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 10: Dataset with a single element (nested structure)
+    example = (np.array([1, 2]), np.array("test"))
+    dataset = tf.data.Dataset.from_tensors(example).batch(1)
+    dataset = dataset.unbatch()
+    dataset = dataset.batch(1)
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 

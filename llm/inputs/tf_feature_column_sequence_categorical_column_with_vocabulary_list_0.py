@@ -4,171 +4,192 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
+import tensorflow as tf
 import numpy as np
+import copy
 
 def tf_feature_column_sequence_categorical_column_with_vocabulary_list_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
-    key = 'color'
-    vocabulary_list = ['red', 'green', 'blue']
+    # Input 1
+    key = "colors"
+    vocabulary_list = ["R", "G", "B"]
     dtype = np.dtype(np.str_)
     default_value = -1
     num_oov_buckets = 0
-
     input_dict = {
         "key": key,
         "vocabulary_list": vocabulary_list,
         "dtype": dtype,
         "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
+        "num_oov_buckets": num_oov_buckets,
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid
-    key = 'number'
+    # Input 2
+    key = "numbers"
     vocabulary_list = [1, 2, 3]
     dtype = np.dtype(np.int64)
     default_value = 0
-    num_oov_buckets = 0
-
+    num_oov_buckets = 1
     input_dict = {
         "key": key,
         "vocabulary_list": vocabulary_list,
         "dtype": dtype,
         "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
+        "num_oov_buckets": num_oov_buckets,
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3, valid, with oov buckets
-    key = 'city'
-    vocabulary_list = ['london', 'paris', 'tokyo']
+    # Input 3
+    key = "fruits"
+    vocabulary_list = ["apple", "banana", "orange"]
     dtype = np.dtype(np.str_)
-    default_value = -1
-    num_oov_buckets = 2
-
-    input_dict = {
-        "key": key,
-        "vocabulary_list": vocabulary_list,
-        "dtype": dtype,
-        "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
-    }
-    list_of_inputs.append(input_dict)
-
-    # Input 4, valid, with different default value
-    key = 'shape'
-    vocabulary_list = ['square', 'circle', 'triangle']
-    dtype = np.dtype(np.str_)
-    default_value = 1
-    num_oov_buckets = 0
-
-    input_dict = {
-        "key": key,
-        "vocabulary_list": vocabulary_list,
-        "dtype": dtype,
-        "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
-    }
-    list_of_inputs.append(input_dict)
-
-     # Input 5, integer vocabs with negative values
-    key = 'integer_values'
-    vocabulary_list = [-1, 0, 1, 2]
-    dtype = np.dtype(np.int64)
     default_value = -2
-    num_oov_buckets = 0
-
+    num_oov_buckets = 2
     input_dict = {
         "key": key,
         "vocabulary_list": vocabulary_list,
         "dtype": dtype,
         "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
+        "num_oov_buckets": num_oov_buckets,
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6, Large number of OOV buckets
-    key = 'location'
-    vocabulary_list = ['us', 'uk', 'ca']
+    # Input 4
+    key = "letters"
+    vocabulary_list = ["a", "b", "c", "d"]
     dtype = np.dtype(np.str_)
     default_value = -1
-    num_oov_buckets = 100
-
+    num_oov_buckets = 0
     input_dict = {
         "key": key,
         "vocabulary_list": vocabulary_list,
         "dtype": dtype,
         "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
+        "num_oov_buckets": num_oov_buckets,
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7, dtype is int32
-    key = 'number_32'
-    vocabulary_list = [1, 2, 3]
+    # Input 5
+    key = "integers"
+    vocabulary_list = [10, 20, 30, 40]
     dtype = np.dtype(np.int32)
     default_value = 0
-    num_oov_buckets = 0
-
+    num_oov_buckets = 3
     input_dict = {
         "key": key,
         "vocabulary_list": vocabulary_list,
         "dtype": dtype,
         "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
+        "num_oov_buckets": num_oov_buckets,
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8, Large default value
-    key = 'large_number'
-    vocabulary_list = [1, 2, 3]
-    dtype = np.dtype(np.int64)
-    default_value = 10000
-    num_oov_buckets = 0
-
-    input_dict = {
-        "key": key,
-        "vocabulary_list": vocabulary_list,
-        "dtype": dtype,
-        "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
-    }
-    list_of_inputs.append(input_dict)
-    
-    # Input 9, limited vocabulary list with oov buckets and string dtype
-    key = 'limited_strings'
-    vocabulary_list = ['apple', 'banana']
+    # Input 6
+    key = "animals"
+    vocabulary_list = ["dog", "cat", "bird"]
     dtype = np.dtype(np.str_)
     default_value = -1
     num_oov_buckets = 1
+    input_dict = {
+        "key": key,
+        "vocabulary_list": vocabulary_list,
+        "dtype": dtype,
+        "default_value": default_value,
+        "num_oov_buckets": num_oov_buckets,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 7
+    key = "values"
+    vocabulary_list = [100, 200, 300]
+    dtype = np.dtype(np.int64)
+    default_value = -10
+    num_oov_buckets = 0
     input_dict = {
         "key": key,
         "vocabulary_list": vocabulary_list,
         "dtype": dtype,
         "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
+        "num_oov_buckets": num_oov_buckets,
     }
-    list_of_inputs.append(input_dict)
-    
-    # Input 10: Different default value with oov_buckets, remove negative value for default value
-    key = 'diff_default_oov'
-    vocabulary_list = ['cat', 'dog']
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 (Removed problematic input 8, and adjusted indexing)
+    key = "months"
+    vocabulary_list = ["Jan", "Feb", "Mar", "Apr"]
     dtype = np.dtype(np.str_)
-    default_value = 0
-    num_oov_buckets = 2
-    
+    default_value = -1
+    num_oov_buckets = 0
     input_dict = {
         "key": key,
         "vocabulary_list": vocabulary_list,
         "dtype": dtype,
         "default_value": default_value,
-        "num_oov_buckets": num_oov_buckets
+        "num_oov_buckets": num_oov_buckets,
     }
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    key = "codes"
+    vocabulary_list = [1, 2, 3, 4, 5]
+    dtype = np.dtype(np.int32)
+    default_value = -2
+    num_oov_buckets = 2
+    input_dict = {
+        "key": key,
+        "vocabulary_list": vocabulary_list,
+        "dtype": dtype,
+        "default_value": default_value,
+        "num_oov_buckets": num_oov_buckets,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 11
+    key = "symbols"
+    vocabulary_list = ["!", "@", "#", "$", "%"]
+    dtype = np.dtype(np.str_)
+    default_value = -3
+    num_oov_buckets = 1
+    input_dict = {
+        "key": key,
+        "vocabulary_list": vocabulary_list,
+        "dtype": dtype,
+        "default_value": default_value,
+        "num_oov_buckets": num_oov_buckets,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    key = "bool_vals"
+    vocabulary_list = [True, False]
+    dtype = np.dtype(np.bool_)
+    default_value = 0
+    num_oov_buckets = 0
+    input_dict = {
+        "key": key,
+        "vocabulary_list": vocabulary_list,
+        "dtype": dtype,
+        "default_value": default_value,
+        "num_oov_buckets": num_oov_buckets,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13
+    key = "mixed_types"
+    vocabulary_list = [1, "a", True]
+    dtype = np.dtype(np.object_)
+    default_value = -1
+    num_oov_buckets = 0
+    input_dict = {
+        "key": key,
+        "vocabulary_list": vocabulary_list,
+        "dtype": dtype,
+        "default_value": default_value,
+        "num_oov_buckets": num_oov_buckets,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

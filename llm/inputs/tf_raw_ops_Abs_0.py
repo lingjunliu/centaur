@@ -11,64 +11,54 @@ import copy
 def tf_raw_ops_abs_inputs():
     list_of_inputs = []
 
-    # Input 1: int32, positive scalar
-    x = np.array(5, dtype=np.int32)
-    name = None
-    input_dict = {"x": x, "name": name}
+    # Input 1: bfloat16, scalar
+    x = np.array(-5, dtype=np.float16)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: int32, negative scalar
-    x = np.array(-5, dtype=np.int32)
-    name = "negative_scalar"
-    input_dict = {"x": x, "name": name}
+    # Input 2: half, 1D array
+    x = np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float16)
+    input_dict = {"x": x, "name": "abs_half_1d"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, 1D array
-    x = np.array([-1.0, 2.0, -3.0, 4.0, -5.0], dtype=np.float32)
-    name = "float32_1d"
-    input_dict = {"x": x, "name": name}
+    # Input 3: float32, 2D array
+    x = np.array([[-1.5, 2.5], [-3.5, 4.5]], dtype=np.float32)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64, 2D array
-    x = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float64)
-    name = "float64_2d"
-    input_dict = {"x": x, "name": name}
+    # Input 4: float64, 3D array
+    x = np.array([[[1.0, -2.0], [3.0, -4.0]], [[-5.0, 6.0], [-7.0, 8.0]]], dtype=np.float64)
+    input_dict = {"x": x, "name": "abs_float64_3d"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: int16, 3D array
-    x = np.array([[[1, -2], [3, -4]], [[-5, 6], [-7, 8]]], dtype=np.int16)
-    name = "int16_3d"
-    input_dict = {"x": x, "name": name}
+    # Input 5: int8, scalar
+    x = np.array(-10, dtype=np.int8)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: bfloat16, positive values
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    name = "bfloat16_positive"
-    input_dict = {"x": x, "name": name}
+    # Input 6: int16, 1D array
+    x = np.array([-100, 200, -300, 400], dtype=np.int16)
+    input_dict = {"x": x, "name": "abs_int16_1d"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: int8, negative values
-    x = np.array([-10, -20, -30], dtype=np.int8)
-    name = "int8_negative"
-    input_dict = {"x": x, "name": name}
+    # Input 7: int32, 2D array
+    x = np.array([[-1000, 2000], [-3000, 4000]], dtype=np.int32)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: int64, larger values
-    x = np.array([-10000000000, 20000000000], dtype=np.int64)
-    name = "int64_large"
-    input_dict = {"x": x, "name": name}
+    # Input 8: int64, 3D array
+    x = np.array([[[100, -200], [300, -400]], [[-500, 600], [-700, 800]]], dtype=np.int64)
+    input_dict = {"x": x, "name": "abs_int64_3d"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: half (float16), mixed values
-    x = np.array([-1.5, 2.5, -3.5], dtype=np.float16)
-    name = "half_mixed"
-    input_dict = {"x": x, "name": name}
+    # Input 9: float32, scalar zero
+    x = np.array(0.0, dtype=np.float32)
+    input_dict = {"x": x, "name": "abs_zero"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: int32, multi dimensional
-    x = np.array([[[1, -2], [3, -4]], [[-5, 6], [-7, 8]], [[9, -10], [11, -12]]], dtype=np.int32)
-    name = "int32_multi_dimensional"
-    input_dict = {"x": x, "name": name}
+    # Input 10: int32, larger negative value
+    x = np.array(-2147483647, dtype=np.int32)
+    input_dict = {"x": x, "name": "abs_large_negative"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

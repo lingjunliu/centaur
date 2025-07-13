@@ -11,86 +11,78 @@ import copy
 def tf_signal_ifftshift_inputs():
     list_of_inputs = []
 
-    # Input 1: 1D array, axes=None
-    x = np.array([0, 1, 2, 3, 4], dtype=np.float32)
+    # Input 1
+    x = np.array([1, 2, 3, 4])
     axes = 0
     name = "ifftshift_1"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
+    input_dict = {"x": x, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D array, axes=0
-    x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]], dtype=np.float32)
+    # Input 2
+    x = np.array([[1, 2], [3, 4]])
     axes = 0
     name = "ifftshift_2"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
+    input_dict = {"x": x, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D array, axes=1
-    x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]], dtype=np.float32)
+    # Input 3
+    x = np.array([[1, 2], [3, 4]])
     axes = 1
     name = "ifftshift_3"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
+    input_dict = {"x": x, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D array, axes=None
-    x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]], dtype=np.float32)
-    axes = None
+    # Input 4
+    x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    axes = 0
     name = "ifftshift_4"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
+    input_dict = {"x": x, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D array, axes=0
-    x = np.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]], [[8, 9], [10, 11]]], dtype=np.float32)
-    axes = 0
+    # Input 5
+    x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    axes = 1
     name = "ifftshift_5"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
+    input_dict = {"x": x, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D array, axes=1
-    x = np.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]], [[8, 9], [10, 11]]], dtype=np.float32)
-    axes = 1
+    # Input 6
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axes = 0
     name = "ifftshift_6"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
+    input_dict = {"x": x, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 3D array, axes=2
-    x = np.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]], [[8, 9], [10, 11]]], dtype=np.float32)
-    axes = 2
-    name = "ifftshift_7"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: negative 1D array
-    x = np.array([-1, -2, -3, -4, -5], dtype=np.float32)
-    axes = 0
-    name = "ifftshift_13"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    #Input 9: zero value 1D array
-    x = np.array([0, 0, 0, 0, 0], dtype=np.float32)
-    axes = 0
-    name = "ifftshift_14"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: axes as a scalar
-    x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
-    axes = 0
-    name = "ifftshift_15"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Another 2D array, axes=1
-    x = np.array([[10, 11, 12], [13, 14, 15], [16, 17, 18]], dtype=np.float32)
+    # Input 7
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axes = 1
-    name = "ifftshift_16"
-    input_dict = {"x": tf.convert_to_tensor(x), "axes": axes, "name": name}
+    name = "ifftshift_7"
+    input_dict = {"x": x, "axes": axes, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axes = 2
+    name = "ifftshift_8"
+    input_dict = {"x": x, "axes": axes, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    x = np.array([1, 2, 3, 4, 5])
+    axes = 0
+    name = "ifftshift_9"
+    input_dict = {"x": x, "axes": axes, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    x = np.array([[-1, -2], [-3, -4]])
+    axes = 0
+    name = "ifftshift_10"
+    input_dict = {"x": x, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.signal.ifftshift_2"] = tf_signal_ifftshift_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

@@ -13,164 +13,83 @@ def tf_data_experimental_service_from_dataset_id_inputs():
 
     # Input 1
     input_dict = {
-        'processing_mode': 'parallel_epochs',
-        'service': ('grpc', 'localhost:5000'),
-        'dataset_id': 123,
+        'processing_mode': "parallel_epochs",
+        'service': ("grpc", "localhost:5000"),
+        'dataset_id': 1,
         'element_spec': [tf.TensorSpec(shape=(None,), dtype=tf.int64, name=None)],
-        'job_name': 'job1',
+        'job_name': "job1",
         'consumer_index': None,
         'num_consumers': None,
         'max_outstanding_requests': 10,
-        'data_transfer_protocol': 'grpc',
+        'data_transfer_protocol': None,
         'cross_trainer_cache': [],
-        'target_workers': 'AUTO'
+        'target_workers': "AUTO"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     input_dict = {
-        'processing_mode': 'distributed_epoch',
-        'service': ('grpc', '192.168.1.100:6000'),
-        'dataset_id': 456,
-        'element_spec': [tf.TensorSpec(shape=(2, 2), dtype=tf.float32, name=None)],
-        'job_name': 'job2',
+        'processing_mode': "distributed_epoch",
+        'service': ("grpc", "localhost:5001"),
+        'dataset_id': 2,
+        'element_spec': [tf.TensorSpec(shape=(), dtype=tf.float32, name=None)],
+        'job_name': None,
         'consumer_index': None,
         'num_consumers': None,
-        'max_outstanding_requests': 50,
-        'data_transfer_protocol': 'grpc',
+        'max_outstanding_requests': 20,
+        'data_transfer_protocol': None,
         'cross_trainer_cache': [],
-        'target_workers': 'ANY'
+        'target_workers': "ANY"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     input_dict = {
-        'processing_mode': 'parallel_epochs',
-        'service': ('grpc', 'remote_host:7000'),
-        'dataset_id': 789,
-        'element_spec': [tf.TensorSpec(shape=(), dtype=tf.string, name=None)],
-        'job_name': 'job3',
+        'processing_mode': "parallel_epochs",
+        'service': ("grpc", "localhost:5002"),
+        'dataset_id': 3,
+        'element_spec': [tf.TensorSpec(shape=(2, 2), dtype=tf.float64, name=None)],
+        'job_name': "job3",
         'consumer_index': None,
         'num_consumers': None,
-        'max_outstanding_requests': 100,
-        'data_transfer_protocol': 'grpc',
+        'max_outstanding_requests': 5,
+        'data_transfer_protocol': None,
         'cross_trainer_cache': [],
-        'target_workers': 'LOCAL'
+        'target_workers': "LOCAL"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     input_dict = {
-        'processing_mode': 'distributed_epoch',
-        'service': ('grpc', 'localhost:8000'),
-        'dataset_id': 101,
+        'processing_mode': "distributed_epoch",
+        'service': ("grpc", "localhost:5003"),
+        'dataset_id': 4,
         'element_spec': [tf.TensorSpec(shape=(None, 3), dtype=tf.int32, name=None)],
-        'job_name': 'job4',
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 200,
-        'data_transfer_protocol': 'grpc',
-        'cross_trainer_cache': [],
-        'target_workers': 'AUTO'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input_dict = {
-        'processing_mode': 'parallel_epochs',
-        'service': ('grpc', '127.0.0.1:9000'),
-        'dataset_id': 202,
-        'element_spec': [tf.TensorSpec(shape=(5, 5, 5), dtype=tf.float64, name=None)],
-        'job_name': 'job5',
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 5,
-        'data_transfer_protocol': 'grpc',
-        'cross_trainer_cache': [],
-        'target_workers': 'ANY'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_dict = {
-        'processing_mode': 'distributed_epoch',
-        'service': ('grpc', 'localhost:5001'),
-        'dataset_id': 303,
-        'element_spec': [tf.TensorSpec(shape=(None, None), dtype=tf.uint8, name=None)],
-        'job_name': 'job6',
+        'job_name': None,
         'consumer_index': None,
         'num_consumers': None,
         'max_outstanding_requests': 15,
-        'data_transfer_protocol': 'grpc',
+        'data_transfer_protocol': None,
         'cross_trainer_cache': [],
-        'target_workers': 'LOCAL'
+        'target_workers': "AUTO"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
+   # Input 5
     input_dict = {
-        'processing_mode': 'parallel_epochs',
-        'service': ('grpc', '10.0.0.1:6001'),
-        'dataset_id': 404,
-        'element_spec': [tf.TensorSpec(shape=(10,), dtype=tf.bool, name=None)],
-        'job_name': 'job7',
+        'processing_mode': "parallel_epochs",
+        'service': ("grpc", "localhost:5004"),
+        'dataset_id': 5,
+        'element_spec': [tf.TensorSpec(shape=(1, 2, 3), dtype=tf.uint8, name=None)],
+        'job_name': "job5",
         'consumer_index': None,
         'num_consumers': None,
         'max_outstanding_requests': 25,
-        'data_transfer_protocol': 'grpc',
+        'data_transfer_protocol': None,
         'cross_trainer_cache': [],
-        'target_workers': 'AUTO'
+        'target_workers': "ANY"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_dict = {
-        'processing_mode': 'distributed_epoch',
-        'service': ('grpc', 'remote_host:7001'),
-        'dataset_id': 505,
-        'element_spec': [tf.TensorSpec(shape=(None,), dtype=tf.string, name=None)],
-        'job_name': 'job8',
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 35,
-        'data_transfer_protocol': 'grpc',
-        'cross_trainer_cache': [],
-        'target_workers': 'ANY'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_dict = {
-        'processing_mode': 'parallel_epochs',
-        'service': ('grpc', '172.16.0.1:8001'),
-        'dataset_id': 606,
-        'element_spec': [tf.TensorSpec(shape=(1, 1), dtype=tf.int16, name=None)],
-        'job_name': 'job9',
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 45,
-        'data_transfer_protocol': 'grpc',
-        'cross_trainer_cache': [],
-        'target_workers': 'LOCAL'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_dict = {
-        'processing_mode': 'distributed_epoch',
-        'service': ('grpc', 'localhost:9001'),
-        'dataset_id': 707,
-        'element_spec': [tf.TensorSpec(shape=(2, 2, 2), dtype=tf.complex64, name=None)],
-        'job_name': 'job10',
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': 55,
-        'data_transfer_protocol': 'grpc',
-        'cross_trainer_cache': [],
-        'target_workers': 'AUTO'
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}

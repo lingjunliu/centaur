@@ -13,54 +13,51 @@ tf.random.set_seed(1)
 def tf_experimental_numpy_random_randn_inputs():
     list_of_inputs = []
 
-    # Input 1: Scalar shape
-    input_dict = {"args": (1,)}
+    # Input 1: Single integer
+    args = (np.int64(5),)
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 1D shape
-    input_dict = {"args": (5,)}
+    # Input 2: Two integers
+    args = (np.int64(2), np.int64(3))
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D shape
-    input_dict = {"args": (2, 3)}
+    # Input 3: Three integers
+    args = (np.int64(2), np.int64(3), np.int64(4))
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 3D shape
-    input_dict = {"args": (2, 3, 4)}
+    # Input 5: Large integers
+    args = (np.int64(100), np.int64(100))
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Larger shape
-    input_dict = {"args": (10, 10)}
+    # Input 6: One
+    args = (np.int64(1),)
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Another 3D shape
-    input_dict = {"args": (5, 2, 1)}
+    # Input 7: Square matrix
+    args = (np.int64(7), np.int64(7))
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 4D shape
-    input_dict = {"args": (2, 2, 2, 2)}
+    # Input 8: 4D tensor
+    args = (np.int64(2), np.int64(3), np.int64(2), np.int64(2))
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Empty tuple (results in scalar)
-    input_dict = {"args": ()}
+    # Input 9: 5D tensor
+    args = (np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5))
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Large size
-    input_dict = {"args": (100,)}
+    # Input 10: Different sized dims
+    args = (np.int64(10), np.int64(5), np.int64(2))
+    input_dict = {"args": args}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Different shape
-    input_dict = {"args": (3, 5, 2)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Shape as numpy array
-    input_dict = {"args": (np.array([2, 3]),)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Empty numpy array
-    input_dict = {"args": (np.array([]),)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

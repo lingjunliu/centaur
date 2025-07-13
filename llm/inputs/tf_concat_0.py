@@ -11,97 +11,48 @@ import copy
 def tf_concat_inputs():
     list_of_inputs = []
 
-    # Input 1: Concatenate along axis 0 (rows)
-    t1 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    t2 = np.array([[7, 8, 9], [10, 11, 12]], dtype=np.int32)
-    values = [t1, t2]
-    axis = 0
-    name = "concat_example_1"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    def create_input(values, axis, name):
+        return {"values": values, "axis": axis, "name": name}
 
-    # Input 2: Concatenate along axis 1 (columns)
-    t1 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    t2 = np.array([[7, 8, 9], [10, 11, 12]], dtype=np.int32)
-    values = [t1, t2]
-    axis = 1
-    name = "concat_example_2"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1
+    values = [np.array([[1, 2, 3], [4, 5, 6]]), np.array([[7, 8, 9], [10, 11, 12]])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, 0, "concat_example_1")))
 
-    # Input 3: 3D tensors, concatenate along axis 0
-    t1 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    t2 = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32)
-    values = [t1, t2]
-    axis = 0
-    name = "concat_example_3"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2
+    values = [np.array([[1, 2, 3], [4, 5, 6]]), np.array([[7, 8, 9], [10, 11, 12]])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, 1, "concat_example_2")))
 
-    # Input 4: 3D tensors, concatenate along axis 1
-    t1 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    t2 = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32)
-    values = [t1, t2]
-    axis = 1
-    name = "concat_example_4"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3
+    values = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, 0, "concat_example_3")))
 
-    # Input 5: 3D tensors, concatenate along axis 2
-    t1 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    t2 = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32)
-    values = [t1, t2]
-    axis = 2
-    name = "concat_example_5"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4
+    values = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, 1, "concat_example_4")))
 
-    # Input 6: Negative axis (-1)
-    t1 = np.array([[[1, 2], [2, 3]], [[4, 4], [5, 3]]], dtype=np.int32)
-    t2 = np.array([[[7, 4], [8, 4]], [[2, 10], [15, 11]]], dtype=np.int32)
-    values = [t1, t2]
-    axis = -1
-    name = "concat_example_6"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5
+    values = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, 2, "concat_example_5")))
 
-    # Input 7: Negative axis (-2)
-    t1 = np.array([[[1, 2], [2, 3]], [[4, 4], [5, 3]]], dtype=np.int32)
-    t2 = np.array([[[7, 4], [8, 4]], [[2, 10], [15, 11]]], dtype=np.int32)
-    values = [t1, t2]
-    axis = -2
-    name = "concat_example_7"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Negative axis
+    values = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, -1, "concat_example_6")))
 
-    # Input 8: Different data types
-    t1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    t2 = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    values = [t1, t2]
-    axis = 0
-    name = "concat_example_8"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Single tensor
+    values = [np.array([[1, 2, 3], [4, 5, 6]])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, 0, "concat_example_7")))
 
-    # Input 9: Single Tensor
-    t1 = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    values = [t1]
-    axis = 1
-    name = "concat_example_9"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Negative axis with different rank
+    values = [np.array([1, 2, 3]), np.array([4, 5, 6])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, -1, "concat_example_8")))
 
-    # Input 10: Single tensor with different shape and axis
-    t1 = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32).reshape((2, 3))
-    values = [t1]
-    axis = 1
-    name = "concat_example_10"
-    input_dict = {"values": values, "axis": axis, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: Four Dimensions
+    values = [np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]], [[[9, 10], [11, 12]], [[13, 14], [15, 16]]]]),
+              np.array([[[[17, 18], [19, 20]], [[21, 22], [23, 24]]], [[[25, 26], [27, 28]], [[29, 30], [31, 32]]]])]
+    list_of_inputs.append(copy.deepcopy(create_input(values, 3, "concat_example_9")))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.concat"] = tf_concat_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

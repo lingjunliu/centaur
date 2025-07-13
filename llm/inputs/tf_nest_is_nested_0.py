@@ -19,36 +19,36 @@ def tf_nest_is_nested_inputs():
     input_dict = {"seq": [1, 2, 3]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: List of lists
+    # Input 3: List of floats
+    input_dict = {"seq": [1.0, 2.0, 3.0]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: List of booleans
+    input_dict = {"seq": [True, False, True]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: List of mixed types (but homogenous within nested lists)
+    input_dict = {"seq": [1, True]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Nested list
     input_dict = {"seq": [[1, 2], [3, 4]]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: List of numpy arrays (homogeneous shape)
-    input_dict = {"seq": [np.array([1, 2]), np.array([3, 4])]}
+    # Input 7: Deeply nested list
+    input_dict = {"seq": [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: List of mixed numeric types.
-    input_dict = {"seq": [1, 2.5, 3]}
+    # Input 8: List containing a numpy array's first element
+    input_dict = {"seq": [np.array([1, 2, 3]).tolist()[0]]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Deeply nested list (flattened a little to avoid min/max issues)
-    input_dict = {"seq": [[1, 2, 3, 4], 5]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: List containing None
-    input_dict = {"seq": [1, None, 3]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: List of lists of numpy arrays (homogeneous shapes)
-    input_dict = {"seq": [[np.array([1, 2]), np.array([3, 4])], [np.array([5, 6])]]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: List of empty lists
-    input_dict = {"seq": [[], [], []]}
+    # Input 9: List with nested lists with same length
+    input_dict = {"seq": [[1, 2], [3, 4]]}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10: List containing boolean values
-    input_dict = {"seq": [True, False, True]}
+    # Input 10: List with integers
+    input_dict = {"seq": [1, 2, 3, 4, 5]}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     return list_of_inputs

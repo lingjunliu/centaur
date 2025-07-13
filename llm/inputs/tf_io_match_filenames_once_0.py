@@ -12,63 +12,63 @@ def tf_io_match_filenames_once_inputs():
     list_of_inputs = []
 
     # Input 1: Simple pattern
-    pattern = tf.convert_to_tensor(np.array("*.txt", dtype=np.object), dtype=tf.string)
-    name = "txt_files"
-    input_dict = {"pattern": pattern, "name": name}
+    pattern = np.array("pattern1.txt", dtype=np.str_)
+    name = "files1"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Pattern with directory
-    pattern = tf.convert_to_tensor(np.array("data/*.csv", dtype=np.object), dtype=tf.string)
-    name = "csv_files"
-    input_dict = {"pattern": pattern, "name": name}
+    pattern = np.array("data/pattern2.csv", dtype=np.str_)
+    name = "files2"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multiple patterns
-    pattern = tf.convert_to_tensor(np.array(["*.txt", "*.csv"], dtype=np.object), dtype=tf.string)
-    name = "text_and_csv"
-    input_dict = {"pattern": pattern, "name": name}
+    # Input 3: Multiple patterns as a 1D tensor
+    pattern = np.array(["pattern3.txt", "pattern4.csv"], dtype=np.str_)
+    name = "files3"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: More complex pattern with wildcards
-    pattern = tf.convert_to_tensor(np.array("data/*/*.log", dtype=np.object), dtype=tf.string)
-    name = "nested_logs"
-    input_dict = {"pattern": pattern, "name": name}
+    # Input 4: Empty pattern
+    pattern = np.array("", dtype=np.str_)
+    name = "files4"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Using a different name
-    pattern = tf.convert_to_tensor(np.array("*.py", dtype=np.object), dtype=tf.string)
-    name = "python_scripts"
-    input_dict = {"pattern": pattern, "name": name}
+    # Input 5: Pattern with a specific file
+    pattern = np.array("pattern5.log", dtype=np.str_)
+    name = "files5"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Empty pattern - Might not match anything but is valid
-    pattern = tf.convert_to_tensor(np.array("", dtype=np.object), dtype=tf.string)
-    name = "empty_pattern"
-    input_dict = {"pattern": pattern, "name": name}
+    # Input 6: Pattern with character range
+    pattern = np.array("file[0-9].txt", dtype=np.str_)
+    name = "files6"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Pattern with special characters
-    pattern = tf.convert_to_tensor(np.array("data-[0-9]*.dat", dtype=np.object), dtype=tf.string)
-    name = "data_files"
-    input_dict = {"pattern": pattern, "name": name}
+    # Input 7: Pattern with wildcard at the beginning
+    pattern = np.array("*.log", dtype=np.str_)
+    name = "files7"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Absolute path pattern
-    pattern = tf.convert_to_tensor(np.array("/tmp/*.tmp", dtype=np.object), dtype=tf.string)
-    name = "tmp_files"
-    input_dict = {"pattern": pattern, "name": name}
+    # Input 8: Complex pattern
+    pattern = np.array("data/*[a-z]*.dat", dtype=np.str_)
+    name = "files8"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Unicode characters in the pattern
-    pattern = tf.convert_to_tensor(np.array("数据/*.txt", dtype=np.object), dtype=tf.string)
-    name = "unicode_files"
-    input_dict = {"pattern": pattern, "name": name}
+    # Input 9: Unicode filename pattern
+    pattern = np.array("你好.txt", dtype=np.str_)
+    name = "files9"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Another variation of name
-    pattern = tf.convert_to_tensor(np.array("*.md", dtype=np.object), dtype=tf.string)
-    name = "markdown_files_v2"
-    input_dict = {"pattern": pattern, "name": name}
+    # Input 10: Pattern with special characters
+    pattern = np.array("file?.txt", dtype=np.str_)
+    name = "files10"
+    input_dict = {"pattern": tf.convert_to_tensor(pattern, dtype=tf.string), "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

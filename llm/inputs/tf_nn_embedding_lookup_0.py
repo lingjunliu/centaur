@@ -11,67 +11,147 @@ import copy
 def tf_nn_embedding_lookup_inputs():
     list_of_inputs = []
 
-    def create_input_dict(params, ids, max_norm, name):
-        return {"params": [params], "ids": ids, "max_norm": max_norm, "name": name}
+    # Input 1: Single params tensor
+    params = np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]], dtype=np.float32)
+    ids = np.array([0, 3, 4], dtype=np.int32)
+    max_norm = None
+    name = "embedding_lookup_1"
 
-    # Input 1: Basic example
+    input_dict = {
+        "params": [params],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: List of params tensors
+    params1 = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    params2 = np.array([[5, 6], [7, 8]], dtype=np.float32)
+    params3 = np.array([[9, 10]], dtype=np.float32)
+    ids = np.array([0, 1, 0], dtype=np.int32)
+    max_norm = 1.0
+    name = "embedding_lookup_2"
+
+    input_dict = {
+        "params": [params1, params2, params3],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Different ids
+    params = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
+    ids = np.array([0, 1, 2, 0], dtype=np.int32)
+    max_norm = None
+    name = "embedding_lookup_3"
+
+    input_dict = {
+        "params": [params],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different shape of params
+    params = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]], dtype=np.float32)
+    ids = np.array([0, 1], dtype=np.int32)
+    max_norm = None
+    name = "embedding_lookup_4"
+
+    input_dict = {
+        "params": [params],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: max_norm provided
     params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
     ids = np.array([0, 1, 2], dtype=np.int32)
-    input_dict = create_input_dict(params, ids, None, "basic_example")
+    max_norm = 5.0
+    name = "embedding_lookup_5"
+
+    input_dict = {
+        "params": [params],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D ids
-    params = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.float32)
-    ids = np.array([[0, 1], [2, 3]], dtype=np.int32)
-    input_dict = create_input_dict(params, ids, None, "2d_ids")
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: max_norm clipping
-    params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    ids = np.array([0, 1, 2], dtype=np.int32)
-    max_norm = 4.0
-    input_dict = create_input_dict(params, ids, max_norm, "max_norm")
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Different dtype for ids
+    # Input 6: ids with different dtype (int64)
     params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
     ids = np.array([0, 1, 2], dtype=np.int64)
-    input_dict = create_input_dict(params, ids, None, "int64_ids")
+    max_norm = 5.0
+    name = "embedding_lookup_6"
+
+    input_dict = {
+        "params": [params],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D params
-    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.float32)
-    ids = np.array([0, 1, 2], dtype=np.int32)
-    input_dict = create_input_dict(params, ids, None, "3d_params")
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: Empty IDs
-    params = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    ids = np.array([], dtype=np.int32)
-    input_dict = create_input_dict(params, ids, None, "empty_ids")
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: Single ID
-    params = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    ids = np.array(0, dtype=np.int32)
-    input_dict = create_input_dict(params, ids, None, "single_id")
+   # Input 7: 2D ids
+    params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    ids = np.array([[0, 1], [2, 0]], dtype=np.int32)
+    max_norm = None
+    name = "embedding_lookup_7"
+
+    input_dict = {
+        "params": [params],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: List of params, more than one id per partition
-    params1 = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    params2 = np.array([[5, 6], [7, 8]], dtype=np.float32)
-    params3 = np.array([[9, 10], [11, 12]], dtype=np.float32)
-    ids = np.array([0, 2, 4], dtype=np.int32)
+    # Input 8: Larger embedding dimension
+    params = np.random.rand(10, 20).astype(np.float32)
+    ids = np.array([1, 5, 9], dtype=np.int32)
+    max_norm = None
+    name = "embedding_lookup_8"
 
-    input_dict = {"params": [params1, params2, params3], "ids": ids, "max_norm": None, "name": "list_params_multi_id"}
+    input_dict = {
+        "params": [params],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: max_norm and list params
-    params1 = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    params2 = np.array([[5, 6], [7, 8]], dtype=np.float32)
+    # Input 9: List of tensors, larger ids, adjust ids range
+    params1 = np.random.rand(5, 10).astype(np.float32)
+    params2 = np.random.rand(5, 10).astype(np.float32)
     ids = np.array([0, 1, 2, 3], dtype=np.int32)
-    max_norm = 6.0
-    input_dict = {"params": [params1, params2], "ids": ids, "max_norm": max_norm, "name": "list_params_max_norm"}
+    max_norm = 1.5
+    name = "embedding_lookup_9"
+
+    input_dict = {
+        "params": [params1, params2],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: 3D ids. Reduced the ID range to be valid.
+    params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    ids = np.array([[[0, 1]], [[1, 0]]], dtype=np.int32)
+    max_norm = None
+    name = "embedding_lookup_10"
+
+    input_dict = {
+        "params": [params],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

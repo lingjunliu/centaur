@@ -11,54 +11,94 @@ import copy
 def tf_norm_inputs():
     list_of_inputs = []
 
-    # Input 1: Vector, default ord, no axis
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": 'euclidean', "axis": None, "keepdims": False, "name": "norm_1"}
+    # Input 1
+    tensor = np.array([1, 2, 3], dtype=np.float32)
+    ord = 'euclidean'
+    axis = None
+    keepdims = False
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Matrix, Frobenius norm, no axis
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": 'fro', "axis": None, "keepdims": False, "name": "norm_2"}
+    # Input 2
+    tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    ord = 'fro'
+    axis = None
+    keepdims = False
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Batch of vectors, axis=1
-    tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": 'euclidean', "axis": [1], "keepdims": False, "name": "norm_3"}
+    # Input 3
+    tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    ord = 'euclidean'
+    axis = (0, 1)
+    keepdims = True
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': list(axis), 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Batch of matrices, axis=(0, 1), keepdims=True
-    tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": 'fro', "axis": [0, 1], "keepdims": True, "name": "norm_4"}
+    # Input 4
+    tensor = np.array([1, -2, 3, -4], dtype=np.float32)
+    ord = '1'
+    axis = None
+    keepdims = False
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Vector, 1-norm, no axis
-    tensor = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": '1', "axis": None, "keepdims": False, "name": "norm_5"}
+    # Input 5
+    tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    ord = '1'
+    axis = (0, 1)
+    keepdims = True
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': list(axis), 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Matrix, inf-norm, axis=(0,1)
-    tensor = np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": 'np.inf', "axis": (0, 1), "keepdims": False, "name": "norm_6"}
+    # Input 6
+    tensor = np.array([1, 2, 3], dtype=np.float32)
+    ord = '2'
+    axis = None
+    keepdims = False
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 3D tensor, axis=0
-    tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": 'euclidean', "axis": [0], "keepdims": False, "name": "norm_7"}
+    # Input 7
+    tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    ord = '2'
+    axis = (0, 1)
+    keepdims = False
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': list(axis), 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Vector with complex numbers
-    tensor = np.array([1.0 + 1j, 2.0 - 2j, 3.0 + 0j], dtype=np.complex64)
-    input_dict = {"tensor": tensor, "ord": 'euclidean', "axis": None, "keepdims": False, "name": "norm_8"}
+    # Input 8
+    tensor = np.array([1, 2, 3], dtype=np.float32)
+    ord = np.inf
+    axis = None
+    keepdims = True
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: axis=-1
-    tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": 'euclidean', "axis": [-1], "keepdims": False, "name": "norm_9"}
+    # Input 9
+    tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    ord = np.inf
+    axis = (0, 1)
+    keepdims = False
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': list(axis), 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Batch of matrices, 1-norm, axis=(0, 1), keepdims=True
-    tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"tensor": tensor, "ord": '1', "axis": [0, 1], "keepdims": True, "name": "norm_10"}
+    # Input 10
+    tensor = np.array([1, 2, 3, 4, 5], dtype=np.float32)
+    ord = '1.5'
+    axis = None
+    keepdims = False
+    name = None
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'keepdims': keepdims, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

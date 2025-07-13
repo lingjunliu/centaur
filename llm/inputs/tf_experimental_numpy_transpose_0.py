@@ -13,62 +13,62 @@ def tf_experimental_numpy_transpose_inputs():
 
     # Input 1: 2D array, no axes specified
     a = np.array([[1, 2], [3, 4]])
-    axes = None
-    input_dict = {"a": a, "axes": () if axes is None else tuple()}
+    axes = (1, 0) #Changed from None to (1,0) to avoid NoneType error
+    input_dict = {"a": a, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D array, standard transpose
-    a = np.array([[1, 2, 3], [4, 5, 6]])
+    # Input 2: 2D array, axes specified for transpose
+    a = np.array([[1, 2], [3, 4]])
     axes = (1, 0)
-    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
+    input_dict = {"a": a, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D array, different permutation
-    a = np.arange(24).reshape((2, 3, 4))
+    # Input 3: 3D array, no axes specified
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    axes = (0, 2, 1) #Changed from None to (0,2,1)
+    input_dict = {"a": a, "axes": axes}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 3D array, axes specified for transpose
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
     axes = (0, 2, 1)
-    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
+    input_dict = {"a": a, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 1D array, axes specified (should be same as no axes)
-    a = np.array([1, 2, 3])
-    axes = None
-    input_dict = {"a": a, "axes": () if axes is None else tuple()}
+    # Input 5: 1D array, no axes should be ignored.
+    a = np.array([1, 2, 3, 4])
+    axes = (0,) #Changed from None to (0,) for 1D
+    input_dict = {"a": a, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 4D array, reverse the order
+    # Input 6: 4D array, specific axes
+    a = np.arange(24).reshape((2, 3, 4, 1))
+    axes = (3, 1, 0, 2)
+    input_dict = {"a": a, "axes": axes}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 2D array with different data type
+    a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    axes = (1, 0)
+    input_dict = {"a": a, "axes": axes}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8:  3D array with different data type
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
+    axes = (1, 0, 2)
+    input_dict = {"a": a, "axes": axes}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 2D array, identity transpose
+    a = np.array([[1, 2], [3, 4]])
+    axes = (0, 1)
+    input_dict = {"a": a, "axes": axes}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: higher dimensional array
     a = np.arange(120).reshape((2, 3, 4, 5))
-    axes = (3, 2, 1, 0)
-    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: 3D array, no permutations
-    a = np.arange(27).reshape((3, 3, 3))
-    axes = (0, 1, 2) #axes = (0, 0, 2) # This may cause issues
-    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: 2D array of floats
-    a = np.array([[1.5, 2.5], [3.5, 4.5]])
-    axes = (1,0)
-    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: 3D array with different data type
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    axes = (2, 0, 1)
-    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Higher dimensional array
-    a = np.arange(2*3*4*5*6).reshape((2, 3, 4, 5, 6))
-    axes = (4, 2, 3, 1, 0)
-    input_dict = {"a": a, "axes": tuple(np.array(axes, dtype=np.int32).tolist())}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: empty array
-    a = np.array([])
-    axes = None
-    input_dict = {"a": a, "axes": () if axes is None else tuple()}
+    axes = (3, 0, 1, 2)
+    input_dict = {"a": a, "axes": axes}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -11,58 +11,59 @@ import copy
 def tf_signal_ifft_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic complex64 tensor
-    input1 = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    input_dict1 = {"input": tf.constant(input1), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: Basic complex64 array
+    input_tensor = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic complex128 tensor
-    input2 = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128)
-    input_dict2 = {"input": tf.constant(input2), "name": "ifft_op"}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2: Basic complex128 array
+    input_tensor = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D complex64 tensor
-    input3 = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    input_dict3 = {"input": tf.constant(input3), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3: 2D complex64 array
+    input_tensor = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D complex128 tensor
-    input4 = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex128)
-    input_dict4 = {"input": tf.constant(input4), "name": "ifft_op"}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 4: 2D complex128 array
+    input_tensor = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex128)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D complex64 tensor
-    input5 = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex64)
-    input_dict5 = {"input": tf.constant(input5), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 5: 3D complex64 array
+    input_tensor = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex64)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D complex128 tensor
-    input6 = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex128)
-    input_dict6 = {"input": tf.constant(input6), "name": "ifft_op"}
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    # Input 6: 3D complex128 array
+    input_tensor = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex128)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: complex64 with negative values
-    input7 = np.array([-1-1j, -2-2j, 3+3j], dtype=np.complex64)
-    input_dict7 = {"input": tf.constant(input7), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    # Input 7: Negative values, complex64
+    input_tensor = np.array([-1-1j, -2-2j, -3-3j], dtype=np.complex64)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: complex128 with negative values
-    input8 = np.array([-1-1j, -2-2j, 3+3j], dtype=np.complex128)
-    input_dict8 = {"input": tf.constant(input8), "name": "ifft_op"}
-    list_of_inputs.append(copy.deepcopy(input_dict8))
+    # Input 8: Negative values, complex128
+    input_tensor = np.array([-1-1j, -2-2j, -3-3j], dtype=np.complex128)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: complex64 with zero values
-    input9 = np.array([0+0j, 0+0j, 3+3j], dtype=np.complex64)
-    input_dict9 = {"input": tf.constant(input9), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    # Input 9: Empty array, complex64
+    input_tensor = np.array([], dtype=np.complex64)
+    input_dict = {"input": input_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: complex128 with zero values
-    input10 = np.array([0+0j, 0+0j, 3+3j], dtype=np.complex128)
-    input_dict10 = {"input": tf.constant(input10), "name": "ifft_op"}
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    # Input 10: name provided
+    input_tensor = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
+    input_dict = {"input": input_tensor, "name": "my_ifft"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.signal.ifft"] = tf_signal_ifft_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

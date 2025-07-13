@@ -11,77 +11,76 @@ import copy
 def tf_shape_n_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 2D tensors
-    a = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    b = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.int32))
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int32, "name": None}
+    # Input 1
+    input_list = [tf.constant(np.array([1, 2, 3]))]
+    out_type = tf.int32
+    name = "shape_op_1"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 3D tensors
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32))
-    b = tf.constant(np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float32))
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int64, "name": "shape_op"}
+    # Input 2
+    input_list = [tf.constant(np.array([[1, 2], [3, 4]]))]
+    out_type = tf.int64
+    name = "shape_op_2"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D Tensors
-    a = tf.constant(np.array([1, 2, 3, 4, 5], dtype=np.int32))
-    b = tf.constant(np.array([6, 7, 8, 9, 10], dtype=np.int32))
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int32, "name": None}
+    # Input 3
+    input_list = [tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]))]
+    out_type = tf.int32
+    name = "shape_op_3"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Tensors with different shapes
-    a = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    b = tf.constant(np.array([1, 2, 3], dtype=np.int32))
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int32, "name": None}
+    # Input 4
+    input_list = [tf.constant(np.array([1, 2, 3], dtype=np.float32))]
+    out_type = tf.int32
+    name = "shape_op_4"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Single tensor in the list
-    a = tf.constant(np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64))
-    input_list = [a]
-    input_dict = {"input": input_list, "out_type": tf.int32, "name": None}
+    # Input 5
+    input_list = [tf.constant(np.array([1, 2, 3], dtype=np.int64))]
+    out_type = tf.int64
+    name = "shape_op_5"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 4D tensors
-    a = tf.constant(np.random.rand(2, 3, 4, 5).astype(np.float32))
-    b = tf.constant(np.random.rand(2, 3, 4, 5).astype(np.float32))
-
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int32, "name": None}
+    # Input 6
+    input_list = [tf.constant(np.array([1]))]
+    out_type = tf.int32
+    name = "shape_op_6"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_list = [tf.constant(np.array([[1,2,3],[4,5,6],[7,8,9]]))]
+    out_type = tf.int32
+    name = "shape_op_7"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input_list = [tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]],[[9,10],[11,12]]]))]
+    out_type = tf.int64
+    name = "shape_op_8"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Scalars
-    a = tf.constant(5)
-    b = tf.constant(10.0)
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int32, "name": None}
+    # Input 9
+    input_list = [tf.constant(np.array([1, 2, 3])), tf.constant(np.array([4, 5, 6]))]
+    out_type = tf.int32
+    name = "shape_op_9"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Different data types
-
-    a = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64))
-    b = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int64, "name": "shape_op"}
+    # Input 10
+    input_list = [tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])), tf.constant(np.array([9, 10, 11]))]
+    out_type = tf.int64
+    name = "shape_op_10"
+    input_dict = {"input": input_list, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Negative values
-    a = tf.constant(np.array([[-1, 2], [3, -4]], dtype=np.int32))
-    b = tf.constant(np.array([[5, -6], [-7, 8]], dtype=np.int32))
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int32, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Rank 0
-    a = tf.constant(np.array(10, dtype=np.int32))
-    b = tf.constant(np.array(5.0, dtype=np.float32))
-    input_list = [a, b]
-    input_dict = {"input": input_list, "out_type": tf.int32, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

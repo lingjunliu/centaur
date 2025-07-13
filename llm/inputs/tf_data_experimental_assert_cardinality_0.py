@@ -5,72 +5,56 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_data_experimental_assert_cardinality_inputs():
     list_of_inputs = []
 
     # Input 1: Positive integer
-    expected_cardinality = np.int32(10)
-    input_dict = {"expected_cardinality": expected_cardinality}
+    input_dict = {"expected_cardinality": int(10)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Zero
-    expected_cardinality = np.int32(0)
-    input_dict = {"expected_cardinality": expected_cardinality}
+    input_dict = {"expected_cardinality": int(0)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Large positive integer
-    expected_cardinality = np.int64(100000)
-    input_dict = {"expected_cardinality": expected_cardinality}
+    input_dict = {"expected_cardinality": int(100000)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: One
+    input_dict = {"expected_cardinality": int(1)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Another positive integer
+    input_dict = {"expected_cardinality": int(42)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: A different positive integer
+    input_dict = {"expected_cardinality": int(1234)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Minimum integer value within int32 range
+    input_dict = {"expected_cardinality": int(np.iinfo(np.int32).min // 10000)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Maximum integer value within int32 range
+    input_dict = {"expected_cardinality": int(np.iinfo(np.int32).max // 10000)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: a smaller positive integer
+    input_dict = {"expected_cardinality": int(7)}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4: Another positive integer
-    expected_cardinality = np.int32(1)
-    input_dict = {"expected_cardinality": expected_cardinality}
+    # Input 10: a different small positive integer
+    input_dict = {"expected_cardinality": int(15)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different positive integer
-    expected_cardinality = np.int64(42)
-    input_dict = {"expected_cardinality": expected_cardinality}
+     # Input 11: A negative integer
+    input_dict = {"expected_cardinality": int(-5)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Small integer
-    expected_cardinality = np.int32(2)
-    input_dict = {"expected_cardinality": expected_cardinality}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: Medium integer
-    expected_cardinality = np.int64(128)
-    input_dict = {"expected_cardinality": expected_cardinality}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Another larger integer
-    expected_cardinality = np.int32(512)
-    input_dict = {"expected_cardinality": expected_cardinality}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: A prime number
-    expected_cardinality = np.int64(7)
-    input_dict = {"expected_cardinality": expected_cardinality}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Another composite number
-    expected_cardinality = np.int32(15)
-    input_dict = {"expected_cardinality": expected_cardinality}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Max int32
-    expected_cardinality = np.int32(2147483647)
-    input_dict = {"expected_cardinality": expected_cardinality}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: Max int64
-    expected_cardinality = np.int64(9223372036854775807)
-    input_dict = {"expected_cardinality": expected_cardinality}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

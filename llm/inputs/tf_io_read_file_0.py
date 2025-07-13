@@ -8,100 +8,89 @@ import tensorflow as tf
 import copy
 import numpy as np
 import os
-import tempfile
 
 def tf_io_read_file_inputs():
     list_of_inputs = []
 
-    # Input 1: Valid filename
-    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
-    filename = temp.name
+    # Input 1: Simple text file
+    filename = "test_file_1.txt"
     with open(filename, "w") as f:
-        f.write("Test data 1")
-    name = "read_file_op_1"
-    input_dict = {"filename": filename, "name": name}
+        f.write("Hello, world!")
+    input_dict = {"filename": filename, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename) # Removed os.remove because file should exist when tf reads it
 
     # Input 2: Empty file
-    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
-    filename = temp.name
+    filename = "test_file_2.txt"
     open(filename, "w").close()
-    name = "read_file_op_2"
-    input_dict = {"filename": filename, "name": name}
+    input_dict = {"filename": filename, "name": "empty_file"}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
 
-    # Input 3: Filename with spaces
-    filename = "/tmp/test file 3.txt"
+    # Input 3: File with numbers
+    filename = "test_file_3.txt"
     with open(filename, "w") as f:
-        f.write("Test data 3 with spaces")
-    name = "read_file_op_3"
-    input_dict = {"filename": filename, "name": name}
+        f.write("1234567890")
+    input_dict = {"filename": filename, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
 
-    # Input 4:  Long filename
-    filename = "/tmp/" + "a" * 200 + ".txt"
+    # Input 4: File with special characters
+    filename = "test_file_4.txt"
     with open(filename, "w") as f:
-        f.write("Long filename test")
-    name = "read_file_op_4"
-    input_dict = {"filename": filename, "name": name}
+        f.write("!@#$%^&*()")
+    input_dict = {"filename": filename, "name": "special_chars"}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
 
-    # Input 5: Filename with unicode characters
-    filename = "/tmp/测试文件.txt"
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("Unicode characters test")
-    name = "read_file_op_5"
-    input_dict = {"filename": filename, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Filename with number
-    filename = "/tmp/test42.txt"
+    # Input 5: File with newlines
+    filename = "test_file_5.txt"
     with open(filename, "w") as f:
-        f.write("Test data with a number")
-    name = "read_file_op_6"
-    input_dict = {"filename": filename, "name": name}
+        f.write("Line 1\nLine 2\nLine 3")
+    input_dict = {"filename": filename, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Short name
-    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
-    filename = temp.name
-    with open(filename, "w") as f:
-        f.write("Test data short")
-    name = "s"
-    input_dict = {"filename": filename, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Long name
-    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
-    filename = temp.name
-    with open(filename, "w") as f:
-        f.write("Test data long")
-    name = "n" * 200
-    input_dict = {"filename": filename, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Name with unicode characters
-    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
-    filename = temp.name
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write("Test data with unicode name")
-    name = "名称"
-    input_dict = {"filename": filename, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Name with numbers
-    temp = tempfile.NamedTemporaryFile(delete=False, dir="/tmp")
-    filename = temp.name
-    with open(filename, "w") as f:
-        f.write("Test data with name numbers")
-    name = "name123"
-    input_dict = {"filename": filename, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
     
-    for input_dict in list_of_inputs:
-        if os.path.exists(input_dict["filename"]):
-          os.remove(input_dict["filename"])
+    # Input 6: File with spaces and tabs
+    filename = "test_file_6.txt"
+    with open(filename, "w") as f:
+        f.write("  Space   and\tTab  ")
+    input_dict = {"filename": filename, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
 
+    # Input 7: File with mixed content
+    filename = "test_file_7.txt"
+    with open(filename, "w") as f:
+        f.write("Mixed content: 123 abc !@#")
+    input_dict = {"filename": filename, "name": "mixed"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
+
+    # Input 8: Short filename
+    filename = "short.txt"
+    with open(filename, "w") as f:
+        f.write("Short filename test")
+    input_dict = {"filename": filename, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
+
+    # Input 9: Different name
+    filename = "test_file_9.txt"
+    with open(filename, "w") as f:
+        f.write("Some text")
+    input_dict = {"filename": filename, "name": "custom_name"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
+
+    # Input 10: File containing binary data.
+    filename = "test_file_10.bin"
+    binary_data = b'\x00\x01\x02\x03\x04\x05'
+    with open(filename, "wb") as f:
+        f.write(binary_data)
+    input_dict = {"filename": filename, "name": "binary_file"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    #os.remove(filename)
     return list_of_inputs
 
 generated_inputs = {}

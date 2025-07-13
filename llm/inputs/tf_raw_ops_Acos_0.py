@@ -11,61 +11,57 @@ import copy
 def tf_raw_ops_Acos_inputs():
     list_of_inputs = []
 
-    # Input 1: Valid, float32, 1D
+    # Input 1: float32, 1D array
     x = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Valid, float64, 2D
+    # Input 2: float64, 2D array
     x = np.array([[-1.0, 0.0], [0.5, 1.0]], dtype=np.float64)
     input_dict = {"x": x, "name": "acos_op"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Valid, bfloat16, 1D
-    x = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float16)
-    x = tf.dtypes.cast(x, tf.bfloat16).numpy()
+    # Input 3: bfloat16, scalar
+    x = np.array(-0.75, dtype=np.float16)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Valid, half, 2D
-    x = np.array([[-1.0, 0.0], [0.5, 1.0]], dtype=np.float16)
+    # Input 4: half, 3D array
+    x = np.array([[[0.25, 0.5], [0.75, 1.0]]], dtype=np.float16)
     input_dict = {"x": x, "name": "another_acos"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Valid, complex64, 1D
-    x = np.array([-1.0 + 0j, 0.0 + 0j, 1.0 + 0j], dtype=np.complex64)
+    # Input 5: complex64, 1D array
+    x = np.array([-0.2 + 0j, 0.4 + 0j, 0.6 + 0j], dtype=np.complex64)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Valid, complex128, 2D
-    x = np.array([[-1.0 + 0j, 0.0 + 0j], [0.5 + 0j, 1.0 + 0j]], dtype=np.complex128)
+    # Input 6: complex128, 2D array
+    x = np.array([[-0.8 + 0j, 0.9 + 0j], [-0.3 + 0j, 0.1 + 0j]], dtype=np.complex128)
     input_dict = {"x": x, "name": "complex_acos"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Valid, float32, 3D
-    x = np.array([[[ -1.0, -0.5], [0.0, 0.5]], [[0.5, 1.0], [-1.0, 0.0]]], dtype=np.float32)
+    # Input 7: float32, empty array
+    x = np.array([], dtype=np.float32)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Valid, float64, 1D, values within range
-    x = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float64)
-    input_dict = {"x": x, "name": "acos_with_outside_range"}
+    # Input 8: float64, scalar value near boundary
+    x = np.array(0.99999, dtype=np.float64)
+    input_dict = {"x": x, "name": "boundary_acos"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Valid, half, 1D, all values are 0
-    x = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float16)
-    input_dict = {"x": x, "name": "zeros_acos"}
+    # Input 9: bfloat16, negative scalar value near boundary
+    x = np.array(-0.9999, dtype=np.float16)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Valid, complex128, 1D, values with imaginary components
-    x = np.array([-0.5 + 0j, 0.0 + 0j, 0.5 + 0j], dtype=np.complex128)
-    input_dict = {"x": x, "name": "complex_with_imaginary"}
+    
+    # Input 10: float32, 4D array
+    x = np.random.uniform(-1, 1, size=(2,2,2,2)).astype(np.float32)
+    input_dict = {"x": x, "name": "random_acos"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
-
-generated_inputs = {}
-generated_inputs["tf.raw_ops.Acos"] = tf_raw_ops_Acos_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

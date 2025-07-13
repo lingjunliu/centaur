@@ -5,69 +5,69 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
+import numpy as np
 
 def tf_broadcast_static_shape_inputs():
     list_of_inputs = []
 
     # Input 1
-    shape_x = tf.TensorShape([1, 2, 3]).as_list()
-    shape_y = tf.TensorShape([5, 1, 3]).as_list()
+    shape_x = tf.TensorShape([1, 2, 3])
+    shape_y = tf.TensorShape([5, 1, 3])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    shape_x = tf.TensorShape([1]).as_list()
-    shape_y = tf.TensorShape([5, 1]).as_list()
+    shape_x = tf.TensorShape([1])
+    shape_y = tf.TensorShape([5])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    shape_x = tf.TensorShape([5, 4]).as_list()
-    shape_y = tf.TensorShape([1, 4]).as_list()
+    shape_x = tf.TensorShape([2, 1])
+    shape_y = tf.TensorShape([1, 2])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    shape_x = tf.TensorShape([5, 4, 3]).as_list()
-    shape_y = tf.TensorShape([1, 4, 1]).as_list()
+    shape_x = tf.TensorShape([5, 4, 3, 2, 1])
+    shape_y = tf.TensorShape([3, 2, 1])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    shape_x = tf.TensorShape([10, 1, 5, 1]).as_list()
-    shape_y = tf.TensorShape([1, 8, 1, 7]).as_list()
+    shape_x = tf.TensorShape([1])
+    shape_y = tf.TensorShape([])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    shape_x = []
-    shape_y = []
+    shape_x = tf.TensorShape([])
+    shape_y = tf.TensorShape([1])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 7
-    shape_x = tf.TensorShape([5]).as_list()
-    shape_y = []
+    shape_x = tf.TensorShape([2, 3])
+    shape_y = tf.TensorShape([2, 3])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 8
-    shape_x = []
-    shape_y = tf.TensorShape([5]).as_list()
+    shape_x = tf.TensorShape([1, 5, 1])
+    shape_y = tf.TensorShape([5, 1, 5])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    shape_x = tf.TensorShape([2, 1]).as_list()
-    shape_y = tf.TensorShape([1, 2]).as_list()
+    shape_x = tf.TensorShape([3, 1, 7])
+    shape_y = tf.TensorShape([1, 2, 7])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    shape_x = tf.TensorShape([1, 5, 1]).as_list()
-    shape_y = tf.TensorShape([5, 1, 6]).as_list()
+    shape_x = tf.TensorShape([2, 3, 4])
+    shape_y = tf.TensorShape([1, 3, 1])
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

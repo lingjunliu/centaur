@@ -12,80 +12,80 @@ import copy
 def tf_io_decode_json_example_inputs():
     list_of_inputs = []
 
-    # Helper function to create example JSON
-    def create_example_json(values):
+    # Helper function to create a JSON example
+    def create_json_example(a_values):
         example = tf.train.Example(
             features=tf.train.Features(
                 feature={
                     "a": tf.train.Feature(
                         int64_list=tf.train.Int64List(
-                            value=values))}))
-        return json_format.MessageToJson(example)
+                            value=a_values))}))
+        example_json = json_format.MessageToJson(example)
+        return example_json
 
-    # Input 1: Simple valid JSON
-    example_json = create_example_json([1, 2, 3])
-    input_dict = {"json_examples": tf.constant(example_json, dtype=tf.string), "name": "example1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Simple example with one feature
+    example_json_1 = create_json_example([1, 2, 3])
+    input_dict_1 = {"json_examples": np.array(example_json_1, dtype=np.object_), "name": "example_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 2: Batch of valid JSONs
-    example_json_batch = [create_example_json([4, 5, 6]), create_example_json([7, 8, 9])]
-    input_dict = {"json_examples": tf.constant(example_json_batch, dtype=tf.string), "name": "example2"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Batch of examples
+    example_json_2 = create_json_example([4, 5, 6])
+    input_dict_2 = {"json_examples": np.array([example_json_1, example_json_2], dtype=np.object_), "name": "example_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
 
-    # Input 3: Multi-dimensional array of valid JSONs
-    example_json_array = np.array([[create_example_json([10, 11, 12]), create_example_json([13, 14, 15])],
-                                   [create_example_json([16, 17, 18]), create_example_json([19, 20, 21])]])
-    input_dict = {"json_examples": tf.constant(example_json_array.tolist(), dtype=tf.string), "name": "example3"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Example with different feature values
+    example_json_3 = create_json_example([-1, 0, 1])
+    input_dict_3 = {"json_examples": np.array(example_json_3, dtype=np.object_), "name": "example_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
 
-    # Input 4: JSON with different feature
-    example_json_different_feature = json_format.MessageToJson(
-        tf.train.Example(
-            features=tf.train.Features(
-                feature={
-                    "b": tf.train.Feature(
-                        float_list=tf.train.FloatList(
-                            value=[1.0, 2.0, 3.0]))})))
-    input_dict = {"json_examples": tf.constant(example_json_different_feature, dtype=tf.string), "name": "example4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Example with long feature values
+    example_json_4 = create_json_example([1234567890, 9876543210])
+    input_dict_4 = {"json_examples": np.array(example_json_4, dtype=np.object_), "name": "example_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
 
-    # Input 5: Empty list
-    example_json_empty_list = create_example_json([])
-    input_dict = {"json_examples": tf.constant(example_json_empty_list, dtype=tf.string), "name": "example5"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Example with empty feature list
+    example_json_5 = create_json_example([])
+    input_dict_5 = {"json_examples": np.array(example_json_5, dtype=np.object_), "name": "example_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
 
-    # Input 6: Larger values
-    example_json_large_values = create_example_json([2**31 - 1, 2**31 - 2, 2**31 - 3])
-    input_dict = {"json_examples": tf.constant(example_json_large_values, dtype=tf.string), "name": "example6"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: 2D Tensor of JSON strings
+    example_json_6 = create_json_example([7,8,9])
+    input_dict_6 = {"json_examples": np.array([[example_json_1, example_json_2], [example_json_3, example_json_6]], dtype=np.object_), "name": "example_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 7: Single Value
-    example_json_single_value = create_example_json([100])
-    input_dict = {"json_examples": tf.constant(example_json_single_value, dtype=tf.string), "name": "example7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Multiple features
+    # Input 8: A more complex Example
     example = tf.train.Example(
         features=tf.train.Features(
             feature={
                 "a": tf.train.Feature(int64_list=tf.train.Int64List(value=[1, 2, 3])),
-                "b": tf.train.Feature(float_list=tf.train.FloatList(value=[4.0, 5.0, 6.0]))
-            }))
+                "b": tf.train.Feature(bytes_list=tf.train.BytesList(value=[b"test"]))
+            }
+        )
+    )
+    example_json_8 = json_format.MessageToJson(example)
+    input_dict_8 = {"json_examples": np.array(example_json_8, dtype=np.object_), "name": "example_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    example_json_multiple_features = json_format.MessageToJson(example)
-    input_dict = {"json_examples": tf.constant(example_json_multiple_features, dtype=tf.string), "name": "example8"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: Another more complex Example with floats
+    example = tf.train.Example(
+        features=tf.train.Features(
+            feature={
+                "a": tf.train.Feature(float_list=tf.train.FloatList(value=[1.0, 2.0, 3.0])),
+                "b": tf.train.Feature(bytes_list=tf.train.BytesList(value=[b"test"]))
+            }
+        )
+    )
+    example_json_9 = json_format.MessageToJson(example)
+    input_dict_9 = {"json_examples": np.array(example_json_9, dtype=np.object_), "name": "example_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
-    # Input 9: Empty Feature
-    example = tf.train.Example(features=tf.train.Features(feature={}))
-    example_json_empty_feature = json_format.MessageToJson(example)
+    # Input 10: A 3D Tensor of JSON strings
+    example_json_10 = create_json_example([10,11,12])
+    input_dict_10 = {"json_examples": np.array([[[example_json_1, example_json_2], [example_json_3, example_json_6]], [[example_json_10,example_json_1], [example_json_2, example_json_3]]], dtype=np.object_), "name": "example_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    input_dict_7 = {"json_examples": np.array('{"features": {}}', dtype=np.object_), "name": "example_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
 
-    input_dict = {"json_examples": tf.constant(example_json_empty_feature, dtype=tf.string), "name": "example9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 10: Empty JSON string
-    input_dict = {"json_examples": tf.constant("", dtype=tf.string), "name": "example10"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

@@ -11,69 +11,54 @@ import copy
 def tf_identity_n_inputs():
     list_of_inputs = []
 
-    # Input 1: List of empty tensors
-    input_tensor_list = [tf.constant([], dtype=tf.float32)]
-    input_dict = {"input": input_tensor_list, "name": "empty_tensors"}
+    # Input 1: Empty list
+    input_list = []
+    input_dict = {"input": input_list, "name": "empty_list"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: List of single float tensor
-    input_tensor_list = [tf.constant(1.0, dtype=tf.float32)]
-    input_dict = {"input": input_tensor_list, "name": "single_float"}
+    # Input 2: List with one tensor
+    input_list = [tf.constant(np.array([1, 2, 3]))]
+    input_dict = {"input": input_list, "name": "single_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: List of single int tensor
-    input_tensor_list = [tf.constant(5, dtype=tf.int32)]
-    input_dict = {"input": input_tensor_list, "name": "single_int"}
+    # Input 3: List with multiple tensors of same shapes
+    input_list = [tf.constant(np.array([1, 2])), tf.constant(np.array([3, 4]))]
+    input_dict = {"input": input_list, "name": "same_shapes"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: List of string tensor
-    input_tensor_list = [tf.constant("hello")]
-    input_dict = {"input": input_tensor_list, "name": "single_string"}
+    # Input 4: List with multiple tensors of different types, but convertible
+    input_list = [tf.constant(np.array([1, 2], dtype=np.int32)), tf.constant(np.array([3, 4], dtype=np.int64))]
+    input_dict = {"input": input_list, "name": "diff_types_convertible"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: List of two tensors (int and float)
-    input_tensor_list = [tf.constant(10, dtype=tf.int32), tf.constant(2.5, dtype=tf.float32)]
-    input_dict = {"input": input_tensor_list, "name": "two_tensors"}
+    # Input 5: List with 2D tensors
+    input_list = [tf.constant(np.random.rand(2, 3))]
+    input_dict = {"input": input_list, "name": "2d_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: List of two tensors (different shapes)
-    input_tensor_list = [tf.constant([1, 2, 3], dtype=tf.int32), tf.constant([[4, 5], [6, 7]], dtype=tf.int32)]
-    input_dict = {"input": input_tensor_list, "name": "different_shapes"}
+    # Input 6: List with complex numbers
+    input_list = [tf.constant(np.array([1 + 1j, 2 + 2j]))]
+    input_dict = {"input": input_list, "name": "complex_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: List of 1D tensor
-    input_tensor_list = [tf.constant([1, 2, 3, 4, 5], dtype=tf.int32)]
-    input_dict = {"input": input_tensor_list, "name": "1d_tensor"}
+    # Input 7: List with boolean tensors
+    input_list = [tf.constant(np.array([True, False, True]))]
+    input_dict = {"input": input_list, "name": "bool_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: List of 2D tensor
-    input_tensor_list = [tf.constant([[1, 2], [3, 4], [5, 6]], dtype=tf.int32)]
-    input_dict = {"input": input_tensor_list, "name": "2d_tensor"}
+    # Input 8: Multiple tensors with a specified name
+    input_list = [tf.constant(np.array([1, 2, 3])), tf.constant(np.array([4, 5, 6]))]
+    input_dict = {"input": input_list, "name": "named_tensors"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: List of 3D tensor
-    input_tensor_list = [tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=tf.int32)]
-    input_dict = {"input": input_tensor_list, "name": "3d_tensor"}
+    # Input 9: List with negative values
+    input_list = [tf.constant(np.array([-1, -2, -3]))]
+    input_dict = {"input": input_list, "name": "negative_values"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: List of tensors with negative values
-    input_tensor_list = [tf.constant([-1, -2, -3], dtype=tf.int32), tf.constant([-1.5, 2.5], dtype=tf.float32)]
-    input_dict = {"input": input_tensor_list, "name": "negative_values"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: List of single bool tensor
-    input_tensor_list = [tf.constant(True, dtype=tf.bool)]
-    input_dict = {"input": input_tensor_list, "name": "single_bool"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: List of tensors with different dtypes, remove string as it causes issues.
-    input_tensor_list = [tf.constant(1, dtype=tf.int32), tf.constant(2.0, dtype=tf.float64), tf.constant(False, dtype=tf.bool)]
-    input_dict = {"input": input_tensor_list, "name": "different_dtypes"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13: List of scalars
-    input_tensor_list = [tf.constant(1), tf.constant(2.0), tf.constant(3, dtype=tf.int64)]
-    input_dict = {"input": input_tensor_list, "name": "scalars"}
+    # Input 10: Small tensors
+    input_list = [tf.constant(np.random.rand(5, 5))]
+    input_dict = {"input": input_list, "name": "small_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

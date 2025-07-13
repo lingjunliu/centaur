@@ -12,24 +12,24 @@ def tf_nn_conv3d_transpose_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_val = np.random.rand(1, 5, 5, 5, 3).astype(np.float32)
-    filters_val = np.random.rand(3, 3, 3, 2, 3).astype(np.float32)
-    output_shape_val = np.array([1, 7, 7, 7, 2]).astype(np.int32)
-    strides_val = [1, 1, 1, 1, 1]
-    padding_val = 'SAME'
-    data_format_val = 'NDHWC'
-    dilations_val = [1, 1, 1, 1, 1]
-    name_val = 'transpose_conv1'
+    input_tensor = np.random.rand(1, 3, 3, 3, 2).astype(np.float32)
+    filters_tensor = np.random.rand(1, 1, 1, 3, 2).astype(np.float32)
+    output_shape_tensor = np.array([1, 5, 5, 5, 3], dtype=np.int32)
+    strides_list = [2, 2, 2]
+    padding_string = 'SAME'
+    data_format_string = 'NDHWC'
+    dilations_list = [1, 1, 1]
+    name_string = 'conv3d_transpose_3'
 
     input_dict = {
-        "input": input_val,
-        "filters": filters_val,
-        "output_shape": output_shape_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "data_format": data_format_val,
-        "dilations": dilations_val,
-        "name": name_val
+        "input": input_tensor,
+        "filters": filters_tensor,
+        "output_shape": output_shape_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

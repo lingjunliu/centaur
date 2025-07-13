@@ -11,63 +11,63 @@ import copy
 def tf_raw_ops_AccumulatorNumAccumulated_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
-    handle = tf.Variable("accumulator_handle_1", dtype=tf.string)
+    # Input 1
+    handle = tf.constant("accumulator_handle_1")
     name = "AccumulatorNumAccumulated_1"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid
-    handle = tf.Variable("accumulator_handle_2", dtype=tf.string)
+    # Input 2
+    handle = tf.constant("accumulator_handle_2")
     name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3, valid
-    handle = tf.Variable("another_accumulator", dtype=tf.string)
-    name = "AnotherName"
+    # Input 3
+    handle = tf.constant("accumulator_handle_3")
+    name = "AccumulatorNumAccumulated_3"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4, valid
-    handle = tf.Variable("yet_another_handle", dtype=tf.string)
-    name = ""
+    # Input 4
+    handle = tf.constant("accumulator_handle_4")
+    name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5, valid - different handle name
-    handle = tf.Variable("diff_handle", dtype=tf.string)
-    name = "DiffName"
+    # Input 5
+    handle = tf.constant("accumulator_handle_5")
+    name = "AccumulatorNumAccumulated_5"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6, valid - longer name
-    handle = tf.Variable("long_handle_name", dtype=tf.string)
-    name = "Averylonganddescriptiveopname"
+    # Input 6
+    handle = tf.constant("another_handle")
+    name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7, valid
-    handle = tf.Variable("handle7", dtype=tf.string)
-    name = "seven"
+   # Input 7
+    handle = tf.constant("handle_7")
+    name = "AccumulatorNumAccumulated_7"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8, valid
-    handle = tf.Variable("handle_number_8", dtype=tf.string)
-    name = "eight8"
+    # Input 8
+    handle = tf.constant("handle_8")
+    name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9, valid
-    handle = tf.Variable("handle9", dtype=tf.string)
-    name = "name9"
+    # Input 9
+    handle = tf.constant("handle_9")
+    name = "AccumulatorNumAccumulated_9"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10, valid
-    handle = tf.Variable("tenth_handle", dtype=tf.string)
-    name = "tenth_name"
+    # Input 10
+    handle = tf.constant("handle_10")
+    name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

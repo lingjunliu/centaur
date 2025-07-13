@@ -6,112 +6,87 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import copy
-import numpy as np
 import os
 
 def tf_saved_model_load_inputs():
     list_of_inputs = []
 
-    # Create a dummy SavedModel for testing.
-    def create_dummy_saved_model(export_dir):
+    # Helper function to create a dummy SavedModel directory
+    def create_dummy_saved_model(export_dir, tags=None):
         if not os.path.exists(export_dir):
             os.makedirs(export_dir)
+        signatures = {'serving_default': tf.function(lambda x: x, input_signature=[tf.TensorSpec(shape=None, dtype=tf.float32)])}
+        tf.saved_model.save(tf.train.Checkpoint(), export_dir, signatures=signatures)
 
-        # Define a simple function
-        def simple_function(x):
-            return tf.reduce_sum(x, axis=1)
-
-        # Convert it to a tf.function
-        @tf.function(input_signature=[tf.TensorSpec(shape=(None, 10), dtype=tf.float32)])
-        def tf_simple_function(x):
-            return simple_function(x)
-            
-        # Save the tf.function
-        tf.saved_model.save(
-            obj=tf_simple_function,
-            export_dir=export_dir,
-            signatures={'serving_default': tf_simple_function.get_concrete_function()}
-        )
-
-    # Input 1
-    export_dir = "./saved_model_1"
+    # Input 1: Basic case with empty options
+    export_dir = "dummy_saved_model_1"
     create_dummy_saved_model(export_dir)
-    tags = []
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    export_dir = "./saved_model_2"
-    create_dummy_saved_model(export_dir)
-    tags = ["serve"]
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    # Input 2: With tags
+    export_dir = "dummy_saved_model_2"
+    create_dummy_saved_model(export_dir, tags=["serve", "train"])
+    input_dict = {"export_dir": export_dir, "tags": ["serve"], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    export_dir = "./saved_model_3"
+    # Input 3: With options (empty string as LoadOptions object can't be created without TF)
+    export_dir = "dummy_saved_model_3"
     create_dummy_saved_model(export_dir)
-    tags = ["train", "eval"]
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    export_dir = "./saved_model_4"
-    create_dummy_saved_model(export_dir)
-    tags = ["serving_default"]
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    # Input 4: Different tags
+    export_dir = "dummy_saved_model_4"
+    create_dummy_saved_model(export_dir, tags=["tag1", "tag2"])
+    input_dict = {"export_dir": export_dir, "tags": ["tag2"], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    export_dir = "./saved_model_5"
-    create_dummy_saved_model(export_dir)
-    tags = ["tag1", "tag2", "tag3"]
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    # Input 5: Multiple tags
+    export_dir = "dummy_saved_model_5"
+    create_dummy_saved_model(export_dir, tags=["tag1", "tag2", "tag3"])
+    input_dict = {"export_dir": export_dir, "tags": ["tag1", "tag3"], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    export_dir = "./saved_model_6"
-    create_dummy_saved_model(export_dir)
-    tags = [""] # An empty string tag is also accepted
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7
-    export_dir = "./saved_model_7"
-    create_dummy_saved_model(export_dir)
-    tags = ["custom_tag"]
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+   # Input 6: No tags specified when multiple exist
+    export_dir = "dummy_saved_model_6"
+    create_dummy_saved_model(export_dir, tags=["tag1", "tag2"])
+    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    export_dir = "./saved_model_8"
+   # Input 7: Export Dir with Sub directory.
+    export_dir = "dummy_saved_model_7/sub_dir"
     create_dummy_saved_model(export_dir)
-    tags = ["", "another_tag"]
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    export_dir = "./saved_model_9"
+    # Input 8: Empty Tags list
+    export_dir = "dummy_saved_model_8"
     create_dummy_saved_model(export_dir)
-    tags = ["special_tag", ""]
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    export_dir = "./saved_model_10"
-    create_dummy_saved_model(export_dir)
-    tags = ["", "", ""]
-    options = ""
-    input_dict = {"export_dir": export_dir, "tags": tags, "options": options}
+    # Input 9: Another set of tags
+    export_dir = "dummy_saved_model_9"
+    create_dummy_saved_model(export_dir, tags=["gpu", "cpu"])
+    input_dict = {"export_dir": export_dir, "tags": ["cpu"], "options": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different Export Directory Name.
+    export_dir = "my_saved_model"
+    create_dummy_saved_model(export_dir)
+    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    for i in range(1, 11):
+        export_dir = f"dummy_saved_model_{i}"
+        if os.path.exists(export_dir):
+            import shutil
+            shutil.rmtree(export_dir, ignore_errors=True)
+
+    if os.path.exists("my_saved_model"):
+        import shutil
+        shutil.rmtree("my_saved_model", ignore_errors=True)
 
     return list_of_inputs
 

@@ -12,7 +12,7 @@ def tf_experimental_numpy_full_like_inputs():
     list_of_inputs = []
 
     # Input 1
-    a = np.array([1, 2, 3])
+    a = np.array([[1, 2], [3, 4]])
     fill_value = np.array(5)
     dtype = np.int32
     order = 'K'
@@ -30,7 +30,7 @@ def tf_experimental_numpy_full_like_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    a = np.array([[1, 2], [3, 4]])
+    a = np.array([1, 2, 3])
     fill_value = np.array(2.5)
     dtype = np.float64
     order = 'K'
@@ -66,26 +66,8 @@ def tf_experimental_numpy_full_like_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    a = np.array([1, 2, 3], dtype=np.complex128)
-    fill_value = np.array(1 + 1j, dtype=np.complex128)
-    dtype = np.complex128
-    order = 'K'
-    subok = True
-    shape = None
-
-    input_dict = {
-        "a": a,
-        "fill_value": fill_value,
-        "dtype": dtype,
-        "order": order,
-        "subok": subok,
-        "shape": shape
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    a = np.array([True, False, True])
-    fill_value = np.array(False)
+    a = np.array([1])
+    fill_value = np.array(0)
     dtype = np.bool_
     order = 'K'
     subok = True
@@ -101,10 +83,10 @@ def tf_experimental_numpy_full_like_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    a = np.array([[1, 2], [3, 4]], dtype=np.int8)
-    fill_value = np.array(10, dtype=np.int8)
-    dtype = np.int8
+    # Input 5
+    a = np.array([])
+    fill_value = np.array(100)
+    dtype = np.int32
     order = 'K'
     subok = True
     shape = None
@@ -119,9 +101,45 @@ def tf_experimental_numpy_full_like_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 7
+    # Input 6
+    a = np.array([1, 2, 3], dtype=np.int16)
+    fill_value = np.array(5, dtype=np.int16)
+    dtype = np.int16
+    order = 'K'
+    subok = True
+    shape = None
+
+    input_dict = {
+        "a": a,
+        "fill_value": fill_value,
+        "dtype": dtype,
+        "order": order,
+        "subok": subok,
+        "shape": shape
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    a = np.array([[1.1, 2.2], [3.3, 4.4]])
+    fill_value = np.array(6.6)
+    dtype = np.float32
+    order = 'K'
+    subok = True
+    shape = None
+
+    input_dict = {
+        "a": a,
+        "fill_value": fill_value,
+        "dtype": dtype,
+        "order": order,
+        "subok": subok,
+        "shape": shape
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
     a = np.array([1, 2, 3])
-    fill_value = np.array(5)
+    fill_value = np.array(0)
     dtype = np.int32
     order = 'K'
     subok = True
@@ -137,31 +155,13 @@ def tf_experimental_numpy_full_like_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    a = np.array([[1, 2], [3, 4]])
-    fill_value = np.array(2.5)
-    dtype = np.float64
-    order = 'K'
-    subok = True
-    shape = (1,2,2)
-
-    input_dict = {
-        "a": a,
-        "fill_value": fill_value,
-        "dtype": dtype,
-        "order": order,
-        "subok": subok,
-        "shape": shape
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     # Input 9
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    fill_value = np.array(-1)
-    dtype = np.int64
+    a = np.array([[1, 2], [3, 4]])
+    fill_value = np.array(-100)
+    dtype = np.int32
     order = 'K'
     subok = True
-    shape = (2,2,2,2)
+    shape = (2,2,2)
 
     input_dict = {
         "a": a,
@@ -174,12 +174,30 @@ def tf_experimental_numpy_full_like_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    a = np.array([1, 2, 3], dtype=np.complex128)
-    fill_value = np.array(1 + 1j, dtype=np.complex128)
-    dtype = np.complex128
+    a = np.array([1.0, 2.0, 3.0])
+    fill_value = np.array(7.0)
+    dtype = np.float32
     order = 'K'
     subok = True
-    shape = (5,)
+    shape = (3,)
+
+    input_dict = {
+        "a": a,
+        "fill_value": fill_value,
+        "dtype": dtype,
+        "order": order,
+        "subok": subok,
+        "shape": shape
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    a = np.array(1)
+    fill_value = np.array(1)
+    dtype = np.int32
+    order = 'K'
+    subok = True
+    shape = None
 
     input_dict = {
         "a": a,

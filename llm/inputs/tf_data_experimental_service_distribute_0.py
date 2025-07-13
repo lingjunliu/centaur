@@ -11,36 +11,80 @@ import numpy as np
 def tf_data_experimental_service_distribute_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic valid input
     input_dict = {
-        'processing_mode': 'distributed_epoch',
-        'service': 'grpc://localhost:5000',
-        'job_name': 'job1',
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': None,
-        'data_transfer_protocol': None,
-        'compression': 'AUTO',
-        'cross_trainer_cache': (),
-        'target_workers': 'AUTO'
+        "processing_mode": "parallel_epochs",
+        "service": "localhost:5000",
+        "job_name": "job1",
+        "consumer_index": None,
+        "num_consumers": None,
+        "max_outstanding_requests": None,
+        "data_transfer_protocol": None,
+        "compression": "AUTO",
+        "cross_trainer_cache": (),
+        "target_workers": "AUTO"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
+    # Input 2: distributed_epoch
     input_dict = {
-        'processing_mode': 'parallel_epochs',
-        'service': 'grpc://127.0.0.1:6000',
-        'job_name': 'job2',
-        'consumer_index': None,
-        'num_consumers': None,
-        'max_outstanding_requests': None,
-        'data_transfer_protocol': None,
-        'compression': None,
-        'cross_trainer_cache': (),
-        'target_workers': 'ANY'
+        "processing_mode": "distributed_epoch",
+        "service": "grpc://localhost:5001",
+        "job_name": "job2",
+        "consumer_index": None,
+        "num_consumers": None,
+        "max_outstanding_requests": 10,
+        "data_transfer_protocol": "grpc",
+        "compression": None,
+        "cross_trainer_cache": (),
+        "target_workers": "ANY"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 3: consumer_index and num_consumers
+    input_dict = {
+        "processing_mode": "parallel_epochs",
+        "service": "localhost:5002",
+        "job_name": "job3",
+        "consumer_index": 0,
+        "num_consumers": 2,
+        "max_outstanding_requests": 5,
+        "data_transfer_protocol": None,
+        "compression": "AUTO",
+        "cross_trainer_cache": (),
+        "target_workers": "LOCAL"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different job_name
+    input_dict = {
+        "processing_mode": "distributed_epoch",
+        "service": "localhost:5003",
+        "job_name": "another_job",
+        "consumer_index": None,
+        "num_consumers": None,
+        "max_outstanding_requests": None,
+        "data_transfer_protocol": None,
+        "compression": None,
+        "cross_trainer_cache": (),
+        "target_workers": "AUTO"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Different service address format
+    input_dict = {
+        "processing_mode": "parallel_epochs",
+        "service": "grpc://127.0.0.1:5004",
+        "job_name": "job5",
+        "consumer_index": None,
+        "num_consumers": None,
+        "max_outstanding_requests": 20,
+        "data_transfer_protocol": "grpc",
+        "compression": "AUTO",
+        "cross_trainer_cache": (),
+        "target_workers": "AUTO"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
 generated_inputs = {}

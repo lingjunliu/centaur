@@ -8,23 +8,26 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_linalg_experimental_conjugate_gradient_inputs():
+def tf_linalg_conjugate_gradient_inputs():
     list_of_inputs = []
 
-    # Input 1
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[2., 1.], [1., 2.]]))
-    rhs = tf.constant(np.array([1., 2.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorIdentity(num_rows=2, dtype=tf.float32)
-    x = tf.constant(np.array([0., 0.]), dtype=tf.float32)
-    tol = 1e-05
-    max_iter = 20
-    name = "cg1"
+    # Helper function to create a LinearOperator
+    def make_linear_operator(matrix):
+        return tf.linalg.LinearOperatorFullMatrix(matrix)
 
+    # Input 1
+    A = np.array([[4., 1.], [1., 3.]], dtype=np.float32)
+    rhs = np.array([1., 2.], dtype=np.float32)
+    M = np.array([[0.3, 0], [0, 0.3]], dtype=np.float32)
+    x = np.array([0., 0.], dtype=np.float32)
+    tol = 1e-5
+    max_iter = 20
+    name = "cg_1"
     input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
+        "operator": make_linear_operator(A).to_dense(),
+        "rhs": rhs,
+        "preconditioner": make_linear_operator(M).to_dense(),
+        "x": x,
         "tol": tol,
         "max_iter": max_iter,
         "name": name
@@ -32,179 +35,74 @@ def tf_linalg_experimental_conjugate_gradient_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[4., 1.], [1., 3.]]))
-    rhs = tf.constant(np.array([1., 2.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorIdentity(num_rows=2, dtype=tf.float32)
-    x = tf.constant(np.array([0., 0.]), dtype=tf.float32)
-    tol = 1e-03
-    max_iter = 50
-    name = "cg2"
-
-    input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
-        "tol": tol,
-        "max_iter": max_iter,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[2., 1.], [1., 2.]]))
-    rhs = tf.constant(np.array([1., 2.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorIdentity(num_rows=2, dtype=tf.float32)
-    x = tf.constant(np.array([0.5, 0.5]), dtype=tf.float32)
-    tol = 1e-07
-    max_iter = 10
-    name = "cg3"
-
-    input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
-        "tol": tol,
-        "max_iter": max_iter,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Batch rhs
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[2., 1.], [1., 2.]]))
-    rhs = tf.constant(np.array([[1., 2.], [3., 4.]]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorIdentity(num_rows=2, dtype=tf.float32)
-    x = tf.constant(np.array([[0., 0.], [0., 0.]]), dtype=tf.float32)
-    tol = 1e-05
-    max_iter = 20
-    name = "cg4"
-
-    input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
-        "tol": tol,
-        "max_iter": max_iter,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[5., 2.], [2., 3.]]))
-    rhs = tf.constant(np.array([3., 5.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorFullMatrix(np.array([[0.2, 0.], [0., 0.3]]))
-    x = tf.constant(np.array([0., 0.]), dtype=tf.float32)
-    tol = 1e-06
+    A = np.array([[2., -1., 0.], [-1., 2., -1.], [0., -1., 2.]], dtype=np.float32)
+    rhs = np.array([1., 0., 1.], dtype=np.float32)
+    M = np.diag([0.5, 0.5, 0.5]).astype(np.float32)
+    x = np.array([0., 0., 0.], dtype=np.float32)
+    tol = 1e-6
     max_iter = 30
-    name = "cg5"
-
+    name = "cg_2"
     input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
+        "operator": make_linear_operator(A).to_dense(),
+        "rhs": rhs,
+        "preconditioner": make_linear_operator(M).to_dense(),
+        "x": x,
         "tol": tol,
         "max_iter": max_iter,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: different initial guess
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[2., 1.], [1., 2.]]))
-    rhs = tf.constant(np.array([1., 2.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorIdentity(num_rows=2, dtype=tf.float32)
-    x = tf.constant(np.array([1., 1.]), dtype=tf.float32)
-    tol = 1e-05
-    max_iter = 20
-    name = "cg6"
-
-    input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
-        "tol": tol,
-        "max_iter": max_iter,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[3., 1.], [1., 4.]]))
-    rhs = tf.constant(np.array([2., 3.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorIdentity(num_rows=2, dtype=tf.float32)
-    x = tf.constant(np.array([0., 0.]), dtype=tf.float32)
-    tol = 1e-04
+    # Input 3 (no preconditioner)
+    A = np.array([[4., 1.], [1., 3.]], dtype=np.float64)
+    rhs = np.array([1., 2.], dtype=np.float64)
+    x = np.array([0., 0.], dtype=np.float64)
+    tol = 1e-7
     max_iter = 40
-    name = "cg7"
-
+    name = "cg_3"
     input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
+        "operator": make_linear_operator(A).to_dense(),
+        "rhs": rhs,
+        "preconditioner": None,
+        "x": x,
         "tol": tol,
         "max_iter": max_iter,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[10., 1.], [1., 5.]]))
-    rhs = tf.constant(np.array([5., 3.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorFullMatrix(np.array([[0.1, 0.], [0., 0.2]]))
-    x = tf.constant(np.array([0., 0.]), dtype=tf.float32)
-    tol = 1e-08
-    max_iter = 60
-    name = "cg8"
-
-    input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
-        "tol": tol,
-        "max_iter": max_iter,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 9 - different dimensions
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[2., 1., 0.], [1., 2., 1.], [0., 1., 2.]]))
-    rhs = tf.constant(np.array([1., 2., 3.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorIdentity(num_rows=3, dtype=tf.float32)
-    x = tf.constant(np.array([0., 0., 0.]), dtype=tf.float32)
-    tol = 1e-05
+    # Input 4 (different initial guess)
+    A = np.array([[4., 1.], [1., 3.]], dtype=np.float32)
+    rhs = np.array([1., 2.], dtype=np.float32)
+    M = np.array([[0.3, 0], [0, 0.3]], dtype=np.float32)
+    x = np.array([1., 1.], dtype=np.float32)
+    tol = 1e-5
     max_iter = 20
-    name = "cg9"
-
+    name = "cg_4"
     input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
+        "operator": make_linear_operator(A).to_dense(),
+        "rhs": rhs,
+        "preconditioner": make_linear_operator(M).to_dense(),
+        "x": x,
         "tol": tol,
         "max_iter": max_iter,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10 - higher tolerance and less iterations
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[2., 1.], [1., 2.]]))
-    rhs = tf.constant(np.array([1., 2.]), dtype=tf.float32)
-    preconditioner = tf.linalg.LinearOperatorIdentity(num_rows=2, dtype=tf.float32)
-    x = tf.constant(np.array([0., 0.]), dtype=tf.float32)
-    tol = 1e-01
-    max_iter = 5
-    name = "cg10"
-
+    # Input 5 (higher tolerance)
+    A = np.array([[4., 1.], [1., 3.]], dtype=np.float32)
+    rhs = np.array([1., 2.], dtype=np.float32)
+    M = np.array([[0.3, 0], [0, 0.3]], dtype=np.float32)
+    x = np.array([0., 0.], dtype=np.float32)
+    tol = 1e-2
+    max_iter = 20
+    name = "cg_5"
     input_dict = {
-        "operator": operator.to_dense().numpy(),
-        "rhs": rhs.numpy(),
-        "preconditioner": preconditioner.to_dense().numpy(),
-        "x": x.numpy(),
+        "operator": make_linear_operator(A).to_dense(),
+        "rhs": rhs,
+        "preconditioner": make_linear_operator(M).to_dense(),
+        "x": x,
         "tol": tol,
         "max_iter": max_iter,
         "name": name
@@ -214,7 +112,7 @@ def tf_linalg_experimental_conjugate_gradient_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.linalg.experimental.conjugate_gradient"] = tf_linalg_experimental_conjugate_gradient_inputs()
+generated_inputs["tf.linalg.experimental.conjugate_gradient"] = tf_linalg_conjugate_gradient_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -19,7 +19,55 @@ def tf_data_experimental_prefetch_to_device_inputs():
 
     # Input 2
     device = "/gpu:0"
+    buffer_size = 1
+    input_dict = {"device": device, "buffer_size": buffer_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    device = "/cpu:0"
     buffer_size = 100
+    input_dict = {"device": device, "buffer_size": buffer_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    device = "/cpu:0"
+    buffer_size = 2
+    input_dict = {"device": device, "buffer_size": buffer_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    device = "/gpu:0"
+    buffer_size = 50
+    input_dict = {"device": device, "buffer_size": buffer_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    device = "/cpu:0"
+    buffer_size = 128
+    input_dict = {"device": device, "buffer_size": buffer_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    device = "/gpu:0"
+    buffer_size = 64
+    input_dict = {"device": device, "buffer_size": buffer_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    device = "/cpu:0"
+    buffer_size = 32
+    input_dict = {"device": device, "buffer_size": buffer_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    device = "/cpu:0"
+    buffer_size = 4
+    input_dict = {"device": device, "buffer_size": buffer_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    device = "/gpu:0"
+    buffer_size = 256
     input_dict = {"device": device, "buffer_size": buffer_size}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -13,8 +13,8 @@ def tf_queue_padding_fifo_queue_inputs():
 
     # Input 1
     capacity = 5
-    dtypes = [np.int32]
-    shapes = [[2, 3]]
+    dtypes = [np.float32]
+    shapes = [[2, None]]
     names = None
     shared_name = None
     name = "queue1"
@@ -23,18 +23,18 @@ def tf_queue_padding_fifo_queue_inputs():
 
     # Input 2
     capacity = 10
-    dtypes = [np.float32, np.int64]
-    shapes = [[4], [1, 5, 3]]
-    names = None
-    shared_name = "shared_queue2"
+    dtypes = [np.int32, np.float64]
+    shapes = [[None], [3, 3]]
+    names = ["id", "matrix"]
+    shared_name = "shared_queue"
     name = "queue2"
     input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    capacity = 2
+    capacity = 3
     dtypes = [np.string_]
-    shapes = [[5]]
+    shapes = [[None, None]]
     names = None
     shared_name = None
     name = "queue3"
@@ -44,57 +44,57 @@ def tf_queue_padding_fifo_queue_inputs():
     # Input 4
     capacity = 7
     dtypes = [np.bool_]
-    shapes = [[3, 2, 5]]
+    shapes = [[1, 5, None]]
     names = None
-    shared_name = "shared_queue4"
+    shared_name = "another_shared_queue"
     name = "queue4"
     input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    capacity = 3
-    dtypes = [np.int16, np.float64]
-    shapes = [[5, 4], [2, 3]]
-    names = None
+    capacity = 12
+    dtypes = [np.complex64]
+    shapes = [[None, 8]]
+    names = ["complex_data"]
     shared_name = None
     name = "queue5"
     input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    capacity = 12
+    capacity = 2
     dtypes = [np.uint8]
-    shapes = [[4]]
+    shapes = [[4, None, 2]]
     names = None
-    shared_name = "shared_queue6"
+    shared_name = "yet_another_shared_queue"
     name = "queue6"
     input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    capacity = 4
-    dtypes = [np.complex64]
-    shapes = [[1, 2]]
-    names = None
+    capacity = 8
+    dtypes = [np.int64, np.float16]
+    shapes = [[None, 10], [2]]
+    names = ["long_data", "short_float"]
     shared_name = None
     name = "queue7"
     input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    capacity = 9
-    dtypes = [np.int8, np.float16, np.int32]
-    shapes = [[1], [2, 2], [3]]
-    names = None
-    shared_name = "shared_queue8"
+    capacity = 4
+    dtypes = [np.float32, np.int32, np.string_]
+    shapes = [[None], [1,1], []]
+    names = ["a", "b", "c"]
+    shared_name = "shared_name_42"
     name = "queue8"
     input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    capacity = 6
-    dtypes = [np.uint32]
-    shapes = [[3]]
+    capacity = 15
+    dtypes = [np.float64]
+    shapes = [[None, None, None]]
     names = None
     shared_name = None
     name = "queue9"
@@ -102,14 +102,55 @@ def tf_queue_padding_fifo_queue_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    capacity = 15
-    dtypes = [np.int64, np.float32]
-    shapes = [[4, 5], [3, 2, 2]]
-    names = None
-    shared_name = "shared_queue10"
+    capacity = 1
+    dtypes = [np.int8]
+    shapes = [[None]]
+    names = ["tiny_int"]
+    shared_name = "queue_one_shared"
     name = "queue10"
     input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    capacity = 20
+    dtypes = [np.uint32]
+    shapes = [[1]]
+    names = None
+    shared_name = None
+    name = "queue11"
+    input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    capacity = 6
+    dtypes = [np.float32, np.int32]
+    shapes = [[2, None], [None]]
+    names = ["feature", "label"]
+    shared_name = "queue12_shared"
+    name = "queue12"
+    input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13
+    capacity = 9
+    dtypes = [np.complex128]
+    shapes = [[None, None]]
+    names = ["complex_data_2d"]
+    shared_name = None
+    name = "queue13"
+    input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 14
+    capacity = 11
+    dtypes = [np.float32, np.int32, np.string_]
+    shapes = [[None, 5], [3], [1, None]]
+    names = ["features", "labels", "metadata"]
+    shared_name = "queue14_shared"
+    name = "queue14"
+    input_dict = {"capacity": capacity, "dtypes": dtypes, "shapes": shapes, "names": names, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

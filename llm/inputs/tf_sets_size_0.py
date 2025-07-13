@@ -11,132 +11,88 @@ import copy
 def tf_sets_size_inputs():
     list_of_inputs = []
 
-    def create_sparse_tensor(indices, values, dense_shape):
-        return tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
-
-    # Input 1: Basic case with valid indices
-    indices = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
-    values = np.array([1, 2, 1, 3, 4, 3])
-    dense_shape = np.array([2, 5])
-    a = create_sparse_tensor(indices, values, dense_shape)
+    # Input 1: Basic valid case
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 1], [0, 2]], values=[1, 2, 3], dense_shape=[1, 3])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: validate_indices=False
-    indices = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
-    values = np.array([1, 2, 1, 3, 4, 3])
-    dense_shape = np.array([2, 5])
-    a = create_sparse_tensor(indices, values, dense_shape)
+    # Input 2: validate_indices = False
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 1], [0, 2]], values=[1, 2, 3], dense_shape=[1, 3])
     validate_indices = False
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Empty SparseTensor
-    indices = np.array([]).reshape(0, 2)
-    values = np.array([])
-    dense_shape = np.array([2, 5])
-    a = create_sparse_tensor(indices, values, dense_shape)
+    # Input 3: 2D SparseTensor
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 1], [1, 0], [1, 1]], values=[1, 2, 3, 4], dense_shape=[2, 2])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Higher rank SparseTensor
-    indices = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [0, 1, 1]])
-    values = np.array([1, 2, 3, 4])
-    dense_shape = np.array([1, 2, 3])
-    a = create_sparse_tensor(indices, values, dense_shape)
+    # Input 4: 3D SparseTensor
+    a = tf.sparse.SparseTensor(indices=[[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]], values=[1, 2, 3, 4], dense_shape=[2, 2, 2])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different values
-    indices = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
-    values = np.array([5, 6, 7, 8, 9, 10])
-    dense_shape = np.array([2, 5])
-    a = create_sparse_tensor(indices, values, dense_shape)
+    # Input 5: Duplicate values in the last dimension
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 1], [0, 2]], values=[1, 2, 2], dense_shape=[1, 3])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Single row SparseTensor
-    indices = np.array([[0, 0], [0, 1], [0, 2]])
-    values = np.array([1, 2, 3])
-    dense_shape = np.array([1, 5])
-    a = create_sparse_tensor(indices, values, dense_shape)
+    # Input 6: All same values
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 1], [0, 2]], values=[1, 1, 1], dense_shape=[1, 3])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Single column SparseTensor
-    indices = np.array([[0, 0], [1, 0], [2, 0]])
-    values = np.array([1, 2, 3])
-    dense_shape = np.array([5, 1])
-    a = create_sparse_tensor(indices, values, dense_shape)
+   # Input 7: Larger values
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 1], [0, 2]], values=[100, 200, 300], dense_shape=[1, 3])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: With zero values
-    indices = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
-    values = np.array([0, 1, 0, 2, 3, 0])
-    dense_shape = np.array([2, 5])
-    a = create_sparse_tensor(indices, values, dense_shape)
-    validate_indices = True
-    input_dict = {"a": a, "validate_indices": validate_indices}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: SparseTensor with all same values
-    indices = np.array([[0, 0], [0, 1], [0, 2], [1, 0], [1, 1], [1, 2]])
-    values = np.array([1, 1, 1, 1, 1, 1])
-    dense_shape = np.array([2, 5])
-    a = create_sparse_tensor(indices, values, dense_shape)
-    validate_indices = True
-    input_dict = {"a": a, "validate_indices": validate_indices}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Sparse tensor with a single value
-    indices = np.array([[0, 0]])
-    values = np.array([5])
-    dense_shape = np.array([1, 1])
-    a = create_sparse_tensor(indices, values, dense_shape)
+
+    # Input 9: More rows
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 1], [1, 0], [1, 1], [2, 0], [2, 1]], values=[1, 2, 3, 4, 5, 6], dense_shape=[3, 2])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12: Sparse tensor with a different dense shape and values
-    indices = np.array([[0, 0], [1, 2], [2, 1]])
-    values = np.array([7, 8, 9])
-    dense_shape = np.array([3, 4])
-    a = create_sparse_tensor(indices, values, dense_shape)
+    # Input 10: Empty sparse tensor. Changed dense_shape, and ensured values/indices are also empty.
+    a = tf.sparse.SparseTensor(indices=np.array([]).reshape(0,2), values=np.array([], dtype=np.int32), dense_shape=[1, 1])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: Sparse tensor with unsorted indices and validate_indices=False
-    indices = np.array([[1, 0], [0, 1], [0, 0]])
-    values = np.array([4, 2, 1])
-    dense_shape = np.array([2, 2])
-    a = create_sparse_tensor(indices, values, dense_shape)
+
+    # Input 11: Values are not sorted in the last dimension. validate_indices = True
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 2], [0, 1]], values=[1, 3, 2], dense_shape=[1, 3])
+    validate_indices = True
+    input_dict = {"a": a, "validate_indices": validate_indices}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: More complex 3D
+    a = tf.sparse.SparseTensor(indices=[[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]], values=[1, 2, 3, 4], dense_shape=[2, 2, 2])
+    validate_indices = True
+    input_dict = {"a": a, "validate_indices": validate_indices}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13: Non-unique indices with validate_indices=False
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 0], [0, 1]], values=[1, 2, 3], dense_shape=[1, 2])
     validate_indices = False
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14: All zeros SparseTensor
-    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    values = np.array([0, 0, 0, 0])
-    dense_shape = np.array([2, 2])
-    a = create_sparse_tensor(indices, values, dense_shape)
+
+    # Input 14: Non-unique indices with validate_indices=True
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [0, 0], [0, 1]], values=[1, 2, 3], dense_shape=[1, 2])
     validate_indices = True
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 15: Sparse tensor with very large dense shape
-    indices = np.array([[0, 0], [9999, 9999]])
-    values = np.array([1, 2])
-    dense_shape = np.array([10000, 10000])
-    a = create_sparse_tensor(indices, values, dense_shape)
-    validate_indices = True
+
+    # Input 15: Indices out of order with validate_indices=False
+    a = tf.sparse.SparseTensor(indices=[[0, 1], [0, 0]], values=[3, 1], dense_shape=[1, 2])
+    validate_indices = False
     input_dict = {"a": a, "validate_indices": validate_indices}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

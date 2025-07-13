@@ -48,8 +48,8 @@ def tf_ragged_constant_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    pylist = [[1, 2], [3], [4, 5, 6]]
-    dtype = tf.int64
+    pylist = [[1.0, 2.0], [3.0], [4.0, 5.0, 6.0]]
+    dtype = tf.float64
     ragged_rank = 1
     inner_shape = ()
     name = "ragged_tensor_3"
@@ -66,8 +66,8 @@ def tf_ragged_constant_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    pylist = [[], [1, 2], [], [3]]
-    dtype = tf.float64
+    pylist = [[1, 2], [], [4, 5, 6]]
+    dtype = tf.int32
     ragged_rank = 1
     inner_shape = ()
     name = "ragged_tensor_4"
@@ -84,9 +84,9 @@ def tf_ragged_constant_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    pylist = [[1, 2], [3]]
+    pylist = [[[1, 2, 3]], [[4, 5]]]
     dtype = tf.int32
-    ragged_rank = 1
+    ragged_rank = 2
     inner_shape = ()
     name = "ragged_tensor_5"
     row_splits_dtype = tf.int64
@@ -102,29 +102,11 @@ def tf_ragged_constant_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 6
-    pylist = [[1.0, 2.0], [3.0], [4.0, 5.0, 6.0]]
-    dtype = tf.float32
-    ragged_rank = 1
-    inner_shape = ()
-    name = "ragged_tensor_6"
-    row_splits_dtype = tf.int64
-
-    input_dict = {
-        "pylist": pylist,
-        "dtype": dtype,
-        "ragged_rank": ragged_rank,
-        "inner_shape": inner_shape,
-        "name": name,
-        "row_splits_dtype": row_splits_dtype
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    pylist = [[1, 2], [3], [4, 5, 6]]
+    pylist = [[], [], []]
     dtype = tf.int32
     ragged_rank = 1
     inner_shape = ()
-    name = "ragged_tensor_7"
+    name = "ragged_tensor_6"
     row_splits_dtype = tf.int32
 
     input_dict = {
@@ -137,12 +119,12 @@ def tf_ragged_constant_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    pylist = [[], [], []]
+    # Input 7
+    pylist = [[[1], [2,3]], [[4,5,6]]]
     dtype = tf.int32
-    ragged_rank = 1
+    ragged_rank = 2
     inner_shape = ()
-    name = "ragged_tensor_8"
+    name = "ragged_tensor_7"
     row_splits_dtype = tf.int64
 
     input_dict = {
@@ -155,10 +137,28 @@ def tf_ragged_constant_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    pylist = [[1, 2, 3], [4, 5]]
+    # Input 8
+    pylist = [[1, 2], [3], [4, 5, 6]]
     dtype = tf.int64
     ragged_rank = 1
+    inner_shape = ()
+    name = "ragged_tensor_8"
+    row_splits_dtype = tf.int32
+
+    input_dict = {
+        "pylist": pylist,
+        "dtype": dtype,
+        "ragged_rank": ragged_rank,
+        "inner_shape": inner_shape,
+        "name": name,
+        "row_splits_dtype": row_splits_dtype
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    pylist = [[[1,2],[3]],[[4],[5,6,7]]]
+    dtype = tf.int32
+    ragged_rank = 2
     inner_shape = ()
     name = "ragged_tensor_9"
     row_splits_dtype = tf.int64
@@ -172,9 +172,9 @@ def tf_ragged_constant_inputs():
         "row_splits_dtype": row_splits_dtype
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: Empty list
-    pylist = []
+
+    # Input 10
+    pylist = [[1,2,3], [4,5], [6]]
     dtype = tf.int32
     ragged_rank = 1
     inner_shape = ()
@@ -191,60 +191,6 @@ def tf_ragged_constant_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11
-    pylist = [[1, 2], [3, 4]]
-    dtype = tf.int32
-    ragged_rank = 0
-    inner_shape = (2,)
-    name = "ragged_tensor_11"
-    row_splits_dtype = tf.int64
-
-    input_dict = {
-        "pylist": pylist,
-        "dtype": dtype,
-        "ragged_rank": ragged_rank,
-        "inner_shape": inner_shape,
-        "name": name,
-        "row_splits_dtype": row_splits_dtype
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: inner_shape with 1 dimension, ragged_rank=0
-    pylist = [[1], [2]]
-    dtype = tf.int32
-    ragged_rank = 0
-    inner_shape = (1,)
-    name = "ragged_tensor_12"
-    row_splits_dtype = tf.int64
-
-    input_dict = {
-        "pylist": pylist,
-        "dtype": dtype,
-        "ragged_rank": ragged_rank,
-        "inner_shape": inner_shape,
-        "name": name,
-        "row_splits_dtype": row_splits_dtype
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: inner_shape with 1 dimension, ragged_rank=1, rank 2 tensor
-    pylist = [[1, 2], [3]]
-    dtype = tf.int32
-    ragged_rank = 1
-    inner_shape = ()
-    name = "ragged_tensor_13"
-    row_splits_dtype = tf.int64
-    
-    input_dict = {
-        "pylist": pylist,
-        "dtype": dtype,
-        "ragged_rank": ragged_rank,
-        "inner_shape": inner_shape,
-        "name": name,
-        "row_splits_dtype": row_splits_dtype
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

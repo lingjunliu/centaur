@@ -12,107 +12,83 @@ def tf_raw_ops_all_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.array([[True, True], [True, True]], dtype=np.bool_)
-    axis_tensor = np.array(0, dtype=np.int32)
-    keep_dims_bool = False
-    name_str = "all_op_1"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    input_tensor = np.array([[True, True], [True, True]])
+    axis_tensor = np.array(0)
+    keep_dims = False
+    name = "all_example_1"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([[True, False], [True, True]], dtype=np.bool_)
-    axis_tensor = np.array(1, dtype=np.int32)
-    keep_dims_bool = True
-    name_str = "all_op_2"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    input_tensor = np.array([[True, False], [True, True]])
+    axis_tensor = np.array(0)
+    keep_dims = False
+    name = "all_example_2"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([[[True, True], [False, True]], [[True, False], [True, True]]], dtype=np.bool_)
-    axis_tensor = np.array(0, dtype=np.int64)
-    keep_dims_bool = False
-    name_str = "all_op_3"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    input_tensor = np.array([[True, False], [True, True]])
+    axis_tensor = np.array(1)
+    keep_dims = False
+    name = "all_example_3"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array([[[True, True], [False, True]], [[True, False], [True, True]]], dtype=np.bool_)
-    axis_tensor = np.array(2, dtype=np.int64)
-    keep_dims_bool = True
-    name_str = "all_op_4"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    input_tensor = np.array([[True, False], [True, True]])
+    axis_tensor = np.array(0)
+    keep_dims = True
+    name = "all_example_4"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array([True, True, True], dtype=np.bool_)
-    axis_tensor = np.array(0, dtype=np.int32)
-    keep_dims_bool = False
-    name_str = "all_op_5"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    input_tensor = np.array([[True, False], [True, True]])
+    axis_tensor = np.array(1)
+    keep_dims = True
+    name = "all_example_5"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.array([True, False, True], dtype=np.bool_)
-    axis_tensor = np.array(0, dtype=np.int32)
-    keep_dims_bool = True
-    name_str = "all_op_6"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    input_tensor = np.array([[[True, True], [True, True]], [[True, True], [True, True]]])
+    axis_tensor = np.array(0)
+    keep_dims = False
+    name = "all_example_6"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Negative axis
-    input_tensor = np.array([[True, True], [True, True]], dtype=np.bool_)
-    axis_tensor = np.array(-1, dtype=np.int32)
-    keep_dims_bool = False
-    name_str = "all_op_7"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    # Input 7
+    input_tensor = np.array([[[True, True], [True, True]], [[True, True], [True, True]]])
+    axis_tensor = np.array(1)
+    keep_dims = False
+    name = "all_example_7"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Scalar input
-    input_tensor = np.array(True, dtype=np.bool_)
-    axis_tensor = np.array([], dtype=np.int32)
-    keep_dims_bool = False
-    name_str = "all_op_8"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    # Input 8
+    input_tensor = np.array([[[True, True], [True, True]], [[True, True], [True, True]]])
+    axis_tensor = np.array(2)
+    keep_dims = False
+    name = "all_example_8"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = np.array([False], dtype=np.bool_)
-    axis_tensor = np.array(0, dtype=np.int32)
-    keep_dims_bool = False
-    name_str = "all_op_9"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    input_tensor = np.array([[[True, True], [True, True]], [[True, True], [True, True]]])
+    axis_tensor = np.array([0, 1])
+    keep_dims = False
+    name = "all_example_9"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: 3D Tensor with negative axis
-    input_tensor = np.array([[[True, True], [False, True]], [[True, False], [True, True]]], dtype=np.bool_)
-    axis_tensor = np.array(-1, dtype=np.int64)
-    keep_dims_bool = True
-    name_str = "all_op_10"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: all false
-    input_tensor = np.array([[False, False], [False, False]], dtype=np.bool_)
-    axis_tensor = np.array(0, dtype=np.int32)
-    keep_dims_bool = False
-    name_str = "all_op_11"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: 2D tensor, reducing on both axis
-    input_tensor = np.array([[True, True], [True, True]], dtype=np.bool_)
-    axis_tensor = np.array([0, 1], dtype=np.int32)
-    keep_dims_bool = False
-    name_str = "all_op_12"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13: 3D tensor, reduce on all axis.
-    input_tensor = np.array([[[True, True], [True, True]], [[True, True], [True, True]]], dtype=np.bool_)
-    axis_tensor = np.array([0, 1, 2], dtype=np.int32)
-    keep_dims_bool = False
-    name_str = "all_op_13"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_bool, "name": name_str}
+    # Input 10
+    input_tensor = np.array([[[True, True], [True, True]], [[True, True], [True, True]]])
+    axis_tensor = np.array([0, 2])
+    keep_dims = True
+    name = "all_example_10"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

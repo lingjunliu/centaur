@@ -11,77 +11,66 @@ import copy
 def tf_realdiv_inputs():
     list_of_inputs = []
 
-    # Input 1
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float32), dtype=tf.float32)
-    y = tf.constant(np.array([0.5, 0.5, 0.5], dtype=np.float32), dtype=tf.float32)
-    name = "real_div_1"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 1: Basic float32 division
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    y = np.array([0.5, 1.0, 1.5], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    x = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64), dtype=tf.float64)
-    y = tf.constant(np.array([[0.2, 0.5], [1.0, 2.0]], dtype=np.float64), dtype=tf.float64)
-    name = "real_div_2"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 2: Division with negative values, float64
+    x = np.array([-1.0, -2.0, 3.0], dtype=np.float64)
+    y = np.array([0.5, -1.0, -1.5], dtype=np.float64)
+    input_dict = {"x": x, "y": y, "name": "negative_division"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    x = tf.constant(np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32), dtype=tf.float32)
-    y = tf.constant(np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float32), dtype=tf.float32)
-    name = "real_div_3"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 3: Multi-dimensional array division, float32
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    y = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float32), dtype=tf.float32)
-    y = tf.constant(np.array([1.0, 1.0, 1.0], dtype=np.float32), dtype=tf.float32)
-    name = "real_div_4"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 4: Broadcasting division, float32
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    y = np.array([0.5, 1.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float32), dtype=tf.float32)
-    y = tf.constant(np.array([1.0, 2.0, 0.5], dtype=np.float32), dtype=tf.float32)
-    name = "real_div_5"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 5: Integer division (will result in float), float32
+    x = np.array([1, 2, 3], dtype=np.float32)
+    y = np.array([2, 2, 2], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "integer_division"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float64), dtype=tf.float64)
-    y = tf.constant(np.array([1.0, 1.0, 1.0], dtype=np.float64), dtype=tf.float64)
-    name = "real_div_6"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 6: Large integer division, float64
+    x = np.array([10000000000, 20000000000], dtype=np.float64)
+    y = np.array([2, 5], dtype=np.float64)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float64), dtype=tf.float64)
-    y = tf.constant(np.array([1.0, 1.0, 1.0], dtype=np.float64), dtype=tf.float64)
-    name = "real_div_7"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 7: Division with zeros (will result in inf), float32
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    y = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "division_by_zero"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    x = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32), dtype=tf.float32)
-    y = tf.constant(np.array([0.5, 1.0], dtype=np.float32), dtype=tf.float32)
-    name = "real_div_8"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 8: Division with uint8, float32
+    x = np.array([1, 2, 3], dtype=np.float32)
+    y = np.array([1, 2, 1], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    x = tf.constant(10.0, dtype=tf.float32)
-    y = tf.constant(2.0, dtype=tf.float32)
-    name = "real_div_9"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 9: Division with float16
+    x = np.array([1.0, 2.0], dtype=np.float16)
+    y = np.array([0.5, 1.0], dtype=np.float16)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float64), dtype=tf.float64)
-    y = tf.constant(2.0, dtype=tf.float64)
-    y = tf.constant(np.array([2.0,2.0,2.0], dtype = np.float64), dtype=tf.float64)
-    name = "real_div_10"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 10: Division with complex64
+    x = np.array([1 + 1j, 2 + 2j], dtype=np.complex64)
+    y = np.array([0.5 + 0.5j, 1 + 0j], dtype=np.complex64)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

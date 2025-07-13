@@ -11,54 +11,54 @@ import copy
 def tf_experimental_numpy_atleast_1d_inputs():
     list_of_inputs = []
 
-    # Input 1: Single scalar
-    arys = [np.array(5)]
-    input_dict = {"arys": arys}
+    # Input 1: Scalar
+    arys = [np.array(1)]
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Single 0D array
-    arys = [np.array(10)]
-    input_dict = {"arys": arys}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Single 1D array
+    # Input 2: 1D array
     arys = [np.array([1, 2, 3])]
-    input_dict = {"arys": arys}
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Single 2D array
+    # Input 3: 2D array
     arys = [np.array([[1, 2], [3, 4]])]
-    input_dict = {"arys": arys}
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Multiple scalars
+    # Input 4: Multiple scalars
     arys = [np.array(1), np.array(2), np.array(3)]
-    input_dict = {"arys": arys}
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Multiple 1D arrays
-    arys = [np.array([1, 2]), np.array([3, 4]), np.array([5, 6])]
-    input_dict = {"arys": arys}
+    # Input 5: Scalar and 1D array
+    arys = [np.array(1), np.array([2, 3])]
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Mixed scalars and arrays
-    arys = [np.array(1), np.array([2, 3]), np.array([[4, 5], [6, 7]])]
-    input_dict = {"arys": arys}
+    # Input 6: Empty array
+    arys = [np.array([])]
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Single array with negative values
+    # Input 7: Different data types
+    arys = [np.array([1.0, 2.0]), np.array([3, 4])]
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 3D array
+    arys = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Array with negative values
     arys = [np.array([-1, -2, -3])]
-    input_dict = {"arys": arys}
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Array with different dtype (float)
-    arys = [np.array([1.0, 2.0, 3.0])]
-    input_dict = {"arys": arys}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Array with different dtype (bool)
+    # Input 10: Array with boolean values
     arys = [np.array([True, False, True])]
-    input_dict = {"arys": arys}
+    input_dict = {"arys": [tf.convert_to_tensor(x) if isinstance(x, np.ndarray) else tf.convert_to_tensor(np.array(x)) for x in arys]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

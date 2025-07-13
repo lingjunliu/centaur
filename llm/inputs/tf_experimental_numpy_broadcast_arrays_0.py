@@ -17,68 +17,59 @@ def tf_experimental_numpy_broadcast_arrays_inputs():
     input_dict = {"args": [tf.constant(a), tf.constant(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Scalar and vector
+    # Input 2: Scalar and 1D array
     a = np.array(5)
     b = np.array([1, 2, 3])
     input_dict = {"args": [tf.constant(a), tf.constant(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Vector and matrix
+    # Input 3: 1D and 2D arrays
     a = np.array([1, 2, 3])
     b = np.array([[1], [2], [3]])
     input_dict = {"args": [tf.constant(a), tf.constant(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Two matrices with compatible shapes
+    # Input 4: Two 2D arrays, different shapes, broadcastable
     a = np.array([[1, 2, 3], [4, 5, 6]])
-    b = np.array([[7], [8]])
+    b = np.array([[7, 8, 9]])
     input_dict = {"args": [tf.constant(a), tf.constant(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Three arrays with different dimensions
-    a = np.array(1)
-    b = np.array([1, 2, 3])
-    c = np.array([[1], [2], [3]])
-    input_dict = {"args": [tf.constant(a), tf.constant(b), tf.constant(c)]}
+    # Input 5: 3D and 1D
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    b = np.array([1, 2])
+    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Two arrays with integer and float types
+    # Input 6: 3D and 2D
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    b = np.array([[1, 2]])
+    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different dtypes
     a = np.array([1, 2, 3], dtype=np.int32)
-    b = np.array([4.0, 5.0, 6.0], dtype=np.float32)
+    b = np.array([4, 5, 6], dtype=np.float32)
     input_dict = {"args": [tf.constant(a), tf.constant(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7:  Arrays with different data types
+    # Input 8: 4D and 1D
+    a = np.random.rand(2, 3, 4, 5)
+    b = np.random.rand(5)
+    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Multiple arrays
     a = np.array([1, 2, 3])
-    b = np.array([1.0, 2.0, 3.0])
-    c = np.array([True, False, True])
-
-    input_dict = {"args": [tf.constant(a), tf.constant(b), tf.constant(c)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Higher dimension tensors
-    a = np.random.rand(2, 3, 4)
-    b = np.random.rand(3, 4)
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Examples with negative values
-    a = np.array([-1, -2, -3])
-    b = np.array([1, 2, 3])
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Example with different shapes and types
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([5.0, 6.0])
+    b = np.array([[4], [5], [6]])
     c = np.array(7)
     input_dict = {"args": [tf.constant(a), tf.constant(b), tf.constant(c)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Example using tf.zeros
-    a = tf.zeros((2,3))
-    b = tf.constant(1.0)
-    input_dict = {"args": [a, b]}
+
+    # Input 10: Two 3D arrays with compatible shapes
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    b = np.array([[[9, 10], [11, 12]]])
+    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

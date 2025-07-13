@@ -8,43 +8,83 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_nn_RNNCellDeviceWrapper_inputs():
+def tf_nn_rnncelldevicewrapper_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple LSTMCell
-    lstm_cell1 = tf.keras.layers.LSTMCell(units=128)
-    input_dict1 = {"cell": (lstm_cell1,)}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1
+    cell = (tf.keras.layers.LSTMCell(units=10),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: GRUCell
-    gru_cell2 = tf.keras.layers.GRUCell(units=64)
-    input_dict2 = {"cell": (gru_cell2,)}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2
+    cell = (tf.keras.layers.GRUCell(units=20),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Simple RNNCell
-    simple_rnn_cell3 = tf.keras.layers.SimpleRNNCell(units=32)
-    input_dict3 = {"cell": (simple_rnn_cell3,)}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3
+    cell = (tf.keras.layers.SimpleRNNCell(units=30),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: LSTMCell
-    lstm_cell4 = tf.keras.layers.LSTMCell(units=64)
-    input_dict4 = {"cell": (lstm_cell4,)}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-    
-    # Input 5: GRUCell
-    gru_cell5 = tf.keras.layers.GRUCell(units=32)
-    input_dict5 = {"cell": (gru_cell5,)}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 4
+    cell = (tf.keras.layers.LSTMCell(units=5),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: SimpleRNN
-    simple_rnn_cell6 = tf.keras.layers.SimpleRNNCell(units=16)
-    input_dict6 = {"cell": (simple_rnn_cell6,)}
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    # Input 5
+    cell = (tf.keras.layers.GRUCell(units=15),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    cell = (tf.keras.layers.LSTMCell(units=40),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    cell = (tf.keras.layers.SimpleRNNCell(units=60),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    cell = (tf.keras.layers.LSTMCell(units=70),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    cell = (tf.keras.layers.GRUCell(units=80),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    cell = (tf.keras.layers.SimpleRNNCell(units=90),)
+    input_dict = {
+        "cell": cell
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.nn.RNNCellDeviceWrapper"] = tf_nn_RNNCellDeviceWrapper_inputs()
+generated_inputs["tf.nn.RNNCellDeviceWrapper"] = tf_nn_rnncelldevicewrapper_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

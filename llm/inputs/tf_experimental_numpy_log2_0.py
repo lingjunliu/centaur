@@ -11,56 +11,55 @@ import copy
 def tf_experimental_numpy_log2_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic positive values
-    x = tf.constant(np.array([2, 4, 8, 16], dtype=np.float32))
+    # Input 1: Positive integers
+    x = np.array([2, 4, 8, 16], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Zero and one
-    x = tf.constant(np.array([1], dtype=np.float32))
+    # Input 2: Positive floats
+    x = np.array([2.5, 4.7, 8.1, 16.9], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multi-dimensional array
-    x = tf.constant(np.array([[2, 4], [8, 16]], dtype=np.float32))
+    # Input 3: One
+    x = np.array([1.0], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different data type (float64)
-    x = tf.constant(np.array([2.0, 4.0, 8.0], dtype=np.float64))
+    # Input 4: Array with multiple dimensions
+    x = np.array([[2, 4], [8, 16]], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Large numbers
-    x = tf.constant(np.array([2**10, 2**15], dtype=np.float32))
+    # Input 5: Larger array
+    x = np.array([2**i for i in range(1, 11)], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Array with some ones
+    x = np.array([1, 2, 4, 1, 8, 16, 1], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Small numbers
-    x = tf.constant(np.array([0.5, 0.25], dtype=np.float32))
+    # Input 7: Different dtype
+    x = np.array([2, 4, 8, 16], dtype=np.float64)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 3D array
-    x = tf.constant(np.array([[[2, 4], [8, 16]], [[32, 64], [128, 256]]], dtype=np.float32))
+    # Input 8: 3D array
+    x = np.array([[[2, 4], [8, 16]], [[32, 64], [128, 256]]], dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Another dtype (int32), which will get cast to float32
-    x = tf.constant(np.array([2, 4, 8], dtype=np.int32))
+    
+    # Input 9: numpy array with all ones
+    x = np.ones((5, 5), dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Scalar value
-    x = tf.constant(2.0, dtype=np.float32)
+    
+    # Input 10: numpy array with all zeros
+    x = np.zeros((3, 4), dtype=np.float32)
     input_dict = {"x": x}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Array of ones - removing this
-    # x = tf.ones((2, 3), dtype=np.float32)
-    # input_dict = {"x": x}
-    # input_dict["x"] = tf.constant(input_dict["x"])
-    # list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

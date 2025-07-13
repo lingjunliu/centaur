@@ -11,64 +11,74 @@ import copy
 def tf_sparse_cross_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with two dense tensors
-    inp_0 = np.array([['a'], ['b']])
-    inp_1 = np.array([['c'], ['d']])
-    input_dict = {'inputs': [inp_0, inp_1], 'name': None, 'separator': '_X_'}
+    # Input 1
+    inputs = [tf.constant([['a'], ['b']]), tf.constant([['c'], ['d']])]
+    name = "cross_op_1"
+    separator = "_X_"
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Two dense tensors with different separators
-    inp_0 = np.array([['a'], ['b']])
-    inp_1 = np.array([['c'], ['d']])
-    input_dict = {'inputs': [inp_0, inp_1], 'name': 'cross_op', 'separator': '_Y_'}
+    # Input 2
+    inputs = [tf.constant([['a', 'b'], ['c', 'd']]), tf.constant([['e', 'f'], ['g', 'h']])]
+    name = "cross_op_2"
+    separator = "_"
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Three dense tensors
-    inp_0 = np.array([['a'], ['b']])
-    inp_1 = np.array([['c'], ['d']])
-    inp_2 = np.array([['e'], ['f']])
-    input_dict = {'inputs': [inp_0, inp_1, inp_2], 'name': None, 'separator': '_X_'}
+    # Input 3
+    inputs = [tf.constant([['a']]), tf.constant([['b']]), tf.constant([['c']])]
+    name = "cross_op_3"
+    separator = "-SEP-"
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Two dense tensors, different shapes
-    inp_0 = np.array([['a', 'b'], ['c', 'd']])
-    inp_1 = np.array([['e'], ['f']])
-    input_dict = {'inputs': [inp_0, inp_1], 'name': None, 'separator': '_X_'}
+    # Input 4: Empty inputs
+    inputs = [tf.constant([['']]), tf.constant([['']])]
+    name = "cross_op_4"
+    separator = "*"
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5:  One dense tensor
-    inp_0 = np.array([['a'], ['b']])
-    input_dict = {'inputs': [inp_0], 'name': None, 'separator': '_X_'}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: Dense tensors with numeric values as strings
-    inp_0 = np.array([['1'], ['2']])
-    inp_1 = np.array([['3'], ['4']])
-    input_dict = {'inputs': [inp_0, inp_1], 'name': None, 'separator': '_X_'}
+    # Input 5: Longer strings
+    inputs = [tf.constant([['long_string_1'], ['long_string_2']]), tf.constant([['another_long_string_1'], ['another_long_string_2']])]
+    name = "cross_op_5"
+    separator = "---"
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Dense tensor with empty string
-    inp_0 = np.array([[''], ['b']])
-    inp_1 = np.array([['c'], ['d']])
-    input_dict = {'inputs': [inp_0, inp_1], 'name': None, 'separator': '_X_'}
+    # Input 6: different rank tensors - Removing since shape mismatch caused error
+    # inputs = [tf.constant(['a', 'b']), tf.constant([['c'], ['d']])]
+    # name = "cross_op_6"
+    # separator = "|||"
+    # input_dict = {"inputs": inputs, "name": name, "separator": separator}
+    # list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different shapes
+    inputs = [tf.constant([['a', 'b', 'c'], ['d', 'e', 'f']]), tf.constant([['g'], ['h']])]
+    name = "cross_op_7"
+    separator = "$$$"
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Valid Case, shape mismatch fixed
-    inp_0 = np.array([['a', 'b', 'c'], ['d', 'e', 'f']])
-    inp_1 = np.array([['g', 'h', 'i'], ['j', 'k', 'l']])
-    input_dict = {'inputs': [inp_0, inp_1], 'name': None, 'separator': '_X_'}
+    # Input 8: Unicode characters
+    inputs = [tf.constant([['你好'], ['世界']]), tf.constant([['TensorFlow'], ['Python']])]
+    name = "cross_op_8"
+    separator = "~~~"
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: Valid case
-    inp_0 = np.array([['a'], ['b']])
-    inp_1 = np.array([['c'], ['d']]) #Keep the shapes consistent
-    input_dict = {'inputs': [inp_0, inp_1], 'name': None, 'separator': '_X_'}
+
+    # Input 9
+    inputs = [tf.constant([['a']]), tf.constant([['b']])]
+    name = "cross_op_9"
+    separator = "---"
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: Valid Case, Shape mismatch fixed
-    inp_0 = np.array([['a', 'b'], ['c', 'd']])
-    inp_1 = np.array([['e', 'f'], ['g', 'h']])
-    input_dict = {'inputs': [inp_0, inp_1], 'name': None, 'separator': '_X_'}
+
+   # Input 10
+    inputs = [tf.constant([['1'], ['2']]), tf.constant([['3'], ['4']])]
+    name = "cross_op_10"
+    separator = "..."
+    input_dict = {"inputs": inputs, "name": name, "separator": separator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

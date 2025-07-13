@@ -6,105 +6,95 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
+import copy
 
 def tf_data_experimental_choose_from_datasets_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example
-    datasets_np = [np.array([1, 2, 3]),
-                np.array([4, 5, 6])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0]))
+    # Input 1
+    datasets = [tf.data.Dataset.from_tensors(np.array([1, 2, 3])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([4, 5, 6])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0, 1])).repeat()
     stop_on_empty_dataset = False
     input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 2: Different length datasets
-    datasets_np = [np.array([1, 2]),
-                np.array([4, 5, 6, 7])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0, 1]))
+    # Input 2
+    datasets = [tf.data.Dataset.from_tensors(np.array([1.0, 2.0])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([3.0, 4.0])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([5.0, 6.0])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 2, 0, 1, 2])).repeat()
     stop_on_empty_dataset = True
     input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 3: More datasets
-    datasets_np = [np.array([1]),
-                np.array([2]),
-                np.array([3])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 2]))
+    # Input 3
+    datasets = [tf.data.Dataset.from_tensors(np.array(["a", "b"])).repeat(),
+                tf.data.Dataset.from_tensors(np.array(["c", "d"])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 0, 1, 1, 0])).repeat()
     stop_on_empty_dataset = False
     input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 4: Repeating choice dataset
-    datasets_np = [np.array([1, 2]),
-                np.array([3, 4])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
+    # Input 4
+    datasets = [tf.data.Dataset.from_tensors(np.array([1, 2])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0])).repeat()
+    stop_on_empty_dataset = True
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(input_dict)
+
+     # Input 5
+    datasets = [tf.data.Dataset.from_tensors(np.array([[1, 2], [3, 4]])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([[5, 6], [7, 8]])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1])).repeat()
+    stop_on_empty_dataset = False
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 6
+    datasets = [tf.data.Dataset.from_tensors(np.array([1])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([2])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([3])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 2])).repeat()
+    stop_on_empty_dataset = True
+    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 7
+    datasets = [tf.data.Dataset.from_tensors(np.array([1, 2, 3])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([4, 5, 6])).repeat()]
     choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1])).repeat(2)
-    stop_on_empty_dataset = True
-    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 5: Multi-dimensional data
-    datasets_np = [np.array([[1, 2], [3, 4]]),
-                np.array([[5, 6], [7, 8]])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1]))
     stop_on_empty_dataset = False
     input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 6: Empty dataset
-    datasets_np = [np.array([]),
-                np.array([1, 2])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1]))
+    # Input 8
+    datasets = [tf.data.Dataset.from_tensors(np.array([1.0])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([2.0])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([3.0])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 0, 1, 1, 2, 2]))
     stop_on_empty_dataset = True
     input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 7: More complex choice
-    datasets_np = [np.array([1, 2, 3]),
-                np.array([4, 5, 6])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 0, 1, 1, 0]))
+    # Input 9
+    datasets = [tf.data.Dataset.from_tensors(np.array([1, 2])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([3, 4])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0, 1, 0])).repeat()
     stop_on_empty_dataset = False
     input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 8: Three datasets with more complex choice
-    datasets_np = [np.array([1]),
-                np.array([2]),
-                np.array([3])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 2, 0, 1, 2]))
-    stop_on_empty_dataset = True
-    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 9: Nested datasets with various shapes
-    datasets_np = [np.array([[1, 2], [3, 4]]),
-                np.array([5, 6])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1]))
-    stop_on_empty_dataset = False
-    input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
-    list_of_inputs.append(input_dict)
-
-    # Input 10: Another example with repeating and different shapes
-    datasets_np = [np.array([1, 2]),
-                np.array([[3, 4], [5, 6]])]
-    datasets = [tf.data.Dataset.from_tensor_slices(x) for x in datasets_np]
-    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1])).repeat(3)
+    # Input 10
+    datasets = [tf.data.Dataset.from_tensors(np.array([1, 2, 3])).repeat(),
+                tf.data.Dataset.from_tensors(np.array([4, 5, 6])).repeat()]
+    choice_dataset = tf.data.Dataset.from_tensor_slices(np.array([0, 1, 0])).repeat()
     stop_on_empty_dataset = True
     input_dict = {"datasets": datasets, "choice_dataset": choice_dataset, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.data.experimental.choose_from_datasets"] = tf_data_experimental_choose_from_datasets_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
