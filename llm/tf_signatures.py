@@ -6196,17 +6196,6 @@ signatures["tf.nn.conv2d"] = {
     },
     "inner": {}
 }
-signatures["tf.linalg.lu_reconstruct"] = {
-    "args": {
-        "lower_upper": "tensor",
-        "perm": "tensor"
-    },
-    "kwargs": {
-        "validate_args": "boolean",
-        "name": "string"
-    },
-    "inner": {}
-}
 signatures["tf.experimental.numpy.reciprocal"] = {
     "args": {
         "x": "tensor"
@@ -6398,17 +6387,6 @@ signatures["tf.io.decode_json_example"] = {
         "json_examples": "tensor"
     },
     "kwargs": {
-        "name": "string"
-    },
-    "inner": {}
-}
-signatures["tf.linalg.lu_matrix_inverse"] = {
-    "args": {
-        "lower_upper": "tensor",
-        "perm": "tensor"
-    },
-    "kwargs": {
-        "validate_args": "boolean",
         "name": "string"
     },
     "inner": {}
