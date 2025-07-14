@@ -6,10 +6,12 @@ from generator.input_generators import get_ll
 from generator.rules_auto_z3 import get_rules_map
 
 def add_negative_buckets(buckets):
+    new_buckets = []
     for element in buckets:
         if element > 0:
-            buckets.append(-1*element)
-    return sorted(buckets)
+            new_buckets.append(-1*element)
+    buckets += new_buckets
+    return sorted(list(set(buckets)))
 
 def create_z3_args(signature):
     z3_args = {}
@@ -63,8 +65,10 @@ def parition_solvers(solver, signature, z3_args, lib="torch", rng=np.random.defa
     for param_name, z3_var in z3_args.items():
         if signature[param_name] == "boolean":
             value = z3_var['value']
+            solver_true = Solver()
             solver_true.add(*solver.assertions())
             solver_true.add(value == True)
+            solver_false = Solver()
             solver_false.add(*solver.assertions())
             solver_false.add(value == False)
             solvers.append(solver_true)
@@ -78,8 +82,10 @@ def parition_solvers(solver, signature, z3_args, lib="torch", rng=np.random.defa
             if signature[param_name] == "tensor" or signature[param_name] == "tensor_list":
                 range_ = z3_var['range']
                 # Choosing low and high values for the tensor range
-                buckets = sorted(rng.choice(add_negative_buckets(int_buckets), size=4, replace=False))
-                low, high = rng.randint(buckets[0], buckets[1]), rng.randint(buckets[2], buckets[3])
+                augmented_buckets = add_negative_buckets(int_buckets)
+                buckets = rng.choice(augmented_buckets, size=4, replace=False)
+                buckets = sorted(buckets)
+                low, high = rng.integers(buckets[0], buckets[1]), rng.integers(buckets[2], buckets[3])
                 solver.add(Select(range_, 0) == low)
                 solver.add(Select(range_, 1) == high)
     

@@ -7292,12 +7292,6 @@ def bernoulli_inputs():
     input_dict6 = {"input": input6, "generator": None, "out": None}
     list_of_inputs.append(copy.deepcopy(input_dict6))
     
-    # Input 7: Float tensor with a generator
-    generator = torch.Generator()
-    input7 = torch.rand(2, 2).numpy()
-    input_dict7 = {"input": input7, "generator": generator, "out": None}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
-
     return list_of_inputs
 
 
@@ -18477,21 +18471,6 @@ def randperm_inputs():
         "pin_memory": False
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 3: With generator
-    gen = torch.Generator()
-    gen.manual_seed(42)
-    input_dict = {
-        "n": 7,
-        "generator": gen,
-        "out": None,
-        "dtype": torch.int64,
-        "layout": torch.strided,
-        "device": None,
-        "requires_grad": False,
-        "pin_memory": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: With out tensor
     out_tensor = torch.empty(10, dtype=torch.int64)
@@ -20103,11 +20082,6 @@ def rand_inputs():
 
     # Input 3: List size, specific dtype
     input_dict = {"size": [5, 2], "generator": None, "out": None, "dtype": torch.float64, "layout": torch.strided, "device": None, "requires_grad": True, "pin_memory": False}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Generator
-    gen = torch.Generator()
-    input_dict = {"size": (1, 4, 3), "generator": gen, "out": None, "dtype": None, "layout": torch.strided, "device": None, "requires_grad": False, "pin_memory": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Out tensor

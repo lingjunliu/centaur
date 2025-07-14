@@ -82,9 +82,9 @@ def variable_bounds(assertions):
     for var in all_vars:
         sort_kind = var.sort().kind()
         if sort_kind == Z3_REAL_SORT:
-            default_buckets = float_buckets
+            default_buckets = float_buckets.copy()
         else:
-            default_buckets = int_buckets
+            default_buckets = int_buckets.copy()
         
         default_buckets = add_negative_buckets(default_buckets)
         
