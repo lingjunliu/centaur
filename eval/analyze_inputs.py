@@ -1,4 +1,4 @@
-from utils.misc import read_pkl, get_tmp_dir
+from utils.misc import read_pkl, get_tmp_dir, save_to_pkl, create_subdir
 from utils.new_api_utils import get_signature, get_lib_version
 from generator.input_generators import concretize_input, abstract_print
 from eval.oracle import oracle_diff
@@ -64,6 +64,10 @@ def main():
         signature = get_signature(api, lib=lib, suffix=suffix)
         rng = np.random.default_rng(seed)
         input_dict = concretize_input(abs_input, signature, rng)
+        saved_inputs = create_subdir(tmp, "saved_inputs")
+        save_to_pkl(os.path.join(tmp, f"{saved_inputs}/{api}_{ind}.pkl"), input_dict)
+        print(f"Saved input to {saved_inputs}/{api}_{ind}.pkl")
+        
         print(f"\nAbstract input (seed {seed}):\n{abstract_print(abs_input, signature)}")
         diff_oracle_result = oracle_diff(api, input_dict, atol=A_TOL, detailed=detailed, lib=lib)
         
