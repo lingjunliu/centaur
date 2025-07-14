@@ -5,6 +5,12 @@ from .defaults import *
 from generator.input_generators import get_ll
 from generator.rules_auto_z3 import get_rules_map
 
+def add_negative_buckets(buckets):
+    for element in buckets:
+        if element > 0:
+            buckets.append(-1*element)
+    return sorted(buckets)
+
 def create_z3_args(signature):
     z3_args = {}
     for param, typ in signature.items():
@@ -46,6 +52,38 @@ def create_z3_args(signature):
         else:
             raise ValueError(f"Unsupported type: {typ}")
     return z3_args
+
+def parition_solvers(solver, signature, z3_args, lib="torch", rng=np.random.default_rng(42)):
+    """
+    This function partitions the solver into two solvers per boolean argument.
+    One solver will assert the boolean argument to be True, and the other will assert it to be False.
+    For each solver, the range of the tensor values is chosen.
+    """
+    solvers = []
+    for param_name, z3_var in z3_args.items():
+        if signature[param_name] == "boolean":
+            value = z3_var['value']
+            solver_true.add(*solver.assertions())
+            solver_true.add(value == True)
+            solver_false.add(*solver.assertions())
+            solver_false.add(value == False)
+            solvers.append(solver_true)
+            solvers.append(solver_false)
+    
+    if len(solvers) == 0:
+        solvers.append(solver)
+    
+    for solver in solvers:
+        for param_name, z3_var in z3_args.items():
+            if signature[param_name] == "tensor" or signature[param_name] == "tensor_list":
+                range_ = z3_var['range']
+                # Choosing low and high values for the tensor range
+                buckets = sorted(rng.choice(add_negative_buckets(int_buckets), size=4, replace=False))
+                low, high = rng.randint(buckets[0], buckets[1]), rng.randint(buckets[2], buckets[3])
+                solver.add(Select(range_, 0) == low)
+                solver.add(Select(range_, 1) == high)
+    
+    return solvers
 
 def initial_constraints(solver, signature, z3_args, lib="torch"):
     domain_limits = domain_limits_torch if lib == "torch" else domain_limits_tf

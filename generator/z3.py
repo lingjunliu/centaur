@@ -7,7 +7,7 @@ from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, int_buckets, float_buckets
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors
 from utils.new_api_utils import get_lib_version, get_api_suffix
-from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints
+from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints, parition_solvers, add_negative_buckets
 from eval.oracle import oracle_crash
 import os
 import json
@@ -47,12 +47,6 @@ def is_nonlinear_assertion(assertion):
     if assertion.decl().kind() in [Z3_OP_AND, Z3_OP_OR, Z3_OP_IMPLIES]:
         return any(is_nonlinear_assertion(c) for c in assertion.children())
     return is_nonlinear_expr(assertion)
-
-def add_negative_buckets(buckets):
-    for element in buckets:
-        if element > 0:
-            buckets.append(-1*element)
-    return sorted(buckets)
 
 def clip_buckets(buckets, min_val, max_val):
     """
@@ -155,10 +149,10 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     start = time.time()
 
     # initialization
-    solver = Solver()
+    solver_main = Solver()
     models, num_model = [], 0
-    initial_constraints(solver, definition["signature"], z3_args, lib=lib)
-    collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference, lib=lib)
+    initial_constraints(solver_main, definition["signature"], z3_args, lib=lib)
+    collect_constraints(solver_main, api, definition["ruleset"], z3_args, use_reference=use_reference, lib=lib)
     block_all = set()
     perma_block = set()
     stale = 0
@@ -172,139 +166,142 @@ def gen_models(definition, api, z3_args, model_gen_duration, max_model=0, seed=4
     unsat = 0
 
     tmp_results = create_subdir(get_tmp_dir(), "model_results")
-    var_values_map = variable_bounds(solver.assertions())
+    var_values_map = variable_bounds(solver_main.assertions())
 
     solve_times = []
     check_times = []
     start_time = time.time()
     while elapsed < model_gen_duration and (num_model < max_model or max_model == 0):
-        block_one = []
-        one_solver = Solver()
-        one_solver.add(*solver.assertions())
+        # Strategy #3: Partitioning the solver for boolean variables and add different ranges
+        partitioned_solvers = parition_solvers(solver_main, definition["signature"], z3_args, lib=lib)
+        for solver in partitioned_solvers:
+            block_one = []
+            one_solver = Solver()
+            one_solver.add(*solver.assertions())
 
-        # Strategy #1: Adding blocking constraints with probability p_1
-        sampled_blocks = rng.choice(list(block_all), int(len(block_all) * 0.3), replace=False)
-        one_solver.add(*sampled_blocks)
-        one_solver.add(*perma_block)
+            # Strategy #1: Adding blocking constraints with probability p_1
+            sampled_blocks = rng.choice(list(block_all), int(len(block_all) * 0.3), replace=False)
+            one_solver.add(*sampled_blocks)
+            one_solver.add(*perma_block)
 
-        # Strategy #2: Adding partitioning-based constraints with probability p_2
-        sampled_partitions = sample_partitions(var_values_map, 0.3)
-        one_solver.add(*sampled_partitions)
-        
-        if one_solver.check() != sat:
-            unsat += 1
-            if stale > saturation:
-                # restart the solver
-                solver = Solver()
-                initial_constraints(solver, definition["signature"], z3_args, lib=lib)
-                collect_constraints(solver, api, definition["ruleset"], z3_args, use_reference=use_reference, lib=lib)
-                stale = 0
-                seed += 1
-                saturation += 10    # Making it more difficult to reach stale
-                rng = np.random.default_rng(seed)
+            # Strategy #2: Adding partitioning-based constraints with probability p_2
+            sampled_partitions = sample_partitions(var_values_map, 0.3)
+            one_solver.add(*sampled_partitions)
+            
+            if one_solver.check() != sat:
+                unsat += 1
+                if stale > saturation:
+                    # restart the solver
+                    solver_main = Solver()
+                    initial_constraints(solver_main, definition["signature"], z3_args, lib=lib)
+                    collect_constraints(solver_main, api, definition["ruleset"], z3_args, use_reference=use_reference, lib=lib)
+                    stale = 0
+                    seed += 1
+                    saturation += 10    # Making it more difficult to reach stale
+                    rng = np.random.default_rng(seed)
+                    continue
+
+                stale += 1
+                elapsed = time.time() - start
                 continue
+            
+            # potential_valid_blocks = []
+            model = one_solver.model()
+            solve_times.append(time.time() - start_time)
+            start_time = time.time()
+            for decl in model.decls():
+                if decl.arity() != 0:
+                    continue
+                var, val = decl(), model[decl]
+                name_parts = str(decl.name()).rsplit("_", 1)
 
-            stale += 1
-            elapsed = time.time() - start
-            continue
-        
-        # potential_valid_blocks = []
-        model = one_solver.model()
-        solve_times.append(time.time() - start_time)
-        start_time = time.time()
-        for decl in model.decls():
-            if decl.arity() != 0:
-                continue
-            var, val = decl(), model[decl]
-            name_parts = str(decl.name()).rsplit("_", 1)
+                if len(name_parts) == 2:
+                    prefix, suffix = name_parts
+                else:
+                    prefix, suffix = name_parts[0], None
 
-            if len(name_parts) == 2:
-                prefix, suffix = name_parts
-            else:
-                prefix, suffix = name_parts[0], None
-
-            if val.sort().kind() == Z3_ARRAY_SORT:                
-                array_len = None
-                if suffix == "shape" or suffix == "values":
-                    for other_decl in model.decls():
-                        if str(other_decl.name()) in [f"{prefix}_ndim", f"{prefix}_length"]:
-                            array_len = model.eval(other_decl(), model_completion=True).as_long()
-                    if array_len is None:
-                        array_len = MAX_N_DIM
-                elif suffix == "range":
-                    array_len = 2
-                for i in range(array_len):
-                    block_one.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                if val.sort().kind() == Z3_ARRAY_SORT:                
+                    array_len = None
+                    if suffix == "shape" or suffix == "values":
+                        for other_decl in model.decls():
+                            if str(other_decl.name()) in [f"{prefix}_ndim", f"{prefix}_length"]:
+                                array_len = model.eval(other_decl(), model_completion=True).as_long()
+                        if array_len is None:
+                            array_len = MAX_N_DIM
+                    elif suffix == "range":
+                        array_len = 2
+                    for i in range(array_len):
+                        block_one.append(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                        # For strategy #2: Value set which a partition is created from is updated 
+                        actual_key = None
+                        for key in var_values_map.keys():
+                            if key.sexpr() == Select(var, i).sexpr():
+                                actual_key = key
+                                break
+                        if actual_key is not None:
+                            var_values_map[actual_key].add(model.eval(Select(var, i), model_completion=True).as_long())
+                        
+                        # Do not dim_size to be 0 more than once for a dimension in the shape
+                        if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
+                            perma_block.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
+                else:
+                    block_one.append(var != val)
                     # For strategy #2: Value set which a partition is created from is updated 
                     actual_key = None
                     for key in var_values_map.keys():
-                        if key.sexpr() == Select(var, i).sexpr():
+                        if key.sexpr() == var.sexpr():
                             actual_key = key
                             break
                     if actual_key is not None:
-                        var_values_map[actual_key].add(model.eval(Select(var, i), model_completion=True).as_long())
+                        val = model.eval(var, model_completion=True)
+                        if var.sort().kind() == Z3_INT_SORT:
+                            var_values_map[actual_key].add(val.as_long())
+                        elif var.sort().kind() == Z3_REAL_SORT:
+                            var_values_map[actual_key].add(float(val.as_fraction()))
                     
-                    # Do not dim_size to be 0 more than once for a dimension in the shape
-                    if model.eval(Select(var, i), model_completion=True).as_long() == 0 and suffix == "shape":
-                        perma_block.add(Select(var, i) != model.eval(Select(var, i), model_completion=True))
-            else:
-                block_one.append(var != val)
-                # For strategy #2: Value set which a partition is created from is updated 
-                actual_key = None
-                for key in var_values_map.keys():
-                    if key.sexpr() == var.sexpr():
-                        actual_key = key
-                        break
-                if actual_key is not None:
-                    val = model.eval(var, model_completion=True)
-                    if var.sort().kind() == Z3_INT_SORT:
-                        var_values_map[actual_key].add(val.as_long())
-                    elif var.sort().kind() == Z3_REAL_SORT:
-                        var_values_map[actual_key].add(float(val.as_fraction()))
+                    if suffix == "ndim" and val.as_long() == 0:
+                        perma_block.add(var != val)
+
+            # For strategy #1: The set of blocking constraints is updated
+            for elem in block_one:
+                if elem not in block_all:
+                    block_all.add(elem)
+
+            concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args, lib=lib)
+            status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
+    
+            if status != "invalid":
+                if status == "cpu_crash":
+                    crash += 1
+                elif status == "cpu_excp":
+                    excp += 1
+                elif status == "nominal":
+                    nominal += 1
                 
-                if suffix == "ndim" and val.as_long() == 0:
-                    perma_block.add(var != val)
+                if return_models:
+                    models.append(model)
+                # Save the model
+                if corpus_dir:
+                    path = os.path.join(corpus_dir, f"model-{num_model}.json")
+                    save_model(model, path)
+                num_model += 1
+                
+                print(f"Valid models: {num_model} | Memory usage: {get_memory_usage():.4f} MB", end="\r", flush=True)
 
-        # For strategy #1: The set of blocking constraints is updated
-        for elem in block_one:
-            if elem not in block_all:
-                block_all.add(elem)
-
-        concrete_input, abstract_input = instantiate_args(model, definition["signature"], z3_args, lib=lib)
-        status, exception_message = oracle_crash(api, concrete_input, cpu=True, lib=lib)
- 
-        if status != "invalid":
-            if status == "cpu_crash":
-                crash += 1
-            elif status == "cpu_excp":
-                excp += 1
-            elif status == "nominal":
-                nominal += 1
+                if status != "nominal": # Always log crashes
+                    print(f"\n[{status}]\n{exception_message}")
+                    print(f"\nPotential bug. Input:\n{abstract_print(abstract_input, definition['signature'])}")
+            else:
+                invalid += 1
+                if print_details:
+                    print(abstract_print(abstract_input, definition["signature"]))
+                    print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
             
-            if return_models:
-                models.append(model)
-            # Save the model
-            if corpus_dir:
-                path = os.path.join(corpus_dir, f"model-{num_model}.json")
-                save_model(model, path)
-            num_model += 1
-            
-            print(f"Valid models: {num_model} | Memory usage: {get_memory_usage():.4f} MB", end="\r", flush=True)
+            elapsed = time.time() - start
+            check_times.append(time.time() - start_time)
+            start_time = time.time()
 
-            if status != "nominal": # Always log crashes
-                print(f"\n[{status}]\n{exception_message}")
-                print(f"\nPotential bug. Input:\n{abstract_print(abstract_input, definition['signature'])}")
-        else:
-            invalid += 1
-            if print_details:
-                print(abstract_print(abstract_input, definition["signature"]))
-                print(f"\nThe input faced status {status}. Faced exception:\n{exception_message}")
-        
-        elapsed = time.time() - start
-        check_times.append(time.time() - start_time)
-        start_time = time.time()
-
-        save_state_models(definition["api"], definition["suffix"], unsat, nominal, invalid, crash, excp, tmp_results)
+            save_state_models(definition["api"], definition["suffix"], unsat, nominal, invalid, crash, excp, tmp_results)
 
     print(f"Generated {num_model} models for {api} with suffix {definition['suffix']} | Avg solve time: {np.mean(solve_times):.2f} | Avg check time: {np.mean(check_times):.2f} s ")
     return models
