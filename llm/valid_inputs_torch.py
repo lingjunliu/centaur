@@ -43057,3 +43057,25704 @@ def vdot_inputs():
 
 generated_inputs["torch.vdot"] = vdot_inputs()
 
+import torch
+import numpy as np
+import copy
+
+def blackman_window_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    window_length = np.int32(5)
+    periodic = np.bool_(True)
+    dtype = torch.float32
+    layout = "strided"
+    requires_grad = np.bool_(False)
+
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    window_length = np.int64(10)
+    periodic = np.bool_(False)
+    dtype = torch.float64
+    layout = "strided"
+    requires_grad = np.bool_(True)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    window_length = np.int32(1)
+    periodic = np.bool_(True)
+    dtype = torch.float32
+    layout = "strided"
+    requires_grad = np.bool_(False)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    window_length = np.int64(20)
+    periodic = np.bool_(False)
+    dtype = torch.float64
+    layout = "strided"
+    requires_grad = np.bool_(True)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    window_length = np.int32(7)
+    periodic = np.bool_(True)
+    dtype = torch.float32
+    layout = "strided"
+    requires_grad = np.bool_(False)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    window_length = np.int64(15)
+    periodic = np.bool_(False)
+    dtype = torch.float64
+    layout = "strided"
+    requires_grad = np.bool_(True)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    window_length = np.int32(3)
+    periodic = np.bool_(True)
+    dtype = torch.float32
+    layout = "strided"
+    requires_grad = np.bool_(False)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    window_length = np.int64(25)
+    periodic = np.bool_(False)
+    dtype = torch.float64
+    layout = "strided"
+    requires_grad = np.bool_(True)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    window_length = np.int32(9)
+    periodic = np.bool_(True)
+    dtype = torch.float32
+    layout = "strided"
+    requires_grad = np.bool_(False)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    window_length = np.int64(2)
+    periodic = np.bool_(False)
+    dtype = torch.float64
+    layout = "strided"
+    requires_grad = np.bool_(True)
+    input_dict = {
+        "window_length": int(window_length),
+        "periodic": bool(periodic),
+        "dtype": dtype,
+        "layout": None,
+        "requires_grad": bool(requires_grad)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.blackman_window"] = blackman_window_inputs()
+
+import torch
+import copy
+
+def empty_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    size = (2, 3)
+    dtype = torch.int64
+    layout = torch.strided
+    requires_grad = False
+    pin_memory = False
+    memory_format = torch.contiguous_format
+
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    size = (5,)
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = True
+    pin_memory = False
+    memory_format = torch.contiguous_format
+
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    size = (1, 2, 3)
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = False
+    pin_memory = True
+    memory_format = torch.contiguous_format
+
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    size = (10,)
+    dtype = torch.uint8
+    layout = torch.strided
+    requires_grad = False
+    pin_memory = False
+    memory_format = torch.contiguous_format
+
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    size = (4,5)
+    dtype = torch.int32
+    layout = torch.strided
+    requires_grad = False
+    pin_memory = True
+    memory_format = torch.contiguous_format
+
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    size = (10, 10)
+    dtype = torch.float16
+    layout = torch.strided
+    requires_grad = False
+    pin_memory = False
+    memory_format = torch.contiguous_format
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    size = (7,)
+    dtype = torch.complex64
+    layout = torch.strided
+    requires_grad = True
+    pin_memory = True
+    memory_format = torch.contiguous_format
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    size = (2,2)
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = True
+    pin_memory = False
+    memory_format = torch.contiguous_format
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    size = (3,4)
+    dtype = torch.complex128
+    layout = torch.strided
+    requires_grad = True
+    pin_memory = False
+    memory_format = torch.contiguous_format
+    input_dict = {
+        "size": size,
+        "out": None,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
+        "memory_format": memory_format
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.empty_2"] = empty_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def eq_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 1D tensor comparison with a float
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    other_float = 2.0
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor comparison with a float
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    other_float = 3.0
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor comparison with a float
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    other_float = 5.0
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Negative values
+    input_tensor = np.array([-1.0, -2.0, 0.0, 1.0], dtype=np.float32)
+    other_float = -1.0
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Zeros
+    input_tensor = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+    other_float = 0.0
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Different dtypes (float16)
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    other_float = 1.0
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different dtypes (float64)
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    other_float = 3.0
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Large values
+    input_tensor = np.array([1e10, 2e10, 3e10], dtype=np.float32)
+    other_float = 2e10
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Small values
+    input_tensor = np.array([1e-10, 2e-10, 3e-10], dtype=np.float32)
+    other_float = 1e-10
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Another 2D example
+    input_tensor = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float32)
+    other_float = 1.5
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: check with nan
+    input_tensor = np.array([np.nan, 2.0, 3.0], dtype=np.float32)
+    other_float = np.nan
+    out_tensor = np.array([], dtype=np.bool_)
+    input_dict = {"input": input_tensor, "other": other_float, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.eq_2"] = eq_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def hfft_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.tensor([1+0j, 2+0j, 3+0j]).numpy()
+    n_val = 5
+    dim_val = -1
+    norm_val = "backward"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.tensor([1+0j, 2+0j, 3+0j, 4+0j]).numpy()
+    n_val = 6
+    dim_val = 0
+    norm_val = "forward"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.tensor([1+0j, 2+0j, 3+0j]).numpy()
+    n_val = 4
+    dim_val = 0
+    norm_val = "ortho"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.tensor([[1+0j, 2+0j, 3+0j], [4+0j, 5+0j, 6+0j]]).numpy()
+    n_val = 5
+    dim_val = 1
+    norm_val = "backward"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.tensor([[1+0j, 2+0j], [3+0j, 4+0j]]).numpy()
+    n_val = 3
+    dim_val = -1
+    norm_val = "forward"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_tensor = torch.tensor([1.+0j, 2.+0j, 3.+0j]).numpy()
+    n_val = 5
+    dim_val = -1
+    norm_val = "backward"
+    out_tensor = torch.zeros(5).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.tensor([1.+0j, 2.+0j, 3.+0j, 4.+0j, 5.+0j]).numpy()
+    n_val = 7
+    dim_val = 0
+    norm_val = "ortho"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.tensor([[1.+0j, 2.+0j, 3.+0j], [4.+0j, 5.+0j, 6.+0j]]).numpy()
+    n_val = 7
+    dim_val = 1
+    norm_val = "forward"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = torch.tensor([[1.+0j, 2.+0j], [3.+0j, 4.+0j]]).numpy()
+    n_val = 2
+    dim_val = 0
+    norm_val = "backward"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.tensor([0.+0j, 0.+0j, 0.+0j]).numpy()
+    n_val = 5
+    dim_val = -1
+    norm_val = "backward"
+    out_tensor = torch.tensor([]).numpy()
+    input_dict = {"input": input_tensor, "n": n_val, "dim": dim_val, "norm": norm_val, "out": out_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.fft.hfft"] = hfft_inputs()
+
+import torch, copy
+import numpy as np
+
+def ifft_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = torch.tensor([6.+0.j, -2.+2.j, -2.+0.j, -2.-2.j]).numpy()
+    n = None
+    dim = -1
+    norm = None
+    out = torch.tensor([0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j]).numpy()
+
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = torch.randn(8, dtype=torch.complex64).numpy()
+    n = 8
+    dim = 0
+    norm = "backward"
+    out = torch.randn(8, dtype=torch.complex64).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = torch.randn(4, 4, dtype=torch.complex128).numpy()
+    n = 2
+    dim = 1
+    norm = "forward"
+    out = torch.randn(4, 2, dtype=torch.complex128).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input = torch.randn(2, 2, 2, dtype=torch.complex64).numpy()
+    n = 4
+    dim = 2
+    norm = "ortho"
+    out = torch.randn(2, 2, 4, dtype=torch.complex64).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = torch.randn(16, dtype=torch.complex64).numpy()
+    n = 4
+    dim = 0
+    norm = "backward"
+    out = torch.randn(4, dtype=torch.complex64).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = torch.randn(1, 8, dtype=torch.complex128).numpy()
+    n = None
+    dim = 1
+    norm = "forward"
+    out = torch.randn(1, 8, dtype=torch.complex128).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input = torch.randn(2, 4, dtype=torch.complex64).numpy()
+    n = 8
+    dim = -1
+    norm = "ortho"
+    out = torch.randn(2, 8, dtype=torch.complex64).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = torch.randn(32, dtype=torch.complex64).numpy()
+    n = 16
+    dim = 0
+    norm = None
+    out = torch.randn(16, dtype=torch.complex64).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input = torch.randn(1, 1, 4, dtype=torch.complex128).numpy()
+    n = None
+    dim = 2
+    norm = "backward"
+    out = torch.randn(1, 1, 4, dtype=torch.complex128).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = torch.randn(2, 2, dtype=torch.complex64).numpy()
+    n = 4
+    dim = 1
+    norm = "forward"
+    out = torch.randn(2, 4, dtype=torch.complex64).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input = torch.randn(2, 2, dtype=torch.complex64).numpy()
+    n = 1
+    dim = 1
+    norm = "forward"
+    out = torch.randn(2, 1, dtype=torch.complex64).numpy()
+    input_dict = {
+        "input": input,
+        "n": n,
+        "dim": dim,
+        "norm": norm,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.fft.ifft"] = ifft_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def torch_fft_ifftshift_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, default dim
+    input1 = torch.tensor([1, 2, 3, 4, 5]).numpy()
+    dim1 = (0,)
+    input_dict1 = {"input": input1, "dim": dim1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor, dim=0
+    input2 = torch.tensor([[1, 2, 3], [4, 5, 6]]).numpy()
+    dim2 = (0,)
+    input_dict2 = {"input": input2, "dim": dim2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor, dim=1
+    input3 = torch.tensor([[1, 2, 3], [4, 5, 6]]).numpy()
+    dim3 = (1,)
+    input_dict3 = {"input": input3, "dim": dim3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 2D tensor, dim=(0, 1)
+    input4 = torch.tensor([[1, 2, 3], [4, 5, 6]]).numpy()
+    dim4 = (0, 1)
+    input_dict4 = {"input": input4, "dim": dim4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 3D tensor, dim=0
+    input5 = torch.randn(2, 3, 4).numpy()
+    dim5 = (0,)
+    input_dict5 = {"input": input5, "dim": dim5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 3D tensor, dim=1
+    input6 = torch.randn(2, 3, 4).numpy()
+    dim6 = (1,)
+    input_dict6 = {"input": input6, "dim": dim6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: 3D tensor, dim=2
+    input7 = torch.randn(2, 3, 4).numpy()
+    dim7 = (2,)
+    input_dict7 = {"input": input7, "dim": dim7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: 3D tensor, dim=(0, 1)
+    input8 = torch.randn(2, 3, 4).numpy()
+    dim8 = (0, 1)
+    input_dict8 = {"input": input8, "dim": dim8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: 3D tensor, dim=(0, 2)
+    input9 = torch.randn(2, 3, 4).numpy()
+    dim9 = (0, 2)
+    input_dict9 = {"input": input9, "dim": dim9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: 3D tensor, dim=(1, 2)
+    input10 = torch.randn(2, 3, 4).numpy()
+    dim10 = (1, 2)
+    input_dict10 = {"input": input10, "dim": dim10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11: 4D tensor, dim=(0, 1, 2, 3)
+    input11 = torch.randn(2, 3, 4, 5).numpy()
+    dim11 = (0, 1, 2, 3)
+    input_dict11 = {"input": input11, "dim": dim11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+    
+    # Input 12: 1D tensor with negative values
+    input12 = torch.tensor([-1, -2, -3, 4, 5]).numpy()
+    dim12 = (0,)
+    input_dict12 = {"input": input12, "dim": dim12}
+    list_of_inputs.append(copy.deepcopy(input_dict12))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.fft.ifftshift_2"] = torch_fft_ifftshift_inputs()
+
+import torch, copy
+import numpy as np
+
+def irfft_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input1 = torch.randn(5, dtype=torch.complex64).numpy()
+    n1 = 8
+    dim1 = -1
+    norm1 = "backward"
+    out1 = np.empty(n1, dtype=np.float32)
+    input_dict1 = {"input": input1, "n": n1, "dim": dim1, "norm": norm1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor, different dim
+    input2 = torch.randn(3, 4, dtype=torch.complex64).numpy()
+    n2 = 6
+    dim2 = 0
+    norm2 = "forward"
+    out2 = np.empty((3, n2), dtype=np.float32)
+    input_dict2 = {"input": input2, "n": n2, "dim": dim2, "norm": norm2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: No specified n
+    input3 = torch.randn(6, dtype=torch.complex64).numpy()
+    n3 = None
+    dim3 = -1
+    norm3 = "ortho"
+    out3 = np.empty(2 * (input3.shape[-1] - 1), dtype=np.float32)
+    input_dict3 = {"input": input3, "n": n3, "dim": dim3, "norm": norm3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Different dim value
+    input4 = torch.randn(2, 5, dtype=torch.complex64).numpy()
+    n4 = 7
+    dim4 = 1
+    norm4 = "backward"
+    out4 = np.empty((2, n4), dtype=np.float32)
+    input_dict4 = {"input": input4, "n": n4, "dim": dim4, "norm": norm4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 3D tensor
+    input5 = torch.randn(2, 3, 4, dtype=torch.complex64).numpy()
+    n5 = 5
+    dim5 = 2
+    norm5 = "forward"
+    out5 = np.empty((2, 3, n5), dtype=np.float32)
+    input_dict5 = {"input": input5, "n": n5, "dim": dim5, "norm": norm5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: different norm
+    input6 = torch.randn(7, dtype=torch.complex64).numpy()
+    n6 = 10
+    dim6 = -1
+    norm6 = "ortho"
+    out6 = np.empty(n6, dtype=np.float32)
+    input_dict6 = {"input": input6, "n": n6, "dim": dim6, "norm": norm6, "out": out6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Large n
+    input7 = torch.randn(4, dtype=torch.complex64).numpy()
+    n7 = 20
+    dim7 = -1
+    norm7 = "backward"
+    out7 = np.empty(n7, dtype=np.float32)
+    input_dict7 = {"input": input7, "n": n7, "dim": dim7, "norm": norm7, "out": out7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: 2D, dim = 1, small n
+    input8 = torch.randn(4, 5, dtype=torch.complex64).numpy()
+    n8 = 3
+    dim8 = 1
+    norm8 = "forward"
+    out8 = np.empty((4, n8), dtype=np.float32)
+    input_dict8 = {"input": input8, "n": n8, "dim": dim8, "norm": norm8, "out": out8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Different dimension
+    input9 = torch.randn(2, 3, 4, dtype=torch.complex64).numpy()
+    n9 = 6
+    dim9 = 0
+    norm9 = "ortho"
+    out9 = np.empty((n9, 3, 4), dtype=np.float32)
+    input_dict9 = {"input": input9, "n": n9, "dim": dim9, "norm": norm9, "out": out9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: Single element input tensor
+    input10 = torch.randn(1, dtype=torch.complex64).numpy()
+    n10 = 2
+    dim10 = -1
+    norm10 = "backward"
+    out10 = np.empty(n10, dtype=np.float32)
+    input_dict10 = {"input": input10, "n": n10, "dim": dim10, "norm": norm10, "out": out10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.fft.irfft"] = irfft_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def irfft2_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = torch.randn(4, 5, dtype=torch.complex64).numpy()
+    s1 = (4, 8)
+    dim1 = (-2, -1)
+    norm1 = "backward"
+    out1 = torch.empty(4, 8).numpy()
+    input_dict1 = {"input": input1, "s": s1, "dim": dim1, "norm": norm1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = torch.randn(2, 3, dtype=torch.complex64).numpy()
+    s2 = (2, 4)
+    dim2 = (-2, -1)
+    norm2 = "forward"
+    out2 = torch.empty(2, 4).numpy()
+    input_dict2 = {"input": input2, "s": s2, "dim": dim2, "norm": norm2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = torch.randn(5, 6, dtype=torch.complex64).numpy()
+    s3 = (5, 10)
+    dim3 = (-2, -1)
+    norm3 = "ortho"
+    out3 = torch.empty(5, 10).numpy()
+    input_dict3 = {"input": input3, "s": s3, "dim": dim3, "norm": norm3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4
+    input4 = torch.randn(3, 4, dtype=torch.complex64).numpy()
+    s4 = (3, 6)
+    dim4 = (-2, -1)
+    norm4 = "backward"
+    out4 = torch.empty(3, 6).numpy()
+    input_dict4 = {"input": input4, "s": s4, "dim": dim4, "norm": norm4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5
+    input5 = torch.randn(2, 2, dtype=torch.complex64).numpy()
+    s5 = (2, 2)
+    dim5 = (-2, -1)
+    norm5 = "forward"
+    out5 = torch.empty(2, 2).numpy()
+    input_dict5 = {"input": input5, "s": s5, "dim": dim5, "norm": norm5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6
+    input6 = torch.randn(6, 7, dtype=torch.complex64).numpy()
+    s6 = (6, 12)
+    dim6 = (-2, -1)
+    norm6 = "ortho"
+    out6 = torch.empty(6, 12).numpy()
+    input_dict6 = {"input": input6, "s": s6, "dim": dim6, "norm": norm6, "out": out6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7
+    input7 = torch.randn(1, 1, dtype=torch.complex64).numpy()
+    s7 = (1, 1)
+    dim7 = (-2, -1)
+    norm7 = "backward"
+    out7 = torch.empty(1, 1).numpy()
+    input_dict7 = {"input": input7, "s": s7, "dim": dim7, "norm": norm7, "out": out7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8
+    input8 = torch.randn(7, 8, dtype=torch.complex64).numpy()
+    s8 = (7, -1)
+    dim8 = (-2, -1)
+    norm8 = "forward"
+    out8 = torch.empty(7, 14).numpy()
+    input_dict8 = {"input": input8, "s": s8, "dim": dim8, "norm": norm8, "out": out8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9
+    input9 = torch.randn(8, 9, dtype=torch.complex64).numpy()
+    s9 = (8, 16)
+    dim9 = (-2, -1)
+    norm9 = "ortho"
+    out9 = torch.empty(8, 16).numpy()
+    input_dict9 = {"input": input9, "s": s9, "dim": dim9, "norm": norm9, "out": out9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10
+    input10 = torch.randn(9, 10, dtype=torch.complex64).numpy()
+    s10 = (9, 18)
+    dim10 = (-2, -1)
+    norm10 = "backward"
+    out10 = torch.empty(9, 18).numpy()
+    input_dict10 = {"input": input10, "s": s10, "dim": dim10, "norm": norm10, "out": out10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.fft.irfft2"] = irfft2_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def kaiser_window_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    length = 5
+    periodic = True
+    beta = 1.0
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = False
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    length = 10
+    periodic = False
+    beta = 5.0
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = True
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    length = 15
+    periodic = True
+    beta = 8.6
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = False
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    length = 20
+    periodic = False
+    beta = 0.0
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = True
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    length = 1
+    periodic = True
+    beta = 10.0
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = False
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    length = 2
+    periodic = False
+    beta = 2.5
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = True
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    length = 3
+    periodic = True
+    beta = 7.5
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = False
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    length = 4
+    periodic = False
+    beta = 3.3
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = True
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    length = 7
+    periodic = True
+    beta = 9.9
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = False
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    length = 12
+    periodic = False
+    beta = 6.6
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = True
+    input_dict = {
+        "length": length,
+        "periodic": periodic,
+        "beta": beta,
+        "dtype": dtype,
+        "layout": layout,
+        "requires_grad": requires_grad
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+generated_inputs["torch.kaiser_window_1"] = kaiser_window_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def le_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.array([1, 2, 3])
+    other = 2.0
+    out = np.array([True, False, False])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.array([[1, 2], [3, 4]])
+    other = 3.0
+    out = np.array([[True, True], [True, False]])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.array([-1, 0, 1])
+    other = 0.0
+    out = np.array([True, True, False])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input = np.array([5, 5, 5])
+    other = 5.0
+    out = np.array([True, True, True])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.array([1.5, 2.5, 3.5])
+    other = 2.5
+    out = np.array([True, True, False])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.array([[-1.0, 2.0], [3.0, -4.0]])
+    other = 0.0
+    out = np.array([[True, False], [False, True]])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input = np.array([1, 2, 3], dtype=np.int64)
+    other = 2.0
+    out = np.array([True, False, False])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    other = 2.0
+    out = np.array([True, False, False])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input = np.array([1, 2, 3])
+    other = -1.0
+    out = np.array([False, False, False])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    other = 5.0
+    out = np.array([[[ True,  True], [ True,  True]],[[ True, False],[False, False]]])
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.le_2"] = le_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def lerp_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with scalar weight
+    input1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    end1 = torch.tensor([4.0, 5.0, 6.0]).numpy()
+    weight1 = np.array(0.5, dtype=np.float32)
+    out1 = torch.tensor([]).numpy()
+    input_dict1 = {"input": input1, "end": end1, "weight": weight1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Weight tensor with the same shape
+    input2 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    end2 = torch.tensor([4.0, 5.0, 6.0]).numpy()
+    weight2 = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    out2 = torch.tensor([]).numpy()
+    input_dict2 = {"input": input2, "end": end2, "weight": weight2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Broadcasting weight tensor
+    input3 = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    end3 = torch.tensor([[5.0, 6.0], [7.0, 8.0]]).numpy()
+    weight3 = np.array([0.2, 0.4], dtype=np.float32)
+    out3 = torch.tensor([]).numpy()
+    input_dict3 = {"input": input3, "end": end3, "weight": weight3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Negative values
+    input4 = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    end4 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    weight4 = np.array(0.5, dtype=np.float32)
+    out4 = torch.tensor([]).numpy()
+    input_dict4 = {"input": input4, "end": end4, "weight": weight4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Different data type, weight as int
+    input5 = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32).numpy()
+    end5 = torch.tensor([4.0, 5.0, 6.0], dtype=torch.float32).numpy()
+    weight5 = np.array(1, dtype=np.float32)
+    out5 = torch.tensor([]).numpy()
+    input_dict5 = {"input": input5, "end": end5, "weight": weight5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Multi-dimensional tensors
+    input6 = torch.randn(2, 3, 4).numpy()
+    end6 = torch.randn(2, 3, 4).numpy()
+    weight6 = np.array(0.3, dtype=np.float32)
+    out6 = torch.tensor([]).numpy()
+    input_dict6 = {"input": input6, "end": end6, "weight": weight6, "out": out6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Weight tensor with broadcasting to higher dimension
+    input7 = torch.randn(2, 3).numpy()
+    end7 = torch.randn(2, 3).numpy()
+    weight7 = torch.randn(3).numpy().astype(np.float32)
+    out7 = torch.tensor([]).numpy()
+    input_dict7 = {"input": input7, "end": end7, "weight": weight7, "out": out7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Larger weight values
+    input8 = torch.tensor([1.0, 2.0]).numpy()
+    end8 = torch.tensor([3.0, 4.0]).numpy()
+    weight8 = np.array(2.0, dtype=np.float32)
+    out8 = torch.tensor([]).numpy()
+    input_dict8 = {"input": input8, "end": end8, "weight": weight8, "out": out8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Weight as a tensor with broadcasting
+    input9 = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    end9 = torch.tensor([[5.0, 6.0], [7.0, 8.0]]).numpy()
+    weight9 = np.array([0.2], dtype=np.float32)
+    out9 = torch.tensor([]).numpy()
+    input_dict9 = {"input": input9, "end": end9, "weight": weight9, "out": out9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Using a near zero weight
+    input10 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    end10 = torch.tensor([4.0, 5.0, 6.0]).numpy()
+    weight10 = np.array(0.0001, dtype=np.float32)
+    out10 = torch.tensor([]).numpy()
+    input_dict10 = {"input": input10, "end": end10, "weight": weight10, "out": out10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: Weight is 1D tensor, input and end are 2D tensors that can broadcast
+    input11 = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]).numpy()
+    end11 = torch.tensor([[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]).numpy()
+    weight11 = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    out11 = torch.tensor([]).numpy()
+    input_dict11 = {"input": input11, "end": end11, "weight": weight11, "out": out11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.lerp_1"] = lerp_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def linalg_cholesky_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid input
+    A = torch.tensor([[4.0, 1.0], [1.0, 4.25]], dtype=torch.float32)
+    upper = False
+    out = torch.zeros_like(A, dtype=torch.float32).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: upper=True
+    A = torch.tensor([[4.0, 1.0], [1.0, 4.25]], dtype=torch.float32)
+    upper = True
+    out = torch.zeros_like(A, dtype=torch.float32).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: different shape
+    A = torch.tensor([[16.0, 4.0], [4.0, 5.0]], dtype=torch.float32)
+    upper = False
+    out = torch.zeros_like(A, dtype=torch.float32).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: larger matrix
+    A = torch.tensor([[25.0, 5.0, 0.0], [5.0, 26.0, 1.0], [0.0, 1.0, 10.0]], dtype=torch.float32)
+    upper = False
+    out = torch.zeros_like(A, dtype=torch.float32).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: batch of matrices
+    A = torch.tensor([[[4.0, 1.0], [1.0, 4.25]], [[16.0, 4.0], [4.0, 5.0]]], dtype=torch.float32)
+    upper = False
+    out = torch.zeros_like(A, dtype=torch.float32).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: double dtype
+    A = torch.tensor([[4.0, 1.0], [1.0, 4.25]], dtype=torch.float64)
+    upper = False
+    out = torch.zeros_like(A, dtype=torch.float64).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: complex dtype
+    A = torch.tensor([[4.0 + 0j, 1.0 + 0j], [1.0 + 0j, 4.25 + 0j]], dtype=torch.complex128)
+    upper = False
+    out = torch.zeros_like(A, dtype=torch.complex128).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: float dtype
+    A = torch.tensor([[4.0, 1.0], [1.0, 4.25]], dtype=torch.float32)
+    upper = False
+    out = torch.zeros_like(A, dtype=torch.float32).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 3D tensor, upper=True
+    A = torch.randn(2, 2, 2, dtype=torch.float64)
+    A = A @ torch.transpose(A, 1, 2) + torch.eye(2)
+    upper = True
+    out = torch.zeros_like(A, dtype=torch.float64).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: cdouble dtype
+    A = torch.tensor([[4.0 + 0j, 1.0 + 0j], [1.0 + 0j, 4.25 + 0j]], dtype=torch.complex128)
+    upper = True
+    out = torch.zeros_like(A, dtype=torch.complex128).numpy()
+    input_dict = {"A": A.numpy(), "upper": upper, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.cholesky"] = linalg_cholesky_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def linalg_det_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic square matrix
+    A = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    out = np.array(0.0, dtype=np.float32)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Batch of matrices
+    A = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
+    out = np.array([0.0, 0.0], dtype=np.float64)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Larger matrix
+    A = np.random.rand(5, 5).astype(np.float32)
+    out = np.array(0.0, dtype=np.float32)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Matrix with negative values
+    A = np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float64)
+    out = np.array(0.0, dtype=np.float64)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 3D batch, different size
+    A = np.random.rand(2, 3, 3).astype(np.float32)
+    out = np.array([0.0, 0.0], dtype=np.float32)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Complex matrix
+    A = np.array([[1+1j, 2-1j], [3+0j, 4+2j]], dtype=np.complex64)
+    out = np.array(0+0j, dtype=np.complex64)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Batch of complex matrices
+    A = np.array([[[1+1j, 2-1j], [3+0j, 4+2j]], [[5-1j, 6+1j], [7+2j, 8-0j]]], dtype=np.complex128)
+    out = np.array([0+0j, 0+0j], dtype=np.complex128)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Identity matrix
+    A = np.eye(3, dtype=np.float32)
+    out = np.array(0.0, dtype=np.float32)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Larger complex matrix
+    A = (np.random.rand(4, 4) + 1j * np.random.rand(4, 4)).astype(np.complex64)
+    out = np.array(0+0j, dtype=np.complex64)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Batched Identity Matrices
+    A = np.stack([np.eye(2, dtype=np.float64) for _ in range(3)])
+    out = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.det"] = linalg_det_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def torch_linalg_eigvalsh_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic real symmetric matrix
+    A = np.array([[2.0, 1.0], [1.0, 3.0]], dtype=np.float64)
+    UPLO = 'L'
+    out = np.zeros(2, dtype=np.float64)
+    input_dict = {"A": A, "UPLO": UPLO, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Complex Hermitian matrix
+    A = np.array([[2 + 0j, 1 - 1j], [1 + 1j, 3 + 0j]], dtype=np.complex128)
+    UPLO = 'U'
+    out = np.zeros(2, dtype=np.float64)
+    input_dict = {"A": A, "UPLO": UPLO, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Batch of real symmetric matrices
+    A = np.array([[[2.0, 1.0], [1.0, 3.0]], [[4.0, 2.0], [2.0, 5.0]]], dtype=np.float64)
+    UPLO = 'L'
+    out = np.zeros((2, 2), dtype=np.float64)
+    input_dict = {"A": A, "UPLO": UPLO, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger real symmetric matrix
+    A = np.array([[4.0, 1.0, 2.0], [1.0, 3.0, 0.0], [2.0, 0.0, 5.0]], dtype=np.float64)
+    UPLO = 'U'
+    out = np.zeros(3, dtype=np.float64)
+    input_dict = {"A": A, "UPLO": UPLO, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Matrix with negative values
+    A = np.array([[-2.0, 1.0], [1.0, -3.0]], dtype=np.float64)
+    UPLO = 'L'
+    out = np.zeros(2, dtype=np.float64)
+    input_dict = {"A": A, "UPLO": UPLO, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: 3D Batch of complex matrices
+    A = np.array([[[2 + 0j, 1 - 1j], [1 + 1j, 3 + 0j]], [[4 + 0j, 2 - 2j], [2 + 2j, 5 + 0j]]], dtype=np.complex128)
+    UPLO = 'L'
+    out = np.zeros((2, 2), dtype=np.float64)
+    input_dict = {"A": A, "UPLO": UPLO, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Single element matrix
+    A = np.array([[5.0]], dtype=np.float64)
+    UPLO = 'L'
+    out = np.zeros(1, dtype=np.float64)
+    input_dict = {"A": A, "UPLO": UPLO, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Matrix with zero values
+    A = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
+    UPLO = 'U'
+    out = np.zeros(2, dtype=np.float64)
+    input_dict = {"A": A, "UPLO": UPLO, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.eigvalsh"] = torch_linalg_eigvalsh_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def matrix_power_inputs():
+    list_of_inputs = []
+
+    # Input 1: 2x2 matrix, n = 0
+    A = np.array([[1.0, 2.0], [3.0, 4.0]])
+    n = 0
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 3x3 matrix, n = 1
+    A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    n = 1
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2x2 matrix, n = 2
+    A = np.array([[0.0, 1.0], [1.0, 0.0]])
+    n = 2
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 4x4 matrix, n = -1 (invertible)
+    A = np.array([[1.0, 0.0, 0.0, 0.0], [0.0, 2.0, 0.0, 0.0], [0.0, 0.0, 3.0, 0.0], [0.0, 0.0, 0.0, 4.0]])
+    n = -1
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 2x2 complex matrix, n = 2
+    A = np.array([[1 + 1j, 2 - 1j], [3 + 0j, 4 - 2j]])
+    n = 2
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 3x3 matrix, n = 3
+    A = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    n = 3
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: 2x2 matrix, n = -2 (invertible)
+    A = np.array([[2.0, 1.0], [1.0, 1.0]])
+    n = -2
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 3x3 complex matrix, n = -1 (invertible)
+    A = np.array([[1 + 0j, 0 + 0j, 0 + 0j], [0 + 0j, 2 + 0j, 0 + 0j], [0 + 0j, 0 + 0j, 3 + 0j]])
+    n = -1
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: small matrix, large n
+    A = np.array([[1.0, 1.0], [0.0, 1.0]])
+    n = 10
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: identity matrix
+    A = np.eye(3)
+    n = 5
+    input_dict = {"A": A, "n": n}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.matrix_power"] = matrix_power_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def generate_linalg_norm_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    A = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32)
+    ord = 2.0
+    dim = 0
+    keepdim = False
+    out = torch.empty(0)
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    A = torch.tensor([[1.0, 2.0], [3.0, 4.0]], dtype=torch.float64)
+    ord = -1.0
+    dim = 0
+    keepdim = True
+    out = torch.empty((1,), dtype=torch.float64)
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    A = torch.tensor([[-1.0, -2.0], [-3.0, -4.0]], dtype=torch.float32)
+    ord = float('inf')
+    dim = 1
+    keepdim = False
+    out = torch.empty(0)
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    A = torch.randn(2, 3, 4, dtype=torch.float64)
+    ord = 2.0
+    dim = 1
+    keepdim = True
+    out = torch.empty((2, 1, 4), dtype=torch.float64)
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    A = torch.randn(5, dtype=torch.float32)
+    ord = -float('inf')
+    dim = 0
+    keepdim = False
+    out = torch.empty(0)
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    A = torch.randn(2, 2, dtype=torch.float64)
+    ord = 1.0
+    dim = 0
+    keepdim = True
+    out = torch.empty((1, 2), dtype=torch.float64)
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    A = torch.randn(1, 5, dtype=torch.float32)
+    ord = -2.0
+    dim = 1
+    keepdim = False
+    out = torch.empty(0)
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    A = torch.randn(3, 2, 2, dtype=torch.float64)
+    ord = 0.5
+    dim = 0
+    keepdim = True
+    out = torch.empty((1, 2, 2), dtype=torch.float64)
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    A = torch.randn(7, dtype=torch.float32)
+    ord = 3.0
+    dim = 0
+    keepdim = False
+    out = torch.empty(0)
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    A = torch.randn(2, 4, dtype=torch.float64)
+    ord = -3.0
+    dim = 1
+    keepdim = True
+    out = torch.empty((2, 1), dtype=torch.float64)
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out.numpy(), "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.norm_1"] = generate_linalg_norm_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def linalg_norm_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    A = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+    ord = 2.0
+    dim = (0, 1)
+    keepdim = False
+    out = None
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    A = torch.tensor([1.0, 2.0, 3.0, 4.0])
+    ord = 1.0
+    dim = (0,)
+    keepdim = True
+    out = None
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    A = torch.tensor([[-1.0, 2.0], [-3.0, 4.0]])
+    ord = -1.0
+    dim = (0, 1)
+    keepdim = False
+    out = None
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    A = torch.randn(2, 3, 4)
+    ord = np.inf
+    dim = (1, 2)
+    keepdim = True
+    out = None
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    A = torch.randn(5)
+    ord = -np.inf
+    dim = (0,)
+    keepdim = False
+    out = None
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    A = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+    ord = 'fro'
+    dim = (0, 1)
+    keepdim = True
+    out = None
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 7
+    A = torch.randn(2, 2, 2)
+    ord = 2.0
+    dim = (1,2)
+    keepdim = False
+    out = None
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    A = torch.tensor([-1.0, -2.0, -3.0, -4.0])
+    ord = -2.0
+    dim = (0,)
+    keepdim = True
+    out = None
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    A = torch.randn(1, 5)
+    ord = 2.0
+    dim = (0,1)
+    keepdim = False
+    out = None
+    dtype = torch.float32
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    A = torch.tensor([[1.0, -2.0], [-3.0, 4.0]])
+    ord = -np.inf
+    dim = (0, 1)
+    keepdim = True
+    out = None
+    dtype = torch.float64
+    input_dict = {"A": A.numpy(), "ord": ord, "dim": dim, "keepdim": keepdim, "out": out, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.norm_2"] = linalg_norm_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def qr_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    A = np.array([[12., -51, 4], [6, 167, -68], [-4, 24, -41]], dtype=np.float64)
+    mode = 'reduced'
+    out = (np.array([[1.0]], dtype=np.float64), np.array([[1.0]], dtype=np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    A = np.random.rand(5, 3).astype(np.float64)
+    mode = 'complete'
+    out = (np.random.rand(1,1).astype(np.float64), np.random.rand(1,1).astype(np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    A = np.random.rand(3, 5).astype(np.float64)
+    mode = 'r'
+    out = (np.random.rand(1,1).astype(np.float64), np.random.rand(1,1).astype(np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Batch of matrices
+    A = np.random.rand(2, 4, 4).astype(np.float64)
+    mode = 'reduced'
+    out = (np.random.rand(1,1).astype(np.float64), np.random.rand(1,1).astype(np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Complex numbers
+    A = (np.random.rand(3, 3) + 1j*np.random.rand(3, 3)).astype(np.complex128)
+    mode = 'reduced'
+    out = (np.random.rand(1,1).astype(np.complex128), np.random.rand(1,1).astype(np.complex128))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Different size matrix
+    A = np.random.rand(2, 5).astype(np.float64)
+    mode = 'complete'
+    out = (np.random.rand(1,1).astype(np.float64), np.random.rand(1,1).astype(np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Taller matrix
+    A = np.random.rand(5, 2).astype(np.float64)
+    mode = 'reduced'
+    out = (np.random.rand(1,1).astype(np.float64), np.random.rand(1,1).astype(np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 1D batch
+    A = np.random.rand(4, 3, 2).astype(np.float64)
+    mode = 'r'
+    out = (np.random.rand(1,1).astype(np.float64), np.random.rand(1,1).astype(np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Zero matrix
+    A = np.zeros((3, 3)).astype(np.float64)
+    mode = 'reduced'
+    out = (np.random.rand(1,1).astype(np.float64), np.random.rand(1,1).astype(np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Identity matrix
+    A = np.eye(3).astype(np.float64)
+    mode = 'complete'
+    out = (np.random.rand(1,1).astype(np.float64), np.random.rand(1,1).astype(np.float64))
+    input_dict = {"A": A, "mode": mode, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.qr"] = qr_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def linalg_slogdet_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 2x2 matrix
+    A = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    out = (np.array(0.0, dtype=np.float32), np.array(0.0, dtype=np.float32))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 3x3 matrix with negative values
+    A = np.array([[-1.0, 2.0, 3.0], [4.0, -5.0, 6.0], [7.0, 8.0, -9.0]], dtype=np.float64)
+    out = (np.array(0.0, dtype=np.float64), np.array(0.0, dtype=np.float64))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Batch of 2 matrices (2x2)
+    A = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    out = (np.array([0.0, 0.0], dtype=np.float32), np.array([0.0, 0.0], dtype=np.float32))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Matrix with determinant close to zero
+    A = np.array([[1e-8, 1.0], [1.0, 1.0]], dtype=np.float32)
+    out = (np.array(0.0, dtype=np.float32), np.array(0.0, dtype=np.float32))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Complex matrix
+    A = np.array([[1.0 + 1j, 2.0 - 1j], [3.0 + 0j, 4.0 - 2j]], dtype=np.complex64)
+    out = (np.array(0.0 + 0.0j, dtype=np.complex64), np.array(0.0, dtype=np.float32))
+
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Larger matrix (4x4)
+    A = np.random.rand(4, 4).astype(np.float64)
+    out = (np.array(0.0, dtype=np.float64), np.array(0.0, dtype=np.float64))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Batch of complex matrices
+    A = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex128)
+    out = (np.array([0.0 + 0.0j, 0.0 + 0.0j], dtype=np.complex128), np.array([0.0, 0.0], dtype=np.float64))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Matrix with zero determinant
+    A = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
+    out = (np.array(0.0, dtype=np.float32), np.array(0.0, dtype=np.float32))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 1x1 Matrix
+    A = np.array([[5.0]], dtype=np.float32)
+    out = (np.array(0.0, dtype=np.float32), np.array(0.0, dtype=np.float32))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Batch of 1x1 matrices
+    A = np.array([[[2.0]], [[3.0]]], dtype=np.float32)
+    out = (np.array([0.0, 0.0], dtype=np.float32), np.array([0.0, 0.0], dtype=np.float32))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Complex 1x1 Matrix
+    A = np.array([[5.0 + 2j]], dtype=np.complex64)
+    out = (np.array(0.0 + 0.0j, dtype=np.complex64), np.array(0.0, dtype=np.float32))
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.slogdet"] = linalg_slogdet_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def tensorsolve_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    A = np.eye(2 * 3 * 4).reshape((2 * 3, 4, 2, 3, 4))
+    B = np.random.randn(2 * 3, 4)
+    dims = None
+    out = None
+
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    A = np.random.randn(6, 4, 4, 3, 2)
+    B = np.random.randn(4, 3, 2)
+    dims = (0, 2)
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3
+    A = np.random.randn(2, 2)
+    B = np.random.randn(2)
+    dims = None
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4 - VALID
+    A = np.random.randn(9, 3, 3)
+    B = np.random.randn(9)
+    dims = None
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    A = np.random.randn(4, 4, 4, 4)
+    B = np.random.randn(4, 4, 4)
+    dims = None
+    out = None
+    #Remove this input as it is causing errors
+    # Input 6
+    A = np.random.randn(2, 3, 2, 3)
+    B = np.random.randn(2, 3)
+    dims = None
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - VALID
+    A = np.random.randn(25, 5, 5)
+    B = np.random.randn(25)
+    dims = None
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    A = np.random.randn(3, 2, 3, 2)
+    B = np.random.randn(3, 2)
+    dims = (0, 2)
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    # Removed because it caused errors
+    # Input 9
+    A = np.random.randn(4, 2, 2, 4)
+    B = np.random.randn(4, 2)
+    dims = (0, 3)
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    # Removed because it caused errors
+
+    # Input 10
+    A = np.random.randn(5, 3, 5, 3)
+    B = np.random.randn(5, 3)
+    dims = (1, 3)
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    # Removed because it caused errors
+    
+    # Input 11 - VALID
+    A = np.random.randn(16, 4, 4)
+    B = np.random.randn(16)
+    dims = None
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12 - VALID
+    A = np.random.randn(6, 2, 3)
+    B = np.random.randn(6)
+    dims = None
+    out = None
+    input_dict = {
+        "A": A,
+        "B": B,
+        "dims": dims if dims is not None else tuple(),
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.linalg.tensorsolve"] = tensorsolve_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def lt_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([1, 2, 3])
+    other_float = 2.0
+    out_tensor = np.array([False, False, False])
+
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[1, 2], [3, 4]])
+    other_float = 3.0
+    out_tensor = np.array([[False, False], [False, False]])
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([-1, -2, -3])
+    other_float = 0.0
+    out_tensor = np.array([False, False, False])
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([1.5, 2.5, 3.5])
+    other_float = 2.0
+    out_tensor = np.array([False, False, False])
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([1, 2, 3], dtype=np.int64)
+    other_float = 2.0
+    out_tensor = np.array([False, False, False])
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6
+    input_tensor = np.array([[1, 2, 3], [4, 5, 6]])
+    other_float = 5.0
+    out_tensor = np.array([[False, False, False], [False, False, False]])
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([1, 2, 3, 4, 5])
+    other_float = 6.0
+    out_tensor = np.array([False, False, False, False, False])
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([-5.0, -4.0, -3.0, -2.0, -1.0])
+    other_float = -2.5
+    out_tensor = np.array([False, False, False, False, False])
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = np.array([0])
+    other_float = 0.0001
+    out_tensor = np.array([False])
+
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([1000, 2000, 3000])
+    other_float = 2500.0
+    out_tensor = np.array([False, False, False])
+
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.array([1, 2, 3, 4]).reshape((2, 2))
+    other_float = 2.5
+    out_tensor = np.array([[False, False], [False, False]])
+
+    input_dict = {
+        "input": input_tensor,
+        "other": other_float,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.lt_2"] = lt_inputs()
+
+import torch, copy
+import numpy as np
+
+def narrow_inputs():
+    list_of_inputs = []
+
+    # Input 1, valid
+    input = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).numpy()
+    dim = 0
+    start = torch.tensor(0).numpy()
+    length = 2
+
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2, valid
+    input = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).numpy()
+    dim = 1
+    start = torch.tensor(1).numpy()
+    length = 2
+
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3, valid, negative start
+    input = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).numpy()
+    dim = -1
+    start = torch.tensor(-1).numpy()
+    length = 1
+
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4, valid, 1D tensor
+    input = torch.tensor([1, 2, 3, 4, 5]).numpy()
+    dim = 0
+    start = torch.tensor(1).numpy()
+    length = 3
+
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5, valid, multi-dimensional
+    input = torch.randn(2, 3, 4).numpy()
+    dim = 1
+    start = torch.tensor(0).numpy()
+    length = 2
+
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6, valid, start from end of tensor
+    input = torch.tensor([1, 2, 3, 4, 5]).numpy()
+    dim = 0
+    start = torch.tensor(-3).numpy()
+    length = 2
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7, valid, zero length
+    input = torch.tensor([1, 2, 3, 4, 5]).numpy()
+    dim = 0
+    start = torch.tensor(2).numpy()
+    length = 0
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8, valid, start as tensor
+    input = torch.randn(3, 3).numpy()
+    dim = 0
+    start = torch.tensor(1).numpy()
+    length = 1
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 9, valid, 3D tensor, negative dim
+    input = torch.randn(2, 3, 4).numpy()
+    dim = -2
+    start = torch.tensor(1).numpy()
+    length = 1
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10, valid
+    input = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]]).numpy()
+    dim = 0
+    start = torch.tensor(1).numpy()
+    length = 1
+
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "start": start,
+        "length": length
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.narrow_2"] = narrow_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def ne_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 1D tensor vs. float
+    input = np.array([1, 2, 3], dtype=np.int32)
+    other = 2.0
+    out = np.array([False, False, False], dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor vs. float
+    input = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    other = 3.0
+    out = np.array([[False, False], [False, False]], dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Negative values
+    input = np.array([-1, 0, 1], dtype=np.int64)
+    other = 0.0
+    out = np.array([False, False, False], dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: Larger tensor
+    input = np.random.rand(5, 5).astype(np.float64)
+    other = 0.5
+    out = np.zeros((5, 5), dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Zeros
+    input = np.zeros((3, 2), dtype=np.float32)
+    other = 0.0
+    out = np.array([[False, False], [False, False], [False, False]], dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Mixed positive and negative
+    input = np.array([[-1, 1], [-2, 2]], dtype=np.int32)
+    other = 1.0
+    out = np.array([[False, False], [False, False]], dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 3D tensor
+    input = np.random.rand(2, 3, 4).astype(np.float32)
+    other = 0.2
+    out = np.zeros((2, 3, 4), dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Different data type
+    input = np.array([1, 2, 3], dtype=np.uint8)
+    other = 2.0
+    out = np.array([False, False, False], dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Large float value
+    input = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    other = 1e9
+    out = np.array([False, False, False], dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Small float value
+    input = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    other = 1e-9
+    out = np.array([False, False, False], dtype=bool)
+    input_dict = {"input": input, "other": other, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.ne_2"] = ne_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_avg_pool1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = torch.randn(1, 64, 8).numpy()
+    output_size1 = 5
+    input_dict1 = {"output_size": output_size1, "input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = torch.randn(2, 32, 16).numpy()
+    output_size2 = 7
+    input_dict2 = {"output_size": output_size2, "input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = torch.randn(1, 1, 10).numpy()
+    output_size3 = 3
+    input_dict3 = {"output_size": output_size3, "input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4 (C, Lin) format
+    input4 = torch.randn(32, 20).numpy()
+    output_size4 = 10
+    input_dict4 = {"output_size": output_size4, "input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5 (N, C, Lin)
+    input5 = torch.randn(4, 16, 32).numpy()
+    output_size5 = 16
+    input_dict5 = {"output_size": output_size5, "input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6 
+    input6 = torch.randn(1, 3, 1).numpy()
+    output_size6 = 1
+    input_dict6 = {"output_size": output_size6, "input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7
+    input7 = torch.randn(8, 4, 64).numpy()
+    output_size7 = 32
+    input_dict7 = {"output_size": output_size7, "input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+    
+    # Input 8
+    input8 = torch.randn(1, 256, 128).numpy()
+    output_size8 = 64
+    input_dict8 = {"output_size": output_size8, "input": input8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9 (C, Lin)
+    input9 = torch.randn(64, 50).numpy()
+    output_size9 = 25
+    input_dict9 = {"output_size": output_size9, "input": input9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10
+    input10 = torch.randn(2, 8, 4).numpy()
+    output_size10 = 2
+    input_dict10 = {"output_size": output_size10, "input": input10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11
+    input11 = torch.randn(1, 128, 256).numpy()
+    output_size11 = 128
+    input_dict11 = {"output_size": output_size11, "input": input11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveAvgPool1d_1"] = adaptive_avg_pool1d_inputs()
+
+import torch, copy
+import numpy as np
+
+def adaptive_avg_pool1d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case
+    input_1 = torch.randn(1, 64, 8).numpy()
+    output_size_1 = (5,)
+    input_dict_1 = {"output_size": output_size_1, "input": input_1}
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+
+    # Input 2: Different input size
+    input_2 = torch.randn(2, 32, 16).numpy()
+    output_size_2 = (7,)
+    input_dict_2 = {"output_size": output_size_2, "input": input_2}
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: Batch size of 1
+    input_3 = torch.randn(1, 128, 32).numpy()
+    output_size_3 = (10,)
+    input_dict_3 = {"output_size": output_size_3, "input": input_3}
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: Single channel
+    input_4 = torch.randn(4, 1, 64).numpy()
+    output_size_4 = (20,)
+    input_dict_4 = {"output_size": output_size_4, "input": input_4}
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+    
+    # Input 5: Input with length 1
+    input_5 = torch.randn(2, 16, 1).numpy()
+    output_size_5 = (1,)
+    input_dict_5 = {"output_size": output_size_5, "input": input_5}
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+    
+    # Input 6: Input with large values
+    input_6 = (torch.rand(1, 3, 128) * 100).numpy()
+    output_size_6 = (32,)
+    input_dict_6 = {"output_size": output_size_6, "input": input_6}
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: Input with small values
+    input_7 = (torch.rand(1, 3, 128) * 0.01).numpy()
+    output_size_7 = (32,)
+    input_dict_7 = {"output_size": output_size_7, "input": input_7}
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+    
+    # Input 8: C, Lin format
+    input_8 = torch.randn(64, 8).numpy()
+    output_size_8 = (5,)
+    input_dict_8 = {"output_size": output_size_8, "input": input_8}
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: Different output size
+    input_9 = torch.randn(2, 32, 16).numpy()
+    output_size_9 = (1,)
+    input_dict_9 = {"output_size": output_size_9, "input": input_9}
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: Input with different number of channels
+    input_10 = torch.randn(4, 256, 64).numpy()
+    output_size_10 = (20,)
+    input_dict_10 = {"output_size": output_size_10, "input": input_10}
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+    
+    # Input 11: Input of different dtype
+    input_11 = torch.randn(1, 64, 8, dtype=torch.float64).numpy()
+    output_size_11 = (5,)
+    input_dict_11 = {"output_size": output_size_11, "input": input_11}
+    list_of_inputs.append(copy.deepcopy(input_dict_11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveAvgPool1d_2"] = adaptive_avg_pool1d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def torch_nn_AdaptiveAvgPool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic test case
+    input = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    output_size = 7
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different batch size
+    input = np.random.randn(4, 3, 32, 32).astype(np.float32)
+    output_size = 7
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Different number of channels
+    input = np.random.randn(1, 64, 32, 32).astype(np.float32)
+    output_size = 7
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different input size
+    input = np.random.randn(1, 3, 64, 64).astype(np.float32)
+    output_size = 7
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tuple output size
+    input = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    output_size = (5, 7)
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Different tuple output size
+    input = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    output_size = (10, 20)
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Smaller input size than output size
+    input = np.random.randn(1, 3, 16, 16).astype(np.float32)
+    output_size = 32
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Single channel input
+    input = np.random.randn(1, 1, 32, 32).astype(np.float32)
+    output_size = 7
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Large input size
+    input = np.random.randn(1, 3, 256, 256).astype(np.float32)
+    output_size = 64
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: rectangular input
+    input = np.random.randn(1, 3, 64, 32).astype(np.float32)
+    output_size = 16
+    input_dict = {"output_size": output_size, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveAvgPool2d_1"] = torch_nn_AdaptiveAvgPool2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def torch_nn_AdaptiveAvgPool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with H and W specified
+    input1 = torch.randn(1, 3, 32, 32).numpy()
+    output_size1 = (16, 16)
+    input_dict1 = {"output_size": output_size1, "input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Square output size
+    input2 = torch.randn(1, 3, 64, 64).numpy()
+    output_size2 = (8, 8)
+    input_dict2 = {"output_size": output_size2, "input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Batch size > 1
+    input3 = torch.randn(4, 3, 28, 28).numpy()
+    output_size3 = (14, 14)
+    input_dict3 = {"output_size": output_size3, "input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Different input dimensions
+    input4 = torch.randn(1, 64, 128, 256).numpy()
+    output_size4 = (64, 128)
+    input_dict4 = {"output_size": output_size4, "input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Single channel input
+    input5 = torch.randn(1, 1, 32, 32).numpy()
+    output_size5 = (16, 16)
+    input_dict5 = {"output_size": output_size5, "input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Smaller input size than output size (will be upsampled)
+    input6 = torch.randn(1, 3, 8, 8).numpy()
+    output_size6 = (16, 16)
+    input_dict6 = {"output_size": output_size6, "input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: Non-square input
+    input7 = torch.randn(1, 3, 32, 64).numpy()
+    output_size7 = (16, 32)
+    input_dict7 = {"output_size": output_size7, "input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+    
+    # Input 8: Another different input size
+    input8 = torch.randn(1, 3, 100, 50).numpy()
+    output_size8 = (50, 25)
+    input_dict8 = {"output_size": output_size8, "input": input8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Output size with same height as input
+    input9 = torch.randn(1, 3, 32, 64).numpy()
+    output_size9 = (32, 32)
+    input_dict9 = {"output_size": output_size9, "input": input9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: Larger batch size
+    input10 = torch.randn(8, 3, 64, 64).numpy()
+    output_size10 = (32, 32)
+    input_dict10 = {"output_size": output_size10, "input": input10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: Small output size
+    input11 = torch.randn(1, 3, 128, 128).numpy()
+    output_size11 = (1, 1)
+    input_dict11 = {"output_size": output_size11, "input": input11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveAvgPool2d_2"] = torch_nn_AdaptiveAvgPool2d_inputs()
+
+import torch, copy
+import numpy as np
+
+def adaptive_log_softmax_with_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid input
+    in_features = 10
+    n_classes = 100
+    cutoffs = [20, 50]
+    div_value = 4.0
+    head_bias = False
+    dtype = np.float32
+    input_tensor = np.random.randn(5, in_features).astype(dtype)
+    target_tensor = np.random.randint(0, n_classes, size=(5,)).astype(np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different in_features and n_classes
+    in_features = 20
+    n_classes = 500
+    cutoffs = [100, 250, 400]
+    div_value = 2.0
+    head_bias = True
+    dtype = np.float64
+    input_tensor = np.random.randn(10, in_features).astype(dtype)
+    target_tensor = np.random.randint(0, n_classes, size=(10,)).astype(np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3:  Single input
+    in_features = 5
+    n_classes = 20
+    cutoffs = [5, 10]
+    div_value = 2.0
+    head_bias = False
+    dtype = np.float32
+    input_tensor = np.random.randn(in_features).astype(dtype)
+    target_tensor = np.array(3).astype(np.int64)
+
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: Different cutoffs
+    in_features = 15
+    n_classes = 300
+    cutoffs = [50, 150]
+    div_value = 3.0
+    head_bias = True
+    dtype = np.float32
+    input_tensor = np.random.randn(8, in_features).astype(dtype)
+    target_tensor = np.random.randint(0, n_classes, size=(8,)).astype(np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Larger div_value
+    in_features = 8
+    n_classes = 60
+    cutoffs = [10, 20, 30]
+    div_value = 8.0
+    head_bias = False
+    dtype = np.float64
+    input_tensor = np.random.randn(4, in_features).astype(dtype)
+    target_tensor = np.random.randint(0, n_classes, size=(4,)).astype(np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: No head bias
+    in_features = 12
+    n_classes = 150
+    cutoffs = [30, 75]
+    div_value = 5.0
+    head_bias = False
+    dtype = np.float32
+    input_tensor = np.random.randn(6, in_features).astype(dtype)
+    target_tensor = np.random.randint(0, n_classes, size=(6,)).astype(np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Small numbers for everything
+    in_features = 2
+    n_classes = 10
+    cutoffs = [2]
+    div_value = 2.0
+    head_bias = True
+    dtype = np.float32
+    input_tensor = np.random.randn(3, in_features).astype(dtype)
+    target_tensor = np.random.randint(0, n_classes, size=(3,)).astype(np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Different target type (int32) - changed to int64 to avoid potential issues
+    in_features = 10
+    n_classes = 100
+    cutoffs = [20, 50]
+    div_value = 4.0
+    head_bias = False
+    dtype = np.float32
+    input_tensor = np.random.randn(5, in_features).astype(dtype)
+    target_tensor = np.random.randint(0, n_classes, size=(5,)).astype(np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 9: Target = 0
+    in_features = 10
+    n_classes = 100
+    cutoffs = [20, 50]
+    div_value = 4.0
+    head_bias = False
+    dtype = np.float32
+    input_tensor = np.random.randn(5, in_features).astype(dtype)
+    target_tensor = np.zeros(5, dtype=np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+     
+    # Input 10: Max target value
+    in_features = 10
+    n_classes = 100
+    cutoffs = [20, 50]
+    div_value = 4.0
+    head_bias = False
+    dtype = np.float32
+    input_tensor = np.random.randn(5, in_features).astype(dtype)
+    target_tensor = np.full(5, n_classes -1, dtype=np.int64)
+    input_dict = {
+        "in_features": int(in_features),
+        "n_classes": int(n_classes),
+        "cutoffs": cutoffs,
+        "div_value": float(div_value),
+        "head_bias": bool(head_bias),
+        "dtype": torch.float32 if dtype == np.float32 else torch.float64,
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveLogSoftmaxWithLoss"] = adaptive_log_softmax_with_loss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_max_pool1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.random.randn(1, 64, 8).astype(np.float32)
+    output_size = 5
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.random.randn(2, 32, 16).astype(np.float32)
+    output_size = 10
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.random.randn(1, 1, 20).astype(np.float32)
+    output_size = 1
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input = np.random.randn(4, 128, 32).astype(np.float32)
+    output_size = 20
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.random.randn(1, 3, 5).astype(np.float32)
+    output_size = 3
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.random.randn(10, 5, 25).astype(np.float32)
+    output_size = 15
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input = np.random.randn(1, 64, 1).astype(np.float32)
+    output_size = 1
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input = np.random.randn(32, 8).astype(np.float32)
+    output_size = 4
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input = np.random.randn(1, 16, 64).astype(np.float32)
+    output_size = 32
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input = np.random.randn(2, 1, 128).astype(np.float32)
+    output_size = 64
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input = np.random.randn(1, 1, 1).astype(np.float32)
+    output_size = 1
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveMaxPool1d_1"] = adaptive_max_pool1d_inputs()
+
+import torch, copy
+import numpy as np
+
+def adaptive_max_pool1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 64, 8).numpy()
+    output_size = (5,)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(2, 32, 16).numpy()
+    output_size = (10,)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(1, 1, 20).numpy()
+    output_size = (1,)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(3, 16).numpy()
+    output_size = (7,)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input_tensor = torch.randn(4, 8, 32).numpy()
+    output_size = (20,)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(1, 3, 5).numpy()
+    output_size = (3,)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(1, 20).numpy()
+    output_size = (15,)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(2, 10, 100).numpy()
+    output_size = (50,)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = torch.randn(5, 1, 128).numpy()
+    output_size = (64,)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.randn(3, 64).numpy()
+    output_size = (32,)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveMaxPool1d_2"] = adaptive_max_pool1d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_max_pool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case
+    input1 = torch.randn(1, 3, 32, 32).numpy()
+    output_size1 = 16
+    return_indices1 = False
+    input_dict1 = {"output_size": output_size1, "return_indices": return_indices1, "input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Tuple output_size
+    input2 = torch.randn(1, 3, 32, 32).numpy()
+    output_size2 = (8, 16)
+    return_indices2 = True
+    input_dict2 = {"output_size": output_size2[0], "return_indices": return_indices2, "input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Batch size > 1
+    input3 = torch.randn(4, 3, 32, 32).numpy()
+    output_size3 = 8
+    return_indices3 = False
+    input_dict3 = {"output_size": output_size3, "return_indices": return_indices3, "input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4: Single channel input
+    input4 = torch.randn(1, 1, 32, 32).numpy()
+    output_size4 = (16, 16)
+    return_indices4 = True
+    input_dict4 = {"output_size": output_size4[0], "return_indices": return_indices4, "input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Different input dimensions
+    input5 = torch.randn(1, 3, 64, 128).numpy()
+    output_size5 = 32
+    return_indices5 = False
+    input_dict5 = {"output_size": output_size5, "return_indices": return_indices5, "input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Small input size
+    input6 = torch.randn(1, 3, 16, 16).numpy()
+    output_size6 = 8
+    return_indices6 = True
+    input_dict6 = {"output_size": output_size6, "return_indices": return_indices6, "input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Non-square input
+    input7 = torch.randn(1, 3, 20, 40).numpy()
+    output_size7 = 10
+    return_indices7 = False
+    input_dict7 = {"output_size": output_size7, "return_indices": return_indices7, "input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+    
+    # Input 8: output size is bigger than input size
+    input8 = torch.randn(1, 3, 8, 8).numpy()
+    output_size8 = 16
+    return_indices8 = True
+    input_dict8 = {"output_size": output_size8, "return_indices": return_indices8, "input": input8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Larger batch size, different output size
+    input9 = torch.randn(8, 3, 24, 24).numpy()
+    output_size9 = 6
+    return_indices9 = False
+    input_dict9 = {"output_size": output_size9, "return_indices": return_indices9, "input": input9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Different channel size
+    input10 = torch.randn(1, 64, 16, 16).numpy()
+    output_size10 = 4
+    return_indices10 = True
+    input_dict10 = {"output_size": output_size10, "return_indices": return_indices10, "input": input10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: Minimal input size
+    input11 = torch.randn(1, 3, 2, 2).numpy()
+    output_size11 = 1
+    return_indices11 = False
+    input_dict11 = {"output_size": output_size11, "return_indices": return_indices11, "input": input11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveMaxPool2d_1"] = adaptive_max_pool2d_inputs()
+
+import torch, copy
+import numpy as np
+
+def adaptive_max_pool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with square output size
+    input_tensor = torch.randn(1, 3, 32, 32).numpy()
+    output_size = (16, 16)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Rectangular output size
+    input_tensor = torch.randn(1, 3, 64, 128).numpy()
+    output_size = (32, 64)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Batch size > 1
+    input_tensor = torch.randn(4, 3, 32, 32).numpy()
+    output_size = (8, 8)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different number of input channels
+    input_tensor = torch.randn(1, 64, 32, 32).numpy()
+    output_size = (16, 16)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Smaller input size
+    input_tensor = torch.randn(1, 3, 16, 16).numpy()
+    output_size = (8, 8)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6:  output_size with None, remove None to avoid TypeError
+    input_tensor = torch.randn(1, 3, 16, 16).numpy()
+    output_size = (16, 8)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7:  output_size with different input shape, remove None to avoid TypeError
+    input_tensor = torch.randn(2, 5, 32, 64).numpy()
+    output_size = (16, 32)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: single channel input
+    input_tensor = torch.randn(1, 1, 32, 32).numpy()
+    output_size = (8, 8)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: C,Hin,Win input
+    input_tensor = torch.randn(3, 32, 32).numpy()
+    output_size = (8, 8)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different input dimensions.
+    input_tensor = torch.randn(2, 3, 128, 256).numpy()
+    output_size = (64, 128)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: square image with int output size
+    input_tensor = torch.randn(1, 3, 16, 16).numpy()
+    output_size = (7,7) #make it a tuple
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveMaxPool2d_2"] = adaptive_max_pool2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_max_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 3, 16, 16, 16).numpy()
+    output_size = 8
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(2, 4, 32, 32, 32).numpy()
+    output_size = 16
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(1, 1, 64, 64, 64).numpy()
+    output_size = 32
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(4, 2, 8, 8, 8).numpy()
+    output_size = 4
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(1, 3, 10, 12, 14).numpy()
+    output_size = 5
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(2, 1, 20, 24, 28).numpy()
+    output_size = 10
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(1, 2, 5, 7, 9).numpy()
+    output_size = 3
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(3, 3, 15, 21, 27).numpy()
+    output_size = 7
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = torch.randn(1, 64, 10, 9, 8).numpy()
+    output_size = 7
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.randn(4, 16, 20, 18, 16).numpy()
+    output_size = 9
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveMaxPool3d_1"] = adaptive_max_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_max_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.random.randn(1, 3, 10, 10, 10).astype(np.float32)
+    output_size = (5, 5, 5)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.random.randn(2, 4, 12, 12, 12).astype(np.float32)
+    output_size = (7, 8, 9)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.random.randn(1, 2, 8, 8, 8).astype(np.float32)
+    output_size = (4, 4, 4)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input = np.random.randn(3, 5, 15, 15, 15).astype(np.float32)
+    output_size = (6, 6, 6)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.random.randn(1, 1, 5, 5, 5).astype(np.float32)
+    output_size = (3, 3, 3)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.random.randn(2, 3, 10, 11, 12).astype(np.float32)
+    output_size = (5, 5, 5)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input = np.random.randn(1, 1, 7, 8, 9).astype(np.float32)
+    output_size = (2, 3, 4)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = np.random.randn(4, 2, 16, 16, 16).astype(np.float32)
+    output_size = (8, 8, 8)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input = np.random.randn(1, 5, 9, 10, 11).astype(np.float32)
+    output_size = (4, 5, 6)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.random.randn(2, 2, 6, 7, 8).astype(np.float32)
+    output_size = (3, 4, 4)
+    return_indices = True
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input = np.random.randn(1, 4, 11, 12, 13).astype(np.float32)
+    output_size = (5, 5, 7)
+    return_indices = False
+    input_dict = {"output_size": output_size, "return_indices": return_indices, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AdaptiveMaxPool3d_2"] = adaptive_max_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def alphadropout_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case
+    input1 = np.random.randn(20, 16).astype(np.float32)
+    input_dict1 = {"p": 0.2, "inplace": False, "input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: inplace=True
+    input2 = np.random.randn(10, 5).astype(np.float32)
+    input_dict2 = {"p": 0.3, "inplace": True, "input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Different p value
+    input3 = np.random.randn(5, 5, 5).astype(np.float32)
+    input_dict3 = {"p": 0.7, "inplace": False, "input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 1D input
+    input4 = np.random.randn(100).astype(np.float32)
+    input_dict4 = {"p": 0.1, "inplace": False, "input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 4D input
+    input5 = np.random.randn(2, 3, 4, 5).astype(np.float32)
+    input_dict5 = {"p": 0.4, "inplace": True, "input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6: p=0.0
+    input6 = np.random.randn(10, 10).astype(np.float32)
+    input_dict6 = {"p": 0.0, "inplace": False, "input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: p=1.0
+    input7 = np.random.randn(5, 8).astype(np.float32)
+    input_dict7 = {"p": 1.0, "inplace": True, "input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Small input size
+    input8 = np.random.randn(1, 1).astype(np.float32)
+    input_dict8 = {"p": 0.5, "inplace": False, "input": input8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Large input size
+    input9 = np.random.randn(100, 100).astype(np.float32)
+    input_dict9 = {"p": 0.6, "inplace": True, "input": input9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Input with zeros
+    input10 = np.zeros((10, 10)).astype(np.float32)
+    input_dict10 = {"p": 0.2, "inplace": False, "input": input10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: Input with negative values
+    input11 = np.random.randn(5, 5) - 2.0
+    input11 = input11.astype(np.float32)
+    input_dict11 = {"p": 0.3, "inplace": True, "input": input11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AlphaDropout"] = alphadropout_inputs()
+
+import torch, copy
+import numpy as np
+
+def avgpool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    kernel_size = 2
+    stride = 2
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 4, 4).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding, 
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, 
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    kernel_size = 3
+    stride = 1
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = None
+    input = torch.randn(1, 3, 8, 8).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding, 
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, 
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    kernel_size = 4
+    stride = 2
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(2, 3, 16, 16).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding, 
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, 
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    kernel_size = 5
+    stride = 3
+    padding = 2
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = None
+    input = torch.randn(4, 1, 32, 32).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding, 
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, 
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    kernel_size = 2
+    stride = 1
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 5, 5).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding, 
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, 
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = None
+    input = torch.randn(1, 3, 10, 10).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding, 
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, 
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    kernel_size = 4
+    stride = 3
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(2, 3, 20, 20).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding, 
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, 
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = None
+    input = torch.randn(4, 1, 15, 15).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding, 
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, 
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    kernel_size = 1
+    stride = 1
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 1, 1).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad,
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    kernel_size = 4
+    stride = 3
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = None
+    input = torch.randn(4, 1, 25, 25).numpy()
+    input_dict = {"kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad,
+                  "divisor_override": divisor_override, "input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AvgPool2d_1"] = avgpool2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def generate_avgpool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 1, 5, 5).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": (2, 2),
+        "padding": (0, 0),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(1, 3, 10, 10).numpy()
+    input_dict = {
+        "kernel_size": (3, 3),
+        "stride": (1, 1),
+        "padding": (1, 1),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(2, 3, 20, 20).numpy()
+    input_dict = {
+        "kernel_size": (4, 4),
+        "stride": (2, 2),
+        "padding": (2, 2),
+        "ceil_mode": True,
+        "count_include_pad": False,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 1, 7, 7).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": (1, 1),
+        "padding": (0, 0),
+        "ceil_mode": True,
+        "count_include_pad": True,
+        "divisor_override": 5,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(1, 3, 15, 15).numpy()
+    input_dict = {
+        "kernel_size": (3, 2),
+        "stride": (2, 1),
+        "padding": (1, 0),
+        "ceil_mode": False,
+        "count_include_pad": False,
+        "divisor_override": 2,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Test with small input size
+    input_tensor = torch.randn(1, 1, 2, 2).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": (1, 1),
+        "padding": (0, 0),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Test with different padding
+    input_tensor = torch.randn(1, 1, 5, 5).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": (2, 2),
+        "padding": (1, 0),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Test with stride greater than kernel size
+    input_tensor = torch.randn(1, 1, 10, 10).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": (3, 3),
+        "padding": (0, 0),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Non-square input
+    input_tensor = torch.randn(1, 1, 5, 7).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": (2, 2),
+        "padding": (0, 0),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Large divisor_override
+    input_tensor = torch.randn(1, 1, 5, 5).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": (2, 2),
+        "padding": (0, 0),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": 10,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AvgPool2d_2"] = generate_avgpool2d_inputs()
+
+import torch, copy
+import numpy as np
+
+def avgpool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = torch.randn(20, 16, 50, 32).numpy()
+    kernel_size = 3
+    stride = (2, 2)
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 4
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = torch.randn(1, 3, 256, 256).numpy()
+    kernel_size = 2
+    stride = (2,1)
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = torch.randn(4, 1, 128, 128).numpy()
+    kernel_size = 5
+    stride = (3,3)
+    padding = 2
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input = torch.randn(1, 1, 64, 64).numpy()
+    kernel_size = 3
+    stride = (1,1)
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 2
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = torch.randn(8, 3, 32, 32).numpy()
+    kernel_size = 2
+    stride = (2,2)
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = torch.randn(16, 1, 16, 16).numpy()
+    kernel_size = 4
+    stride = (3,1)
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 3
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input = torch.randn(32, 3, 8, 8).numpy()
+    kernel_size = 1
+    stride = (1,1)
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = torch.randn(1, 1, 4, 4).numpy()
+    kernel_size = 2
+    stride = (1,2)
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 9
+    input = torch.randn(1, 1, 5, 5).numpy()
+    kernel_size = 3
+    stride = (2,1)
+    padding = 0
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 4
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = torch.randn(1, 1, 7, 7).numpy()
+    kernel_size = 3
+    stride = (3,3)
+    padding = 1
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AvgPool2d_3"] = avgpool2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def generate_avgpool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = torch.randn(20, 16, 50, 32).numpy()
+    input_dict1 = {
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": (0, 0),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": 1,
+        "input": input1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = torch.randn(1, 1, 10, 10).numpy()
+    input_dict2 = {
+        "kernel_size": 2,
+        "stride": 2,
+        "padding": (1, 1),
+        "ceil_mode": True,
+        "count_include_pad": False,
+        "divisor_override": 2,
+        "input": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = torch.randn(5, 3, 25, 25).numpy()
+    input_dict3 = {
+        "kernel_size": 5,
+        "stride": 1,
+        "padding": (2, 2),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": 5,
+        "input": input3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4
+    input4 = torch.randn(10, 8, 40, 60).numpy()
+    input_dict4 = {
+        "kernel_size": 4,
+        "stride": 4,
+        "padding": (1, 0),
+        "ceil_mode": True,
+        "count_include_pad": False,
+        "divisor_override": None,
+        "input": input4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+     # Input 5
+    input5 = torch.randn(2, 4, 12, 12).numpy()
+    input_dict5 = {
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": (0, 1),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": 4,
+        "input": input5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6
+    input6 = torch.randn(3, 2, 8, 8).numpy()
+    input_dict6 = {
+        "kernel_size": 2,
+        "stride": 1,
+        "padding": (1, 1),
+        "ceil_mode": True,
+        "count_include_pad": False,
+        "divisor_override": None,
+        "input": input6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7
+    input7 = torch.randn(4, 5, 16, 16).numpy()
+    input_dict7 = {
+        "kernel_size": 4,
+        "stride": 2,
+        "padding": (2, 2),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": 16,
+        "input": input7
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8
+    input8 = torch.randn(1, 1, 20, 20).numpy()
+    input_dict8 = {
+        "kernel_size": 5,
+        "stride": 5,
+        "padding": (0, 0),
+        "ceil_mode": True,
+        "count_include_pad": False,
+        "divisor_override": None,
+        "input": input8
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9
+    input9 = torch.randn(1, 1, 3, 3).numpy()
+    input_dict9 = {
+        "kernel_size": 1,
+        "stride": 1,
+        "padding": (0, 0),
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input9
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10
+    input10 = torch.randn(2, 2, 7, 7).numpy()
+    input_dict10 = {
+        "kernel_size": 2,
+        "stride": 1,
+        "padding": (0, 0),
+        "ceil_mode": True,
+        "count_include_pad": False,
+        "divisor_override": 4,
+        "input": input10
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AvgPool2d_4"] = generate_avgpool2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def generate_avgpool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 1, 5, 5).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": 2,
+        "padding": 0,
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(1, 3, 10, 10).numpy()
+    input_dict = {
+        "kernel_size": (3, 3),
+        "stride": 1,
+        "padding": 1,
+        "ceil_mode": False,
+        "count_include_pad": False,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(2, 3, 20, 20).numpy()
+    input_dict = {
+        "kernel_size": (4, 4),
+        "stride": 2,
+        "padding": 1,
+        "ceil_mode": True,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4 - Modified to fix the padding issue
+    input_tensor = torch.randn(2, 1, 15, 15).numpy()
+    input_dict = {
+        "kernel_size": (5, 5),
+        "stride": 3,
+        "padding": 0,
+        "ceil_mode": False,
+        "count_include_pad": False,
+        "divisor_override": 10,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(1, 1, 7, 7).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": 1,
+        "padding": 0,
+        "ceil_mode": True,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(1, 3, 12, 12).numpy()
+    input_dict = {
+        "kernel_size": (3, 2),
+        "stride": 2,
+        "padding": 1,
+        "ceil_mode": False,
+        "count_include_pad": False,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(2, 3, 25, 25).numpy()
+    input_dict = {
+        "kernel_size": (5, 3),
+        "stride": 3,
+        "padding": 0,
+        "ceil_mode": True,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(2, 1, 18, 18).numpy()
+    input_dict = {
+        "kernel_size": (4, 4),
+        "stride": 1,
+        "padding": 0,
+        "ceil_mode": False,
+        "count_include_pad": False,
+        "divisor_override": 8,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = torch.randn(1, 1, 6, 6).numpy()
+    input_dict = {
+        "kernel_size": (1, 1),
+        "stride": 1,
+        "padding": 0,
+        "ceil_mode": False,
+        "count_include_pad": True,
+        "divisor_override": None,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = torch.randn(1, 3, 9, 9).numpy()
+    input_dict = {
+        "kernel_size": (2, 2),
+        "stride": 3,
+        "padding": 0,
+        "ceil_mode": True,
+        "count_include_pad": False,
+        "divisor_override": 5,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AvgPool2d_5"] = generate_avgpool2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avgpool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(2, 3, 20, 20).numpy()
+    kernel_size = (2, 2)
+    stride = (2, 2)
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(1, 1, 25, 25).numpy()
+    kernel_size = (3, 3)
+    stride = (1, 1)
+    padding = 1
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 5
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(4, 5, 30, 30).numpy()
+    kernel_size = (5, 5)
+    stride = (3, 3)
+    padding = 2
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 1, 10, 10).numpy()
+    kernel_size = (2, 2)
+    stride = (2, 2)
+    padding = 0
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(3, 2, 15, 15).numpy()
+    kernel_size = (4, 4)
+    stride = (1, 1)
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 10
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(1, 1, 7, 7).numpy()
+    kernel_size = (1, 1)
+    stride = (1, 1)
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(2, 3, 12, 12).numpy()
+    kernel_size = (3, 2)
+    stride = (2, 1)
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 3
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(1, 1, 8, 8).numpy()
+    kernel_size = (4, 3)
+    stride = (1, 2)
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = torch.randn(4, 2, 16, 16).numpy()
+    kernel_size = (2, 2)
+    stride = (3, 1)
+    padding = 0
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 7
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.randn(1, 1, 9, 9).numpy()
+    kernel_size = (5, 2)
+    stride = (2, 3)
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.nn.AvgPool2d_6"] = avgpool2d_inputs()
+
+import torch, copy
+import numpy as np
+
+def avgpool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = torch.randn(20, 16, 50, 32).numpy()
+    kernel_size = (3, 2)
+    stride = 2
+    padding = (1, 1)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 10
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = torch.randn(1, 3, 64, 64).numpy()
+    kernel_size = (5, 5)
+    stride = 3
+    padding = (2, 2)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = torch.randn(4, 1, 28, 28).numpy()
+    kernel_size = (2, 2)
+    stride = 1
+    padding = (0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 4
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input = torch.randn(1, 1, 100, 100).numpy()
+    kernel_size = (7, 7)
+    stride = 5
+    padding = (3, 3)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = torch.randn(8, 3, 32, 32).numpy()
+    kernel_size = (4, 4)
+    stride = 2
+    padding = (1, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 2
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input = torch.randn(1, 1, 16, 16).numpy()
+    kernel_size = (3, 3)
+    stride = 1
+    padding = (1, 1)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input = torch.randn(2, 3, 8, 8).numpy()
+    kernel_size = (2, 2)
+    stride = 2
+    padding = (0, 0)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input = torch.randn(1, 1, 20, 20).numpy()
+    kernel_size = (4, 4)
+    stride = 3
+    padding = (1, 1)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 5
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input = torch.randn(4, 3, 10, 10).numpy()
+    kernel_size = (3, 3)
+    stride = 1
+    padding = (1, 1)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = torch.randn(1, 1, 32, 32).numpy()
+    kernel_size = (5, 5)
+    stride = 2
+    padding = (2, 2)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 3
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input = torch.randn(1, 1, 7, 7).numpy()
+    kernel_size = (3, 3)
+    stride = 1
+    padding = (0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AvgPool2d_7"] = avgpool2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def generate_avgpool2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    kernel_size = 2
+    stride = (2, 2)
+    padding = (0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 4, 4).numpy()
+
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    kernel_size = 3
+    stride = (1, 1)
+    padding = (1, 1)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 5
+    input = torch.randn(1, 3, 10, 10).numpy()
+
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    kernel_size = 2
+    stride = (2, 1)
+    padding = (1, 0)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 5, 5).numpy()
+
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    kernel_size = 4
+    stride = (3, 2)
+    padding = (2, 1)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 10
+    input = torch.randn(2, 3, 20, 15).numpy()
+
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    kernel_size = 1
+    stride = (1, 1)
+    padding = (0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 3, 3).numpy()
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    kernel_size = 5
+    stride = (4, 3)
+    padding = (2, 2)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 7
+    input = torch.randn(2, 3, 25, 20).numpy()
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    kernel_size = 3
+    stride = (2, 2)
+    padding = (1, 1)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 7, 7).numpy()
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    kernel_size = 4
+    stride = (3, 3)
+    padding = (2, 2)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 8
+    input = torch.randn(2, 3, 16, 16).numpy()
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    kernel_size = 2
+    stride = (1, 1)
+    padding = (0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 4, 4).numpy()
+
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    kernel_size = 3
+    stride = (1, 1)
+    padding = (1, 1)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 5
+    input = torch.randn(1, 3, 10, 10).numpy()
+
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    kernel_size = 2
+    stride = (1, 1)
+    padding = (0, 0)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = None
+    input = torch.randn(1, 1, 3, 3).numpy()
+    input_dict = {
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'ceil_mode': ceil_mode,
+        'count_include_pad': count_include_pad,
+        'divisor_override': divisor_override,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.AvgPool2d_8"] = generate_avgpool2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avgpool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(2, 3, 10, 10, 10).numpy()
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(1, 1, 5, 5, 5).numpy()
+    kernel_size = 2
+    stride = 1
+    padding = 0
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 4
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(4, 2, 8, 8, 8).numpy()
+    kernel_size = 4
+    stride = 4
+    padding = 2
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 3, 12, 12, 12).numpy()
+    kernel_size = 5
+    stride = 3
+    padding = 1
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 10
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input_tensor = torch.randn(1, 3, 7, 7, 7).numpy()
+    kernel_size = 1
+    stride = 1
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(1, 3, 9, 9, 9).numpy()
+    kernel_size = 3
+    stride = 1
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 5
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = torch.randn(1, 3, 11, 11, 11).numpy()
+    kernel_size = 5
+    stride = 2
+    padding = 2
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(1, 3, 6, 6, 6).numpy()
+    kernel_size = 2
+    stride = 3
+    padding = 0
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 2
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = torch.randn(1, 3, 15, 15, 15).numpy()
+    kernel_size = 7
+    stride = 5
+    padding = 3
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.randn(1, 3, 4, 4, 4).numpy()
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.nn.AvgPool3d_1"] = avgpool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avgpool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(2, 3, 10, 10, 10).numpy()
+    kernel_size = (3, 3, 3)
+    stride = (2, 2, 2)
+    padding = (1, 1, 1)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = None
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(1, 1, 5, 5, 5).numpy()
+    kernel_size = (2, 2, 2)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 2
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(4, 2, 8, 8, 8).numpy()
+    kernel_size = (4, 4, 4)
+    stride = (3, 3, 3)
+    padding = (1, 1, 1)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 5
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 1, 7, 7, 7).numpy()
+    kernel_size = (1, 1, 1)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(3, 4, 12, 12, 12).numpy()
+    kernel_size = (5, 5, 5)
+    stride = (4, 4, 4)
+    padding = (2, 2, 2)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_tensor = torch.randn(1, 1, 3, 3, 3).numpy()
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(2, 2, 6, 6, 6).numpy()
+    kernel_size = (2, 2, 2)
+    stride = (2, 2, 2)
+    padding = (0, 0, 0)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(1, 3, 9, 9, 9).numpy()
+    kernel_size = (3, 2, 1)
+    stride = (1, 2, 3)
+    padding = (0, 1, 0)  # Reduced padding to avoid error
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = torch.randn(1, 1, 4, 4, 4).numpy()
+    kernel_size = (4, 4, 4)
+    stride = (4, 4, 4)
+    padding = (0, 0, 0)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = torch.randn(5, 1, 15, 15, 15).numpy()
+    kernel_size = (2, 2, 2)
+    stride = (3, 3, 3)
+    padding = (0, 0, 0)  # Reduced padding to avoid error
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = None
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override,
+        "input": input_tensor,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.AvgPool3d_2"] = avgpool3d_inputs()
+
+import torch, copy
+import numpy as np
+
+def batchnorm3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    num_features = 10
+    eps = 1e-5
+    momentum = 0.1
+    affine = True
+    track_running_stats = True
+    input_tensor = torch.randn(2, 10, 4, 4, 4).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    num_features = 5
+    eps = 1e-4
+    momentum = 0.2
+    affine = False
+    track_running_stats = False
+    input_tensor = torch.randn(1, 5, 8, 8, 8).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    num_features = 20
+    eps = 1e-6
+    momentum = 0.05
+    affine = True
+    track_running_stats = True
+    input_tensor = torch.randn(4, 20, 16, 16, 16).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    num_features = 3
+    eps = 1e-3
+    momentum = 0.9
+    affine = False
+    track_running_stats = False
+    input_tensor = torch.randn(8, 3, 32, 32, 32).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    num_features = 64
+    eps = 1e-7
+    momentum = 0.01
+    affine = True
+    track_running_stats = True
+    input_tensor = torch.randn(3, 64, 2, 2, 2).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    num_features = 128
+    eps = 1e-2
+    momentum = 0.5
+    affine = False
+    track_running_stats = False
+    input_tensor = torch.randn(5, 128, 10, 10, 10).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (modified to avoid ValueError)
+    num_features = 1
+    eps = 1e-8
+    momentum = 0.99
+    affine = True
+    track_running_stats = True
+    input_tensor = torch.randn(2, 1, 2, 2, 2).numpy()  # Increased dimensions
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    num_features = 256
+    eps = 1e-1
+    momentum = 0.001
+    affine = False
+    track_running_stats = False
+    input_tensor = torch.randn(16, 256, 5, 5, 5).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    num_features = 4
+    eps = 0.0
+    momentum = 0.0
+    affine = True
+    track_running_stats = True
+    input_tensor = torch.randn(1, 4, 5, 5, 5).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    num_features = 8
+    eps = 0.5
+    momentum = 0.7
+    affine = False
+    track_running_stats = False
+    input_tensor = torch.randn(2, 8, 7, 7, 7).numpy()
+    input_dict = {"num_features": num_features, "eps": eps, "momentum": momentum, "affine": affine, "track_running_stats": track_running_stats, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.BatchNorm3d"] = batchnorm3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def bilinear_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in1_features = 20
+    in2_features = 30
+    out_features = 40
+    bias = True
+    dtype = np.float32
+    input1 = np.random.randn(128, in1_features).astype(dtype)
+    input2 = np.random.randn(128, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float32,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in1_features = 10
+    in2_features = 15
+    out_features = 20
+    bias = False
+    dtype = np.float64
+    input1 = np.random.randn(64, in1_features).astype(dtype)
+    input2 = np.random.randn(64, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float64,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in1_features = 5
+    in2_features = 7
+    out_features = 3
+    bias = True
+    dtype = np.float32
+    input1 = np.random.randn(32, 1, in1_features).astype(dtype)
+    input2 = np.random.randn(32, 1, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float32,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in1_features = 12
+    in2_features = 18
+    out_features = 24
+    bias = False
+    dtype = np.float64
+    input1 = np.random.randn(1, 128, in1_features).astype(dtype)
+    input2 = np.random.randn(1, 128, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float64,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in1_features = 8
+    in2_features = 11
+    out_features = 15
+    bias = True
+    dtype = np.float32
+    input1 = np.random.randn(2, 3, 4, in1_features).astype(dtype)
+    input2 = np.random.randn(2, 3, 4, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float32,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in1_features = 3
+    in2_features = 5
+    out_features = 2
+    bias = False
+    dtype = np.float64
+    input1 = np.random.randn(10, in1_features).astype(dtype)
+    input2 = np.random.randn(10, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float64,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in1_features = 7
+    in2_features = 9
+    out_features = 11
+    bias = True
+    dtype = np.float32
+    input1 = np.random.randn(5, 2, in1_features).astype(dtype)
+    input2 = np.random.randn(5, 2, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float32,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in1_features = 4
+    in2_features = 6
+    out_features = 8
+    bias = False
+    dtype = np.float64
+    input1 = np.random.randn(2, 1, 3, in1_features).astype(dtype)
+    input2 = np.random.randn(2, 1, 3, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float64,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    in1_features = 6
+    in2_features = 8
+    out_features = 10
+    bias = True
+    dtype = np.float32
+    input1 = np.random.randn(3, 4, in1_features).astype(dtype)
+    input2 = np.random.randn(3, 4, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float32,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in1_features = 9
+    in2_features = 12
+    out_features = 15
+    bias = False
+    dtype = np.float64
+    input1 = np.random.randn(4, 2, 3, in1_features).astype(dtype)
+    input2 = np.random.randn(4, 2, 3, in2_features).astype(dtype)
+    input_dict = {
+        "in1_features": in1_features,
+        "in2_features": in2_features,
+        "out_features": out_features,
+        "bias": bias,
+        "dtype": torch.float64,
+        "input1": input1,
+        "input2": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Bilinear"] = bilinear_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def ctcloss_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic example with padded targets
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    targets = np.random.randint(low=1, high=20, size=(16, 30), dtype=np.int64)
+    input_lengths = tuple(np.full(shape=(16,), fill_value=50, dtype=np.int64).tolist())
+    target_lengths = tuple(np.random.randint(low=10, high=30, size=(16,), dtype=np.int64).tolist())
+    input_dict = {
+        "blank": 0,
+        "reduction": 'mean',
+        "zero_infinity": False,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Unpadded targets
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    target_lengths = np.random.randint(low=1, high=50, size=(16,), dtype=np.int64)
+    targets = np.random.randint(low=1, high=20, size=(np.sum(target_lengths),), dtype=np.int64)
+    input_lengths = tuple(np.full(shape=(16,), fill_value=50, dtype=np.int64).tolist())
+    target_lengths = tuple(target_lengths.tolist())
+    input_dict = {
+        "blank": 0,
+        "reduction": 'sum',
+        "zero_infinity": True,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Unpadded, unbatched (N=1)
+    log_probs = torch.randn(50, 20).log_softmax(1).detach().numpy()
+    target_lengths = np.random.randint(low=1, high=50, size=(), dtype=np.int64)
+    targets = np.random.randint(low=1, high=20, size=(target_lengths,), dtype=np.int64)
+    input_lengths = (50,)
+    target_lengths = (target_lengths,)
+    input_dict = {
+        "blank": 0,
+        "reduction": 'none',
+        "zero_infinity": False,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different blank label
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    targets = np.random.randint(low=0, high=19, size=(16, 30), dtype=np.int64) + 1 # Ensure no zeros if blank is not 0
+    input_lengths = tuple(np.full(shape=(16,), fill_value=50, dtype=np.int64).tolist())
+    target_lengths = tuple(np.random.randint(low=10, high=30, size=(16,), dtype=np.int64).tolist())
+    input_dict = {
+        "blank": 19,
+        "reduction": 'mean',
+        "zero_infinity": False,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: Varying input lengths, padded targets
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    targets = np.random.randint(low=1, high=20, size=(16, 30), dtype=np.int64)
+    input_lengths = tuple(np.random.randint(low=30, high=50, size=(16,), dtype=np.int64).tolist())
+    target_lengths = tuple(np.random.randint(low=10, high=30, size=(16,), dtype=np.int64).tolist())
+    input_dict = {
+        "blank": 0,
+        "reduction": 'mean',
+        "zero_infinity": False,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: edge case target_length=1
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    targets = np.random.randint(low=1, high=20, size=(16, 1), dtype=np.int64)
+    input_lengths = tuple(np.full(shape=(16,), fill_value=50, dtype=np.int64).tolist())
+    target_lengths = tuple(np.full(shape=(16,), fill_value=1, dtype=np.int64).tolist())
+    input_dict = {
+        "blank": 0,
+        "reduction": 'mean',
+        "zero_infinity": False,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: zero_infinity=True and some input_lengths are too short
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    targets = np.random.randint(low=1, high=20, size=(16, 30), dtype=np.int64)
+    input_lengths = tuple(np.random.randint(low=1, high=30, size=(16,), dtype=np.int64).tolist())
+    target_lengths = tuple(np.random.randint(low=25, high=30, size=(16,), dtype=np.int64).tolist())
+    input_dict = {
+        "blank": 0,
+        "reduction": 'mean',
+        "zero_infinity": True,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: different shape of log_probs (T, C)
+    log_probs = torch.randn(50, 20).log_softmax(1).detach().numpy()
+    target_lengths = np.array([10], dtype=np.int64)
+    targets = np.random.randint(low=1, high=20, size=(10,), dtype=np.int64)
+    input_lengths = (50,)
+    target_lengths = tuple(target_lengths.tolist())
+
+    input_dict = {
+        "blank": 0,
+        "reduction": 'mean',
+        "zero_infinity": False,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: No reduction
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    targets = np.random.randint(low=1, high=20, size=(16, 30), dtype=np.int64)
+    input_lengths = tuple(np.full(shape=(16,), fill_value=50, dtype=np.int64).tolist())
+    target_lengths = tuple(np.random.randint(low=10, high=30, size=(16,), dtype=np.int64).tolist())
+    input_dict = {
+        "blank": 0,
+        "reduction": 'none',
+        "zero_infinity": False,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Sum reduction
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    targets = np.random.randint(low=1, high=20, size=(16, 30), dtype=np.int64)
+    input_lengths = tuple(np.full(shape=(16,), fill_value=50, dtype=np.int64).tolist())
+    target_lengths = tuple(np.random.randint(low=10, high=30, size=(16,), dtype=np.int64).tolist())
+    input_dict = {
+        "blank": 0,
+        "reduction": 'sum',
+        "zero_infinity": False,
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.CTCLoss"] = ctcloss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def constantpad2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Integer padding, positive value
+    input_tensor = torch.randn(1, 1, 3, 3).numpy()
+    padding = 1
+    value = 0.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Tuple padding, positive value
+    input_tensor = torch.randn(1, 1, 3, 3).numpy()
+    padding = (1, 2, 3, 4)
+    value = 1.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Integer padding, negative value
+    input_tensor = torch.randn(1, 1, 3, 3).numpy()
+    padding = 2
+    value = -1.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tuple padding, negative value
+    input_tensor = torch.randn(1, 1, 3, 3).numpy()
+    padding = (2, 1, 4, 3)
+    value = -2.5
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Different input shape
+    input_tensor = torch.randn(2, 3, 5, 5).numpy()
+    padding = 1
+    value = 0.5
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Different input shape and padding
+    input_tensor = torch.randn(3, 1, 4, 6).numpy()
+    padding = (0, 1, 2, 0)
+    value = 1.5
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Large padding
+    input_tensor = torch.randn(1, 1, 2, 2).numpy()
+    padding = 5
+    value = 2.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Padding with zeros
+    input_tensor = torch.randn(1, 1, 4, 4).numpy()
+    padding = (0, 0, 0, 0)
+    value = 0.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Single channel image
+    input_tensor = torch.randn(1, 1, 3, 3).numpy()
+    padding = (1, 1, 1, 1)
+    value = 1.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: C,H,W format
+    input_tensor = torch.randn(3, 5, 5).numpy()
+    padding = 2
+    value = 0.7
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Float64 input
+    input_tensor = torch.randn(1, 1, 3, 3, dtype=torch.float64).numpy()
+    padding = 1
+    value = 0.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ConstantPad2d_1"] = constantpad2d_inputs()
+
+import torch, copy
+import numpy as np
+
+def constantpad2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic padding with a single value
+    input_tensor = torch.randn(1, 1, 3, 4).numpy()
+    padding = (1, 1, 1, 1)
+    value = 0.0
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different padding values for each side
+    input_tensor = torch.randn(1, 3, 5, 5).numpy()
+    padding = (2, 0, 1, 3)
+    value = 1.5
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Zero padding
+    input_tensor = torch.randn(2, 2, 4, 6).numpy()
+    padding = (0, 0, 0, 0)
+    value = 0.0
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Large padding values
+    input_tensor = torch.randn(1, 1, 2, 2).numpy()
+    padding = (5, 5, 5, 5)
+    value = -1.0
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Padding with a different value
+    input_tensor = torch.randn(1, 3, 3, 3).numpy()
+    padding = (1, 2, 0, 1)
+    value = 2.7
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Single channel input
+    input_tensor = torch.randn(1, 1, 4, 4).numpy()
+    padding = (2, 2, 2, 2)
+    value = 0.5
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different batch size
+    input_tensor = torch.randn(4, 3, 2, 2).numpy()
+    padding = (1, 0, 1, 0)
+    value = -0.3
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Non-square input
+    input_tensor = torch.randn(1, 1, 3, 5).numpy()
+    padding = (1, 1, 2, 2)
+    value = 1.0
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Larger input tensor
+    input_tensor = torch.randn(2, 3, 10, 10).numpy()
+    padding = (3, 2, 1, 0)
+    value = 0.8
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Channel first format
+    input_tensor = torch.randn(3, 5, 5).numpy()
+    padding = (1, 1, 1, 1)
+    value = -0.5
+    input_dict = {"padding": padding, "value": float(value), "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ConstantPad2d_2"] = constantpad2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def constantpad3d_inputs():
+    list_of_inputs = []
+
+    # Input 1: int padding, simple case
+    input_tensor = torch.randn(2, 3, 4, 5, 6).numpy()
+    padding = 2
+    value = 0.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: tuple padding, different values
+    input_tensor = torch.randn(1, 1, 3, 3, 3).numpy()
+    padding = (1, 2, 0, 1, 2, 0)
+    value = 1.5
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: tuple padding, all zeros
+    input_tensor = torch.randn(4, 2, 2, 2, 2).numpy()
+    padding = (0, 0, 0, 0, 0, 0)
+    value = -1.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: int padding, negative value
+    input_tensor = torch.randn(1, 3, 5, 7, 9).numpy()
+    padding = 1
+    value = -2.5
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: tuple padding, asymmetric padding
+    input_tensor = torch.randn(2, 1, 6, 4, 8).numpy()
+    padding = (2, 1, 3, 0, 1, 2)
+    value = 0.5
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: small input tensor, int padding
+    input_tensor = torch.randn(1, 1, 1, 1, 1).numpy()
+    padding = 1
+    value = 10.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: large padding values, tuple padding
+    input_tensor = torch.randn(1, 1, 2, 2, 2).numpy()
+    padding = (5, 5, 5, 5, 5, 5)
+    value = 0.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: different shaped input
+    input_tensor = torch.randn(3, 5, 2, 7, 3).numpy()
+    padding = (1, 0, 2, 1, 0, 2)
+    value = -0.5
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: input with only channel, Din, Hin, Win dimensions
+    input_tensor = torch.randn(3, 4, 5, 6).numpy()
+    padding = 1
+    value = 2.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: input with only channel, Din, Hin, Win dimensions and tuple padding
+    input_tensor = torch.randn(3, 4, 5, 6).numpy()
+    padding = (1, 1, 2, 2, 0, 0)
+    value = 2.0
+    input_dict = {"padding": padding, "value": value, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ConstantPad3d_1"] = constantpad3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def constantpad3d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic padding with a single integer
+    input1 = torch.randn(2, 3, 4, 5, 6).numpy()
+    padding1 = (2, 2, 2, 2, 2, 2)
+    value1 = 0.0
+    input_dict1 = {"padding": padding1, "value": value1, "input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Different padding on each side
+    input2 = torch.randn(1, 1, 3, 3, 3).numpy()
+    padding2 = (1, 2, 0, 1, 2, 0)
+    value2 = 1.5
+    input_dict2 = {"padding": padding2, "value": value2, "input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Zero padding
+    input3 = torch.randn(4, 2, 5, 5, 5).numpy()
+    padding3 = (0, 0, 0, 0, 0, 0)
+    value3 = -1.0
+    input_dict3 = {"padding": padding3, "value": value3, "input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4: Only Channel Din Hin Win
+    input4 = torch.randn(3, 4, 5, 6).numpy()
+    padding4 = (1, 1, 2, 2, 0, 0)
+    value4 = 2.0
+    input_dict4 = {"padding": padding4, "value": value4, "input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5: Negative padding values (should be invalid, but testing it)
+    input5 = torch.randn(1, 1, 2, 2, 2).numpy()
+    padding5 = (-1, -1, -1, -1, -1, -1)
+    value5 = 0.5
+    input_dict5 = {"padding": padding5, "value": value5, "input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Large padding values
+    input6 = torch.randn(1, 1, 1, 1, 1).numpy()
+    padding6 = (10, 10, 10, 10, 10, 10)
+    value6 = -0.5
+    input_dict6 = {"padding": padding6, "value": value6, "input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: padding with large value
+    input7 = torch.randn(2, 3, 4, 5, 6).numpy()
+    padding7 = (2, 2, 2, 2, 2, 2)
+    value7 = 1000.0
+    input_dict7 = {"padding": padding7, "value": value7, "input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+    
+    # Input 8: padding with negative value
+    input8 = torch.randn(2, 3, 4, 5, 6).numpy()
+    padding8 = (2, 2, 2, 2, 2, 2)
+    value8 = -1000.0
+    input_dict8 = {"padding": padding8, "value": value8, "input": input8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9: padding with zero value
+    input9 = torch.randn(2, 3, 4, 5, 6).numpy()
+    padding9 = (2, 2, 2, 2, 2, 2)
+    value9 = 0.0
+    input_dict9 = {"padding": padding9, "value": value9, "input": input9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: different padding values, some zero
+    input10 = torch.randn(1, 1, 3, 3, 3).numpy()
+    padding10 = (0, 2, 0, 1, 1, 0)
+    value10 = 1.5
+    input_dict10 = {"padding": padding10, "value": value10, "input": input10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: test different input shape
+    input11 = torch.randn(1, 3, 1, 1, 1).numpy()
+    padding11 = (1, 2, 0, 1, 2, 0)
+    value11 = 1.5
+    input_dict11 = {"padding": padding11, "value": value11, "input": input11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.ConstantPad3d_2"] = constantpad3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = np.int32(3)
+    out_channels = np.int32(5)
+    kernel_size = np.int32(2)
+    stride = np.int32(1)
+    padding = np.int32(0)
+    dilation = np.int32(1)
+    groups = np.int32(1)
+    bias = np.bool_(True)
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = torch.randn(1, 3, 10, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = np.int32(5)
+    out_channels = np.int32(10)
+    kernel_size = np.int32(3)
+    stride = np.int32(2)
+    padding = np.int32(1)
+    dilation = np.int32(1)
+    groups = np.int32(1)
+    bias = np.bool_(False)
+    padding_mode = "reflect"
+    dtype = torch.float64
+    input = torch.randn(2, 5, 20, dtype=torch.float64).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = np.int32(4)
+    out_channels = np.int32(8)
+    kernel_size = np.int32(4)
+    stride = np.int32(1)
+    padding = np.int32(2)
+    dilation = np.int32(2)
+    groups = np.int32(2)
+    bias = np.bool_(True)
+    padding_mode = "replicate"
+    dtype = torch.float32
+    input = torch.randn(1, 4, 30, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = np.int32(2)
+    out_channels = np.int32(4)
+    kernel_size = np.int32(5)
+    stride = np.int32(3)
+    padding = np.int32(0)
+    dilation = np.int32(1)
+    groups = np.int32(1)
+    bias = np.bool_(False)
+    padding_mode = "circular"
+    dtype = torch.float64
+    input = torch.randn(3, 2, 40, dtype=torch.float64).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = np.int32(1)
+    out_channels = np.int32(1)
+    kernel_size = np.int32(1)
+    stride = np.int32(1)
+    padding = np.int32(0)
+    dilation = np.int32(1)
+    groups = np.int32(1)
+    bias = np.bool_(True)
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = torch.randn(1, 1, 50, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6
+    in_channels = np.int32(7)
+    out_channels = np.int32(14)
+    kernel_size = np.int32(3)
+    stride = np.int32(2)
+    padding = np.int32(1)
+    dilation = np.int32(1)
+    groups = np.int32(7)
+    bias = np.bool_(False)
+    padding_mode = "reflect"
+    dtype = torch.float64
+    input = torch.randn(2, 7, 25, dtype=torch.float64).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = np.int32(6)
+    out_channels = np.int32(12)
+    kernel_size = np.int32(2)
+    stride = np.int32(1)
+    padding = np.int32(2)
+    dilation = np.int32(2)
+    groups = np.int32(6)
+    bias = np.bool_(True)
+    padding_mode = "replicate"
+    dtype = torch.float32
+    input = torch.randn(1, 6, 35, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = np.int32(8)
+    out_channels = np.int32(8)
+    kernel_size = np.int32(4)
+    stride = np.int32(3)
+    padding = np.int32(0)
+    dilation = np.int32(1)
+    groups = np.int32(8)
+    bias = np.bool_(False)
+    padding_mode = "circular"
+    dtype = torch.float64
+    input = torch.randn(3, 8, 45, dtype=torch.float64).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = np.int32(9)
+    out_channels = np.int32(18)
+    kernel_size = np.int32(1)
+    stride = np.int32(1)
+    padding = np.int32(0)
+    dilation = np.int32(1)
+    groups = np.int32(9)
+    bias = np.bool_(True)
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = torch.randn(1, 9, 55, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = np.int32(10)
+    out_channels = np.int32(15)
+    kernel_size = np.int32(3)
+    stride = np.int32(2)
+    padding = np.int32(1)
+    dilation = np.int32(1)
+    groups = np.int32(5)
+    bias = np.bool_(False)
+    padding_mode = "reflect"
+    dtype = torch.float64
+    input = torch.randn(2, 10, 28, dtype=torch.float64).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv1d"] = conv1d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 16
+    kernel_size = 3
+    stride = 1
+    padding = 0
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 1
+    out_channels = 32
+    kernel_size = 5
+    stride = 2
+    padding = 1
+    dilation = 1
+    groups = 1
+    bias = False
+    padding_mode = 'reflect'
+    dtype = np.float64
+    input = np.random.rand(4, in_channels, 64, 64).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float64, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = 64
+    out_channels = 128
+    kernel_size = 7
+    stride = 3
+    padding = 2
+    dilation = 2
+    groups = 4
+    bias = True
+    padding_mode = 'replicate'
+    dtype = np.float16
+    input = np.random.rand(2, in_channels, 128, 128).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float16, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = 3
+    out_channels = 3
+    kernel_size = 3
+    stride = 1
+    padding = 1
+    dilation = 1
+    groups = 3
+    bias = False
+    padding_mode = 'circular'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = 16
+    out_channels = 32
+    kernel_size = 3
+    stride = 1
+    padding = 0
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: tuple kernel_size and stride
+    in_channels = 3
+    out_channels = 16
+    kernel_size = (3, 5)
+    stride = (1, 2)
+    padding = (2, 1)
+    dilation = (1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: tuple dilation
+    in_channels = 3
+    out_channels = 16
+    kernel_size = 3
+    stride = 1
+    padding = 0
+    dilation = 2
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: different input size
+    in_channels = 3
+    out_channels = 16
+    kernel_size = 3
+    stride = 1
+    padding = 0
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 64, 64).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: larger kernel size
+    in_channels = 3
+    out_channels = 16
+    kernel_size = 5
+    stride = 1
+    padding = 0
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Groups > 1
+    in_channels = 4
+    out_channels = 8
+    kernel_size = 3
+    stride = 1
+    padding = 1
+    dilation = 1
+    groups = 2
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Groups == in_channels
+    in_channels = 4
+    out_channels = 4*2
+    kernel_size = 3
+    stride = 1
+    padding = 1
+    dilation = 1
+    groups = in_channels
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': torch.float32, 'input': input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv2d_1"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = np.int32(3)
+    out_channels = np.int32(16)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = (np.int32(1), np.int32(1))
+    padding = (np.int32(1), np.int32(1))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, 3, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = np.int32(1)
+    out_channels = np.int32(4)
+    kernel_size = (np.int32(5), np.int32(5))
+    stride = (np.int32(2), np.int32(2))
+    padding = (np.int32(0), np.int32(0))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = False
+    padding_mode = 'zeros'  # Changed from 'valid'
+    dtype = np.float64
+    input = np.random.rand(1, 1, 64, 64).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = np.int32(3)
+    out_channels = np.int32(32)
+    kernel_size = (np.int32(3), np.int32(5))
+    stride = (np.int32(1), np.int32(2))
+    padding = (np.int32(2), np.int32(4))
+    dilation = (np.int32(2), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = 'reflect'
+    dtype = np.float32
+    input = np.random.rand(1, 3, 28, 28).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = np.int32(64)
+    out_channels = np.int32(128)
+    kernel_size = (np.int32(1), np.int32(1))
+    stride = (np.int32(1), np.int32(1))
+    padding = (np.int32(0), np.int32(0))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = False
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input = np.random.rand(1, 64, 16, 16).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = np.int32(3)
+    out_channels = np.int32(6)
+    kernel_size = (np.int32(7), np.int32(7))
+    stride = (np.int32(4), np.int32(4))
+    padding = (np.int32(3), np.int32(3))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(3)
+    bias = True
+    padding_mode = 'replicate'
+    dtype = np.float32
+    input = np.random.rand(1, 3, 128, 128).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in_channels = np.int32(16)
+    out_channels = np.int32(32)
+    kernel_size = (np.int32(2), np.int32(4))
+    stride = (np.int32(1), np.int32(1))
+    padding = (np.int32(1), np.int32(2))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = 'circular'
+    dtype = np.float32
+    input = np.random.rand(1, 16, 32, 64).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = np.int32(1)
+    out_channels = np.int32(1)
+    kernel_size = (np.int32(1), np.int32(1))
+    stride = (np.int32(1), np.int32(1))
+    padding = (np.int32(0), np.int32(0))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, 1, 10, 10).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = np.int32(3)
+    out_channels = np.int32(24)
+    kernel_size = (np.int32(4), np.int32(4))
+    stride = (np.int32(2), np.int32(2))
+    padding = (np.int32(1), np.int32(1))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(3)
+    bias = False
+    padding_mode = 'reflect'
+    dtype = np.float32
+    input = np.random.rand(1, 3, 64, 64).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = np.int32(2)
+    out_channels = np.int32(4)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = (np.int32(1), np.int32(1))
+    padding = (np.int32(1), np.int32(1))
+    dilation = (np.int32(2), np.int32(2))
+    groups = np.int32(2)
+    bias = True
+    padding_mode = 'circular'
+    dtype = np.float32
+    input = np.random.rand(1, 2, 16, 16).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = np.int32(8)
+    out_channels = np.int32(8)
+    kernel_size = (np.int32(5), np.int32(5))
+    stride = (np.int32(2), np.int32(2))
+    padding = (np.int32(2), np.int32(2))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(8)
+    bias = False
+    padding_mode = 'replicate'
+    dtype = np.float32
+    input = np.random.rand(1, 8, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    in_channels = np.int32(4)
+    out_channels = np.int32(8)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = (np.int32(1), np.int32(1))
+    padding = (np.int32(1), np.int32(1))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, 4, 20, 20).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    in_channels = np.int32(2)
+    out_channels = np.int32(2)
+    kernel_size = (np.int32(2), np.int32(2))
+    stride = (np.int32(1), np.int32(1))
+    padding = (np.int32(0), np.int32(0))
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(2)
+    bias = False
+    padding_mode = 'zeros'  # Changed from 'valid'
+    dtype = np.float64
+    input = np.random.rand(1, 2, 10, 10).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv2d_2"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 16
+    kernel_size = (3, 3)
+    stride = 1
+    padding = 0
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float32,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 1
+    out_channels = 4
+    kernel_size = (5, 5)
+    stride = 2
+    padding = 1
+    dilation = 2
+    groups = 1
+    bias = False
+    padding_mode = 'reflect'
+    dtype = np.float64
+    input = np.random.rand(2, in_channels, 64, 64).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float64,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = 32
+    out_channels = 64
+    kernel_size = (1, 1)
+    stride = 1
+    padding = 0
+    dilation = 1
+    groups = 2
+    bias = True
+    padding_mode = 'replicate'
+    dtype = np.float16
+    input = np.random.rand(4, in_channels, 128, 128).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float16,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = 8
+    out_channels = 16
+    kernel_size = (7, 7)
+    stride = 3
+    padding = 2
+    dilation = 1
+    groups = 4
+    bias = False
+    padding_mode = 'circular'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 256, 256).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float32,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 5
+    in_channels = 1
+    out_channels = 1
+    kernel_size = (3, 3)
+    stride = 1
+    padding = 1
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 10, 10).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float32,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in_channels = 4
+    out_channels = 8
+    kernel_size = (2, 2)
+    stride = 1
+    padding = 0
+    dilation = 1
+    groups = 2
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(2, in_channels, 16, 16).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float32,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = 3
+    out_channels = 3
+    kernel_size = (3, 3)
+    stride = 1
+    padding = 1
+    dilation = 1
+    groups = 3
+    bias = False
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 20, 20).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float32,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = 16
+    out_channels = 32
+    kernel_size = (3, 3)
+    stride = 2
+    padding = 1
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(4, in_channels, 64, 64).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float32,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = 3
+    out_channels = 6
+    kernel_size = (5, 5)
+    stride = 1
+    padding = 2
+    dilation = 1
+    groups = 3
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float32,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = 1
+    out_channels = 1
+    kernel_size = (3, 3)
+    stride = 1
+    padding = 1
+    dilation = 1
+    groups = 1
+    bias = False
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 10, 10).astype(dtype)
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'dilation': dilation,
+        'groups': groups,
+        'bias': bias,
+        'padding_mode': padding_mode,
+        'dtype': torch.float32,
+        'input': input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv2d_3"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 16
+    kernel_size = 3
+    stride = (1, 1)
+    padding = (1, 1)
+    dilation = (1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 1
+    out_channels = 4
+    kernel_size = 5
+    stride = (2, 2)
+    padding = (0, 0)
+    dilation = (1, 1)
+    groups = 1
+    bias = False
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input = np.random.rand(1, in_channels, 64, 64).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = 3
+    out_channels = 6
+    kernel_size = 3
+    stride = (1, 2)
+    padding = (2, 1)
+    dilation = (2, 1)
+    groups = 3
+    bias = True
+    padding_mode = 'reflect'
+    dtype = np.float32
+    input = np.random.rand(2, in_channels, 28, 28).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = 4
+    out_channels = 8
+    kernel_size = 2
+    stride = (3, 1)
+    padding = (1, 0)
+    dilation = (1, 2)
+    groups = 2
+    bias = False
+    padding_mode = 'replicate'
+    dtype = np.float64
+    input = np.random.rand(1, in_channels, 16, 16).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = 2
+    out_channels = 4
+    kernel_size = 4
+    stride = (1, 1)
+    padding = (2, 2)
+    dilation = (1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'circular'
+    dtype = np.float32
+    input = np.random.rand(4, in_channels, 24, 24).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    in_channels = 5
+    out_channels = 5
+    kernel_size = 1
+    stride = (1, 1)
+    padding = (0, 0)
+    dilation = (1, 1)
+    groups = 5
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 10, 10).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    in_channels = 7
+    out_channels = 14
+    kernel_size = 2
+    stride = (2, 2)
+    padding = (1, 1)
+    dilation = (1, 1)
+    groups = 7
+    bias = False
+    padding_mode = 'reflect'
+    dtype = np.float64
+    input = np.random.rand(2, in_channels, 14, 14).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = 9
+    out_channels = 18
+    kernel_size = 3
+    stride = (1, 1)
+    padding = (1, 1)
+    dilation = (2, 2)
+    groups = 9
+    bias = True
+    padding_mode = 'replicate'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 20, 20).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = 11
+    out_channels = 22
+    kernel_size = 4
+    stride = (2, 1)
+    padding = (2, 0)
+    dilation = (1, 2)
+    groups = 11
+    bias = False
+    padding_mode = 'circular'
+    dtype = np.float64
+    input = np.random.rand(4, in_channels, 22, 22).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    in_channels = 13
+    out_channels = 13
+    kernel_size = 1
+    stride = (1, 1)
+    padding = (0, 0)
+    dilation = (1, 1)
+    groups = 13
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 12, 12).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv2d_4"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 16
+    kernel_size = 3
+    stride = 1
+    padding = 'valid'
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.randn(2, in_channels, 28, 28).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 1
+    out_channels = 4
+    kernel_size = 5
+    stride = 2
+    padding = 'valid'
+    dilation = 1
+    groups = 1
+    bias = False
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input = np.random.randn(1, in_channels, 64, 64).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = 3
+    out_channels = 6
+    kernel_size = 3
+    stride = 1
+    padding = 'same'
+    dilation = 1
+    groups = 3
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.randn(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = 4
+    out_channels = 8
+    kernel_size = 2
+    stride = 1
+    padding = 'valid'
+    dilation = 2
+    groups = 2
+    bias = False
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input = np.random.randn(4, in_channels, 16, 16).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = 2
+    out_channels = 4
+    kernel_size = 4
+    stride = 2
+    padding = 'valid'
+    dilation = 2
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.randn(1, in_channels, 20, 20).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    in_channels = 3
+    out_channels = 3
+    kernel_size = 3
+    stride = 1
+    padding = 'same'
+    dilation = 1
+    groups = 3
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.randn(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    in_channels = 5
+    out_channels = 10
+    kernel_size = 3
+    stride = 1
+    padding = 'valid'
+    dilation = 1
+    groups = 5
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.randn(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = 1
+    out_channels = 1
+    kernel_size = 3
+    stride = 1
+    padding = 'valid'
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.randn(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = 7
+    out_channels = 14
+    kernel_size = 3
+    stride = 1
+    padding = 'valid'
+    dilation = 1
+    groups = 7
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.randn(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    in_channels = 9
+    out_channels = 9
+    kernel_size = 3
+    stride = 1
+    padding = 'same'
+    dilation = 1
+    groups = 9
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.randn(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv2d_5"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = np.int32(3)
+    out_channels = np.int32(16)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = np.int32(1)
+    padding = 0
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = np.int32(1)
+    out_channels = np.int32(4)
+    kernel_size = (np.int32(5), np.int32(5))
+    stride = np.int32(1)
+    padding = 2
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = False
+    padding_mode = "zeros"
+    dtype = torch.float64
+    input = np.random.rand(1, 1, 64, 64).astype(np.float64)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = np.int32(3)
+    out_channels = np.int32(32)
+    kernel_size = (np.int32(3), np.int32(5))
+    stride = np.int32(1)
+    padding = 0
+    dilation = (np.int32(2), np.int32(2))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = np.random.rand(2, 3, 128, 128).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = np.int32(64)
+    out_channels = np.int32(128)
+    kernel_size = (np.int32(1), np.int32(1))
+    stride = np.int32(1)
+    padding = 0
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(2)
+    bias = False
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = np.random.rand(4, 64, 64, 64).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = np.int32(3)
+    out_channels = np.int32(6)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = np.int32(1)
+    padding = 1
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(3)
+    bias = True
+    padding_mode = "circular"
+    dtype = torch.float32
+    input = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in_channels = np.int32(3)
+    out_channels = np.int32(32)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = np.int32(1)
+    padding = 0
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = "reflect"
+    dtype = torch.float32
+    input = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = np.int32(3)
+    out_channels = np.int32(32)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = np.int32(1)
+    padding = 0
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = "replicate"
+    dtype = torch.float32
+    input = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = np.int32(16)
+    out_channels = np.int32(32)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = np.int32(1)
+    padding = 0
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = np.random.rand(1, 16, 32, 32).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = np.int32(1)
+    out_channels = np.int32(1)
+    kernel_size = (np.int32(1), np.int32(1))
+    stride = np.int32(1)
+    padding = 0
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = np.random.rand(1, 1, 32, 32).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = np.int32(1)
+    out_channels = np.int32(2)
+    kernel_size = (np.int32(3), np.int32(3))
+    stride = np.int32(1)
+    padding = 0
+    dilation = (np.int32(1), np.int32(1))
+    groups = np.int32(1)
+    bias = True
+    padding_mode = "zeros"
+    dtype = torch.float32
+    input = np.random.rand(1, 1, 32, 32).astype(np.float32)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv2d_6"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 16
+    kernel_size = (3, 3)
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = (1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input_tensor = torch.randn(1, in_channels, 32, 32).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 1
+    out_channels = 4
+    kernel_size = (5, 5)
+    stride = (1, 1)
+    padding = 'same'
+    dilation = (1, 1)
+    groups = 1
+    bias = False
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input_tensor = torch.randn(4, in_channels, 64, 64).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = 3
+    out_channels = 32
+    kernel_size = (7, 7)
+    stride = (1, 2)
+    padding = 'valid'
+    dilation = (2, 2)
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input_tensor = torch.randn(1, in_channels, 128, 128).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    in_channels = 8
+    out_channels = 16
+    kernel_size = (3, 5)
+    stride = (2, 1)
+    padding = (1, 2)
+    dilation = (1, 1)
+    groups = 2
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input_tensor = torch.randn(2, in_channels, 64, 128).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = 4
+    out_channels = 12
+    kernel_size = (2, 2)
+    stride = (1, 1)
+    padding = 'same'
+    dilation = (1, 1)
+    groups = 4
+    bias = False
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input_tensor = torch.randn(1, in_channels, 16, 16).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in_channels = 3
+    out_channels = 16
+    kernel_size = (3, 3)
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = (1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'reflect'
+    dtype = torch.float32
+    input_tensor = torch.randn(1, in_channels, 32, 32).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    in_channels = 3
+    out_channels = 16
+    kernel_size = (3, 3)
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = (1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'replicate'
+    dtype = torch.float32
+    input_tensor = torch.randn(1, in_channels, 32, 32).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    in_channels = 3
+    out_channels = 16
+    kernel_size = (3, 3)
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = (1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'circular'
+    dtype = torch.float32
+    input_tensor = torch.randn(1, in_channels, 32, 32).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = 3
+    out_channels = 3
+    kernel_size = (3, 3)
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = (1, 1)
+    groups = 3
+    bias = False
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input_tensor = torch.randn(1, in_channels, 32, 32).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = 1
+    out_channels = 1
+    kernel_size = (1, 1)
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = (1, 1)
+    groups = 1
+    bias = False
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input_tensor = torch.randn(1, in_channels, 32, 32).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    in_channels = 1
+    out_channels = 1
+    kernel_size = (1, 1)
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = (1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input_tensor = torch.randn(1, in_channels, 32, 32).type(dtype).numpy()
+    input_dict = {'in_channels': in_channels, 'out_channels': out_channels, 'kernel_size': kernel_size,
+                  'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups,
+                  'bias': bias, 'padding_mode': padding_mode, 'dtype': dtype, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv2d_7"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 16
+    kernel_size = 3
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(1, in_channels, 32, 32).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 1
+    out_channels = 4
+    kernel_size = 5
+    stride = (1, 1)
+    padding = 'same'
+    dilation = 1
+    groups = 1
+    bias = False
+    padding_mode = 'reflect'
+    dtype = np.float64
+    input_tensor = np.random.rand(4, in_channels, 64, 64).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3
+    in_channels = 3
+    out_channels = 6
+    kernel_size = 7
+    stride = (1, 2)
+    padding = 0
+    dilation = 2
+    groups = 3
+    bias = True
+    padding_mode = 'replicate'
+    dtype = np.float32
+    input_tensor = np.random.rand(2, in_channels, 128, 128).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = 8
+    out_channels = 16
+    kernel_size = 3
+    stride = (2, 1)
+    padding = 1
+    dilation = 1
+    groups = 4
+    bias = False
+    padding_mode = 'circular'
+    dtype = np.float64
+    input_tensor = np.random.rand(1, in_channels, 256, 256).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = 3
+    out_channels = 32
+    kernel_size = 1
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(8, in_channels, 16, 16).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in_channels = 1
+    out_channels = 8
+    kernel_size = 2
+    stride = (1, 1)
+    padding = 1
+    dilation = 1
+    groups = 1
+    bias = False
+    padding_mode = 'reflect'
+    dtype = np.float64
+    input_tensor = np.random.rand(1, in_channels, 128, 128).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    in_channels = 4
+    out_channels = 12
+    kernel_size = 4
+    stride = (2, 2)
+    padding = 'valid'
+    dilation = 2
+    groups = 4
+    bias = True
+    padding_mode = 'replicate'
+    dtype = np.float32
+    input_tensor = np.random.rand(4, in_channels, 64, 64).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = 16
+    out_channels = 32
+    kernel_size = 5
+    stride = (1, 1)
+    padding = 'same'
+    dilation = 1
+    groups = 8
+    bias = False
+    padding_mode = 'circular'
+    dtype = np.float64
+    input_tensor = np.random.rand(2, in_channels, 32, 32).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = 1
+    out_channels = 1
+    kernel_size = 3
+    stride = (1, 1)
+    padding = 'valid'
+    dilation = 1
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(1, in_channels, 28, 28).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = 3
+    out_channels = 3
+    kernel_size = 3
+    stride = (2, 2)
+    padding = 1
+    dilation = 1
+    groups = 3
+    bias = True
+    padding_mode = 'reflect'
+    dtype = np.float64
+    input_tensor = np.random.rand(1, in_channels, 64, 64).astype(dtype)
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv2d_8"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    input_dict1 = {
+        "in_channels": 3,
+        "out_channels": 5,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1,
+        "bias": True,
+        "padding_mode": 'zeros',
+        "dtype": torch.float32,
+        "input": input1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = np.random.rand(1, 16, 20, 20, 20).astype(np.float64)
+    input_dict2 = {
+        "in_channels": 16,
+        "out_channels": 32,
+        "kernel_size": (3, 5, 2),
+        "stride": (2, 1, 1),
+        "padding": (4, 2, 0),
+        "dilation": 1,
+        "groups": 1,
+        "bias": False,
+        "padding_mode": 'zeros',
+        "dtype": torch.float64,
+        "input": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = np.random.rand(4, 8, 15, 15, 15).astype(np.float32)
+    input_dict3 = {
+        "in_channels": 8,
+        "out_channels": 16,
+        "kernel_size": 5,
+        "stride": 2,
+        "padding": 1,
+        "dilation": 2,
+        "groups": 2,
+        "bias": True,
+        "padding_mode": 'reflect',
+        "dtype": torch.float32,
+        "input": input3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4
+    input4 = np.random.rand(1, 4, 12, 12, 12).astype(np.float64)
+    input_dict4 = {
+        "in_channels": 4,
+        "out_channels": 12,
+        "kernel_size": (2, 3, 4),
+        "stride": (1, 2, 1),
+        "padding": (1, 0, 1),
+        "dilation": (2, 1, 1),
+        "groups": 4,
+        "bias": False,
+        "padding_mode": 'replicate',
+        "dtype": torch.float64,
+        "input": input4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5
+    input5 = np.random.rand(2, 3, 8, 8, 8).astype(np.float32)
+    input_dict5 = {
+        "in_channels": 3,
+        "out_channels": 6,
+        "kernel_size": 2,
+        "stride": 1,
+        "padding": 'same',
+        "dilation": 1,
+        "groups": 1,
+        "bias": True,
+        "padding_mode": 'zeros',
+        "dtype": torch.float32,
+        "input": input5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6
+    input6 = np.random.rand(1, 1, 16, 16, 16).astype(np.float64)
+    input_dict6 = {
+        "in_channels": 1,
+        "out_channels": 1,
+        "kernel_size": 7,
+        "stride": 1,
+        "padding": 'valid',
+        "dilation": 1,
+        "groups": 1,
+        "bias": True,
+        "padding_mode": 'zeros',
+        "dtype": torch.float64,
+        "input": input6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: depthwise convolution
+    input7 = np.random.rand(1, 3, 10, 10, 10).astype(np.float32)
+    input_dict7 = {
+        "in_channels": 3,
+        "out_channels": 6,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 1,
+        "dilation": 1,
+        "groups": 3,
+        "bias": True,
+        "padding_mode": 'zeros',
+        "dtype": torch.float32,
+        "input": input7
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8
+    input8 = np.random.rand(2, 4, 12, 12, 12).astype(np.float64)
+    input_dict8 = {
+        "in_channels": 4,
+        "out_channels": 8,
+        "kernel_size": (2, 2, 2),
+        "stride": (2, 2, 2),
+        "padding": (0, 0, 0),
+        "dilation": (1, 1, 1),
+        "groups": 1,
+        "bias": True,
+        "padding_mode": 'circular',
+        "dtype": torch.float64,
+        "input": input8
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9
+    input9 = np.random.rand(1, 2, 15, 15, 15).astype(np.float32)
+    input_dict9 = {
+        "in_channels": 2,
+        "out_channels": 4,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 2,
+        "dilation": 1,
+        "groups": 1,
+        "bias": False,
+        "padding_mode": 'reflect',
+        "dtype": torch.float32,
+        "input": input9
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10
+    input10 = np.random.rand(3, 1, 20, 20, 20).astype(np.float64)
+    input_dict10 = {
+        "in_channels": 1,
+        "out_channels": 2,
+        "kernel_size": (5, 5, 5),
+        "stride": (1, 1, 1),
+        "padding": (1, 1, 1),
+        "dilation": (2, 2, 2),
+        "groups": 1,
+        "bias": True,
+        "padding_mode": 'replicate',
+        "dtype": torch.float64,
+        "input": input10
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv3d"] = conv3d_inputs()
+
+import torch, copy
+import numpy as np
+
+def conv3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = np.int64(3)
+    out_channels = np.int64(5)
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    dilation = (1, 1, 1)
+    groups = np.int64(1)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 3, 10, 10, 10, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = np.int64(3)
+    out_channels = np.int64(6)
+    kernel_size = (5, 5, 5)
+    stride = (2, 2, 2)
+    padding = (1, 1, 1)
+    dilation = (1, 1, 1)
+    groups = np.int64(3)
+    bias = False
+    padding_mode = 'reflect'
+    dtype = torch.float64
+    input = torch.randn(2, 3, 20, 20, 20, dtype=torch.float64).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = np.int64(4)
+    out_channels = np.int64(8)
+    kernel_size = (2, 3, 4)
+    stride = (1, 2, 3)
+    padding = (2, 0, 1)
+    dilation = (2, 1, 1)
+    groups = np.int64(2)
+    bias = True
+    padding_mode = 'replicate'
+    dtype = torch.float16
+    input = torch.randn(4, 4, 15, 25, 35, dtype=torch.float16).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = np.int64(1)
+    out_channels = np.int64(1)
+    kernel_size = (1, 1, 1)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    dilation = (1, 1, 1)
+    groups = np.int64(1)
+    bias = False
+    padding_mode = 'circular'
+    dtype = torch.float32
+    input = torch.randn(1, 1, 5, 5, 5, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = np.int64(2)
+    out_channels = np.int64(4)
+    kernel_size = (3, 4, 5)
+    stride = (1, 1, 1)
+    padding = (1, 2, 0)
+    dilation = (1, 1, 1)
+    groups = np.int64(1)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.randn(1, 2, 12, 15, 18, dtype=torch.float64).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    in_channels = np.int64(5)
+    out_channels = np.int64(5)
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    dilation = (1, 1, 1)
+    groups = np.int64(5)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 5, 10, 10, 10, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = np.int64(16)
+    out_channels = np.int64(32)
+    kernel_size = (3, 3, 3)
+    stride = (2, 2, 2)
+    padding = (1, 1, 1)
+    dilation = (1, 1, 1)
+    groups = np.int64(1)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 16, 16, 16, 16, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = np.int64(8)
+    out_channels = np.int64(16)
+    kernel_size = (5, 5, 5)
+    stride = (1, 1, 1)
+    padding = (2, 2, 2)
+    dilation = (2, 2, 2)
+    groups = np.int64(1)
+    bias = False
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 8, 32, 32, 32, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = np.int64(4)
+    out_channels = np.int64(8)
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    dilation = (1, 1, 1)
+    groups = np.int64(2)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 4, 10, 10, 10, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 10
+    in_channels = np.int64(3)
+    out_channels = np.int64(5)
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    dilation = (1, 1, 1)
+    groups = np.int64(1)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.randn(1, 3, 10, 10, 10, dtype=torch.float64).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: depthwise convolution
+    in_channels = np.int64(3)
+    out_channels = np.int64(3 * 2)  # K = 2
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    dilation = (1, 1, 1)
+    groups = np.int64(3)
+    bias = True
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 3, 10, 10, 10, dtype=torch.float32).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": groups,
+        "bias": bias,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv3d_2"] = conv3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    dtype1 = np.dtype(np.float32)
+    input_dict1 = {
+        "in_channels": 3,
+        "out_channels": 5,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": "valid",
+        "dilation": 1,
+        "groups": 1,
+        "bias": True,
+        "padding_mode": "zeros",
+        "dtype": dtype1,
+        "input": input1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = np.random.rand(1, 4, 8, 12, 16).astype(np.float64)
+    dtype2 = np.dtype(np.float64)
+
+    input_dict2 = {
+        "in_channels": 4,
+        "out_channels": 8,
+        "kernel_size": 2,
+        "stride": 1,
+        "padding": "same",
+        "dilation": 1,
+        "groups": 2,
+        "bias": False,
+        "padding_mode": "replicate",
+        "dtype": dtype2,
+        "input": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = np.random.rand(3, 2, 5, 7, 9).astype(np.float32)
+    dtype3 = np.dtype(np.float32)
+
+    input_dict3 = {
+        "in_channels": 2,
+        "out_channels": 4,
+        "kernel_size": (3, 3, 3),
+        "stride": (1, 1, 1),
+        "padding": (1, 1, 1),
+        "dilation": (1, 1, 1),
+        "groups": 1,
+        "bias": True,
+        "padding_mode": "zeros",
+        "dtype": dtype3,
+        "input": input3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv3d_3"] = conv3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 5
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = 'valid'
+    dilation = (1, 1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(2, in_channels, 10, 10, 10).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 1
+    out_channels = 1
+    kernel_size = (5, 5, 5)
+    stride = (1, 1, 1)
+    padding = (2,2,2)
+    dilation = (1, 1, 1)
+    groups = 1
+    bias = False
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input = np.random.rand(1, in_channels, 20, 20, 20).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = 4
+    out_channels = 8
+    kernel_size = (2, 3, 4)
+    stride = (1, 2, 1)
+    padding = 'valid'
+    dilation = (2, 2, 2)
+    groups = 2
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(5, in_channels, 15, 25, 10).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = 2
+    out_channels = 4
+    kernel_size = (1, 1, 1)
+    stride = (1, 1, 1)
+    padding = (0,0,0)
+    dilation = (1, 1, 1)
+    groups = 2
+    bias = False
+    padding_mode = 'circular'
+    dtype = np.float64
+    input = np.random.rand(3, in_channels, 8, 12, 16).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = 3
+    out_channels = 9
+    kernel_size = (4, 4, 4)
+    stride = (2, 2, 2)
+    padding = 'valid'
+    dilation = (1, 1, 1)
+    groups = 3
+    bias = True
+    padding_mode = 'replicate'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 16, 16, 16).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in_channels = 1
+    out_channels = 2
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (1,1,1)
+    dilation = (2, 2, 2)
+    groups = 1
+    bias = False
+    padding_mode = 'reflect'
+    dtype = np.float64
+    input = np.random.rand(4, in_channels, 9, 11, 13).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = 5
+    out_channels = 5
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = 'valid'
+    dilation = (1, 1, 1)
+    groups = 5
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(2, in_channels, 12, 14, 16).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = 3
+    out_channels = 6
+    kernel_size = (2, 2, 2)
+    stride = (1, 1, 1)
+    padding = (1,1,1)
+    dilation = (1, 1, 1)
+    groups = 3
+    bias = False
+    padding_mode = 'circular'
+    dtype = np.float64
+    input = np.random.rand(1, in_channels, 7, 9, 11).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = 4
+    out_channels = 12
+    kernel_size = (1, 2, 3)
+    stride = (1, 1, 1)
+    padding = 'valid'
+    dilation = (1, 1, 1)
+    groups = 4
+    bias = True
+    padding_mode = 'replicate'
+    dtype = np.float32
+    input = np.random.rand(6, in_channels, 18, 20, 22).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = 2
+    out_channels = 4
+    kernel_size = (3, 1, 2)
+    stride = (2, 1, 1)
+    padding = (1,0,0)
+    dilation = (1, 1, 1)
+    groups = 1
+    bias = False
+    padding_mode = 'reflect'
+    dtype = np.float64
+    input = np.random.rand(3, in_channels, 5, 7, 9).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    in_channels = 1
+    out_channels = 1
+    kernel_size = (2, 2, 2)
+    stride = (1, 1, 1)
+    padding = 'valid'
+    dilation = (1, 1, 1)
+    groups = 1
+    bias = True
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input = np.random.rand(1, in_channels, 4, 4, 4).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    in_channels = 2
+    out_channels = 4
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (1,1,1)
+    dilation = (1, 1, 1)
+    groups = 2
+    bias = False
+    padding_mode = 'circular'
+    dtype = np.float64
+    input = np.random.rand(2, in_channels, 10, 10, 10).astype(dtype)
+
+    input_dict = {
+        "in_channels": int(in_channels),
+        "out_channels": int(out_channels),
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "groups": int(groups),
+        "bias": bool(bias),
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Conv3d_4"] = conv3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def convtranspose1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 5
+    kernel_size = (3,)
+    stride = (1,)
+    padding = (0,)
+    output_padding = (0,)
+    groups = 1
+    bias = True
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(2, in_channels, 10).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 4
+    out_channels = 8
+    kernel_size = (5,)
+    stride = (2,)
+    padding = (1,)
+    output_padding = (1,)
+    groups = 2
+    bias = False
+    dilation = (2,)
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input_tensor = np.random.rand(1, in_channels, 15).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 3
+    in_channels = 2
+    out_channels = 4
+    kernel_size = (7,)
+    stride = (3,)
+    padding = (2,)
+    output_padding = (0,)
+    groups = 1
+    bias = True
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(3, in_channels, 20).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = 6
+    out_channels = 6
+    kernel_size = (3,)
+    stride = (1,)
+    padding = (1,)
+    output_padding = (0,)
+    groups = 3
+    bias = False
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input_tensor = np.random.rand(1, in_channels, 12).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = 1
+    out_channels = 1
+    kernel_size = (2,)
+    stride = (2,)
+    padding = (0,)
+    output_padding = (1,)
+    groups = 1
+    bias = True
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(4, in_channels, 8).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    in_channels = 7
+    out_channels = 14
+    kernel_size = (4,)
+    stride = (2,)
+    padding = (1,)
+    output_padding = (0,)
+    groups = 7
+    bias = True
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(1, in_channels, 16).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = 3
+    out_channels = 1
+    kernel_size = (5,)
+    stride = (1,)
+    padding = (2,)
+    output_padding = (0,)
+    groups = 1
+    bias = False
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input_tensor = np.random.rand(2, in_channels, 25).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    in_channels = 5
+    out_channels = 5
+    kernel_size = (3,)
+    stride = (3,)
+    padding = (0,)
+    output_padding = (2,)
+    groups = 5
+    bias = True
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(1, in_channels, 11).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = 4
+    out_channels = 12
+    kernel_size = (6,)
+    stride = (2,)
+    padding = (1,)
+    output_padding = (1,)
+    groups = 2
+    bias = False
+    dilation = (2,)
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input_tensor = np.random.rand(3, in_channels, 18).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = 2
+    out_channels = 1
+    kernel_size = (4,)
+    stride = (1,)
+    padding = (1,)
+    output_padding = (0,)
+    groups = 1
+    bias = True
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float32
+    input_tensor = np.random.rand(4, in_channels, 22).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float32,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    in_channels = 2
+    out_channels = 2
+    kernel_size = (3,)
+    stride = (1,)
+    padding = (1,)
+    output_padding = (0,)
+    groups = 2
+    bias = False
+    dilation = (1,)
+    padding_mode = 'zeros'
+    dtype = np.float64
+    input_tensor = np.random.rand(1, in_channels, 10).astype(dtype)
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": torch.float64,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ConvTranspose1d"] = convtranspose1d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def convtranspose1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = 3
+    out_channels = 5
+    kernel_size = 2
+    stride = 1
+    padding = 0
+    output_padding = 0
+    groups = 1
+    bias = True
+    dilation = 1
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.tensor(np.random.rand(1, in_channels, 10).astype(np.float32))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = 2
+    out_channels = 4
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    output_padding = 1
+    groups = 1
+    bias = False
+    dilation = 2
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.tensor(np.random.rand(2, in_channels, 5).astype(np.float64))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = 4
+    out_channels = 2
+    kernel_size = 4
+    stride = 3
+    padding = 2
+    output_padding = 0
+    groups = 1
+    bias = True
+    dilation = 1
+    padding_mode = 'zeros'
+    dtype = torch.float16
+    input = torch.tensor(np.random.rand(1, in_channels, 8).astype(np.float16))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = 1
+    out_channels = 1
+    kernel_size = 5
+    stride = 1
+    padding = 0
+    output_padding = 0
+    groups = 1
+    bias = True
+    dilation = 1
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.tensor(np.random.rand(4, in_channels, 12).astype(np.float32))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    in_channels = 3
+    out_channels = 6
+    kernel_size = 2
+    stride = 2
+    padding = 0
+    output_padding = 1
+    groups = 3
+    bias = False
+    dilation = 1
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.tensor(np.random.rand(1, in_channels, 7).astype(np.float32))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in_channels = 2
+    out_channels = 2
+    kernel_size = 3
+    stride = 1
+    padding = 1
+    output_padding = 0
+    groups = 2
+    bias = True
+    dilation = 1
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.tensor(np.random.rand(2, in_channels, 9).astype(np.float64))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = 5
+    out_channels = 5
+    kernel_size = 4
+    stride = 2
+    padding = 1
+    output_padding = 1
+    groups = 1
+    bias = False
+    dilation = 2
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.tensor(np.random.rand(1, in_channels, 6).astype(np.float32))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    in_channels = 3
+    out_channels = 1
+    kernel_size = 5
+    stride = 3
+    padding = 2
+    output_padding = 0
+    groups = 1
+    bias = True
+    dilation = 1
+    padding_mode = 'zeros'
+    dtype = torch.float16
+    input = torch.tensor(np.random.rand(2, in_channels, 11).astype(np.float16))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = 1
+    out_channels = 3
+    kernel_size = 2
+    stride = 1
+    padding = 0
+    output_padding = 0
+    groups = 1
+    bias = False
+    dilation = 1
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.tensor(np.random.rand(1, in_channels, 4).astype(np.float32))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = 4
+    out_channels = 4
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    output_padding = 1
+    groups = 4
+    bias = True
+    dilation = 1
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.tensor(np.random.rand(2, in_channels, 13).astype(np.float64))
+
+    input_dict = {
+        'in_channels': in_channels,
+        'out_channels': out_channels,
+        'kernel_size': kernel_size,
+        'stride': stride,
+        'padding': padding,
+        'output_padding': output_padding,
+        'groups': groups,
+        'bias': bias,
+        'dilation': dilation,
+        'padding_mode': padding_mode,
+        'dtype': dtype,
+        'input': input.numpy()
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ConvTranspose1d_1"] = convtranspose1d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def convtranspose3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(2, 3, 10, 10, 10).float().numpy()
+    input_dict = {
+        "in_channels": 3,
+        "out_channels": 5,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 0,
+        "output_padding": 0,
+        "groups": 1,
+        "bias": True,
+        "dilation": 1,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(1, 16, 5, 5, 5).float().numpy()
+    input_dict = {
+        "in_channels": 16,
+        "out_channels": 32,
+        "kernel_size": 2,
+        "stride": 2,
+        "padding": 0,
+        "output_padding": 0,
+        "groups": 1,
+        "bias": False,
+        "dilation": 1,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(4, 8, 7, 7, 7).float().numpy()
+    input_dict = {
+        "in_channels": 8,
+        "out_channels": 4,
+        "kernel_size": 4,
+        "stride": 2,
+        "padding": 1,
+        "output_padding": 1,
+        "groups": 1,
+        "bias": True,
+        "dilation": 1,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 3, 10, 10, 10).float().numpy()
+    input_dict = {
+        "in_channels": 3,
+        "out_channels": 3,
+        "kernel_size": 3,
+        "stride": 1,
+        "padding": 1,
+        "output_padding": 0,
+        "groups": 3,
+        "bias": False,
+        "dilation": 1,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(2, 4, 6, 6, 6).float().numpy()
+    input_dict = {
+        "in_channels": 4,
+        "out_channels": 8,
+        "kernel_size": 3,
+        "stride": 2,
+        "padding": 1,
+        "output_padding": 1,
+        "groups": 2,
+        "bias": True,
+        "dilation": 2,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 6
+    input_tensor = torch.randn(1, 6, 8, 8, 8).float().numpy()
+    input_dict = {
+        "in_channels": 6,
+        "out_channels": 12,
+        "kernel_size": 5,
+        "stride": 3,
+        "padding": 2,
+        "output_padding": 1,
+        "groups": 3,
+        "bias": True,
+        "dilation": 1,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(3, 7, 9, 9, 9).float().numpy()
+    input_dict = {
+        "in_channels": 7,
+        "out_channels": 14,
+        "kernel_size": 4,
+        "stride": 2,
+        "padding": 1,
+        "output_padding": 0,
+        "groups": 1,
+        "bias": False,
+        "dilation": 2,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input_tensor = torch.randn(1, 2, 4, 4, 4).float().numpy()
+    input_dict = {
+        "in_channels": 2,
+        "out_channels": 4,
+        "kernel_size": 2,
+        "stride": 1,
+        "padding": 0,
+        "output_padding": 0,
+        "groups": 1,
+        "bias": True,
+        "dilation": 1,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = torch.randn(2, 5, 3, 3, 3).float().numpy()
+    input_dict = {
+        "in_channels": 5,
+        "out_channels": 10,
+        "kernel_size": 2,
+        "stride": 1,
+        "padding": 0,
+        "output_padding": 0,
+        "groups": 1,
+        "bias": False,
+        "dilation": 1,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.randn(1, 1, 2, 2, 2).float().numpy()
+    input_dict = {
+        "in_channels": 1,
+        "out_channels": 1,
+        "kernel_size": 1,
+        "stride": 1,
+        "padding": 0,
+        "output_padding": 0,
+        "groups": 1,
+        "bias": True,
+        "dilation": 1,
+        "padding_mode": "zeros",
+        "dtype": np.dtype('float32'),
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ConvTranspose3d"] = convtranspose3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def convtranspose3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    in_channels = np.int32(3)
+    out_channels = np.int32(5)
+    kernel_size = (np.int32(3), np.int32(3), np.int32(3))
+    stride = (np.int32(1), np.int32(1), np.int32(1))
+    padding = (np.int32(0), np.int32(0), np.int32(0))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(1)
+    bias = True
+    dilation = (np.int32(1), np.int32(1), np.int32(1))
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(2, 3, 10, 10, 10, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    in_channels = np.int32(16)
+    out_channels = np.int32(33)
+    kernel_size = (np.int32(3), np.int32(5), np.int32(2))
+    stride = (np.int32(2), np.int32(1), np.int32(1))
+    padding = (np.int32(0), np.int32(4), np.int32(2))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(1)
+    bias = False
+    dilation = (np.int32(1), np.int32(1), np.int32(1))
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.randn(20, 16, 10, 50, 100, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    in_channels = np.int32(4)
+    out_channels = np.int32(8)
+    kernel_size = (np.int32(2), np.int32(2), np.int32(2))
+    stride = (np.int32(2), np.int32(2), np.int32(2))
+    padding = (np.int32(1), np.int32(1), np.int32(1))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(2)
+    bias = True
+    dilation = (np.int32(1), np.int32(1), np.int32(1))
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 4, 5, 5, 5, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    in_channels = np.int32(8)
+    out_channels = np.int32(16)
+    kernel_size = (np.int32(4), np.int32(4), np.int32(4))
+    stride = (np.int32(1), np.int32(1), np.int32(1))
+    padding = (np.int32(2), np.int32(2), np.int32(2))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(4)
+    bias = False
+    dilation = (np.int32(2), np.int32(2), np.int32(2))
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.randn(4, 8, 12, 12, 12, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    in_channels = np.int32(1)
+    out_channels = np.int32(1)
+    kernel_size = (np.int32(1), np.int32(1), np.int32(1))
+    stride = (np.int32(1), np.int32(1), np.int32(1))
+    padding = (np.int32(0), np.int32(0), np.int32(0))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(1)
+    bias = True
+    dilation = (np.int32(1), np.int32(1), np.int32(1))
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 1, 2, 2, 2, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    in_channels = np.int32(32)
+    out_channels = np.int32(64)
+    kernel_size = (np.int32(5), np.int32(5), np.int32(5))
+    stride = (np.int32(2), np.int32(2), np.int32(2))
+    padding = (np.int32(2), np.int32(2), np.int32(2))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(1)
+    bias = True
+    dilation = (np.int32(1), np.int32(1), np.int32(1))
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(8, 32, 20, 20, 20, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    in_channels = np.int32(1)
+    out_channels = np.int32(2)
+    kernel_size = (np.int32(2), np.int32(2), np.int32(2))
+    stride = (np.int32(1), np.int32(1), np.int32(1))
+    padding = (np.int32(0), np.int32(0), np.int32(0))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(1)
+    bias = False
+    dilation = (np.int32(1), np.int32(1), np.int32(1))
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.randn(1, 1, 4, 4, 4, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    in_channels = np.int32(2)
+    out_channels = np.int32(4)
+    kernel_size = (np.int32(3), np.int32(3), np.int32(3))
+    stride = (np.int32(2), np.int32(2), np.int32(2))
+    padding = (np.int32(1), np.int32(1), np.int32(1))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(2)
+    bias = True
+    dilation = (np.int32(1), np.int32(1), np.int32(1))
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(1, 2, 7, 7, 7, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    in_channels = np.int32(3)
+    out_channels = np.int32(3)
+    kernel_size = (np.int32(3), np.int32(3), np.int32(3))
+    stride = (np.int32(1), np.int32(1), np.int32(1))
+    padding = (np.int32(1), np.int32(1), np.int32(1))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(3)
+    bias = False
+    dilation = (np.int32(1), np.int32(1), np.int32(1))
+    padding_mode = 'zeros'
+    dtype = torch.float64
+    input = torch.randn(1, 3, 5, 5, 5, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    in_channels = np.int32(6)
+    out_channels = np.int32(12)
+    kernel_size = (np.int32(4), np.int32(4), np.int32(4))
+    stride = (np.int32(2), np.int32(2), np.int32(2))
+    padding = (np.int32(1), np.int32(1), np.int32(1))
+    output_padding = (np.int32(0), np.int32(0), np.int32(0))
+    groups = np.int32(1)
+    bias = True
+    dilation = (np.int32(2), np.int32(2), np.int32(2))
+    padding_mode = 'zeros'
+    dtype = torch.float32
+    input = torch.randn(2, 6, 10, 10, 10, dtype=dtype).numpy()
+
+    input_dict = {
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ConvTranspose3d_1"] = convtranspose3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def dropout_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    p = 0.2
+    inplace = False
+    input_tensor = torch.randn(20, 16).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    p = 0.5
+    inplace = True
+    input_tensor = torch.randn(10, 5, 2).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    p = 0.0
+    inplace = False
+    input_tensor = torch.randn(1, 1, 1, 1).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    p = 1.0
+    inplace = True
+    input_tensor = torch.randn(5).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    p = 0.75
+    inplace = False
+    input_tensor = torch.randn(2, 2, 2, 2, 2).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    p = 0.3
+    inplace = True
+    input_tensor = torch.randn(1).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    p = 0.9
+    inplace = False
+    input_tensor = torch.randn(3, 7).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    p = 0.1
+    inplace = True
+    input_tensor = torch.randn(4, 4, 4).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    p = 0.6
+    inplace = False
+    input_tensor = torch.randn(100).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    p = 0.4
+    inplace = True
+    input_tensor = torch.randn(2, 8, 16).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    p = 0.8
+    inplace = False
+    input_tensor = torch.randn(5, 5).numpy()
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Dropout"] = dropout_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def dropout2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(20, 16, 32, 32).numpy()
+    p = 0.2
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(1, 3, 64, 64).numpy()
+    p = 0.7
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(5, 8, 128, 128).numpy()
+    p = 0.0
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(10, 1, 256, 256).numpy()
+    p = 1.0
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(4, 4, 16, 16).numpy()
+    p = 0.5
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 (3D input - N, C, L)
+    input_tensor = torch.randn(2, 5, 10).numpy()
+    p = 0.3
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (small input)
+    input_tensor = torch.randn(1, 1, 2, 2).numpy()
+    p = 0.9
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(3, 7, 20, 20).numpy()
+    p = 0.1
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 (large input)
+    input_tensor = torch.randn(2, 2, 512, 512).numpy()
+    p = 0.6
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 (another 3D input - N, C, L)
+    input_tensor = torch.randn(4, 10, 5).numpy()
+    p = 0.4
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Dropout2d"] = dropout2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def dropout3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.randn(2, 3, 4, 5, 6).astype(np.float32)
+    p_val = 0.2
+    inplace_val = False
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.randn(1, 1, 2, 2, 2).astype(np.float32)
+    p_val = 0.5
+    inplace_val = True
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.randn(5, 4, 3, 2, 1).astype(np.float32)
+    p_val = 0.0
+    inplace_val = False
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input_tensor = np.random.randn(1, 2, 3, 4, 5).astype(np.float32)
+    p_val = 1.0
+    inplace_val = True
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.randn(3, 3, 3, 3, 3).astype(np.float32)
+    p_val = 0.8
+    inplace_val = False
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.randn(1, 1, 1, 1, 1).astype(np.float32)
+    p_val = 0.3
+    inplace_val = True
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = np.random.randn(4, 5, 2, 7, 3).astype(np.float32)
+    p_val = 0.7
+    inplace_val = False
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.randn(2, 1, 5, 3, 4).astype(np.float32)
+    p_val = 0.1
+    inplace_val = True
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = np.random.randn(1, 3, 1, 3, 1).astype(np.float32)
+    p_val = 0.6
+    inplace_val = False
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.randn(8, 2, 6, 4, 2).astype(np.float32)
+    p_val = 0.9
+    inplace_val = True
+    input_dict = {"p": p_val, "inplace": inplace_val, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Dropout3d"] = dropout3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def elu_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([-1.0, -0.5, 0.0, 0.5, 1.0])
+    alpha_val = 1.0
+    inplace_bool = False
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[-1.0, -0.5], [0.0, 0.5]])
+    alpha_val = 0.5
+    inplace_bool = True
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[-2.0, -1.0, 0.0], [1.0, 2.0, 3.0]])
+    alpha_val = 2.0
+    inplace_bool = False
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([[-10.0, -5.0, 0.0], [5.0, 10.0, 15.0]])
+    alpha_val = 0.1
+    inplace_bool = True
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[-0.1, -0.05, 0.0], [0.05, 0.1, 0.15]])
+    alpha_val = 10.0
+    inplace_bool = False
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([[-1.0, 0.0], [0.0, 1.0]])
+    alpha_val = 1.5
+    inplace_bool = True
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([[-1.5, -0.75, 0.0], [0.75, 1.5, 2.25]])
+    alpha_val = 0.75
+    inplace_bool = False
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 3D tensor
+    input_tensor = np.random.randn(2, 3, 4)
+    alpha_val = 1.0
+    inplace_bool = True
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: All negative values
+    input_tensor = np.array([-5.0, -2.5, -1.0, -0.5])
+    alpha_val = 0.25
+    inplace_bool = False
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: All positive values
+    input_tensor = np.array([5.0, 2.5, 1.0, 0.5])
+    alpha_val = 0.8
+    inplace_bool = True
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11 : 1D tensor with mixed values and different alpha
+    input_tensor = np.array([-2.0, -1.0, 0.0, 1.0, 2.0])
+    alpha_val = 3.0
+    inplace_bool = False
+    input_dict = {"alpha": alpha_val, "inplace": inplace_bool, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ELU"] = elu_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def embedding_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.array([1, 2, 3], dtype=np.int64)
+    num_embeddings = 5
+    embedding_dim = 4
+    padding_idx = 0
+    max_norm = 1.0
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    sparse = False
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    num_embeddings = 6
+    embedding_dim = 3
+    padding_idx = 1
+    max_norm = 2.0
+    norm_type = 1.0
+    scale_grad_by_freq = True
+    sparse = True
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.array([0, 1, 2, 3, 4], dtype=np.int64)
+    num_embeddings = 7
+    embedding_dim = 2
+    padding_idx = 2
+    max_norm = None
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    sparse = False
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input = np.array([[1,0,1],[2,3,4]], dtype=np.int64)
+    num_embeddings = 8
+    embedding_dim = 5
+    padding_idx = 7
+    max_norm = 0.5
+    norm_type = 3.0
+    scale_grad_by_freq = True
+    sparse = True
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float16,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.array([5, 6, 0, 1, 2], dtype=np.int64)
+    num_embeddings = 10
+    embedding_dim = 1
+    padding_idx = 5
+    max_norm = 1.5
+    norm_type = 0.5
+    scale_grad_by_freq = False
+    sparse = False
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.array([[4, 5], [2, 3]], dtype=np.int64)
+    num_embeddings = 14
+    embedding_dim = 6
+    padding_idx = 13
+    max_norm = 2.5
+    norm_type = 1.5
+    scale_grad_by_freq = True
+    sparse = True
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input = np.array([4, 5, 6, 0, 1], dtype=np.int64)
+    num_embeddings = 20
+    embedding_dim = 7
+    padding_idx = 19
+    max_norm = None
+    norm_type = 2.5
+    scale_grad_by_freq = False
+    sparse = False
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input = np.array([[1,0,2],[3,4,5]], dtype=np.int64)
+    num_embeddings = 22
+    embedding_dim = 8
+    padding_idx = 21
+    max_norm = 0.7
+    norm_type = 3.5
+    scale_grad_by_freq = True
+    sparse = True
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float16,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input = np.array([4, 5, 6, 7, 8], dtype=np.int64)
+    num_embeddings = 25
+    embedding_dim = 9
+    padding_idx = 24
+    max_norm = 1.7
+    norm_type = 0.7
+    scale_grad_by_freq = False
+    sparse = False
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.array([[5, 6], [7, 8]], dtype=np.int64)
+    num_embeddings = 30
+    embedding_dim = 10
+    padding_idx = 29
+    max_norm = 2.7
+    norm_type = 1.7
+    scale_grad_by_freq = True
+    sparse = True
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float64,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input = np.array([[[0,1],[2,3]],[[4,5],[6,7]]], dtype=np.int64)
+    num_embeddings = 31
+    embedding_dim = 11
+    padding_idx = 30
+    max_norm = 3.0
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    sparse = False
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    input = np.array([0], dtype=np.int64)
+    num_embeddings = 2
+    embedding_dim = 3
+    padding_idx = 0
+    max_norm = None
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    sparse = False
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "padding_idx": padding_idx,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "sparse": sparse,
+        "dtype": torch.float32,
+        "input": input
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Embedding"] = embedding_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def embeddingbag_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    num_embeddings = 10
+    embedding_dim = 5
+    max_norm = 1.0
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    mode = "mean"
+    sparse = False
+    include_last_offset = False
+    padding_idx = 0
+    dtype = np.float32
+    input = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int64)
+    offsets = np.array([0, 4], dtype=np.int64)
+    per_sample_weights = None
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float32,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    num_embeddings = 5
+    embedding_dim = 3
+    max_norm = None
+    norm_type = 2.0
+    scale_grad_by_freq = True
+    mode = "sum"
+    sparse = True
+    include_last_offset = False
+    padding_idx = None
+    dtype = np.float64
+    input = np.array([0, 1, 2, 3, 4], dtype=np.int64)
+    offsets = np.array([0], dtype=np.int64)
+    per_sample_weights = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float64)
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float64,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    num_embeddings = 12
+    embedding_dim = 7
+    max_norm = 0.5
+    norm_type = 3.0
+    scale_grad_by_freq = False
+    mode = "max"
+    sparse = False
+    include_last_offset = False
+    padding_idx = 1
+    dtype = np.float32
+    input = np.array([2, 3, 4, 5, 6, 7, 8, 9, 10, 11], dtype=np.int64)
+    offsets = np.array([0, 2, 5, 7], dtype=np.int64)
+    per_sample_weights = None
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float32,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    num_embeddings = 8
+    embedding_dim = 4
+    max_norm = 2.0
+    norm_type = 1.0
+    scale_grad_by_freq = True
+    mode = "mean"
+    sparse = False
+    include_last_offset = True
+    padding_idx = 3
+    dtype = np.float64
+    input = np.array([0, 1, 2, 4, 5, 6, 7], dtype=np.int64)
+    offsets = np.array([0, 3, 5, 7, 7], dtype=np.int64)
+    per_sample_weights = None
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float64,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    num_embeddings = 15
+    embedding_dim = 6
+    max_norm = None
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    mode = "sum"
+    sparse = True
+    include_last_offset = False
+    padding_idx = 0
+    dtype = np.float32
+    input = np.array([1, 2, 3, 4, 5], dtype=np.int64)
+    offsets = np.array([0], dtype=np.int64)
+    per_sample_weights = np.array([0.5, 0.6, 0.7, 0.8, 0.9], dtype=np.float32)
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float32,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6, 2D input
+    num_embeddings = 10
+    embedding_dim = 5
+    max_norm = 1.0
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    mode = "mean"
+    sparse = False
+    include_last_offset = False
+    padding_idx = 0
+    dtype = np.float32
+    input = np.array([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=np.int64)
+    offsets = None
+    per_sample_weights = None
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float32,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7, padding_idx = None
+    num_embeddings = 10
+    embedding_dim = 5
+    max_norm = 1.0
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    mode = "mean"
+    sparse = False
+    include_last_offset = False
+    padding_idx = None
+    dtype = np.float32
+    input = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int64)
+    offsets = np.array([0, 4], dtype=np.int64)
+    per_sample_weights = None
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float32,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, mode = "max"
+    num_embeddings = 10
+    embedding_dim = 5
+    max_norm = 1.0
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    mode = "max"
+    sparse = False
+    include_last_offset = False
+    padding_idx = 0
+    dtype = np.float32
+    input = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int64)
+    offsets = np.array([0, 4], dtype=np.int64)
+    per_sample_weights = None
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float32,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9, include_last_offset=True, offsets covers the entire input
+    num_embeddings = 6
+    embedding_dim = 2
+    max_norm = None
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    mode = "mean"
+    sparse = False
+    include_last_offset = True
+    padding_idx = None
+    dtype = np.float32
+    input = np.array([0, 1, 2, 3, 4, 5], dtype=np.int64)
+    offsets = np.array([0, 2, 4, 6], dtype=np.int64)
+    per_sample_weights = None
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float32,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, empty bags in offsets
+    num_embeddings = 10
+    embedding_dim = 5
+    max_norm = 1.0
+    norm_type = 2.0
+    scale_grad_by_freq = False
+    mode = "mean"
+    sparse = False
+    include_last_offset = False
+    padding_idx = 0
+    dtype = np.float32
+    input = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int64)
+    offsets = np.array([0, 0, 4, 4], dtype=np.int64) # Empty bags at 0 and 4
+    per_sample_weights = None
+
+    input_dict = {
+        "num_embeddings": num_embeddings,
+        "embedding_dim": embedding_dim,
+        "max_norm": max_norm,
+        "norm_type": norm_type,
+        "scale_grad_by_freq": scale_grad_by_freq,
+        "mode": mode,
+        "sparse": sparse,
+        "include_last_offset": include_last_offset,
+        "padding_idx": padding_idx,
+        "dtype": torch.float32,
+        "input": input,
+        "offsets": offsets,
+        "per_sample_weights": per_sample_weights,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.EmbeddingBag"] = embeddingbag_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def feature_alpha_dropout_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.randn(20, 16, 4, 32, 32).astype(np.float32)
+    p = 0.2
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.randn(10, 8, 1, 16, 16).astype(np.float32)
+    p = 0.8
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.randn(5, 4, 2, 8, 8).astype(np.float32)
+    p = 0.5
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input_tensor = np.random.randn(1, 2, 1, 4, 4).astype(np.float32)
+    p = 0.1
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.randn(32, 64, 16, 64, 64).astype(np.float32)
+    p = 0.9
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 (2D input)
+    input_tensor = np.random.randn(16, 32).astype(np.float32)
+    p = 0.3
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (3D input)
+    input_tensor = np.random.randn(8, 16, 32).astype(np.float32)
+    p = 0.7
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 (4D input)
+    input_tensor = np.random.randn(4, 8, 16, 32).astype(np.float32)
+    p = 0.4
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 (C, D, H, W)
+    input_tensor = np.random.randn(3, 4, 5, 6).astype(np.float32)
+    p = 0.6
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 (N, C, D, H, W) with low p
+    input_tensor = np.random.randn(2, 3, 4, 5, 6).astype(np.float32)
+    p = 0.01
+    inplace = True
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11 (N, C, D, H, W) with high p
+    input_tensor = np.random.randn(2, 3, 4, 5, 6).astype(np.float32)
+    p = 0.99
+    inplace = False
+    input_dict = {"p": p, "inplace": inplace, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.FeatureAlphaDropout"] = feature_alpha_dropout_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def fold_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    output_size = (4, 5)
+    kernel_size = (2, 2)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_tensor = torch.randn(1, 3 * 2 * 2, 12).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    output_size = (10, 10)
+    kernel_size = (3, 3)
+    dilation = 2
+    padding = 1
+    stride = 2
+    input_tensor = torch.randn(1, 1 * 3 * 3, 16).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3 - Corrected L calculation
+    output_size = (7, 8)
+    kernel_size = (2, 3)
+    dilation = 1
+    padding = 0
+    stride = 1
+    L_h = (output_size[0] + 2 * padding - dilation * (kernel_size[0] - 1) - 1) // stride + 1
+    L_w = (output_size[1] + 2 * padding - dilation * (kernel_size[1] - 1) - 1) // stride + 1
+    L = L_h * L_w
+    input_tensor = torch.randn(1, 1 * 2 * 3, L).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    output_size = (12, 15)
+    kernel_size = (4, 4)
+    dilation = 3
+    padding = 2
+    stride = 3
+    L_h = (output_size[0] + 2 * padding - dilation * (kernel_size[0] - 1) - 1) // stride + 1
+    L_w = (output_size[1] + 2 * padding - dilation * (kernel_size[1] - 1) - 1) // stride + 1
+    L = L_h * L_w
+    input_tensor = torch.randn(1, 1 * 4 * 4, L).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    output_size = (5, 5)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    L_h = (output_size[0] + 2 * padding - dilation * (kernel_size[0] - 1) - 1) // stride + 1
+    L_w = (output_size[1] + 2 * padding - dilation * (kernel_size[1] - 1) - 1) // stride + 1
+    L = L_h * L_w
+    input_tensor = torch.randn(1, 1 * 1 * 1, L).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    output_size = (6, 7)
+    kernel_size = (2, 2)
+    dilation = 1
+    padding = 1
+    stride = 1
+    L_h = (output_size[0] + 2 * padding - dilation * (kernel_size[0] - 1) - 1) // stride + 1
+    L_w = (output_size[1] + 2 * padding - dilation * (kernel_size[1] - 1) - 1) // stride + 1
+    L = L_h * L_w
+    input_tensor = torch.randn(1, 1 * 2 * 2, L).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - Unbatched input
+    output_size = (8, 8)
+    kernel_size = (3, 3)
+    dilation = 1
+    padding = 0
+    stride = 1
+    L_h = (output_size[0] + 2 * padding - dilation * (kernel_size[0] - 1) - 1) // stride + 1
+    L_w = (output_size[1] + 2 * padding - dilation * (kernel_size[1] - 1) - 1) // stride + 1
+    L = L_h * L_w
+
+    input_tensor = torch.randn(1 * 3 * 3, L).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 - Unbatched input, different params
+    output_size = (5, 6)
+    kernel_size = (2, 2)
+    dilation = 2
+    padding = 1
+    stride = 2
+    L_h = (output_size[0] + 2 * padding - dilation * (kernel_size[0] - 1) - 1) // stride + 1
+    L_w = (output_size[1] + 2 * padding - dilation * (kernel_size[1] - 1) - 1) // stride + 1
+    L = L_h * L_w
+    input_tensor = torch.randn(1 * 2 * 2, L).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    output_size = (3, 3)
+    kernel_size = (3, 3)
+    dilation = 1
+    padding = 2
+    stride = 1
+    L_h = (output_size[0] + 2 * padding - dilation * (kernel_size[0] - 1) - 1) // stride + 1
+    L_w = (output_size[1] + 2 * padding - dilation * (kernel_size[1] - 1) - 1) // stride + 1
+    L = L_h * L_w
+    input_tensor = torch.randn(1, 1 * 3 * 3, L).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    output_size = (2, 2)
+    kernel_size = (2, 2)
+    dilation = 1
+    padding = 1
+    stride = 2
+    L_h = (output_size[0] + 2 * padding - dilation * (kernel_size[0] - 1) - 1) // stride + 1
+    L_w = (output_size[1] + 2 * padding - dilation * (kernel_size[1] - 1) - 1) // stride + 1
+    L = L_h * L_w
+    input_tensor = torch.randn(1, 1 * 2 * 2, L).numpy()
+    input_dict = {"output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Fold_1"] = fold_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def GELU_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_dict1 = {"approximate": "none", "input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    input_dict2 = {"approximate": "none", "input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = np.array([0.0], dtype=np.float32)
+    input_dict3 = {"approximate": "none", "input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4
+    input4 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_dict4 = {"approximate": "tanh", "input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5
+    input5 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    input_dict5 = {"approximate": "tanh", "input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6
+    input6 = np.random.randn(2, 3).astype(np.float32)
+    input_dict6 = {"approximate": "none", "input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7
+    input7 = np.random.randn(2, 3).astype(np.float32)
+    input_dict7 = {"approximate": "tanh", "input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8
+    input8 = np.random.randn(1, 5, 5).astype(np.float32)
+    input_dict8 = {"approximate": "none", "input": input8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9
+    input9 = np.random.randn(1, 5, 5).astype(np.float32)
+    input_dict9 = {"approximate": "tanh", "input": input9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10
+    input10 = np.random.randn(2, 3, 4, 5).astype(np.float32)
+    input_dict10 = {"approximate": "none", "input": input10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11
+    input11 = np.random.randn(2, 3, 4, 5).astype(np.float32)
+    input_dict11 = {"approximate": "tanh", "input": input11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.GELU"] = GELU_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def generate_glu_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 2D input, default dim
+    input1 = np.random.randn(4, 2).astype(np.float32)
+    input_dict1 = {"input": input1, "dim": -1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D input, dim=1
+    input2 = np.random.randn(2, 4).astype(np.float32)
+    input_dict2 = {"input": input2, "dim": 1}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D input, dim=1
+    input3 = np.random.randn(1, 4, 2).astype(np.float32)
+    input_dict3 = {"input": input3, "dim": 1}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4: 3D input, dim=2
+    input4 = np.random.randn(1, 2, 4).astype(np.float32)
+    input_dict4 = {"input": input4, "dim": 2}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 4D input, dim=1
+    input5 = np.random.randn(1, 4, 2, 2).astype(np.float32)
+    input_dict5 = {"input": input5, "dim": 1}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 4D input, dim=2
+    input6 = np.random.randn(1, 2, 4, 2).astype(np.float32)
+    input_dict6 = {"input": input6, "dim": 2}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: 4D input, dim=3
+    input7 = np.random.randn(1, 2, 2, 4).astype(np.float32)
+    input_dict7 = {"input": input7, "dim": 3}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: 2D input, dim=0
+    input8 = np.random.randn(4, 2).astype(np.float32)
+    input_dict8 = {"input": input8, "dim": 0}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: 3D input, dim=0
+    input9 = np.random.randn(4, 2, 2).astype(np.float32)
+    input_dict9 = {"input": input9, "dim": 0}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: 2D input with negative values, default dim
+    input10 = np.random.randn(4, 2).astype(np.float32) * -1
+    input_dict10 = {"input": input10, "dim": -1}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.GLU"] = generate_glu_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def GRU_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_size = 10
+    hidden_size = 20
+    num_layers = 2
+    bias = True
+    batch_first = False
+    dropout = 0.0
+    bidirectional = False
+    dtype = np.float32
+    input = np.random.randn(5, 3, input_size).astype(dtype)
+    h_0 = np.random.randn(num_layers, 3, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": int(input_size),
+        "hidden_size": int(hidden_size),
+        "num_layers": int(num_layers),
+        "bias": bool(bias),
+        "batch_first": bool(batch_first),
+        "dropout": float(dropout),
+        "bidirectional": bool(bidirectional),
+        "dtype": torch.float32,
+        "input": input,
+        "h_0": h_0,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_size = 5
+    hidden_size = 10
+    num_layers = 1
+    bias = False
+    batch_first = True
+    dropout = 0.5
+    bidirectional = True
+    dtype = np.float64
+    input = np.random.randn(2, 4, input_size).astype(dtype)
+    h_0 = np.random.randn(2 * num_layers, 2, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": int(input_size),
+        "hidden_size": int(hidden_size),
+        "num_layers": int(num_layers),
+        "bias": bool(bias),
+        "batch_first": bool(batch_first),
+        "dropout": float(dropout),
+        "bidirectional": bool(bidirectional),
+        "dtype": torch.float64,
+        "input": input,
+        "h_0": h_0,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_size = 7
+    hidden_size = 12
+    num_layers = 3
+    bias = True
+    batch_first = False
+    dropout = 0.2
+    bidirectional = False
+    dtype = np.float32
+    input = np.random.randn(8, 5, input_size).astype(dtype)
+    h_0 = np.random.randn(num_layers, 5, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": int(input_size),
+        "hidden_size": int(hidden_size),
+        "num_layers": int(num_layers),
+        "bias": bool(bias),
+        "batch_first": bool(batch_first),
+        "dropout": float(dropout),
+        "bidirectional": bool(bidirectional),
+        "dtype": torch.float32,
+        "input": input,
+        "h_0": h_0,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_size = 3
+    hidden_size = 7
+    num_layers = 1
+    bias = False
+    batch_first = True
+    dropout = 0.0
+    bidirectional = True
+    dtype = np.float64
+    input = np.random.randn(1, 6, input_size).astype(dtype)
+    h_0 = np.random.randn(2 * num_layers, 1, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": int(input_size),
+        "hidden_size": int(hidden_size),
+        "num_layers": int(num_layers),
+        "bias": bool(bias),
+        "batch_first": bool(batch_first),
+        "dropout": float(dropout),
+        "bidirectional": bool(bidirectional),
+        "dtype": torch.float64,
+        "input": input,
+        "h_0": h_0,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Unbatched Input
+    input_size = 4
+    hidden_size = 8
+    num_layers = 2
+    bias = True
+    batch_first = False
+    dropout = 0.3
+    bidirectional = False
+    dtype = np.float32
+    input = np.random.randn(7, input_size).astype(dtype)
+    h_0 = np.random.randn(num_layers, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": int(input_size),
+        "hidden_size": int(hidden_size),
+        "num_layers": int(num_layers),
+        "bias": bool(bias),
+        "batch_first": bool(batch_first),
+        "dropout": float(dropout),
+        "bidirectional": bool(bidirectional),
+        "dtype": torch.float32,
+        "input": input,
+        "h_0": h_0,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_size = 6
+    hidden_size = 11
+    num_layers = 1
+    bias = True
+    batch_first = False
+    dropout = 0.0
+    bidirectional = False
+    dtype = np.float32
+    input = np.random.randn(4, 2, input_size).astype(dtype)
+    h_0 = np.random.randn(num_layers, 2, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": int(input_size),
+        "hidden_size": int(hidden_size),
+        "num_layers": int(num_layers),
+        "bias": bool(bias),
+        "batch_first": bool(batch_first),
+        "dropout": float(dropout),
+        "bidirectional": bool(bidirectional),
+        "dtype": torch.float32,
+        "input": input,
+        "h_0": h_0,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_size = 8
+    hidden_size = 13
+    num_layers = 2
+    bias = False
+    batch_first = True
+    dropout = 0.1
+    bidirectional = True
+    dtype = np.float64
+    input = np.random.randn(3, 5, input_size).astype(dtype)
+    h_0 = np.random.randn(2 * num_layers, 3, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": int(input_size),
+        "hidden_size": int(hidden_size),
+        "num_layers": int(num_layers),
+        "bias": bool(bias),
+        "batch_first": bool(batch_first),
+        "dropout": float(dropout),
+        "bidirectional": bool(bidirectional),
+        "dtype": torch.float64,
+        "input": input,
+        "h_0": h_0,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.GRU"] = GRU_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def maxpool1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 1, 10).numpy()
+    kernel_size = 3
+    stride = 2
+    padding = 0
+    dilation = 1
+    return_indices = False
+    ceil_mode = False
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(2, 3, 20).numpy()
+    kernel_size = 4
+    stride = 1
+    padding = 1
+    dilation = 2
+    return_indices = True
+    ceil_mode = True
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(5, 2, 15).numpy()
+    kernel_size = 2
+    stride = 2
+    padding = 0
+    dilation = 1
+    return_indices = False
+    ceil_mode = True
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 1, 5).numpy()
+    kernel_size = 5
+    stride = 1
+    padding = 2
+    dilation = 1
+    return_indices = False
+    ceil_mode = False
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(3, 4, 12).numpy()
+    kernel_size = 3
+    stride = 3
+    padding = 1
+    dilation = 1
+    return_indices = True
+    ceil_mode = False
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(2, 2, 8).numpy()
+    kernel_size = 2
+    stride = 1
+    padding = 1
+    dilation = 2
+    return_indices = False
+    ceil_mode = True
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(4, 1, 10).numpy()
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    dilation = 1
+    return_indices = True
+    ceil_mode = True
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(1, 5, 25).numpy()
+    kernel_size = 5
+    stride = 3
+    padding = 2
+    dilation = 2
+    return_indices = False
+    ceil_mode = False
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = torch.randn(6, 3, 18).numpy()
+    kernel_size = 4
+    stride = 2
+    padding = 1
+    dilation = 1
+    return_indices = True
+    ceil_mode = True
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.randn(1, 1, 7).numpy()
+    kernel_size = 7
+    stride = 1
+    padding = 3
+    dilation = 1
+    return_indices = False
+    ceil_mode = False
+
+    input_dict = {
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "dilation": dilation,
+        "return_indices": return_indices,
+        "ceil_mode": ceil_mode,
+        "input": input_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.MaxPool1d_1"] = maxpool1d_inputs()
+
+import torch, copy
+import numpy as np
+
+def maxpool1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(20, 16, 50).numpy()
+    kernel_size = (3,)
+    stride = (2,)
+    padding = (0,)
+    dilation = (1,)
+    return_indices = False
+    ceil_mode = False
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(5, 8, 25).numpy()
+    kernel_size = (5,)
+    stride = (3,)
+    padding = (2,)
+    dilation = (2,)
+    return_indices = True
+    ceil_mode = True
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(10, 4, 100).numpy()
+    kernel_size = (7,)
+    stride = (1,)
+    padding = (3,)
+    dilation = (1,)
+    return_indices = False
+    ceil_mode = True
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(2, 3, 15).numpy()
+    kernel_size = (2,)
+    stride = (1,)
+    padding = (1,)
+    dilation = (1,)
+    return_indices = True
+    ceil_mode = False
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(1, 1, 20).numpy()
+    kernel_size = (4,)
+    stride = (4,)
+    padding = (0,)
+    dilation = (1,)
+    return_indices = False
+    ceil_mode = False
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(8, 32, 64).numpy()
+    kernel_size = (2,)
+    stride = (2,)
+    padding = (0,)
+    dilation = (1,)
+    return_indices = True
+    ceil_mode = True
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(4, 1, 30).numpy()
+    kernel_size = (6,)
+    stride = (2,)
+    padding = (1,)
+    dilation = (2,)
+    return_indices = False
+    ceil_mode = False
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(3, 6, 40).numpy()
+    kernel_size = (8,)
+    stride = (4,)
+    padding = (2,)
+    dilation = (1,)
+    return_indices = True
+    ceil_mode = True
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = torch.randn(1, 2, 128).numpy()
+    kernel_size = (16,)
+    stride = (8,)
+    padding = (4,)
+    dilation = (2,)
+    return_indices = False
+    ceil_mode = False
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.randn(32, 64, 256).numpy()
+    kernel_size = (32,)
+    stride = (16,)
+    padding = (8,)
+    dilation = (1,)
+    return_indices = True
+    ceil_mode = True
+    input_dict = {'kernel_size': kernel_size, 'stride': stride, 'padding': padding,
+                  'dilation': dilation, 'return_indices': return_indices,
+                  'ceil_mode': ceil_mode, 'input': input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.MaxPool1d_2"] = maxpool1d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def multilabelmarginloss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([[0.1, 0.2, 0.4, 0.8]], dtype=np.float32)
+    target_tensor = np.array([[3, 0, -1, 1]], dtype=np.int64)
+    input_dict = {
+        "size_average": False,
+        "reduce": True,
+        "reduction": 'mean',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[0.5, 0.3, 0.9, 0.1]], dtype=np.float32)
+    target_tensor = np.array([[0, 2, -1, -1]], dtype=np.int64)
+    input_dict = {
+        "size_average": True,
+        "reduce": False,
+        "reduction": 'sum',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[0.7, 0.2, 0.5]], dtype=np.float32)
+    target_tensor = np.array([[1, 0, -1]], dtype=np.int64)
+    input_dict = {
+        "size_average": False,
+        "reduce": False,
+        "reduction": 'none',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([[0.1, 0.2, 0.3, 0.4, 0.5],
+                             [0.6, 0.7, 0.8, 0.9, 1.0]], dtype=np.float32)
+    target_tensor = np.array([[4, 2, 0, -1, -1],
+                              [2, 3, 1, -1, -1]], dtype=np.int64)
+    input_dict = {
+        "size_average": True,
+        "reduce": True,
+        "reduction": 'mean',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[0.9, 0.8, 0.7, 0.6, 0.5],
+                             [0.4, 0.3, 0.2, 0.1, 0.0]], dtype=np.float32)
+    target_tensor = np.array([[0, 1, 2, -1, -1],
+                              [4, 3, 2, -1, -1]], dtype=np.int64)
+    input_dict = {
+        "size_average": False,
+        "reduce": True,
+        "reduction": 'sum',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([[0.1, 0.3, 0.5]], dtype=np.float32)
+    target_tensor = np.array([[2, 0, -1]], dtype=np.int64)
+    input_dict = {
+        "size_average": True,
+        "reduce": False,
+        "reduction": 'none',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([[0.2, 0.4, 0.6, 0.8]], dtype=np.float32)
+    target_tensor = np.array([[0, 3, -1, -1]], dtype=np.int64)
+    input_dict = {
+        "size_average": False,
+        "reduce": False,
+        "reduction": 'mean',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([[0.8, 0.6, 0.4, 0.2]], dtype=np.float32)
+    target_tensor = np.array([[3, 1, -1, -1]], dtype=np.int64)
+    input_dict = {
+        "size_average": True,
+        "reduce": True,
+        "reduction": 'sum',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([[0.5, 0.5, 0.5]], dtype=np.float32)
+    target_tensor = np.array([[0, 1, 2]], dtype=np.int64)
+    input_dict = {
+        "size_average": False,
+        "reduce": False,
+        "reduction": 'none',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([[0.2, 0.4, 0.6, 0.8, 1.0],
+                             [0.1, 0.3, 0.5, 0.7, 0.9]], dtype=np.float32)
+    target_tensor = np.array([[0, 2, 4, -1, -1],
+                              [1, 3, -1, -1, -1]], dtype=np.int64)
+    input_dict = {
+        "size_average": True,
+        "reduce": True,
+        "reduction": 'mean',
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.array([[0.1, 0.2, 0.3, 0.4]], dtype=np.float32)
+    target_tensor = np.array([[3, 2, 1, 0]], dtype=np.int64)
+    input_dict = {
+        "size_average": True,
+        "reduce": False,
+        "reduction": "sum",
+        "input": input_tensor,
+        "target": target_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.MultiLabelMarginLoss"] = multilabelmarginloss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def rnncell_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_size = 10
+    hidden_size = 20
+    bias = True
+    nonlinearity = 'tanh'
+    dtype = np.float32
+    input = np.random.randn(3, input_size).astype(dtype)
+    hidden = np.random.randn(3, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float32,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_size = 5
+    hidden_size = 10
+    bias = False
+    nonlinearity = 'relu'
+    dtype = np.float64
+    input = np.random.randn(1, input_size).astype(dtype)
+    hidden = np.random.randn(1, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float64,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_size = 15
+    hidden_size = 5
+    bias = True
+    nonlinearity = 'tanh'
+    dtype = np.float32
+    input = np.random.randn(5, input_size).astype(dtype)
+    hidden = np.random.randn(5, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float32,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_size = 7
+    hidden_size = 12
+    bias = False
+    nonlinearity = 'relu'
+    dtype = np.float64
+    input = np.random.randn(2, input_size).astype(dtype)
+    hidden = np.random.randn(2, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float64,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_size = 3
+    hidden_size = 8
+    bias = True
+    nonlinearity = 'tanh'
+    dtype = np.float32
+    input = np.random.randn(4, input_size).astype(dtype)
+    hidden = np.random.randn(4, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float32,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_size = 9
+    hidden_size = 4
+    bias = False
+    nonlinearity = 'relu'
+    dtype = np.float64
+    input = np.random.randn(1, input_size).astype(dtype)
+    hidden = np.random.randn(1, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float64,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_size = 11
+    hidden_size = 13
+    bias = True
+    nonlinearity = 'tanh'
+    dtype = np.float32
+    input = np.random.randn(2, input_size).astype(dtype)
+    hidden = np.random.randn(2, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float32,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_size = 6
+    hidden_size = 9
+    bias = False
+    nonlinearity = 'relu'
+    dtype = np.float64
+    input = np.random.randn(3, input_size).astype(dtype)
+    hidden = np.random.randn(3, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float64,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_size = 4
+    hidden_size = 7
+    bias = True
+    nonlinearity = 'tanh'
+    dtype = np.float32
+    input = np.random.randn(5, input_size).astype(dtype)
+    hidden = np.random.randn(5, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float32,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_size = 8
+    hidden_size = 6
+    bias = False
+    nonlinearity = 'relu'
+    dtype = np.float64
+    input = np.random.randn(1, input_size).astype(dtype)
+    hidden = np.random.randn(1, hidden_size).astype(dtype)
+
+    input_dict = {
+        "input_size": input_size,
+        "hidden_size": hidden_size,
+        "bias": bias,
+        "nonlinearity": nonlinearity,
+        "dtype": torch.float64,
+        "input": input,
+        "hidden": hidden
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.RNNCell"] = rnncell_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def replicationpad2d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with int padding
+    input1 = np.arange(9, dtype=np.float32).reshape(1, 1, 3, 3)
+    padding1 = 2
+    input_dict1 = {"input": input1, "padding": padding1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Different padding on each side
+    input2 = np.arange(9, dtype=np.float32).reshape(1, 1, 3, 3)
+    padding2 = (1, 1, 2, 0)
+    input_dict2 = {"input": input2, "padding": padding2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3:  C,H,W format
+    input3 = np.arange(12, dtype=np.float32).reshape(3, 2, 2)
+    padding3 = 1
+    input_dict3 = {"input": input3, "padding": padding3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4: N,C,H,W with different padding
+    input4 = np.arange(16, dtype=np.float32).reshape(1, 2, 2, 4)
+    padding4 = (0, 2, 1, 1)
+    input_dict4 = {"input": input4, "padding": padding4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5:  C,H,W format with tuple padding
+    input5 = np.arange(12, dtype=np.float32).reshape(3, 2, 2)
+    padding5 = (1, 0, 2, 1)
+    input_dict5 = {"input": input5, "padding": padding5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Larger padding
+    input6 = np.arange(4, dtype=np.float32).reshape(1, 1, 2, 2)
+    padding6 = 5
+    input_dict6 = {"input": input6, "padding": padding6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Non-square input
+    input7 = np.arange(6, dtype=np.float32).reshape(1, 1, 2, 3)
+    padding7 = (2, 1, 0, 1)
+    input_dict7 = {"input": input7, "padding": padding7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Small input and different padding
+    input8 = np.array([[[[1.0]]]], dtype=np.float32)
+    padding8 = (2, 3, 1, 0)
+    input_dict8 = {"input": input8, "padding": padding8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Float64 input
+    input9 = np.arange(9, dtype=np.float64).reshape(1, 1, 3, 3)
+    padding9 = 1
+    input_dict9 = {"input": input9, "padding": padding9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Multi-channel input
+    input10 = np.arange(18, dtype=np.float32).reshape(1, 2, 3, 3)
+    padding10 = (1, 0, 0, 1)
+    input_dict10 = {"input": input10, "padding": padding10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11: Padding with zero
+    input11 = np.arange(9, dtype=np.float32).reshape(1, 1, 3, 3)
+    padding11 = 0
+    input_dict11 = {"input": input11, "padding": padding11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+    
+    # Input 12: Large single padding
+    input12 = np.arange(4, dtype=np.float32).reshape(1, 1, 2, 2)
+    padding12 = 10
+    input_dict12 = {"input": input12, "padding": padding12}
+    list_of_inputs.append(copy.deepcopy(input_dict12))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.ReplicationPad2d_1"] = replicationpad2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def generate_transformerdecoderlayer_inputs():
+    inputs = []
+
+    # Input 1
+    tgt = np.random.rand(20, 32, 512).astype(np.float32)
+    memory = np.random.rand(10, 32, 512).astype(np.float32)
+    tgt_mask = np.triu(np.ones((20, 20), dtype=bool), k=1)
+    memory_mask = np.zeros((20, 10), dtype=bool)
+    tgt_key_padding_mask = np.zeros((32, 20), dtype=bool)
+    memory_key_padding_mask = np.zeros((32, 10), dtype=bool)
+
+    inputs.append({
+        'd_model': 512,
+        'nhead': 8,
+        'dim_feedforward': 2048,
+        'dropout': 0.1,
+        'activation': 'relu',
+        'layer_norm_eps': 1e-05,
+        'batch_first': False,
+        'norm_first': False,
+        'bias': True,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': tgt_mask,
+        'memory_mask': memory_mask,
+        'tgt_key_padding_mask': tgt_key_padding_mask,
+        'memory_key_padding_mask': memory_key_padding_mask,
+        'tgt_is_causal': False,
+        'memory_is_causal': False
+    })
+
+    # Input 2 (batch_first=True)
+    tgt = np.random.rand(32, 20, 512).astype(np.float32)
+    memory = np.random.rand(32, 10, 512).astype(np.float32)
+    tgt_mask = np.triu(np.ones((20, 20), dtype=bool), k=1)
+    memory_mask = np.zeros((20, 10), dtype=bool)
+    tgt_key_padding_mask = np.zeros((32, 20), dtype=bool)
+    memory_key_padding_mask = np.zeros((32, 10), dtype=bool)
+
+    inputs.append({
+        'd_model': 512,
+        'nhead': 8,
+        'dim_feedforward': 2048,
+        'dropout': 0.1,
+        'activation': 'relu',
+        'layer_norm_eps': 1e-05,
+        'batch_first': True,
+        'norm_first': False,
+        'bias': True,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': tgt_mask,
+        'memory_mask': memory_mask,
+        'tgt_key_padding_mask': tgt_key_padding_mask,
+        'memory_key_padding_mask': memory_key_padding_mask,
+        'tgt_is_causal': False,
+        'memory_is_causal': False
+    })
+
+    # Input 3 (different d_model, nhead, dim_feedforward)
+    tgt = np.random.rand(15, 64, 256).astype(np.float32)
+    memory = np.random.rand(8, 64, 256).astype(np.float32)
+    tgt_mask = np.triu(np.ones((15, 15), dtype=bool), k=1)
+    memory_mask = np.zeros((15, 8), dtype=bool)
+    tgt_key_padding_mask = np.zeros((64, 15), dtype=bool)
+    memory_key_padding_mask = np.zeros((64, 8), dtype=bool)
+
+    inputs.append({
+        'd_model': 256,
+        'nhead': 4,
+        'dim_feedforward': 1024,
+        'dropout': 0.2,
+        'activation': 'gelu',
+        'layer_norm_eps': 1e-06,
+        'batch_first': False,
+        'norm_first': True,
+        'bias': False,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': tgt_mask,
+        'memory_mask': memory_mask,
+        'tgt_key_padding_mask': tgt_key_padding_mask,
+        'memory_key_padding_mask': memory_key_padding_mask,
+        'tgt_is_causal': True,
+        'memory_is_causal': True
+    })
+
+    # Input 4 (different shapes, batch_first=True)
+    tgt = np.random.rand(64, 15, 256).astype(np.float32)
+    memory = np.random.rand(64, 8, 256).astype(np.float32)
+    tgt_mask = np.triu(np.ones((15, 15), dtype=bool), k=1)
+    memory_mask = np.zeros((15, 8), dtype=bool)
+    tgt_key_padding_mask = np.zeros((64, 15), dtype=bool)
+    memory_key_padding_mask = np.zeros((64, 8), dtype=bool)
+
+    inputs.append({
+        'd_model': 256,
+        'nhead': 4,
+        'dim_feedforward': 1024,
+        'dropout': 0.2,
+        'activation': 'gelu',
+        'layer_norm_eps': 1e-06,
+        'batch_first': True,
+        'norm_first': True,
+        'bias': False,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': tgt_mask,
+        'memory_mask': memory_mask,
+        'tgt_key_padding_mask': tgt_key_padding_mask,
+        'memory_key_padding_mask': memory_key_padding_mask,
+        'tgt_is_causal': True,
+        'memory_is_causal': True
+    })
+
+    # Input 5 (tgt_mask and memory_mask are None)
+    tgt = np.random.rand(20, 32, 512).astype(np.float32)
+    memory = np.random.rand(10, 32, 512).astype(np.float32)
+    tgt_key_padding_mask = np.zeros((32, 20), dtype=bool)
+    memory_key_padding_mask = np.zeros((32, 10), dtype=bool)
+
+    inputs.append({
+        'd_model': 512,
+        'nhead': 8,
+        'dim_feedforward': 2048,
+        'dropout': 0.1,
+        'activation': 'relu',
+        'layer_norm_eps': 1e-05,
+        'batch_first': False,
+        'norm_first': False,
+        'bias': True,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': None,
+        'memory_mask': None,
+        'tgt_key_padding_mask': tgt_key_padding_mask,
+        'memory_key_padding_mask': memory_key_padding_mask,
+        'tgt_is_causal': False,
+        'memory_is_causal': False
+    })
+    
+    # Input 6 (tgt_key_padding_mask and memory_key_padding_mask are None)
+    tgt = np.random.rand(20, 32, 512).astype(np.float32)
+    memory = np.random.rand(10, 32, 512).astype(np.float32)
+    tgt_mask = np.triu(np.ones((20, 20), dtype=bool), k=1)
+    memory_mask = np.zeros((20, 10), dtype=bool)
+
+    inputs.append({
+        'd_model': 512,
+        'nhead': 8,
+        'dim_feedforward': 2048,
+        'dropout': 0.1,
+        'activation': 'relu',
+        'layer_norm_eps': 1e-05,
+        'batch_first': False,
+        'norm_first': False,
+        'bias': True,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': tgt_mask,
+        'memory_mask': memory_mask,
+        'tgt_key_padding_mask': None,
+        'memory_key_padding_mask': None,
+        'tgt_is_causal': False,
+        'memory_is_causal': False
+    })
+    
+    # Input 7 (tgt_mask and tgt_key_padding_mask are None)
+    tgt = np.random.rand(20, 32, 512).astype(np.float32)
+    memory = np.random.rand(10, 32, 512).astype(np.float32)
+    memory_mask = np.zeros((20, 10), dtype=bool)
+    memory_key_padding_mask = np.zeros((32, 10), dtype=bool)
+
+    inputs.append({
+        'd_model': 512,
+        'nhead': 8,
+        'dim_feedforward': 2048,
+        'dropout': 0.1,
+        'activation': 'relu',
+        'layer_norm_eps': 1e-05,
+        'batch_first': False,
+        'norm_first': False,
+        'bias': True,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': None,
+        'memory_mask': memory_mask,
+        'tgt_key_padding_mask': None,
+        'memory_key_padding_mask': memory_key_padding_mask,
+        'tgt_is_causal': False,
+        'memory_is_causal': False
+    })
+
+    # Input 8 (memory_mask and memory_key_padding_mask are None)
+    tgt = np.random.rand(20, 32, 512).astype(np.float32)
+    memory = np.random.rand(10, 32, 512).astype(np.float32)
+    tgt_mask = np.triu(np.ones((20, 20), dtype=bool), k=1)
+    tgt_key_padding_mask = np.zeros((32, 20), dtype=bool)
+
+    inputs.append({
+        'd_model': 512,
+        'nhead': 8,
+        'dim_feedforward': 2048,
+        'dropout': 0.1,
+        'activation': 'relu',
+        'layer_norm_eps': 1e-05,
+        'batch_first': False,
+        'norm_first': False,
+        'bias': True,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': tgt_mask,
+        'memory_mask': None,
+        'tgt_key_padding_mask': tgt_key_padding_mask,
+        'memory_key_padding_mask': None,
+        'tgt_is_causal': False,
+        'memory_is_causal': False
+    })
+    
+    # Input 9 (all masks are None)
+    tgt = np.random.rand(20, 32, 512).astype(np.float32)
+    memory = np.random.rand(10, 32, 512).astype(np.float32)
+
+    inputs.append({
+        'd_model': 512,
+        'nhead': 8,
+        'dim_feedforward': 2048,
+        'dropout': 0.1,
+        'activation': 'relu',
+        'layer_norm_eps': 1e-05,
+        'batch_first': False,
+        'norm_first': False,
+        'bias': True,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': None,
+        'memory_mask': None,
+        'tgt_key_padding_mask': None,
+        'memory_key_padding_mask': None,
+        'tgt_is_causal': False,
+        'memory_is_causal': False
+    })
+    
+    # Input 10 (tgt_is_causal = True, memory_is_causal=True, norm_first=True)
+    tgt = np.random.rand(20, 32, 512).astype(np.float32)
+    memory = np.random.rand(10, 32, 512).astype(np.float32)
+    tgt_mask = np.triu(np.ones((20, 20), dtype=bool), k=1)
+    memory_mask = np.zeros((20, 10), dtype=bool)
+
+    inputs.append({
+        'd_model': 512,
+        'nhead': 8,
+        'dim_feedforward': 2048,
+        'dropout': 0.1,
+        'activation': 'relu',
+        'layer_norm_eps': 1e-05,
+        'batch_first': False,
+        'norm_first': True,
+        'bias': True,
+        'tgt': tgt,
+        'memory': memory,
+        'tgt_mask': tgt_mask,
+        'memory_mask': memory_mask,
+        'tgt_key_padding_mask': None,
+        'memory_key_padding_mask': None,
+        'tgt_is_causal': True,
+        'memory_is_causal': True
+    })
+
+    return inputs
+
+
+generated_inputs["torch.nn.TransformerDecoderLayer"] = generate_transformerdecoderlayer_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def transformer_encoder_layer_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    src = np.random.rand(10, 32, 512).astype(np.float32)
+    src_mask = np.random.rand(10, 10).astype(np.float32)
+    src_key_padding_mask = np.random.randint(0, 2, (32, 10)).astype(bool)
+    input_dict = {
+        "d_model": 512,
+        "nhead": 8,
+        "dim_feedforward": 2048,
+        "dropout": 0.1,
+        "activation": "relu",
+        "layer_norm_eps": 1e-05,
+        "batch_first": False,
+        "norm_first": False,
+        "bias": True,
+        "dtype": torch.float32,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": src_key_padding_mask,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    src = np.random.rand(32, 10, 512).astype(np.float32)
+    src_mask = None
+    src_key_padding_mask = None
+    input_dict = {
+        "d_model": 512,
+        "nhead": 8,
+        "dim_feedforward": 1024,
+        "dropout": 0.2,
+        "activation": "gelu",
+        "layer_norm_eps": 1e-06,
+        "batch_first": True,
+        "norm_first": True,
+        "bias": False,
+        "dtype": torch.float32,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": src_key_padding_mask,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    src = np.random.rand(5, 16, 256).astype(np.float64)
+    src_mask = np.triu(np.ones((5, 5))).astype(bool)
+    src_key_padding_mask = np.zeros((16, 5)).astype(bool)
+    input_dict = {
+        "d_model": 256,
+        "nhead": 4,
+        "dim_feedforward": 512,
+        "dropout": 0.05,
+        "activation": "relu",
+        "layer_norm_eps": 1e-07,
+        "batch_first": False,
+        "norm_first": False,
+        "bias": True,
+        "dtype": torch.float64,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": src_key_padding_mask,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    src = np.random.rand(16, 5, 256).astype(np.float64)
+    src_mask = None
+    src_key_padding_mask = None
+    input_dict = {
+        "d_model": 256,
+        "nhead": 4,
+        "dim_feedforward": 512,
+        "dropout": 0.05,
+        "activation": "gelu",
+        "layer_norm_eps": 1e-07,
+        "batch_first": True,
+        "norm_first": True,
+        "bias": False,
+        "dtype": torch.float64,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": src_key_padding_mask,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    src = np.random.rand(20, 64, 128).astype(np.float32)
+    src_mask = np.zeros((20, 20)).astype(bool)
+    src_key_padding_mask = np.ones((64, 20)).astype(bool)
+    input_dict = {
+        "d_model": 128,
+        "nhead": 2,
+        "dim_feedforward": 256,
+        "dropout": 0.3,
+        "activation": "relu",
+        "layer_norm_eps": 1e-08,
+        "batch_first": False,
+        "norm_first": False,
+        "bias": True,
+        "dtype": torch.float32,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": src_key_padding_mask,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    src = np.random.rand(64, 20, 128).astype(np.float32)
+    src_mask = None
+    src_key_padding_mask = None
+    input_dict = {
+        "d_model": 128,
+        "nhead": 2,
+        "dim_feedforward": 256,
+        "dropout": 0.3,
+        "activation": "gelu",
+        "layer_norm_eps": 1e-08,
+        "batch_first": True,
+        "norm_first": True,
+        "bias": False,
+        "dtype": torch.float32,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": src_key_padding_mask,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    src = np.random.rand(4, 8, 32).astype(np.float32)
+    src_mask = np.random.rand(4, 4).astype(np.float32)
+    src_key_padding_mask = np.random.randint(0, 2, (8, 4)).astype(bool)
+    input_dict = {
+        "d_model": 32,
+        "nhead": 1,
+        "dim_feedforward": 64,
+        "dropout": 0.0,
+        "activation": "relu",
+        "layer_norm_eps": 1e-12,
+        "batch_first": False,
+        "norm_first": False,
+        "bias": True,
+        "dtype": torch.float32,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": src_key_padding_mask,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    src = np.random.rand(8, 4, 32).astype(np.float32)
+    src_mask = None
+    src_key_padding_mask = None
+    input_dict = {
+        "d_model": 32,
+        "nhead": 1,
+        "dim_feedforward": 64,
+        "dropout": 0.0,
+        "activation": "gelu",
+        "layer_norm_eps": 1e-12,
+        "batch_first": True,
+        "norm_first": True,
+        "bias": False,
+        "dtype": torch.float32,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": src_key_padding_mask,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    src = np.random.rand(10, 32, 512).astype(np.float32)
+    src_mask = None
+    src_key_padding_mask = None
+    input_dict = {
+        "d_model": 512,
+        "nhead": 8,
+        "dim_feedforward": 2048,
+        "dropout": 0.1,
+        "activation": "relu",
+        "layer_norm_eps": 1e-05,
+        "batch_first": False,
+        "norm_first": False,
+        "bias": True,
+        "dtype": torch.float32,
+        "src": src,
+        "src_mask": None,
+        "src_key_padding_mask": None,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13
+    src = np.random.rand(4, 4, 32).astype(np.float32)
+    src_mask = np.triu(np.ones((4, 4))).astype(bool)
+    src_key_padding_mask = None
+    input_dict = {
+        "d_model": 32,
+        "nhead": 1,
+        "dim_feedforward": 64,
+        "dropout": 0.0,
+        "activation": "relu",
+        "layer_norm_eps": 1e-12,
+        "batch_first": False,
+        "norm_first": False,
+        "bias": True,
+        "dtype": torch.float32,
+        "src": src,
+        "src_mask": src_mask,
+        "src_key_padding_mask": None,
+        "is_causal": False
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.TransformerEncoderLayer"] = transformer_encoder_layer_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def upsample_inputs():
+    list_of_inputs = []
+
+    # Input 1: Nearest neighbor, 2D input
+    input1 = torch.randn(1, 3, 16, 16).numpy()
+    input_dict1 = {
+        "size": 32,
+        "scale_factor": None,
+        "mode": "nearest",
+        "align_corners": None,
+        "recompute_scale_factor": None,
+        "input": input1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Bilinear, 2D input, align_corners=False
+    input2 = torch.randn(2, 1, 8, 8).numpy()
+    input_dict2 = {
+        "size": 16,
+        "scale_factor": None,
+        "mode": "bilinear",
+        "align_corners": False,
+        "recompute_scale_factor": None,
+        "input": input2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Bicubic, 2D input, align_corners=True
+    input3 = torch.randn(1, 4, 4, 4).numpy()
+    input_dict3 = {
+        "size": 8,
+        "scale_factor": None,
+        "mode": "bicubic",
+        "align_corners": True,
+        "recompute_scale_factor": None,
+        "input": input3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Linear, 1D input, scale_factor
+    input4 = torch.randn(1, 2, 10).numpy()
+    input_dict4 = {
+        "size": None,
+        "scale_factor": 2.0,
+        "mode": "linear",
+        "align_corners": None,
+        "recompute_scale_factor": None,
+        "input": input4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Trilinear, 3D input, scale_factor
+    input5 = torch.randn(1, 1, 4, 4, 4).numpy()
+    input_dict5 = {
+        "size": None,
+        "scale_factor": 2.0,
+        "mode": "trilinear",
+        "align_corners": False,
+        "recompute_scale_factor": None,
+        "input": input5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6: Tuple size, 2D input, bilinear
+    input6 = torch.randn(1, 3, 10, 12).numpy()
+    input_dict6 = {
+        "size": (20, 24),
+        "scale_factor": None,
+        "mode": "bilinear",
+        "align_corners": False,
+        "recompute_scale_factor": None,
+        "input": input6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: Tuple size, 3D input, trilinear
+    input7 = torch.randn(1, 1, 5, 6, 7).numpy()
+    input_dict7 = {
+        "size": (10, 12, 14),
+        "scale_factor": None,
+        "mode": "trilinear",
+        "align_corners": True,
+        "recompute_scale_factor": None,
+        "input": input7
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Tuple scale factor, 2D input, bilinear
+    input8 = torch.randn(1, 3, 10, 12).numpy()
+    input_dict8 = {
+        "size": None,
+        "scale_factor": (2.0, 2.0),
+        "mode": "bilinear",
+        "align_corners": False,
+        "recompute_scale_factor": None,
+        "input": input8
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9: Recompute scale factor, bilinear
+    input9 = torch.randn(1, 1, 8, 8).numpy()
+    input_dict9 = {
+        "size": None,
+        "scale_factor": 2.0,
+        "mode": "bilinear",
+        "align_corners": False,
+        "recompute_scale_factor": True,
+        "input": input9
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: 3D Input, Nearest Neighbor
+    input10 = torch.randn(1, 2, 5, 5, 5).numpy()
+    input_dict10 = {
+        "size": 10,
+        "scale_factor": None,
+        "mode": "nearest",
+        "align_corners": None,
+        "recompute_scale_factor": None,
+        "input": input10
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.Upsample_1"] = upsample_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.random.rand(1, 3, 10, 10, 10).astype(np.float32)
+    output_size = (5, 5, 5)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.random.rand(2, 4, 8, 12, 16).astype(np.float64)
+    output_size = (4, 6, 8)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    output_size = (1, 1, 1)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input = np.random.rand(3, 2, 7, 9, 11).astype(np.float32)
+    output_size = (2, 3, 4)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input = np.random.rand(1, 3, 4, 4, 4).astype(np.float32)
+    output_size = (2, 2, 2)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.random.randn(2, 3, 15, 15, 15).astype(np.float32)
+    output_size = (7, 7, 7)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input = np.random.rand(1, 2, 3, 4, 5).astype(np.float32)
+    output_size = (1, 2, 3)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = np.random.rand(4, 5, 6, 7, 8).astype(np.float32)
+    output_size = (2, 3, 4)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input = np.random.rand(1, 3, 16, 16, 16).astype(np.float32)
+    output_size = (8, 8, 8)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.random.rand(1, 1, 32, 32, 32).astype(np.float32)
+    output_size = (16, 16, 16)
+    input_dict = {"input": input, "output_size": output_size}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.adaptive_avg_pool3d_1"] = adaptive_avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 5D input
+    input1 = np.random.rand(1, 3, 10, 10, 10).astype(np.float32)
+    output_size1 = 5
+    input_dict1 = {"input": input1, "output_size": output_size1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 4D input
+    input2 = np.random.rand(3, 10, 10, 10).astype(np.float32)
+    output_size2 = 7
+    input_dict2 = {"input": input2, "output_size": output_size2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 5D input, different shape
+    input3 = np.random.rand(2, 5, 15, 20, 25).astype(np.float32)
+    output_size3 = 10
+    input_dict3 = {"input": input3, "output_size": output_size3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Small input
+    input4 = np.random.rand(1, 1, 4, 4, 4).astype(np.float32)
+    output_size4 = 2
+    input_dict4 = {"input": input4, "output_size": output_size4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Different data type
+    input5 = np.random.rand(1, 3, 10, 10, 10).astype(np.float64)
+    output_size5 = 5
+    input_dict5 = {"input": input5, "output_size": output_size5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Output size larger than input
+    input6 = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    output_size6 = 7
+    input_dict6 = {"input": input6, "output_size": output_size6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+
+    # Input 8: 5D input, output size 1
+    input8 = np.random.rand(1, 3, 10, 10, 10).astype(np.float32)
+    output_size8 = 1
+    input_dict8 = {"input": input8, "output_size": output_size8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Large batch size
+    input9 = np.random.rand(16, 3, 10, 10, 10).astype(np.float32)
+    output_size9 = 5
+    input_dict9 = {"input": input9, "output_size": output_size9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Output size same as input size
+    input10 = np.random.rand(1, 1, 8, 8, 8).astype(np.float32)
+    output_size10 = 8
+    input_dict10 = {"input": input10, "output_size": output_size10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.adaptive_avg_pool3d_2"] = adaptive_avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_max_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case
+    input1 = np.random.rand(1, 1, 10, 10, 10).astype(np.float32)
+    output_size1 = (5, 5, 5)
+    input_dict1 = {"input": input1, "output_size": output_size1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Different input size
+    input2 = np.random.rand(2, 3, 20, 20, 20).astype(np.float32)
+    output_size2 = (7, 7, 7)
+    input_dict2 = {"input": input2, "output_size": output_size2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Asymmetric output size
+    input3 = np.random.rand(1, 1, 15, 15, 15).astype(np.float32)
+    output_size3 = (3, 5, 7)
+    input_dict3 = {"input": input3, "output_size": output_size3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Output size of 1
+    input4 = np.random.rand(1, 1, 8, 8, 8).astype(np.float32)
+    output_size4 = (1, 1, 1)
+    input_dict4 = {"input": input4, "output_size": output_size4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Larger channel size
+    input5 = np.random.rand(4, 16, 12, 12, 12).astype(np.float32)
+    output_size5 = (6, 6, 6)
+    input_dict5 = {"input": input5, "output_size": output_size5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6: Input with different dtype
+    input6 = np.random.rand(1, 1, 10, 10, 10).astype(np.float64)
+    output_size6 = (5, 5, 5)
+    input_dict6 = {"input": input6, "output_size": output_size6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Batch size greater than 1
+    input7 = np.random.rand(8, 1, 10, 10, 10).astype(np.float32)
+    output_size7 = (5, 5, 5)
+    input_dict7 = {"input": input7, "output_size": output_size7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Smaller input size
+    input8 = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    output_size8 = (2, 2, 2)
+    input_dict8 = {"input": input8, "output_size": output_size8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Different Channel size and smaller output size
+    input9 = np.random.rand(1, 3, 7, 7, 7).astype(np.float32)
+    output_size9 = (4, 4, 4)
+    input_dict9 = {"input": input9, "output_size": output_size9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: Larger Output Size
+    input10 = np.random.rand(1, 1, 20, 20, 20).astype(np.float32)
+    output_size10 = (15, 15, 15)
+    input_dict10 = {"input": input10, "output_size": output_size10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: Large Batch Size
+    input11 = np.random.rand(32, 3, 32, 32, 32).astype(np.float32)
+    output_size11 = (8, 8, 8)
+    input_dict11 = {"input": input11, "output_size": output_size11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.functional.adaptive_max_pool3d_1"] = adaptive_max_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def adaptive_max_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid case
+    input1 = np.random.rand(1, 1, 10, 10, 10).astype(np.float32)
+    output_size1 = 5
+    input_dict1 = {"input": input1, "output_size": output_size1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Different input size
+    input2 = np.random.rand(2, 3, 20, 20, 20).astype(np.float32)
+    output_size2 = 7
+    input_dict2 = {"input": input2, "output_size": output_size2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Smaller input, smaller output
+    input3 = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    output_size3 = 2
+    input_dict3 = {"input": input3, "output_size": output_size3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Non-square input
+    input4 = np.random.rand(1, 1, 10, 15, 20).astype(np.float32)
+    output_size4 = 3
+    input_dict4 = {"input": input4, "output_size": output_size4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Larger input, larger output
+    input5 = np.random.rand(4, 5, 30, 30, 30).astype(np.float32)
+    output_size5 = 10
+    input_dict5 = {"input": input5, "output_size": output_size5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: output_size = 1
+    input6 = np.random.rand(1, 1, 10, 10, 10).astype(np.float32)
+    output_size6 = 1
+    input_dict6 = {"input": input6, "output_size": output_size6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Different dtype
+    input7 = np.random.rand(1, 1, 10, 10, 10).astype(np.float64)
+    output_size7 = 5
+    input_dict7 = {"input": input7, "output_size": output_size7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Small input size
+    input8 = np.random.rand(1, 1, 3, 3, 3).astype(np.float32)
+    output_size8 = 2
+    input_dict8 = {"input": input8, "output_size": output_size8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Larger number of channels
+    input9 = np.random.rand(5, 10, 15, 15, 15).astype(np.float32)
+    output_size9 = 4
+    input_dict9 = {"input": input9, "output_size": output_size9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Different output size
+    input10 = np.random.rand(2, 2, 12, 12, 12).astype(np.float32)
+    output_size10 = 6
+    input_dict10 = {"input": input10, "output_size": output_size10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.adaptive_max_pool3d_2"] = adaptive_max_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def affine_grid_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    theta = np.array([[[0.5, 0, 0], [0, 0.5, 0]]], dtype=np.float32)
+    size = (1, 1, 10, 10)
+    align_corners = True
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    theta = np.array([[[1.0, 0, 0], [0, 1.0, 0]]], dtype=np.float32)
+    size = (1, 3, 20, 30)
+    align_corners = False
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    theta = np.array([[[0.7, 0.2, 0.1], [-0.2, 0.7, 0.3]]], dtype=np.float32)
+    size = (1, 1, 40, 50)
+    align_corners = True
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    theta = np.array([[[1.2, -0.1, 0.0], [0.1, 0.9, 0.0]]], dtype=np.float32)
+    size = (1, 1, 256, 256)
+    align_corners = False
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    theta = np.array([[[0.9, 0, 0], [0, 0.9, 0]]], dtype=np.float32)
+    size = (1, 1, 64, 64)
+    align_corners = True
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    theta = np.array([[[0.6, 0, 0.2], [0, 0.6, -0.1]]], dtype=np.float32)
+    size = (1, 1, 128, 128)
+    align_corners = False
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    theta = np.array([[[0.8, 0.1, 0.1], [-0.1, 0.8, 0.2]]], dtype=np.float32)
+    size = (1, 1, 40, 50)
+    align_corners = False
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    theta = np.array([[[1.0, 0, 0.2], [0, 1.0, -0.3]]], dtype=np.float32)
+    size = (1, 1, 32, 32)
+    align_corners = True
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: multiple batches
+    theta = np.array([[[1.0, 0, 0.2], [0, 1.0, -0.3]], [[0.5, 0, 0], [0, 0.5, 0]]], dtype=np.float32)
+    size = (2, 1, 32, 32)
+    align_corners = True
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: multiple batches, different size
+    theta = np.array([[[1.0, 0, 0.2], [0, 1.0, -0.3]], [[0.5, 0, 0], [0, 0.5, 0]]], dtype=np.float32)
+    size = (2, 1, 64, 64)
+    align_corners = False
+    input_dict = {"theta": theta, "size": size, "align_corners": align_corners}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.affine_grid"] = affine_grid_inputs()
+
+import torch, copy
+import numpy as np
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.random.rand(1, 1, 10, 10, 10).astype(np.float32)
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.random.rand(2, 3, 12, 12, 12).astype(np.float32)
+    kernel_size = 2
+    stride = 2
+    padding = 0
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size = 1
+    stride = 1
+    padding = 0
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 2
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input = np.random.rand(4, 2, 8, 8, 8).astype(np.float32)
+    kernel_size = 4
+    stride = 4
+    padding = 2
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 3
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.random.rand(1, 1, 7, 7, 7).astype(np.float32)
+    kernel_size = 3
+    stride = 1
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input = np.random.rand(1, 1, 10, 10, 10).astype(np.float32)
+    kernel_size = 3
+    stride = 3
+    padding = 0
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size = 2
+    stride = 1
+    padding = 0
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = np.random.rand(1, 1, 6, 6, 6).astype(np.float32)
+    kernel_size = 2
+    stride = 2
+    padding = 1
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input = np.random.rand(1, 1, 4, 4, 4).astype(np.float32)
+    kernel_size = 1
+    stride = 1
+    padding = 0
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input = np.random.rand(3, 2, 11, 11, 11).astype(np.float32)
+    kernel_size = 3
+    stride = 2
+    padding = 1
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_1"] = avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size = (3, 3, 3)
+    stride = (2, 2, 2)
+    padding = (1, 1, 1)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size = (2, 2, 2)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.random.rand(4, 2, 8, 8, 8).astype(np.float32)
+    kernel_size = (4, 4, 4)
+    stride = (4, 4, 4)
+    padding = (0, 0, 0)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input = np.random.rand(1, 1, 3, 3, 3).astype(np.float32)
+    kernel_size = (1, 1, 1)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 5
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.random.rand(2, 3, 7, 7, 7).astype(np.float32)
+    kernel_size = (2, 2, 2)
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.random.rand(1, 1, 4, 4, 4).astype(np.float32)
+    kernel_size = (4, 4, 4)
+    stride = (1, 1, 1)
+    padding = (2, 2, 2)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 2
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 7
+    input = np.random.rand(3, 2, 6, 6, 6).astype(np.float32)
+    kernel_size = (3, 3, 3)
+    stride = (2, 2, 2)
+    padding = (0, 0, 0)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = np.random.rand(1, 1, 2, 2, 2).astype(np.float32)
+    kernel_size = (1, 1, 1)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 10
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input = np.random.rand(5, 4, 9, 9, 9).astype(np.float32)
+    kernel_size = (3, 3, 3)
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.random.rand(1, 1, 1, 1, 1).astype(np.float32)
+    kernel_size = (1, 1, 1)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input = np.random.rand(1, 1, 10, 10, 10).astype(np.float32)
+    kernel_size = (5, 5, 5)
+    stride = (2, 2, 2)
+    padding = (2, 2, 2)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 3
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_2"] = avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = [2, 2, 2]
+    padding = [1, 1, 1]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = [1, 1, 1]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(4, 2, 8, 8, 8).astype(np.float32)
+    kernel_size = [4, 4, 4]
+    stride = [4, 4, 4]
+    padding = [0, 0, 0]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 2
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 3, 7, 7, 7).astype(np.float32)
+    kernel_size = [1, 1, 1]
+    stride = [1, 1, 1]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(2, 1, 6, 6, 6).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = [1, 1, 1]
+    padding = [1, 1, 1]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 1, 12, 12, 12).astype(np.float32)
+    kernel_size = [5, 5, 5]
+    stride = [3, 3, 3]
+    padding = [2, 2, 2]
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 3
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.rand(3, 2, 9, 9, 9).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = [2, 2, 2]
+    padding = [1, 1, 1]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 1, 4, 4, 4).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = [1, 1, 1]
+    padding = [1, 1, 1]
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(2, 3, 11, 11, 11).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = [3, 3, 3]
+    padding = [0, 0, 0]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 2
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(1, 2, 6, 6, 6).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = [2, 2, 2]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_3"] = avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size1 = 3
+    stride1 = (2, 2, 2)
+    padding1 = (1, 1, 1)
+    ceil_mode1 = False
+    count_include_pad1 = True
+    divisor_override1 = 1
+
+    input_dict1 = {
+        "input": input1,
+        "kernel_size": kernel_size1,
+        "stride": stride1,
+        "padding": padding1,
+        "ceil_mode": ceil_mode1,
+        "count_include_pad": count_include_pad1,
+        "divisor_override": divisor_override1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size2 = 2
+    stride2 = (1, 1, 1)
+    padding2 = (0, 0, 0)
+    ceil_mode2 = True
+    count_include_pad2 = False
+    divisor_override2 = 2
+
+    input_dict2 = {
+        "input": input2,
+        "kernel_size": kernel_size2,
+        "stride": stride2,
+        "padding": padding2,
+        "ceil_mode": ceil_mode2,
+        "count_include_pad": count_include_pad2,
+        "divisor_override": divisor_override2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = np.random.rand(4, 2, 7, 7, 7).astype(np.float32)
+    kernel_size3 = 4
+    stride3 = (3, 3, 3)
+    padding3 = (2, 2, 2)
+    ceil_mode3 = False
+    count_include_pad3 = False
+    divisor_override3 = 3
+
+    input_dict3 = {
+        "input": input3,
+        "kernel_size": kernel_size3,
+        "stride": stride3,
+        "padding": padding3,
+        "ceil_mode": ceil_mode3,
+        "count_include_pad": count_include_pad3,
+        "divisor_override": divisor_override3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4
+    input4 = np.random.rand(1, 1, 3, 3, 3).astype(np.float32)
+    kernel_size4 = 1
+    stride4 = (1, 1, 1)
+    padding4 = (0, 0, 0)
+    ceil_mode4 = True
+    count_include_pad4 = True
+    divisor_override4 = 1
+
+    input_dict4 = {
+        "input": input4,
+        "kernel_size": kernel_size4,
+        "stride": stride4,
+        "padding": padding4,
+        "ceil_mode": ceil_mode4,
+        "count_include_pad": count_include_pad4,
+        "divisor_override": divisor_override4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5
+    input5 = np.random.rand(1, 2, 4, 4, 4).astype(np.float32)
+    kernel_size5 = 2
+    stride5 = (2, 2, 2)
+    padding5 = (1, 1, 1)
+    ceil_mode5 = False
+    count_include_pad5 = True
+    divisor_override5 = 1 # Modified from 0 to 1
+
+    input_dict5 = {
+        "input": input5,
+        "kernel_size": kernel_size5,
+        "stride": stride5,
+        "padding": padding5,
+        "ceil_mode": ceil_mode5,
+        "count_include_pad": count_include_pad5,
+        "divisor_override": divisor_override5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6
+    input6 = np.random.rand(3, 1, 6, 6, 6).astype(np.float32)
+    kernel_size6 = 3
+    stride6 = (1, 2, 1)
+    padding6 = (0, 1, 0)
+    ceil_mode6 = True
+    count_include_pad6 = False
+    divisor_override6 = 4
+
+    input_dict6 = {
+        "input": input6,
+        "kernel_size": kernel_size6,
+        "stride": stride6,
+        "padding": padding6,
+        "ceil_mode": ceil_mode6,
+        "count_include_pad": count_include_pad6,
+        "divisor_override": divisor_override6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7
+    input7 = np.random.rand(1, 1, 12, 12, 12).astype(np.float32)
+    kernel_size7 = 5
+    stride7 = (4, 4, 4)
+    padding7 = (2, 2, 2)
+    ceil_mode7 = False
+    count_include_pad7 = True
+    divisor_override7 = 1
+
+    input_dict7 = {
+        "input": input7,
+        "kernel_size": kernel_size7,
+        "stride": stride7,
+        "padding": padding7,
+        "ceil_mode": ceil_mode7,
+        "count_include_pad": count_include_pad7,
+        "divisor_override": divisor_override7
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8
+    input8 = np.random.rand(2, 2, 8, 8, 8).astype(np.float32)
+    kernel_size8 = 4
+    stride8 = (2, 1, 2)
+    padding8 = (1, 0, 1)
+    ceil_mode8 = True
+    count_include_pad8 = False
+    divisor_override8 = 2
+
+    input_dict8 = {
+        "input": input8,
+        "kernel_size": kernel_size8,
+        "stride": stride8,
+        "padding": padding8,
+        "ceil_mode": ceil_mode8,
+        "count_include_pad": count_include_pad8,
+        "divisor_override": divisor_override8
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9
+    input9 = np.random.rand(1, 3, 9, 9, 9).astype(np.float32)
+    kernel_size9 = 3
+    stride9 = (3, 3, 3)
+    padding9 = (1, 1, 1)
+    ceil_mode9 = False
+    count_include_pad9 = True
+    divisor_override9 = 3
+
+    input_dict9 = {
+        "input": input9,
+        "kernel_size": kernel_size9,
+        "stride": stride9,
+        "padding": padding9,
+        "ceil_mode": ceil_mode9,
+        "count_include_pad": count_include_pad9,
+        "divisor_override": divisor_override9
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10
+    input10 = np.random.rand(1, 1, 11, 11, 11).astype(np.float32)
+    kernel_size10 = 5
+    stride10 = (2, 2, 2)
+    padding10 = (0, 0, 0)
+    ceil_mode10 = True
+    count_include_pad10 = False
+    divisor_override10 = 1
+
+    input_dict10 = {
+        "input": input10,
+        "kernel_size": kernel_size10,
+        "stride": stride10,
+        "padding": padding10,
+        "ceil_mode": ceil_mode10,
+        "count_include_pad": count_include_pad10,
+        "divisor_override": divisor_override10
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_4"] = avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size1 = (2, 2, 2)
+    stride1 = 2
+    padding1 = 0
+    ceil_mode1 = False
+    count_include_pad1 = True
+    divisor_override1 = 1
+
+    input_dict1 = {
+        "input": input1,
+        "kernel_size": kernel_size1,
+        "stride": stride1,
+        "padding": padding1,
+        "ceil_mode": ceil_mode1,
+        "count_include_pad": count_include_pad1,
+        "divisor_override": divisor_override1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size2 = (3, 3, 3)
+    stride2 = 1
+    padding2 = 1
+    ceil_mode2 = True
+    count_include_pad2 = False
+    divisor_override2 = 1
+
+    input_dict2 = {
+        "input": input2,
+        "kernel_size": kernel_size2,
+        "stride": stride2,
+        "padding": padding2,
+        "ceil_mode": ceil_mode2,
+        "count_include_pad": count_include_pad2,
+        "divisor_override": divisor_override2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = np.random.rand(4, 2, 7, 7, 7).astype(np.float32)
+    kernel_size3 = (1, 1, 1)
+    stride3 = 1
+    padding3 = 0
+    ceil_mode3 = False
+    count_include_pad3 = True
+    divisor_override3 = 1
+
+    input_dict3 = {
+        "input": input3,
+        "kernel_size": kernel_size3,
+        "stride": stride3,
+        "padding": padding3,
+        "ceil_mode": ceil_mode3,
+        "count_include_pad": count_include_pad3,
+        "divisor_override": divisor_override3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4
+    input4 = np.random.rand(1, 1, 10, 10, 10).astype(np.float32)
+    kernel_size4 = (5, 5, 5)
+    stride4 = 5
+    padding4 = 0
+    ceil_mode4 = False
+    count_include_pad4 = True
+    divisor_override4 = 2
+
+    input_dict4 = {
+        "input": input4,
+        "kernel_size": kernel_size4,
+        "stride": stride4,
+        "padding": padding4,
+        "ceil_mode": ceil_mode4,
+        "count_include_pad": count_include_pad4,
+        "divisor_override": divisor_override4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5
+    input5 = np.random.rand(1, 3, 8, 8, 8).astype(np.float32)
+    kernel_size5 = (2, 2, 2)
+    stride5 = 1
+    padding5 = 1
+    ceil_mode5 = True
+    count_include_pad5 = True
+    divisor_override5 = 1
+
+    input_dict5 = {
+        "input": input5,
+        "kernel_size": kernel_size5,
+        "stride": stride5,
+        "padding": padding5,
+        "ceil_mode": ceil_mode5,
+        "count_include_pad": count_include_pad5,
+        "divisor_override": divisor_override5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6
+    input6 = np.random.rand(2, 1, 6, 6, 6).astype(np.float32)
+    kernel_size6 = (3, 3, 3)
+    stride6 = 2
+    padding6 = 1
+    ceil_mode6 = False
+    count_include_pad6 = False
+    divisor_override6 = 1
+
+    input_dict6 = {
+        "input": input6,
+        "kernel_size": kernel_size6,
+        "stride": stride6,
+        "padding": padding6,
+        "ceil_mode": ceil_mode6,
+        "count_include_pad": count_include_pad6,
+        "divisor_override": divisor_override6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7
+    input7 = np.random.rand(1, 1, 4, 4, 4).astype(np.float32)
+    kernel_size7 = (2, 2, 2)
+    stride7 = 2
+    padding7 = 0
+    ceil_mode7 = True
+    count_include_pad7 = True
+    divisor_override7 = 1
+
+    input_dict7 = {
+        "input": input7,
+        "kernel_size": kernel_size7,
+        "stride": stride7,
+        "padding": padding7,
+        "ceil_mode": ceil_mode7,
+        "count_include_pad": count_include_pad7,
+        "divisor_override": divisor_override7
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8
+    input8 = np.random.rand(3, 2, 9, 9, 9).astype(np.float32)
+    kernel_size8 = (4, 4, 4)
+    stride8 = 3
+    padding8 = 1
+    ceil_mode8 = False
+    count_include_pad8 = False
+    divisor_override8 = 2
+
+    input_dict8 = {
+        "input": input8,
+        "kernel_size": kernel_size8,
+        "stride": stride8,
+        "padding": padding8,
+        "ceil_mode": ceil_mode8,
+        "count_include_pad": count_include_pad8,
+        "divisor_override": divisor_override8
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9
+    input9 = np.random.rand(1, 1, 11, 11, 11).astype(np.float32)
+    kernel_size9 = (5, 5, 5)
+    stride9 = 1
+    padding9 = 2
+    ceil_mode9 = True
+    count_include_pad9 = True
+    divisor_override9 = 1
+
+    input_dict9 = {
+        "input": input9,
+        "kernel_size": kernel_size9,
+        "stride": stride9,
+        "padding": padding9,
+        "ceil_mode": ceil_mode9,
+        "count_include_pad": count_include_pad9,
+        "divisor_override": divisor_override9
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10
+    input10 = np.random.rand(2, 3, 12, 12, 12).astype(np.float32)
+    kernel_size10 = (6, 6, 6)
+    stride10 = 2
+    padding10 = 0
+    ceil_mode10 = False
+    count_include_pad10 = False
+    divisor_override10 = 1
+
+    input_dict10 = {
+        "input": input10,
+        "kernel_size": kernel_size10,
+        "stride": stride10,
+        "padding": padding10,
+        "ceil_mode": ceil_mode10,
+        "count_include_pad": count_include_pad10,
+        "divisor_override": divisor_override10
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_5"] = avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size = 3
+    stride = [2, 2, 2]
+    padding = [1, 1, 1]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size = 2
+    stride = [1, 1, 1]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(4, 2, 8, 8, 8).astype(np.float32)
+    kernel_size = 4
+    stride = [3, 3, 3]
+    padding = [2, 2, 2]
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 2
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 3, 7, 7, 7).astype(np.float32)
+    kernel_size = 1
+    stride = [1, 1, 1]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 3
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5 (Corrected padding)
+    input_tensor = np.random.rand(2, 1, 12, 12, 12).astype(np.float32)
+    kernel_size = 5
+    stride = [4, 4, 4]
+    padding = [2, 2, 2]  # Changed from [3, 3, 3] to [2, 2, 2]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 4
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 1, 3, 3, 3).astype(np.float32)
+    kernel_size = 1
+    stride = [1, 1, 1]
+    padding = [0, 0, 0]
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 5
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_6"] = avg_pool3d_inputs()
+
+import torch, copy
+import numpy as np
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size = (3, 3, 3)
+    stride = [2, 2, 2]
+    padding = [0, 0, 0]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size = (2, 2, 2)
+    stride = [1, 1, 1]
+    padding = [1, 1, 1]
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.random.rand(4, 2, 8, 8, 8).astype(np.float32)
+    kernel_size = (4, 4, 4)
+    stride = [4, 4, 4]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input = np.random.rand(1, 1, 12, 12, 12).astype(np.float32)
+    kernel_size = (5, 5, 5)
+    stride = [3, 3, 3]
+    padding = [2, 2, 2]
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 2
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.random.rand(3, 4, 7, 7, 7).astype(np.float32)
+    kernel_size = (1, 1, 1)
+    stride = [1, 1, 1]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 3
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.random.rand(1, 1, 3, 3, 3).astype(np.float32)
+    kernel_size = (3, 3, 3)
+    stride = [1, 1, 1]
+    padding = [1, 1, 1]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input = np.random.rand(2, 2, 6, 6, 6).astype(np.float32)
+    kernel_size = (2, 2, 2)
+    stride = [2, 2, 2]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = np.random.rand(1, 1, 9, 9, 9).astype(np.float32)
+    kernel_size = (4, 4, 4)
+    stride = [2, 2, 2]
+    padding = [1, 1, 1]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 2
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input = np.random.rand(4, 3, 4, 4, 4).astype(np.float32)
+    kernel_size = (1, 1, 1)
+    stride = [1, 1, 1]
+    padding = [0, 0, 0]
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.random.rand(1, 1, 10, 10, 10).astype(np.float32)
+    kernel_size = (2, 2, 2)
+    stride = [2, 2, 2]
+    padding = [0, 0, 0]
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_7"] = avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = 2
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1 # changed from 0
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = 1
+    padding = 0
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(4, 2, 8, 8, 8).astype(np.float32)
+    kernel_size = [4, 4, 4]
+    stride = 4
+    padding = 2
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 2
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 3, 7, 7, 7).astype(np.float32)
+    kernel_size = [1, 1, 1]
+    stride = 1
+    padding = 0
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(2, 1, 6, 6, 6).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = 2
+    padding = 1
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 1 # changed from 0
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_tensor = np.random.rand(1, 2, 12, 12, 12).astype(np.float32)
+    kernel_size = [5, 5, 5]
+    stride = 3
+    padding = 1
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 3
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = np.random.rand(3, 3, 9, 9, 9).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = 1
+    padding = 0
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 1, 4, 4, 4).astype(np.float32)
+    kernel_size = [1, 1, 1]
+    stride = 2
+    padding = 0
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1 # changed from 0
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = np.random.rand(2, 3, 11, 11, 11).astype(np.float32)
+    kernel_size = [4, 4, 4]
+    stride = 1
+    padding = 2
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 2
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(1, 2, 6, 6, 6).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = 3
+    padding = 0
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.random.rand(1, 2, 6, 6, 6).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = 1
+    padding = 1
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1 # changed from 0
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "stride": stride, "padding": padding,
+                  "ceil_mode": ceil_mode, "count_include_pad": count_include_pad, "divisor_override": divisor_override}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_8"] = avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def avg_pool3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = (2, 2, 2)
+    padding = (1, 1, 1)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(4, 2, 8, 8, 8).astype(np.float32)
+    kernel_size = [4, 4, 4]
+    stride = (3, 3, 3)
+    padding = (2, 2, 2)
+    ceil_mode = False
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 3, 12, 12, 12).astype(np.float32)
+    kernel_size = [5, 5, 5]
+    stride = (4, 4, 4)
+    padding = (0, 0, 0)
+    ceil_mode = True
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(2, 1, 7, 7, 7).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(3, 4, 9, 9, 9).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = (1, 2, 1)
+    padding = (0, 1, 0)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 7
+    input_tensor = np.random.rand(1, 2, 6, 6, 6).astype(np.float32)
+    kernel_size = [3, 2, 1]
+    stride = (2, 1, 1)
+    padding = (1, 0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(2, 3, 11, 11, 11).astype(np.float32)
+    kernel_size = [1, 2, 3]
+    stride = (1, 1, 2)
+    padding = (0, 1, 1) #modified padding
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(1, 1, 4, 4, 4).astype(np.float32)
+    kernel_size = [2, 2, 2]
+    stride = (2, 2, 2)
+    padding = (0, 0, 0)
+    ceil_mode = False
+    count_include_pad = True
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(4, 2, 13, 13, 13).astype(np.float32)
+    kernel_size = [3, 3, 3]
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    ceil_mode = True
+    count_include_pad = False
+    divisor_override = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "ceil_mode": ceil_mode,
+        "count_include_pad": count_include_pad,
+        "divisor_override": divisor_override
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.avg_pool3d_9"] = avg_pool3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def bilinear_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = np.random.rand(2, 3, 4).astype(np.float32)
+    input2 = np.random.rand(2, 3, 5).astype(np.float32)
+    weight = np.random.rand(6, 4, 5).astype(np.float32)
+    bias = np.random.rand(6).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input1 = np.random.rand(1, 2, 3).astype(np.float32)
+    input2 = np.random.rand(1, 2, 4).astype(np.float32)
+    weight = np.random.rand(5, 3, 4).astype(np.float32)
+    bias = np.random.rand(5).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input1 = np.random.rand(3, 1, 2).astype(np.float32)
+    input2 = np.random.rand(3, 1, 3).astype(np.float32)
+    weight = np.random.rand(4, 2, 3).astype(np.float32)
+    bias = np.random.rand(4).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input1 = np.random.rand(1, 5, 6).astype(np.float32)
+    input2 = np.random.rand(1, 5, 7).astype(np.float32)
+    weight = np.random.rand(8, 6, 7).astype(np.float32)
+    bias = np.random.rand(8).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input1 = np.random.rand(2, 4).astype(np.float32)
+    input2 = np.random.rand(2, 5).astype(np.float32)
+    weight = np.random.rand(3, 4, 5).astype(np.float32)
+    bias = np.random.rand(3).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 (negative values)
+    input1 = np.random.randn(2, 3, 4).astype(np.float32)
+    input2 = np.random.randn(2, 3, 5).astype(np.float32)
+    weight = np.random.randn(6, 4, 5).astype(np.float32)
+    bias = np.random.randn(6).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (different batch size)
+    input1 = np.random.randn(5, 3, 4).astype(np.float32)
+    input2 = np.random.randn(5, 3, 5).astype(np.float32)
+    weight = np.random.randn(6, 4, 5).astype(np.float32)
+    bias = np.random.randn(6).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input1 = np.random.rand(1, 1, 2).astype(np.float32)
+    input2 = np.random.rand(1, 1, 3).astype(np.float32)
+    weight = np.random.rand(4, 2, 3).astype(np.float32)
+    bias = np.random.rand(4).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input1 = np.random.rand(3, 5, 6).astype(np.float32)
+    input2 = np.random.rand(3, 5, 7).astype(np.float32)
+    weight = np.random.rand(8, 6, 7).astype(np.float32)
+    bias = np.random.rand(8).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 (no bias)
+    input1 = np.random.randn(2, 3, 4).astype(np.float32)
+    input2 = np.random.randn(2, 3, 5).astype(np.float32)
+    weight = np.random.randn(6, 4, 5).astype(np.float32)
+    bias = None
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11 (no batch size)
+    input1 = np.random.randn(3).astype(np.float32)
+    input2 = np.random.randn(5).astype(np.float32)
+    weight = np.random.randn(6, 3, 5).astype(np.float32)
+    bias = np.random.randn(6).astype(np.float32)
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "weight": weight,
+        "bias": bias
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.bilinear"] = bilinear_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def binary_cross_entropy_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([0.1, 0.5, 0.9], dtype=np.float32)
+    target_tensor = np.array([0.0, 1.0, 1.0], dtype=np.float32)
+    weight_tensor = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[0.2, 0.6], [0.8, 0.3]], dtype=np.float32)
+    target_tensor = np.array([[0.0, 1.0], [1.0, 0.0]], dtype=np.float32)
+    weight_tensor = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float32)
+    size_average = False
+    reduce = True
+    reduction = 'sum'
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([0.4], dtype=np.float32)
+    target_tensor = np.array([1.0], dtype=np.float32)
+    weight_tensor = np.array([2.0], dtype=np.float32)
+    size_average = False
+    reduce = False
+    reduction = 'none'
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([0.01, 0.99], dtype=np.float32)
+    target_tensor = np.array([0.0, 1.0], dtype=np.float32)
+    weight_tensor = np.array([1.0, 1.0], dtype=np.float32)
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([0.7, 0.2, 0.5], dtype=np.float32)
+    target_tensor = np.array([1.0, 0.0, 0.0], dtype=np.float32)
+    weight_tensor = np.array([0.5, 1.0, 1.5], dtype=np.float32)
+    size_average = False
+    reduce = True
+    reduction = 'sum'
+
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([[0.1, 0.9]], dtype=np.float32)
+    target_tensor = np.array([[0.0, 1.0]], dtype=np.float32)
+    weight_tensor = np.array([[1.0, 1.0]], dtype=np.float32)
+    size_average = False
+    reduce = False
+    reduction = 'none'
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([0.3, 0.7], dtype=np.float32)
+    target_tensor = np.array([0.0, 1.0], dtype=np.float32)
+    weight_tensor = np.array([1.0, 1.0], dtype=np.float32)
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 8
+    input_tensor = np.array([0.2, 0.8, 0.4, 0.6], dtype=np.float32)
+    target_tensor = np.array([1.0, 0.0, 1.0, 0.0], dtype=np.float32)
+    weight_tensor = np.array([0.5, 1.0, 1.5, 2.0], dtype=np.float32)
+    size_average = False
+    reduce = True
+    reduction = 'sum'
+
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([[0.05, 0.95], [0.9, 0.1]], dtype=np.float32)
+    target_tensor = np.array([[0.0, 1.0], [1.0, 0.0]], dtype=np.float32)
+    weight_tensor = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
+    size_average = False
+    reduce = False
+    reduction = 'none'
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([0.6, 0.4], dtype=np.float32)
+    target_tensor = np.array([1.0, 0.0], dtype=np.float32)
+    weight_tensor = np.array([1.0, 1.0], dtype=np.float32)
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.array([0.999, 0.001], dtype=np.float32)
+    target_tensor = np.array([1.0, 0.0], dtype=np.float32)
+    weight_tensor = np.array([2.0, 0.5], dtype=np.float32)
+    size_average = False
+    reduce = False
+    reduction = 'none'
+
+    input_dict = {
+        'input': input_tensor,
+        'target': target_tensor,
+        'weight': weight_tensor,
+        'size_average': size_average,
+        'reduce': reduce,
+        'reduction': reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.binary_cross_entropy"] = binary_cross_entropy_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.randn(2, 3, 10).astype(np.float32)
+    weight_tensor = np.random.randn(5, 3, 2).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": "valid",
+        "dilation": 1,
+        "groups": 1,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.randn(1, 16, 20).astype(np.float32)
+    weight_tensor = np.random.randn(32, 16, 3).astype(np.float32)
+    bias_tensor = np.random.randn(32).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": "valid",
+        "dilation": 1,
+        "groups": 1,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.randn(4, 8, 30).astype(np.float32)
+    weight_tensor = np.random.randn(16, 8, 4).astype(np.float32)
+    bias_tensor = np.random.randn(16).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 2,
+        "dilation": 2,
+        "groups": 1,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.randn(1, 4, 15).astype(np.float32)
+    weight_tensor = np.random.randn(8, 1, 3).astype(np.float32)
+    bias_tensor = np.random.randn(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 1,
+        "dilation": 1,
+        "groups": 4,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.randn(3, 32, 40).astype(np.float32)
+    weight_tensor = np.random.randn(64, 32, 5).astype(np.float32)
+    bias_tensor = np.random.randn(64).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 3,
+        "groups": 1,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: No bias
+    input_tensor = np.random.randn(2, 3, 10).astype(np.float32)
+    weight_tensor = np.random.randn(5, 3, 2).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": None,
+        "stride": 1,
+        "padding": "valid",
+        "dilation": 1,
+        "groups": 1,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: groups > 1
+    input_tensor = np.random.randn(1, 8, 20).astype(np.float32)
+    weight_tensor = np.random.randn(16, 4, 3).astype(np.float32)
+    bias_tensor = np.random.randn(16).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": "valid",
+        "dilation": 1,
+        "groups": 2,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: small input size
+    input_tensor = np.random.randn(1, 1, 5).astype(np.float32)
+    weight_tensor = np.random.randn(2, 1, 3).astype(np.float32)
+    bias_tensor = np.random.randn(2).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": "valid",
+        "dilation": 1,
+        "groups": 1,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: dilation > 1, groups > 1
+    input_tensor = np.random.randn(1, 16, 30).astype(np.float32)
+    weight_tensor = np.random.randn(32, 8, 3).astype(np.float32)
+    bias_tensor = np.random.randn(32).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 1,
+        "dilation": 2,
+        "groups": 2,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: large dilation, small kernel
+    input_tensor = np.random.randn(1, 3, 20).astype(np.float32)
+    weight_tensor = np.random.randn(5, 3, 1).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": "valid",
+        "dilation": 5,
+        "groups": 1,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv1d"] = conv1d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(2, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(8, 4, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 2,
+        "padding": 1,
+        "dilation": 1,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 1, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(3, 1, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(3).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 3,
+        "dilation": 1,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(4, 2, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(6, 2, 4, 4).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 2,
+        "padding": 0,
+        "dilation": 2,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 8, 10, 10).astype(np.float32)
+    weight_tensor = np.random.rand(16, 4, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 1,
+        "dilation": 1,
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 (no bias)
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 5, 5).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": None,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.rand(1, 2, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 2,
+        "padding": 1,
+        "dilation": 2,
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(2, 3, 24, 24).astype(np.float32)
+    weight_tensor = np.random.rand(6, 1, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 3,
+        "padding": 2,
+        "dilation": 1,
+        "groups": 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = np.random.rand(1, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(8, 2, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 2,
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(3, 3, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(6, 1, 4, 4).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 2,
+        "padding": 1,
+        "dilation": 1,
+        "groups": 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_1"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (1, 1), 'padding': (0, 0), 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(4, 1, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(10, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(10).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (2, 2), 'padding': (1, 1), 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 3, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(6, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (1, 1), 'padding': (1, 1), 'dilation': (2, 2), 'groups': 3}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input_tensor = np.random.rand(2, 4, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(6, 2, 4, 4).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (2, 1), 'padding': (1, 2), 'dilation': (1, 1), 'groups': 2}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 1, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(16, 1, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (3, 3), 'padding': (2, 2), 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 (no bias)
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 5, 5).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': None, 'stride': (1, 1), 'padding': (0, 0), 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (1x1 convolution)
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 1, 1).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (1, 1), 'padding': (0, 0), 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8 (different stride and padding)
+    input_tensor = np.random.rand(1, 3, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (2, 2), 'padding': (1, 1), 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 (groups > 1)
+    input_tensor = np.random.rand(1, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(8, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (1, 1), 'padding': (1, 1), 'dilation': (1, 1), 'groups': 4}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 (dilation > 1)
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': (1, 1), 'padding': (0, 0), 'dilation': (2, 2), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_10"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'valid',
+        'dilation': (1, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(2, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(8, 4, 3, 3).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'same',
+        'dilation': (1, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 1, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(3, 1, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(3).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'valid',
+        'dilation': (2, 2),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(4, 3, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'same',
+        'dilation': (1, 2),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 3, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(4, 3, 1, 1).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'valid',
+        'dilation': (3, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 2, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(4, 2, 5, 5).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'same',
+        'dilation': (2, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.rand(2, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(6, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'valid',
+        'dilation': (1, 3),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input_tensor = np.random.rand(1, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(8, 4, 1, 1).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'same',
+        'dilation': (3, 3),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(1, 1, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(2, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(2).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'valid',
+        'dilation': (4, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(4, 2, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(8, 2, 5, 5).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': 'same',
+        'dilation': (1, 4),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_11"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1),
+        "padding": "valid",
+        "dilation": (1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(2, 4, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(8, 4, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1),
+        "padding": "valid",
+        "dilation": (1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 16, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(32, 8, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(32).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1),
+        "padding": "valid",
+        "dilation": (2, 2),
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(4, 3, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(10, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(10).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1),
+        "padding": "valid",
+        "dilation": (1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 64, 256, 256).astype(np.float32)
+    weight_tensor = np.random.rand(128, 64, 1, 1).astype(np.float32)
+    bias_tensor = np.random.rand(128).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (2, 2),
+        "padding": 0,
+        "dilation": (1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(2, 3, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 3, 3).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1),
+        "padding": "valid",
+        "dilation": (1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.rand(1, 4, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(8, 2, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1),
+        "padding": "valid",
+        "dilation": (1, 1),
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 3, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(10, 3, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(10).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1),
+        "padding": "valid",
+        "dilation": (2, 2),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(4, 1, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(5, 1, 3, 3).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1),
+        "padding": "valid",
+        "dilation": (1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(1, 3, 256, 256).astype(np.float32)
+    weight_tensor = np.random.rand(10, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(10).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (2, 2),
+        "padding": 0,
+        "dilation": (1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_12"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 0
+    dilation_val = 1
+    groups_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.randn(2, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.randn(8, 4, 3, 3).astype(np.float32)
+    bias_tensor = np.random.randn(8).astype(np.float32)
+    stride_val = (2, 2)
+    padding_val = 1
+    dilation_val = 1
+    groups_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.randn(1, 1, 64, 64).astype(np.float32)
+    weight_tensor = np.random.randn(3, 1, 7, 7).astype(np.float32)
+    bias_tensor = np.random.randn(3).astype(np.float32)
+    stride_val = (3, 3)
+    padding_val = 2
+    dilation_val = 1
+    groups_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.randn(4, 2, 28, 28).astype(np.float32)
+    weight_tensor = np.random.randn(6, 2, 4, 4).astype(np.float32)
+    bias_tensor = np.random.randn(6).astype(np.float32)
+    stride_val = (1, 2)
+    padding_val = 0
+    dilation_val = 2
+    groups_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5 (no bias)
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = None
+    stride_val = (1, 1)
+    padding_val = 0
+    dilation_val = 1
+    groups_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6 (dilation > 1)
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 0
+    dilation_val = 2
+    groups_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (padding > 0)
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 2
+    dilation_val = 1
+    groups_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 (different stride values)
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(5, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    stride_val = (2, 3)
+    padding_val = 1
+    dilation_val = 1
+    groups_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 (groups > 1, adjusted weight shape)
+    input_tensor = np.random.randn(1, 4, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(8, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.randn(8).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 1
+    dilation_val = 1
+    groups_val = 4
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 (groups > 1, adjusted weight shape, no bias)
+    input_tensor = np.random.randn(1, 4, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(8, 1, 3, 3).astype(np.float32)
+    bias_tensor = None
+    stride_val = (1, 1)
+    padding_val = 1
+    dilation_val = 1
+    groups_val = 4
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_2"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(6, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (0, 0),
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(2, 4, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(8, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 2,
+        'padding': (1, 1),
+        'dilation': 1,
+        'groups': 4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(4, 16, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(32, 4, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(32).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (3, 3),
+        'dilation': 2,
+        'groups': 4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 2, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (1, 1),
+        'dilation': 1,
+        'groups': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(6, 1, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 2,
+        'padding': (2, 2),
+        'dilation': 1,
+        'groups': 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 3, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(6, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (0, 0),
+        'dilation': 1,
+        'groups': 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.rand(2, 2, 20, 20).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (1, 1),
+        'dilation': 1,
+        'groups': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 1, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(2, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(2).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 2,
+        'padding': (1, 1),
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(1, 4, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(8, 2, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (2, 2),
+        'dilation': 2,
+        'groups': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = np.random.rand(3, 3, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(9, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(9).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 3,
+        'padding': (1, 1),
+        'dilation': 1,
+        'groups': 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_3"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(6, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    stride = (1, 1)
+    padding = (0, 0)
+    dilation = 1
+    groups = 1
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(2, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(8, 4, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    stride = (2, 2)
+    padding = (1, 1)
+    dilation = 1
+    groups = 1
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 1, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(2, 1, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(2).astype(np.float32)
+    stride = (3, 3)
+    padding = (2, 2)
+    dilation = 2
+    groups = 1
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(4, 9, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(12, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(12).astype(np.float32)
+    stride = (1, 1)
+    padding = (2, 2)
+    dilation = 1
+    groups = 3
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 2, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 9, 9).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    stride = (4, 4)
+    padding = (3, 3)
+    dilation = 3
+    groups = 2
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(6, 1, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    stride = (1, 1)
+    padding = (0, 0)
+    dilation = 1
+    groups = 3
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.rand(2, 2, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    stride = (2, 2)
+    padding = (1, 1)
+    dilation = 1
+    groups = 2
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(8, 2, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    stride = (1, 1)
+    padding = (2, 2)
+    dilation = 1
+    groups = 2
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(6, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    stride = (1, 1)
+    padding = (1, 1)
+    dilation = 1
+    groups = 1
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(2, 4, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(8, 4, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    stride = (2, 2)
+    padding = (1, 1)
+    dilation = 1
+    groups = 1
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.random.rand(1, 6, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(12, 2, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(12).astype(np.float32)
+    stride = (1, 1)
+    padding = (1, 1)
+    dilation = 1
+    groups = 3
+    input_dict = {'input': input_tensor, 'weight': weight_tensor, 'bias': bias_tensor, 'stride': stride, 'padding': padding, 'dilation': dilation, 'groups': groups}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_4"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+import torch.nn.functional as F
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 'valid',
+        "dilation": 1,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(4, 3, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(32, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(32).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 'same',
+        "dilation": 1,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 1, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(8, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 2,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(2, 4, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(12, 2, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(12).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 2,
+        "padding": 1,
+        "dilation": 1,
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 3, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(12, 1, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(12).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 3,
+        "dilation": 1,
+        "groups": 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_tensor = np.random.rand(1, 2, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 'valid',
+        "dilation": 2,
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.rand(4, 4, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(8, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 'same',
+        "dilation": 1,
+        "groups": 4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 8, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(16, 1, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 3,
+        "dilation": 1,
+        "groups": 8
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(2, 3, 224, 224).astype(np.float32)
+    weight_tensor = np.random.rand(12, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(12).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 1,
+        "dilation": 1,
+        "groups": 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": 1,
+        "padding": 'valid',
+        "dilation": 1,
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_5"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(4, 3, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(32, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(32).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 6, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(12, 3, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(12).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 2,
+        'groups': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(2, 4, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(8, 2, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (2, 1),
+        'padding': 'valid',
+        'dilation': 1,
+        'groups': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 3, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(4, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: No bias
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = None
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: dilation > 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 2,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: groups > 1
+    input_tensor = np.random.rand(1, 4, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(8, 2, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 1,
+        'groups': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: stride > 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: padding = 'same' , stride = 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'same',
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: small kernel
+    input_tensor = np.random.rand(1, 3, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(4, 3, 1, 1).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': (1, 1),
+        'padding': 'valid',
+        'dilation': 1,
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_6"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = torch.randn(1, 3, 32, 32).numpy()
+    weight1 = torch.randn(5, 3, 5, 5).numpy()
+    bias1 = torch.randn(5).numpy()
+    input_dict1 = {'input': input1, 'weight': weight1, 'bias': bias1, 'stride': 1, 'padding': 0, 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2
+    input2 = torch.randn(2, 4, 28, 28).numpy()
+    weight2 = torch.randn(8, 4, 3, 3).numpy()
+    bias2 = torch.randn(8).numpy()
+    input_dict2 = {'input': input2, 'weight': weight2, 'bias': bias2, 'stride': 2, 'padding': 1, 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3
+    input3 = torch.randn(1, 16, 64, 64).numpy()
+    weight3 = torch.randn(32, 16, 7, 7).numpy()
+    bias3 = torch.randn(32).numpy()
+    input_dict3 = {'input': input3, 'weight': weight3, 'bias': bias3, 'stride': 1, 'padding': 3, 'dilation': (2, 2), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4
+    input4 = torch.randn(4, 3, 16, 16).numpy()
+    weight4 = torch.randn(6, 3, 3, 3).numpy()
+    bias4 = torch.randn(6).numpy()
+    input_dict4 = {'input': input4, 'weight': weight4, 'bias': bias4, 'stride': 2, 'padding': 1, 'dilation': (1, 2), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5
+    input5 = torch.randn(1, 8, 128, 128).numpy()
+    weight5 = torch.randn(16, 8, 5, 5).numpy()
+    bias5 = torch.randn(16).numpy()
+    input_dict5 = {'input': input5, 'weight': weight5, 'bias': bias5, 'stride': 4, 'padding': 2, 'dilation': (2, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6
+    input6 = torch.randn(2, 24, 24, 24).numpy()
+    weight6 = torch.randn(48, 24, 3, 3).numpy()
+    bias6 = torch.randn(48).numpy()
+    input_dict6 = {'input': input6, 'weight': weight6, 'bias': bias6, 'stride': 1, 'padding': 1, 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7
+    input7 = torch.randn(1, 32, 48, 48).numpy()
+    weight7 = torch.randn(64, 32, 5, 5).numpy()
+    bias7 = torch.randn(64).numpy()
+    input_dict7 = {'input': input7, 'weight': weight7, 'bias': bias7, 'stride': 2, 'padding': 2, 'dilation': (2, 2), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8
+    input8 = torch.randn(4, 12, 20, 20).numpy()
+    weight8 = torch.randn(24, 12, 3, 3).numpy()
+    bias8 = torch.randn(24).numpy()
+    input_dict8 = {'input': input8, 'weight': weight8, 'bias': bias8, 'stride': 1, 'padding': 0, 'dilation': (3, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9
+    input9 = torch.randn(1, 64, 16, 16).numpy()
+    weight9 = torch.randn(128, 64, 1, 1).numpy()
+    bias9 = torch.randn(128).numpy()
+    input_dict9 = {'input': input9, 'weight': weight9, 'bias': bias9, 'stride': 1, 'padding': 0, 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10
+    input10 = torch.randn(1, 3, 16, 16).numpy()
+    weight10 = torch.randn(16, 3, 3, 3).numpy()
+    bias10 = torch.randn(16).numpy()
+    input_dict10 = {'input': input10, 'weight': weight10, 'bias': bias10, 'stride': 2, 'padding': 1, 'dilation': (1, 1), 'groups': 1}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_7"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+import torch.nn.functional as F
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.randn(16).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 0
+    dilation_val = (1, 1)
+    groups_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.randn(4, 3, 64, 64).astype(np.float32)
+    weight_tensor = np.random.randn(8, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.randn(8).astype(np.float32)
+    stride_val = (2, 2)
+    padding_val = 2
+    dilation_val = (1, 1)
+    groups_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.randn(1, 3, 128, 128).astype(np.float32)
+    weight_tensor = np.random.randn(32, 3, 7, 7).astype(np.float32)
+    bias_tensor = np.random.randn(32).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 3
+    dilation_val = (2, 2)
+    groups_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.randn(2, 6, 256, 256).astype(np.float32)
+    weight_tensor = np.random.randn(12, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.randn(12).astype(np.float32)
+    stride_val = (2, 2)
+    padding_val = 1
+    dilation_val = (1, 1)
+    groups_val = 2
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input_tensor = np.random.randn(1, 4, 16, 16).astype(np.float32)
+    weight_tensor = np.random.randn(8, 2, 3, 3).astype(np.float32)
+    bias_tensor = np.random.randn(8).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 1
+    dilation_val = (1, 1)
+    groups_val = 2
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.randn(1, 1, 64, 64).astype(np.float32)
+    weight_tensor = np.random.randn(4, 1, 5, 5).astype(np.float32)
+    bias_tensor = np.random.randn(4).astype(np.float32)
+    stride_val = (2, 2)
+    padding_val = 2
+    dilation_val = (1, 1)
+    groups_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.randn(2, 8, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(16, 4, 3, 3).astype(np.float32)
+    bias_tensor = np.random.randn(16).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 1
+    dilation_val = (1, 1)
+    groups_val = 2
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8, no bias
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = None
+    stride_val = (1, 1)
+    padding_val = 0
+    dilation_val = (1, 1)
+    groups_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9, different dilation
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.randn(16).astype(np.float32)
+    stride_val = (1, 1)
+    padding_val = 0
+    dilation_val = (2, 2)
+    groups_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10, different stride and padding
+    input_tensor = np.random.randn(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.randn(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.randn(16).astype(np.float32)
+    stride_val = (2, 2)
+    padding_val = 1
+    dilation_val = (1, 1)
+    groups_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "dilation": dilation_val,
+        "groups": groups_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv2d_8"] = conv2d_inputs()
+
+import torch
+import numpy as np
+import copy
+import torch.nn.functional as F
+
+def conv2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(16, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(16).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (0, 0),
+        'dilation': (1, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(4, 3, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(32, 3, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(32).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 2,
+        'padding': (1, 1),
+        'dilation': (1, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 3, 128, 128).astype(np.float32)
+    weight_tensor = np.random.rand(8, 3, 7, 7).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 4,
+        'padding': (2, 2),
+        'dilation': (1, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(2, 6, 32, 32).astype(np.float32)
+    weight_tensor = np.random.rand(12, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(12).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (1, 1),
+        'dilation': (2, 2),
+        'groups': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 4, 64, 64).astype(np.float32)
+    weight_tensor = np.random.rand(8, 2, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 2,
+        'padding': (0, 0),
+        'dilation': (2, 2),
+        'groups': 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 1, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (0, 1),
+        'dilation': (1, 2),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = np.random.rand(1, 1, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(1, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(1).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 1,
+        'padding': (1, 1),
+        'dilation': (1, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 1, 28, 28).astype(np.float32)
+    weight_tensor = np.random.rand(1, 1, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(1).astype(np.float32)
+    input_dict = {
+        'input': input_tensor,
+        'weight': weight_tensor,
+        'bias': bias_tensor,
+        'stride': 2,
+        'padding': (1, 1),
+        'dilation': (1, 1),
+        'groups': 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.functional.conv2d_9"] = conv2d_inputs()
+
+import torch, copy
+import numpy as np
+import torch.nn.functional as F
+
+def conv3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    weight_tensor = np.random.rand(5, 3, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (1, 1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(1, 4, 8, 8, 8).astype(np.float32)
+    weight_tensor = np.random.rand(8, 1, 2, 2, 2).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (1, 1, 1),
+        "groups": 4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(4, 6, 12, 12, 12).astype(np.float32)
+    weight_tensor = np.random.rand(9, 2, 4, 4, 4).astype(np.float32)
+    bias_tensor = np.random.rand(9).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (2, 1, 1),
+        "groups": 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 3, 16, 16, 16).astype(np.float32)
+    weight_tensor = np.random.rand(4, 3, 5, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (1, 1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(2, 2, 9, 9, 9).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (1, 1, 1),
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 1, 7, 7, 7).astype(np.float32)
+    weight_tensor = np.random.rand(2, 1, 2, 2, 2).astype(np.float32)
+    bias_tensor = np.random.rand(2).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (2, 2, 2),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.rand(3, 4, 11, 11, 11).astype(np.float32)
+    weight_tensor = np.random.rand(8, 1, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(8).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (1, 2, 1),
+        "groups": 4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 3, 13, 13, 13).astype(np.float32)
+    weight_tensor = np.random.rand(6, 1, 4, 4, 4).astype(np.float32)
+    bias_tensor = np.random.rand(6).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (1, 1, 2),
+        "groups": 3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(2, 1, 14, 14, 14).astype(np.float32)
+    weight_tensor = np.random.rand(3, 1, 5, 5, 5).astype(np.float32)
+    bias_tensor = np.random.rand(3).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (2, 1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(1, 2, 15, 15, 15).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (1, 2, 2),
+        "groups": 2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    weight_tensor = np.random.rand(1, 1, 1, 1, 1).astype(np.float32)
+    bias_tensor = np.random.rand(1).astype(np.float32)
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": (1, 1, 1),
+        "padding": 'valid',
+        "dilation": (1, 1, 1),
+        "groups": 1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv3d"] = conv3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv_transpose1d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.randn(1, 3, 10).astype(np.float32)
+    weight_tensor = np.random.randn(3, 5, 2).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    stride_val = 1
+    padding_val = 0
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.randn(2, 4, 15).astype(np.float32)
+    weight_tensor = np.random.randn(4, 6, 3).astype(np.float32)
+    bias_tensor = np.random.randn(6).astype(np.float32)
+    stride_val = 2
+    padding_val = 1
+    output_padding_val = 1
+    groups_val = 1
+    dilation_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.randn(1, 2, 5).astype(np.float32)
+    weight_tensor = np.random.randn(2, 4, 1).astype(np.float32)
+    bias_tensor = np.zeros(4).astype(np.float32)
+    stride_val = 1
+    padding_val = 0
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: groups > 1
+    input_tensor = np.random.randn(1, 4, 8).astype(np.float32)
+    weight_tensor = np.random.randn(4, 2, 3).astype(np.float32)
+    bias_tensor = np.random.randn(2).astype(np.float32)
+    stride_val = 1
+    padding_val = 0
+    output_padding_val = 0
+    groups_val = 2
+    dilation_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    #list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: dilation > 1
+    input_tensor = np.random.randn(1, 3, 7).astype(np.float32)
+    weight_tensor = np.random.randn(3, 5, 2).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    stride_val = 1
+    padding_val = 0
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 2
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Larger stride and padding
+    input_tensor = np.random.randn(1, 3, 20).astype(np.float32)
+    weight_tensor = np.random.randn(3, 5, 3).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    stride_val = 3
+    padding_val = 2
+    output_padding_val = 1
+    groups_val = 1
+    dilation_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.randn(3, 2, 8).astype(np.float32)
+    weight_tensor = np.random.randn(2, 5, 3).astype(np.float32)
+    bias_tensor = np.random.randn(5).astype(np.float32)
+    stride_val = 2
+    padding_val = 1
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: No bias
+    input_tensor = np.random.randn(1, 3, 12).astype(np.float32)
+    weight_tensor = np.random.randn(3, 4, 2).astype(np.float32)
+    bias_tensor = np.zeros(4).astype(np.float32)
+    stride_val = 1
+    padding_val = 0
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: output_padding = stride - 1
+    input_tensor = np.random.randn(1, 2, 7).astype(np.float32)
+    weight_tensor = np.random.randn(2, 4, 3).astype(np.float32)
+    bias_tensor = np.random.randn(4).astype(np.float32)
+    stride_val = 2
+    padding_val = 1
+    output_padding_val = 1
+    groups_val = 1
+    dilation_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Smaller input size
+    input_tensor = np.random.randn(1, 1, 3).astype(np.float32)
+    weight_tensor = np.random.randn(1, 2, 2).astype(np.float32)
+    bias_tensor = np.random.randn(2).astype(np.float32)
+    stride_val = 1
+    padding_val = 0
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 1
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Even smaller
+    input_tensor = np.random.randn(1, 2, 2).astype(np.float32)
+    weight_tensor = np.random.randn(2, 3, 1).astype(np.float32)
+    bias_tensor = np.random.randn(3).astype(np.float32) # Corrected Bias Size
+    stride_val = 1
+    padding_val = 0
+    output_padding_val = 0
+    groups_val = 1
+    dilation_val = 1
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_padding": output_padding_val,
+        "groups": groups_val,
+        "dilation": dilation_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv_transpose1d"] = conv_transpose1d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv_transpose3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.random.rand(1, 3, 10, 10, 10).astype(np.float32)
+    weight = np.random.rand(3, 3, 3, 3, 3).astype(np.float32)
+    bias = np.random.rand(3).astype(np.float32)
+    stride = 1
+    padding = 0
+    output_padding = 0
+    groups = 1
+    dilation = 1
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.random.rand(2, 4, 5, 5, 5).astype(np.float32)
+    weight = np.random.rand(4, 4, 2, 2, 2).astype(np.float32)
+    bias = np.random.rand(4).astype(np.float32)
+    stride = 2
+    padding = 1
+    output_padding = 0
+    groups = 1
+    dilation = 1
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.random.rand(1, 2, 8, 8, 8).astype(np.float32)
+    weight = np.random.rand(2, 2, 4, 4, 4).astype(np.float32)
+    bias = np.random.rand(2).astype(np.float32)
+    stride = 1
+    padding = 2
+    output_padding = 0
+    groups = 1
+    dilation = 2
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 4
+    input = np.random.rand(1, 1, 4, 4, 4).astype(np.float32)
+    weight = np.random.rand(1, 1, 1, 1, 1).astype(np.float32)
+    bias = np.random.rand(1).astype(np.float32)
+    stride = 3
+    padding = 0
+    output_padding = 0
+    groups = 1
+    dilation = 1
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.random.rand(3, 5, 6, 6, 6).astype(np.float32)
+    weight = np.random.rand(5, 5, 3, 3, 3).astype(np.float32)
+    bias = np.random.rand(5).astype(np.float32)
+    stride = 1
+    padding = 1
+    output_padding = 0
+    groups = 1
+    dilation = 1
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.random.rand(1, 3, 10, 10, 10).astype(np.float32)
+    weight = np.random.rand(3, 3, 3, 3, 3).astype(np.float32) #Corrected Shape
+    bias = np.random.rand(3).astype(np.float32)
+    stride = 1
+    padding = 0
+    output_padding = 0
+    groups = 1 # Changed groups to 1 from 3
+    dilation = 1
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input = np.random.rand(1, 1, 7, 7, 7).astype(np.float32)
+    weight = np.random.rand(1, 1, 2, 2, 2).astype(np.float32)
+    bias = np.random.rand(1).astype(np.float32)
+    stride = 2
+    padding = 0
+    output_padding = 0
+    groups = 1
+    dilation = 1
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = np.random.rand(1, 2, 6, 6, 6).astype(np.float32)
+    weight = np.random.rand(2, 2, 3, 3, 3).astype(np.float32)
+    bias = np.random.rand(2).astype(np.float32)
+    stride = 1
+    padding = 1
+    output_padding = 0
+    groups = 1
+    dilation = 2
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input = np.random.rand(4, 3, 8, 8, 8).astype(np.float32)
+    weight = np.random.rand(3, 3, 4, 4, 4).astype(np.float32)
+    bias = np.random.rand(3).astype(np.float32)
+    stride = 2
+    padding = 1
+    output_padding = 0
+    groups = 1
+    dilation = 1
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    weight = np.random.rand(1, 1, 3, 3, 3).astype(np.float32)
+    bias = np.random.rand(1).astype(np.float32)
+    stride = 1
+    padding = 1
+    output_padding = 0
+    groups = 1
+    dilation = 1
+
+    input_dict = {
+        "input": input,
+        "weight": weight,
+        "bias": bias,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv_transpose3d"] = conv_transpose3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def conv_transpose3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    weight_tensor = np.random.rand(3, 5, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    output_padding = (0, 0, 0)
+    groups = 1
+    dilation = (1, 1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    weight_tensor = np.random.rand(1, 1, 2, 2, 2).astype(np.float32)
+    bias_tensor = np.random.rand(1).astype(np.float32)
+    stride = (2, 2, 2)
+    padding = (1, 1, 1)
+    output_padding = (1, 1, 1)
+    groups = 1
+    dilation = (1, 1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(4, 2, 7, 7, 7).astype(np.float32)
+    weight_tensor = np.random.rand(2, 4, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    stride = (1, 2, 1)
+    padding = (1, 0, 1)
+    output_padding = (0, 1, 0)
+    groups = 1
+    dilation = (2, 1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 4, 8, 8, 8).astype(np.float32)
+    weight_tensor = np.random.rand(4, 4, 1, 1, 1).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    stride = (3, 3, 3)
+    padding = (0, 0, 0)
+    output_padding = (1, 1, 1)
+    groups = 1
+    dilation = (1, 1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(2, 2, 6, 6, 6).astype(np.float32)
+    weight_tensor = np.random.rand(2, 2, 2, 2, 2).astype(np.float32)
+    bias_tensor = np.random.rand(2).astype(np.float32)
+    stride = (1, 1, 1)
+    padding = (0, 1, 0)
+    output_padding = (0, 0, 0)
+    groups = 1
+    dilation = (1, 2, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 2, 4, 4, 4).astype(np.float32)
+    weight_tensor = np.random.rand(2, 2, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(2).astype(np.float32)
+    stride = (2, 1, 2)
+    padding = (1, 0, 1)
+    output_padding = (1, 0, 1)
+    groups = 1
+    dilation = (1, 1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7 (groups > 1)
+    input_tensor = np.random.rand(1, 4, 8, 8, 8).astype(np.float32)
+    weight_tensor = np.random.rand(4, 1, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(4).astype(np.float32)
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    output_padding = (0, 0, 0)
+    groups = 4
+    dilation = (1, 1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(2, 3, 5, 5, 5).astype(np.float32)
+    weight_tensor = np.random.rand(3, 5, 1, 1, 1).astype(np.float32)
+    bias_tensor = np.random.rand(5).astype(np.float32)
+    stride = (2, 2, 2)
+    padding = (0, 0, 0)
+    output_padding = (0, 0, 0)
+    groups = 1
+    dilation = (2, 2, 2)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 (dilation > 1)
+    input_tensor = np.random.rand(1, 1, 5, 5, 5).astype(np.float32)
+    weight_tensor = np.random.rand(1, 1, 3, 3, 3).astype(np.float32)
+    bias_tensor = np.random.rand(1).astype(np.float32)
+    stride = (1, 1, 1)
+    padding = (1, 1, 1)
+    output_padding = (0, 0, 0)
+    groups = 1
+    dilation = (2, 2, 2)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 (bias is None)
+    input_tensor = np.random.rand(2, 3, 10, 10, 10).astype(np.float32)
+    weight_tensor = np.random.rand(3, 5, 3, 3, 3).astype(np.float32)
+    bias_tensor = None
+    stride = (1, 1, 1)
+    padding = (0, 0, 0)
+    output_padding = (0, 0, 0)
+    groups = 1
+    dilation = (1, 1, 1)
+
+    input_dict = {
+        "input": input_tensor,
+        "weight": weight_tensor,
+        "bias": bias_tensor,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "dilation": dilation
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.conv_transpose3d_1"] = conv_transpose3d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def cosine_embedding_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input1 = np.array([[1.0, 2.0, 3.0]], dtype=np.float32)
+    input2 = np.array([[4.0, 5.0, 6.0]], dtype=np.float32)
+    target = np.array([1], dtype=np.int8)
+    margin = 0.5
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input1 = np.array([[-1.0, -2.0, -3.0]], dtype=np.float32)
+    input2 = np.array([[-4.0, -5.0, -6.0]], dtype=np.float32)
+    target = np.array([-1], dtype=np.int8)
+    margin = 0.5
+    size_average = False
+    reduce = False
+    reduction = 'none'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input2 = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    target = np.array([1, -1], dtype=np.int8)
+    margin = 0.2
+    size_average = True
+    reduce = False
+    reduction = 'sum'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input1 = np.array([[0.0, 0.0, 0.0]], dtype=np.float32)
+    input2 = np.array([[0.0, 0.0, 0.0]], dtype=np.float32)
+    target = np.array([1], dtype=np.int8)
+    margin = 0.8
+    size_average = False
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input1 = np.array([[1.0, -2.0, 3.0]], dtype=np.float32)
+    input2 = np.array([[-4.0, 5.0, -6.0]], dtype=np.float32)
+    target = np.array([-1], dtype=np.int8)
+    margin = 0.0
+    size_average = True
+    reduce = False
+    reduction = 'none'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input1 = np.array([[0.1, 0.2]], dtype=np.float32)
+    input2 = np.array([[0.5, 0.6]], dtype=np.float32)
+    target = np.array([1], dtype=np.int8)
+    margin = -0.1
+    size_average = False
+    reduce = True
+    reduction = 'sum'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input1 = np.array([[0.5]], dtype=np.float32)
+    input2 = np.array([[0.7]], dtype=np.float32)
+    target = np.array([1], dtype=np.int8)
+    margin = 0.3
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input1 = np.array([[-1.0]], dtype=np.float32)
+    input2 = np.array([[-0.5]], dtype=np.float32)
+    target = np.array([-1], dtype=np.int8)
+    margin = 0.9
+    size_average = False
+    reduce = False
+    reduction = 'none'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input1 = np.array([[1.0, 2.0]], dtype=np.float32)
+    input2 = np.array([[1.0, 2.0]], dtype=np.float32)
+    target = np.array([1], dtype=np.int8)
+    margin = 0.4
+    size_average = True
+    reduce = False
+    reduction = 'sum'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input1 = np.array([[-1.0, -2.0]], dtype=np.float32)
+    input2 = np.array([[-1.0, -2.0]], dtype=np.float32)
+    target = np.array([-1], dtype=np.int8)
+    margin = 0.6
+    size_average = False
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    input1 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    input2 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    target = np.array([1,1], dtype=np.int8)
+    margin = 0.7
+    size_average = True
+    reduce = True
+    reduction = 'mean'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    input1 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    input2 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    target = np.array([-1,-1], dtype=np.int8)
+    margin = 0.3
+    size_average = False
+    reduce = False
+    reduction = 'none'
+    input_dict = {
+        "input1": input1,
+        "input2": input2,
+        "target": target,
+        "margin": margin,
+        "size_average": size_average,
+        "reduce": reduce,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.cosine_embedding_loss"] = cosine_embedding_loss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def ctc_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    log_probs = torch.randn(50, 16, 20).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 20, (16, 30), dtype=np.int32)
+    input_lengths = np.full((16,), 50, dtype=np.int32)
+    target_lengths = np.random.randint(1, 30, (16,), dtype=np.int32)
+    blank = 0
+    reduction = 'mean'
+    zero_infinity = False
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    log_probs = torch.randn(20, 8, 10).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 10, (8, 15), dtype=np.int32)
+    input_lengths = np.full((8,), 20, dtype=np.int32)
+    target_lengths = np.random.randint(1, 15, (8,), dtype=np.int32)
+    blank = 0
+    reduction = 'sum'
+    zero_infinity = True
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    log_probs = torch.randn(10, 4, 5).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 5, (4, 5), dtype=np.int32)
+    input_lengths = np.full((4,), 10, dtype=np.int32)
+    target_lengths = np.full((4,), 5, dtype=np.int32)
+    blank = 0
+    reduction = 'none'
+    zero_infinity = False
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    log_probs = torch.randn(30, 32, 25).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 25, (32, 20), dtype=np.int32)
+    input_lengths = np.full((32,), 30, dtype=np.int32)
+    target_lengths = np.random.randint(1, 20, (32,), dtype=np.int32)
+    blank = 1
+    reduction = 'mean'
+    zero_infinity = False
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    log_probs = torch.randn(40, 64, 30).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 30, (64, 25), dtype=np.int32)
+    input_lengths = np.full((64,), 40, dtype=np.int32)
+    target_lengths = np.random.randint(1, 25, (64,), dtype=np.int32)
+    blank = 2
+    reduction = 'sum'
+    zero_infinity = True
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    log_probs = torch.randn(60, 128, 35).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 35, (128, 30), dtype=np.int32)
+    input_lengths = np.full((128,), 60, dtype=np.int32)
+    target_lengths = np.random.randint(1, 30, (128,), dtype=np.int32)
+    blank = 3
+    reduction = 'none'
+    zero_infinity = False
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - Example with target_lengths = 1
+    log_probs = torch.randn(15, 2, 8).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 8, (2, 1), dtype=np.int32)
+    input_lengths = np.full((2,), 15, dtype=np.int32)
+    target_lengths = np.ones((2,), dtype=np.int32)
+    blank = 0
+    reduction = 'mean'
+    zero_infinity = False
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 - Different blank value
+    log_probs = torch.randn(25, 4, 12).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 12, (4, 3), dtype=np.int32)
+    input_lengths = np.full((4,), 25, dtype=np.int32)
+    target_lengths = np.random.randint(1, 4, (4,), dtype=np.int32)
+    blank = 5
+    reduction = 'sum'
+    zero_infinity = True
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 - Edge case: target_length = input_length. Reduce target length to avoid errors
+    log_probs = torch.randn(10, 2, 5).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 5, (2, 5), dtype=np.int32)
+    input_lengths = np.full((2,), 10, dtype=np.int32)
+    target_lengths = np.full((2,), 5, dtype=np.int32)
+    blank = 0
+    reduction = 'mean'
+    zero_infinity = False
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 - Edge case: target_length = 0
+    log_probs = torch.randn(10, 2, 5).log_softmax(2).detach().numpy()
+    targets = np.random.randint(1, 5, (2, 1), dtype=np.int32) #Shape of targets does not matter in this case, it will be reshaped.
+    input_lengths = np.full((2,), 10, dtype=np.int32)
+    target_lengths = np.zeros((2,), dtype=np.int32)
+    blank = 0
+    reduction = 'mean'
+    zero_infinity = False
+    input_dict = {
+        "log_probs": log_probs,
+        "targets": targets,
+        "input_lengths": input_lengths,
+        "target_lengths": target_lengths,
+        "blank": blank,
+        "reduction": reduction,
+        "zero_infinity": zero_infinity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.ctc_loss"] = ctc_loss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def dropout_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    p_value = 0.5
+    training_value = True
+    inplace_value = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.ones((2, 3), dtype=np.float32)
+    p_value = 0.2
+    training_value = False
+    inplace_value = False  # Changed inplace to False to avoid issues
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(5, 5).astype(np.float32)
+    p_value = 0.8
+    training_value = True
+    inplace_value = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float32)
+    p_value = 0.3
+    training_value = False
+    inplace_value = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.zeros((4, 2, 2), dtype=np.float32)
+    p_value = 0.7
+    training_value = True
+    inplace_value = False # changed inplace to False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.randn(10).astype(np.float32)
+    p_value = 0.1
+    training_value = True
+    inplace_value = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.eye(3, dtype=np.float32)
+    p_value = 0.9
+    training_value = False
+    inplace_value = False # Changed inplace to False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.arange(1, 10, dtype=np.float32).reshape(3, 3)
+    p_value = 0.4
+    training_value = True
+    inplace_value = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = np.full((2, 2, 2), 5.0, dtype=np.float32)
+    p_value = 0.6
+    training_value = False
+    inplace_value = False # Changed inplace to False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([0.0], dtype=np.float32)
+    p_value = 0.0
+    training_value = True
+    inplace_value = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_value, "inplace": inplace_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.dropout"] = dropout_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def dropout2d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 3, 10, 10).numpy()
+    p = 0.2
+    training = True
+    inplace = False
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(2, 5, 20, 20).numpy()
+    p = 0.8
+    training = False
+    inplace = False
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(4, 1, 5, 5).numpy()
+    p = 0.5
+    training = True
+    inplace = True
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 3, 10, 10).numpy()
+    p = 0.0
+    training = True
+    inplace = False
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(1, 3, 10, 10).numpy()
+    p = 1.0
+    training = True
+    inplace = False
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(8, 16, 32, 32).numpy()
+    p = 0.3
+    training = True
+    inplace = False
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = torch.randn(1, 1, 2, 2).numpy()
+    p = 0.7
+    training = False
+    inplace = False
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input_tensor = torch.randn(3, 4, 7, 7).numpy()
+    p = 0.1
+    training = True
+    inplace = False
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = torch.randn(1, 3, 10, 10).numpy()
+    p = 0.6
+    training = True
+    inplace = True
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = torch.randn(2, 2, 4, 4).numpy()
+    p = 0.4
+    training = False
+    inplace = True
+    input_dict = {"input": input_tensor, "p": p, "training": training, "inplace": inplace}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.dropout2d"] = dropout2d_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def dropout3d_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(2, 3, 4, 5, 6).astype(np.float32)
+    p_value = 0.2
+    training_flag = True
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(1, 2, 3, 4, 5).astype(np.float64)
+    p_value = 0.8
+    training_flag = False
+    inplace_flag = True
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(4, 5, 2, 3, 1).astype(np.float32)
+    p_value = 0.5
+    training_flag = True
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 1, 1, 1, 1).astype(np.float64)
+    p_value = 0.0
+    training_flag = True
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(3, 3, 3, 3, 3).astype(np.float32)
+    p_value = 1.0
+    training_flag = False
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.zeros((2, 3, 4, 5, 6)).astype(np.float32)
+    p_value = 0.3
+    training_flag = True
+    inplace_flag = True
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.ones((1, 2, 3, 4, 5)).astype(np.float64)
+    p_value = 0.7
+    training_flag = False
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.rand(1, 10, 5, 5, 5).astype(np.float32)
+    p_value = 0.9
+    training_flag = True
+    inplace_flag = True
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(5, 1, 3, 7, 2).astype(np.float64)
+    p_value = 0.1
+    training_flag = False
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(2, 2, 2, 2, 2).astype(np.float32)
+    p_value = 0.4
+    training_flag = True
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.random.rand(1, 5, 10, 10, 10).astype(np.float32)
+    p_value = 0.6
+    training_flag = True
+    inplace_flag = True
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.dropout3d"] = dropout3d_inputs()
+
+import torch, copy
+import numpy as np
+
+def elu_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor with positive values, alpha=1.0, inplace=False
+    input1 = np.array([1.0, 2.0, 3.0])
+    input_dict1 = {"input": input1, "alpha": 1.0, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 1D tensor with negative values, alpha=1.0, inplace=False
+    input2 = np.array([-1.0, -2.0, -3.0])
+    input_dict2 = {"input": input2, "alpha": 1.0, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor with mixed values, alpha=0.5, inplace=False
+    input3 = np.array([[-1.0, 0.0, 1.0], [-2.0, 0.5, 2.0]])
+    input_dict3 = {"input": input3, "alpha": 0.5, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor, alpha=2.0, inplace=False
+    input4 = np.random.rand(2, 3, 4)
+    input_dict4 = {"input": input4, "alpha": 2.0, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5: 1D tensor with positive values, alpha=1.0, inplace=True
+    input5 = np.array([1.0, 2.0, 3.0])
+    input_dict5 = {"input": input5, "alpha": 1.0, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 1D tensor with negative values, alpha=1.0, inplace=True
+    input6 = np.array([-1.0, -2.0, -3.0])
+    input_dict6 = {"input": input6, "alpha": 1.0, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: 2D tensor with mixed values, alpha=0.5, inplace=True
+    input7 = np.array([[-1.0, 0.0, 1.0], [-2.0, 0.5, 2.0]])
+    input_dict7 = {"input": input7, "alpha": 0.5, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: 3D tensor, alpha=2.0, inplace=True
+    input8 = np.random.rand(2, 3, 4)
+    input_dict8 = {"input": input8, "alpha": 2.0, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Single value tensor, alpha=1.0, inplace=False
+    input9 = np.array(5.0)
+    input_dict9 = {"input": input9, "alpha": 1.0, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Single value tensor, alpha=0.2, inplace=True
+    input10 = np.array(-3.0)
+    input_dict10 = {"input": input10, "alpha": 0.2, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: Empty array, alpha=1.0, inplace=False
+    input11 = np.array([])
+    input_dict11 = {"input": input11, "alpha": 1.0, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+    
+    # Input 12: Array with very large values, alpha=1.0, inplace=False
+    input12 = np.array([1e10, -1e10])
+    input_dict12 = {"input": input12, "alpha": 1.0, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict12))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.elu"] = elu_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def feature_alpha_dropout_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.randn(2, 3, 4).astype(np.float32)
+    p_value = 0.5
+    training_flag = True
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.randn(1, 5, 5).astype(np.float32)
+    p_value = 0.2
+    training_flag = False
+    inplace_flag = True
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.randn(4, 4, 4, 4).astype(np.float32)
+    p_value = 0.1
+    training_flag = False
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.randn(2, 2).astype(np.float32)
+    p_value = 0.9
+    training_flag = True
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.zeros((3, 3)).astype(np.float32)
+    p_value = 0.5
+    training_flag = True
+    inplace_flag = True
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.ones((1, 1)).astype(np.float32)
+    p_value = 0.3
+    training_flag = False
+    inplace_flag = True
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.randn(1, 1, 1, 1, 1).astype(np.float32)
+    p_value = 0.7
+    training_flag = True
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.randn(2, 3, 4).astype(np.float32)
+    p_value = 1.0
+    training_flag = False
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = np.random.randn(3, 5).astype(np.float32)
+    p_value = 0.6
+    training_flag = True
+    inplace_flag = False
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = np.random.randn(2, 2, 2).astype(np.float32)
+    p_value = 0.4
+    training_flag = False
+    inplace_flag = True
+    input_dict = {"input": input_tensor, "p": p_value, "training": training_flag, "inplace": inplace_flag}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.feature_alpha_dropout"] = feature_alpha_dropout_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def glu_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, default dim
+    input1 = np.array([1.0, 2.0, 3.0, 4.0])
+    dim1 = -1
+    input_dict1 = {"input": input1, "dim": dim1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor, dim=0
+    input2 = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]])
+    dim2 = 0
+    input_dict2 = {"input": input2, "dim": dim2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor, dim=1
+    input3 = np.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])
+    dim3 = 1
+    input_dict3 = {"input": input3, "dim": dim3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor, dim=0
+    input4 = np.random.rand(2, 4, 3)
+    dim4 = 0
+    input_dict4 = {"input": input4, "dim": dim4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 3D tensor, dim=1
+    input5 = np.random.rand(2, 4, 3)
+    dim5 = 1
+    input_dict5 = {"input": input5, "dim": dim5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 3D tensor, dim=2
+    input6 = np.random.rand(2, 3, 4)
+    dim6 = 2
+    input_dict6 = {"input": input6, "dim": dim6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: 1D tensor with negative values
+    input7 = np.array([-1.0, 2.0, -3.0, 4.0])
+    dim7 = -1
+    input_dict7 = {"input": input7, "dim": dim7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: 2D tensor with negative values
+    input8 = np.array([[-1.0, 2.0], [-3.0, 4.0], [-5.0, 6.0], [-7.0, 8.0]])
+    dim8 = 0
+    input_dict8 = {"input": input8, "dim": dim8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Larger tensor, dim = -1
+    input9 = np.random.rand(10, 20)
+    dim9 = -1
+    input_dict9 = {"input": input9, "dim": dim9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: 4D Tensor
+    input10 = np.random.rand(2, 3, 4, 4)
+    dim10 = 3
+    input_dict10 = {"input": input10, "dim": dim10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11: 1D tensor with one element
+    input11 = np.array([1.0, 2.0])
+    dim11 = -1
+    input_dict11 = {"input": input11, "dim": dim11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.glu"] = glu_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def grid_sample_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 10, 10).astype(np.float32)
+    grid_tensor = np.random.rand(1, 5, 5, 2).astype(np.float32) * 2 - 1
+    mode_str = "bilinear"
+    padding_mode_str = "zeros"
+    align_corners_bool = True
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(2, 4, 20, 20).astype(np.float32)
+    grid_tensor = np.random.rand(2, 10, 10, 2).astype(np.float32) * 2 - 1
+    mode_str = "nearest"
+    padding_mode_str = "border"
+    align_corners_bool = False
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(1, 1, 5, 5).astype(np.float32)
+    grid_tensor = np.random.rand(1, 3, 3, 2).astype(np.float32) * 2 - 1
+    mode_str = "bilinear"
+    padding_mode_str = "reflection"
+    align_corners_bool = True
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4: 3D input and grid
+    input_tensor = np.random.rand(1, 3, 5, 5, 5).astype(np.float32)
+    grid_tensor = np.random.rand(1, 3, 3, 3, 3).astype(np.float32) * 2 - 1
+    mode_str = "bilinear"
+    padding_mode_str = "zeros"
+    align_corners_bool = True
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: different batch size
+    input_tensor = np.random.rand(4, 3, 10, 10).astype(np.float32)
+    grid_tensor = np.random.rand(4, 5, 5, 2).astype(np.float32) * 2 - 1
+    mode_str = "bilinear"
+    padding_mode_str = "zeros"
+    align_corners_bool = True
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Small input size
+    input_tensor = np.random.rand(1, 3, 2, 2).astype(np.float32)
+    grid_tensor = np.random.rand(1, 1, 1, 2).astype(np.float32) * 2 - 1
+    mode_str = "bilinear"
+    padding_mode_str = "zeros"
+    align_corners_bool = True
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Nearest mode with align_corners False
+    input_tensor = np.random.rand(1, 3, 10, 10).astype(np.float32)
+    grid_tensor = np.random.rand(1, 5, 5, 2).astype(np.float32) * 2 - 1
+    mode_str = "nearest"
+    padding_mode_str = "zeros"
+    align_corners_bool = False
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Border padding mode
+    input_tensor = np.random.rand(1, 3, 10, 10).astype(np.float32)
+    grid_tensor = np.random.rand(1, 5, 5, 2).astype(np.float32) * 2 - 1
+    mode_str = "bilinear"
+    padding_mode_str = "border"
+    align_corners_bool = True
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(1, 1, 3, 3).astype(np.float32)
+    grid_tensor = np.array([[[[-1, -1], [-1, 0], [-1, 1]],
+                              [[0, -1], [0, 0], [0, 1]],
+                              [[1, -1], [1, 0], [1, 1]]]]).astype(np.float32)
+    mode_str = "bilinear"
+    padding_mode_str = "zeros"
+    align_corners_bool = False
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = np.random.rand(2, 2, 4, 5).astype(np.float32)
+    grid_tensor = np.random.rand(2, 3, 4, 2).astype(np.float32) * 2 - 1
+    mode_str = "nearest"
+    padding_mode_str = "reflection"
+    align_corners_bool = True
+    input_dict = {"input": input_tensor, "grid": grid_tensor, "mode": mode_str, "padding_mode": padding_mode_str, "align_corners": align_corners_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.grid_sample"] = grid_sample_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def group_norm_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.randn(2, 6, 4, 4).astype(np.float32)
+    num_groups = 2
+    weight = np.random.randn(6).astype(np.float32)
+    bias = np.random.randn(6).astype(np.float32)
+    eps = 1e-5
+
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.randn(1, 12, 8, 8).astype(np.float32)
+    num_groups = 4
+    weight = np.random.randn(12).astype(np.float32)
+    bias = np.random.randn(12).astype(np.float32)
+    eps = 1e-8
+
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.randn(4, 8, 2, 2).astype(np.float32)
+    num_groups = 1
+    weight = np.random.randn(8).astype(np.float32)
+    bias = np.random.randn(8).astype(np.float32)
+    eps = 1e-3
+
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input_tensor = np.random.randn(3, 9, 5, 5).astype(np.float32)
+    num_groups = 3
+    weight = np.random.randn(9).astype(np.float32)
+    bias = np.random.randn(9).astype(np.float32)
+    eps = 1e-6
+
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.randn(1, 16, 16).astype(np.float32)
+    num_groups = 8
+    weight = np.random.randn(16).astype(np.float32)
+    bias = np.random.randn(16).astype(np.float32)
+    eps = 1e-7
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.randn(2, 4, 3).astype(np.float32)
+    num_groups = 2
+    weight = np.random.randn(4).astype(np.float32)
+    bias = np.random.randn(4).astype(np.float32)
+    eps = 1e-4
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.randn(1, 32).astype(np.float32)
+    num_groups = 4
+    weight = np.random.randn(32).astype(np.float32)
+    bias = np.random.randn(32).astype(np.float32)
+    eps = 1e-2
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.randn(1, 4, 4, 4, 4).astype(np.float32)
+    num_groups = 2
+    weight = np.random.randn(4).astype(np.float32)
+    bias = np.random.randn(4).astype(np.float32)
+    eps = 1e-5
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9 - different input size
+    input_tensor = np.random.randn(3, 12, 10, 10).astype(np.float32)
+    num_groups = 6
+    weight = np.random.randn(12).astype(np.float32)
+    bias = np.random.randn(12).astype(np.float32)
+    eps = 1e-5
+
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10 - different eps
+    input_tensor = np.random.randn(2, 8, 5, 5).astype(np.float32)
+    num_groups = 4
+    weight = np.random.randn(8).astype(np.float32)
+    bias = np.random.randn(8).astype(np.float32)
+    eps = 1e-9
+
+    input_dict = {
+        "input": input_tensor,
+        "num_groups": num_groups,
+        "weight": weight,
+        "bias": bias,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.group_norm"] = group_norm_inputs()
+
+import torch, copy
+import numpy as np
+
+def gumbel_softmax_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    logits = np.array([1.0, 2.0, 3.0])
+    tau = 1.0
+    hard = False
+    dim = -1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    logits = np.array([[1.0, 2.0], [3.0, 4.0]])
+    tau = 0.5
+    hard = True
+    dim = 1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    logits = np.random.rand(2, 3, 4)
+    tau = 0.75
+    hard = False
+    dim = 2
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    logits = np.array([-1.0, -2.0, -3.0])
+    tau = 0.2
+    hard = True
+    dim = 0
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    logits = np.array([[0.1, 0.2], [0.3, 0.4]])
+    tau = 1.5
+    hard = False
+    dim = -1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    logits = np.array([0.0, 0.0, 0.0])
+    tau = 1.0
+    hard = True
+    dim = 0
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    logits = np.array([[1.0, -1.0], [-1.0, 1.0]])
+    tau = 0.8
+    hard = False
+    dim = 1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    logits = np.random.randn(5, 5)
+    tau = 0.9
+    hard = True
+    dim = 0
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    logits = np.array([1.5, 2.5, 3.5])
+    tau = 0.6
+    hard = False
+    dim = -1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    logits = np.array([[-0.5, 0.5], [0.5, -0.5]])
+    tau = 1.2
+    hard = True
+    dim = 1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    logits = np.random.rand(1, 2, 3, 4)
+    tau = 0.4
+    hard = False
+    dim = 3
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    logits = np.array([-5.0, -6.0, -7.0])
+    tau = 0.3
+    hard = True
+    dim = 0
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.gumbel_softmax_1"] = gumbel_softmax_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def gumbel_softmax_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    logits = np.array([1.0, 2.0, 3.0])
+    tau = 1.0
+    hard = False
+    dim = -1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    logits = np.array([[1.0, 2.0], [3.0, 4.0]])
+    tau = 0.5
+    hard = True
+    dim = 1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    logits = np.random.rand(2, 3, 4)
+    tau = 0.75
+    hard = False
+    dim = 2
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    logits = np.array([-1.0, -2.0, -3.0])
+    tau = 0.2
+    hard = True
+    dim = 0
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    logits = np.array([[0.1, 0.2], [0.3, 0.4]])
+    tau = 1.5
+    hard = False
+    dim = -1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    logits = np.random.rand(5, 2)
+    tau = 0.9
+    hard = True
+    dim = 1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    logits = np.array([[-1.0, 2.0], [3.0, -4.0]])
+    tau = 0.6
+    hard = False
+    dim = 0
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    logits = np.random.rand(1, 10)
+    tau = 1.1
+    hard = True
+    dim = 1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    logits = np.array([1.0, 1.0, 1.0])
+    tau = 0.8
+    hard = False
+    dim = -1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    logits = np.array([[-0.5, 0.5]])
+    tau = 1.2
+    hard = True
+    dim = 1
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    logits = np.random.rand(4,5,6,7)
+    tau = 0.3
+    hard = False
+    dim = 2
+    input_dict = {"logits": logits, "tau": tau, "hard": hard, "dim": dim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.gumbel_softmax_2"] = gumbel_softmax_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def hardtanh_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input1 = np.array([-2.0, -1.0, 0.0, 1.0, 2.0])
+    min_val1 = -1.0
+    max_val1 = 1.0
+    inplace1 = False
+    input_dict1 = {"input": input1, "min_val": min_val1, "max_val": max_val1, "inplace": inplace1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Basic 2D tensor
+    input2 = np.array([[-2.0, -1.0], [0.0, 1.0], [2.0, 3.0]])
+    min_val2 = -1.0
+    max_val2 = 1.0
+    inplace2 = True
+    input_dict2 = {"input": input2, "min_val": min_val2, "max_val": max_val2, "inplace": inplace2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Different min/max values
+    input3 = np.array([-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0])
+    min_val3 = -2.0
+    max_val3 = 2.0
+    inplace3 = False
+    input_dict3 = {"input": input3, "min_val": min_val3, "max_val": max_val3, "inplace": inplace3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Min > Max (should still work, clamping) - REMOVED as this causes error
+    # input4 = np.array([-1.0, 0.0, 1.0])
+    # min_val4 = 1.0
+    # max_val4 = -1.0
+    # inplace4 = False
+    # input_dict4 = {"input": input4, "min_val": min_val4, "max_val": max_val4, "inplace": inplace4}
+    # list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5: 3D tensor
+    input5 = np.random.rand(2, 3, 4).astype(np.float32) * 4 - 2
+    min_val5 = -0.5
+    max_val5 = 1.5
+    inplace5 = False
+    input_dict5 = {"input": input5, "min_val": min_val5, "max_val": max_val5, "inplace": inplace5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: All positive values
+    input6 = np.array([0.5, 1.5, 2.5, 3.5])
+    min_val6 = 1.0
+    max_val6 = 3.0
+    inplace6 = False
+    input_dict6 = {"input": input6, "min_val": min_val6, "max_val": max_val6, "inplace": inplace6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: All negative values
+    input7 = np.array([-3.5, -2.5, -1.5, -0.5])
+    min_val7 = -3.0
+    max_val7 = -1.0
+    inplace7 = False
+    input_dict7 = {"input": input7, "min_val": min_val7, "max_val": max_val7, "inplace": inplace7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Zero min and max
+    input8 = np.array([-1.0, 0.0, 1.0])
+    min_val8 = 0.0
+    max_val8 = 0.0
+    inplace8 = False
+    input_dict8 = {"input": input8, "min_val": min_val8, "max_val": max_val8, "inplace": inplace8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9: Larger tensor with different values for min/max
+    input9 = np.random.randn(5, 5).astype(np.float32)
+    min_val9 = -0.75
+    max_val9 = 0.25
+    inplace9 = False
+    input_dict9 = {"input": input9, "min_val": min_val9, "max_val": max_val9, "inplace": inplace9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: float64 input
+    input10 = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float64)
+    min_val10 = -1.0
+    max_val10 = 1.0
+    inplace10 = False
+    input_dict10 = {"input": input10, "min_val": min_val10, "max_val": max_val10, "inplace": inplace10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11: Small values
+    input11 = np.array([-0.002, -0.001, 0.0, 0.001, 0.002])
+    min_val11 = -0.001
+    max_val11 = 0.001
+    inplace11 = False
+    input_dict11 = {"input": input11, "min_val": min_val11, "max_val": max_val11, "inplace": inplace11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.hardtanh"] = hardtanh_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def hinge_embedding_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([1.0, -1.0, 1.0], dtype=np.float32)
+    target_tensor = np.array([1, -1, 1], dtype=np.int64)
+    margin_value = 1.0
+    reduction_type = "mean"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[1.0, -1.0], [0.5, -0.5]], dtype=np.float32)
+    target_tensor = np.array([[1, -1], [1, -1]], dtype=np.int64)
+    margin_value = 0.5
+    reduction_type = "sum"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    target_tensor = np.array([1, 1, 1], dtype=np.int64)
+    margin_value = 1.0
+    reduction_type = "none"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([-2.0, 2.0, -2.0], dtype=np.float32)
+    target_tensor = np.array([-1, -1, -1], dtype=np.int64)
+    margin_value = 2.0
+    reduction_type = "mean"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[-1.0, 1.0], [0.0, 0.0]], dtype=np.float32)
+    target_tensor = np.array([[-1, 1], [-1, 1]], dtype=np.int64)
+    margin_value = 1.5
+    reduction_type = "sum"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([0.5, -0.5, 0.5], dtype=np.float32)
+    target_tensor = np.array([1, -1, 1], dtype=np.int64)
+    margin_value = 0.7
+    reduction_type = "none"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([1.5, -1.5], dtype=np.float32)
+    target_tensor = np.array([1, -1], dtype=np.int64)
+    margin_value = 1.2
+    reduction_type = "mean"
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([[-0.5, 0.5], [-1.0, 1.0]], dtype=np.float32)
+    target_tensor = np.array([[-1, 1], [-1, 1]], dtype=np.int64)
+    margin_value = 0.9
+    reduction_type = "sum"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([0.2, -0.2, 0.2], dtype=np.float32)
+    target_tensor = np.array([1, -1, 1], dtype=np.int64)
+    margin_value = 0.3
+    reduction_type = "none"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([[-1.2, 1.2], [0.8, -0.8]], dtype=np.float32)
+    target_tensor = np.array([[-1, 1], [1, -1]], dtype=np.int64)
+    margin_value = 1.8
+    reduction_type = "mean"
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "margin": margin_value,
+        "reduction": reduction_type
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.hinge_embedding_loss"] = hinge_embedding_loss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def huber_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 1D tensors
+    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    target1 = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    delta1 = 1.0
+    reduction1 = 'mean'
+    input_dict1 = {"input": input1, "target": target1, "delta": delta1, "reduction": reduction1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensors with different values
+    input2 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    target2 = np.array([[1.2, 2.3], [3.4, 4.5]], dtype=np.float32)
+    delta2 = 0.5
+    reduction2 = 'sum'
+    input_dict2 = {"input": input2, "target": target2, "delta": delta2, "reduction": reduction2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Negative values and different delta
+    input3 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    target3 = np.array([-1.5, -2.5, -3.5], dtype=np.float32)
+    delta3 = 2.0
+    reduction3 = 'none'
+    input_dict3 = {"input": input3, "target": target3, "delta": delta3, "reduction": reduction3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Larger tensors
+    input4 = np.random.rand(10, 10).astype(np.float32)
+    target4 = np.random.rand(10, 10).astype(np.float32)
+    delta4 = 0.75
+    reduction4 = 'mean'
+    input_dict4 = {"input": input4, "target": target4, "delta": delta4, "reduction": reduction4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Delta close to zero
+    input5 = np.array([1.0, 2.0], dtype=np.float32)
+    target5 = np.array([1.01, 2.02], dtype=np.float32)
+    delta5 = 0.01
+    reduction5 = 'sum'
+    input_dict5 = {"input": input5, "target": target5, "delta": delta5, "reduction": reduction5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 3D tensors
+    input6 = np.random.rand(3, 4, 5).astype(np.float32)
+    target6 = np.random.rand(3, 4, 5).astype(np.float32)
+    delta6 = 1.5
+    reduction6 = 'mean'
+    input_dict6 = {"input": input6, "target": target6, "delta": delta6, "reduction": reduction6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Delta > 1
+    input7 = np.array([2.0, 4.0], dtype=np.float32)
+    target7 = np.array([1.0, 3.0], dtype=np.float32)
+    delta7 = 3.0
+    reduction7 = 'sum'
+    input_dict7 = {"input": input7, "target": target7, "delta": delta7, "reduction": reduction7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Identical tensors
+    input8 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    target8 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    delta8 = 1.0
+    reduction8 = 'none'
+    input_dict8 = {"input": input8, "target": target8, "delta": delta8, "reduction": reduction8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Large differences
+    input9 = np.array([0.0, 0.0], dtype=np.float32)
+    target9 = np.array([10.0, 20.0], dtype=np.float32)
+    delta9 = 5.0
+    reduction9 = 'mean'
+    input_dict9 = {"input": input9, "target": target9, "delta": delta9, "reduction": reduction9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Single element tensors
+    input10 = np.array([1.0], dtype=np.float32)
+    target10 = np.array([1.5], dtype=np.float32)
+    delta10 = 0.5
+    reduction10 = 'sum'
+    input_dict10 = {"input": input10, "target": target10, "delta": delta10, "reduction": reduction10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11: Another set of random numbers
+    input11 = np.random.rand(5, 5).astype(np.float32)
+    target11 = np.random.rand(5, 5).astype(np.float32)
+    delta11 = 2.5
+    reduction11 = 'mean'
+    input_dict11 = {"input": input11, "target": target11, "delta": delta11, "reduction": reduction11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.huber_loss"] = huber_loss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def instance_norm_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.random.rand(2, 3, 4, 5).astype(np.float32)
+    running_mean = np.zeros(3).astype(np.float32)
+    running_var = np.ones(3).astype(np.float32)
+    weight = np.ones(3).astype(np.float32)
+    bias = np.zeros(3).astype(np.float32)
+    use_input_stats = True
+    momentum = 0.1
+    eps = 1e-5
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(1, 4, 3, 2).astype(np.float32)
+    running_mean = np.zeros(4).astype(np.float32)
+    running_var = np.ones(4).astype(np.float32)
+    weight = np.random.rand(4).astype(np.float32)
+    bias = np.random.rand(4).astype(np.float32)
+    use_input_stats = False
+    momentum = 0.2
+    eps = 1e-4
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.random.rand(3, 2, 2, 2).astype(np.float32)
+    running_mean = np.zeros(2).astype(np.float32)
+    running_var = np.ones(2).astype(np.float32)
+    weight = np.ones(2).astype(np.float32)
+    bias = np.zeros(2).astype(np.float32)
+    use_input_stats = True
+    momentum = 0.9
+    eps = 1e-8
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 2, 3).astype(np.float32)
+    running_mean = np.zeros(2).astype(np.float32)
+    running_var = np.ones(2).astype(np.float32)
+    weight = np.ones(2).astype(np.float32)
+    bias = np.zeros(2).astype(np.float32)
+    use_input_stats = False
+    momentum = 0.5
+    eps = 1e-6
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 5: 5D input
+    input_tensor = np.random.rand(1, 2, 3, 4, 5).astype(np.float32)
+    running_mean = np.zeros(2).astype(np.float32)
+    running_var = np.ones(2).astype(np.float32)
+    weight = np.ones(2).astype(np.float32)
+    bias = np.zeros(2).astype(np.float32)
+    use_input_stats = True
+    momentum = 0.1
+    eps = 1e-5
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Different running mean and var
+    input_tensor = np.random.rand(2, 3, 4, 5).astype(np.float32)
+    running_mean = np.random.rand(3).astype(np.float32)
+    running_var = np.random.rand(3).astype(np.float32) + 0.5
+    weight = np.ones(3).astype(np.float32)
+    bias = np.zeros(3).astype(np.float32)
+    use_input_stats = False
+    momentum = 0.1
+    eps = 1e-5
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Small values for eps
+    input_tensor = np.random.rand(1, 4, 3, 2).astype(np.float32)
+    running_mean = np.zeros(4).astype(np.float32)
+    running_var = np.ones(4).astype(np.float32)
+    weight = np.random.rand(4).astype(np.float32)
+    bias = np.random.rand(4).astype(np.float32)
+    use_input_stats = False
+    momentum = 0.2
+    eps = 1e-9
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Zero values in the input
+    input_tensor = np.zeros((3, 2, 2, 2)).astype(np.float32)
+    running_mean = np.zeros(2).astype(np.float32)
+    running_var = np.ones(2).astype(np.float32)
+    weight = np.ones(2).astype(np.float32)
+    bias = np.zeros(2).astype(np.float32)
+    use_input_stats = True
+    momentum = 0.9
+    eps = 1e-8
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: weights and biases as zeros
+    input_tensor = np.random.rand(1, 2, 3).astype(np.float32)
+    running_mean = np.zeros(2).astype(np.float32)
+    running_var = np.ones(2).astype(np.float32)
+    weight = np.zeros(2).astype(np.float32)
+    bias = np.zeros(2).astype(np.float32)
+    use_input_stats = False
+    momentum = 0.5
+    eps = 1e-6
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    
+    # Input 10: 3D with different shapes
+    input_tensor = np.random.rand(1, 3, 4).astype(np.float32)
+    running_mean = np.zeros(3).astype(np.float32)
+    running_var = np.ones(3).astype(np.float32)
+    weight = np.ones(3).astype(np.float32)
+    bias = np.zeros(3).astype(np.float32)
+    use_input_stats = True
+    momentum = 0.1
+    eps = 1e-5
+
+    input_dict = {
+        "input": input_tensor,
+        "running_mean": running_mean,
+        "running_var": running_var,
+        "weight": weight,
+        "bias": bias,
+        "use_input_stats": use_input_stats,
+        "momentum": momentum,
+        "eps": eps
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.instance_norm"] = instance_norm_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def kl_div_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([0.1, 0.2, 0.7])
+    target_tensor = np.array([0.3, 0.3, 0.4])
+    reduction = "mean"
+    log_target = False
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[0.1, 0.2], [0.3, 0.4]])
+    target_tensor = np.array([[0.5, 0.5], [0.2, 0.8]])
+    reduction = "batchmean"
+    log_target = False
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[-0.1, -0.2], [-0.3, -0.4]])
+    target_tensor = np.array([[0.5, 0.5], [0.2, 0.8]])
+    reduction = "sum"
+    log_target = True
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([0.1, 0.9])
+    target_tensor = np.array([0.9, 0.1])
+    reduction = "none"
+    log_target = False
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]])
+    target_tensor = np.array([[[0.5, 0.5], [0.2, 0.8]], [[0.1, 0.9], [0.6, 0.4]]])
+    reduction = "mean"
+    log_target = True
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([-1.0, -2.0, -3.0])
+    target_tensor = np.array([0.2, 0.3, 0.5])
+    reduction = "sum"
+    log_target = True
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([0.5, 0.5])
+    target_tensor = np.array([0.5, 0.5])
+    reduction = "batchmean"
+    log_target = False
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([[[0.1]]])
+    target_tensor = np.array([[[0.9]]])
+    reduction = "mean"
+    log_target = False
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([0.0, 0.0])
+    target_tensor = np.array([1.0, 0.0])
+    reduction = "mean"
+    log_target = True
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = np.array([[-1.0, -0.5], [-0.2, -0.3]])
+    target_tensor = np.array([[0.1, 0.9], [0.8, 0.2]])
+    reduction = "none"
+    log_target = True
+    input_dict = {"input": input_tensor, "target": target_tensor, "reduction": reduction, "log_target": log_target}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.kl_div"] = kl_div_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def local_response_norm_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([[[[1.0, 2.0], [3.0, 4.0]]]], dtype=np.float32)
+    size_val = 3
+    alpha_val = 0.0001
+    beta_val = 0.75
+    k_val = 1.0
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]]], dtype=np.float32)
+    size_val = 5
+    alpha_val = 0.0002
+    beta_val = 0.5
+    k_val = 2.0
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[[[-1.0, -2.0], [-3.0, -4.0]]]], dtype=np.float32)
+    size_val = 3
+    alpha_val = 0.0001
+    beta_val = 0.75
+    k_val = 1.0
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    size_val = 5
+    alpha_val = 0.0001
+    beta_val = 0.75
+    k_val = 1.0
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(2, 5, 16, 16).astype(np.float32)
+    size_val = 3
+    alpha_val = 0.0002
+    beta_val = 0.5
+    k_val = 2.0
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_tensor = np.random.rand(3, 1, 8, 8).astype(np.float32)
+    size_val = 7
+    alpha_val = 0.0003
+    beta_val = 0.25
+    k_val = 0.5
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = np.array([[[[[1.0]]]]], dtype=np.float32)
+    size_val = 1
+    alpha_val = 0.0001
+    beta_val = 0.75
+    k_val = 1.0
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.random.randn(1, 1, 5, 5).astype(np.float32)
+    size_val = 3
+    alpha_val = 1e-4
+    beta_val = 0.75
+    k_val = 1.0
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(1, 3, 10, 10).astype(np.float32)
+    size_val = 3
+    alpha_val = 0.0005
+    beta_val = 0.6
+    k_val = 1.5
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.rand(2, 2, 7, 7).astype(np.float32)
+    size_val = 9
+    alpha_val = 0.0001
+    beta_val = 0.8
+    k_val = 0.8
+    input_dict = {"input": input_tensor, "size": size_val, "alpha": alpha_val, "beta": beta_val, "k": k_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.local_response_norm"] = local_response_norm_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def mish_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 1D tensor, inplace=False
+    input1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    input_dict1 = {"input": input1, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Simple 1D tensor, inplace=True
+    input2 = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    input_dict2 = {"input": input2, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor, inplace=False
+    input3 = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input_dict3 = {"input": input3, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 2D tensor with negative values, inplace=True
+    input4 = torch.tensor([[-1.0, -2.0], [-3.0, -4.0]]).numpy()
+    input_dict4 = {"input": input4, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 3D tensor, inplace=False
+    input5 = torch.randn(2, 3, 4).numpy()
+    input_dict5 = {"input": input5, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 3D tensor with a mix of positive and negative values, inplace=True
+    input6 = torch.randn(2, 3, 4).numpy()
+    input_dict6 = {"input": input6, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Tensor with zeros, inplace=False
+    input7 = torch.zeros(5).numpy()
+    input_dict7 = {"input": input7, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Tensor with ones, inplace=True
+    input8 = torch.ones(5).numpy()
+    input_dict8 = {"input": input8, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Larger tensor, inplace = False
+    input9 = torch.randn(10, 10).numpy()
+    input_dict9 = {"input": input9, "inplace": False}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Tensor with large values, inplace=True
+    input10 = torch.tensor([100.0, -100.0, 50.0, -50.0]).numpy()
+    input_dict10 = {"input": input10, "inplace": True}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.mish"] = mish_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def multi_margin_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    target_tensor = np.array([0, 1], dtype=np.int64)
+    p_val = 1
+    margin_val = 1.0
+    weight_tensor = np.array([0.5, 0.5, 0.5], dtype=np.float32)
+    size_average_val = True
+    reduce_val = True
+    reduction_val = 'mean'
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[1.0, 2.0, 3.0]], dtype=np.float32)
+    target_tensor = np.array([0], dtype=np.int64)
+    p_val = 2
+    margin_val = 0.5
+    weight_tensor = np.array([0.2, 0.3, 0.5], dtype=np.float32)
+    size_average_val = False
+    reduce_val = False
+    reduction_val = 'none'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[-1.0, 2.0, -3.0], [4.0, -5.0, 6.0]], dtype=np.float32)
+    target_tensor = np.array([2, 1], dtype=np.int64)
+    p_val = 1
+    margin_val = 0.8
+    weight_tensor = np.array([0.3, 0.3, 0.4], dtype=np.float32)
+    size_average_val = False
+    reduce_val = True
+    reduction_val = 'sum'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([[0.5, 0.6, 0.7, 0.8], [0.1, 0.2, 0.3, 0.4]], dtype=np.float32)
+    target_tensor = np.array([0, 3], dtype=np.int64)
+    p_val = 2
+    margin_val = 0.2
+    weight_tensor = np.array([0.25, 0.25, 0.25, 0.25], dtype=np.float32)
+    size_average_val = True
+    reduce_val = False
+    reduction_val = 'none'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[-0.1, -0.2, -0.3]], dtype=np.float32)
+    target_tensor = np.array([1], dtype=np.int64)
+    p_val = 1
+    margin_val = 0.9
+    weight_tensor = np.array([0.6, 0.2, 0.2], dtype=np.float32)
+    size_average_val = False
+    reduce_val = True
+    reduction_val = 'mean'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([[1.5, 2.5, 3.5], [4.5, 5.5, 6.5]], dtype=np.float32)
+    target_tensor = np.array([0, 2], dtype=np.int64)
+    p_val = 2
+    margin_val = 1.5
+    weight_tensor = np.array([0.1, 0.1, 0.8], dtype=np.float32)
+    size_average_val = True
+    reduce_val = False
+    reduction_val = 'none'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 7
+    input_tensor = np.array([[0.1, 0.2, 0.3, 0.4, 0.5]], dtype=np.float32)
+    target_tensor = np.array([3], dtype=np.int64)
+    p_val = 1
+    margin_val = 0.7
+    weight_tensor = np.array([0.2, 0.2, 0.2, 0.2, 0.2], dtype=np.float32)
+    size_average_val = False
+    reduce_val = True
+    reduction_val = 'sum'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([[-2.0, -1.0, 0.0, 1.0, 2.0], [-3.0, -2.0, -1.0, 0.0, 1.0]], dtype=np.float32)
+    target_tensor = np.array([4, 0], dtype=np.int64)
+    p_val = 2
+    margin_val = 1.2
+    weight_tensor = np.array([0.1, 0.2, 0.2, 0.2, 0.3], dtype=np.float32)
+    size_average_val = True
+    reduce_val = True
+    reduction_val = 'mean'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([[0.8, 0.7, 0.6, 0.5, 0.4]], dtype=np.float32)
+    target_tensor = np.array([2], dtype=np.int64)
+    p_val = 1
+    margin_val = 0.3
+    weight_tensor = np.array([0.3, 0.2, 0.2, 0.1, 0.2], dtype=np.float32)
+    size_average_val = False
+    reduce_val = False
+    reduction_val = 'none'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], dtype=np.float32)
+    target_tensor = np.array([1, 0, 1], dtype=np.int64)
+    p_val = 2
+    margin_val = 0.6
+    weight_tensor = np.array([0.4, 0.6], dtype=np.float32)
+    size_average_val = True
+    reduce_val = True
+    reduction_val = 'sum'
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.array([[1.0, 2.0, 3.0, 4.0]], dtype=np.float32)
+    target_tensor = np.array([1], dtype=np.int64)
+    p_val = 1
+    margin_val = 1.0
+    weight_tensor = np.array([0.25, 0.25, 0.25, 0.25], dtype=np.float32)
+    size_average_val = False
+    reduce_val = False
+    reduction_val = 'none'
+
+    input_dict = {
+        "input": input_tensor,
+        "target": target_tensor,
+        "p": p_val,
+        "margin": margin_val,
+        "weight": weight_tensor,
+        "size_average": size_average_val,
+        "reduce": reduce_val,
+        "reduction": reduction_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.multi_margin_loss"] = multi_margin_loss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def multilabel_margin_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([[0.1, 0.2, 0.4, 0.8]], dtype=np.float32)
+    target_tensor = np.array([[0, 3, -1, -1]], dtype=np.int64)
+    size_average_bool = True
+    reduce_bool = True
+    reduction_str = 'mean'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[0.1, 0.2, 0.4, 0.8], [0.9, 0.7, 0.5, 0.3]], dtype=np.float32)
+    target_tensor = np.array([[0, 3, -1, -1], [2, 1, -1, -1]], dtype=np.int64)
+    size_average_bool = False
+    reduce_bool = False
+    reduction_str = 'none'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[-0.1, 0.2, -0.4, 0.8]], dtype=np.float32)
+    target_tensor = np.array([[0, 3, -1, -1]], dtype=np.int64)
+    size_average_bool = True
+    reduce_bool = False
+    reduction_str = 'sum'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([[0.1, -0.2, 0.4, -0.8], [0.9, -0.7, 0.5, -0.3]], dtype=np.float32)
+    target_tensor = np.array([[0, 3, -1, -1], [2, 1, -1, -1]], dtype=np.int64)
+    size_average_bool = False
+    reduce_bool = True
+    reduction_str = 'mean'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[0.5, 0.6, 0.7, 0.8]], dtype=np.float32)
+    target_tensor = np.array([[0, 1, -1, -1]], dtype=np.int64)
+    size_average_bool = False
+    reduce_bool = True
+    reduction_str = 'sum'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    input_tensor = np.array([[-0.5, -0.6, -0.7, -0.8]], dtype=np.float32)
+    target_tensor = np.array([[0, 1, -1, -1]], dtype=np.int64)
+    size_average_bool = True
+    reduce_bool = False
+    reduction_str = 'none'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    input_tensor = np.array([[0.5, 0.6, 0.7, 0.8], [0.1, 0.2, 0.3, 0.4]], dtype=np.float32)
+    target_tensor = np.array([[0, 1, -1, -1], [2, 3, -1, -1]], dtype=np.int64)
+    size_average_bool = False
+    reduce_bool = True
+    reduction_str = 'none'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input_tensor = np.array([[0.2, 0.3, 0.5, 0.7]], dtype=np.float32)
+    target_tensor = np.array([[0, 2, -1, -1]], dtype=np.int64)
+    size_average_bool = True
+    reduce_bool = True
+    reduction_str = 'mean'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([[-0.2, -0.3, -0.5, -0.7], [0.1, 0.4, 0.6, 0.9]], dtype=np.float32)
+    target_tensor = np.array([[1, 3, -1, -1], [0, 2, -1, -1]], dtype=np.int64)
+    size_average_bool = False
+    reduce_bool = False
+    reduction_str = 'sum'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = np.array([[0.8, 0.6, 0.4, 0.2]], dtype=np.float32)
+    target_tensor = np.array([[2, 3, -1, -1]], dtype=np.int64)
+    size_average_bool = True
+    reduce_bool = False
+    reduction_str = 'mean'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.multilabel_margin_loss"] = multilabel_margin_loss_inputs()
+
+import torch, copy
+import numpy as np
+
+def pdist_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    p = 2.0
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    p = 1.0
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.array([[1.0, 2.0, 3.0, 4.0]])
+    p = 0.5
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    input = np.array([[1.0, 2.0], [3.0, 4.0]])
+    p = np.inf
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    p = 3.0
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]])
+    p = 0.0
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input = np.array([[1.0, 2.0, 3.0]])
+    p = 2.0
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input = np.array([[1.0, 2.0], [3.0, 4.0]])
+    p = 2.5
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    p = 1.5
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    p = 3.5
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input = np.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0]])
+    p = 0.1
+    input_dict = {"input": input, "p": p}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.pdist"] = pdist_inputs()
+
+import torch, copy
+import numpy as np
+
+def pixel_unshuffle_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 4D tensor
+    input1 = torch.randn(1, 4, 8, 8).numpy()
+    downscale_factor1 = 2
+    input_dict1 = {"input": input1, "downscale_factor": downscale_factor1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: Different channel size
+    input2 = torch.randn(1, 16, 8, 8).numpy()
+    downscale_factor2 = 4
+    input_dict2 = {"input": input2, "downscale_factor": downscale_factor2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Different batch size
+    input3 = torch.randn(2, 4, 8, 8).numpy()
+    downscale_factor3 = 2
+    input_dict3 = {"input": input3, "downscale_factor": downscale_factor3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Larger image size
+    input4 = torch.randn(1, 4, 16, 16).numpy()
+    downscale_factor4 = 2
+    input_dict4 = {"input": input4, "downscale_factor": downscale_factor4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+    
+    # Input 5: Different downscale factor and channel size
+    input5 = torch.randn(1, 9, 9, 9).numpy()
+    downscale_factor5 = 3
+    input_dict5 = {"input": input5, "downscale_factor": downscale_factor5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Non-square image
+    input6 = torch.randn(1, 4, 8, 16).numpy()
+    downscale_factor6 = 2
+    input_dict6 = {"input": input6, "downscale_factor": downscale_factor6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: Small image size
+    input7 = torch.randn(1, 4, 4, 4).numpy()
+    downscale_factor7 = 2
+    input_dict7 = {"input": input7, "downscale_factor": downscale_factor7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Batch size > 1 and different image size
+    input8 = torch.randn(3, 4, 12, 12).numpy()
+    downscale_factor8 = 2
+    input_dict8 = {"input": input8, "downscale_factor": downscale_factor8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9: Ensure it works with downscale factor of 1
+    input9 = torch.randn(1, 4, 8, 8).numpy()
+    downscale_factor9 = 1
+    input_dict9 = {"input": input9, "downscale_factor": downscale_factor9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10:  Large values
+    input10 = torch.randint(1,100,(1, 4, 8, 8)).numpy()
+    downscale_factor10 = 2
+    input_dict10 = {"input": input10, "downscale_factor": downscale_factor10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.pixel_unshuffle"] = pixel_unshuffle_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def soft_margin_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([0.5, -0.2, 0.8], dtype=np.float32)
+    target_tensor = np.array([1, -1, 1], dtype=np.float32)
+    size_average_bool = True
+    reduce_bool = True
+    reduction_str = 'mean'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[-0.1, 0.3], [0.7, -0.9]], dtype=np.float32)
+    target_tensor = np.array([[1, -1], [-1, 1]], dtype=np.float32)
+    size_average_bool = False
+    reduce_bool = True
+    reduction_str = 'sum'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    target_tensor = np.array([1, -1, 1], dtype=np.float32)
+    size_average_bool = True
+    reduce_bool = False
+    reduction_str = 'none'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([1.0, -1.0, 1.0], dtype=np.float32)
+    target_tensor = np.array([1, -1, 1], dtype=np.float32)
+    size_average_bool = False
+    reduce_bool = False
+    reduction_str = 'none'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([0.2], dtype=np.float32)
+    target_tensor = np.array([1], dtype=np.float32)
+    size_average_bool = True
+    reduce_bool = True
+    reduction_str = 'mean'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([-0.75], dtype=np.float32)
+    target_tensor = np.array([-1], dtype=np.float32)
+    size_average_bool = False
+    reduce_bool = True
+    reduction_str = 'sum'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([0.1, -0.3, 0.5, -0.7], dtype=np.float32)
+    target_tensor = np.array([1, -1, 1, -1], dtype=np.float32)
+    size_average_bool = True
+    reduce_bool = True
+    reduction_str = 'none' # Valid because if reduce == False, reduction is ignored.
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": False, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([[-0.2, 0.4], [0.6, -0.8]], dtype=np.float32)
+    target_tensor = np.array([[1, -1], [-1, 1]], dtype=np.float32)
+    size_average_bool = False
+    reduce_bool = True
+    reduction_str = 'mean' # Ignored if reduce is True
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": True, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = np.array([[-0.2, 0.4, 0.1], [0.6, -0.8, -0.5]], dtype=np.float32)
+    target_tensor = np.array([[1, -1, 1], [-1, 1, -1]], dtype=np.float32)
+    size_average_bool = True
+    reduce_bool = False
+    reduction_str = 'sum'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([0.1, -0.3, 0.5, -0.7, 0.9], dtype=np.float32)
+    target_tensor = np.array([1, -1, 1, -1, 1], dtype=np.float32)
+    size_average_bool = False
+    reduce_bool = True
+    reduction_str = 'none' # Ignored if reduce is True.
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": True, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.array([[[0.1, -0.3], [0.5, -0.7]], [[0.2, -0.4], [0.6, -0.8]]], dtype=np.float32)
+    target_tensor = np.array([[[1, -1], [1, -1]], [[1, -1], [1, -1]]], dtype=np.float32)
+    size_average_bool = True
+    reduce_bool = True
+    reduction_str = 'mean'
+    input_dict = {"input": input_tensor, "target": target_tensor, "size_average": size_average_bool, "reduce": reduce_bool, "reduction": reduction_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.soft_margin_loss"] = soft_margin_loss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def tanhshrink_inputs():
+    list_of_inputs = []
+
+    # Input 1: Scalar tensor
+    input1 = np.array(0.5)
+    input_dict1 = {"input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 1D tensor with positive values
+    input2 = np.array([1.0, 2.0, 3.0])
+    input_dict2 = {"input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 1D tensor with negative values
+    input3 = np.array([-1.0, -2.0, -3.0])
+    input_dict3 = {"input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 1D tensor with mixed values
+    input4 = np.array([-1.0, 0.0, 1.0])
+    input_dict4 = {"input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 2D tensor
+    input5 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    input_dict5 = {"input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 2D tensor with negative values
+    input6 = np.array([[-1.0, -2.0], [-3.0, -4.0]])
+    input_dict6 = {"input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: 3D tensor
+    input7 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    input_dict7 = {"input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Tensor with large values
+    input8 = np.array([10.0, 20.0, 30.0])
+    input_dict8 = {"input": input8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Tensor with small values
+    input9 = np.array([0.1, 0.2, 0.3])
+    input_dict9 = {"input": input9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Tensor with zeros
+    input10 = np.array([0.0, 0.0, 0.0])
+    input_dict10 = {"input": input10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11: Tensor with a mix of large, small, and zero values
+    input11 = np.array([-10.0, 0.01, 0.0, 100.0, -0.01])
+    input_dict11 = {"input": input11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.tanhshrink"] = tanhshrink_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def threshold_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([-1.0, 0.0, 1.0, 2.0])
+    threshold_val = 0.5
+    value_val = 0.0
+    inplace_bool = False
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([-1.0, 0.0, 1.0, 2.0])
+    threshold_val = 1.0
+    value_val = -1.0
+    inplace_bool = True
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    threshold_val = 2.5
+    value_val = 0.0
+    inplace_bool = False
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    threshold_val = 3.0
+    value_val = 1.0
+    inplace_bool = True
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    threshold_val = 4.5
+    value_val = -2.0
+    inplace_bool = False
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    threshold_val = 7.0
+    value_val = 3.0
+    inplace_bool = True
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([-5.0, -4.0, -3.0, -2.0, -1.0])
+    threshold_val = -3.0
+    value_val = 10.0
+    inplace_bool = False
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([-5.0, -4.0, -3.0, -2.0, -1.0])
+    threshold_val = -2.0
+    value_val = 5.0
+    inplace_bool = True
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([0.1, 0.2, 0.3, 0.4, 0.5])
+    threshold_val = 0.3
+    value_val = -0.1
+    inplace_bool = False
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([0.1, 0.2, 0.3, 0.4, 0.5])
+    threshold_val = 0.4
+    value_val = -0.2
+    inplace_bool = True
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    input_tensor = np.array([100.0, 200.0, 300.0])
+    threshold_val = 150.0
+    value_val = 50.0
+    inplace_bool = False
+    input_dict = {"input": input_tensor, "threshold": threshold_val, "value": value_val, "inplace": inplace_bool}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.threshold"] = threshold_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def triplet_margin_loss_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    anchor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    positive = np.array([1.1, 2.1, 3.1], dtype=np.float32)
+    negative = np.array([1.2, 2.2, 3.2], dtype=np.float32)
+    margin = 1.0
+    p = 2.0
+    eps = 1e-6
+    swap = False
+    reduction = 'mean'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    anchor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    positive = np.array([[1.1, 2.1], [3.1, 4.1]], dtype=np.float32)
+    negative = np.array([[1.2, 2.2], [3.2, 4.2]], dtype=np.float32)
+    margin = 0.5
+    p = 1.0
+    eps = 1e-8
+    swap = True
+    reduction = 'sum'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    anchor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    positive = np.array([[[1.1, 2.1], [3.1, 4.1]], [[5.1, 6.1], [7.1, 8.1]]], dtype=np.float32)
+    negative = np.array([[[1.2, 2.2], [3.2, 4.2]], [[5.2, 6.2], [7.2, 8.2]]], dtype=np.float32)
+    margin = 0.2
+    p = 3.0
+    eps = 1e-5
+    swap = False
+    reduction = 'none'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    anchor = np.array([1.0], dtype=np.float32)
+    positive = np.array([1.1], dtype=np.float32)
+    negative = np.array([1.2], dtype=np.float32)
+    margin = 1.5
+    p = 0.5
+    eps = 1e-7
+    swap = True
+    reduction = 'mean'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    anchor = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    positive = np.array([-1.1, -2.1, -3.1], dtype=np.float32)
+    negative = np.array([-1.2, -2.2, -3.2], dtype=np.float32)
+    margin = 2.0
+    p = 2.5
+    eps = 1e-9
+    swap = False
+    reduction = 'sum'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    anchor = np.random.rand(5, 5).astype(np.float32)
+    positive = np.random.rand(5, 5).astype(np.float32)
+    negative = np.random.rand(5, 5).astype(np.float32)
+    margin = 0.75
+    p = 1.5
+    eps = 1e-4
+    swap = True
+    reduction = 'none'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - Removed invalid input (margin=0)
+    
+    # Input 8
+    anchor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    positive = np.array([1.5, 2.5, 3.5, 4.5, 5.5], dtype=np.float32)
+    negative = np.array([2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32)
+    margin = 0.25
+    p = 2.0
+    eps = 1e-6
+    swap = True
+    reduction = 'mean'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    anchor = np.random.randn(2, 3, 4).astype(np.float32)
+    positive = np.random.randn(2, 3, 4).astype(np.float32)
+    negative = np.random.randn(2, 3, 4).astype(np.float32)
+    margin = 1.0
+    p = 2.0
+    eps = 1e-6
+    swap = False
+    reduction = 'sum'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    anchor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    positive = np.array([[0.5, 1.0, 1.5], [2.0, 2.5, 3.0]], dtype=np.float32)
+    negative = np.array([[2.0, 4.0, 6.0], [8.0, 10.0, 12.0]], dtype=np.float32)
+    margin = 1.0
+    p = 2.0
+    eps = 1e-6
+    swap = True
+    reduction = 'none'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    anchor = np.array([1.0, 2.0], dtype=np.float32)
+    positive = np.array([3.0, 4.0], dtype=np.float32)
+    negative = np.array([5.0, 6.0], dtype=np.float32)
+    margin = 0.1
+    p = 2.0
+    eps = 1e-6
+    swap = True
+    reduction = 'mean'
+
+    input_dict = {
+        "anchor": anchor,
+        "positive": positive,
+        "negative": negative,
+        "margin": margin,
+        "p": p,
+        "eps": eps,
+        "swap": swap,
+        "reduction": reduction
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.triplet_margin_loss"] = triplet_margin_loss_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def unfold_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.randn(1, 1, 32, 32).numpy()
+    kernel_size = (3, 3)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.randn(2, 3, 64, 64).numpy()
+    kernel_size = (5, 5)
+    dilation = 2
+    padding = 1
+    stride = 2
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.randn(4, 1, 16, 16).numpy()
+    kernel_size = (2, 2)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.randn(1, 3, 28, 28).numpy()
+    kernel_size = (7, 7)
+    dilation = 3
+    padding = 2
+    stride = 3
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.randn(2, 1, 10, 10).numpy()
+    kernel_size = (3, 3)
+    dilation = 1
+    padding = 1
+    stride = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randn(1, 1, 5, 5).numpy()
+    kernel_size = (2, 2)
+    dilation = 1
+    padding = 0
+    stride = 2
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.randn(3, 3, 20, 20).numpy()
+    kernel_size = (4, 4)
+    dilation = 2
+    padding = 1
+    stride = 4
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.randn(1, 1, 40, 40).numpy()
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = torch.randn(2, 3, 15, 15).numpy()
+    kernel_size = (3, 3)
+    dilation = 1
+    padding = 2
+    stride = 1
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = torch.randn(4, 1, 30, 30).numpy()
+    kernel_size = (5, 5)
+    dilation = 1
+    padding = 0
+    stride = 3
+    input_dict = {"input": input_tensor, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.functional.unfold"] = unfold_inputs()
+
+import torch, copy
+
+def calculate_gain_inputs():
+    list_of_inputs = []
+
+    # Input 1: ReLU
+    input_dict = {"nonlinearity": "relu"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: sigmoid
+    input_dict = {"nonlinearity": "sigmoid"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: tanh
+    input_dict = {"nonlinearity": "tanh"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: linear
+    input_dict = {"nonlinearity": "linear"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: leaky_relu with negative slope 0.01 (default)
+    input_dict = {"nonlinearity": "leaky_relu"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: leaky_relu with negative slope 0.2
+    input_dict = {"nonlinearity": "leaky_relu"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: leaky_relu with negative slope 0.5
+    input_dict = {"nonlinearity": "leaky_relu"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: leaky_relu with negative slope 0.9
+    input_dict = {"nonlinearity": "leaky_relu"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: selu
+    input_dict = {"nonlinearity": "selu"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.calculate_gain"] = calculate_gain_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def constant_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    tensor = np.zeros((3, 4), dtype=np.float32)
+    val = 0.0
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    tensor = np.ones((2, 2), dtype=np.float64)
+    val = 1.0
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    tensor = np.random.rand(5, 5).astype(np.float32)
+    val = 2.5
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    tensor = np.empty((1, 10), dtype=np.float64)
+    val = -1.0
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    tensor = np.arange(12, dtype=np.float32).reshape(3, 4)
+    val = 10.0
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6
+    tensor = np.random.randn(2, 3, 4).astype(np.float32)
+    val = 0.5
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    val = -2.0
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    tensor = np.zeros((1, 1, 1, 1), dtype=np.float32)
+    val = 5.0
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    tensor = np.ones((4), dtype=np.float64)
+    val = 100.0
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    tensor = np.random.rand(2, 2, 2, 2, 2).astype(np.float32)
+    val = 0.123
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    tensor = np.empty((0), dtype=np.float64)
+    val = 2.7
+    input_dict = {"tensor": tensor, "val": val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.constant_"] = constant_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def eye_inputs():
+    list_of_inputs = []
+
+    # Input 1: Square matrix
+    tensor = torch.empty(5, 5).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Rectangular matrix (rows > cols)
+    tensor = torch.empty(7, 3).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Rectangular matrix (cols > rows)
+    tensor = torch.empty(3, 7).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Small matrix
+    tensor = torch.empty(1, 1).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Larger matrix
+    tensor = torch.empty(10, 10).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Square matrix with different dimensions
+    tensor = torch.empty(2, 2).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Rectangular matrix
+    tensor = torch.empty(4, 6).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Another rectangular matrix
+    tensor = torch.empty(6, 4).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Different sized square matrix
+    tensor = torch.empty(8, 8).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different sized rectangular matrix
+    tensor = torch.empty(9, 5).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Zero sized matrix
+    tensor = torch.empty(0, 0).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: Non-square 0 dimension matrix
+    tensor = torch.empty(0, 5).numpy()
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.eye_"] = eye_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def kaiming_normal_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 2D tensor, fan_in mode, ReLU nonlinearity
+    tensor = np.zeros((2, 3), dtype=np.float32)
+    a = 0.0
+    mode = "fan_in"
+    nonlinearity = "relu"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor, fan_out mode, LeakyReLU nonlinearity
+    tensor = np.zeros((2, 3), dtype=np.float64)
+    a = 0.1
+    mode = "fan_out"
+    nonlinearity = "leaky_relu"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor, fan_in mode, linear nonlinearity
+    tensor = np.zeros((2, 3, 4), dtype=np.float32)
+    a = 0.0
+    mode = "fan_in"
+    nonlinearity = "linear"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 4D tensor, fan_out mode, sigmoid nonlinearity
+    tensor = np.zeros((2, 3, 4, 5), dtype=np.float64)
+    a = 0.0
+    mode = "fan_out"
+    nonlinearity = "sigmoid"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: 2D tensor, fan_in mode, tanh nonlinearity, a = 1.0
+    tensor = np.zeros((3, 5), dtype=np.float32)
+    a = 1.0
+    mode = "fan_in"
+    nonlinearity = "tanh"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 2D tensor, fan_out mode, ReLU nonlinearity
+    tensor = np.zeros((5, 5), dtype=np.float64)
+    a = 0.0
+    mode = "fan_out"
+    nonlinearity = "relu"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 3D tensor, fan_in mode, leaky_relu nonlinearity with small negative slope
+    tensor = np.zeros((3, 5, 2), dtype=np.float32)
+    a = 0.01
+    mode = "fan_in"
+    nonlinearity = "leaky_relu"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 4D tensor, fan_out mode, linear nonlinearity, different a
+    tensor = np.zeros((1, 2, 3, 4), dtype=np.float64)
+    a = 0.5
+    mode = "fan_out"
+    nonlinearity = "linear"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 2D tensor, fan_in mode, sigmoid nonlinearity, a = 0.0
+    tensor = np.zeros((8, 2), dtype=np.float32)
+    a = 0.0
+    mode = "fan_in"
+    nonlinearity = "sigmoid"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: 2D tensor, fan_out mode, tanh nonlinearity, a = 2.0
+    tensor = np.zeros((4, 7), dtype=np.float64)
+    a = 2.0
+    mode = "fan_out"
+    nonlinearity = "tanh"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: 5D tensor, fan_in mode, ReLU nonlinearity
+    tensor = np.zeros((2, 3, 4, 5, 6), dtype=np.float32)
+    a = 0.0
+    mode = "fan_in"
+    nonlinearity = "relu"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: 3D tensor, fan_out mode, leaky_relu nonlinearity with small negative slope, different a
+    tensor = np.zeros((4, 6, 3), dtype=np.float64)
+    a = 0.2
+    mode = "fan_out"
+    nonlinearity = "leaky_relu"
+
+    input_dict = {
+        "tensor": tensor,
+        "a": a,
+        "mode": mode,
+        "nonlinearity": nonlinearity
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.init.kaiming_normal_"] = kaiming_normal_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def kaiming_uniform_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    tensor = np.zeros((3, 5)).astype(np.float32)
+    a = 0.0
+    mode = 'fan_in'
+    nonlinearity = 'relu'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    tensor = np.zeros((2, 3, 4)).astype(np.float32)
+    a = np.sqrt(5.0)
+    mode = 'fan_out'
+    nonlinearity = 'leaky_relu'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    tensor = np.zeros((10, 20)).astype(np.float32)
+    a = 1.0
+    mode = 'fan_in'
+    nonlinearity = 'tanh'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    tensor = np.zeros((2, 2, 2, 2)).astype(np.float32)
+    a = 2.0
+    mode = 'fan_out'
+    nonlinearity = 'sigmoid'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    tensor = np.zeros((1, 100, 100)).astype(np.float32)
+    a = 0.1
+    mode = 'fan_in'
+    nonlinearity = 'relu'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    tensor = np.zeros((5, 5)).astype(np.float32)
+    a = -0.5
+    mode = 'fan_out'
+    nonlinearity = 'leaky_relu'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    tensor = np.zeros((2, 4, 8, 16)).astype(np.float32)
+    a = 3.0
+    mode = 'fan_in'
+    nonlinearity = 'relu'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    # Input 8
+    tensor = np.zeros((1, 1, 1, 1)).astype(np.float32)
+    a = 0.0
+    mode = 'fan_in'
+    nonlinearity = 'sigmoid'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    tensor = np.zeros((2, 3, 4, 5)).astype(np.float32)
+    a = 1.0
+    mode = 'fan_out'
+    nonlinearity = 'relu'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    tensor = np.zeros((10, 20)).astype(np.float32)
+    a = 2.5
+    mode = 'fan_in'
+    nonlinearity = 'leaky_relu'
+    input_dict = {"tensor": tensor, "a": a, "mode": mode, "nonlinearity": nonlinearity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.kaiming_uniform_"] = kaiming_uniform_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def normal_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    tensor = np.zeros(5, dtype=np.float32)
+    mean = 0.0
+    std = 1.0
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    tensor = np.zeros((3, 4), dtype=np.float64)
+    mean = 0.5
+    std = 0.2
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    tensor = np.zeros((2, 3, 2), dtype=np.float32)
+    mean = -0.1
+    std = 0.5
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Large standard deviation
+    tensor = np.zeros((4, 4), dtype=np.float64)
+    mean = 0.0
+    std = 5.0
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Non-zero mean
+    tensor = np.zeros((2, 2, 2), dtype=np.float32)
+    mean = 2.0
+    std = 1.0
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Small standard deviation
+    tensor = np.zeros(10, dtype=np.float64)
+    mean = 0.0
+    std = 0.01
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Negative mean
+    tensor = np.zeros((5, 5), dtype=np.float32)
+    mean = -1.0
+    std = 0.5
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Different data type
+    tensor = np.zeros(7, dtype=np.float64)
+    mean = 0.0
+    std = 1.0
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Larger tensor
+    tensor = np.zeros((10, 10), dtype=np.float32)
+    mean = 0.2
+    std = 0.3
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: 4D tensor
+    tensor = np.zeros((2, 2, 2, 2), dtype=np.float64)
+    mean = -0.5
+    std = 0.75
+    input_dict = {"tensor": tensor, "mean": mean, "std": std}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.normal_"] = normal_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def ones_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    tensor = np.zeros(5, dtype=np.float32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    tensor = np.zeros((3, 4), dtype=np.float64)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    tensor = np.zeros((2, 3, 5), dtype=np.int32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: tensor with different data type
+    tensor = np.zeros((2, 2), dtype=np.complex64)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: empty tensor
+    tensor = np.array([])
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: large tensor
+    tensor = np.zeros((100, 100), dtype=np.float32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 4D tensor
+    tensor = np.zeros((2, 3, 4, 2), dtype=np.float32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Bool tensor
+    tensor = np.zeros((2,2), dtype=bool)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 1D int tensor
+    tensor = np.zeros(5, dtype=np.int64)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: 3D tensor complex
+    tensor = np.zeros((2,2,2), dtype=np.complex128)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.ones_"] = ones_inputs()
+
+import torch, copy
+import numpy as np
+
+def orthogonal_inputs():
+    list_of_inputs = []
+
+    # Input 1: 2D tensor
+    tensor = np.zeros((10, 10), dtype=np.float32)
+    gain = 1.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 3D tensor
+    tensor = np.zeros((5, 5, 5), dtype=np.float32)
+    gain = 2.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Rectangular matrix
+    tensor = np.zeros((10, 5), dtype=np.float32)
+    gain = 0.5
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Small matrix
+    tensor = np.zeros((2, 2), dtype=np.float32)
+    gain = 1.5
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Different gain
+    tensor = np.zeros((7, 7), dtype=np.float32)
+    gain = 0.75
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 4D Tensor
+    tensor = np.zeros((2, 3, 4, 5), dtype=np.float32)
+    gain = 1.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Larger gain value
+    tensor = np.zeros((3, 3), dtype=np.float32)
+    gain = 5.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Different dimensions, more rectangular
+    tensor = np.zeros((3, 10), dtype=np.float32)
+    gain = 1.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Float64 tensor
+    tensor = np.zeros((5, 5), dtype=np.float64)
+    gain = 1.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+generated_inputs["torch.nn.init.orthogonal_"] = orthogonal_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def sparse_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    tensor = np.zeros((5, 5), dtype=np.float32)
+    sparsity = 0.1
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    tensor = np.zeros((10, 10), dtype=np.float64)
+    sparsity = 0.5
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    tensor = np.zeros((20, 20), dtype=np.float16)
+    sparsity = 0.9
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    tensor = np.zeros((30, 30), dtype=np.float32)
+    sparsity = 0.2
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    tensor = np.zeros((40, 40), dtype=np.float64)
+    sparsity = 0.7
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    tensor = np.zeros((100, 100), dtype=np.float32)
+    sparsity = 0.01
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    tensor = np.zeros((2, 2), dtype=np.float32)
+    sparsity = 0.3
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    tensor = np.zeros((12, 15), dtype=np.float32)
+    sparsity = 0.8
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    tensor = np.zeros((25, 25), dtype=np.float32)
+    sparsity = 0.4
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    tensor = np.zeros((50, 50), dtype=np.float64)
+    sparsity = 0.6
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    tensor = np.zeros((2, 3), dtype=np.float32)
+    sparsity = 0.99
+    input_dict = {"tensor": tensor, "sparsity": sparsity}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.sparse_"] = sparse_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def uniform_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    tensor = np.empty((3, 4))
+    a = 0.0
+    b = 1.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    tensor = np.empty((2, 2, 2))
+    a = -1.0
+    b = 1.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    tensor = np.empty((10,))
+    a = 5.0
+    b = 10.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    tensor = np.empty((1, 1, 1, 1))
+    a = -5.0
+    b = -2.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    tensor = np.empty((5, 5))
+    a = 0.0
+    b = 0.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    tensor = np.empty((2, 3, 4, 5))
+    a = -0.5
+    b = 0.5
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    tensor = np.empty((1,))
+    a = 100.0
+    b = 200.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    tensor = np.empty((3, 1))
+    a = -2.5
+    b = 0.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    tensor = np.empty((1, 5, 1))
+    a = 0.0
+    b = 1000.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    tensor = np.empty((4, 4, 4, 4))
+    a = -10.0
+    b = -5.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    tensor = np.empty((2,))
+    a = 1.0
+    b = 1.0
+    input_dict = {"tensor": tensor, "a": a, "b": b}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.uniform_"] = uniform_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def xavier_normal_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 2D tensor, gain = 1.0
+    tensor = torch.empty(3, 5).numpy()
+    gain = 1.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor, gain = 0.5
+    tensor = torch.empty(10, 2).numpy()
+    gain = 0.5
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor, gain = 2.0
+    tensor = torch.empty(2, 3, 4).numpy()
+    gain = 2.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Large tensor, gain = 0.1
+    tensor = torch.empty(100, 100).numpy()
+    gain = 0.1
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 4D tensor, gain = 1.5
+    tensor = torch.empty(2, 2, 2, 2).numpy()
+    gain = 1.5
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 2D tensor with small dimensions, gain = 0.8
+    tensor = torch.empty(2, 2).numpy()
+    gain = 0.8
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 5D tensor, gain = 1.2
+    tensor = torch.empty(1, 2, 3, 4, 5).numpy()
+    gain = 1.2
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 2D tensor with irregular dimensions, gain = 1.7
+    tensor = torch.empty(7, 11).numpy()
+    gain = 1.7
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 3D tensor with varying dimensions, gain = 0.3
+    tensor = torch.empty(4, 8, 12).numpy()
+    gain = 0.3
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Gain close to zero
+    tensor = torch.empty(5, 5).numpy()
+    gain = 0.001
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.xavier_normal_"] = xavier_normal_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def xavier_uniform_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    tensor = np.zeros((3, 5))
+    gain = 1.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    tensor = np.ones((2, 2, 2))
+    gain = 0.5
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    tensor = np.random.rand(4, 4).astype(np.float32)
+    gain = 2.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    tensor = np.random.randn(2, 3, 4).astype(np.float64)
+    gain = 1.7
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    tensor = np.eye(5)
+    gain = 0.3
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    tensor = np.random.rand(2, 2, 2, 2).astype(np.float32)
+    gain = 0.9
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    tensor = np.ones((5, 5), dtype=np.float32)
+    gain = 1.0
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    tensor = np.random.rand(3, 5, 2).astype(np.float32)
+    gain = 0.5
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    tensor = np.zeros((4, 6))
+    gain = 1.2
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    tensor = np.random.rand(2, 3).astype(np.float64)
+    gain = 2.5
+    input_dict = {"tensor": tensor, "gain": gain}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.xavier_uniform_"] = xavier_uniform_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def zeros_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor
+    tensor = np.zeros(5, dtype=np.float32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    tensor = np.zeros((3, 4), dtype=np.float64)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    tensor = np.zeros((2, 3, 5), dtype=np.int32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 4D tensor
+    tensor = np.zeros((2, 3, 4, 2), dtype=np.int64)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Empty tensor
+    tensor = np.zeros((0), dtype=np.float32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with large dimensions
+    tensor = np.zeros((100, 100), dtype=np.float32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensor with small dimensions
+    tensor = np.zeros((1, 1), dtype=np.float32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Tensor with different data type (complex)
+    tensor = np.zeros((2, 2), dtype=np.complex64)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Tensor with bool data type
+    tensor = np.zeros((3, 3), dtype=np.bool_)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Tensor of unsigned integers
+    tensor = np.zeros((2, 2), dtype=np.uint8)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Tensor of shape (1,1,1,1,1)
+    tensor = np.zeros((1, 1, 1, 1, 1), dtype=np.float32)
+    input_dict = {"tensor": tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.nn.init.zeros_"] = zeros_inputs()
+
+import torch, copy
+
+def parse_type_comment_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple type comment
+    input_dict = {"comment": "# type: (float) -> int"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Type comment with multiple arguments
+    input_dict = {"comment": "# type: (int, str) -> bool"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Type comment with no return type
+    input_dict = {"comment": "# type: (List[str])"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Type comment with Any type
+    input_dict = {"comment": "# type: (Any) -> Any"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Type comment with complex type
+    input_dict = {"comment": "# type: (Dict[str, List[int]]) -> Tuple[float, ...]" }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Type comment with Union type
+    input_dict = {"comment": "# type: (Union[int, float]) -> str"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Type comment with Optional type
+    input_dict = {"comment": "# type: (Optional[str]) -> None"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Type comment with Callable type
+    input_dict = {"comment": "# type: (Callable[[int], str]) -> None"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Type comment with Tuple type
+    input_dict = {"comment": "# type: (Tuple[int, int, int]) -> None"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Type comment with ellipsis in Tuple
+    input_dict = {"comment": "# type: (Tuple[int, ...]) -> None"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.parse_type_comment"] = parse_type_comment_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def rand_like_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([1, 2, 3], dtype=np.float32)
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = False
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = True
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = False
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([1, 2, 3], dtype=np.float16)
+    dtype = torch.float16
+    layout = torch.strided
+    requires_grad = True
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.float64)
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = False
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6
+    input_tensor = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = True
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.zeros((2, 2, 2), dtype=np.float64)
+    dtype = torch.float64
+    layout = torch.strided
+    requires_grad = False
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    input_tensor = np.ones((5), dtype=np.float32)
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = True
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(2, 3).astype(np.float32)
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = False
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([1, 2, 3], dtype=np.float16)
+    dtype = torch.float16
+    layout = torch.strided
+    requires_grad = True
+    memory_format = torch.contiguous_format
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.random.rand(1,3,2,2).astype(np.float32)
+    dtype = torch.float32
+    layout = torch.strided
+    requires_grad = True
+    memory_format = torch.channels_last
+    input_dict = {"input": input_tensor, "dtype": dtype, "layout": layout, "requires_grad": requires_grad, "memory_format": memory_format}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.rand_like"] = rand_like_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def randint_like_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = torch.tensor([1, 2, 3], dtype=torch.int64).numpy()
+    low = 0
+    high = 5
+    dtype = np.int32
+    layout = "strided"
+    requires_grad = False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int32
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = torch.ones((2, 2), dtype=torch.float32).numpy()
+    low = -2
+    high = 3
+    dtype = np.int64
+    layout = "strided"
+    requires_grad = False # Changed to False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int64
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = torch.zeros((1, 3, 1), dtype=torch.int8).numpy()
+    low = 0
+    high = 10
+    dtype = np.int8
+    layout = "strided"
+    requires_grad = False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int8
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = torch.tensor([[-1, -2], [3, 4]], dtype=torch.int32).numpy()
+    low = -5
+    high = 0
+    dtype = np.int32
+    layout = "strided"
+    requires_grad = False # Changed to False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int32
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = torch.rand(5, dtype=torch.float64).numpy()
+    low = 1
+    high = 100
+    dtype = np.int16
+    layout = "strided"
+    requires_grad = False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int16
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = torch.randint(-10, 10, size=(2, 3, 4), dtype=torch.int64).numpy()
+    low = -1
+    high = 2
+    dtype = np.int64
+    layout = "strided"
+    requires_grad = False # Changed to False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int64
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = torch.tensor(5, dtype=torch.int32).numpy()
+    low = 1
+    high = 6
+    dtype = np.int32
+    layout = "strided"
+    requires_grad = False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int32
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32).numpy()
+    low = 0
+    high = 2
+    dtype = np.int8
+    layout = "strided"
+    requires_grad = False # Changed to False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int8
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    input_tensor = torch.zeros((2, 5), dtype=torch.float64).numpy()
+    low = -5
+    high = 5
+    dtype = np.int16
+    layout = "strided"
+    requires_grad = False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int16
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    input_tensor = torch.ones((1, 1, 1, 1), dtype=torch.int16).numpy()
+    low = 0
+    high = 1
+    dtype = np.int8
+    layout = "strided"
+    requires_grad = False # Changed to False
+    input_dict = {"input": input_tensor, "low": low, "high": high, "dtype": dtype, "layout": layout, "requires_grad": requires_grad}
+    input_dict["dtype"] = torch.int8
+    input_dict["layout"] = torch.strided
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.randint_like_1"] = randint_like_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def sparse_csr_tensor_inputs():
+    list_of_inputs = []
+
+    return list_of_inputs
+
+
+generated_inputs["torch.sparse_csr_tensor_3"] = sparse_csr_tensor_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def digamma_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values
+    input_1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    out_1 = np.array([], dtype=np.float32)
+    input_dict_1 = {"input": input_1, "out": out_1}
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+
+    # Input 2: 2D tensor, positive values
+    input_2 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    out_2 = np.array([], dtype=np.float64)
+    input_dict_2 = {"input": input_2, "out": out_2}
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: 1D tensor, mixed values (positive and small)
+    input_3 = np.array([0.1, 0.5, 1.0], dtype=np.float32)
+    out_3 = np.array([], dtype=np.float32)
+    input_dict_3 = {"input": input_3, "out": out_3}
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: 3D tensor, positive values
+    input_4 = np.random.rand(2, 3, 4).astype(np.float64)
+    out_4 = np.array([], dtype=np.float64)
+    input_dict_4 = {"input": input_4, "out": out_4}
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: 1D tensor, larger positive values
+    input_5 = np.array([10.0, 20.0, 30.0], dtype=np.float32)
+    out_5 = np.array([], dtype=np.float32)
+    input_dict_5 = {"input": input_5, "out": out_5}
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: 2D tensor with different data type
+    input_6 = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float64)
+    out_6 = np.array([], dtype=np.float64)
+    input_dict_6 = {"input": input_6, "out": out_6}
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: 1D tensor with a single element
+    input_7 = np.array([5.0], dtype=np.float32)
+    out_7 = np.array([], dtype=np.float32)
+    input_dict_7 = {"input": input_7, "out": out_7}
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: 2D tensor with different shapes
+    input_8 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float64)
+    out_8 = np.array([], dtype=np.float64)
+    input_dict_8 = {"input": input_8, "out": out_8}
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: 1D tensor with large values
+    input_9 = np.array([100.0, 200.0, 300.0], dtype=np.float32)
+    out_9 = np.array([], dtype=np.float32)
+    input_dict_9 = {"input": input_9, "out": out_9}
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: 4D tensor
+    input_10 = np.random.rand(2, 2, 2, 2).astype(np.float64)
+    out_10 = np.array([], dtype=np.float64)
+    input_dict_10 = {"input": input_10, "out": out_10}
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    return list_of_inputs
+
+generated_inputs["torch.special.digamma"] = digamma_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def erf_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input_tensor = np.array([0.0, 1.0, -1.0, 2.0, -2.0], dtype=np.float32)
+    out_tensor = np.array([], dtype=np.float32)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D tensor
+    input_tensor = np.array([[0.5, -0.5], [1.5, -1.5]], dtype=np.float64)
+    out_tensor = np.array([], dtype=np.float64)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D tensor
+    input_tensor = np.random.rand(2, 3, 4).astype(np.float32)
+    out_tensor = np.array([], dtype=np.float32)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Tensor with zeros
+    input_tensor = np.zeros((5, 5), dtype=np.float32)
+    out_tensor = np.array([], dtype=np.float32)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Tensor with ones
+    input_tensor = np.ones((3, 3), dtype=np.float64)
+    out_tensor = np.array([], dtype=np.float64)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Tensor with large values
+    input_tensor = np.array([100.0, -100.0, 1000.0, -1000.0], dtype=np.float32)
+    out_tensor = np.array([], dtype=np.float32)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Tensor with small values
+    input_tensor = np.array([0.001, -0.001, 0.0001, -0.0001], dtype=np.float64)
+    out_tensor = np.array([], dtype=np.float64)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Tensor with mixed values
+    input_tensor = np.array([0.0, 1.0, -1.0, 10.0, -10.0, 0.1, -0.1], dtype=np.float32)
+    out_tensor = np.array([], dtype=np.float32)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Tensor with a specific shape
+    input_tensor = np.random.rand(1, 5, 1).astype(np.float64)
+    out_tensor = np.array([], dtype=np.float64)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Tensor with negative and positive values
+    input_tensor = np.array([-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5], dtype=np.float32)
+    out_tensor = np.array([], dtype=np.float32)
+
+    input_dict = {
+        "input": input_tensor,
+        "out": out_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.erf"] = erf_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def erfc_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input_1 = np.array([0.0, 1.0, 2.0, 3.0], dtype=np.float32)
+    out_1 = np.array([], dtype=np.float32)
+    input_dict_1 = {"input": input_1, "out": out_1}
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
+
+    # Input 2: Negative values
+    input_2 = np.array([-1.0, -2.0, -3.0], dtype=np.float64)
+    out_2 = np.array([], dtype=np.float64)
+    input_dict_2 = {"input": input_2, "out": out_2}
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    # Input 3: 2D tensor
+    input_3 = np.array([[0.5, 1.5], [2.5, 3.5]], dtype=np.float32)
+    out_3 = np.array([], dtype=np.float32)
+    input_dict_3 = {"input": input_3, "out": out_3}
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    # Input 4: 3D tensor
+    input_4 = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float64)
+    out_4 = np.array([], dtype=np.float64)
+    input_dict_4 = {"input": input_4, "out": out_4}
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    # Input 5: Zeros
+    input_5 = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    out_5 = np.array([], dtype=np.float32)
+    input_dict_5 = {"input": input_5, "out": out_5}
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
+    # Input 6: Large values
+    input_6 = np.array([10.0, 20.0, 30.0], dtype=np.float64)
+    out_6 = np.array([], dtype=np.float64)
+    input_dict_6 = {"input": input_6, "out": out_6}
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
+
+    # Input 7: Small values
+    input_7 = np.array([0.01, 0.02, 0.03], dtype=np.float32)
+    out_7 = np.array([], dtype=np.float32)
+    input_dict_7 = {"input": input_7, "out": out_7}
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    # Input 8: Mixed positive and negative
+    input_8 = np.array([-1.5, 0.5, 2.5, -3.5], dtype=np.float64)
+    out_8 = np.array([], dtype=np.float64)
+    input_dict_8 = {"input": input_8, "out": out_8}
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
+
+    # Input 9: Different dtype (float16)
+    input_9 = np.array([0.5, 1.0, 1.5], dtype=np.float16)
+    out_9 = np.array([], dtype=np.float16)
+    input_dict_9 = {"input": input_9, "out": out_9}
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
+
+    # Input 10: Multi-dimensional with float16
+    input_10 = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float16)
+    out_10 = np.array([], dtype=np.float16)
+    input_dict_10 = {"input": input_10, "out": out_10}
+    list_of_inputs.append(copy.deepcopy(input_dict_10))
+
+    return list_of_inputs
+
+generated_inputs["torch.special.erfc"] = erfc_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def exp2_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D array
+    input = np.array([0, 1, 2, 3, 4], dtype=np.float32)
+    out = np.array([], dtype=np.float32)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Negative values
+    input = np.array([-2, -1, 0, 1, 2], dtype=np.float64)
+    out = np.array([], dtype=np.float64)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 2D array
+    input = np.array([[0, 1], [2, 3]], dtype=np.float32)
+    out = np.array([], dtype=np.float32)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Large values
+    input = np.array([10, 20, 30], dtype=np.float64)
+    out = np.array([], dtype=np.float64)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Small values (close to zero)
+    input = np.array([0.1, 0.01, 0.001], dtype=np.float32)
+    out = np.array([], dtype=np.float32)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 3D array
+    input = np.array([[[0, 1], [2, 3]], [[4, 5], [6, 7]]], dtype=np.float64)
+    out = np.array([], dtype=np.float64)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Mixed positive and negative
+    input = np.array([-1.5, 0.5, 2.5], dtype=np.float32)
+    out = np.array([], dtype=np.float32)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Zeros only
+    input = np.array([0, 0, 0], dtype=np.float64)
+    out = np.array([], dtype=np.float64)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Ones only
+    input = np.array([1, 1, 1], dtype=np.float32)
+    out = np.array([], dtype=np.float32)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: np.int64 array
+    input = np.array([0, 1, 2, 3, 4], dtype=np.int64)
+    out = np.array([], dtype=np.float64)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: np.int32 array
+    input = np.array([-2, -1, 0, 1, 2], dtype=np.int32)
+    out = np.array([], dtype=np.float32)
+    input_dict = {"input": input, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.exp2"] = exp2_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def expm1_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor with positive values
+    input1 = np.array([0.0, 1.0, 2.0], dtype=np.float32)
+    input_dict1 = {"input": input1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 1D tensor with negative values
+    input2 = np.array([-0.5, -1.0, -2.0], dtype=np.float64)
+    input_dict2 = {"input": input2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor
+    input3 = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    input_dict3 = {"input": input3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor
+    input4 = np.random.rand(2, 3, 4).astype(np.float64)
+    input_dict4 = {"input": input4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Tensor with small values close to zero
+    input5 = np.array([1e-6, -1e-6, 0.0], dtype=np.float32)
+    input_dict5 = {"input": input5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Tensor with large values
+    input6 = np.array([10.0, -10.0], dtype=np.float64)
+    input_dict6 = {"input": input6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Tensor with mixed positive and negative values
+    input7 = np.array([-1.0, 0.5, 2.0, -0.2], dtype=np.float32)
+    input_dict7 = {"input": input7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Tensor with zero values
+    input8 = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+    input_dict8 = {"input": input8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Tensor with different data type
+    input9 = np.array([0.1, 0.2, 0.3], dtype=np.float64)
+    input_dict9 = {"input": input9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: 4D tensor
+    input10 = np.random.rand(2, 2, 2, 2).astype(np.float32)
+    input_dict10 = {"input": input10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11: Single element tensor
+    input11 = np.array([0.5], dtype=np.float32)
+    input_dict11 = {"input": input11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+    
+    # Input 12: Empty tensor
+    input12 = np.array([], dtype=np.float32)
+    input_dict12 = {"input": input12}
+    list_of_inputs.append(copy.deepcopy(input_dict12))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.expm1"] = expm1_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def i0_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, positive values
+    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    out1 = np.array([], dtype=np.float32)
+    input_dict1 = {"input": input1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor, mixed positive and negative values
+    input2 = np.array([[1.0, 0.0, 1.0], [2.0, 3.0, 4.0]], dtype=np.float64)
+    out2 = np.array([], dtype=np.float64)
+    input_dict2 = {"input": input2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D tensor, all zeros
+    input3 = np.zeros((2, 2, 2), dtype=np.float32)
+    out3 = np.array([], dtype=np.float32)
+    input_dict3 = {"input": input3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 1D tensor, large positive values
+    input4 = np.array([100.0, 200.0, 300.0], dtype=np.float64)
+    out4 = np.array([], dtype=np.float64)
+    input_dict4 = {"input": input4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 2D tensor, small positive values
+    input5 = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    out5 = np.array([], dtype=np.float32)
+    input_dict5 = {"input": input5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Scalar value
+    input6 = np.array(5.0, dtype=np.float32)
+    out6 = np.array([], dtype=np.float32)
+    input_dict6 = {"input": input6, "out": out6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: 3D tensor with positive values
+    input7 = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64)
+    out7 = np.array([], dtype=np.float64)
+    input_dict7 = {"input": input7, "out": out7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: 1D tensor, with zero value
+    input8 = np.array([0.0], dtype=np.float32)
+    out8 = np.array([], dtype=np.float32)
+    input_dict8 = {"input": input8, "out": out8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9: Empty tensor
+    input9 = np.array([], dtype=np.float64)
+    out9 = np.array([], dtype=np.float64)
+    input_dict9 = {"input": input9, "out": out9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: 4D tensor
+    input10 = np.random.rand(2, 3, 4, 5).astype(np.float32)
+    out10 = np.array([], dtype=np.float32)
+    input_dict10 = {"input": input10, "out": out10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.i0"] = i0_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def i1e_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic positive input
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Zero input
+    x = np.array([0.0], dtype=np.float64)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Larger positive input
+    x = np.array([10.0, 20.0, 30.0], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Negative input (i1e is defined for negative inputs)
+    x = np.array([-1.0, -2.0, -3.0], dtype=np.float64)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Array with mixed positive and negative values
+    x = np.array([-1.0, 0.0, 1.0, 2.0, -2.0], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: 2D array
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 3D array
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Large values to check for overflow
+    x = np.array([100.0, 200.0], dtype=np.float64)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Small values
+    x = np.array([0.1, 0.01, 0.001], dtype=np.float32)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Single element array
+    x = np.array([5.0], dtype=np.float64)
+    input_dict = {"x": x}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.special.i1e"] = i1e_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def log1p_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input1 = np.array([0.0, 1.0, 2.0, -0.5], dtype=np.float32)
+    out1 = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict1 = {"input": input1, "out": out1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor
+    input2 = np.array([[0.0, 1.0], [-0.2, 0.5]], dtype=np.float64)
+    out2 = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
+    input_dict2 = {"input": input2, "out": out2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D tensor
+    input3 = np.array([[[0.01, 0.02], [0.03, 0.04]], [[0.05, 0.06], [0.07, 0.08]]], dtype=np.float32)
+    out3 = np.array([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]], dtype=np.float32)
+    input_dict3 = {"input": input3, "out": out3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Tensor with negative values
+    input4 = np.array([-0.9, -0.5, 0.0, 0.5, 0.9], dtype=np.float32)
+    out4 = np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict4 = {"input": input4, "out": out4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Tensor with large values
+    input5 = np.array([1e-5, 1e-6, 1e-7], dtype=np.float64)
+    out5 = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+    input_dict5 = {"input": input5, "out": out5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Tensor with small values
+    input6 = np.array([-1e-5, 1e-5, 0.0], dtype=np.float32)
+    out6 = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict6 = {"input": input6, "out": out6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Tensor with mixed positive and negative values
+    input7 = np.array([-0.75, 0.25, -0.1, 0.8], dtype=np.float64)
+    out7 = np.array([0.0, 0.0, 0.0, 0.0], dtype=np.float64)
+    input_dict7 = {"input": input7, "out": out7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Tensor with a single element
+    input8 = np.array([0.5], dtype=np.float32)
+    out8 = np.array([0.0], dtype=np.float32)
+    input_dict8 = {"input": input8, "out": out8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Tensor with zero
+    input9 = np.array([0.0], dtype=np.float64)
+    out9 = np.array([0.0], dtype=np.float64)
+    input_dict9 = {"input": input9, "out": out9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Tensor with float16
+    input10 = np.array([0.0, 0.5, -0.2], dtype=np.float16)
+    out10 = np.array([0.0, 0.0, 0.0], dtype=np.float16)
+    input_dict10 = {"input": input10, "out": out10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.special.log1p"] = log1p_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def log_softmax_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, dim=0, float32
+    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    dim1 = 0
+    dtype1 = torch.float32
+    input_dict1 = {"input": input1, "dim": dim1, "dtype": dtype1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor, dim=1, float64
+    input2 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    dim2 = 1
+    dtype2 = torch.float64
+    input_dict2 = {"input": input2, "dim": dim2, "dtype": dtype2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D tensor, dim=2, float32, with negative values
+    input3 = np.array([[[1.0, -2.0], [3.0, -4.0]], [[-5.0, 6.0], [-7.0, 8.0]]], dtype=np.float32)
+    dim3 = 2
+    dtype3 = torch.float32
+    input_dict3 = {"input": input3, "dim": dim3, "dtype": dtype3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 1D tensor, dim=-1, float64
+    input4 = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    dim4 = -1
+    dtype4 = torch.float64
+    input_dict4 = {"input": input4, "dim": dim4, "dtype": dtype4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 2D tensor, dim=0, float32, all same values
+    input5 = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
+    dim5 = 0
+    dtype5 = torch.float32
+    input_dict5 = {"input": input5, "dim": dim5, "dtype": dtype5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 2D tensor, dim=1, float64, large values
+    input6 = np.array([[1000.0, 2000.0], [3000.0, 4000.0]], dtype=np.float64)
+    dim6 = 1
+    dtype6 = torch.float64
+    input_dict6 = {"input": input6, "dim": dim6, "dtype": dtype6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: 1D tensor, dim=0, float32, mixed positive and negative
+    input7 = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
+    dim7 = 0
+    dtype7 = torch.float32
+    input_dict7 = {"input": input7, "dim": dim7, "dtype": dtype7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: 3D tensor, dim=0, float64, with zeros
+    input8 = np.array([[[0.0, 2.0], [3.0, 0.0]], [[0.0, 6.0], [7.0, 0.0]]], dtype=np.float64)
+    dim8 = 0
+    dtype8 = torch.float64
+    input_dict8 = {"input": input8, "dim": dim8, "dtype": dtype8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: 2D tensor, dim=-1, float32
+    input9 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    dim9 = -1
+    dtype9 = torch.float32
+    input_dict9 = {"input": input9, "dim": dim9, "dtype": dtype9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: 4D tensor, dim=3, float64
+    input10 = np.random.rand(2, 3, 4, 5).astype(np.float64)
+    dim10 = 3
+    dtype10 = torch.float64
+    input_dict10 = {"input": input10, "dim": dim10, "dtype": dtype10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.log_softmax_1"] = log_softmax_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def log_softmax_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input_tensor = np.array([1.0, 2.0, 3.0])
+    dim = 0
+    dtype = torch.float32
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    dim = 1
+    dtype = torch.float64
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[-1.0, -2.0], [-3.0, -4.0]])
+    dim = 0
+    dtype = torch.float32
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([1, 2, 3], dtype=np.int32)
+    dim = 0
+    dtype = torch.float64
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
+    dim = 2
+    dtype = torch.float32
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([1.0, 2.0, 3.0, float('inf')])
+    dim = 0
+    dtype = torch.float64
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([1.0, 2.0, 3.0, float('-inf')])
+    dim = 0
+    dtype = torch.float32
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([1.0, 2.0, 3.0, float('nan')])
+    dim = 0
+    dtype = torch.float64
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    dim = 1
+    dtype = torch.float32
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
+    dim = 0
+    dtype = torch.float64
+    input_dict = {"input": input_tensor, "dim": dim, "dtype": dtype}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.log_softmax_2"] = log_softmax_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def logit_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor
+    input1 = np.array([0.2, 0.5, 0.8], dtype=np.float32)
+    eps1 = 1e-6
+    input_dict1 = {"input": input1, "eps": eps1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor with values close to 0 and 1
+    input2 = np.array([[0.001, 0.999], [0.1, 0.9]], dtype=np.float64)
+    eps2 = 1e-8
+    input_dict2 = {"input": input2, "eps": eps2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: Tensor with a small epsilon
+    input3 = np.array([0.5], dtype=np.float32)
+    eps3 = 1e-12
+    input_dict3 = {"input": input3, "eps": eps3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4: 3D tensor
+    input4 = np.random.rand(2, 3, 4).astype(np.float32)
+    eps4 = 1e-5
+    input_dict4 = {"input": input4, "eps": eps4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Tensor with large epsilon
+    input5 = np.array([0.3, 0.7], dtype=np.float64)
+    eps5 = 0.1
+    input_dict5 = {"input": input5, "eps": eps5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+    
+    # Input 6: Values spanning the range (0, 1)
+    input6 = np.linspace(0.01, 0.99, 5).astype(np.float32)
+    eps6 = 1e-7
+    input_dict6 = {"input": input6, "eps": eps6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Empty tensor
+    input7 = np.array([], dtype=np.float64)
+    eps7 = 1e-9
+    input_dict7 = {"input": input7, "eps": eps7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Single element tensor
+    input8 = np.array([0.6], dtype=np.float32)
+    eps8 = 1e-4
+    input_dict8 = {"input": input8, "eps": eps8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Tensor with different dtype (float16)
+    input9 = np.array([0.4, 0.6], dtype=np.float16)
+    eps9 = 1e-3
+    input_dict9 = {"input": input9, "eps": eps9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: 4D tensor
+    input10 = np.random.rand(2, 2, 2, 2).astype(np.float64)
+    eps10 = 1e-8
+    input_dict10 = {"input": input10, "eps": eps10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    # Input 11: Tensor with repeated values
+    input11 = np.array([0.5, 0.5, 0.5], dtype=np.float32)
+    eps11 = 1e-6
+    input_dict11 = {"input": input11, "eps": eps11}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+    
+    # Input 12: Large tensor
+    input12 = np.random.rand(1000).astype(np.float64)
+    eps12 = 1e-7
+    input_dict12 = {"input": input12, "eps": eps12}
+    list_of_inputs.append(copy.deepcopy(input_dict12))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.logit_1"] = logit_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def logit_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic 1D tensor with default eps
+    input1 = np.array([0.1, 0.5, 0.9], dtype=np.float32)
+    eps1 = np.array(1e-6, dtype=np.float32)
+    input_dict1 = {"input": input1, "eps": eps1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor with different eps
+    input2 = np.array([[0.2, 0.4], [0.6, 0.8]], dtype=np.float64)
+    eps2 = np.array(1e-4, dtype=np.float64)
+    input_dict2 = {"input": input2, "eps": eps2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 3D tensor with specified eps
+    input3 = np.random.rand(2, 3, 4).astype(np.float32)
+    eps3 = np.array(0.01, dtype=np.float32)
+    input_dict3 = {"input": input3, "eps": eps3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: Tensor with values close to 0 and 1, small eps
+    input4 = np.array([0.001, 0.999, 0.5], dtype=np.float64)
+    eps4 = np.array(1e-8, dtype=np.float64)
+    input_dict4 = {"input": input4, "eps": eps4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: Tensor with some values outside [0, 1], should be clipped
+    input5 = np.array([-0.1, 0.5, 1.1], dtype=np.float32)
+    eps5 = np.array(1e-5, dtype=np.float32)
+    input_dict5 = {"input": input5, "eps": eps5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: Larger eps value
+    input6 = np.array([0.2, 0.8], dtype=np.float64)
+    eps6 = np.array(0.1, dtype=np.float64)
+    input_dict6 = {"input": input6, "eps": eps6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: Multi-dimensional array, small eps
+    input7 = np.random.rand(5, 5, 5).astype(np.float32)
+    eps7 = np.array(1e-7, dtype=np.float32)
+    input_dict7 = {"input": input7, "eps": eps7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Float 16
+    input8 = np.array([0.3, 0.7], dtype=np.float16)
+    eps8 = np.array(1e-3, dtype=np.float16)
+    input_dict8 = {"input": input8, "eps": eps8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9: Scalar tensor
+    input9 = np.array(0.6, dtype=np.float32)
+    eps9 = np.array(1e-6, dtype=np.float32)
+    input_dict9 = {"input": input9, "eps": eps9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: More varied values
+    input10 = np.array([0.05, 0.25, 0.5, 0.75, 0.95], dtype=np.float64)
+    eps10 = np.array(1e-4, dtype=np.float64)
+    input_dict10 = {"input": input10, "eps": eps10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.special.logit_2"] = logit_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def logsumexp_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    input = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    dim = 0
+    keepdim = False
+    out = np.array([], dtype=np.float32)
+
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    dim = 1
+    keepdim = True
+    out = np.array([], dtype=np.float64)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
+    dim = 0
+    keepdim = False
+    out = np.array([], dtype=np.float32)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64).reshape(2, 2)
+    dim = 1
+    keepdim = False
+    out = np.array([], dtype=np.float64)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    dim = 0
+    keepdim = True
+    out = np.array([], dtype=np.float32)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input = np.array([1.0], dtype=np.float64)
+    dim = 0
+    keepdim = False
+    out = np.array([], dtype=np.float64)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float32)
+    dim = 1
+    keepdim = True
+    out = np.array([], dtype=np.float32)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    dim = 0
+    keepdim = True
+    out = np.array([], dtype=np.float64)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
+    dim = 1
+    keepdim = False
+    out = np.array([], dtype=np.float64)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    dim = 2
+    keepdim = True
+    out = np.array([], dtype=np.float32)
+    input_dict = {
+        "input": input,
+        "dim": dim,
+        "keepdim": keepdim,
+        "out": out
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.special.logsumexp_1"] = logsumexp_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def logsumexp_inputs():
+    list_of_inputs = []
+
+    # Input 1: 1D tensor, dim=0, keepdim=False
+    input1 = torch.tensor([1.0, 2.0, 3.0]).numpy()
+    dim1 = [0]
+    keepdim1 = False
+    out1 = torch.tensor([]).numpy()
+
+    input_dict1 = {
+        "input": input1,
+        "dim": dim1,
+        "keepdim": keepdim1,
+        "out": out1
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict1))
+
+    # Input 2: 2D tensor, dim=0, keepdim=True
+    input2 = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    dim2 = [0]
+    keepdim2 = True
+    out2 = torch.tensor([]).numpy()
+
+    input_dict2 = {
+        "input": input2,
+        "dim": dim2,
+        "keepdim": keepdim2,
+        "out": out2
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict2))
+
+    # Input 3: 2D tensor, dim=1, keepdim=False
+    input3 = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    dim3 = [1]
+    keepdim3 = False
+    out3 = torch.tensor([]).numpy()
+
+    input_dict3 = {
+        "input": input3,
+        "dim": dim3,
+        "keepdim": keepdim3,
+        "out": out3
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+
+    # Input 4: 3D tensor, dim=[0, 1], keepdim=True
+    input4 = torch.randn(2, 3, 4).numpy()
+    dim4 = [0, 1]
+    keepdim4 = True
+    out4 = torch.tensor([]).numpy()
+
+    input_dict4 = {
+        "input": input4,
+        "dim": dim4,
+        "keepdim": keepdim4,
+        "out": out4
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict4))
+
+    # Input 5: 3D tensor, dim=[1, 2], keepdim=False
+    input5 = torch.randn(2, 3, 4).numpy()
+    dim5 = [1, 2]
+    keepdim5 = False
+    out5 = torch.tensor([]).numpy()
+
+    input_dict5 = {
+        "input": input5,
+        "dim": dim5,
+        "keepdim": keepdim5,
+        "out": out5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict5))
+
+    # Input 6: 1D tensor with negative values, dim=0, keepdim=False
+    input6 = torch.tensor([-1.0, -2.0, -3.0]).numpy()
+    dim6 = [0]
+    keepdim6 = False
+    out6 = torch.tensor([]).numpy()
+
+    input_dict6 = {
+        "input": input6,
+        "dim": dim6,
+        "keepdim": keepdim6,
+        "out": out6
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+
+    # Input 7: 2D tensor with negative values, dim=0, keepdim=True
+    input7 = torch.tensor([[-1.0, -2.0], [-3.0, -4.0]]).numpy()
+    dim7 = [0]
+    keepdim7 = True
+    out7 = torch.tensor([]).numpy()
+
+    input_dict7 = {
+        "input": input7,
+        "dim": dim7,
+        "keepdim": keepdim7,
+        "out": out7
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: 4D tensor, dim=[0, 2], keepdim=False
+    input8 = torch.randn(2, 3, 4, 5).numpy()
+    dim8 = [0, 2]
+    keepdim8 = False
+    out8 = torch.tensor([]).numpy()
+
+    input_dict8 = {
+        "input": input8,
+        "dim": dim8,
+        "keepdim": keepdim8,
+        "out": out8
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: 4D tensor, dim=[1, 3], keepdim=True
+    input9 = torch.randn(2, 3, 4, 5).numpy()
+    dim9 = [1, 3]
+    keepdim9 = True
+    out9 = torch.tensor([]).numpy()
+
+    input_dict9 = {
+        "input": input9,
+        "dim": dim9,
+        "keepdim": keepdim9,
+        "out": out9
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: Empty tensor
+    input10 = torch.tensor([]).numpy()
+    dim10 = []
+    keepdim10 = False
+    out10 = torch.tensor([]).numpy()
+
+    input_dict10 = {
+        "input": input10,
+        "dim": dim10,
+        "keepdim": keepdim10,
+        "out": out10
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    return list_of_inputs
+
+generated_inputs["torch.special.logsumexp_2"] = logsumexp_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def polygamma_inputs():
+    list_of_inputs = []
+
+    # Input 1: n=0, input=scalar
+    n = 0
+    input_tensor = np.array(1.0, dtype=np.float32)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: n=1, input=1D tensor
+    n = 1
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: n=2, input=2D tensor
+    n = 2
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: n=3, input=3D tensor
+    n = 3
+    input_tensor = np.random.rand(2, 3, 4).astype(np.float64)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: n=4, input with negative values
+    n = 4
+    input_tensor = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: n=5, large input values
+    n = 5
+    input_tensor = np.array([100.0, 200.0, 300.0], dtype=np.float64)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: n=6, small input values
+    n = 6
+    input_tensor = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: n=7, input with zero values
+    n = 7
+    input_tensor = np.array([0.0, 1.0, 2.0], dtype=np.float64)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: n=8, higher dimension input
+    n = 8
+    input_tensor = np.random.rand(2, 2, 2, 2).astype(np.float32)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: n=9, mixed positive and negative
+    n = 9
+    input_tensor = np.array([-1.0, 1.0, -2.0, 2.0], dtype=np.float64)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: n=10, zero dimension input
+    n = 10
+    input_tensor = np.array(1.0, dtype=np.float32)
+    input_dict = {"n": n, "input": input_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.polygamma"] = polygamma_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def round_inputs():
+    list_of_inputs = []
+
+    # Input 1: Simple 1D array
+    input = np.array([1.2, 2.7, 3.5, 4.1, 5.9], dtype=np.float32)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: 2D array
+    input = np.array([[1.2, 2.7], [3.5, 4.1]], dtype=np.float32)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Array with negative values
+    input = np.array([-1.2, -2.7, 3.5, -4.1, 5.9], dtype=np.float32)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Array with zero
+    input = np.array([0.0, 0.5, -0.5], dtype=np.float32)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Array with large values
+    input = np.array([100.2, 200.7, -300.5], dtype=np.float32)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Array with small values
+    input = np.array([0.0001, 0.0009, -0.0005], dtype=np.float32)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: 3D array
+    input = np.array([[[1.2, 2.7], [3.5, 4.1]], [[5.9, 6.2], [7.7, 8.5]]], dtype=np.float32)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Array with mixed positive and negative values including 0
+    input = np.array([-2.3, 0, 1.8, -0.5, 3.1], dtype=np.float32)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Float64 array
+    input = np.array([1.2, 2.7, 3.5, 4.1, 5.9], dtype=np.float64)
+    input_dict = {"input": input}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.round"] = round_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def xlogy_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic case with positive values
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    y = np.array([4.0, 5.0, 6.0], dtype=np.float32)
+    out = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: x = 0
+    x = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    y = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    out = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: y = 0
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    y = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    out = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: x = 0 and y = 0
+    x = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    y = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    out = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: y = 1
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    y = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+    out = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Multi-dimensional arrays
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    y = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    out = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different data type (float64)
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    y = np.array([4.0, 5.0, 6.0], dtype=np.float64)
+    out = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 8: Broadcasting.
+    x = np.array([1.0, 2.0], dtype=np.float32)
+    y = np.array([[4.0, 5.0], [6.0, 7.0]], dtype=np.float32)
+    out = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Different shapes
+    x = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    y = np.array([[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]], dtype=np.float32)
+    out = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Larger values
+    x = np.array([1e5, 2e5, 3e5], dtype=np.float32)
+    y = np.array([4e5, 5e5, 6e5], dtype=np.float32)
+    out = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    return list_of_inputs
+
+
+generated_inputs["torch.special.xlogy"] = xlogy_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def zeta_inputs():
+    list_of_inputs = []
+
+    # Input 1
+    x = np.array([2.0, 3.0, 4.0], dtype=np.float32)
+    q = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    x = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float64)
+    q = np.array([[1.0, 1.5], [2.0, 2.5]], dtype=np.float64)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    x = np.array([1.5], dtype=np.float32)
+    q = np.array([0.5], dtype=np.float32)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 4
+    x = np.array([5.0, 6.0], dtype=np.float64)
+    q = np.array([0.1, 0.2], dtype=np.float64)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    x = np.array([2.0, 2.5, 3.0, 3.5], dtype=np.float32)
+    q = np.array([1.0, 1.2, 1.4, 1.6], dtype=np.float32)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    x = np.array([2.0], dtype=np.float64)
+    q = np.array([1.0], dtype=np.float64)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    x = np.array([[2.0, 3.0, 4.0]], dtype=np.float32)
+    q = np.array([[1.0, 1.0, 1.0]], dtype=np.float32)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8
+    x = np.array([1.0 + 1e-6, 2.0 + 1e-6], dtype=np.float32)
+    q = np.array([1.0, 1.0], dtype=np.float32)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    x = np.array([1.0 + 1e-6], dtype=np.float64)
+    q = np.array([1.0], dtype=np.float64)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10
+    x = np.array([3.0, 4.0, 5.0], dtype=np.float32)
+    q = np.array([2.0, 3.0, 4.0], dtype=np.float32)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    x = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64)
+    q = np.array([[3.0, 4.0], [5.0, 6.0]], dtype=np.float64)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    x = np.array(5, dtype=np.float32)
+    q = np.array(2, dtype=np.float32)
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.special.zeta_1"] = zeta_inputs()
+
+import torch, copy
+import numpy as np
+
+def zeta_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic valid input
+    x = np.array([2.0, 3.0, 4.0], dtype=np.float64)
+    q = 1.0
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: x with different dtype
+    x = np.array([2.5, 3.5, 4.5], dtype=np.float32)
+    q = 1.5
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: x with different shape
+    x = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float64)
+    q = 2.0
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Larger x values
+    x = np.array([10.0, 11.0, 12.0], dtype=np.float64)
+    q = 0.5
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: x close to 1 (but > 1 to avoid pole for q=1)
+    x = np.array([1.1, 1.2, 1.3], dtype=np.float64)
+    q = 2.5
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Different q value
+    x = np.array([2.0, 3.0, 4.0], dtype=np.float64)
+    q = 0.1
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Different q value
+    x = np.array([2.0, 3.0, 4.0], dtype=np.float64)
+    q = 10.0
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Multi-dimensional x and different q
+    x = np.array([[[2.0, 3.0], [4.0, 5.0]], [[6.0, 7.0], [8.0, 9.0]]], dtype=np.float64)
+    q = 3.0
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: x with single element
+    x = np.array([5.0], dtype=np.float64)
+    q = 0.75
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: x with larger shape and q close to zero.
+    x = np.ones((2,2,2), dtype=np.float64) * 3
+    q = 0.01
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: x with different dtype and q close to 1
+    x = np.array([2.5, 3.5, 4.5], dtype=np.float32)
+    q = 0.9
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: x with large values and small q
+    x = np.array([100.0, 110.0, 120.0], dtype=np.float64)
+    q = 0.001
+    input_dict = {"x": x, "q": q}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+generated_inputs["torch.special.zeta_2"] = zeta_inputs()
+
+import torch
+import numpy as np
+import copy
+
+def spmm_inputs():
+    list_of_inputs = []
+
+    # Input 1: Basic example
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([1.0, 2.0]), size=(2, 2)).to_dense()
+    dense_matrix = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Larger matrices
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1, 2], [1, 2, 0]]), values=torch.tensor([1.0, 2.0, 3.0]), size=(3, 3)).to_dense()
+    dense_matrix = torch.tensor([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Rectangular matrices
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([1.0, 2.0]), size=(2, 3)).to_dense()
+    dense_matrix = torch.tensor([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different data type
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([1, 2], dtype=torch.int64), size=(2, 2)).to_dense()
+    dense_matrix = torch.tensor([[1, 2], [3, 4]], dtype=torch.int64).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Sparse matrix with some zero values
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([0.0, 2.0]), size=(2, 2)).to_dense()
+    dense_matrix = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty sparse matrix
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.empty((2,0)), values=torch.empty((0,)), size=(2, 2)).to_dense()
+    dense_matrix = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Single element sparse matrix
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0], [0]]), values=torch.tensor([1.0]), size=(1, 1)).to_dense()
+    dense_matrix = torch.tensor([[2.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Negative values in sparse matrix
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([-1.0, 2.0]), size=(2, 2)).to_dense()
+    dense_matrix = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Negative values in dense matrix
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0, 1], [1, 0]]), values=torch.tensor([1.0, 2.0]), size=(2, 2)).to_dense()
+    dense_matrix = torch.tensor([[-1.0, 2.0], [3.0, -4.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Sparse matrix with duplicate coordinates
+    sparse_matrix = torch.sparse_coo_tensor(indices=torch.tensor([[0, 0, 1], [0, 0, 1]]), values=torch.tensor([1.0, 2.0, 3.0]), size=(2, 2)).to_dense()
+    dense_matrix = torch.tensor([[1.0, 2.0], [3.0, 4.0]]).numpy()
+    input_dict = {"input": sparse_matrix.numpy(), "mat2": dense_matrix}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    return list_of_inputs
+
+
+generated_inputs["torch.spmm"] = spmm_inputs()
+
