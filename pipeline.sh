@@ -3,7 +3,13 @@
 # This script orchestrates the entire pipeline for DLL fuzzing with input invariants.
 # From inferring invariants to fuzzing and collecting coverage.
 
-lib=${1:-torch}   # Library (torch or tf)
+if [ "$#" -eq 0 ]; then
+  echo "Error: No arguments provided."
+  echo "Usage: $0 <library> (torch or tf"
+  exit 1
+fi
+
+lib=$1      # Library (torch or tf)
 seed=200    # Seed for random number generation
 
 # Set environment variables for Slurm
