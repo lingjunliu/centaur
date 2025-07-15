@@ -1,7 +1,7 @@
 import os, sys
 from utils.process_lcov import analyze_lcov
 from utils.misc import get_tmp_dir, create_subdir, get_dir_in_root
-from utils.coverage_utils import gen_cov_torch
+from utils.coverage_utils import gen_cov
 from utils.misc import map_torch_to_driver
 
 def get_cov_dict_from_file(lcov_file):
@@ -65,7 +65,7 @@ def check_coverage_addition(coverage_dict, driver_file, pkl_dir, filename_new_br
         pkl_file = os.path.join(pkl_dir, file)
         print(f"[{i+1}/{total}] Working with {file}")
         cmd_line = f"python {driver_file} {pkl_file}"
-        return_code, lcov_data = gen_cov_torch(cmd_line, prefix=prefix)
+        return_code, lcov_data = gen_cov(cmd_line, prefix=prefix)
         new_dict = analyze_lcov(lcov_data)
         additional_branches, additional_lines, coverage_dict = compare_cov_dicts(coverage_dict, new_dict, merge=merge)
         if additional_branches > 0:

@@ -114,32 +114,34 @@ The code is organized as follow:
  (venv) ~/dll-fuzzing-with-input-invariants$ python -m generator.harness_z3 <api> <duration> <n_max> <lib> <seed>
  ```
 
- <h2> 4. Compute Coverage: Pytorch (evaluation) </h2>
+ <h2> 4. Compute Coverage (evaluation) </h2>
  
  <h3> Slurm (all apis) </h3>
 
  To compute coverage for all apis, run the following. **Be sure to install and configure slurm before running this.**
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/coverage_with_slurm.sh <n_inputs>
+ (venv) ~/dll-fuzzing-with-input-invariants$ bash scripts/coverage_with_slurm.sh <n_inputs> <lib>
  ```
- - `n_inputs`: Number of inputs per api used for coverage calculation. Passing -1 will cause it to calculate for all inputs.
+ - `n_inputs`: Number of inputs per api used for coverage calculation. Passing 0 will cause it to calculate for all inputs.
 
  <h3> Without slurm (one api) </h3>
 
  To compute coverage for a single api *(under the venv)*, there are two steps.
- 1. Downloading instrumented pytorch (the script above would download it, if that was never run, download it using these commands):
+ 1. Downloading instrumented library (the script above would download it, if that was never run, download it using these commands):
  ```bash
  (venv) ~/dll-fuzzing-with-input-invariants$ pip install gdown
- (venv) ~/dll-fuzzing-with-input-invariants$ gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O instrumented_pytorch/
+ (venv) ~/dll-fuzzing-with-input-invariants$ gdown --fuzzy <link> -O instrumented_<lib>/
  ```
+ - link for pytorch: https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing
+ - link for tf: pending
  2. Patching:
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.patching <api> <n_inputs>
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.patching <api> <n_inputs> <lib>
  ```
  3. Coverage:
  ```bash
- (venv) ~/dll-fuzzing-with-input-invariants$ pip install instrumented_pytorch/torch-2.2.0*
- (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.coverage <api>
+ (venv) ~/dll-fuzzing-with-input-invariants$ pip install instrumented_<lib>/<lib>*
+ (venv) ~/dll-fuzzing-with-input-invariants$ python -m eval.coverage <api> <lib>
  ```
 
  <h2> 5. Run Oracle (bug detection) </h2>

@@ -17,10 +17,10 @@ export max_parallel=100          # Maximum number of parallel jobs (set this bas
 export max_memory_usage=90      # Maximum memory usage in percentage (set this based on the percentage of memory you do not want to exceed)
 
 # Step 1: Infer invariants: <duration> <regen> <library>
-bash scripts/infer_invariants_with_slurm.sh 1200 1 $lib
+bash scripts/infer_invariants_with_slurm.sh 1200 0 $lib
 # Step 2: Generate models: <duration> <n_models> <library> <seed> <regen>
 bash scripts/generate_models_with_slurm.sh 3600 0 $lib $seed 1
 # Step 3: Fuzz with the generated models: <duration> <n_inputs> <library> <seed>
 bash scripts/fuzz_with_slurm.sh 180 0 $lib $seed
 # Step 4: Collect coverage: <n_inputs>
-bash scripts/coverage_with_slurm.sh -1 html False 2.2.0
+bash scripts/coverage_with_slurm.sh 0 $lib html False

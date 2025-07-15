@@ -1,5 +1,5 @@
 import sys, os, random
-from utils.coverage_utils import get_cov_torch
+from utils.coverage_utils import get_coverage_numbers
 from utils.process_lcov import analyze_lcov
 from utils.misc import map_torch_to_driver
 
@@ -27,6 +27,8 @@ def main():
     api = sys.argv[2]
     out_file = sys.argv[3]
 
+    lib = "torch"
+
     print(f"dir: {dir}, api: {api}, out_file: {out_file}")
     
     limit = 0
@@ -42,7 +44,7 @@ def main():
     
     print(f"{dir}/driver.py")
     prefix = api.replace(".", "_")
-    num_branches, num_lines, return_code, coverage_dict = get_cov_torch(f"python {dir}/driver.py {dir}", prefix=prefix, capture_output=True, gen_html=True)
+    num_branches, num_lines, return_code, coverage_dict = get_coverage_numbers(f"python {dir}/driver.py {dir}", lib=lib, prefix=prefix, capture_output=True, gen_html=True)
 
     if return_code != 0:
         print(f"ERROR: Execution for {api} failed and returned {return_code}")

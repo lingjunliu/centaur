@@ -3,7 +3,8 @@ import sys
 import os
 import psutil
 import time
-import re
+import re    
+import inspect
 from bs4 import BeautifulSoup
 from .misc import get_tmp_dir, create_subdir, get_dir_in_root
 from .process_lcov import analyze_lcov
@@ -110,31 +111,34 @@ def extract_coverage_data(html_content):
 
     return coverage_data, total_coverage
 
-def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=False, native_only=False):
+def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, native_only=False):
     """
     Generate coverage data after running a command. To differentiate the generated profraw and profdata files from other
     parallel executions, provide a prefix for the file names. The default is "default".
     capture_output=True will print the output (default behavior).
     
-    Example: gen_cov_torch("python -m eval.patched_drivers.GroupNorm_cov_in_loop", prefix="GroupNorm", capture_output=True)
+    Example: gen_cov("python -m eval.patched_drivers.GroupNorm_cov_in_loop", lib="torch", prefix="GroupNorm", capture_output=True)
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files. 
     """
-    if "TORCH_BUILD_DIR" in os.environ:
-        TORCH_BUILD_DIR = os.environ["TORCH_BUILD_DIR"]
-    else:
-        print("WARNING: TORCH_BUILD_DIR environment variable was not set")
-        import inspect
+    if lib == "torch":
         import torch
         TORCH_BUILD_DIR = os.path.dirname(inspect.getfile(torch))
         print(f"Using torch from {TORCH_BUILD_DIR}")
+        LIB1 = f"{TORCH_BUILD_DIR}/lib/libtorch_cpu.so"
+        # LIB2 = f"{TORCH_BUILD_DIR}/lib/libtorch.so"
+    elif lib == "tf":
+        import tensorflow as tf
+        TF_BUILD_DIR = os.path.dirname(inspect.getfile(tf))
+        print(f"Using tensorflow from {TF_BUILD_DIR}")
+        LIB1 = f"{TF_BUILD_DIR}/libtensorflow_cc.so.2"
+    else:
+        raise Exception(f"Unsupported library {lib}, choose torch or tf")
+
     
     if "LLVM_BINDIR" in os.environ:
         llvm_prefix = f'{os.environ["LLVM_BINDIR"]}/'
     else:
         llvm_prefix = ""
-
-    LIB1 = f"{TORCH_BUILD_DIR}/lib/libtorch_cpu.so"
-    LIB2 = f"{TORCH_BUILD_DIR}/lib/libtorch.so"
     
     cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
     profraw_file = f"{cov_dir}/{prefix}.profraw"
@@ -189,30 +193,33 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     if len(return_obj.stderr.decode()) > 0:
         print(f"Error faced while running llvm-profdata: {return_obj.stderr.decode()}")
 
-    try:
-        return_obj = subprocess.run(
-            [
-                f"{llvm_prefix}llvm-cov",
-                "export",
-                f"-instr-profile={profdata_file}",
-                "-format=lcov",
-                "-object",
-                LIB1,
-                LIB2,
-            ],
-            capture_output=True,
-        )
-    except subprocess.CalledProcessError as err:
-        raise Exception(f"Could not generate lcov data. Error Code {err.returncode}: {err}")
-    except KeyboardInterrupt:
-        print("Stopped...")
-        raise KeyboardInterrupt
+    if gen_lcov:
+        try:
+            return_obj = subprocess.run(
+                [
+                    f"{llvm_prefix}llvm-cov",
+                    "export",
+                    f"-instr-profile={profdata_file}",
+                    "-format=lcov",
+                    "-object",
+                    LIB1,
+                    # LIB2,
+                ],
+                capture_output=True,
+            )
+        except subprocess.CalledProcessError as err:
+            raise Exception(f"Could not generate lcov data. Error Code {err.returncode}: {err}")
+        except KeyboardInterrupt:
+            print("Stopped...")
+            raise KeyboardInterrupt
 
-    lcov_data = return_obj.stdout
-    lcov_data = lcov_data.decode()
-    
-    if len(return_obj.stderr.decode()) > 0:
-        print(f"Error faced while running llvm-cov: {return_obj.stderr.decode()}")
+        lcov_data = return_obj.stdout
+        lcov_data = lcov_data.decode()
+
+        if len(return_obj.stderr.decode()) > 0:
+            print(f"Error faced while running llvm-cov: {return_obj.stderr.decode()}")
+    else:
+        lcov_data = {}
 
     if gen_html:
         print("Generating HTML coverage report...")
@@ -245,7 +252,9 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
         
         if len(return_obj.stderr.decode()) > 0:
             print(f"Error faced while generating html: {return_obj.stderr.decode()}")
-        
+
+
+    if gen_text:    
         print("Generating Text coverage report...")
         try:
             return_obj = subprocess.run(
@@ -258,7 +267,7 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
                     f"-output-dir={cov_dir}/{prefix}",
                     "-object",
                     LIB1,
-                    LIB2,
+                    # LIB2,
                 ],
                 capture_output=True,
             )
@@ -280,18 +289,18 @@ def gen_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
     
     return return_code, lcov_data
 
-def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=False, save_lcov=False, native_only=False):
+def get_coverage_numbers(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lcov=True, gen_html=False, gen_text=False, save_lcov=False, native_only=False):
     """
     Generate # of branches and # of lines covered in Pytorch after running a command.
     To differentiate the generated profraw and profdata files from other
     parallel executions, provide a prefix for the file names. The default is "default".
     capture_output=True will print the output (default behavior).
     
-    Example: gen_cov_torch("-m eval.patched_drivers.GroupNorm_cov_in_loop", prefix="GroupNorm", capture_output=True)
+    Example: get_coverage_numbers("python -m eval.patched_drivers.GroupNorm_cov_in_loop", lib="torch", prefix="GroupNorm", capture_output=True)
     This will run "python -m eval.patched_drivers.GroupNorm_cov_in_loop" and calculate coverage. It will use "GroupNorm" as the names for the profraw and profdata files.
     It will return the num_branches, num_lines, return_code of executing cmd_line and a dict containing detailed information.
     """
-    return_code, lcov_data = gen_cov_torch(cmd_line, prefix=prefix, capture_output=capture_output, gen_html=gen_html, native_only=native_only)
+    return_code, lcov_data = gen_cov(cmd_line, lib=lib, prefix=prefix, capture_output=capture_output, gen_lcov=gen_lcov, gen_html=gen_html, gen_text=gen_text, native_only=native_only)
 
     cov_dir = create_subdir(get_tmp_dir(), "coverage_raw_files")
     if save_lcov:
@@ -308,11 +317,13 @@ def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
             with open(html_file, "r") as f:
                 html_content = f.read()
             coverage_dict, num_branches = extract_coverage_data(html_content)
-    else:   # Use lcov data to extract branch and line coverage numbers
+    elif gen_lcov:   # Use lcov data to extract branch and line coverage numbers
         coverage_dict = analyze_lcov(lcov_data)
         for filename, coverage_info in coverage_dict.items():
             num_branches += len(coverage_info["branches"])
             num_lines += len(coverage_info["lines"])
+    else:
+        raise Exception("Only supports html or lcov to compute branch and line coverage")
         
     return num_branches, num_lines, return_code, coverage_dict
     
@@ -320,10 +331,11 @@ def get_cov_torch(cmd_line, prefix="default", capture_output=True, gen_html=Fals
 def main():
     if len(sys.argv) > 1:
         cmd_line = sys.argv[1]
-        gen_html = sys.argv[2].lower() == "html" if len(sys.argv) > 2 else False
-        native_only = sys.argv[3].lower() == "true" if len(sys.argv) > 3 else False
-        prefix = sys.argv[4] if len(sys.argv) > 4 else "default"
-        num_branches, num_lines, return_code, coverage_dict = get_cov_torch(cmd_line, prefix=prefix, gen_html=gen_html, native_only=native_only)
+        lib = sys.argv[2] if len(sys.argv) > 2 else "torch"
+        gen_html = sys.argv[3].lower() == "html" if len(sys.argv) > 3 else False
+        native_only = sys.argv[4].lower() == "true" if len(sys.argv) > 4 else False
+        prefix = sys.argv[5] if len(sys.argv) > 5 else "default"
+        num_branches, num_lines, return_code, coverage_dict = get_coverage_numbers(cmd_line, lib=lib, prefix=prefix, gen_html=gen_html, gen_lcov=not gen_html, native_only=native_only)
 
         if return_code != 0:
             print(f"Executing {cmd_line} failed with return code {return_code}")

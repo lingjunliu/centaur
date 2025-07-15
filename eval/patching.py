@@ -53,10 +53,10 @@ print('Exception:', excp)
 
 def main():
     api = sys.argv[1]
-    n_inputs = int(sys.argv[2]) if len(sys.argv) > 2 else -1
+    n_inputs = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    lib = sys.argv[3] if len(sys.argv) > 3 else "torch"
 
     print_details = True
-    lib = "torch"
     cur_seed = 19
     rng_choice = np.random.default_rng(cur_seed)
 
