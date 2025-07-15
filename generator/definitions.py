@@ -1,5 +1,5 @@
 import numpy as np
-from learner.invariant_inference import infer_invariants
+from learner.invariant_inference import get_invariants
 from utils.defaults import *
 from utils.new_api_utils import get_signature, get_lib_version
 
@@ -15,7 +15,7 @@ def get_definition(api, z3=False, lib="torch", suffix=0, use_reference=False):
     definition = {
         "api": api,
         "signature": signature,
-        "ruleset":  infer_invariants(api, z3=z3, lib=lib, suffix=suffix, use_reference=use_reference)[0],
+        "ruleset": get_invariants(api, suffix=suffix, lib=lib, use_reference=use_reference),
         "random_candidate": {},
         "arg_order": list(signature.keys()),
         "limits": [],

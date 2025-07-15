@@ -132,6 +132,15 @@ def reduce_ruleset(ruleset, signature, api, z3_args, max_trial=30, time_budget=3
 
     return rules_to_keep
 
+def get_invariants(api, suffix, lib="torch", use_reference=False):
+    variant = f"{api}_{suffix}" if suffix > 0 else api
+    invariant_file = os.path.join(get_dir_in_root(f"invariants_{lib}"), variant) if not use_reference else os.path.join(get_dir_in_root(f"reference_invariants_{lib}"), variant)
+    if os.path.isfile(invariant_file):
+        ruleset = read_invariants(invariant_file)
+    else:
+        ruleset = set()
+
+    return ruleset
 
 def infer_invariants(api, print_details=False, regen=False, lib="torch", time_budget=60, min_val_inp=100, seed=42, z3=False, suffix=0, use_reference=False):
     '''
