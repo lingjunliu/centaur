@@ -6,7 +6,8 @@ from utils.new_api_utils import get_signature, get_lib_version, get_input
 
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def generate_driver_torch(dir, torch_api):
+def generate_driver(dir, torch_api, lib="torch"):
+    lib_import = "import torch" if lib == "torch" else "import tensorflow as tf"
     return f"""# Driver to run all the inputs
 import pickle, os, sys
 
@@ -28,7 +29,7 @@ if len(input_list) == 0:
 ran = 0
 excp = 0
 
-import torch
+{lib_import}
 for file in input_list:
     with open(file, 'rb') as f:
         input_dict = pickle.load(f)
@@ -66,7 +67,7 @@ def main():
     patch_dir = create_subdir(patch_dir_root, api)                 # subdirectory for api
     
     # Create the driver to run all the inputs
-    driver_code = generate_driver_torch(patch_dir, api)
+    driver_code = generate_driver(patch_dir, api, lib=lib)
     driver_file = os.path.join(patch_dir, f"{api}_cov_in_loop.py")
     with open(driver_file, "w") as f:
         f.write(driver_code)

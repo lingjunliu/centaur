@@ -1,8 +1,8 @@
 llvm_config=${1:-"llvm-config"}
 
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
-if ! command -v python3.12 &> /dev/null; then
-    echo "Error: python3.12 is not installed. Please install it before running this script."
+if ! command -v python3.11 &> /dev/null; then
+    echo "Error: python3.11 is not installed. Please install it before running this script."
     exit 1
 fi
 # Test coverage filtering
@@ -25,11 +25,11 @@ export TORCH_BUILD_DIR=$(pip show "$libname" | grep "Location:" | awk '{print $2
 echo "Using ${libname} from ${TORCH_BUILD_DIR}"
 
 # generate profraw file
-LLVM_ENABLE_ZLIB=ON LLVM_PROFILE_FILE=tf_test.profraw python -c "import tensorflow as tf;print(tf.__version__)"
+LLVM_PROFILE_FILE=tf_test.profraw python -c "import tensorflow as tf;print(tf.__version__)"
 ls -lh tf_test.profraw
 
 # generate profdata file
-LLVM_ENABLE_ZLIB=ON ${bindir}/llvm-profdata merge -sparse tf_test.profraw -o tf_test.profdata
+${bindir}/llvm-profdata merge -sparse tf_test.profraw -o tf_test.profdata
 ls -lh tf_test.profdata
 
 # for linux: the extension is probably .a not .dylib

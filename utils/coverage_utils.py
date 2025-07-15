@@ -231,7 +231,6 @@ def gen_cov(cmd_line, lib="torch", prefix="default", capture_output=True, gen_lc
                             f"-instr-profile={profdata_file}",
                             "-format=html",
                             "-show-branches=count",
-                            "-coverage-watermark=2,1",
                             f"-output-dir={cov_dir}/{prefix}"
                         ]
             instrumentation_dir = get_dir_in_root('instrumented_pytorch')
@@ -309,7 +308,8 @@ def get_coverage_numbers(cmd_line, lib="torch", prefix="default", capture_output
             f.write(lcov_data)
     
     num_branches = 0
-    num_lines = 0            
+    num_lines = 0
+    coverage_dict = None
     
     if gen_html:    # Use HTML to extract branch coverage number
         html_file = f"{cov_dir}/{prefix}/index.html"
