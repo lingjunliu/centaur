@@ -65,8 +65,10 @@ if (lib == "tf") {
 
 if (sota == "Pathfinder") {
   ylim <- c(2500, 11500)
-} else {
+} else if (lib == "torch") {
   ylim <- c(9000, 11500)
+} else {
+  ylim <- c(2000, 9000)
 }
 
 data <- read.csv(csv)
