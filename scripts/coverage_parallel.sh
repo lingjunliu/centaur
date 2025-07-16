@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export max_parallel=94     # Fix number of jobs to run at a time
+export max_parallel=160     # Fix number of jobs to run at a time
 
 n_inputs=${1:-0}      # Pass 0 to run for all inputs, otherwise, mention value
 lib=${2:-torch}       # Lib: torch or tf
@@ -12,17 +12,19 @@ export elements_file=${lib}_apis.txt
 # alias
 if [ "$lib" = "pytorch" ]; then
     lib=torch
-    lib_v=2.2.0
-    lib_ins="torch==${lib_v}"
 elif [ "$lib" = "tensorflow" ]; then
     lib=tf
+fi
+
+if [ "$lib" = "torch" ]; then
+    lib_v=2.2.0
+    lib_ins="torch==${lib_v}"
+elif [ "$lib" = "tf" ]; then
     lib_v=2.16.1
     lib_ins="tensorflow==${lib_v}"
 fi
 
-
 PROJECT_DIR=`dirname "$(realpath "$0")"`/..
-bg_sh=`dirname "$(realpath "$0")"`/bg_base.sh # base script for parallel execution
 
 export setup_env=0       # Do not setup the environment again inside parallel script
 
@@ -43,9 +45,10 @@ else
 fi
 
 pip install -r $PROJECT_DIR/requirements_coverage.txt
+
 job_name=pat
 echo "Patching code before running coverage script"
-bash $bg_sh "python -m eval.patching" ${job_name} ${n_inputs} ${lib}
+python -m utils.run_parallel "python -m eval.patching" "${n_inputs} ${lib}" "" "" ${job_name} ${max_parallel}
 
 if [ "$lib" = "torch" ]; then
     # Install instrumented pytorch
@@ -66,19 +69,10 @@ fi
 
 job_name=cov
 echo "Running coverage script"
-bash $bg_sh "python -m eval.coverage" ${job_name} ${lib} ${method} ${native}
+python -m utils.run_parallel "python -m eval.coverage" "${lib} ${method} ${native}" "$PROJECT_DIR/.tmp/coverage_results" "$PROJECT_DIR/.tmp/coverage_${lib}.csv" ${job_name} ${max_parallel}
 
 # Re-install vanilla library
 pip install ${lib_ins} --force-reinstall
-
-# Aggregating and saving results: coverage
-cov_results=$PROJECT_DIR/.tmp/coverage_results
-result=$PROJECT_DIR/.tmp/coverage_${lib}.csv
-echo "api,SLATE,line_cov_SLATE" > ${result}
-for filename in ${cov_results}/*_${lib}.csv
-do
-    cat ${filename} >> ${result}
-done
 
 echo "Coverage results saved in ${result}"
 
