@@ -11,59 +11,66 @@ import copy
 def tf_parallel_stack_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with integers
+    # Input 1: Simple 1D tensors
     values = [np.array([1, 2, 3]), np.array([4, 5, 6]), np.array([7, 8, 9])]
-    name = "stack_int"
+    name = "stack_1d"
     input_dict = {"values": values, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Example with floats
-    values = [np.array([1.1, 2.2, 3.3]), np.array([4.4, 5.5, 6.6])]
+    # Input 2: 2D tensors
+    values = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]]), np.array([[9, 10], [11, 12]])]
+    name = "stack_2d"
+    input_dict = {"values": values, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Float values
+    values = [np.array([1.0, 2.0, 3.0]), np.array([4.0, 5.0, 6.0])]
     name = "stack_float"
     input_dict = {"values": values, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Example with multidimensional arrays
-    values = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
-    name = "stack_multidimensional"
-    input_dict = {"values": values, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Example with 3D arrays
-    values = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
-    name = "stack_3d"
-    input_dict = {"values": values, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Example with negative numbers
+    # Input 4: Negative values
     values = [np.array([-1, -2, -3]), np.array([-4, -5, -6])]
     name = "stack_negative"
     input_dict = {"values": values, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Example with zeros
-    values = [np.array([0, 0, 0]), np.array([0, 0, 0])]
-    name = "stack_zeros"
+    # Input 5: Boolean values
+    values = [np.array([True, False, True]), np.array([False, True, False])]
+    name = "stack_bool"
     input_dict = {"values": values, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Longer list of values
-    values = [np.array([i, i+1]) for i in range(3)] #reduced to 3 to avoid timeout
-    name = "stack_longer"
+    # Input 6: Int64 values
+    values = [np.array([1, 2, 3], dtype=np.int64), np.array([4, 5, 6], dtype=np.int64)]
+    name = "stack_int64"
+    input_dict = {"values": values, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Float64 values
+    values = [np.array([1.0, 2.0, 3.0], dtype=np.float64), np.array([4.0, 5.0, 6.0], dtype=np.float64)]
+    name = "stack_float64"
     input_dict = {"values": values, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 8: Example with string name
-    values = [np.array([1, 2, 3]), np.array([4, 5, 6])]
-    name = "parallel_stack_example"
+    # Input 8: 3D tensors
+    values = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
+    name = "stack_3d"
     input_dict = {"values": values, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Example with shape (2, 1)
-    values = [np.array([[1], [2]]), np.array([[3], [4]])]
-    name = "stack_2_1"
+    # Input 9: More complex 2D array with different data type
+    values = [np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32), np.array([[5.5, 6.6], [7.7, 8.8]], dtype=np.float32)]
+    name = "stack_complex_2d"
     input_dict = {"values": values, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: single value arrays
+    values = [np.array([1]), np.array([2])]
+    name = "stack_single_val"
+    input_dict = {"values": values, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

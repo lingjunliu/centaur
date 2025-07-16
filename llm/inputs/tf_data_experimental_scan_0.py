@@ -14,91 +14,101 @@ def tf_data_experimental_scan_inputs():
     # Input 1
     initial_state = np.array(0, dtype=np.int32)
     def scan_func(state, element):
-        new_state = tf.add(state, element)
-        output_element = new_state
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.int32)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     initial_state = np.array([0, 0], dtype=np.int32)
     def scan_func(state, element):
-        new_state = tf.add(state, element)
-        output_element = new_state * 2
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.int32)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    initial_state = np.array([[0, 0], [0, 0]], dtype=np.float32)
+    initial_state = np.array([[0, 0], [0, 0]], dtype=np.int32)
     def scan_func(state, element):
-        new_state = tf.add(state, element)
-        output_element = new_state - element
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.int32)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    initial_state = np.array([1, 2, 3], dtype=np.int64)
+    initial_state = np.array(0.0, dtype=np.float32)
     def scan_func(state, element):
-        new_state = tf.multiply(state, element)
-        output_element = new_state + 1
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.float32)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    initial_state = np.array(-1, dtype=np.int32)
+    initial_state = np.array([0.0, 0.0], dtype=np.float32)
     def scan_func(state, element):
-        new_state = tf.subtract(state, element)
-        output_element = new_state * -1
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.float32)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    initial_state = np.array([[-1, -2], [-3, -4]], dtype=np.float64)
+    initial_state = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
     def scan_func(state, element):
-        new_state = tf.multiply(state, element)
-        output_element = new_state + 1
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.float32)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    initial_state = np.array([1, 2], dtype=np.int32)
+    initial_state = np.array(0, dtype=np.int64)
     def scan_func(state, element):
-        new_state = tf.add(state, tf.subtract(element[0], element[1]))
-        output_element = new_state
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.int64)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    initial_state = np.array(1.0, dtype=np.float32)
+    initial_state = np.array([0, 0], dtype=np.int64)
     def scan_func(state, element):
-        new_state = tf.add(state, element)
-        output_element = tf.multiply(new_state, element)
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.int64)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    initial_state = np.array([0.5, 0.6], dtype=np.float64)
+    initial_state = np.array([[0, 0], [0, 0]], dtype=np.int64)
     def scan_func(state, element):
-        new_state = tf.add(state, element)
-        output_element = tf.multiply(new_state, 2.0)
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.int64)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    initial_state = np.array([[-1, 1], [-2, 2]], dtype=np.int32)
+    initial_state = np.array([1, 2, 3], dtype=np.int32)
     def scan_func(state, element):
-        new_state = tf.add(state, element)
-        output_element = new_state
+        new_state = state + element
+        output_element = np.array(new_state, dtype=np.int32)
         return new_state, output_element
-    input_dict = {"initial_state": initial_state, "scan_func": [scan_func]}
+    scan_func_list = [scan_func]
+    input_dict = {"initial_state": initial_state, "scan_func": scan_func_list}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

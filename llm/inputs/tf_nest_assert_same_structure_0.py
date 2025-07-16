@@ -16,7 +16,7 @@ def tf_nest_assert_same_structure_inputs():
     nest2 = [4, 5, 6]
     check_types = True
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -24,111 +24,71 @@ def tf_nest_assert_same_structure_inputs():
     nest2 = [[5, 6], [7, 8]]
     check_types = False
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    nest1 = [1, 2, 3]
-    nest2 = [4, 5, 6]
+    nest1 = [1, [2, 3]]
+    nest2 = [4, [5, 6]]
     check_types = True
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     nest1 = [[1, 2], [3, 4]]
-    nest2 = [[5, 6], [7, 8]]
-    check_types = True
+    nest2 = [[6, 7], [8, 9]]
+    check_types = False
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    nest1 = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]
-    nest2 = [[[9, 10], [11, 12]], [[13, 14], [15, 16]]]
-    check_types = False
+    nest1 = [1, 2, 3]
+    nest2 = [7, 8, 9]
+    check_types = True
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    nest1 = [1, [2, 3], 4]
-    nest2 = [5, [6, 7], 8]
-    check_types = True
+    nest1 = [[1, 2], [3, 4]]
+    nest2 = [[6, 7], [8, 9]]
+    check_types = False
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    nest1 = [[1], [2, 3, 4], [5, 6]]
-    nest2 = [[7], [8, 9, 10], [11, 12]]
-    check_types = False
+    nest1 = [1, [2, 3]]
+    nest2 = [5, [6, 7]]
+    check_types = True
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     nest1 = [[1], [2, 3]]
-    nest2 = [[4], [5, 6]]
-    check_types = True
+    nest2 = [[5], [6, 7]]
+    check_types = False
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: More nested
-    nest1 = [1, [2, [3, 4]], 5]
-    nest2 = [6, [7, [8, 9]], 10]
-    check_types = False
+    # Input 9
+    nest1 = [[], [1, 2]]
+    nest2 = [[], [3, 4]]
+    check_types = True
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty lists
-    nest1 = []
-    nest2 = []
-    check_types = True
-    expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11
-    nest1 = [1,2]
-    nest2 = [3,4]
-    check_types = True
-    expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12
-    nest1 = [1,[2,3]]
-    nest2 = [4,[5,6]]
+    # Input 10
+    nest1 = [[1, 2], []]
+    nest2 = [[3, 4], []]
     check_types = False
     expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13
-    nest1 = [[1,2],[3,4]]
-    nest2 = [[5,6],[7,8]]
-    check_types = True
-    expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14
-    nest1 = []
-    nest2 = []
-    check_types = False
-    expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 15: Mix of numbers and lists
-    nest1 = [1, [2, 3], 4, [5]]
-    nest2 = [6, [7, 8], 9, [10]]
-    check_types = True
-    expand_composites = False
-    input_dict = {"nest1": nest1, "nest2": nest2, "check_types": check_types, "expand_composites": expand_composites}
+    input_dict = {'nest1': nest1, 'nest2': nest2, 'check_types': check_types, 'expand_composites': expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

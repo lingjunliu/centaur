@@ -12,14 +12,14 @@ def tf_nn_conv_transpose_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.random.rand(1, 5, 5, 2).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 2, 2).astype(np.float32)
-    output_shape_tensor = np.array([1, 7, 7, 2]).astype(np.int32)
+    input_tensor = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    filters_tensor = np.random.rand(3, 3, 3, 3).astype(np.float32)
+    output_shape_tensor = np.array([1, 7, 7, 3], dtype=np.int32)
     strides_list = [1, 1, 1, 1]
     padding_string = 'SAME'
     data_format_string = 'NHWC'
     dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_1'
+    name_string = 'transpose_conv1'
 
     input_dict = {
         "input": input_tensor,
@@ -36,12 +36,12 @@ def tf_nn_conv_transpose_inputs():
     # Input 2
     input_tensor = np.random.rand(2, 10, 10, 1).astype(np.float32)
     filters_tensor = np.random.rand(5, 5, 1, 1).astype(np.float32)
-    output_shape_tensor = np.array([2, 14, 14, 1]).astype(np.int32)
+    output_shape_tensor = np.array([2, 14, 14, 1], dtype=np.int32)
     strides_list = [1, 2, 2, 1]
     padding_string = 'VALID'
     data_format_string = 'NHWC'
     dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_2'
+    name_string = 'transpose_conv2'
 
     input_dict = {
         "input": input_tensor,
@@ -56,14 +56,14 @@ def tf_nn_conv_transpose_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    filters_tensor = np.random.rand(2, 2, 3, 3).astype(np.float32)
-    output_shape_tensor = np.array([1, 9, 9, 3]).astype(np.int32)
-    strides_list = [1, 1, 1, 1]
-    padding_string = 'VALID'
+    input_tensor = np.random.rand(1, 8, 8, 64).astype(np.float32)
+    filters_tensor = np.random.rand(2, 2, 64, 64).astype(np.float32)
+    output_shape_tensor = np.array([1, 16, 16, 64], dtype=np.int32)
+    strides_list = [1, 2, 2, 1]
+    padding_string = 'SAME'
     data_format_string = 'NHWC'
     dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_3'
+    name_string = 'transpose_conv3'
 
     input_dict = {
         "input": input_tensor,
@@ -78,14 +78,14 @@ def tf_nn_conv_transpose_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.random.rand(4, 4, 4, 2).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 2, 2).astype(np.float32)
-    output_shape_tensor = np.array([4, 6, 6, 2]).astype(np.int32)
-    strides_list = [1, 2, 2, 1]
-    padding_string = 'SAME'
+    input_tensor = np.random.rand(4, 4, 4, 16).astype(np.float32)
+    filters_tensor = np.random.rand(3, 3, 16, 16).astype(np.float32)
+    output_shape_tensor = np.array([4, 6, 6, 16], dtype=np.int32)
+    strides_list = [1, 1, 1, 1]
+    padding_string = 'VALID'
     data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_4'
+    dilations_list = [1, 1, 1, 1] #Reverted dilation back to one
+    name_string = 'transpose_conv4'
 
     input_dict = {
         "input": input_tensor,
@@ -100,124 +100,14 @@ def tf_nn_conv_transpose_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.random.rand(1, 3, 3, 1).astype(np.float32)
-    filters_tensor = np.random.rand(2, 2, 1, 1).astype(np.float32)
-    output_shape_tensor = np.array([1, 4, 4, 1]).astype(np.int32)
-    strides_list = [1, 2, 2, 1]
-    padding_string = 'VALID'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_5'
-
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    input_tensor = np.random.rand(1, 16, 16, 3).astype(np.float32)
     filters_tensor = np.random.rand(4, 4, 3, 3).astype(np.float32)
-    output_shape_tensor = np.array([1, 64, 64, 3]).astype(np.int32)
+    output_shape_tensor = np.array([1, 32, 32, 3], dtype=np.int32)
     strides_list = [1, 2, 2, 1]
     padding_string = 'SAME'
     data_format_string = 'NHWC'
     dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_6'
-
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 7 with NCHW data format
-    input_tensor = np.random.rand(1, 3, 32, 32).astype(np.float32)
-    filters_tensor = np.random.rand(4, 4, 3, 3).astype(np.float32)
-    output_shape_tensor = np.array([1, 3, 64, 64]).astype(np.int32)
-    strides_list = [1, 1, 2, 2]
-    padding_string = 'SAME'
-    data_format_string = 'NCHW'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_7'
-
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_tensor = np.random.rand(2, 7, 7, 4).astype(np.float32)
-    filters_tensor = np.random.rand(4, 4, 4, 4).astype(np.float32)
-    output_shape_tensor = np.array([2, 10, 10, 4]).astype(np.int32)
-    strides_list = [1, 1, 1, 1]
-    padding_string = 'VALID'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_8'
-
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_tensor = np.random.rand(1, 16, 16, 1).astype(np.float32)
-    filters_tensor = np.random.rand(4, 4, 1, 1).astype(np.float32)
-    output_shape_tensor = np.array([1, 32, 32, 1]).astype(np.int32)
-    strides_list = [1, 2, 2, 1]
-    padding_string = 'SAME'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_9'
-
-    input_dict = {
-        "input": input_tensor,
-        "filters": filters_tensor,
-        "output_shape": output_shape_tensor,
-        "strides": strides_list,
-        "padding": padding_string,
-        "data_format": data_format_string,
-        "dilations": dilations_list,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_tensor = np.random.rand(1, 4, 4, 2).astype(np.float32)
-    filters_tensor = np.random.rand(3, 3, 2, 2).astype(np.float32)
-    output_shape_tensor = np.array([1, 6, 6, 2]).astype(np.int32)
-    strides_list = [1, 1, 1, 1]
-    padding_string = 'VALID'
-    data_format_string = 'NHWC'
-    dilations_list = [1, 1, 1, 1]
-    name_string = 'conv_transpose_10'
+    name_string = 'transpose_conv5'
 
     input_dict = {
         "input": input_tensor,
@@ -233,6 +123,7 @@ def tf_nn_conv_transpose_inputs():
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.nn.conv_transpose"] = tf_nn_conv_transpose_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

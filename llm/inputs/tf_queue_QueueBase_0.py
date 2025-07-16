@@ -13,80 +13,80 @@ def tf_queue_QueueBase_inputs():
 
     # Input 1
     dtypes = [np.int32]
-    shapes = [(10,)]
-    names = ['data']
+    shapes = [()]
+    names = ['val']
     queue_ref = tf.constant("queue1", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     dtypes = [np.float32, np.int64]
-    shapes = [(), ()]
-    names = ['value', 'index']
+    shapes = [(2,), (3, 3)]
+    names = ['f_val', 'i_val']
     queue_ref = tf.constant("queue2", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     dtypes = [np.string_, np.bool_]
-    shapes = [(5, 5), (1,)]
-    names = ['message', 'flag']
+    shapes = [(), (1,)]
+    names = ['str_val', 'bool_val']
     queue_ref = tf.constant("queue3", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     dtypes = [np.complex64]
-    shapes = [(2, 3, 4)]
-    names = ['complex_data']
+    shapes = [(2, 2, 2)]
+    names = ['complex_val']
     queue_ref = tf.constant("queue4", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    dtypes = [np.uint8]
-    shapes = [(10,)]
-    names = ['byte_data']
+    dtypes = [np.int32, np.float32, np.string_]
+    shapes = [(), (5,), (2, 2)]
+    names = ['int_val', 'float_val', 'string_val']
     queue_ref = tf.constant("queue5", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    dtypes = [np.int32, np.float32, np.string_]
-    shapes = [(1,), (2, 2), (3,)]
-    names = ['id', 'matrix', 'label']
+    dtypes = [np.int32]
+    shapes = [(10,)]
+    names = ['int_val_dynamic']
     queue_ref = tf.constant("queue6", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    dtypes = [np.int32]
-    shapes = [()]
-    names = ['scalar_data']
+    dtypes = [np.float64, np.int8]
+    shapes = [(2, 3, 1), (5,)]
+    names = ['double_val', 'int8_val']
     queue_ref = tf.constant("queue7", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    dtypes = [np.float64, np.int8]
-    shapes = [(1,1,1), (1,)]
-    names = ['double_data', 'single_byte']
+    dtypes = [np.uint8]
+    shapes = [(1,)]
+    names = ['uint8_val']
     queue_ref = tf.constant("queue8", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    dtypes = [np.bool_]
-    shapes = [(4, 4)]
-    names = ['boolean_matrix']
+    dtypes = [np.int16, np.int32, np.int64]
+    shapes = [(), (), ()]
+    names = ['int16', 'int32', 'int64']
     queue_ref = tf.constant("queue9", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    dtypes = [np.int32, np.float32, np.string_, np.bool_]
-    shapes = [(1,), (2, 2), (3,), (4,)]
-    names = ['id', 'matrix', 'label', 'flag']
+    dtypes = [np.float16]
+    shapes = [(5,5)]
+    names = ['float16']
     queue_ref = tf.constant("queue10", dtype=tf.string)
     input_dict = {'dtypes': dtypes, 'shapes': shapes, 'names': names, 'queue_ref': queue_ref}
     list_of_inputs.append(copy.deepcopy(input_dict))

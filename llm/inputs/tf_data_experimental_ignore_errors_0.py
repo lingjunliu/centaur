@@ -8,19 +8,66 @@ import tensorflow as tf
 import copy
 import numpy as np
 
-@tf.function
 def tf_data_experimental_ignore_errors_inputs():
     list_of_inputs = []
 
-    # Input 1: log_warning = True
+    # Input 1, log_warning = True
     input_dict = {
-        "log_warning": True
+        "log_warning": bool(True)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: log_warning = False
+    # Input 2, log_warning = False
     input_dict = {
-        "log_warning": False
+        "log_warning": bool(False)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3, log_warning = np.bool_(True)
+    input_dict = {
+        "log_warning": bool(np.bool_(True))
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4, log_warning = np.bool_(False)
+    input_dict = {
+        "log_warning": bool(np.bool_(False))
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5, log_warning = tf.constant(True, dtype=tf.bool)
+    input_dict = {
+        "log_warning": bool(tf.constant(True, dtype=tf.bool).numpy())
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6, log_warning = tf.constant(False, dtype=tf.bool)
+    input_dict = {
+        "log_warning": bool(tf.constant(False, dtype=tf.bool).numpy())
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: log_warning as a numpy array of boolean True
+    input_dict = {
+        "log_warning": bool(np.array(True))
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: log_warning as a numpy array of boolean False
+    input_dict = {
+        "log_warning": bool(np.array(False))
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9, log_warning = bool(1)
+    input_dict = {
+        "log_warning": bool(1)
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10, log_warning = bool(0)
+    input_dict = {
+        "log_warning": bool(0)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

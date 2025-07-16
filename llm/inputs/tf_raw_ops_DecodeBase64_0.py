@@ -11,60 +11,57 @@ import copy
 def tf_raw_ops_decode_base64_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid base64 string
-    input_str = tf.constant(np.array("SGVsbG8gV29ybGQ=").astype(np.string_))
+    # Input 1: Basic valid case
+    input_str = tf.constant(np.array("SGVsbG8gV29ybGQh", dtype=np.string_))
     input_dict = {"input": input_str, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: String with padding
-    input_str = tf.constant(np.array("SGVsbG8gV29ybGQA").astype(np.string_))
+    # Input 2: Empty string
+    input_str = tf.constant(np.array("", dtype=np.string_))
     input_dict = {"input": input_str, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Web-safe base64
-    input_str = tf.constant(np.array("_-").astype(np.string_))
+    # Input 3: String with padding
+    input_str = tf.constant(np.array("SGVsbG8=", dtype=np.string_))
     input_dict = {"input": input_str, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty string
-    input_str = tf.constant(np.array("").astype(np.string_))
+    # Input 4: Multiple strings
+    input_str = tf.constant(np.array(["SGVsbG8gV29ybGQh", "SGVsbG8gQmFzZTY0"], dtype=np.string_))
     input_dict = {"input": input_str, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Longer string
-    input_str = tf.constant(np.array("VGhpcyBpcyBhIGxvbmcgYmFzZTY0IGVuY29kZWQgc3RyaW5nLg==").astype(np.string_))
+    # Input 5: String with web-safe characters
+    input_str = tf.constant(np.array("_-", dtype=np.string_))
+    input_dict = {"input": input_str, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Another web safe string
+    input_str = tf.constant(np.array("YWJjZA--", dtype=np.string_))
     input_dict = {"input": input_str, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: String with special characters
-    input_str = tf.constant(np.array("IUAjJCVeJiooKWB+PT1bXXt9fDpcIjsnLC4vPD4/Pw==").astype(np.string_))
+    # Input 7: Long string
+    long_string = "SGVsbG8gV29ybGQhSGVsbG8gV29ybGQhSGVsbG8gV29ybGQhSGVsbG8gV29ybGQhSGVsbG8gV29ybGQh"
+    input_str = tf.constant(np.array(long_string, dtype=np.string_))
+    input_dict = {"input": input_str, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: String that represents numbers
+    input_str = tf.constant(np.array("MTIzNDU=", dtype=np.string_))
     input_dict = {"input": input_str, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Multi-dimensional tensor
-    input_str = tf.constant(np.array([["SGVsbG8=","V29ybGQ="],["SGVsbG8=","V29ybGQ="]]).astype(np.string_))
+    # Input 9: String with non-ASCII
+    input_str = tf.constant(np.array("w6TDtsOf0J/QtdGC0YDQvtCy0LDQu9C+0L3QvdC+0Lkg", dtype=np.string_))
     input_dict = {"input": input_str, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 1-dimensional tensor
-    input_str = tf.constant(np.array(["SGVsbG8=", "V29ybGQ="]).astype(np.string_))
+    # Input 10:  A string with special characters
+    input_str = tf.constant(np.array("IV4kXiomQCoh", dtype=np.string_))
     input_dict = {"input": input_str, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Another web-safe string
-    input_str = tf.constant(np.array("YS1i").astype(np.string_))
-    input_dict = {"input": input_str, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Base64 for a single character
-    input_str = tf.constant(np.array("YQ==").astype(np.string_))
-    input_dict = {"input": input_str, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Adding Name
-    input_str = tf.constant(np.array("SGVsbG8gV29ybGQ=").astype(np.string_))
-    input_dict = {"input": input_str, "name": "my_decode"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

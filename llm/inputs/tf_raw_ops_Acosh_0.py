@@ -11,60 +11,59 @@ import copy
 def tf_raw_ops_acosh_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32 with values >= 1
-    x = np.array([1.0, 1.5, 2.0, 10.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 1: float32, 1D array, positive values >= 1
+    x = np.array([1.0, 1.5, 2.0, 5.0, 10.0], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.astype(np.float32)), "name": "acosh_test_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64 with values >= 1
-    x = np.array([1.0, 2.718, 3.14159, 100.0], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": "acosh_example_2"}
+    # Input 2: float64, 2D array, positive values >= 1
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    input_dict = {"x": tf.constant(x.astype(np.float64)), "name": "acosh_test_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: bfloat16 with values >= 1
-    x = np.array([1.0, 1.1, 1.2, 1.3], dtype=np.float32).astype(np.float16)
-    x = tf.cast(tf.constant(x), dtype=tf.bfloat16)
-    input_dict = {"x": x, "name": None}
+    # Input 3: float16, scalar value, 1
+    x = np.array(1.0, dtype=np.float16)
+    input_dict = {"x": tf.constant(x.astype(np.float16)), "name": "acosh_test_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: half (float16) with values >= 1
-    x = np.array([1.0, 1.25, 1.5, 1.75], dtype=np.float16)
-    input_dict = {"x": tf.constant(x), "name": "acosh_example_4"}
+    # Input 4: float16, 1D array, mixed values >= 1
+    x = np.array([1.0, 2.5, 10.2], dtype=np.float16)
+    input_dict = {"x": tf.constant(x.astype(np.float16)), "name": "acosh_test_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: complex64 with values >= 1 (real part)
-    x = np.array([1.0 + 0j, 2.0 + 1j, 3.0 - 2j], dtype=np.complex64)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 5: complex64, 1D array, values >= 1, real part only.
+    x = np.array([1.0 + 0j, 2.0 + 0j, 3.0 + 0j], dtype=np.complex64)
+    input_dict = {"x": tf.constant(x.astype(np.complex64)), "name": "acosh_test_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: complex128 with values >= 1 (real part)
-    x = np.array([1.0 + 0j, 2.0 + 1j, 3.0 - 2j], dtype=np.complex128)
-    input_dict = {"x": tf.constant(x), "name": "acosh_example_6"}
+    # Input 6: complex128, 2D array, values >= 1, real part only.
+    x = np.array([[1.0 + 0j, 2.0 + 0j], [3.0 + 0j, 4.0 + 0j]], dtype=np.complex128)
+    input_dict = {"x": tf.constant(x.astype(np.complex128)), "name": "acosh_test_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Multi-dimensional array (float32)
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 7: float32, 3D array
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.astype(np.float32)), "name": "acosh_test_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Another multi-dimensional array (float64)
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": "acosh_example_8"}
+    # Input 8: float64, scalar
+    x = np.array(5.5, dtype=np.float64)
+    input_dict = {"x": tf.constant(x.astype(np.float64)), "name": "acosh_test_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float32 with large values
-    x = np.array([1e5, 1e6, 1e7], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 9: float16, 2D array
+    x = np.array([[1.0, 1.1], [1.2, 1.3]], dtype=np.float16)
+    input_dict = {"x": tf.constant(x.astype(np.float16)), "name": "acosh_test_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float64 with a mix of small and large values >= 1
-    x = np.array([1.0, 1.000001, 1000000.0], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": "acosh_example_10"}
+    # Input 10: float16, 3D array
+    x = np.array([[[1.5, 2.5], [3.5, 4.5]], [[5.5, 6.5], [7.5, 8.5]]], dtype=np.float16)
+    input_dict = {"x": tf.constant(x.astype(np.float16)), "name": "acosh_test_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: half (float16) values >=1
-    x = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float16))
-    input_dict = {"x": x, "name": "acosh_example_11"}
+
+    # Input 11: float32 with large value
+    x = np.array([1e10], dtype=np.float32)
+    input_dict = {"x": tf.constant(x.astype(np.float32)), "name": "acosh_test_11"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

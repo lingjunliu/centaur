@@ -11,67 +11,69 @@ import copy
 def tf_group_inputs():
     list_of_inputs = []
 
-    def create_dummy_op(name):
-        v = tf.Variable(1.0, name=name)
-        return v.assign(2.0).op
+    def create_dummy_tensor(shape, dtype=tf.float32):
+        return tf.constant(np.zeros(shape, dtype=np.float32 if dtype == tf.float32 else np.int32))
 
     # Input 1: Empty list of tensors
-    input_dict = {"inputs": [], "name": "group_empty"}
+    inputs = []
+    name = "empty_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Single tensor
-    op1 = create_dummy_op("op1")
-    input_dict = {"inputs": [op1], "name": "group_single"}
+    inputs = [create_dummy_tensor((1,))]
+    name = "single_tensor_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Multiple tensors
-    op1 = create_dummy_op("op2")
-    op2 = create_dummy_op("op3")
-    input_dict = {"inputs": [op1, op2], "name": "group_multiple"}
+    inputs = [create_dummy_tensor((1,)), create_dummy_tensor((2,))]
+    name = "multiple_tensors_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Tensors with different shapes
-    op1 = create_dummy_op("op4")
-    op2 = create_dummy_op("op5")
-    input_dict = {"inputs": [op1, op2], "name": "group_different_shapes"}
+    inputs = [create_dummy_tensor((1, 2)), create_dummy_tensor((2, 2))]
+    name = "different_shapes_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Tensors with different data types
-    op1 = create_dummy_op("op6")
-    op2 = create_dummy_op("op7")
-    input_dict = {"inputs": [op1, op2], "name": "group_different_dtypes"}
+    # Input 5: Tensors with different dtypes
+    inputs = [create_dummy_tensor((1,), dtype=tf.int32), create_dummy_tensor((1,), dtype=tf.float32)]
+    name = "different_dtypes_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Tensors with different ranks (number of dimensions)
-    op1 = create_dummy_op("op8")
-    op2 = create_dummy_op("op9")
-    op3 = create_dummy_op("op10")
-    input_dict = {"inputs": [op1, op2, op3], "name": "group_different_ranks"}
+    # Input 6: Tensors with name
+    a = create_dummy_tensor((1,), name='a')
+    b = create_dummy_tensor((2,), name='b')
+    inputs = [a, b]
+    name = "named_tensors_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Tensors with zero values
-    op1 = create_dummy_op("op11")
-    op2 = create_dummy_op("op12")
-    input_dict = {"inputs": [op1, op2], "name": "group_zero_values"}
+    # Input 7: Higher dimensional tensors
+    inputs = [create_dummy_tensor((2, 3)), create_dummy_tensor((5, 2))]
+    name = "high_dimensional_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Tensors with negative values
-    op1 = create_dummy_op("op13")
-    op2 = create_dummy_op("op14")
-    input_dict = {"inputs": [op1, op2], "name": "group_negative_values"}
+    # Input 8: Negative values
+    inputs = [tf.constant(-1.0), tf.constant([-2.0, -3.0])]
+    name = "negative_values_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Larger tensors
-    op1 = create_dummy_op("op15")
-    op2 = create_dummy_op("op16")
-    input_dict = {"inputs": [op1, op2], "name": "group_larger_tensors"}
+    # Input 9: List Comprehension Generated Tensors
+    inputs = [create_dummy_tensor((i,)) for i in range(1, 3)]
+    name = "list_comprehension_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Tensors with different dtypes and shapes
-    op1 = create_dummy_op("op17")
-    op2 = create_dummy_op("op18")
-    op3 = create_dummy_op("op19")
-    input_dict = {"inputs": [op1, op2, op3], "name": "group_complex"}
+    # Input 10: Simple Tensors
+    inputs = [create_dummy_tensor((1,)), create_dummy_tensor((1,))]
+    name = "simple_tensors_group"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

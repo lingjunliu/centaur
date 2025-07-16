@@ -13,151 +13,161 @@ def tf_data_experimental_map_and_batch_inputs():
 
     # Input 1
     map_func = [lambda x: x * 2]
-    batch_size = tf.constant(4, dtype=tf.int64)
-    num_parallel_batches = tf.constant(2, dtype=tf.int64)
-    drop_remainder = tf.constant(False, dtype=tf.bool)
-    num_parallel_calls = tf.constant(2, dtype=tf.int32)
+    batch_size = np.int64(4)
+    num_parallel_batches = np.int64(2)
+    drop_remainder = np.bool_(False)
+    num_parallel_calls = np.int32(1)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     map_func = [lambda x: x + 1]
-    batch_size = tf.constant(8, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(True, dtype=tf.bool)
-    num_parallel_calls = tf.constant(4, dtype=tf.int32)
+    batch_size = np.int64(8)
+    num_parallel_batches = np.int64(1)
+    drop_remainder = np.bool_(True)
+    num_parallel_calls = np.int32(4)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    map_func = [lambda x: x + 5]
-    batch_size = tf.constant(16, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(True, dtype=tf.bool)
-    num_parallel_calls = tf.constant(4, dtype=tf.int32)
+    map_func = [lambda x: tf.math.sin(x)]
+    batch_size = np.int64(16)
+    num_parallel_batches = np.int64(4)
+    drop_remainder = np.bool_(False)
+    num_parallel_calls = np.int32(8)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    map_func = [lambda x: x * x]
-    batch_size = tf.constant(2, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(False, dtype=tf.bool)
-    num_parallel_calls = tf.constant(2, dtype=tf.int32)
+    map_func = [lambda x: tf.math.cos(x)]
+    batch_size = np.int64(32)
+    num_parallel_batches = np.int64(8)
+    drop_remainder = np.bool_(True)
+    num_parallel_calls = np.int32(16)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    map_func = [lambda x: tf.cast(x, tf.float32) / 255.0]
-    batch_size = tf.constant(4, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(False, dtype=tf.bool)
-    num_parallel_calls = tf.constant(2, dtype=tf.int32)
+   # Input 5
+    map_func = [lambda x: x**2]
+    batch_size = np.int64(2)
+    num_parallel_batches = np.int64(3)
+    drop_remainder = np.bool_(False)
+    num_parallel_calls = np.int32(1)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    map_func = [lambda x: x * 1000]
-    batch_size = tf.constant(4, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(False, dtype=tf.bool)
-    num_parallel_calls = tf.constant(2, dtype=tf.int32)
+    map_func = [lambda x: tf.cast(x, tf.float32) / 2.0]
+    batch_size = np.int64(1)
+    num_parallel_batches = np.int64(5)
+    drop_remainder = np.bool_(True)
+    num_parallel_calls = np.int32(2)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    map_func = [lambda x: tf.math.sqrt(tf.cast(x, tf.float32))]
-    batch_size = tf.constant(4, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(False, dtype=tf.bool)
-    num_parallel_calls = tf.constant(2, dtype=tf.int32)
+    map_func = [lambda x: tf.sqrt(tf.cast(x, tf.float32))]
+    batch_size = np.int64(5)
+    num_parallel_batches = np.int64(10)
+    drop_remainder = np.bool_(False)
+    num_parallel_calls = np.int32(5)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    map_func = [lambda x: tf.clip_by_value(x, 0, 1)]
-    batch_size = tf.constant(4, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(False, dtype=tf.bool)
-    num_parallel_calls = tf.constant(2, dtype=tf.int32)
+    map_func = [lambda x: x % 10]
+    batch_size = np.int64(7)
+    num_parallel_batches = np.int64(1)
+    drop_remainder = np.bool_(True)
+    num_parallel_calls = np.int32(2)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    map_func = [lambda x: tf.math.sin(x)]
-    batch_size = tf.constant(4, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(False, dtype=tf.bool)
-    num_parallel_calls = tf.constant(2, dtype=tf.int32)
+    map_func = [lambda x: x - 5]
+    batch_size = np.int64(3)
+    num_parallel_batches = np.int64(6)
+    drop_remainder = np.bool_(False)
+    num_parallel_calls = np.int32(3)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    map_func = [lambda x: x - 1]
-    batch_size = tf.constant(4, dtype=tf.int64)
-    num_parallel_batches = tf.constant(1, dtype=tf.int64)
-    drop_remainder = tf.constant(False, dtype=tf.bool)
-    num_parallel_calls = tf.constant(2, dtype=tf.int32)
+    map_func = [lambda x: tf.clip_by_value(x, 0, 10)]
+    batch_size = np.int64(6)
+    num_parallel_batches = np.int64(12)
+    drop_remainder = np.bool_(True)
+    num_parallel_calls = np.int32(6)
+
     input_dict = {
         "map_func": map_func,
-        "batch_size": batch_size,
-        "num_parallel_batches": num_parallel_batches,
-        "drop_remainder": drop_remainder,
-        "num_parallel_calls": num_parallel_calls
+        "batch_size": tf.constant(np.array(batch_size), dtype=tf.int64),
+        "num_parallel_batches": tf.constant(np.array(num_parallel_batches), dtype=tf.int64),
+        "drop_remainder": tf.constant(np.array(drop_remainder), dtype=tf.bool),
+        "num_parallel_calls": tf.constant(np.array(num_parallel_calls), dtype=tf.int32)
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

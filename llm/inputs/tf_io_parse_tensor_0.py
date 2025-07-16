@@ -12,74 +12,65 @@ def tf_io_parse_tensor_inputs():
     list_of_inputs = []
 
     # Input 1: Simple int32 tensor
-    tensor_np = np.array([1, 2, 3], dtype=np.int32)
-    tensor_proto = tf.make_tensor_proto(tensor_np)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.int32, "name": "simple_int32"}
+    tensor = tf.constant(np.array([1, 2, 3], dtype=np.int32))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.int32, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Float32 tensor with shape
-    tensor_np = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    tensor_proto = tf.make_tensor_proto(tensor_np)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.float32, "name": "float32_shaped"}
+    # Input 2: Float32 tensor with a different shape
+    tensor = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.float32, "name": "float_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: String tensor
-    tensor_np = np.array([b"hello", b"world"])
-    tensor_proto = tf.make_tensor_proto(tensor_np, dtype=tf.string)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.string, "name": "string_tensor"}
+    tensor = tf.constant(np.array(["hello", "world"], dtype=np.unicode_))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.string, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Bool tensor
-    tensor_np = np.array([True, False, True], dtype=np.bool_)
-    tensor_proto = tf.make_tensor_proto(tensor_np)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.bool, "name": "bool_tensor"}
+    tensor = tf.constant(np.array([True, False, True], dtype=np.bool_))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.bool, "name": "bool_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Int64 tensor with negative values
-    tensor_np = np.array([-1, 0, 1], dtype=np.int64)
-    tensor_proto = tf.make_tensor_proto(tensor_np)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.int64, "name": "int64_tensor"}
+    tensor = tf.constant(np.array([-1, 0, 1, -2], dtype=np.int64))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.int64, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: Complex64 tensor
-    tensor_np = np.array([1+1j, 2+2j], dtype=np.complex64)
-    tensor_proto = tf.make_tensor_proto(tensor_np)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.complex64, "name": "complex64_tensor"}
+    tensor = tf.constant(np.array([1+1j, 2+2j], dtype=np.complex64))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.complex64, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Rank 3 tensor
-    tensor_np = np.arange(24, dtype=np.int32).reshape((2, 3, 4))
-    tensor_proto = tf.make_tensor_proto(tensor_np)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.int32, "name": "rank3_tensor"}
+    # Input 7: Rank 3 int32 tensor
+    tensor = tf.constant(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.int32, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Empty tensor
-    tensor_np = np.array([], dtype=np.float32)
-    tensor_proto = tf.make_tensor_proto(tensor_np)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.float32, "name": "empty_tensor"}
+    # Input 8: Float64 Tensor
+    tensor = tf.constant(np.array([1.1, 2.2, 3.3], dtype=np.float64))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.float64, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: uint8 tensor
-    tensor_np = np.array([1, 2, 255], dtype=np.uint8)
-    tensor_proto = tf.make_tensor_proto(tensor_np)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.uint8, "name": "uint8_tensor"}
+    # Input 9: Uint8 tensor
+    tensor = tf.constant(np.array([255, 0, 128], dtype=np.uint8))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.uint8, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: bfloat16 tensor
-    tensor_np = np.array([1.0, 2.0, 3.0], dtype=np.float16) # Use float16 for bfloat16 approximation
-    tensor_proto = tf.make_tensor_proto(tensor_np, dtype=tf.bfloat16)
-    serialized_tensor = tensor_proto.SerializeToString()
-    input_dict = {"serialized": serialized_tensor, "out_type": tf.bfloat16, "name": "bfloat16_tensor"}
+    # Input 10: Int8 tensor
+    tensor = tf.constant(np.array([-128, 0, 127], dtype=np.int8))
+    serialized = tf.io.serialize_tensor(tensor)
+    input_dict = {"serialized": serialized.numpy(), "out_type": tf.int8, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

@@ -11,54 +11,54 @@ import copy
 def tf_raw_ops_DebugGradientRefIdentity_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32 tensor
+    # Input 1: Simple float32 tensor
     input_tensor = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    input_dict = {"input": input_tensor, "name": "float32_tensor_1"}
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Int32 tensor
+    # Input 2: Int32 tensor with negative values
     input_tensor = tf.Variable(np.array([-1, 0, 1], dtype=np.int32))
-    input_dict = {"input": input_tensor, "name": "int32_tensor_1"}
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Bool tensor
+    # Input 3: 2D float64 tensor
+    input_tensor = tf.Variable(np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float64))
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Bool tensor
     input_tensor = tf.Variable(np.array([True, False, True], dtype=np.bool_))
-    input_dict = {"input": input_tensor, "name": "bool_tensor_1"}
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D float64 tensor
-    input_tensor = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
-    input_dict = {"input": input_tensor, "name": "float64_tensor_2d"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 3D int64 tensor
-    input_tensor = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64))
-    input_dict = {"input": input_tensor, "name": "int64_tensor_3d"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: String tensor
-    input_tensor = tf.Variable(np.array(["hello", "world"], dtype=np.string_))
-    input_dict = {"input": input_tensor, "name": "string_tensor_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: Complex64 tensor
+    # Input 5: Complex64 tensor
     input_tensor = tf.Variable(np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64))
-    input_dict = {"input": input_tensor, "name": "complex64_tensor_1"}
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 0-dimensional tensor (scalar)
-    input_tensor = tf.Variable(np.array(10.0, dtype=np.float32))
-    input_dict = {"input": input_tensor, "name": "scalar_float32"}
+    # Input 6: 3D int64 tensor
+    input_tensor = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64))
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Negative values in int32 tensor
-    input_tensor = tf.Variable(np.array([-5, -2, 0, 3], dtype=np.int32))
-    input_dict = {"input": input_tensor, "name": "negative_int32"}
+    # Input 7: Empty float32 tensor
+    input_tensor = tf.Variable(np.array([], dtype=np.float32))
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Large values in int64 tensor
-    input_tensor = tf.Variable(np.array([2**30, 2**20, 2**10], dtype=np.int64))
-    input_dict = {"input": input_tensor, "name": "large_int64"}
+    # Input 8: Tensor with zero dimension
+    input_tensor = tf.Variable(np.zeros((0, 5), dtype=np.float32))
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Float16 tensor
+    input_tensor = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float16))
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Bfloat16 tensor
+    input_tensor = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=tf.bfloat16.as_numpy_dtype))
+    input_dict = {"input": input_tensor.ref(), "name": "debug_grad_id_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

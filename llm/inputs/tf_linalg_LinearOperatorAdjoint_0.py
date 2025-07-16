@@ -11,55 +11,59 @@ import copy
 def tf_linalg_linearoperatoradjoint_inputs():
     list_of_inputs = []
 
-    # Input 1
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[1., 2.], [3., 4.]], dtype=np.float32))
-    input_dict = {"operator": operator, "is_non_singular": True, "is_self_adjoint": False, "is_positive_definite": False, "is_square": True, "name": "op1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    def create_linear_operator(matrix, is_non_singular=None, is_self_adjoint=None, is_positive_definite=None, is_square=None, name=None):
+        operator = tf.linalg.LinearOperatorFullMatrix(matrix)
+        return {"operator": operator, "is_non_singular": is_non_singular, "is_self_adjoint": is_self_adjoint, "is_positive_definite": is_positive_definite, "is_square": is_square, "name": name, "matrix_shape": matrix.shape}
 
-    # Input 2
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[1. + 1j, 2.], [3., 4. - 1j]], dtype=np.complex64))
-    input_dict = {"operator": operator, "is_non_singular": False, "is_self_adjoint": False, "is_positive_definite": None, "is_square": True, "name": "op2"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Simple square matrix
+    matrix1 = np.array([[1.0, 2.0], [3.0, 4.0]])
+    input_dict1 = create_linear_operator(matrix1, is_non_singular=True, is_self_adjoint=False, is_positive_definite=False, is_square=True, name="adjoint_op1")
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 3
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[5., 0.], [0., 5.]], dtype=np.float32))
-    input_dict = {"operator": operator, "is_non_singular": True, "is_self_adjoint": True, "is_positive_definite": True, "is_square": True, "name": "op3"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Non-square matrix
+    matrix2 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    input_dict2 = create_linear_operator(matrix2, is_non_singular=None, is_self_adjoint=None, is_positive_definite=None, is_square=False, name="adjoint_op2")
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 4
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[1., 0.], [0., 1.]], dtype=np.float32))
-    input_dict = {"operator": operator, "is_non_singular": None, "is_self_adjoint": None, "is_positive_definite": None, "is_square": None, "name": "op4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Complex matrix
+    matrix3 = np.array([[1.0 + 1j, 2.0], [3.0, 4.0 - 1j]])
+    input_dict3 = create_linear_operator(matrix3, is_non_singular=False, is_self_adjoint=None, is_positive_definite=None, is_square=True, name="adjoint_op3")
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 5
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[1., 2., 3.], [4., 5., 6.], [7., 8., 9.]], dtype=np.float32))
-    input_dict = {"operator": operator, "is_non_singular": False, "is_self_adjoint": False, "is_positive_definite": False, "is_square": True, "name": "op5"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Matrix with zeros
+    matrix4 = np.array([[0.0, 1.0], [1.0, 0.0]])
+    input_dict4 = create_linear_operator(matrix4, is_non_singular=False, is_self_adjoint=True, is_positive_definite=False, is_square=True, name="adjoint_op4")
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 6
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[1., 0.], [0., -1.]], dtype=np.float32))
-    input_dict = {"operator": operator, "is_non_singular": True, "is_self_adjoint": True, "is_positive_definite": False, "is_square": True, "name": "op6"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Batch matrix
+    matrix5 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    input_dict5 = create_linear_operator(matrix5, is_non_singular=True, is_self_adjoint=False, is_positive_definite=False, is_square=True, name="adjoint_op5")
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 7
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[2., 1.], [1., 2.]], dtype=np.float32))
-    input_dict = {"operator": operator, "is_non_singular": True, "is_self_adjoint": True, "is_positive_definite": True, "is_square": True, "name": "op7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Identity matrix
+    matrix6 = np.eye(3)
+    input_dict6 = create_linear_operator(matrix6, is_non_singular=True, is_self_adjoint=True, is_positive_definite=True, is_square=True, name="adjoint_op6")
+    list_of_inputs.append(copy.deepcopy(input_dict6))
+    
+    # Input 7: Negative values
+    matrix7 = np.array([[-1.0, 0.0], [0.0, -1.0]])
+    input_dict7 = create_linear_operator(matrix7, is_non_singular=True, is_self_adjoint=True, is_positive_definite=False, is_square=True, name="adjoint_op7")
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
-    # Input 8
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[1. + 0j, 0.], [0., 1. + 0j]], dtype=np.complex64))
-    input_dict = {"operator": operator, "is_non_singular": True, "is_self_adjoint": True, "is_positive_definite": True, "is_square": True, "name": "op8"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: None flags
+    matrix8 = np.array([[1.0, 0.0], [0.0, 1.0]])
+    input_dict8 = create_linear_operator(matrix8, is_non_singular=None, is_self_adjoint=None, is_positive_definite=None, is_square=True, name="adjoint_op8")
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+    
+    # Input 9: Rectangular matrix
+    matrix9 = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    input_dict9 = create_linear_operator(matrix9, is_non_singular=False, is_self_adjoint=None, is_positive_definite=None, is_square=False, name="adjoint_op9")
+    list_of_inputs.append(copy.deepcopy(input_dict9))
 
-    # Input 9
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[0., 1.], [1., 0.]], dtype=np.float32))
-    input_dict = {"operator": operator, "is_non_singular": True, "is_self_adjoint": True, "is_positive_definite": False, "is_square": True, "name": "op9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    operator = tf.linalg.LinearOperatorFullMatrix(np.array([[1., 0.], [0., 0.]], dtype=np.float32))
-    input_dict = {"operator": operator, "is_non_singular": False, "is_self_adjoint": True, "is_positive_definite": False, "is_square": True, "name": "op10"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: Zero matrix
+    matrix10 = np.array([[0.0, 0.0], [0.0, 0.0]])
+    input_dict10 = create_linear_operator(matrix10, is_non_singular=False, is_self_adjoint=True, is_positive_definite=False, is_square=True, name="adjoint_op10")
+    list_of_inputs.append(copy.deepcopy(input_dict10))
     
     return list_of_inputs
 

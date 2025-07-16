@@ -12,87 +12,70 @@ def tf_broadcast_static_shape_inputs():
     list_of_inputs = []
 
     # Input 1
-    shape_x = tf.TensorShape([1, 2, 3])
-    shape_y = tf.TensorShape([5, 1, 3])
+    shape_x = np.array([1, 2, 3], dtype=np.int32)
+    shape_y = np.array([5, 1, 3], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    shape_x = tf.TensorShape([2, 1])
-    shape_y = tf.TensorShape([2, 3])
+    shape_x = np.array([1, 2, 3], dtype=np.int32)
+    shape_y = np.array([1, 2, 3], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    shape_x = tf.TensorShape([5, 4, 3, 2, 1])
-    shape_y = tf.TensorShape([1, 1, 3, 2, 1])
+    shape_x = np.array([5, 2, 3], dtype=np.int32)
+    shape_y = np.array([1, 2, 3], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    shape_x = tf.TensorShape([10])
-    shape_y = tf.TensorShape([1])
+    shape_x = np.array([5, 2, 1], dtype=np.int32)
+    shape_y = np.array([1, 2, 3], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    shape_x = tf.TensorShape([1])
-    shape_y = tf.TensorShape([10])
+    shape_x = np.array([2, 1], dtype=np.int32)
+    shape_y = np.array([1, 3], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    shape_x = tf.TensorShape([5, 2])
-    shape_y = tf.TensorShape([5, 2])
+    shape_x = np.array([1], dtype=np.int32)
+    shape_y = np.array([5], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    shape_x = tf.TensorShape([])
-    shape_y = tf.TensorShape([])
+    shape_x = np.array([], dtype=np.int32)
+    shape_y = np.array([], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    shape_x = tf.TensorShape([1, 5, 1])
-    shape_y = tf.TensorShape([5, 3])
+    shape_x = np.array([2, 3, 4, 5], dtype=np.int32)
+    shape_y = np.array([1, 3, 1, 5], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    shape_x = tf.TensorShape([2, 3, 4])
-    shape_y = tf.TensorShape([1, 3, 4])
+    shape_x = np.array([2, 3, 4, 5], dtype=np.int32)
+    shape_y = np.array([2, 3, 4, 5], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    shape_x = tf.TensorShape([3, 1, 5])
-    shape_y = tf.TensorShape([3, 4, 5])
-    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11
-    shape_x = tf.TensorShape([2, 3])
-    shape_y = tf.TensorShape([2, 3])
-    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12
-    shape_x = tf.TensorShape([1, 4])
-    shape_y = tf.TensorShape([4])
-    input_dict = {"shape_x": shape_x, "shape_y": shape_y}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13
-    shape_x = tf.TensorShape([4])
-    shape_y = tf.TensorShape([1, 4])
+    shape_x = np.array([1, 5, 4], dtype=np.int32)
+    shape_y = np.array([5, 1, 4], dtype=np.int32)
     input_dict = {"shape_x": shape_x, "shape_y": shape_y}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.broadcast_static_shape"] = tf_broadcast_static_shape_inputs()
+inputs = tf_broadcast_static_shape_inputs()
+generated_inputs["tf.broadcast_static_shape"] = inputs
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

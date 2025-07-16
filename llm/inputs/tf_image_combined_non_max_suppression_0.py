@@ -12,15 +12,15 @@ def tf_image_combined_non_max_suppression_inputs():
     list_of_inputs = []
 
     # Input 1
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(1, dtype=np.int32)
-    max_total_size = np.array(2, dtype=np.int32)
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(1)
+    max_total_size = np.int32(2)
     iou_threshold = 0.5
     score_threshold = 0.0
     pad_per_class = False
     clip_boxes = True
-    name = "nms1"
+    name = None
 
     input_dict = {
         "boxes": boxes,
@@ -36,15 +36,15 @@ def tf_image_combined_non_max_suppression_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(2, dtype=np.int32)
-    max_total_size = np.array(1, dtype=np.int32)
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(2)
+    max_total_size = np.int32(1)
     iou_threshold = 0.5
     score_threshold = 0.0
     pad_per_class = True
     clip_boxes = False
-    name = "nms2"
+    name = "nms"
 
     input_dict = {
         "boxes": boxes,
@@ -60,15 +60,15 @@ def tf_image_combined_non_max_suppression_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(1, dtype=np.int32)
-    max_total_size = np.array(2, dtype=np.int32)
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]], [[[0.2, 0.3, 0.4, 0.5]], [[0.6, 0.7, 0.8, 0.9]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]], [[0.8, 0.6]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(1)
+    max_total_size = np.int32(2)
     iou_threshold = 0.3
     score_threshold = 0.1
     pad_per_class = False
     clip_boxes = True
-    name = "nms3"
+    name = None
 
     input_dict = {
         "boxes": boxes,
@@ -84,15 +84,15 @@ def tf_image_combined_non_max_suppression_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(1, dtype=np.int32)
-    max_total_size = np.array(2, dtype=np.int32)
-    iou_threshold = 0.5
-    score_threshold = -0.5
-    pad_per_class = False
-    clip_boxes = True
-    name = "nms4"
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(2)
+    max_total_size = np.int32(3)
+    iou_threshold = 0.6
+    score_threshold = 0.2
+    pad_per_class = True
+    clip_boxes = False
+    name = "test_nms"
 
     input_dict = {
         "boxes": boxes,
@@ -108,40 +108,15 @@ def tf_image_combined_non_max_suppression_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(1, dtype=np.int32)
-    max_total_size = np.array(2, dtype=np.int32)
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(1)
+    max_total_size = np.int32(1)
     iou_threshold = 0.9
-    score_threshold = 0.9
-    pad_per_class = True
-    clip_boxes = False
-    name = "nms5"
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size_per_class": max_output_size_per_class,
-        "max_total_size": max_total_size,
-        "iou_threshold": iou_threshold,
-        "score_threshold": score_threshold,
-        "pad_per_class": pad_per_class,
-        "clip_boxes": clip_boxes,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(1, dtype=np.int32)
-    max_total_size = np.array(2, dtype=np.int32)
-    iou_threshold = 0.01
-    score_threshold = -1.0
+    score_threshold = 0.5
     pad_per_class = False
     clip_boxes = True
-    name = "nms6"
-
+    name = None
     input_dict = {
         "boxes": boxes,
         "scores": scores,
@@ -154,18 +129,40 @@ def tf_image_combined_non_max_suppression_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(2, dtype=np.int32)
-    max_total_size = np.array(4, dtype=np.int32)
-    iou_threshold = 0.7
-    score_threshold = 0.3
+    
+    # Input 6
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(2)
+    max_total_size = np.int32(3)
+    iou_threshold = 0.01
+    score_threshold = -1.0
     pad_per_class = True
     clip_boxes = False
-    name = "nms7"
-
+    name = "test_nms2"
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size_per_class": max_output_size_per_class,
+        "max_total_size": max_total_size,
+        "iou_threshold": iou_threshold,
+        "score_threshold": score_threshold,
+        "pad_per_class": pad_per_class,
+        "clip_boxes": clip_boxes,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(2)
+    max_total_size = np.int32(3)
+    iou_threshold = 0.01
+    score_threshold = -1.0
+    pad_per_class = True
+    clip_boxes = False
+    name = "test_nms3"
     input_dict = {
         "boxes": boxes,
         "scores": scores,
@@ -180,16 +177,15 @@ def tf_image_combined_non_max_suppression_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(2, dtype=np.int32)
-    max_total_size = np.array(4, dtype=np.int32)
-    iou_threshold = 0.2
-    score_threshold = 0.4
-    pad_per_class = True
-    clip_boxes = False
-    name = "nms8"
-
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(1)
+    max_total_size = np.int32(1)
+    iou_threshold = 0.5
+    score_threshold = 0.5
+    pad_per_class = False
+    clip_boxes = True
+    name = None
     input_dict = {
         "boxes": boxes,
         "scores": scores,
@@ -203,15 +199,15 @@ def tf_image_combined_non_max_suppression_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(1, dtype=np.int32)
-    max_total_size = np.array(2, dtype=np.int32)
+    # Input 9
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(1)
+    max_total_size = np.int32(2)
     iou_threshold = 0.5
     score_threshold = 0.0
     pad_per_class = False
-    clip_boxes = False
+    clip_boxes = True
     name = None
 
     input_dict = {
@@ -228,15 +224,15 @@ def tf_image_combined_non_max_suppression_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    boxes = np.array([[[[0.1, 0.1, 0.3, 0.3]], [[0.2, 0.2, 0.4, 0.4]]]], dtype=np.float32)
-    scores = np.array([[[0.8, 0.7]]], dtype=np.float32)
-    max_output_size_per_class = np.array(1, dtype=np.int32)
-    max_total_size = np.array(2, dtype=np.int32)
-    iou_threshold = 0.5
-    score_threshold = 0.0
+    boxes = np.array([[[[0.1, 0.2, 0.3, 0.4]], [[0.5, 0.6, 0.7, 0.8]]], [[[0.2, 0.3, 0.4, 0.5]], [[0.6, 0.7, 0.8, 0.9]]]], dtype=np.float32)
+    scores = np.array([[[0.9, 0.7]], [[0.8, 0.6]]], dtype=np.float32)
+    max_output_size_per_class = np.int32(1)
+    max_total_size = np.int32(2)
+    iou_threshold = 0.3
+    score_threshold = 0.1
     pad_per_class = False
     clip_boxes = True
-    name = ""
+    name = None
 
     input_dict = {
         "boxes": boxes,
@@ -250,6 +246,7 @@ def tf_image_combined_non_max_suppression_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

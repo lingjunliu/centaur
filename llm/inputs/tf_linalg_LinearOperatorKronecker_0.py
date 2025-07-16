@@ -11,15 +11,18 @@ import copy
 def tf_linalg_linearoperator_kronecker_inputs():
     list_of_inputs = []
 
+    def create_linear_operator(matrix):
+      return tf.linalg.LinearOperatorFullMatrix(np.array(matrix).astype(np.float32))
+
     # Input 1
-    operator_1 = np.array([[1., 2.], [3., 4.]])
-    operator_2 = np.array([[1., 0.], [2., 1.]])
-    operators = [tf.linalg.LinearOperatorFullMatrix(operator_1), tf.linalg.LinearOperatorFullMatrix(operator_2)]
-    is_non_singular = None
-    is_self_adjoint = None
-    is_positive_definite = None
-    is_square = None
-    name = "kronecker_product_1"
+    op1 = create_linear_operator([[1.0, 2.0], [3.0, 4.0]])
+    op2 = create_linear_operator([[5.0, 6.0], [7.0, 8.0]])
+    operators = [op1, op2]
+    is_non_singular = True
+    is_self_adjoint = False
+    is_positive_definite = False
+    is_square = True
+    name = "kronecker_1"
 
     input_dict = {
         "operators": operators,
@@ -32,14 +35,14 @@ def tf_linalg_linearoperator_kronecker_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    operator_1 = np.array([[1., 0.], [0., 1.]])
-    operator_2 = np.array([[0., 1.], [1., 0.]])
-    operators = [tf.linalg.LinearOperatorFullMatrix(operator_1), tf.linalg.LinearOperatorFullMatrix(operator_2)]
-    is_non_singular = True
+    op1 = create_linear_operator([[1.0, 0.0], [0.0, 1.0]])
+    op2 = create_linear_operator([[0.0, 1.0], [1.0, 0.0]])
+    operators = [op1, op2]
+    is_non_singular = False
     is_self_adjoint = True
     is_positive_definite = False
     is_square = True
-    name = "kronecker_product_2"
+    name = "kronecker_2"
 
     input_dict = {
         "operators": operators,
@@ -52,41 +55,14 @@ def tf_linalg_linearoperator_kronecker_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    matrix_1 = np.array([[[1., 2.], [3., 4.]], [[5., 6.], [7., 8.]]])
-    matrix_2 = np.array([[[1., 0.], [2., 1.]], [[3., 4.], [5., 6.]]])
-
-    operators = [
-        tf.linalg.LinearOperatorFullMatrix(matrix_1),
-        tf.linalg.LinearOperatorFullMatrix(matrix_2)
-    ]
-    is_non_singular = False
-    is_self_adjoint = False
-    is_positive_definite = None
-    is_square = None
-    name = "kronecker_product_3"
-
-    input_dict = {
-        "operators": operators,
-        "is_non_singular": is_non_singular,
-        "is_self_adjoint": is_self_adjoint,
-        "is_positive_definite": is_positive_definite,
-        "is_square": is_square,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 4: More operators
-    matrix_1 = np.array([[1., 2.], [3., 4.]])
-    matrix_2 = np.array([[1., 0.], [2., 1.]])
-    operators = [
-        tf.linalg.LinearOperatorFullMatrix(matrix_1),
-        tf.linalg.LinearOperatorFullMatrix(matrix_2),
-    ]
-    is_non_singular = True
+    op1 = create_linear_operator([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]])
+    op2 = create_linear_operator([[9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0]])
+    operators = [op1, op2]
+    is_non_singular = None
     is_self_adjoint = None
     is_positive_definite = None
-    is_square = True
-    name = "kronecker_product_4"
+    is_square = None
+    name = "kronecker_3"
 
     input_dict = {
         "operators": operators,
@@ -98,16 +74,56 @@ def tf_linalg_linearoperator_kronecker_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Identity and Zero operators
-    operators = [
-        tf.linalg.LinearOperatorIdentity(num_rows=2),
-        tf.linalg.LinearOperatorFullMatrix(np.zeros((2, 2)))
-    ]
+    # Input 4
+    op1 = create_linear_operator([[1.0]])
+    op2 = create_linear_operator([[2.0]])
+    op3 = create_linear_operator([[3.0]])
+    operators = [op1, op2, op3]
+    is_non_singular = True
+    is_self_adjoint = True
+    is_positive_definite = True
+    is_square = True
+    name = "kronecker_4"
+
+    input_dict = {
+        "operators": operators,
+        "is_non_singular": is_non_singular,
+        "is_self_adjoint": is_self_adjoint,
+        "is_positive_definite": is_positive_definite,
+        "is_square": is_square,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    op1 = create_linear_operator([[1.0, 0.0], [0.0, 1.0]])
+    op2 = create_linear_operator([[1.0, 2.0], [3.0, 4.0]])
+    operators = [op1, op2]
+    is_non_singular = True
+    is_self_adjoint = False
+    is_positive_definite = False
+    is_square = True
+    name = None
+
+    input_dict = {
+        "operators": operators,
+        "is_non_singular": is_non_singular,
+        "is_self_adjoint": is_self_adjoint,
+        "is_positive_definite": is_positive_definite,
+        "is_square": is_square,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    op1 = create_linear_operator([[1.0, 1.0], [1.0, 1.0]])
+    op2 = create_linear_operator([[2.0, 2.0], [2.0, 2.0]])
+    operators = [op1, op2]
     is_non_singular = False
     is_self_adjoint = True
     is_positive_definite = False
     is_square = True
-    name = "kronecker_product_5"
+    name = "kronecker_6"
 
     input_dict = {
         "operators": operators,
@@ -119,19 +135,14 @@ def tf_linalg_linearoperator_kronecker_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Batch Operators
-    matrix_1 = np.array([[[1., 0.], [0., 1.]], [[0., 1.], [1., 0.]]])
-    matrix_2 = np.array([[[2., 0.], [0., 2.]], [[3., 0.], [0., 3.]]])
-
-    operators = [
-        tf.linalg.LinearOperatorFullMatrix(matrix_1),
-        tf.linalg.LinearOperatorFullMatrix(matrix_2)
-    ]
+    # Input 7
+    op1 = create_linear_operator([[1.0]])
+    operators = [op1]
     is_non_singular = True
     is_self_adjoint = True
     is_positive_definite = True
     is_square = True
-    name = "kronecker_product_6"
+    name = "kronecker_7"
 
     input_dict = {
         "operators": operators,
@@ -143,20 +154,35 @@ def tf_linalg_linearoperator_kronecker_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: one element matrix
-    matrix_1 = np.array([[5.]])
-    matrix_2 = np.array([[2.]])
+    # Input 8: More diverse values
+    op1 = create_linear_operator([[1.5, -2.2], [3.7, 4.1]])
+    op2 = create_linear_operator([[-5.3, 6.8], [7.9, -8.4]])
+    operators = [op1, op2]
+    is_non_singular = True
+    is_self_adjoint = False
+    is_positive_definite = False
+    is_square = True
+    name = "kronecker_8"
+    input_dict = {
+        "operators": operators,
+        "is_non_singular": is_non_singular,
+        "is_self_adjoint": is_self_adjoint,
+        "is_positive_definite": is_positive_definite,
+        "is_square": is_square,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    operators = [
-        tf.linalg.LinearOperatorFullMatrix(matrix_1, is_square = True),
-        tf.linalg.LinearOperatorFullMatrix(matrix_2)
-    ]
 
+    # Input 9: Identity matrices
+    op1 = tf.linalg.LinearOperatorIdentity(num_rows=2)
+    op2 = tf.linalg.LinearOperatorIdentity(num_rows=3)
+    operators = [op1, op2]
     is_non_singular = True
     is_self_adjoint = True
     is_positive_definite = True
     is_square = True
-    name = "kronecker_product_7"
+    name = "kronecker_9"
 
     input_dict = {
         "operators": operators,
@@ -168,23 +194,23 @@ def tf_linalg_linearoperator_kronecker_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: None values for hints
-
-    matrix_1 = np.array([[1., 2.], [3., 4.]])
-    matrix_2 = np.array([[1., 0.], [2., 1.]])
-
-    operators = [
-        tf.linalg.LinearOperatorFullMatrix(matrix_1),
-        tf.linalg.LinearOperatorFullMatrix(matrix_2)
-    ]
+    #Input 10 : Complex number
+    op1 = create_linear_operator([[1.0 + 1j, 2.0], [3.0, 4.0]])
+    op2 = create_linear_operator([[5.0, 6.0], [7.0, 8.0+2j]])
+    operators = [op1, op2]
+    is_non_singular = True
+    is_self_adjoint = False
+    is_positive_definite = False
+    is_square = True
+    name = "kronecker_10"
 
     input_dict = {
         "operators": operators,
-        "is_non_singular": None,
-        "is_self_adjoint": None,
-        "is_positive_definite": None,
-        "is_square": None,
-        "name": 'test_none'
+        "is_non_singular": is_non_singular,
+        "is_self_adjoint": is_self_adjoint,
+        "is_positive_definite": is_positive_definite,
+        "is_square": is_square,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

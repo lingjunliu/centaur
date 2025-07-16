@@ -6,135 +6,74 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import copy
+import numpy as np
 
 def tf_data_experimental_make_saveable_from_iterator_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
-    dataset = tf.data.Dataset.range(10)
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
+    # Input 1: Basic iterator with 'fail' policy
+    dataset1 = tf.data.Dataset.range(10)
+    iterator1 = tf.compat.v1.data.make_one_shot_iterator(dataset1)
+    input_dict1 = {"iterator": iterator1.string_handle(), "external_state_policy": "fail"}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    external_state_policy = 'fail'
+    # Input 2: Iterator with 'warn' policy
+    dataset2 = tf.data.Dataset.from_tensor_slices([1, 2, 3, 4, 5])
+    iterator2 = tf.compat.v1.data.make_one_shot_iterator(dataset2)
+    input_dict2 = {"iterator": iterator2.string_handle(), "external_state_policy": "warn"}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
+    # Input 3: Iterator with 'ignore' policy
+    dataset3 = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4], [5, 6]]))
+    iterator3 = tf.compat.v1.data.make_one_shot_iterator(dataset3)
+    input_dict3 = {"iterator": iterator3.string_handle(), "external_state_policy": "ignore"}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 2, valid
-    dataset = tf.data.Dataset.from_tensor_slices([1, 2, 3, 4, 5])
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
-    external_state_policy = 'warn'
+    # Input 4: Empty dataset iterator
+    dataset4 = tf.data.Dataset.from_tensor_slices([])
+    iterator4 = tf.compat.v1.data.make_one_shot_iterator(dataset4)
+    input_dict4 = {"iterator": iterator4.string_handle(), "external_state_policy": "fail"}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
+    # Input 5: Dataset with string tensors
+    dataset5 = tf.data.Dataset.from_tensor_slices(["a", "b", "c"])
+    iterator5 = tf.compat.v1.data.make_one_shot_iterator(dataset5)
+    input_dict5 = {"iterator": iterator5.string_handle(), "external_state_policy": "warn"}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 3, valid
-    dataset = tf.data.Dataset.from_tensor_slices([[1, 2], [3, 4], [5, 6]])
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
-    external_state_policy = 'ignore'
+    # Input 6: Dataset with different dtypes
+    dataset6 = tf.data.Dataset.from_tensor_slices(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    iterator6 = tf.compat.v1.data.make_one_shot_iterator(dataset6)
+    input_dict6 = {"iterator": iterator6.string_handle(), "external_state_policy": "ignore"}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
+    # Input 7: Dataset with a single element
+    dataset7 = tf.data.Dataset.from_tensor_slices([7])
+    iterator7 = tf.compat.v1.data.make_one_shot_iterator(dataset7)
+    input_dict7 = {"iterator": iterator7.string_handle(), "external_state_policy": "fail"}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
-    # Input 4, valid - Empty dataset
-    dataset = tf.data.Dataset.from_tensor_slices([])
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
-    external_state_policy = 'fail'
+    # Input 8: Dataset with multiple dimensions
+    dataset8 = tf.data.Dataset.from_tensor_slices(np.random.rand(2, 3, 4))
+    iterator8 = tf.compat.v1.data.make_one_shot_iterator(dataset8)
+    input_dict8 = {"iterator": iterator8.string_handle(), "external_state_policy": "warn"}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
 
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
-    
-    # Input 5, valid
-    dataset = tf.data.Dataset.from_tensors(tf.constant([1, 2, 3]))
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
-    external_state_policy = 'warn'
+    # Input 9:  Dataset with negative values
+    dataset9 = tf.data.Dataset.from_tensor_slices(np.array([-1, -2, -3]))
+    iterator9 = tf.compat.v1.data.make_one_shot_iterator(dataset9)
+    input_dict9 = {"iterator": iterator9.string_handle(), "external_state_policy": "ignore"}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
 
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
-    
-    # Input 6, valid - Dataset of tuples
-    dataset = tf.data.Dataset.from_tensor_slices((tf.constant([1, 2, 3]), tf.constant(['a', 'b', 'c'])))
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
-    external_state_policy = 'ignore'
-
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
-
-    # Input 7, valid - Remove dictionaries as they cause errors
-    # dataset = tf.data.Dataset.from_tensor_slices([{'a': 1, 'b': 2}, {'a': 3, 'b': 4}])
-    # iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    # init_op = iterator.initializer
-    # external_state_policy = 'fail'
-
-    # input_dict = {
-    #     "iterator": init_op,
-    #     "external_state_policy": external_state_policy,
-    # }
-    # list_of_inputs.append(input_dict)
-
-    # Input 8, valid
-    dataset = tf.data.Dataset.range(1, 11, 2)
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
-    external_state_policy = 'warn'
-
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
-
-    # Input 9, valid
-    dataset = tf.data.Dataset.from_tensor_slices([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
-    external_state_policy = 'ignore'
-
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
-
-    # Input 10, valid
-    dataset = tf.data.Dataset.range(1000)
-    iterator = tf.compat.v1.data.make_initializable_iterator(dataset)
-    init_op = iterator.initializer
-    external_state_policy = 'fail'
-
-    input_dict = {
-        "iterator": init_op,
-        "external_state_policy": external_state_policy,
-    }
-    list_of_inputs.append(input_dict)
+    # Input 10: Dataset created from a list
+    dataset10 = tf.data.Dataset.from_tensor_slices([1, 2, 3, 4, 5])
+    iterator10 = tf.compat.v1.data.make_one_shot_iterator(dataset10)
+    input_dict10 = {"iterator": iterator10.string_handle(), "external_state_policy": "fail"}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
 
 generated_inputs = {}
-tf.compat.v1.disable_eager_execution()
 generated_inputs["tf.data.experimental.make_saveable_from_iterator"] = tf_data_experimental_make_saveable_from_iterator_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

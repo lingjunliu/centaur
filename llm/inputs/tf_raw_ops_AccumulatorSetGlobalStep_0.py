@@ -12,63 +12,63 @@ def tf_raw_ops_accumulator_set_global_step_inputs():
     list_of_inputs = []
 
     # Input 1
-    handle = np.array(b"accumulator_handle_1", dtype=np.dtype('string'))
-    new_global_step = np.array(100, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_1"}
+    handle = tf.constant("accumulator_handle_1", dtype=tf.string)
+    new_global_step = tf.constant(10, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    handle = np.array(b"accumulator_handle_2", dtype=np.dtype('string'))
-    new_global_step = np.array(0, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_2"}
+    handle = tf.constant("accumulator_handle_2", dtype=tf.string)
+    new_global_step = tf.constant(0, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    handle = np.array(b"accumulator_handle_3", dtype=np.dtype('string'))
-    new_global_step = np.array(-1, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_3"}
+    handle = tf.constant("accumulator_handle_3", dtype=tf.string)
+    new_global_step = tf.constant(-5, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    handle = np.array(b"accumulator_handle_4", dtype=np.dtype('string'))
-    new_global_step = np.array(2**31 - 1, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_4"}
+    handle = tf.constant("long_accumulator_handle", dtype=tf.string)
+    new_global_step = tf.constant(2**31 - 1, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 5
-    handle = np.array(b"accumulator_handle_5", dtype=np.dtype('string'))
-    new_global_step = np.array(-(2**31), dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_5"}
+    handle = tf.constant("handle5", dtype=tf.string)
+    new_global_step = tf.constant(1, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    handle = np.array(b"accumulator_handle_6", dtype=np.dtype('string'))
-    new_global_step = np.array(1, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_6"}
+    handle = tf.constant("accumulator_handle_6", dtype=tf.string)
+    new_global_step = tf.constant(2**63 -1, dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    handle = np.array(b"long_accumulator_handle_7", dtype=np.dtype('string'))
-    new_global_step = np.array(9999999999, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_7"}
+    handle = tf.constant("accumulator_handle_7", dtype=tf.string)
+    new_global_step = tf.constant(-(2**63), dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    handle = np.array(b"", dtype=np.dtype('string'))
-    new_global_step = np.array(12345, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_8"}
+    handle = tf.constant("acc8", dtype=tf.string)
+    new_global_step = tf.constant(np.array(5, dtype=np.int64), dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 9
-    handle = np.array(b"accumulator_handle_9", dtype=np.dtype('string'))
-    new_global_step = np.array(-12345, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_9"}
+    handle = tf.constant("accumulator_9", dtype=tf.string)
+    new_global_step = tf.constant(np.int64(9), dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    handle = np.array(b"12345", dtype=np.dtype('string'))
-    new_global_step = np.array(67890, dtype=np.int64)
-    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_10"}
+    handle = tf.constant("accumulator_10", dtype=tf.string)
+    new_global_step = tf.constant(np.array(-10, dtype=np.int64), dtype=tf.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

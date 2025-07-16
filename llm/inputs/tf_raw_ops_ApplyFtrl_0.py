@@ -11,18 +11,18 @@ import copy
 def tf_raw_ops_apply_ftrl_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
-    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    accum = tf.Variable(np.array([0.1, 0.2, 0.3], dtype=np.float32))
-    linear = tf.Variable(np.array([0.01, 0.02, 0.03], dtype=np.float32))
-    grad = np.array([0.5, 0.6, 0.7], dtype=np.float32)
+    # Input 1
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    accum = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    linear = np.array([0.4, 0.5, 0.6], dtype=np.float32)
+    grad = np.array([0.7, 0.8, 0.9], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
-    l1 = np.array(0.1, dtype=np.float32)
-    l2 = np.array(0.01, dtype=np.float32)
+    l1 = np.array(0.0, dtype=np.float32)
+    l2 = np.array(0.0, dtype=np.float32)
     lr_power = np.array(-0.5, dtype=np.float32)
     use_locking = False
     multiply_linear_by_lr = False
-    name = "ftrl_op_1"
+    name = None
 
     input_dict = {
         "var": var,
@@ -38,7 +38,6 @@ def tf_raw_ops_apply_ftrl_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

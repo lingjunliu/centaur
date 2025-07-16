@@ -11,47 +11,55 @@ import os
 def tf_experimental_register_filesystem_plugin_inputs():
     list_of_inputs = []
 
-    # All of the following are removed because they do not represent existing files, which leads to FileNotFoundError. The API does not seem equipped to handle non-existent files gracefully.
-
-    # Input 11: Just a filename
-    #plugin_location = "some_plugin.so"
-    #input_dict = {"plugin_location": plugin_location}
-    #list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: More complex filename
-    #plugin_location = "path/to/some_plugin.so"
-    #input_dict = {"plugin_location": plugin_location}
-    #list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13: Another filename
-    #plugin_location = "./some_plugin.so"
-    #input_dict = {"plugin_location": plugin_location}
-    #list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14: Unicode filename
-    #plugin_location = "你好世界.so"
-    #input_dict = {"plugin_location": plugin_location}
-    #list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    #Input 15: filename with special characters
-    #plugin_location = "plugin!@#$%.so"
-    #input_dict = {"plugin_location": plugin_location}
-    #list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Create dummy so file
-    plugin_location = "dummy_plugin.so"
-    with open(plugin_location, "w") as f:
-      f.write("")
+    # Input 1:  Invalid path (just a filename with .txt extension)
+    plugin_location = "myplugin.txt"
     input_dict = {"plugin_location": plugin_location}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    os.remove(plugin_location)
-    
-    plugin_location = "./dummy_plugin.so"
-    with open("dummy_plugin.so", "w") as f:
-      f.write("")
+
+    # Input 2: Invalid path (just a filename with .dll extension)
+    plugin_location = "myplugin.dll"
     input_dict = {"plugin_location": plugin_location}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    os.remove("dummy_plugin.so")
+
+    # Input 3: Invalid path (a directory)
+    plugin_location = "mydir/"
+    input_dict = {"plugin_location": plugin_location}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Invalid path (an absolute directory)
+    plugin_location = "/tmp/"  # Assuming /tmp exists
+    input_dict = {"plugin_location": plugin_location}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Invalid path (just a filename without extension)
+    plugin_location = "myplugin"
+    input_dict = {"plugin_location": plugin_location}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Invalid path (path with multiple slashes and no filename)
+    plugin_location = "path/to/nowhere/"
+    input_dict = {"plugin_location": plugin_location}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Invalid path (relative path with "..", not pointing to a valid .so)
+    plugin_location = "../myplugin.so"
+    input_dict = {"plugin_location": plugin_location}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Invalid path (filename with spaces and no extension)
+    plugin_location = "my plugin"
+    input_dict = {"plugin_location": plugin_location}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Invalid path (filename starting with a dot and with invalid extension)
+    plugin_location = ".myplugin.txt"
+    input_dict = {"plugin_location": plugin_location}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Empty string
+    plugin_location = ""
+    input_dict = {"plugin_location": plugin_location}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

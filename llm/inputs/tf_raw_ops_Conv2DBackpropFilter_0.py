@@ -12,82 +12,284 @@ def tf_raw_ops_Conv2DBackpropFilter_inputs():
     list_of_inputs = []
 
     # Input 1
-    input1 = np.random.rand(1, 28, 28, 3).astype(np.float32)
-    filter_sizes1 = np.array([5, 5, 3, 64], dtype=np.int32)
-    out_backprop1 = np.random.rand(1, 24, 24, 64).astype(np.float32)
-    strides1 = [1, 1, 1, 1]
-    padding1 = "VALID"
-    use_cudnn_on_gpu1 = True
-    explicit_paddings1 = []
-    data_format1 = "NHWC"
-    dilations1 = [1, 1, 1, 1]
-    name1 = "conv2d_backprop_filter_1"
+    input_tensor = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    filter_sizes_tensor = np.array([3, 3, 3, 16], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(1, 3, 3, 16).astype(np.float32)
+    strides_list = [1, 1, 1, 1]
+    padding_string = "VALID"
+    use_cudnn_on_gpu_bool = True
+    explicit_paddings_list = []
+    data_format_string = "NHWC"
+    dilations_list = [1, 1, 1, 1]
+    name_string = "conv2d_backprop_filter_1"
 
-    input_dict1 = {
-        "input": input1,
-        "filter_sizes": filter_sizes1,
-        "out_backprop": out_backprop1,
-        "strides": strides1,
-        "padding": padding1,
-        "use_cudnn_on_gpu": use_cudnn_on_gpu1,
-        "explicit_paddings": explicit_paddings1,
-        "data_format": data_format1,
-        "dilations": dilations1,
-        "name": name1
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input2 = np.random.rand(2, 32, 32, 1).astype(np.float32)
-    filter_sizes2 = np.array([3, 3, 1, 32], dtype=np.int32)
-    out_backprop2 = np.random.rand(2, 30, 30, 32).astype(np.float32)
-    strides2 = [1, 1, 1, 1]
-    padding2 = "VALID"
-    use_cudnn_on_gpu2 = False
-    explicit_paddings2 = []
-    data_format2 = "NHWC"
-    dilations2 = [1, 1, 1, 1]
-    name2 = "conv2d_backprop_filter_2"
+    # Input 2 (Adjusted out_backprop shape for VALID padding and strides)
+    input_tensor = np.random.rand(2, 10, 10, 1).astype(np.float64)
+    filter_sizes_tensor = np.array([5, 5, 1, 8], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(2, 3, 3, 8).astype(np.float64) # Adjusted shape
+    strides_list = [1, 2, 2, 1]
+    padding_string = "VALID"
+    use_cudnn_on_gpu_bool = False
+    explicit_paddings_list = []
+    data_format_string = "NHWC"
+    dilations_list = [1, 1, 1, 1]
+    name_string = "conv2d_backprop_filter_2"
 
-    input_dict2 = {
-        "input": input2,
-        "filter_sizes": filter_sizes2,
-        "out_backprop": out_backprop2,
-        "strides": strides2,
-        "padding": padding2,
-        "use_cudnn_on_gpu": use_cudnn_on_gpu2,
-        "explicit_paddings": explicit_paddings2,
-        "data_format": data_format2,
-        "dilations": dilations2,
-        "name": name2
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
     }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input3 = np.random.rand(1, 16, 16, 64).astype(np.float32)
-    filter_sizes3 = np.array([7, 7, 64, 128], dtype=np.int32)
-    out_backprop3 = np.random.rand(1, 8, 8, 128).astype(np.float32)
-    strides3 = [1, 2, 2, 1]
-    padding3 = "VALID"
-    use_cudnn_on_gpu3 = True
-    explicit_paddings3 = []
-    data_format3 = "NHWC"
-    dilations3 = [1, 1, 1, 1]
-    name3 = "conv2d_backprop_filter_3"
+    input_tensor = np.random.rand(1, 7, 7, 3).astype(np.float32)
+    filter_sizes_tensor = np.array([3, 3, 3, 1], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(1, 7, 7, 1).astype(np.float32)
+    strides_list = [1, 1, 1, 1]
+    padding_string = "SAME"
+    use_cudnn_on_gpu_bool = True
+    explicit_paddings_list = []
+    data_format_string = "NHWC"
+    dilations_list = [1, 1, 1, 1]
+    name_string = "conv2d_backprop_filter_3"
 
-    input_dict3 = {
-        "input": input3,
-        "filter_sizes": filter_sizes3,
-        "out_backprop": out_backprop3,
-        "strides": strides3,
-        "padding": padding3,
-        "use_cudnn_on_gpu": use_cudnn_on_gpu3,
-        "explicit_paddings": explicit_paddings3,
-        "data_format": data_format3,
-        "dilations": dilations3,
-        "name": name3
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
     }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.random.rand(4, 12, 12, 5).astype(np.float32)
+    filter_sizes_tensor = np.array([2, 2, 5, 10], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(4, 12, 12, 10).astype(np.float32)
+    strides_list = [1, 1, 1, 1]
+    padding_string = "SAME"
+    use_cudnn_on_gpu_bool = False
+    explicit_paddings_list = []
+    data_format_string = "NHWC"
+    dilations_list = [1, 1, 1, 1]
+    name_string = "conv2d_backprop_filter_4"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.random.rand(1, 8, 8, 3).astype(np.float32)
+    filter_sizes_tensor = np.array([3, 3, 3, 1], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(1, 3, 3, 1).astype(np.float32)  # Adjusted shape
+    strides_list = [1, 2, 2, 1]
+    padding_string = "VALID"
+    use_cudnn_on_gpu_bool = True
+    explicit_paddings_list = []
+    data_format_string = "NHWC"
+    dilations_list = [1, 1, 1, 1]
+    name_string = "conv2d_backprop_filter_5"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.random.rand(1, 8, 8, 3).astype(np.float32)
+    filter_sizes_tensor = np.array([3, 3, 3, 1], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(1, 8, 8, 1).astype(np.float32)
+    strides_list = [1, 1, 1, 1]
+    padding_string = "SAME"
+    use_cudnn_on_gpu_bool = True
+    explicit_paddings_list = []
+    data_format_string = "NHWC"
+    dilations_list = [1, 2, 2, 1]
+    name_string = "conv2d_backprop_filter_6"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 (Adjusted out_backprop shape for EXPLICIT padding, and removed batch/depth padding)
+    input_tensor = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    filter_sizes_tensor = np.array([3, 3, 3, 16], dtype=np.int32)
+    strides_list = [1, 1, 1, 1]
+    padding_string = "EXPLICIT"
+    use_cudnn_on_gpu_bool = True
+    explicit_paddings_list = [0, 0, 1, 1, 1, 1, 0, 0]  # Adjusted Paddings, only spatial
+    data_format_string = "NHWC"
+    dilations_list = [1, 1, 1, 1]
+
+    # Calculate expected output shape based on explicit padding
+    in_height = input_tensor.shape[1]
+    in_width = input_tensor.shape[2]
+    filter_height = filter_sizes_tensor[0]
+    filter_width = filter_sizes_tensor[1]
+    pad_top = explicit_paddings_list[2]
+    pad_bottom = explicit_paddings_list[3]
+    pad_left = explicit_paddings_list[4]
+    pad_right = explicit_paddings_list[5]
+    stride_height = strides_list[1]
+    stride_width = strides_list[2]
+    dilation_height = dilations_list[1]
+    dilation_width = dilations_list[2]
+
+    out_height = int(((in_height + pad_top + pad_bottom - dilation_height * (filter_height - 1) - 1) / stride_height) + 1)
+    out_width = int(((in_width + pad_left + pad_right - dilation_width * (filter_width - 1) - 1) / stride_width) + 1)
+
+    out_backprop_tensor = np.random.rand(1, out_height, out_width, 16).astype(np.float32)
+    name_string = "conv2d_backprop_filter_7"
+
+
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 8: NCHW format
+    input_tensor = np.random.rand(2, 3, 10, 10).astype(np.float32)
+    filter_sizes_tensor = np.array([3, 3, 3, 16], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(2, 16, 8, 8).astype(np.float32)
+    strides_list = [1, 1, 1, 1]
+    padding_string = "VALID"
+    use_cudnn_on_gpu_bool = True
+    explicit_paddings_list = []
+    data_format_string = "NCHW"
+    dilations_list = [1, 1, 1, 1]
+    name_string = "conv2d_backprop_filter_8"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.random.rand(1, 5, 5, 3).astype(np.float16)
+    filter_sizes_tensor = np.array([3, 3, 3, 16], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(1, 3, 3, 16).astype(np.float16)
+    strides_list = [1, 1, 1, 1]
+    padding_string = "VALID"
+    use_cudnn_on_gpu_bool = True
+    explicit_paddings_list = []
+    data_format_string = "NHWC"
+    dilations_list = [1, 1, 1, 1]
+    name_string = "conv2d_backprop_filter_9"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Dilation
+    input_tensor = np.random.rand(1, 8, 8, 3).astype(np.float32)
+    filter_sizes_tensor = np.array([3, 3, 3, 1], dtype=np.int32)
+    out_backprop_tensor = np.random.rand(1, 6, 6, 1).astype(np.float32)
+    strides_list = [1, 1, 1, 1]
+    padding_string = "VALID"
+    use_cudnn_on_gpu_bool = True
+    explicit_paddings_list = []
+    data_format_string = "NHWC"
+    dilations_list = [1, 2, 2, 1]
+    name_string = "conv2d_backprop_filter_10"
+
+    input_dict = {
+        "input": input_tensor,
+        "filter_sizes": filter_sizes_tensor,
+        "out_backprop": out_backprop_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "use_cudnn_on_gpu": use_cudnn_on_gpu_bool,
+        "explicit_paddings": explicit_paddings_list,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

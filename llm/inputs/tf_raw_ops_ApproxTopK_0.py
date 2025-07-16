@@ -8,79 +8,233 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_approx_top_k_inputs():
+def tf_raw_ops_ApproxTopK_inputs():
     list_of_inputs = []
 
     # Input 1
     input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
     k_val = 2
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.95, "is_max_k": True, "reduction_input_size_override": -1, "aggregate_to_topk": True, "name": None, "input": input_tensor, "k": k_val}
+    reduction_dimension_val = -1
+    recall_target_val = 0.95
+    is_max_k_val = True
+    reduction_input_size_override_val = -1
+    aggregate_to_topk_val = True
+    name_val = None
+
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    k_val = 1
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.8, "is_max_k": False, "reduction_input_size_override": -1, "aggregate_to_topk": False, "name": None, "input": input_tensor, "k": k_val}
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    k_val = 3
+    reduction_dimension_val = -1
+    recall_target_val = 0.95
+    is_max_k_val = True
+    reduction_input_size_override_val = -1
+    aggregate_to_topk_val = True
+    name_val = "min_k_values"
+
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    k_val = 3
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.99, "is_max_k": True, "reduction_input_size_override": -1, "aggregate_to_topk": True, "name": "test_op", "input": input_tensor, "k": k_val}
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
+    k_val = 1
+    reduction_dimension_val = -1
+    recall_target_val = 0.99
+    is_max_k_val = True
+    reduction_input_size_override_val = -1
+    aggregate_to_topk_val = True
+    name_val = None
+
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array([5.0, 4.0, 3.0, 2.0, 1.0], dtype=np.float32)
-    k_val = 4
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.75, "is_max_k": False, "reduction_input_size_override": -1, "aggregate_to_topk": False, "name": None, "input": input_tensor, "k": k_val}
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
+    k_val = 2
+    reduction_dimension_val = -1
+    recall_target_val = 0.95
+    is_max_k_val = True
+    reduction_input_size_override_val = 5
+    aggregate_to_topk_val = True
+    name_val = "approx_min_k"
+
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-    k_val = 2
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.9, "is_max_k": True, "reduction_input_size_override": -1, "aggregate_to_topk": True, "name": None, "input": input_tensor, "k": k_val}
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    k_val = 1
+    reduction_dimension_val = -1
+    recall_target_val = 0.9
+    is_max_k_val = True
+    reduction_input_size_override_val = -1
+    aggregate_to_topk_val = True
+    name_val = None
+
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    k_val = 2
+    reduction_dimension_val = -1
+    recall_target_val = 0.95
+    is_max_k_val = True
+    reduction_input_size_override_val = 10
+    aggregate_to_topk_val = True
+    name_val = "approx_min_k_3d"
+
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7 (float16 - representing half or bfloat16 due to numpy limitations)
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float16)
+    k_val = 2
+    reduction_dimension_val = -1
+    recall_target_val = 0.95
+    is_max_k_val = True
+    reduction_input_size_override_val = -1
+    aggregate_to_topk_val = True
+    name_val = None
+
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8 (float16 - representing half or bfloat16)
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float16)
+    k_val = 3
+    reduction_dimension_val = -1
+    recall_target_val = 0.95
+    is_max_k_val = True
+    reduction_input_size_override_val = -1
+    aggregate_to_topk_val = True
+    name_val = "min_k_values"
+
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
     input_tensor = np.array([-1.0, -2.0, -3.0, -4.0, -5.0], dtype=np.float32)
     k_val = 2
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.95, "is_max_k": False, "reduction_input_size_override": -1, "aggregate_to_topk": True, "name": None, "input": input_tensor, "k": k_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    reduction_dimension_val = -1
+    recall_target_val = 0.95
+    is_max_k_val = True
+    reduction_input_size_override_val = -1
+    aggregate_to_topk_val = True
+    name_val = None
 
-    # Input 7
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    k_val = 1
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.8, "is_max_k": True, "reduction_input_size_override": -1, "aggregate_to_topk": False, "name": None, "input": input_tensor, "k": k_val}
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    k_val = 0
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.99, "is_max_k": True, "reduction_input_size_override": -1, "aggregate_to_topk": True, "name": "test_op", "input": input_tensor, "k": k_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_tensor = np.array([5.0, 4.0, 3.0, 2.0, 1.0], dtype=np.float32)
-    k_val = 5
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.75, "is_max_k": False, "reduction_input_size_override": -1, "aggregate_to_topk": False, "name": None, "input": input_tensor, "k": k_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 10
-    input_tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-    k_val = 1
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.9, "is_max_k": True, "reduction_input_size_override": -1, "aggregate_to_topk": True, "name": None, "input": input_tensor, "k": k_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_tensor = np.array([-1.0, -2.0, -3.0, -4.0, -5.0], dtype=np.float32)
+    k_val = 3
+    reduction_dimension_val = -1
+    recall_target_val = 0.95
+    is_max_k_val = True
+    reduction_input_size_override_val = -1
+    aggregate_to_topk_val = True
+    name_val = "min_k_values"
 
-    # Input 11
-    input_tensor = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    k_val = 2
-    input_dict = {"reduction_dimension": -1, "recall_target": 0.95, "is_max_k": True, "reduction_input_size_override": 10, "aggregate_to_topk": True, "name": None, "input": input_tensor, "k": k_val}
+    input_dict = {
+        "input": input_tensor,
+        "k": k_val,
+        "reduction_dimension": reduction_dimension_val,
+        "recall_target": recall_target_val,
+        "is_max_k": is_max_k_val,
+        "reduction_input_size_override": reduction_input_size_override_val,
+        "aggregate_to_topk": aggregate_to_topk_val,
+        "name": name_val
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.ApproxTopK"] = tf_raw_ops_approx_top_k_inputs()
+generated_inputs["tf.raw_ops.ApproxTopK"] = tf_raw_ops_ApproxTopK_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

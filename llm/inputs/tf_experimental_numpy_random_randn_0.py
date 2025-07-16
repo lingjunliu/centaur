@@ -5,50 +5,50 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_experimental_numpy_random_randn_inputs():
     list_of_inputs = []
 
-    # Input 1: Scalar shape
-    input_dict = {"args": (np.array(1, dtype=np.int64),)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: 1D shape
-    input_dict = {"args": (np.array(5, dtype=np.int64),)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: 2D shape
-    input_dict = {"args": (np.array(2, dtype=np.int64), np.array(3, dtype=np.int64))}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: 3D shape
-    input_dict = {"args": (np.array(2, dtype=np.int64), np.array(3, dtype=np.int64), np.array(4, dtype=np.int64))}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Larger shape
-    input_dict = {"args": (np.array(10, dtype=np.int64), np.array(10, dtype=np.int64))}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Shape with one dimension being 1
-    input_dict = {"args": (np.array(1, dtype=np.int64), np.array(5, dtype=np.int64), np.array(1, dtype=np.int64))}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7:  Empty tuple. Should return a scalar.
+    # Input 1: Scalar
     input_dict = {"args": ()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Shape with zero dimension
-    input_dict = {"args": (np.array(0, dtype=np.int64), np.array(5, dtype=np.int64))}
+    # Input 2: One dimension
+    input_dict = {"args": (np.array(5, dtype=np.int32),)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Shape with large numbers
-    input_dict = {"args": (np.array(100, dtype=np.int64), np.array(100, dtype=np.int64))}
+    # Input 3: Two dimensions
+    input_dict = {"args": (np.array(2, dtype=np.int32), np.array(3, dtype=np.int32))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Shape with one large number
-    input_dict = {"args": (np.array(1000, dtype=np.int64),)}
+    # Input 4: Three dimensions
+    input_dict = {"args": (np.array(2, dtype=np.int32), np.array(3, dtype=np.int32), np.array(4, dtype=np.int32))}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Four dimensions
+    input_dict = {"args": (np.array(1, dtype=np.int32), np.array(2, dtype=np.int32), np.array(3, dtype=np.int32), np.array(4, dtype=np.int32))}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Five dimensions
+    input_dict = {"args": (np.array(1, dtype=np.int32), np.array(1, dtype=np.int32), np.array(2, dtype=np.int32), np.array(3, dtype=np.int32), np.array(4, dtype=np.int32))}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Large dimensions
+    input_dict = {"args": (np.array(10, dtype=np.int32), np.array(10, dtype=np.int32))}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Uneven dimensions
+    input_dict = {"args": (np.array(2, dtype=np.int32), np.array(5, dtype=np.int32), np.array(1, dtype=np.int32))}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Single element in each dim
+    input_dict = {"args": (np.array(1, dtype=np.int32), np.array(1, dtype=np.int32), np.array(1, dtype=np.int32))}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Another set of dimensions
+    input_dict = {"args": (np.array(4, dtype=np.int32), np.array(2, dtype=np.int32), np.array(3, dtype=np.int32))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

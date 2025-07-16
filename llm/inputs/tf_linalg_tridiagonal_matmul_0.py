@@ -11,194 +11,96 @@ import copy
 def tf_linalg_tridiagonal_matmul_inputs():
     list_of_inputs = []
 
-    # Input 1
-    superdiag = np.array([-1, -1, 0], dtype=np.float32)
-    maindiag = np.array([2, 2, 2], dtype=np.float32)
-    subdiag = np.array([0, -1, -1], dtype=np.float32)
-    rhs = np.array([[1, 1], [1, 1], [1, 1]], dtype=np.float32)
-    diagonals_format = 'sequence'
-    name = None
-
-    input_dict = {
-        "diagonals": (superdiag, maindiag, subdiag),
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.float64)
-    rhs = np.array([[[1, 2], [3, 4], [5, 6]]], dtype=np.float64)
-    diagonals_format = 'matrix'
-    name = "test_matmul"
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.complex64)
-    rhs = np.array([[[1, 2], [3, 4], [5, 6]]], dtype=np.complex64)
-    diagonals_format = 'matrix'
-    name = None
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.complex128)
-    rhs = np.array([[[1, 2], [3, 4], [5, 6]]], dtype=np.complex128)
-    diagonals_format = 'matrix'
-    name = None
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
+    # Input 1: Compact format, simple case
     diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.float32)
-    rhs = np.array([[[1, 2], [3, 4], [5, 6]]], dtype=np.float32)
-    diagonals_format = 'matrix'
-    name = None
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
+    rhs = np.array([[[1, 1], [1, 1], [1, 1]]], dtype=np.float32)
+    diagonals_format = 'compact'
+    name = 'matmul1'
+    input_dict = {'diagonals': tf.convert_to_tensor(diagonals), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
+    # Input 2: Sequence format, simple case
     superdiag = np.array([-1, -1, 0], dtype=np.float64)
     maindiag = np.array([2, 2, 2], dtype=np.float64)
     subdiag = np.array([0, -1, -1], dtype=np.float64)
     rhs = np.array([[1, 1], [1, 1], [1, 1]], dtype=np.float64)
     diagonals_format = 'sequence'
-    name = None
-
-    input_dict = {
-        "diagonals": (superdiag, maindiag, subdiag),
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
+    name = 'matmul2'
+    input_dict = {'diagonals': (tf.convert_to_tensor(superdiag), tf.convert_to_tensor(maindiag), tf.convert_to_tensor(subdiag)), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    diagonals = np.random.rand(3, 3, 3).astype(np.float32)
-    rhs = np.random.rand(3, 3, 4).astype(np.float32)
-    diagonals_format = "matrix"
-    name = "random_matrix"
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
+    # Input 3: Compact format, with batch dimension
+    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[9, 8, 7], [6, 5, 4], [3, 2, 1]]], dtype=np.float32)
+    rhs = np.array([[[1, 1], [1, 1], [1, 1]], [[2, 2], [2, 2], [2, 2]]], dtype=np.float32)
+    diagonals_format = 'compact'
+    name = 'matmul3'
+    input_dict = {'diagonals': tf.convert_to_tensor(diagonals), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    superdiag = np.array([-1, -1, 0], dtype=np.complex128)
-    maindiag = np.array([2, 2, 2], dtype=np.complex128)
-    subdiag = np.array([0, -1, -1], dtype=np.complex128)
-    rhs = np.array([[1+1j, 1+1j], [1+1j, 1+1j], [1+1j, 1+1j]], dtype=np.complex128)
+
+    # Input 4: Sequence format, with batch dimension
+    superdiag = np.array([[1, 2, 3], [4, 5, 0]], dtype=np.float64)
+    maindiag = np.array([[4, 5, 6], [7, 8, 9]], dtype=np.float64)
+    subdiag = np.array([[7, 8, 0], [1, 2, 3]], dtype=np.float64)
+    rhs = np.array([[[1, 1], [1, 1], [1, 1]], [[2, 2], [2, 2], [2, 2]]], dtype=np.float64)
     diagonals_format = 'sequence'
-    name = "complex_sequence"
-
-    input_dict = {
-        "diagonals": (superdiag, maindiag, subdiag),
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
+    name = 'matmul4'
+    input_dict = {'diagonals': (tf.convert_to_tensor(superdiag), tf.convert_to_tensor(maindiag), tf.convert_to_tensor(subdiag)), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7,8,9]]], dtype=np.float32)
-    rhs = np.array([[[1, 2], [3, 4], [5,6]]], dtype=np.float32)
+
+    # Input 5: Compact format, complex numbers
+    diagonals = np.array([[[1+1j, 2+2j, 3+3j], [4+4j, 5+5j, 6+6j], [7+7j, 8+8j, 9+9j]]], dtype=np.complex64)
+    rhs = np.array([[[1+1j, 1+1j], [1+1j, 1+1j], [1+1j, 1+1j]]], dtype=np.complex64)
     diagonals_format = 'compact'
-    name = None
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
+    name = 'matmul5'
+    input_dict = {'diagonals': tf.convert_to_tensor(diagonals), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7,8,9]]], dtype=np.float64)
-    rhs = np.array([[[1, 2], [3, 4], [5,6]]], dtype=np.float64)
+
+    # Input 6: Sequence format, complex numbers
+    superdiag = np.array([-1j, -1j, 0], dtype=np.complex128)
+    maindiag = np.array([2, 2j, 2], dtype=np.complex128)
+    subdiag = np.array([0, -1, -1j], dtype=np.complex128)
+    rhs = np.array([[1, 1], [1, 1j], [1j, 1]], dtype=np.complex128)
+    diagonals_format = 'sequence'
+    name = 'matmul6'
+    input_dict = {'diagonals': (tf.convert_to_tensor(superdiag), tf.convert_to_tensor(maindiag), tf.convert_to_tensor(subdiag)), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 7: Compact format, different rhs shape
+    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.float32)
+    rhs = np.array([[[1], [1], [1]]], dtype=np.float32)
     diagonals_format = 'compact'
-    name = None
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
+    name = 'matmul7'
+    input_dict = {'diagonals': tf.convert_to_tensor(diagonals), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-     # Input 11
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7,8,9]]], dtype=np.complex64)
-    rhs = np.array([[[1, 2], [3, 4], [5,6]]], dtype=np.complex64)
+
+    # Input 8: Sequence format, different rhs shape
+    superdiag = np.array([-1, -1, 0], dtype=np.float64)
+    maindiag = np.array([2, 2, 2], dtype=np.float64)
+    subdiag = np.array([0, -1, -1], dtype=np.float64)
+    rhs = np.array([[1], [1], [1]], dtype=np.float64)
+    diagonals_format = 'sequence'
+    name = 'matmul8'
+    input_dict = {'diagonals': (tf.convert_to_tensor(superdiag), tf.convert_to_tensor(maindiag), tf.convert_to_tensor(subdiag)), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Compact format, floats with negatives
+    diagonals = np.array([[[1.5, -2.5, 3.5], [-4.5, 5.5, -6.5], [7.5, -8.5, 9.5]]], dtype=np.float32)
+    rhs = np.array([[[1, -1], [-1, 1], [1, -1]]], dtype=np.float32)
     diagonals_format = 'compact'
-    name = None
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
+    name = 'matmul9'
+    input_dict = {'diagonals': tf.convert_to_tensor(diagonals), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12
-    diagonals = np.random.rand(3, 3, 3).astype(np.float32)
-    rhs = np.random.rand(3, 3, 4).astype(np.float32)
-    diagonals_format = 'compact'
-    name = None
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
+    # Input 10: Sequence format, floats with negatives
+    superdiag = np.array([-1.2, -1.3, 0], dtype=np.float64)
+    maindiag = np.array([2.4, -2.5, 2.6], dtype=np.float64)
+    subdiag = np.array([0, -1.7, -1.8], dtype=np.float64)
+    rhs = np.array([[1.1, -1.2], [-1.3, 1.4], [1.5, -1.6]], dtype=np.float64)
+    diagonals_format = 'sequence'
+    name = 'matmul10'
+    input_dict = {'diagonals': (tf.convert_to_tensor(superdiag), tf.convert_to_tensor(maindiag), tf.convert_to_tensor(subdiag)), 'rhs': tf.convert_to_tensor(rhs), 'diagonals_format': diagonals_format, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 13
-    diagonals = np.array([[[1, 2], [3, 4], [5, 6]],[[7, 8], [9, 10], [11, 12]]], dtype=np.float32)
-    rhs = np.array([[[1, 1], [1, 1], [1, 1]],[[2, 2], [2, 2], [2, 2]]], dtype=np.float32)
-    diagonals_format = 'compact'
-    name = None
-
-    input_dict = {
-        "diagonals": diagonals,
-        "rhs": rhs,
-        "diagonals_format": diagonals_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

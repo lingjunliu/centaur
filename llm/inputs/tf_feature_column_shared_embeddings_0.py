@@ -11,36 +11,169 @@ import copy
 def tf_feature_column_shared_embeddings_inputs():
     list_of_inputs = []
 
+    # Helper function to create categorical columns
     def create_categorical_column(key, vocabulary_list):
         return tf.feature_column.categorical_column_with_vocabulary_list(
-            key=key, vocabulary_list=vocabulary_list, dtype=tf.string, default_value=-1)
+            key=key, vocabulary_list=vocabulary_list, dtype=tf.string
+        )
 
-    # Input 1, valid
+    # Input 1: Basic valid input
     categorical_columns = [
         create_categorical_column("col1", ["a", "b", "c"]),
-        create_categorical_column("col2", ["a", "b", "c"])
+        create_categorical_column("col2", ["a", "b", "c"]),
     ]
-    dimension = 4
-    combiner = "mean"
-    initializer = tf.compat.v1.truncated_normal_initializer(mean=0.0, stddev=0.1)
-    shared_embedding_collection_name = "embedding_weights"
-    ckpt_to_load_from = None
-    tensor_name_in_ckpt = None
-    max_norm = None
-    trainable = True
-    use_safe_embedding_lookup = True
-
+    dimension = 8
     input_dict = {
         "categorical_columns": categorical_columns,
         "dimension": dimension,
-        "combiner": combiner,
-        "initializer": initializer,
-        "shared_embedding_collection_name": shared_embedding_collection_name,
-        "ckpt_to_load_from": ckpt_to_load_from,
-        "tensor_name_in_ckpt": tensor_name_in_ckpt,
-        "max_norm": max_norm,
-        "trainable": trainable,
-        "use_safe_embedding_lookup": use_safe_embedding_lookup
+        "combiner": "mean",
+        "initializer": tf.compat.v1.random_normal_initializer(mean=0.0, stddev=1.0),
+        "shared_embedding_collection_name": "shared_embedding",
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": None,
+        "trainable": True,
+        "use_safe_embedding_lookup": True,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Different dimension, combiner, and initializer
+    categorical_columns = [
+        create_categorical_column("col1", ["x", "y", "z"]),
+        create_categorical_column("col2", ["x", "y", "z"]),
+    ]
+    dimension = 16
+    input_dict = {
+        "categorical_columns": categorical_columns,
+        "dimension": dimension,
+        "combiner": "sqrtn",
+        "initializer": tf.compat.v1.zeros_initializer(),
+        "shared_embedding_collection_name": "another_embedding",
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": 1.0,
+        "trainable": False,
+        "use_safe_embedding_lookup": False,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: With max_norm
+    categorical_columns = [
+        create_categorical_column("col1", ["p", "q", "r"]),
+        create_categorical_column("col2", ["p", "q", "r"]),
+    ]
+    dimension = 4
+    input_dict = {
+        "categorical_columns": categorical_columns,
+        "dimension": dimension,
+        "combiner": "sum",
+        "initializer": tf.compat.v1.constant_initializer(0.5),
+        "shared_embedding_collection_name": "embedding_sum",
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": 0.5,
+        "trainable": True,
+        "use_safe_embedding_lookup": True,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Empty collection name
+    categorical_columns = [
+        create_categorical_column("col1", ["1", "2", "3"]),
+        create_categorical_column("col2", ["1", "2", "3"]),
+    ]
+    dimension = 32
+    input_dict = {
+        "categorical_columns": categorical_columns,
+        "dimension": dimension,
+        "combiner": "mean",
+        "initializer": tf.compat.v1.random_uniform_initializer(minval=-1.0, maxval=1.0),
+        "shared_embedding_collection_name": "",
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": None,
+        "trainable": False,
+        "use_safe_embedding_lookup": False,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Different vocabulary
+    categorical_columns = [
+        create_categorical_column("col_a", ["alpha", "beta"]),
+        create_categorical_column("col_b", ["alpha", "beta"]),
+    ]
+    dimension = 5
+    input_dict = {
+        "categorical_columns": categorical_columns,
+        "dimension": dimension,
+        "combiner": "sqrtn",
+        "initializer": tf.compat.v1.variance_scaling_initializer(),
+        "shared_embedding_collection_name": "vocab_diff",
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": 2.0,
+        "trainable": True,
+        "use_safe_embedding_lookup": False,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Different initializer
+    categorical_columns = [
+        create_categorical_column("col_x", ["l", "m", "n"]),
+        create_categorical_column("col_y", ["l", "m", "n"]),
+    ]
+    dimension = 7
+    input_dict = {
+        "categorical_columns": categorical_columns,
+        "dimension": dimension,
+        "combiner": "sum",
+        "initializer": tf.compat.v1.glorot_normal_initializer(),
+        "shared_embedding_collection_name": "glorot_init",
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": None,
+        "trainable": False,
+        "use_safe_embedding_lookup": True,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Small dimension
+    categorical_columns = [
+        create_categorical_column("col_1", ["a", "b", "c"]),
+        create_categorical_column("col_2", ["a", "b", "c"]),
+    ]
+    dimension = 1
+    input_dict = {
+        "categorical_columns": categorical_columns,
+        "dimension": dimension,
+        "combiner": "mean",
+        "initializer": tf.compat.v1.random_normal_initializer(mean=0.0, stddev=0.1),
+        "shared_embedding_collection_name": "dimension_1",
+        "ckpt_to_load_from": None,
+        "tensor_name_in_ckpt": None,
+        "max_norm": None,
+        "trainable": True,
+        "use_safe_embedding_lookup": True,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: ckpt_to_load_from and tensor_name_in_ckpt specified
+    categorical_columns = [
+        create_categorical_column("col1", ["a", "b", "c"]),
+        create_categorical_column("col2", ["a", "b", "c"]),
+    ]
+    dimension = 8
+    input_dict = {
+        "categorical_columns": categorical_columns,
+        "dimension": dimension,
+        "combiner": "mean",
+        "initializer": tf.compat.v1.random_normal_initializer(mean=0.0, stddev=1.0),
+        "shared_embedding_collection_name": "shared_embedding",
+        "ckpt_to_load_from": "model.ckpt",
+        "tensor_name_in_ckpt": "embedding_weights",
+        "max_norm": None,
+        "trainable": True,
+        "use_safe_embedding_lookup": True,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

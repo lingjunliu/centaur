@@ -11,73 +11,63 @@ import numpy as np
 def tf_data_experimental_service_WorkerServer_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="localhost:5000")
-    config = (worker_config,)
-    start = np.bool_(True)
+    # Input 1
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="localhost:5000")
+    start = np.array(True, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="127.0.0.1:5001")
-    config = (worker_config,)
-    start = np.bool_(False)
+    # Input 2
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="127.0.0.1:5001")
+    start = np.array(False, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="example.com:6000")
-    config = (worker_config,)
-    start = np.bool_(True)
+    # Input 3
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="example.com:8080")
+    start = np.array(True, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="myservice.org:7000")
-    config = (worker_config,)
-    start = np.bool_(False)
+    # Input 4
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="mydispatcher:1234")
+    start = np.array(False, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="192.168.1.100:8000")
-    config = (worker_config,)
-    start = np.bool_(True)
+    # Input 5
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="0.0.0.0:8888")
+    start = np.array(True, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="0.0.0.0:9000")
-    config = (worker_config,)
-    start = np.bool_(False)
+    # Input 6
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="long_dispatcher_name_0123456789:9999")
+    start = np.array(False, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="some_hostname:10000")
-    config = (worker_config,)
-    start = np.bool_(True)
+    # Input 7
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="some_remote_server:5005")
+    start = np.array(True, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="another_hostname:11000")
-    config = (worker_config,)
-    start = np.bool_(False)
+    # Input 8
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="another_server:5006")
+    start = np.array(False, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="third_hostname:12000")
-    config = (worker_config,)
-    start = np.bool_(True)
+    # Input 9
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="a_third_server:5007")
+    start = np.array(True, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10, valid
-    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="fourth_hostname:13000")
-    config = (worker_config,)
-    start = np.bool_(False)
+    # Input 10
+    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="yet_another_server:5008")
+    start = np.array(False, dtype=np.bool_)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -11,63 +11,63 @@ import copy
 def tf_io_match_filenames_once_inputs():
     list_of_inputs = []
 
-    # Input 1
-    pattern = tf.convert_to_tensor(np.array("*.txt").astype(np.str_), dtype=tf.string)
-    name = "file_pattern_1"
+    # Input 1: Simple glob pattern
+    pattern = tf.constant("*.txt", dtype=tf.string)
+    name = "txt_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    pattern = tf.convert_to_tensor(np.array("image*.png").astype(np.str_), dtype=tf.string)
-    name = "image_pattern_2"
+    # Input 2: Different glob pattern
+    pattern = tf.constant("data?.csv", dtype=tf.string)
+    name = "csv_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    pattern = tf.convert_to_tensor(np.array("data_*.csv").astype(np.str_), dtype=tf.string)
-    name = "data_pattern_3"
+    # Input 3: Pattern with directory
+    pattern = tf.constant("mydir/*.jpg", dtype=tf.string)
+    name = "jpg_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    pattern = tf.convert_to_tensor(np.array("log_*.log").astype(np.str_), dtype=tf.string)
-    name = "log_pattern_4"
+    # Input 4: More specific pattern
+    pattern = tf.constant("log_2023-12-??.txt", dtype=tf.string)
+    name = "log_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    pattern = tf.convert_to_tensor(np.array("*").astype(np.str_), dtype=tf.string)
-    name = "all_files_5"
+    # Input 5: Pattern with subdirectories
+    pattern = tf.constant("path/to/data/*", dtype=tf.string)
+    name = "data_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    pattern = tf.convert_to_tensor(np.array("file?.dat").astype(np.str_), dtype=tf.string)
-    name = "file_question_6"
+    # Input 6: No name
+    pattern = tf.constant("*.py", dtype=tf.string)
+    name = None
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    pattern = tf.convert_to_tensor(np.array("backup.*").astype(np.str_), dtype=tf.string)
-    name = "backup_files_7"
+    # Input 7: Empty pattern
+    pattern = tf.constant("", dtype=tf.string)
+    name = "empty_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: A tensor of file patterns
-    pattern = tf.convert_to_tensor(np.array(["*.txt", "*.csv"]).astype(np.str_), dtype=tf.string)
-    name = "multiple_patterns_8"
+    # Input 8: Different name
+    pattern = tf.constant("*", dtype=tf.string)
+    name = "all_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    pattern = tf.convert_to_tensor(np.array("results_*.out").astype(np.str_), dtype=tf.string)
-    name = "results_9"
+    # Input 9: Multiple patterns
+    pattern = tf.constant(["*.txt", "*.csv"], dtype=tf.string)
+    name = "txt_csv_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    pattern = tf.convert_to_tensor(np.array("temp_*.*").astype(np.str_), dtype=tf.string)
-    name = "temp_files_10"
+    # Input 10: Pattern with special characters
+    pattern = tf.constant("file[0-9]*.dat", dtype=tf.string)
+    name = "dat_files"
     input_dict = {"pattern": pattern, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

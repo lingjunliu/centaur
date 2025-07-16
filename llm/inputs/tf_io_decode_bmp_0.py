@@ -11,74 +11,105 @@ import copy
 def tf_io_decode_bmp_inputs():
     list_of_inputs = []
 
-    # Input 1: Minimal valid input
-    contents = np.array(b'\x42\x4d\x36\x00\x01\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype='uint8')
-    channels = 0
-    name = None
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
+    # Input 1: Minimal valid BMP data, channels=0, full header
+    bmp_data_1 = np.array(b'\x42\x4D\x36\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+
+    input_dict = {
+        "contents": bmp_data_1,
+        "channels": 0,
+        "name": "bmp_1"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Specify channels = 3
-    contents = np.array(b'\x42\x4d\x36\x00\x01\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype='uint8')
-    channels = 3
-    name = None
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
+    # Input 2: Minimal valid BMP data, channels=3, full header
+    bmp_data_2 = np.array(b'\x42\x4D\x36\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+
+    input_dict = {
+        "contents": bmp_data_2,
+        "channels": 3,
+        "name": "bmp_2"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Specify channels = 4
-    contents = np.array(b'\x42\x4d\x36\x00\x01\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype='uint8')
-    channels = 4
-    name = None
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
+    # Input 3: Minimal valid BMP data, channels=4, full header
+    bmp_data_3 = np.array(b'\x42\x4D\x36\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_3,
+        "channels": 4,
+        "name": "bmp_3"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 4: with name
-    contents = np.array(b'\x42\x4d\x36\x00\x01\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype='uint8')
-    channels = 0
-    name = "bmp_decode_test"
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
+    # Input 4: Slightly larger BMP, channels=0, full header, some data
+    bmp_data_4 = np.array(b'\x42\x4D\x42\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_4,
+        "channels": 0,
+        "name": "bmp_4"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different bmp data
-    contents = np.array(b'BMZ\x0c\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x80\x0b\x00\x00\x13\x0b\x00\x00\x13\x0b\x00\x00', dtype='uint8')
-    channels = 0
-    name = None
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
+    # Input 5: Slightly larger BMP, channels=3, full header, some data
+    bmp_data_5 = np.array(b'\x42\x4D\x42\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_5,
+        "channels": 3,
+        "name": "bmp_5"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Channels 3 with different bmp data
-    contents = np.array(b'BMZ\x0c\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x80\x0b\x00\x00\x13\x0b\x00\x00\x13\x0b\x00\x00', dtype='uint8')
-    channels = 3
-    name = None
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Channels 4 with different bmp data
-    contents = np.array(b'BMZ\x0c\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x80\x0b\x00\x00\x13\x0b\x00\x00\x13\x0b\x00\x00', dtype='uint8')
-    channels = 4
-    name = None
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Name and different bmp data
-    contents = np.array(b'BMZ\x0c\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x80\x0b\x00\x00\x13\x0b\x00\x00\x13\x0b\x00\x00', dtype='uint8')
-    channels = 0
-    name = "different_bmp"
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Minimal bmp with different name
-    contents = np.array(b'\x42\x4d\x36\x00\x01\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype='uint8')
-    channels = 0
-    name = "minimal_bmp"
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
+    # Input 6: Slightly larger BMP, channels=4, full header, some data
+    bmp_data_6 = np.array(b'\x42\x4D\x42\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_6,
+        "channels": 4,
+        "name": "bmp_6"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10: Different name, channels = 3
-    contents = np.array(b'BMZ\x0c\x00\x00\x00\x00\x00\x006\x00\x00\x00(\x00\x00\x00\x01\x00\x00\x00\x02\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x80\x0b\x00\x00\x13\x0b\x00\x00\x13\x0b\x00\x00', dtype='uint8')
-    channels = 3
-    name = "diff_name_chan3"
-    input_dict = {"contents": contents.tobytes(), "channels": channels, "name": name}
+    # Input 7: Different name, full header, some data
+    bmp_data_7 = np.array(b'\x42\x4D\x36\x00\x00\x00\x00\x00\x00\x00\x36\x00\x00\x00\x28\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_7,
+        "channels": 0,
+        "name": "different_name"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Channels = 0, Different BMP, complete header and pixel data
+    bmp_data_8 = np.array(b'\x42\x4d\x7a\x00\x00\x00\x00\x00\x00\x00\x76\x00\x00\x00\x28\x00\x00\x00\x0a\x00\x00\x00\x0a\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_8,
+        "channels": 0,
+        "name": "bmp_8"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: channels = 3, different bmp, complete header and pixel data
+    bmp_data_9 = np.array(b'\x42\x4d\x7a\x00\x00\x00\x00\x00\x00\x00\x76\x00\x00\x00\x28\x00\x00\x00\x0a\x00\x00\x00\x0a\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_9,
+        "channels": 3,
+        "name": "bmp_9"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: channels = 4, different bmp, complete header and pixel data
+    bmp_data_10 = np.array(b'\x42\x4d\x7a\x00\x00\x00\x00\x00\x00\x00\x76\x00\x00\x00\x28\x00\x00\x00\x0a\x00\x00\x00\x0a\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_10,
+        "channels": 4,
+        "name": "bmp_10"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Valid BMP with RGB data
+    bmp_data_11 = np.array(b'BMv\x00\x00\x00\x00\x00\x00\x00v\x00\x00\x00(\x00\x00\x00\x01\x00\x00\x00\x01\x00\x00\x00\x01\x00\x18\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xff\xff\x00', dtype=np.string_)
+    input_dict = {
+        "contents": bmp_data_11,
+        "channels": 0,
+        "name": "bmp_11"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -11,78 +11,94 @@ import copy
 def tf_feature_column_indicator_column_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple vocabulary list
+    # Input 1: categorical_column_with_vocabulary_list
     categorical_column1 = tf.feature_column.categorical_column_with_vocabulary_list(
-        'feature1', vocabulary_list=['a', 'b', 'c'])
+        'colors', vocabulary_list=['red', 'green', 'blue'])
     input_dict1 = {'categorical_column': [categorical_column1]}
     list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Vocabulary file
-    categorical_column2 = tf.feature_column.categorical_column_with_vocabulary_file(
-        'feature2', vocabulary_file='vocabulary.txt', vocabulary_size=3)
-    with open('vocabulary.txt', 'w') as f:
-        f.write('x\ny\nz')
+    # Input 2: categorical_column_with_identity
+    categorical_column2 = tf.feature_column.categorical_column_with_identity(
+        key='user_id', num_buckets=1000)
     input_dict2 = {'categorical_column': [categorical_column2]}
     list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: Identity
-    categorical_column3 = tf.feature_column.categorical_column_with_identity(
-        'feature3', num_buckets=5)
+    # Input 3: categorical_column_with_hash_bucket
+    categorical_column3 = tf.feature_column.categorical_column_with_hash_bucket(
+        key='text', hash_bucket_size=100)
     input_dict3 = {'categorical_column': [categorical_column3]}
     list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4: Hash bucket
-    categorical_column4 = tf.feature_column.categorical_column_with_hash_bucket(
-        'feature4', hash_bucket_size=10)
-    input_dict4 = {'categorical_column': [categorical_column4]}
+    # Input 4: crossed_column - Making sure vocabulary lists have uniform length for crossing.
+    occupation_vocab = ['doctor', 'engineer', 'programmer', 'teacher', 'nurse']
+    country_buckets = 5
+    categorical_column_occupation = tf.feature_column.categorical_column_with_vocabulary_list(
+        'occupation', vocabulary_list=occupation_vocab)
+    categorical_column_country = tf.feature_column.categorical_column_with_identity(
+        key='country_id', num_buckets=country_buckets)
+
+    feature_columns = [categorical_column_occupation, categorical_column_country]
+    crossed_column1 = tf.feature_column.crossed_column(
+        feature_columns, hash_bucket_size=1000)
+    input_dict4 = {'categorical_column': [crossed_column1]}
     list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5: Weighted categorical column
-    categorical_column5 = tf.feature_column.categorical_column_with_vocabulary_list(
-        'feature5', vocabulary_list=['p', 'q', 'r'])
-    weighted_column = tf.feature_column.weighted_categorical_column(
-        categorical_column5, weight_feature_key='weights')
-    input_dict5 = {'categorical_column': [weighted_column]}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 5: categorical_column_with_vocabulary_file
+    try:
+        with open("city_vocabulary.txt", "w") as f:
+            f.write("london\nparis\ntokyo\nnew_york\nberlin")
+        categorical_column5 = tf.feature_column.categorical_column_with_vocabulary_file(
+            key='city', vocabulary_file='city_vocabulary.txt', vocabulary_size=5)
+        input_dict5 = {'categorical_column': [categorical_column5]}
+        list_of_inputs.append(copy.deepcopy(input_dict5))
+    except:
+        pass
 
-    # Input 6: Crossed column. Taking only valid categorical columns for crossing
-    categorical_column6_1 = tf.feature_column.categorical_column_with_vocabulary_list(
-        'feature6_1', vocabulary_list=['u', 'v'])
-    categorical_column6_2 = tf.feature_column.categorical_column_with_vocabulary_list(
-        'feature6_2', vocabulary_list=['w', 'x'])
-    crossed_column = tf.feature_column.crossed_column(
-        [categorical_column6_1, categorical_column6_2], hash_bucket_size=15)
-    input_dict6 = {'categorical_column': [crossed_column]}
+    # Input 6: A list of CategoricalColumns
+    categorical_column6 = tf.feature_column.categorical_column_with_vocabulary_list(
+        'department', vocabulary_list=['sales', 'marketing', 'engineering'])
+    categorical_column7 = tf.feature_column.categorical_column_with_identity(
+        key='employee_id', num_buckets=500)
+    input_dict6 = {'categorical_column': [categorical_column6, categorical_column7]}
     list_of_inputs.append(copy.deepcopy(input_dict6))
-    
-    # Input 7:  Taking only one feature column
-    categorical_column7_1 = tf.feature_column.categorical_column_with_vocabulary_list(
-        'feature7_1', vocabulary_list=['s', 't'])
-    input_dict7 = {'categorical_column': [categorical_column7_1]}
+
+    # Input 7: crossed_column - Making sure vocabulary lists have uniform length for crossing.
+    product_vocab = ['A', 'B', 'C', 'D', 'E']
+    customer_buckets = 10
+
+    categorical_column_product = tf.feature_column.categorical_column_with_vocabulary_list(
+        'product', vocabulary_list=product_vocab)
+    categorical_column_customer = tf.feature_column.categorical_column_with_identity(
+        key='customer_id', num_buckets=customer_buckets)
+
+    feature_columns = [categorical_column_product, categorical_column_customer]
+    crossed_column2 = tf.feature_column.crossed_column(
+        feature_columns, hash_bucket_size=5000)
+    input_dict7 = {'categorical_column': [crossed_column2]}
     list_of_inputs.append(copy.deepcopy(input_dict7))
 
-    # Input 8: Taking only vocabulary list for crossed column as other types are giving errors
-    categorical_column8_1 = tf.feature_column.categorical_column_with_vocabulary_list(
-        'feature8_1', vocabulary_list=['alpha', 'beta'])
-    categorical_column8_2 = tf.feature_column.categorical_column_with_vocabulary_list(
-        'feature8_2', vocabulary_list=['gamma', 'delta'])
-    crossed_column2 = tf.feature_column.crossed_column(
-        [categorical_column8_1, categorical_column8_2], hash_bucket_size=20)
-    input_dict8 = {'categorical_column': [crossed_column2]}
+    # Input 8: categorical_column_with_hash_bucket with a smaller hash_bucket_size
+    categorical_column8 = tf.feature_column.categorical_column_with_hash_bucket(
+        key='keyword', hash_bucket_size=10)
+    input_dict8 = {'categorical_column': [categorical_column8]}
     list_of_inputs.append(copy.deepcopy(input_dict8))
 
-    # Input 10: Larger number of buckets. Using vocabulary list instead of identity
-    categorical_column10 = tf.feature_column.categorical_column_with_vocabulary_list(
-        'feature10', vocabulary_list=[str(i) for i in range(100)])
+    # Input 9: categorical_column_with_vocabulary_file
+    try:
+        with open("state_vocabulary.txt", "w") as f:
+            f.write("california\ntexas\nflorida\nnew_york\n")
+        categorical_column9 = tf.feature_column.categorical_column_with_vocabulary_file(
+            key='state', vocabulary_file='state_vocabulary.txt', vocabulary_size=5)
+        input_dict9 = {'categorical_column': [categorical_column9]}
+        list_of_inputs.append(copy.deepcopy(input_dict9))
+    except:
+        pass
+
+    # Input 10: Another categorical_column_with_identity
+    categorical_column10 = tf.feature_column.categorical_column_with_identity(
+        key='zip_code', num_buckets=200)
     input_dict10 = {'categorical_column': [categorical_column10]}
     list_of_inputs.append(copy.deepcopy(input_dict10))
-    
-    # Input 11: Add a valid input after removing the invalid one from Input 9
-    categorical_column11 = tf.feature_column.categorical_column_with_vocabulary_list(
-            'feature11', vocabulary_list=['d', 'e'])
-    input_dict11 = {'categorical_column': [categorical_column11]}
-    list_of_inputs.append(copy.deepcopy(input_dict11))
-
 
     return list_of_inputs
 

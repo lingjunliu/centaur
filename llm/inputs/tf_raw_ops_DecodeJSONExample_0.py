@@ -8,84 +8,83 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_DecodeJSONExample_inputs():
+def tf_raw_ops_decode_json_example_inputs():
     list_of_inputs = []
 
     # Input 1
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"float_list\":{\"value\":[1.0, 2.0]}}}}}"], dtype=np.string_)
-    name = None
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    json_examples = tf.constant(['{"features": {"feature": {"f1": {"float_list": {"value": [1.0, 2.0]}}}}}'])
+    name = "decode_example_1"
+
+
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
 
     # Input 2
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"int64_list\":{\"value\":[1, 2]}}}}}"], dtype=np.string_)
-    name = ""
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    json_examples = tf.constant(['{"features": {"feature": {"i1": {"int64_list": {"value": [1, 2, 3]}}}}}'])
+    name = "decode_example_2"
+
+
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
 
     # Input 3
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"bytes_list\":{\"value\":[b'abc', b'def']}}}}}"], dtype=np.string_)
-    name = "DecodeJSONExample_1"
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    json_examples = tf.constant(['{"features": {"feature": {"s1": {"bytes_list": {"value": ["test".encode()]}}}}}'])
+    name = "decode_example_3"
+
+
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
 
     # Input 4
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"float_list\":{\"value\":[1.0]}}, \"f2\":{\"int64_list\":{\"value\":[1]}}}}}",
-                            "{\"features\":{\"feature\":{\"f1\":{\"float_list\":{\"value\":[2.0]}}, \"f2\":{\"int64_list\":{\"value\":[2]}}}}}",
-                            "{\"features\":{\"feature\":{\"f1\":{\"float_list\":{\"value\":[3.0]}}, \"f2\":{\"int64_list\":{\"value\":[3]}}}}}"], dtype=np.string_)
-    name = "DecodeJSONExample_2"
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    json_examples = tf.constant(['{"features": {"feature": {"f1": {"float_list": {"value": [1.0]}}, "i1": {"int64_list": {"value": [1]}}, "s1": {"bytes_list": {"value": ["test".encode()]}}}}}'])
+    name = "decode_example_4"
+
+
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
 
     # Input 5
-    json_examples = np.array(["{\"features\":{\"feature\":{}}}", "{\"features\":{\"feature\":{}}}", "{\"features\":{\"feature\":{}}}"], dtype=np.string_)
-    name = "DecodeJSONExample_3"
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    json_examples = tf.constant(['{"features": {"feature": {}}}'])
+    name = "decode_example_5"
 
-    # Input 6
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"bytes_list\":{\"value\":[b'']}}}}}"], dtype=np.string_)
-    name = "DecodeJSONExample_4"
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"float_list\":{\"value\":[]}}}}}"], dtype=np.string_)
-    name = "DecodeJSONExample_5"
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
 
-    # Input 8
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"int64_list\":{\"value\":[]}}}}}"], dtype=np.string_)
-    name = "DecodeJSONExample_6"
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Multiple JSON examples
+    json_examples = tf.constant(['{"features": {"feature": {"f1": {"float_list": {"value": [1.0]}}}}}', '{"features": {"feature": {"i1": {"int64_list": {"value": [1]}}}}}'])
+    name = "decode_example_6"
 
-    # Input 9: Multiple Features, some empty
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"int64_list\":{\"value\":[1,2]}}, \"f2\": {}}}}"], dtype=np.string_)
-    name = "DecodeJSONExample_7"
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Features with empty lists and strings
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"bytes_list\":{\"value\":[b'']}}, \"f2\": {\"float_list\": {\"value\": []}}}}}",
-                             "{\"features\":{\"feature\":{\"f1\":{\"bytes_list\":{\"value\":[]}}, \"f2\": {\"float_list\": {\"value\": [1.0, 2.0]}}}}}",
-                             "{\"features\":{\"feature\":{\"f1\":{\"bytes_list\":{\"value\":[b'abc']}}, \"f2\": {\"float_list\": {\"value\": []}}}}}"], dtype=np.string_)
-    name = "DecodeJSONExample_8"
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
 
-    # Input 11
-    json_examples = np.array(["{\"features\":{\"feature\":{\"f1\":{\"bytes_list\":{\"value\":[b'abc', b'def']}}}}}"], dtype=np.string_)
-    name = b"DecodeJSONExample_1"
+    # Input 7: Empty string
+    json_examples = tf.constant([''])
+    name = "decode_example_7"
 
-    input_dict = {"json_examples": json_examples, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
+
+    # Input 8: Example with multiple features
+    json_examples = tf.constant(['{"features": {"feature": {"f1": {"float_list": {"value": [1.0, 2.0, 3.0]}}, "i1": {"int64_list": {"value": [4, 5, 6]}}, "s1": {"bytes_list": {"value": ["a".encode(), "b".encode(), "c".encode()]}}}}}'])
+    name = "decode_example_8"
+
+
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
+
+    # Input 9: With FeatureList
+    json_examples = tf.constant(['{"feature_lists": {"feature_list": {"f1": {"feature": [{"float_list": {"value": [1.0]}}]}}}}'])
+    name = "decode_example_9"
+
+
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
+
+    # Input 10: More complex FeatureList
+    json_examples = tf.constant(['{"feature_lists": {"feature_list": {"f1": {"feature": [{"float_list": {"value": [1.0, 2.0]}}, {"float_list": {"value": [3.0, 4.0]}}]}}}}'])
+    name = "decode_example_10"
+
+
+    list_of_inputs.append({"json_examples": json_examples, "name": name})
+
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.DecodeJSONExample"] = tf_raw_ops_DecodeJSONExample_inputs()
+generated_inputs["tf.raw_ops.DecodeJSONExample"] = tf_raw_ops_decode_json_example_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -12,65 +12,75 @@ def tf_raw_ops_barrier_ready_size_inputs():
     list_of_inputs = []
 
     # Input 1
-    handle = tf.constant(np.array(b"barrier_handle_1"), dtype=tf.string)
-    name = "op_name_1"
+    handle = tf.compat.as_bytes("barrier_handle_1")
+    handle = tf.constant(handle)
+    name = "barrier_ready_size_op_1"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    handle = tf.constant(np.array(b"barrier_handle_2"), dtype=tf.string)
+    handle = tf.compat.as_bytes("barrier_handle_2")
+    handle = tf.constant(handle)
     name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    handle = tf.constant(np.array(b"another_barrier"), dtype=tf.string)
-    name = "ready_size_op"
+    handle = tf.compat.as_bytes("a_different_barrier_handle")
+    handle = tf.constant(handle)
+    name = "different_name"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    handle = tf.constant(np.array(b""), dtype=tf.string)
-    name = "empty_handle"
+    handle = tf.compat.as_bytes("another_handle")
+    handle = tf.constant(handle)
+    name = "another_op_name"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    handle = tf.constant(np.array(b"barrier_42"), dtype=tf.string)
-    name = ""
+    handle = tf.compat.as_bytes("barrier5")
+    handle = tf.constant(handle)
+    name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    handle = tf.constant(np.array(b"very_long_barrier_handle_name"), dtype=tf.string)
-    name = "a_very_long_op_name"
+    handle = tf.compat.as_bytes("barrier6")
+    handle = tf.constant(handle)
+    name = "barrier6_op"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 7
-    handle = tf.constant(np.array(b"handle_with_numbers_123"), dtype=tf.string)
-    name = "numbers_in_name_456"
+    # Input 7
+    handle = tf.compat.as_bytes("my_barrier_7")
+    handle = tf.constant(handle)
+    name = "my_op_7"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    handle = tf.constant(np.array(b"handle_with_special_chars"), dtype=tf.string)
-    name = "special_chars"
+    handle = tf.compat.as_bytes("test_barrier_8")
+    handle = tf.constant(handle)
+    name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    handle = tf.constant(np.array(b"UTF-8_handle"), dtype=tf.string)
-    name = "UTF-8_name"
+    handle = tf.compat.as_bytes("complex_barrier_9")
+    handle = tf.constant(handle)
+    name = "complex_op_9"
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    handle = tf.constant(np.array(b"handle_with_space"), dtype=tf.string)
-    name = "name with space"
+    handle = tf.compat.as_bytes("barrier_handle_10")
+    handle = tf.constant(handle)
+    name = None
     input_dict = {"handle": handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs = {}

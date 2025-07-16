@@ -12,9 +12,9 @@ def tf_io_decode_proto_inputs():
     list_of_inputs = []
 
     # Input 1
-    bytes_val = np.array([b'\x08\x01', b'\x10\x02'], dtype=np.object_)
+    bytes_val = np.array([b'\x08\x01'], dtype=np.string_)
     message_type = "test.TestMessage"
-    field_names = ["field1"]
+    field_names = ["int_field"]
     output_types = [tf.int32]
     descriptor_source = "local://"
     message_format = "binary"
@@ -32,6 +32,95 @@ def tf_io_decode_proto_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    bytes_val = np.array([b'\x08\x02'], dtype=np.string_)
+    message_type = "test.TestMessage"
+    field_names = ["int_field"]
+    output_types = [tf.int64]
+    descriptor_source = ""
+    message_format = "binary"
+    sanitize = True
+    name = "decode_proto_2"
+
+    input_dict = {
+        "bytes": bytes_val,
+        "message_type": message_type,
+        "field_names": field_names,
+        "output_types": output_types,
+        "descriptor_source": descriptor_source,
+        "message_format": message_format,
+        "sanitize": sanitize,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    bytes_val = np.array([b'field1: "abc"'], dtype=np.string_)
+    message_type = "test.TestMessage"
+    field_names = ["field1"]
+    output_types = [tf.string]
+    descriptor_source = "local://"
+    message_format = "text"
+    sanitize = False
+    name = "decode_proto_3"
+
+    input_dict = {
+        "bytes": bytes_val,
+        "message_type": message_type,
+        "field_names": field_names,
+        "output_types": output_types,
+        "descriptor_source": descriptor_source,
+        "message_format": message_format,
+        "sanitize": sanitize,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    bytes_val = np.array([b'\x00'], dtype=np.string_)
+    message_type = "test.TestMessage"
+    field_names = ["bool_field"]
+    output_types = [tf.bool]
+    descriptor_source = "local://"
+    message_format = "binary"
+    sanitize = False
+    name = "decode_proto_4"
+
+    input_dict = {
+        "bytes": bytes_val,
+        "message_type": message_type,
+        "field_names": field_names,
+        "output_types": output_types,
+        "descriptor_source": descriptor_source,
+        "message_format": message_format,
+        "sanitize": sanitize,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 5
+    bytes_val = np.array([b'\x08\x01'], dtype=np.string_)
+    message_type = "test.TestMessage"
+    field_names = ["int_field"]
+    output_types = [tf.int32]
+    descriptor_source = "local://"
+    message_format = "binary"
+    sanitize = False
+    name = "decode_proto_5"
+
+    input_dict = {
+        "bytes": bytes_val,
+        "message_type": message_type,
+        "field_names": field_names,
+        "output_types": output_types,
+        "descriptor_source": descriptor_source,
+        "message_format": message_format,
+        "sanitize": sanitize,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

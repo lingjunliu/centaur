@@ -11,11 +11,11 @@ import copy
 def tf_feature_column_sequence_categorical_column_with_vocabulary_list_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple string vocabulary
+    # Input 1: Basic string vocabulary
     input_dict = {
-        'key': 'colors',
-        'vocabulary_list': ['R', 'G', 'B'],
-        'dtype': np.dtype(np.str_),
+        'key': 'color',
+        'vocabulary_list': ['red', 'green', 'blue'],
+        'dtype': np.dtype('object'),
         'default_value': -1,
         'num_oov_buckets': 0
     }
@@ -23,9 +23,9 @@ def tf_feature_column_sequence_categorical_column_with_vocabulary_list_inputs():
 
     # Input 2: Integer vocabulary
     input_dict = {
-        'key': 'numbers',
+        'key': 'number',
         'vocabulary_list': [1, 2, 3, 4, 5],
-        'dtype': np.dtype(np.int64),
+        'dtype': np.dtype('int64'),
         'default_value': 0,
         'num_oov_buckets': 0
     }
@@ -33,9 +33,9 @@ def tf_feature_column_sequence_categorical_column_with_vocabulary_list_inputs():
 
     # Input 3: String vocabulary with OOV buckets
     input_dict = {
-        'key': 'cities',
-        'vocabulary_list': ['London', 'Paris', 'Tokyo'],
-        'dtype': np.dtype(np.str_),
+        'key': 'city',
+        'vocabulary_list': ['london', 'paris', 'tokyo'],
+        'dtype': np.dtype('object'),
         'default_value': -1,
         'num_oov_buckets': 2
     }
@@ -43,70 +43,80 @@ def tf_feature_column_sequence_categorical_column_with_vocabulary_list_inputs():
 
     # Input 4: Integer vocabulary with default value
     input_dict = {
-        'key': 'ages',
+        'key': 'age',
         'vocabulary_list': [18, 21, 25, 30],
-        'dtype': np.dtype(np.int32),
+        'dtype': np.dtype('int32'),
         'default_value': -2,
         'num_oov_buckets': 0
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Mixed string vocabulary - REMOVING '123' to ensure all elements are string
+    # Input 5: Empty vocabulary_list (should raise error but test input)
     input_dict = {
-        'key': 'items',
-        'vocabulary_list': ['apple', 'banana', 'cherry'],
-        'dtype': np.dtype(np.str_),
+        'key': 'empty',
+        'vocabulary_list': [],
+        'dtype': np.dtype('object'),
         'default_value': -1,
         'num_oov_buckets': 0
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Larger number of OOV buckets
+    # Input 6: String vocabulary with mixed case
     input_dict = {
-        'key': 'large_oov',
-        'vocabulary_list': ['A', 'B'],
-        'dtype': np.dtype(np.str_),
+        'key': 'fruit',
+        'vocabulary_list': ['Apple', 'banana', 'ORANGE'],
+        'dtype': np.dtype('object'),
         'default_value': -1,
-        'num_oov_buckets': 5
+        'num_oov_buckets': 1
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Negative numbers in vocabulary
+    # Input 7: Integer vocabulary with negative values
     input_dict = {
-        'key': 'negative_numbers',
-        'vocabulary_list': [-1, -2, -3, 0, 1],
-        'dtype': np.dtype(np.int32),
-        'default_value': -4,
-        'num_oov_buckets': 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: More vocabulary items
-    input_dict = {
-        'key': 'many_items',
-        'vocabulary_list': [str(i) for i in range(100)],
-        'dtype': np.dtype(np.str_),
-        'default_value': -1,
-        'num_oov_buckets': 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Different default value
-    input_dict = {
-        'key': 'default_value_test',
-        'vocabulary_list': ['x', 'y', 'z'],
-        'dtype': np.dtype(np.str_),
-        'default_value': 10,
-        'num_oov_buckets': 0
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Different dtype (int16)
-    input_dict = {
-        'key': 'int16_numbers',
-        'vocabulary_list': [1, 2, 3],
-        'dtype': np.dtype(np.int16),
+        'key': 'score',
+        'vocabulary_list': [-10, -5, 0, 5, 10],
+        'dtype': np.dtype('int64'),
         'default_value': 0,
+        'num_oov_buckets': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: String vocabulary with special characters
+    input_dict = {
+        'key': 'symbol',
+        'vocabulary_list': ['!', '@', '#', '$', '%'],
+        'dtype': np.dtype('object'),
+        'default_value': -1,
+        'num_oov_buckets': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 9: Integer vocabulary, large numbers
+    input_dict = {
+        'key': 'large_number',
+        'vocabulary_list': [1000000, 2000000, 3000000],
+        'dtype': np.dtype('int64'),
+        'default_value': 0,
+        'num_oov_buckets': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Dtype inferred from list of strings
+    input_dict = {
+        'key': 'profession',
+        'vocabulary_list': ['doctor', 'engineer', 'teacher'],
+        'dtype': None,
+        'default_value': -1,
+        'num_oov_buckets': 0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: String Vocabulary with numpy strings
+    input_dict = {
+        'key': 'location',
+        'vocabulary_list': [np.array('USA'), np.array('Canada'), np.array('Mexico')],
+        'dtype': np.dtype('object'),
+        'default_value': -1,
         'num_oov_buckets': 0
     }
     list_of_inputs.append(copy.deepcopy(input_dict))

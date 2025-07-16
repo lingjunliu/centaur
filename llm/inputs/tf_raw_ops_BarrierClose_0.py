@@ -8,133 +8,133 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_barrier_close_inputs():
+def tf_raw_ops_BarrierClose_inputs():
     list_of_inputs = []
 
     # Input 1
-    handle = np.array("barrier_handle").astype(np.object_)
-    cancel_pending_enqueues = np.array(False).astype(np.bool_)
-    name = None
+    handle = tf.constant("barrier_handle")
+    cancel_pending_enqueues = np.bool_(False)
+    name = "close_barrier_1"
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    handle = np.array("another_barrier").astype(np.object_)
-    cancel_pending_enqueues = np.array(True).astype(np.bool_)
-    name = "close_barrier_op"
+    handle = tf.constant("another_barrier")
+    cancel_pending_enqueues = np.bool_(True)
+    name = None
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    handle = np.array("barrier3").astype(np.object_)
-    cancel_pending_enqueues = np.array(False).astype(np.bool_)
-    name = "close_op_3"
+    handle = tf.constant("test_barrier")
+    cancel_pending_enqueues = np.bool_(False)
+    name = ""
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    handle = np.array("barrier4").astype(np.object_)
-    cancel_pending_enqueues = np.array(True).astype(np.bool_)
-    name = None
+    handle = tf.constant("multi_word_barrier")
+    cancel_pending_enqueues = np.bool_(True)
+    name = "complex_name_with_numbers_123"
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    handle = np.array("barrier5").astype(np.object_)
-    cancel_pending_enqueues = np.array(False).astype(np.bool_)
-    name = None
+    handle = tf.constant("empty_barrier")
+    cancel_pending_enqueues = np.bool_(False)
+    name = "empty_name"
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    handle = np.array("barrier6").astype(np.object_)
-    cancel_pending_enqueues = np.array(True).astype(np.bool_)
-    name = "closing_time"
+    handle = tf.constant("barrier_6")
+    cancel_pending_enqueues = np.bool_(True)
+    name = "name_6"
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    handle = np.array("barrier7").astype(np.object_)
-    cancel_pending_enqueues = np.array(False).astype(np.bool_)
-    name = "barrier_7_close"
+    handle = tf.constant("barrier_7")
+    cancel_pending_enqueues = np.bool_(False)
+    name = "name_7"
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    handle = np.array("barrier8").astype(np.object_)
-    cancel_pending_enqueues = np.array(True).astype(np.bool_)
-    name = "close8"
+    handle = tf.constant("barrier_8")
+    cancel_pending_enqueues = np.bool_(True)
+    name = "name_8"
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    handle = np.array("barrier9").astype(np.object_)
-    cancel_pending_enqueues = np.array(False).astype(np.bool_)
-    name = None
+    handle = tf.constant("barrier_9")
+    cancel_pending_enqueues = np.bool_(False)
+    name = "name_9"
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    handle = np.array("barrier10").astype(np.object_)
-    cancel_pending_enqueues = np.array(True).astype(np.bool_)
-    name = None
+    handle = tf.constant("barrier_10")
+    cancel_pending_enqueues = np.bool_(True)
+    name = "name_10"
 
     input_dict = {
+        "handle": handle,
         "cancel_pending_enqueues": cancel_pending_enqueues,
-        "name": name,
-        "handle": handle
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.BarrierClose"] = tf_raw_ops_barrier_close_inputs()
+generated_inputs["tf.raw_ops.BarrierClose"] = tf_raw_ops_BarrierClose_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

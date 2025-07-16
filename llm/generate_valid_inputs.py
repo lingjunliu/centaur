@@ -182,7 +182,7 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
     model = "gemini-2.0-flash"
     gemini_key = os.getenv("gemini_key")
 
-    print(f"Running code generation for {api} with suffix {suffix} after 6 seconds...")
+    print(f"{bcolors.OKBLUE}Running code generation for {api} with suffix {suffix} after 6 seconds...{bcolors.ENDC}")
     logger.info(f"[{api}] [Suffix: {suffix}].\n\n")
     time.sleep(6)
     client = genai.Client(api_key=gemini_key)
@@ -192,8 +192,13 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
         logger.info(f"[Prompt]\n\n{prompt}\n\n")
         response = chat.send_message(prompt)
         logger.info(f"[Response]\n\n{response.text}\n\n")
+    except genai.errors.ServerError as ge:
+        print(f"{bcolors.WARNING}Server overloaded. Error: {str(ge)}{bcolors.ENDC}")
+        print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
+        time.sleep(10)
+        return generate_inputs(api, suffix=suffix, max_attempts=max_attempts, lib=lib)
     except Exception as e:
-        print(f"Error while sending message to Gemini API: {e}")
+        print(f"{bcolors.FAIL}Error while sending message to Gemini API: {e}{bcolors.ENDC}")
         return [api, get_torch_api(api)] + [1]*max_attempts
     print("Got response from Gemini API.")
     code = extract_code_from_response(response.text)    
@@ -204,13 +209,19 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
     to_return = [0] * max_attempts
     
     while not output.endswith("Valid"):
-        print(f"Attempt {attempt + 1}: \n{error}")
+        print(f"{bcolors.OKBLUE}Attempt {attempt + 1}:{bcolors.ENDC}\n{error}")
         to_return[attempt] = 1
         print("Retrying code generation after 6 seconds...")
         time.sleep(6)
         prompt = retry_prompt(error)
         logger.info(f"[Retry Prompt]\n\n{prompt}\n\n")
-        response = chat.send_message(prompt)
+        try:
+            response = chat.send_message(prompt)
+        except genai.errors.ServerError as ge:
+            print(f"{bcolors.WARNING}Server overloaded. Error: {str(ge)}{bcolors.ENDC}")
+            print(f"{bcolors.WARNING}Waiting 10 seconds before retrying...{bcolors.ENDC}")
+            time.sleep(10)
+            continue
         print("Got response from Gemini API.")
         logger.info(f"[Response]\n\n{response.text}\n\n")
         code = extract_code_from_response(response.text)
@@ -220,7 +231,7 @@ def generate_inputs(api, suffix=0, max_attempts=5, lib="torch"):
         attempt += 1
         
         if attempt >= max_attempts:
-            print("Max attempts reached. Exiting.")
+            print(f"{bcolors.FAIL}Max attempts reached. Exiting.{bcolors.ENDC}")
             logger.info("Max attempts reached. Exiting.\n\n")
             break
         
