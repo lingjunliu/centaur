@@ -60,7 +60,7 @@ if (sota == "FreeFuzz") {
 }
 
 if (lib == "tf") {
-  suffix <- paste0(suffix, "_tf")
+  suffix <- paste0(suffix, "tf")
 }
 
 if (sota == "Pathfinder") {
