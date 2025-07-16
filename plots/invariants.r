@@ -17,6 +17,12 @@ if (length(args) > 2) {
   csv <- args[3]
 }
 
+if (length(args) > 3) {
+  lib <- args[4]
+} else {
+  lib <- "torch"
+}
+
 if (mode == "cov") {
   ylabel <- "# branches covered"
 } else if (mode == "val") {
@@ -53,6 +59,10 @@ if (sota == "FreeFuzz") {
   suffix <- "PF"
 }
 
+if (lib == "tf") {
+  suffix <- paste0(suffix, "_tf")
+}
+
 if (sota == "Pathfinder") {
   ylim <- c(2500, 11500)
 } else {
@@ -60,7 +70,11 @@ if (sota == "Pathfinder") {
 }
 
 data <- read.csv(csv)
-filename <- sprintf("data/%s_vs_%s_%s.pdf", sota, tname, mode)
+if (lib == "torch") {
+  filename <- sprintf("data/%s_vs_%s_%s.pdf", sota, tname, mode)
+} else {
+  filename <- sprintf("data/%s_vs_%s_%s_tf.pdf", sota, tname, mode)
+}
 
 sota_col <- data[[sota]]
 tname_col <- data[[tname]]
