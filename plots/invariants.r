@@ -64,7 +64,11 @@ if (lib == "tf") {
 }
 
 if (sota == "Pathfinder") {
-  ylim <- c(2500, 11500)
+  if (lib == "torch") {
+    ylim <- c(2500, 11500)
+  } else {
+    ylim <- c(1000, 8500)
+  }
 } else if (lib == "torch") {
   ylim <- c(9000, 11500)
 } else {
