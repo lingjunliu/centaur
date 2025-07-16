@@ -1,14 +1,10 @@
 import numpy as np
-import logging
 from itertools import combinations,permutations
 
 from utils.defaults import MAX_N_DIM, MAX_SZ_DIM, MAX_SZ_NUM, list_of_available_dtypes
 
 # hack to circumvent missing definition in import
 np.float128 = np.float64
-
-# Log to a file
-logging.basicConfig(filename='hacking.log', level=logging.DEBUG)
 
 '''
     Corresponds to rule that asserts that shapes of tensors are identical (Rule 1)
