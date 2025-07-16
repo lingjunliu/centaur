@@ -63,15 +63,6 @@ def main():
 
     api = get_lib_version(api, lib=lib)
 
-    patch_dir_root = create_subdir(CUR_DIR, "patched_drivers")     # directory to save patched drivers and inputs
-    patch_dir = create_subdir(patch_dir_root, api)                 # subdirectory for api
-    
-    # Create the driver to run all the inputs
-    driver_code = generate_driver(patch_dir, api, lib=lib)
-    driver_file = os.path.join(patch_dir, f"{api}_cov_in_loop.py")
-    with open(driver_file, "w") as f:
-        f.write(driver_code)
-
     input_dir = os.path.join(get_tmp_dir(), "fuzz_inputs")
     input_file = os.path.join(input_dir, f"{api}_{lib}_inputs.pkl")
     
@@ -84,6 +75,21 @@ def main():
             return
     
     generated_inputs = read_pkl(input_file)
+
+    if len(generated_inputs) == 0:
+        print(f"No inputs found for {api}.")
+        return
+    else:
+        print(f"Found {len(generated_inputs)} inputs for {api}.")
+
+    patch_dir_root = create_subdir(CUR_DIR, "patched_drivers")     # directory to save patched drivers and inputs
+    patch_dir = create_subdir(patch_dir_root, api)                 # subdirectory for api
+    
+    # Create the driver to run all the inputs
+    driver_code = generate_driver(patch_dir, api, lib=lib)
+    driver_file = os.path.join(patch_dir, f"{api}_cov_in_loop.py")
+    with open(driver_file, "w") as f:
+        f.write(driver_code)
     
     total = 0
 
