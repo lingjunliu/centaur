@@ -7,7 +7,7 @@ from .serialize import load_model, save_model
 from utils.defaults import MAX_N_DIM, int_buckets, float_buckets
 from utils.misc import create_subdir, get_tmp_dir, get_dir_in_root, bcolors
 from utils.new_api_utils import get_lib_version, get_api_suffix
-from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints, parition_solvers, add_negative_buckets
+from utils.z3_utils import instantiate_args, create_z3_args, initial_constraints, collect_constraints, parition_solvers, add_negative_buckets, clip_buckets
 from eval.oracle import oracle_crash
 import os
 import json
@@ -47,12 +47,6 @@ def is_nonlinear_assertion(assertion):
     if assertion.decl().kind() in [Z3_OP_AND, Z3_OP_OR, Z3_OP_IMPLIES]:
         return any(is_nonlinear_assertion(c) for c in assertion.children())
     return is_nonlinear_expr(assertion)
-
-def clip_buckets(buckets, min_val, max_val):
-    """
-    Clip the buckets to the specified range [min_val, max_val].
-    """
-    return sorted([min_val] + [b for b in buckets if min_val < b < max_val] + [max_val])
 
 # Getting the minimum and maximum values that Z3 variables can have 
 # Then adding buckets within the range to sample from

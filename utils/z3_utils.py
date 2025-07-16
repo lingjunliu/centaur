@@ -13,6 +13,12 @@ def add_negative_buckets(buckets):
     buckets += new_buckets
     return sorted(list(set(buckets)))
 
+def clip_buckets(buckets, min_val, max_val):
+    """
+    Clip the buckets to the specified range [min_val, max_val].
+    """
+    return sorted([min_val] + [b for b in buckets if min_val < b < max_val] + [max_val])
+
 def create_z3_args(signature):
     z3_args = {}
     for param, typ in signature.items():
@@ -156,7 +162,7 @@ def collect_neg_constraint(solver, api, rule, z3_args, use_reference=False):
        
     rule_func(*arg_dicts, solver=solver, neg=True)
 
-def instantiate_args(model, signature, z3_args, seed=42, lib="torch"):
+def instantiate_args(model, signature, z3_args, seed=42, lib="torch", sample_range=True):
     concrete_args = {}
     abstract_args = {}
     rng = np.random.default_rng(seed)
@@ -172,9 +178,25 @@ def instantiate_args(model, signature, z3_args, seed=42, lib="torch"):
             dtype = model.eval(z3_var['dtype'], model_completion=True).as_long()
             low = model.eval(Select(z3_var['range'], 0), model_completion=True).as_long()
             high = model.eval(Select(z3_var['range'], 1), model_completion=True).as_long()
-           
-            np_array = np.random.uniform(low, high, size=shape).astype(list_of_available_dtypes[dtype])
+            
+            if sample_range:
+                augmented_buckets = add_negative_buckets(int_buckets)
+                clipped_buckets = clip_buckets(augmented_buckets, low, high)
+                if len(clipped_buckets) >= 4:
+                    selected_values = np.random.choice(clipped_buckets, size=4, replace=False)
+                    selected_values = sorted(selected_values)
+                    low, high = np.random.choice(selected_values[:2]), np.random.choice(selected_values[2:])
+                elif len(clipped_buckets) >= 2:
+                    selected_values = np.random.choice(clipped_buckets, size=2, replace=False)
+                    low, high = np.min(selected_values), np.max(selected_values)
+            
+            np_array = rng.uniform(low, high, size=shape).astype(list_of_available_dtypes[dtype])
             concrete_args[param_name] = np_array
+            
+            abstract_args[param_name] = []
+            abstract_args[param_name].append(shape)
+            abstract_args[param_name].append([dtype])
+            abstract_args[param_name].append([low, high])
             
         elif param_type == "list":
             length = model.eval(z3_var['length'], model_completion=True).as_long()
@@ -206,6 +228,7 @@ def instantiate_args(model, signature, z3_args, seed=42, lib="torch"):
             value = is_true(model.eval(z3_var['value'], model_completion=True))
             concrete_args[param_name] = is_true(value)
 
-        abstract_args[param_name] = get_ll(param_type, concrete_args[param_name])
+        if param_type != "tensor" and param_type != "tensor_list":
+            abstract_args[param_name] = get_ll(param_type, concrete_args[param_name])
 
     return concrete_args, abstract_args
