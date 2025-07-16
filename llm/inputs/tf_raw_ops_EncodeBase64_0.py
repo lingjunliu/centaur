@@ -12,73 +12,73 @@ def tf_raw_ops_encode_base64_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_val = tf.constant(np.array([b"hello"]).astype("S"))
-    pad_val = False
-    name_val = None
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array(["hello"]).astype(np.string_)
+    pad_bool = False
+    name_str = None
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_val = tf.constant(np.array([b"this is a longer string"]).astype("S"))
-    pad_val = True
-    name_val = "encode1"
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array(["hello", "world"]).astype(np.string_)
+    pad_bool = True
+    name_str = "encode_1"
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_val = tf.constant(np.array([b"string1", b"string2", b"string3"]).astype("S"))
-    pad_val = False
-    name_val = "encode2"
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array([""]).astype(np.string_)
+    pad_bool = False
+    name_str = "encode_2"
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_val = tf.constant(np.array([b"string1", b"string2", b""]).astype("S"))
-    pad_val = True
-    name_val = None
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array(["a", "b", "c"]).astype(np.string_)
+    pad_bool = True
+    name_str = None
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_val = tf.constant(np.array([b""]).astype("S"))
-    pad_val = False
-    name_val = "encode3"
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array(["This is a longer string."]).astype(np.string_)
+    pad_bool = False
+    name_str = "encode_3"
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_val = tf.constant(np.array([b"1234567890"]).astype("S"))
-    pad_val = True
-    name_val = None
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array([["hello", "world"], ["foo", "bar"]]).astype(np.string_)
+    pad_bool = True
+    name_str = None
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_val = tf.constant(np.array([b"", b"", b""]).astype("S"))
-    pad_val = False
-    name_val = None
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array(["12345", "67890"]).astype(np.string_)
+    pad_bool = False
+    name_str = "encode_4"
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 8
-    input_val = tf.constant(np.array([b"abcdefghijklmnopqrstuvwxyz"]).astype("S"))
-    pad_val = True
-    name_val = "encode4"
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array(["!@#$%^", "&*()_+"]).astype(np.string_)
+    pad_bool = True
+    name_str = None
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_val = tf.constant(np.array([b"!@#$%^&*()"]).astype("S"))
-    pad_val = False
-    name_val = None
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array(["test_string"]).astype(np.string_)
+    pad_bool = False
+    name_str = "encode_5"
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_val = tf.constant(np.array([b"a", b"b", b"c", b"d", b"e", b"f", b"g"]).astype("S"))
-    pad_val = True
-    name_val = "encode5"
-    input_dict = {"input": input_val, "pad": pad_val, "name": name_val}
+    input_tensor = np.array([["a"], ["b"]]).astype(np.string_)
+    pad_bool = True
+    name_str = None
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

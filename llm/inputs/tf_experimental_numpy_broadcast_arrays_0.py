@@ -14,66 +14,70 @@ def tf_experimental_numpy_broadcast_arrays_inputs():
     # Input 1: Two scalars
     a = np.array(1)
     b = np.array(2)
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Scalar and 1D array
-    a = np.array(5)
+    # Input 2: Scalar and vector
+    a = np.array(1)
     b = np.array([1, 2, 3])
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D and 2D arrays
+    # Input 3: Vector and matrix
     a = np.array([1, 2, 3])
-    b = np.array([[1], [2], [3]])
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
+    b = np.array([[1, 2, 3], [4, 5, 6]])
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Two 2D arrays, different shapes, broadcastable
-    a = np.array([[1, 2, 3], [4, 5, 6]])
-    b = np.array([[7, 8, 9]])
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 3D and 1D
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    b = np.array([1, 2])
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: 3D and 2D
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    b = np.array([[1, 2]])
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Different dtypes
-    a = np.array([1, 2, 3], dtype=np.int32)
-    b = np.array([4, 5, 6], dtype=np.float32)
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: 4D and 1D
-    a = np.random.rand(2, 3, 4, 5)
-    b = np.random.rand(5)
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Multiple arrays
+    # Input 4: Two vectors of different sizes (broadcastable)
     a = np.array([1, 2, 3])
-    b = np.array([[4], [5], [6]])
-    c = np.array(7)
-    input_dict = {"args": [tf.constant(a), tf.constant(b), tf.constant(c)]}
+    b = np.array([4])
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: Multiple arrays with different shapes
+    a = np.array(1)
+    b = np.array([1, 2, 3])
+    c = np.array([[1], [2], [3]])
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b), tf.convert_to_tensor(c)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Two 3D arrays with compatible shapes
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    b = np.array([[[9, 10], [11, 12]]])
-    input_dict = {"args": [tf.constant(a), tf.constant(b)]}
+    # Input 6: Two matrices with compatible shapes
+    a = np.array([[1, 2, 3]])
+    b = np.array([[4], [5]])
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Higher dimensional arrays
+    a = np.random.rand(2, 3, 4)
+    b = np.random.rand(3, 4)
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: One array
+    a = np.array([1, 2, 3])
+    input_dict = {"args": [tf.convert_to_tensor(a)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Array with different datatype
+    a = np.array([1.0, 2.0, 3.0])
+    b = np.array(2.0)
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Array with int64
+    a = np.array([1, 2, 3], dtype=np.int64)
+    b = np.array(2, dtype=np.int64)
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Negative values
+    a = np.array([-1, 2, -3])
+    b = np.array([-2])
+    input_dict = {"args": [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
-
 generated_inputs = {}
 generated_inputs["tf.experimental.numpy.broadcast_arrays"] = tf_experimental_numpy_broadcast_arrays_inputs()
 

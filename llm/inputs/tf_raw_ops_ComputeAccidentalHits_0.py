@@ -12,12 +12,13 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     list_of_inputs = []
 
     # Input 1
-    true_classes = np.array([1, 2, 3, 4], dtype=np.int64)
-    sampled_candidates = np.array([1, 5, 3, 7, 2, 9], dtype=np.int64)
+    true_classes = np.array([[1], [2], [3]], dtype=np.int64)
+    sampled_candidates = np.array([1, 4, 2, 5, 3], dtype=np.int64)
     num_true = 1
     seed = 0
     seed2 = 0
     name = "test1"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -30,11 +31,12 @@ def tf_raw_ops_compute_accidental_hits_inputs():
 
     # Input 2
     true_classes = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    sampled_candidates = np.array([1, 5, 3, 7, 2, 9], dtype=np.int64)
+    sampled_candidates = np.array([1, 2, 3, 4, 5, 6], dtype=np.int64)
     num_true = 2
     seed = 123
     seed2 = 456
     name = "test2"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -46,12 +48,13 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    true_classes = np.array([1, 2, 3], dtype=np.int64)
-    sampled_candidates = np.array([1, 2, 3, 4, 5, 6], dtype=np.int64)
+    true_classes = np.array([[1]], dtype=np.int64)
+    sampled_candidates = np.array([1, 2, 3], dtype=np.int64)
     num_true = 1
     seed = 0
     seed2 = 1
     name = "test3"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -63,12 +66,13 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    true_classes = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int64)
-    sampled_candidates = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9], dtype=np.int64)
-    num_true = 1
-    seed = 789
-    seed2 = 101
+    true_classes = np.array([[1, 2, 3]], dtype=np.int64)
+    sampled_candidates = np.array([1, 2, 3, 4, 5, 6], dtype=np.int64)
+    num_true = 3
+    seed = 7
+    seed2 = 8
     name = "test4"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -80,12 +84,13 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    true_classes = np.array([1], dtype=np.int64)
-    sampled_candidates = np.array([1, 2, 3, 4, 5, 6], dtype=np.int64)
+    true_classes = np.array([[1], [2], [3], [4], [5]], dtype=np.int64)
+    sampled_candidates = np.array([6, 7, 8, 9, 10], dtype=np.int64)
     num_true = 1
-    seed = 0
-    seed2 = 0
+    seed = 9
+    seed2 = 10
     name = "test5"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -96,13 +101,14 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    true_classes = np.array([1, 2, 3, 4], dtype=np.int64)
-    sampled_candidates = np.array([1, 2, 3, 4, 5, 6], dtype=np.int64)
+   # Input 6
+    true_classes = np.array([[1], [1], [1]], dtype=np.int64)
+    sampled_candidates = np.array([1, 2, 3, 4, 5], dtype=np.int64)
     num_true = 1
-    seed = 1
-    seed2 = 1
+    seed = 11
+    seed2 = 12
     name = "test6"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -114,12 +120,13 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    true_classes = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    sampled_candidates = np.array([1, 2, 3, 4, 5, 6], dtype=np.int64)
+    true_classes = np.array([[1], [2]], dtype=np.int64)
+    sampled_candidates = np.array([1, 2], dtype=np.int64)
     num_true = 1
-    seed = 2
-    seed2 = 2
+    seed = 13
+    seed2 = 14
     name = "test7"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -131,12 +138,13 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    true_classes = np.array([1, 2, 3, 4, 5], dtype=np.int64)
-    sampled_candidates = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], dtype=np.int64)
+    true_classes = np.array([[1], [2]], dtype=np.int64)
+    sampled_candidates = np.array([1, 2, 3, 4], dtype=np.int64)
     num_true = 1
-    seed = 3
-    seed2 = 3
+    seed = 15
+    seed2 = 16
     name = "test8"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -148,12 +156,13 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    true_classes = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int64)
-    sampled_candidates = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], dtype=np.int64)
+    true_classes = np.array([[1], [2], [3], [4]], dtype=np.int64)
+    sampled_candidates = np.array([5, 6, 7, 8], dtype=np.int64)
     num_true = 1
-    seed = 4
-    seed2 = 4
+    seed = 17
+    seed2 = 18
     name = "test9"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,
@@ -164,13 +173,14 @@ def tf_raw_ops_compute_accidental_hits_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10 - Adjust true_classes shape and num_true to match
-    true_classes = np.array([[1], [2]], dtype=np.int64)
-    sampled_candidates = np.array([1, 2, 3, 4, 5, 6], dtype=np.int64)
+    # Input 10
+    true_classes = np.array([[1]], dtype=np.int64)
+    sampled_candidates = np.array([1], dtype=np.int64)
     num_true = 1
-    seed = 5
-    seed2 = 5
+    seed = 19
+    seed2 = 20
     name = "test10"
+
     input_dict = {
         "true_classes": true_classes,
         "sampled_candidates": sampled_candidates,

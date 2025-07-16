@@ -11,80 +11,77 @@ import copy
 def tf_raw_ops_CountUpTo_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
+    # Input 1
     ref = np.array(0, dtype=np.int32)
     limit = 5
     name = "count_up_to_1"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
+    input_dict = {"ref": ref, "limit": limit, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid
-    ref = np.array(0, dtype=np.int64)
-    limit = 10
-    name = "count_up_to_2"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3, valid, different limit
-    ref = np.array(2, dtype=np.int32)
-    limit = 7
-    name = "count_up_to_3"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4, valid, int64, larger limit
-    ref = np.array(5, dtype=np.int64)
-    limit = 100
-    name = "count_up_to_4"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5, valid, different name
-    ref = np.array(1, dtype=np.int32)
-    limit = 6
-    name = "my_counter"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6, valid, limit close to start value
-    ref = np.array(8, dtype=np.int64)
-    limit = 9
-    name = "count_up_to_6"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7, valid, small limit
-    ref = np.array(0, dtype=np.int32)
-    limit = 1
-    name = "count_up_to_7"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8, valid, slightly larger limit
-    ref = np.array(3, dtype=np.int64)
+    # Input 2
+    ref = np.array(10, dtype=np.int64)
     limit = 15
+    name = "count_up_to_2"
+    input_dict = {"ref": ref, "limit": limit, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    ref = np.array(-5, dtype=np.int32)
+    limit = 0
+    name = "count_up_to_3"
+    input_dict = {"ref": ref, "limit": limit, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    ref = np.array(-10, dtype=np.int64)
+    limit = -5
+    name = "count_up_to_4"
+    input_dict = {"ref": ref, "limit": limit, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    ref = np.array(2, dtype=np.int32)
+    limit = 2
+    name = "count_up_to_5"
+    input_dict = {"ref": ref, "limit": limit, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    ref = np.array(0, dtype=np.int64)
+    limit = 1000
+    name = "count_up_to_6"
+    input_dict = {"ref": ref, "limit": limit, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 7
+    ref = np.array(-100, dtype=np.int32)
+    limit = -90
+    name = "count_up_to_7"
+    input_dict = {"ref": ref, "limit": limit, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    ref = np.array(50, dtype=np.int64)
+    limit = 55
     name = "count_up_to_8"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
+    input_dict = {"ref": ref, "limit": limit, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9, valid, larger start
-    ref = np.array(50, dtype=np.int32)
-    limit = 60
+    # Input 9
+    ref = np.array(1, dtype=np.int32)
+    limit = 10
     name = "count_up_to_9"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
+    input_dict = {"ref": ref, "limit": limit, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10, valid, larger start int64
-    ref = np.array(500, dtype=np.int64)
-    limit = 510
+    # Input 10
+    ref = np.array(-20, dtype=np.int64)
+    limit = -15
     name = "count_up_to_10"
-    input_dict = {"ref": tf.Variable(ref), "limit": limit, "name": name}
+    input_dict = {"ref": ref, "limit": limit, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
-
-generated_inputs = {}
-generated_inputs["tf.raw_ops.CountUpTo"] = tf_raw_ops_CountUpTo_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

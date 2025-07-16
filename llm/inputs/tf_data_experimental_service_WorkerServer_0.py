@@ -11,72 +11,75 @@ import numpy as np
 def tf_data_experimental_service_WorkerServer_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid input using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="localhost:5000")
-    start = True
+    # Input 1, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="localhost:5000")
+    config = (worker_config,)
+    start = np.bool_(True)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different dispatcher address using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="127.0.0.1:5001")
-    start = False
+    # Input 2, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="127.0.0.1:5001")
+    config = (worker_config,)
+    start = np.bool_(False)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Another dispatcher address using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="example.com:8080")
-    start = True
+    # Input 3, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="example.com:6000")
+    config = (worker_config,)
+    start = np.bool_(True)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Config with different port using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="localhost:6000")
-    start = False
+    # Input 4, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="myservice.org:7000")
+    config = (worker_config,)
+    start = np.bool_(False)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5:  Start as False, using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="localhost:5002")
-    start = False
+    # Input 5, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="192.168.1.100:8000")
+    config = (worker_config,)
+    start = np.bool_(True)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: IP Address config, using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="192.168.1.100:7000")
-    start = True
+    # Input 6, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="0.0.0.0:9000")
+    config = (worker_config,)
+    start = np.bool_(False)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: More complex config, using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="my-cluster.internal:9000")
-    start = False
+    # Input 7, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="some_hostname:10000")
+    config = (worker_config,)
+    start = np.bool_(True)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8:  numeric config (should still be a string), using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="1234567890:1234")
-    start = True
+    # Input 8, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="another_hostname:11000")
+    config = (worker_config,)
+    start = np.bool_(False)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9:  long config string, using WorkerConfig
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="a_very_long_config_string_that_should_still_work:5555")
-    start = False
+    # Input 9, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="third_hostname:12000")
+    config = (worker_config,)
+    start = np.bool_(True)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: different master address
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="different_master:5000")
-    start = True
+    # Input 10, valid
+    worker_config = tf.data.experimental.service.WorkerConfig(dispatcher_address="fourth_hostname:13000")
+    config = (worker_config,)
+    start = np.bool_(False)
     input_dict = {"config": config, "start": start}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Empty dispatcher address
-    config = tf.data.experimental.service.WorkerConfig(dispatcher_address="")
-    start = True
-    input_dict = {"config": config, "start": start}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
 
     return list_of_inputs
 

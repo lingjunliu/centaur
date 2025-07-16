@@ -17,153 +17,145 @@ def tf_raw_ops_avgpool3d_inputs():
     strides1 = [1, 1, 1, 1, 1]
     padding1 = "VALID"
     data_format1 = "NDHWC"
-    name1 = "avgpool1"
 
-    input_dict1 = {
+    input_dict = {
         "input": input1,
         "ksize": ksize1,
         "strides": strides1,
         "padding": padding1,
         "data_format": data_format1,
-        "name": name1
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: SAME padding
-    input2 = np.random.rand(1, 7, 7, 7, 3).astype(np.float32)
+    # Input 2: Different ksize and strides
+    input2 = np.random.rand(1, 10, 10, 10, 3).astype(np.float32)
     ksize2 = [1, 3, 3, 3, 1]
-    strides2 = [1, 1, 1, 1, 1]
+    strides2 = [1, 2, 2, 2, 1]
     padding2 = "SAME"
     data_format2 = "NDHWC"
-    name2 = "avgpool2"
 
-    input_dict2 = {
+    input_dict = {
         "input": input2,
         "ksize": ksize2,
         "strides": strides2,
         "padding": padding2,
         "data_format": data_format2,
-        "name": name2
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Strides > 1
-    input3 = np.random.rand(1, 10, 10, 10, 3).astype(np.float32)
-    ksize3 = [1, 2, 2, 2, 1]
-    strides3 = [1, 2, 2, 2, 1]
+    # Input 3: NCDHW data format
+    input3 = np.random.rand(1, 3, 10, 10, 10).astype(np.float32)
+    ksize3 = [1, 1, 3, 3, 3]
+    strides3 = [1, 1, 2, 2, 2]
     padding3 = "VALID"
-    data_format3 = "NDHWC"
-    name3 = "avgpool3"
+    data_format3 = "NCDHW"
 
-    input_dict3 = {
+    input_dict = {
         "input": input3,
         "ksize": ksize3,
         "strides": strides3,
         "padding": padding3,
         "data_format": data_format3,
-        "name": name3
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different data format (NCDHW)
-    input4 = np.random.rand(1, 3, 5, 5, 5).astype(np.float32)
+    # Input 4: float32
+    input4 = np.random.rand(1, 5, 5, 5, 3).astype(np.float32)
     ksize4 = [1, 2, 2, 2, 1]
     strides4 = [1, 1, 1, 1, 1]
     padding4 = "VALID"
-    data_format4 = "NCDHW"
-    name4 = "avgpool4"
+    data_format4 = "NDHWC"
 
-    input_dict4 = {
+    input_dict = {
         "input": input4,
         "ksize": ksize4,
         "strides": strides4,
         "padding": padding4,
         "data_format": data_format4,
-        "name": name4
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
-
-    # Input 5: ksize and strides different sizes
-    input5 = np.random.rand(1, 6, 6, 6, 3).astype(np.float32)
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5:  float32 with SAME
+    input5 = np.random.rand(1, 5, 5, 5, 3).astype(np.float32)
     ksize5 = [1, 2, 2, 2, 1]
-    strides5 = [1, 3, 3, 3, 1]
-    padding5 = "VALID"
+    strides5 = [1, 1, 1, 1, 1]
+    padding5 = "SAME"
     data_format5 = "NDHWC"
-    name5 = "avgpool5"
 
-    input_dict5 = {
+    input_dict = {
         "input": input5,
         "ksize": ksize5,
         "strides": strides5,
         "padding": padding5,
         "data_format": data_format5,
-        "name": name5
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-
-    # Input 6: ksize and strides same size
-    input6 = np.random.rand(1, 8, 8, 8, 3).astype(np.float32)
-    ksize6 = [1, 4, 4, 4, 1]
-    strides6 = [1, 4, 4, 4, 1]
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Large ksize and strides
+    input6 = np.random.rand(1, 20, 20, 20, 3).astype(np.float32)
+    ksize6 = [1, 10, 10, 10, 1]
+    strides6 = [1, 5, 5, 5, 1]
     padding6 = "VALID"
     data_format6 = "NDHWC"
-    name6 = "avgpool6"
 
-    input_dict6 = {
+    input_dict = {
         "input": input6,
         "ksize": ksize6,
         "strides": strides6,
         "padding": padding6,
         "data_format": data_format6,
-        "name": name6
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
-
-    # Input 7: small input size with SAME padding
-    input7 = np.random.rand(1, 2, 2, 2, 3).astype(np.float32)
-    ksize7 = [1, 3, 3, 3, 1]
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Small input size, large ksize
+    input7 = np.random.rand(1, 3, 3, 3, 3).astype(np.float32)
+    ksize7 = [1, 4, 4, 4, 1]
     strides7 = [1, 1, 1, 1, 1]
-    padding7 = "SAME"
+    padding7 = "VALID"
     data_format7 = "NDHWC"
-    name7 = "avgpool7"
 
-    input_dict7 = {
+    input_dict = {
         "input": input7,
         "ksize": ksize7,
         "strides": strides7,
         "padding": padding7,
         "data_format": data_format7,
-        "name": name7
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Larger kernel and stride
-    input8 = np.random.rand(1, 16, 16, 16, 3).astype(np.float32)
-    ksize8 = [1, 5, 5, 5, 1]
-    strides8 = [1, 3, 3, 3, 1]
-    padding8 = "VALID"
+    # Input 8: SAME padding with small input and large ksize
+    input8 = np.random.rand(1, 3, 3, 3, 3).astype(np.float32)
+    ksize8 = [1, 4, 4, 4, 1]
+    strides8 = [1, 1, 1, 1, 1]
+    padding8 = "SAME"
     data_format8 = "NDHWC"
-    name8 = "avgpool8"
 
-    input_dict8 = {
+    input_dict = {
         "input": input8,
         "ksize": ksize8,
         "strides": strides8,
         "padding": padding8,
         "data_format": data_format8,
-        "name": name8
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-
-    # Input 9: Larger input size
-    input9 = np.random.rand(1, 32, 32, 32, 3).astype(np.float32)
-    ksize9 = [1, 4, 4, 4, 1]
-    strides9 = [1, 2, 2, 2, 1]
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: float32 input and custom name
+    input9 = np.random.rand(1, 5, 5, 5, 3).astype(np.float32)
+    ksize9 = [1, 2, 2, 2, 1]
+    strides9 = [1, 1, 1, 1, 1]
     padding9 = "VALID"
     data_format9 = "NDHWC"
-    name9 = "avgpool9"
+    name9 = "my_avg_pool"
 
-    input_dict9 = {
+    input_dict = {
         "input": input9,
         "ksize": ksize9,
         "strides": strides9,
@@ -171,25 +163,24 @@ def tf_raw_ops_avgpool3d_inputs():
         "data_format": data_format9,
         "name": name9
     }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: NCDHW with SAME
+    input10 = np.random.rand(1, 3, 10, 10, 10).astype(np.float32)
+    ksize10 = [1, 1, 3, 3, 3]
+    strides10 = [1, 1, 2, 2, 2]
+    padding10 = "SAME"
+    data_format10 = "NCDHW"
 
-    # Input 10: Larger batch size
-    input10 = np.random.rand(4, 8, 8, 8, 3).astype(np.float32)
-    ksize10 = [1, 2, 2, 2, 1]
-    strides10 = [1, 2, 2, 2, 1]
-    padding10 = "VALID"
-    data_format10 = "NDHWC"
-    name10 = "avgpool10"
-
-    input_dict10 = {
+    input_dict = {
         "input": input10,
         "ksize": ksize10,
         "strides": strides10,
         "padding": padding10,
         "data_format": data_format10,
-        "name": name10
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

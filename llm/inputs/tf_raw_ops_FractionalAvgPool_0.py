@@ -19,18 +19,8 @@ def tf_raw_ops_FractionalAvgPool_inputs():
     deterministic = False
     seed = 0
     seed2 = 0
-    name = "test_pool1"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    name = "fractional_avg_pool_1"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -39,196 +29,106 @@ def tf_raw_ops_FractionalAvgPool_inputs():
     pseudo_random = True
     overlapping = True
     deterministic = True
-    seed = 123
-    seed2 = 456
-    name = "test_pool2"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    seed = 1
+    seed2 = 2
+    name = "fractional_avg_pool_2"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    value = np.random.rand(4, 5, 5, 2).astype(np.int32)
-    pooling_ratio = [1.0, 1.1, 1.3, 1.0]
+    value = np.random.randint(0, 10, size=(4, 15, 15, 2), dtype=np.int32)
+    pooling_ratio = [1.0, 1.8, 2.1, 1.0]
     pseudo_random = False
     overlapping = True
     deterministic = False
-    seed = 789
-    seed2 = 101
-    name = "test_pool3"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    seed = 123
+    seed2 = 456
+    name = "fractional_avg_pool_3"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    value = np.random.rand(1, 15, 15, 1).astype(np.int64)
-    pooling_ratio = [1.0, 2.0, 2.0, 1.0]
+    value = np.random.randint(-10, 10, size=(1, 5, 5, 1), dtype=np.int64)
+    pooling_ratio = [1.0, 1.1, 1.3, 1.0]
     pseudo_random = True
     overlapping = False
     deterministic = True
-    seed = 0
-    seed2 = 1
-    name = "test_pool4"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    seed = 789
+    seed2 = 101
+    name = "fractional_avg_pool_4"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    value = np.random.rand(3, 8, 8, 4).astype(np.float32)
-    pooling_ratio = [1.0, 1.6, 1.8, 1.0]
+    value = np.random.rand(1, 8, 8, 1).astype(np.float32)
+    pooling_ratio = [1.0, 1.99, 1.99, 1.0]
     pseudo_random = False
-    overlapping = True
+    overlapping = False
     deterministic = False
-    seed = 1
+    seed = 0
     seed2 = 0
-    name = "test_pool5"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    name = None
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    value = np.random.rand(1, 32, 32, 1).astype(np.float64)
-    pooling_ratio = [1.0, 1.1, 1.2, 1.0]
+    value = np.random.rand(3, 16, 16, 4).astype(np.float64)
+    pooling_ratio = [1.0, 1.6, 1.8, 1.0]
     pseudo_random = True
-    overlapping = False
+    overlapping = True
     deterministic = True
-    seed = 2
-    seed2 = 2
-    name = "test_pool6"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    seed = 42
+    seed2 = 24
+    name = "fractional_avg_pool_6"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    value = np.random.rand(2, 7, 7, 2).astype(np.int32)
-    pooling_ratio = [1.0, 1.7, 1.9, 1.0]
+   # Input 7
+    value = np.random.randint(0, 5, size=(2, 7, 7, 1), dtype=np.int32)
+    pooling_ratio = [1.0, 1.3, 1.4, 1.0]
     pseudo_random = False
     overlapping = True
     deterministic = False
-    seed = 3
-    seed2 = 3
-    name = "test_pool7"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    seed = 99
+    seed2 = 11
+    name = "fractional_avg_pool_7"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8
-    value = np.random.rand(4, 12, 12, 4).astype(np.int64)
-    pooling_ratio = [1.0, 1.3, 1.4, 1.0]
+    # Input 8
+    value = np.random.randint(-5, 5, size=(1, 12, 12, 1), dtype=np.int64)
+    pooling_ratio = [1.0, 1.7, 1.9, 1.0]
     pseudo_random = True
     overlapping = False
     deterministic = True
-    seed = 4
-    seed2 = 4
-    name = "test_pool8"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    seed = 55
+    seed2 = 66
+    name = "fractional_avg_pool_8"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    value = np.random.rand(1, 4, 4, 1).astype(np.float32)
-    pooling_ratio = [1.0, 1.9, 1.1, 1.0]
+    value = np.random.rand(1, 6, 6, 1).astype(np.float32)
+    pooling_ratio = [1.0, 1.01, 1.02, 1.0]
     pseudo_random = False
-    overlapping = True
+    overlapping = False
     deterministic = False
-    seed = 5
-    seed2 = 5
-    name = "test_pool9"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    seed = 0
+    seed2 = 0
+    name = "fractional_avg_pool_9"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    value = np.random.rand(2, 16, 16, 3).astype(np.float64)
-    pooling_ratio = [1.0, 1.25, 1.75, 1.0]
+    value = np.random.rand(4, 32, 32, 8).astype(np.float64)
+    pooling_ratio = [1.0, 1.35, 1.65, 1.0]
     pseudo_random = True
-    overlapping = False
+    overlapping = True
     deterministic = True
-    seed = 6
-    seed2 = 6
-    name = "test_pool10"
-
-    input_dict = {
-        "value": value,
-        "pooling_ratio": pooling_ratio,
-        "pseudo_random": pseudo_random,
-        "overlapping": overlapping,
-        "deterministic": deterministic,
-        "seed": seed,
-        "seed2": seed2,
-        "name": name
-    }
+    seed = 88
+    seed2 = 99
+    name = "fractional_avg_pool_10"
+    input_dict = {"value": value, "pooling_ratio": pooling_ratio, "pseudo_random": pseudo_random, "overlapping": overlapping, "deterministic": deterministic, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

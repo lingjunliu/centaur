@@ -11,64 +11,64 @@ import copy
 def tf_raw_ops_conjugate_transpose_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple 2D tensor
+    # Input 1, valid
     x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
     perm = np.array([1, 0], dtype=np.int32)
-    input_dict = {"x": x, "perm": perm, "name": None}
+    input_dict = {"x": x, "perm": perm, "name": "transpose_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 3D tensor with different permutation
-    x = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex64)
-    perm = np.array([2, 0, 1], dtype=np.int32)
-    input_dict = {"x": x, "perm": perm, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: 1D tensor (effectively no transpose)
-    x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
+    # Input 2, valid
+    x = np.array([1, 2, 3, 4], dtype=np.int32)
     perm = np.array([0], dtype=np.int32)
-    input_dict = {"x": x, "perm": perm, "name": None}
+    input_dict = {"x": x, "perm": perm, "name": "transpose_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D tensor with int64 permutation
-    x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    perm = np.array([1, 0], dtype=np.int64)
-    input_dict = {"x": x, "perm": perm, "name": None}
+    # Input 3, valid
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    perm = np.array([0, 1, 2], dtype=np.int32)
+    input_dict = {"x": x, "perm": perm, "name": "transpose_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Larger 2D tensor
-    x = np.random.rand(5, 5).astype(np.complex64)
-    perm = np.array([1, 0], dtype=np.int32)
-    input_dict = {"x": x, "perm": perm, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: 4D tensor
-    x = np.random.rand(2, 3, 4, 5).astype(np.complex64)
-    perm = np.array([3, 1, 0, 2], dtype=np.int32)
-    input_dict = {"x": x, "perm": perm, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Simple 2D tensor, different name
-    x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    perm = np.array([1, 0], dtype=np.int32)
-    input_dict = {"x": x, "perm": perm, "name": "my_transpose"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Complex128 type
-    x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex128)
-    perm = np.array([1, 0], dtype=np.int32)
-    input_dict = {"x": x, "perm": perm, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: 3D complex128 with int64 perm
-    x = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex128)
+    # Input 4, valid
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64)
     perm = np.array([2, 0, 1], dtype=np.int64)
-    input_dict = {"x": x, "perm": perm, "name": None}
+    input_dict = {"x": x, "perm": perm, "name": "transpose_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: Larger tensor
-    x = np.random.rand(2, 5, 3).astype(np.complex64)
+
+    # Input 5, valid
+    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int64)
+    perm = np.array([1, 0], dtype=np.int64)
+    input_dict = {"x": x, "perm": perm, "name": "transpose_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6, valid
+    x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128)
+    perm = np.array([0], dtype=np.int32)
+    input_dict = {"x": x, "perm": perm, "name": "transpose_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7, valid
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.complex64)
     perm = np.array([1, 2, 0], dtype=np.int32)
-    input_dict = {"x": x, "perm": perm, "name": None}
+    input_dict = {"x": x, "perm": perm, "name": "transpose_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8, valid
+    x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
+    perm = np.array([1, 0], dtype=np.int32)
+    input_dict = {"x": x, "perm": perm, "name": "transpose_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9, valid
+    x = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.float32)
+    perm = np.array([0, 2, 1], dtype=np.int32)
+    input_dict = {"x": x, "perm": perm, "name": "transpose_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10, valid
+    x = np.array([1, 2, 3, 4, 5], dtype=np.int64)
+    perm = np.array([0], dtype=np.int64)
+    input_dict = {"x": x, "perm": perm, "name": "transpose_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

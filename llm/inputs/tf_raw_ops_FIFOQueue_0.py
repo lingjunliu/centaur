@@ -17,7 +17,7 @@ def tf_raw_ops_fifo_queue_inputs():
     capacity = -1
     container = ""
     shared_name = ""
-    name = "fifo_queue_1"
+    name = None
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -30,11 +30,11 @@ def tf_raw_ops_fifo_queue_inputs():
 
     # Input 2
     component_types = [tf.int32, tf.float64]
-    shapes = [[10], []]
-    capacity = 100
-    container = "my_container"
-    shared_name = "shared_queue_2"
-    name = "fifo_queue_2"
+    shapes = [[10], [5, 5]]
+    capacity = 10
+    container = "test_container"
+    shared_name = "test_shared_name"
+    name = "test_name"
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -47,10 +47,10 @@ def tf_raw_ops_fifo_queue_inputs():
 
     # Input 3
     component_types = [tf.string]
-    shapes = [[5, 5]]
-    capacity = 50
-    container = "another_container"
-    shared_name = "shared_queue_3"
+    shapes = []
+    capacity = 0
+    container = ""
+    shared_name = "shared"
     name = None
     input_dict = {
         "component_types": component_types,
@@ -63,12 +63,12 @@ def tf_raw_ops_fifo_queue_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    component_types = [tf.bool]
-    shapes = []
-    capacity = 1
-    container = ""
+    component_types = [tf.bool, tf.complex64]
+    shapes = [[1, 2, 3], [4, 5]]
+    capacity = 100
+    container = "container1"
     shared_name = ""
-    name = "fifo_queue_4"
+    name = "my_queue"
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -79,13 +79,98 @@ def tf_raw_ops_fifo_queue_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5
-    component_types = [tf.float32, tf.int32, tf.string]
-    shapes = [[10, 10], [5], []]
+    # Input 5
+    component_types = [tf.uint8]
+    shapes = [[28, 28]]
+    capacity = -2
+    container = "container2"
+    shared_name = "shared_queue"
+    name = None
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    component_types = [tf.float16]
+    shapes = []
+    capacity = -1
+    container = ""
+    shared_name = ""
+    name = None
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    component_types = [tf.int64]
+    shapes = [[1, 1, 1, 1]]
+    capacity = 1
+    container = "another_container"
+    shared_name = "another_shared_queue"
+    name = "queue_name"
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 8
+    component_types = [tf.qint32]
+    shapes = []
+    capacity = 5
+    container = "q_container"
+    shared_name = "q_shared"
+    name = None
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    component_types = [tf.resource]
+    shapes = []
+    capacity = -10
+    container = ''
+    shared_name = ''
+    name = "resource_queue"
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    component_types = [tf.variant]
+    shapes = [[2, 2]]
     capacity = 20
-    container = "container_5"
-    shared_name = "shared_5"
-    name = "fifo_queue_5"
+    container = 'variant_container'
+    shared_name = 'variant_shared'
+    name = None
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,

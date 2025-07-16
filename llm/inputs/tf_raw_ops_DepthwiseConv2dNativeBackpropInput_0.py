@@ -12,9 +12,9 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_sizes = np.array([1, 5, 5, 3], dtype=np.int32)
+    input_sizes = np.array([1, 10, 10, 3], dtype=np.int32)
     filter_val = np.random.rand(3, 3, 3, 2).astype(np.float32)
-    out_backprop = np.random.rand(1, 5, 5, 6).astype(np.float32)
+    out_backprop = np.random.rand(1, 8, 8, 6).astype(np.float32)
     strides = [1, 1, 1, 1]
     padding = "VALID"
     explicit_paddings = []
@@ -36,15 +36,15 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_sizes = np.array([2, 10, 10, 1], dtype=np.int32)
-    filter_val = np.random.rand(2, 2, 1, 4).astype(np.float32)
-    out_backprop = np.random.rand(2, 9, 9, 4).astype(np.float32)
+    input_sizes = np.array([2, 20, 20, 5], dtype=np.int32)
+    filter_val = np.random.rand(5, 5, 5, 1).astype(np.float64)
+    out_backprop = np.random.rand(2, 16, 16, 5).astype(np.float64)
     strides = [1, 1, 1, 1]
-    padding = "VALID"
+    padding = "SAME"
     explicit_paddings = []
     data_format = "NHWC"
     dilations = [1, 1, 1, 1]
-    name = "backprop_input"
+    name = "backprop_input_2"
 
     input_dict = {
         "input_sizes": input_sizes,
@@ -60,11 +60,11 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_sizes = np.array([1, 7, 7, 2], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 2, 1).astype(np.float32)
-    out_backprop = np.random.rand(1, 7, 7, 2).astype(np.float32)
-    strides = [1, 1, 1, 1]
-    padding = "SAME"
+    input_sizes = np.array([1, 10, 10, 3], dtype=np.int32)
+    filter_val = np.random.rand(3, 3, 3, 2).astype(np.float32)
+    out_backprop = np.random.rand(1, 5, 5, 6).astype(np.float32)
+    strides = [1, 2, 2, 1]
+    padding = "VALID"
     explicit_paddings = []
     data_format = "NHWC"
     dilations = [1, 1, 1, 1]
@@ -84,14 +84,14 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_sizes = np.array([4, 12, 12, 3], dtype=np.int32)
-    filter_val = np.random.rand(4, 4, 3, 2).astype(np.float32)
-    out_backprop = np.random.rand(4, 6, 6, 6).astype(np.float32)
-    strides = [1, 2, 2, 1]
-    padding = "VALID"
+    input_sizes = np.array([1, 10, 10, 3], dtype=np.int32)
+    filter_val = np.random.rand(3, 3, 3, 2).astype(np.float16)
+    out_backprop = np.random.rand(1, 10, 10, 6).astype(np.float16)
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
     explicit_paddings = []
     data_format = "NHWC"
-    dilations = [1, 1, 1, 1]
+    dilations = [1, 2, 2, 1]
     name = None
 
     input_dict = {
@@ -108,11 +108,11 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_sizes = np.array([1, 8, 8, 4], dtype=np.int32)
-    filter_val = np.random.rand(2, 2, 4, 3).astype(np.float32)
-    out_backprop = np.random.rand(1, 4, 4, 12).astype(np.float32)
+    input_sizes = np.array([1, 10, 10, 3], dtype=np.int32)
+    filter_val = np.random.rand(3, 3, 3, 2).astype(np.float32)
+    out_backprop = np.random.rand(1, 6, 6, 6).astype(np.float32)
     strides = [1, 2, 2, 1]
-    padding = "SAME"
+    padding = "VALID"
     explicit_paddings = []
     data_format = "NHWC"
     dilations = [1, 1, 1, 1]
@@ -132,14 +132,14 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_sizes = np.array([1, 8, 8, 4], dtype=np.int32)
-    filter_val = np.random.rand(2, 2, 4, 3).astype(np.float32)
-    out_backprop = np.random.rand(1, 5, 5, 12).astype(np.float32)
+    input_sizes = np.array([1, 10, 10, 3], dtype=np.int32)
+    filter_val = np.random.rand(3, 3, 3, 2).astype(np.float32)
+    out_backprop = np.random.rand(1, 10, 10, 6).astype(np.float32)
     strides = [1, 1, 1, 1]
-    padding = "VALID"
-    explicit_paddings = []
+    padding = "EXPLICIT"
+    explicit_paddings = [0, 1, 0, 1, 0, 1, 0, 1]
     data_format = "NHWC"
-    dilations = [1, 2, 2, 1]
+    dilations = [1, 1, 1, 1]
     name = None
 
     input_dict = {
@@ -156,15 +156,15 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 7
-    input_sizes = np.array([1, 5, 5, 3], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 3, 2).astype(np.float64)
-    out_backprop = np.random.rand(1, 1, 1, 6).astype(np.float64)
-    strides = [1, 2, 2, 1]
-    padding = "EXPLICIT"
-    explicit_paddings = [0, 0, 0, 0, 0, 0, 0, 0]
+    input_sizes = np.array([1, 10, 10, 3], dtype=np.int32)
+    filter_val = np.random.rand(3, 3, 3, 2).astype(np.float32)
+    out_backprop = np.random.rand(1, 12, 12, 6).astype(np.float32)
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
+    explicit_paddings = []
     data_format = "NHWC"
-    dilations = [1, 1, 1, 1]
-    name = None
+    dilations = [1, 2, 2, 1]
+    name = "dilation_test"
 
     input_dict = {
         "input_sizes": input_sizes,
@@ -180,15 +180,15 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_sizes = np.array([2, 8, 8, 1], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 1, 2).astype(np.float32)
-    out_backprop = np.random.rand(2, 4, 4, 2).astype(np.float32)
+    input_sizes = np.array([2, 15, 15, 4], dtype=np.int32)
+    filter_val = np.random.rand(4, 4, 4, 3).astype(np.float64)
+    out_backprop = np.random.rand(2, 8, 8, 12).astype(np.float64)
     strides = [1, 2, 2, 1]
-    padding = "SAME"
+    padding = "VALID"
     explicit_paddings = []
-    data_format = "NCHW"
+    data_format = "NHWC"
     dilations = [1, 1, 1, 1]
-    name = None
+    name = "valid_test"
 
     input_dict = {
         "input_sizes": input_sizes,
@@ -204,15 +204,15 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_sizes = np.array([1, 5, 5, 3], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 3, 2).astype(np.float16)
-    out_backprop = np.random.rand(1, 5, 5, 6).astype(np.float16)
+    input_sizes = np.array([1, 28, 28, 32], dtype=np.int32)
+    filter_val = np.random.rand(3, 3, 32, 1).astype(np.float32)
+    out_backprop = np.random.rand(1, 28, 28, 32).astype(np.float32)
     strides = [1, 1, 1, 1]
-    padding = "VALID"
+    padding = "SAME"
     explicit_paddings = []
-    data_format = "NHWC"
+    data_format = "NCHW"
     dilations = [1, 1, 1, 1]
-    name = None
+    name = "nchw_test"
 
     input_dict = {
         "input_sizes": input_sizes,
@@ -228,15 +228,15 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_sizes = np.array([1, 5, 5, 3], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 3, 2).astype(np.half)
-    out_backprop = np.random.rand(1, 5, 5, 6).astype(np.half)
-    strides = [1, 1, 1, 1]
+    input_sizes = np.array([4, 8, 8, 16], dtype=np.int32)
+    filter_val = np.random.rand(2, 2, 16, 2).astype(np.float32)
+    out_backprop = np.random.rand(4, 4, 4, 32).astype(np.float32)
+    strides = [1, 2, 2, 1]
     padding = "VALID"
     explicit_paddings = []
     data_format = "NHWC"
     dilations = [1, 1, 1, 1]
-    name = None
+    name = "large_batch_valid"
 
     input_dict = {
         "input_sizes": input_sizes,
@@ -250,7 +250,7 @@ def tf_raw_ops_DepthwiseConv2dNativeBackpropInput_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs = {}

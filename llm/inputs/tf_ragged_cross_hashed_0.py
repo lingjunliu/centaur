@@ -11,69 +11,110 @@ import copy
 def tf_ragged_cross_hashed_inputs():
     list_of_inputs = []
 
-    def to_numpy(x):
-        if isinstance(x, tf.RaggedTensor):
-            return x.to_list()
-        elif isinstance(x, tf.Tensor):
-            return x.numpy().tolist()
-        else:
-            return x
-
     # Input 1
     inputs = [tf.ragged.constant([['a'], ['b', 'c']]),
               tf.ragged.constant([['d'], ['e']]),
               tf.ragged.constant([['f'], ['g']])]
     num_buckets = 100
     hash_key = 123
-    name = "example1"
-    input_dict = {"inputs": [to_numpy(x) for x in inputs], "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    name = "cross_hashed_1"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    inputs = [tf.ragged.constant([['a', 'b'], ['c']]),
-              tf.ragged.constant([['d'], ['e', 'f']])]
-    num_buckets = 0
+    inputs = [tf.ragged.constant([['x', 'y'], ['z']]),
+              tf.ragged.constant([['p'], ['q', 'r']])]
+    num_buckets = 50
     hash_key = None
-    name = None
-    input_dict = {"inputs": [to_numpy(x) for x in inputs], "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    name = "cross_hashed_2"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     inputs = [tf.ragged.constant([['1'], ['2', '3']]),
               tf.ragged.constant([['4'], ['5']]),
               tf.ragged.constant([['6'], ['7']])]
-    num_buckets = 5
+    num_buckets = 0
     hash_key = 456
-    name = "example3"
-    input_dict = {"inputs": [to_numpy(x) for x in inputs], "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    name = "cross_hashed_3"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    inputs = [tf.ragged.constant([['a']]), tf.ragged.constant([['b']])]
+    inputs = [tf.ragged.constant([['a']]),
+              tf.ragged.constant([['b']]),
+              tf.ragged.constant([['c']])]
     num_buckets = 10
     hash_key = None
-    name = "example4"
-    input_dict = {"inputs": [to_numpy(x) for x in inputs], "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    name = "cross_hashed_4"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    inputs = [tf.ragged.constant([['1', '2'], ['3', '4']]),
-              tf.ragged.constant([['5', '6'], ['7', '8']])]
+    inputs = [tf.ragged.constant([['1', '2', '3'], ['4', '5']]),
+              tf.ragged.constant([['6', '7'], ['8', '9']])]
     num_buckets = 1000
     hash_key = 789
-    name = "example5"
-    input_dict = {"inputs": [to_numpy(x) for x in inputs], "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    name = "cross_hashed_5"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6 (using Tensors)
+    # Input 6: Using tf.constant (Tensor) - Rectangular shape required
     inputs = [tf.constant([['a'], ['b']]),
               tf.constant([['c'], ['d']])]
-    num_buckets = 20
+    num_buckets = 2
     hash_key = 101
-    name = "example6"
-    input_dict = {"inputs": [to_numpy(x) for x in inputs], "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    name = "cross_hashed_6"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 7: Mixed Tensor types
+    inputs = [tf.ragged.constant([['a'], ['b']]),
+              tf.constant([['c'], ['d']])]
+    num_buckets = 4
+    hash_key = 123
+    name = "cross_hashed_8"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8:  Zero buckets
+    inputs = [tf.ragged.constant([['a'], ['b']]),
+              tf.ragged.constant([['c'], ['d']])]
+    num_buckets = 0
+    hash_key = 145
+    name = "cross_hashed_10"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: More Ragged - keep the ragged tensors as consistent shape
+    inputs = [tf.ragged.constant([['a', 'b'], ['c', 'd']]),
+              tf.ragged.constant([['e', 'f'], ['g', 'h']])]
+    num_buckets = 10
+    hash_key = 987
+    name = "cross_hashed_11"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different strings
+    inputs = [tf.ragged.constant([['apple'], ['banana']]),
+              tf.ragged.constant([['orange'], ['grape']])]
+    num_buckets = 7
+    hash_key = 42
+    name = "cross_hashed_12"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Integer inputs
+    inputs = [tf.ragged.constant([[1], [2]]),
+              tf.ragged.constant([[3], [4]])]
+    num_buckets = 11
+    hash_key = 15
+    name = "cross_hashed_13"
+    input_dict = {"inputs": inputs, "num_buckets": num_buckets, "hash_key": hash_key, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+
     return list_of_inputs
 
 generated_inputs = {}

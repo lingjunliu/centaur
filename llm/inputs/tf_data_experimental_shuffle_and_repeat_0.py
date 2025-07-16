@@ -11,73 +11,73 @@ import copy
 def tf_data_experimental_shuffle_and_repeat_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case
-    buffer_size = np.array(10, dtype=np.int64)
-    count = np.array(2, dtype=np.int64)
-    seed = np.array(42, dtype=np.int64)
+    # Input 1: Basic case with count and seed
+    buffer_size = np.int64(10)
+    count = np.int64(2)
+    seed = np.int64(42)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 
     # Input 2: No count (infinite repeat)
-    buffer_size = np.array(5, dtype=np.int64)
+    buffer_size = np.int64(5)
     count = None
-    seed = np.array(123, dtype=np.int64)
+    seed = np.int64(123)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
-    
-    # Input 3: Zero count (no repeat)
-    buffer_size = np.array(5, dtype=np.int64)
-    count = np.array(0, dtype=np.int64)
-    seed = np.array(123, dtype=np.int64)
+
+    # Input 3: Zero buffer size (should still work)
+    buffer_size = np.int64(0)
+    count = np.int64(3)
+    seed = np.int64(0)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 
     # Input 4: Large buffer size
-    buffer_size = np.array(1000, dtype=np.int64)
-    count = np.array(3, dtype=np.int64)
-    seed = np.array(7, dtype=np.int64)
+    buffer_size = np.int64(1000)
+    count = np.int64(1)
+    seed = np.int64(999)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 
-    # Input 5: Negative count (-1 means infinite repeat, same as None)
-    buffer_size = np.array(7, dtype=np.int64)
-    count = np.array(-1, dtype=np.int64)
-    seed = np.array(99, dtype=np.int64)
+    # Input 5: Negative count (treated as None/infinite)
+    buffer_size = np.int64(7)
+    count = np.int64(-1)
+    seed = np.int64(55)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 
-    # Input 6: Zero buffer size (should not cause an error based on documentation)
-    buffer_size = np.array(1, dtype=np.int64)
-    count = np.array(2, dtype=np.int64)
-    seed = np.array(101, dtype=np.int64)
+    # Input 6: Different seed value
+    buffer_size = np.int64(8)
+    count = np.int64(2)
+    seed = np.int64(678)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 
-    # Input 7: Large seed value
-    buffer_size = np.array(15, dtype=np.int64)
-    count = np.array(1, dtype=np.int64)
-    seed = np.array(2**31 - 1, dtype=np.int64)
+     # Input 7: Very small buffer
+    buffer_size = np.int64(1)
+    count = np.int64(2)
+    seed = np.int64(101)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 
-    # Input 8: One buffer size, One count
-    buffer_size = np.array(1, dtype=np.int64)
-    count = np.array(1, dtype=np.int64)
-    seed = np.array(42, dtype=np.int64)
+    # Input 8: Another seed
+    buffer_size = np.int64(3)
+    count = np.int64(4)
+    seed = np.int64(222)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 
-    # Input 9: Larger count value
-    buffer_size = np.array(20, dtype=np.int64)
-    count = np.array(10, dtype=np.int64)
-    seed = np.array(1, dtype=np.int64)
+    # Input 9: Edge case with 1 repeat
+    buffer_size = np.int64(6)
+    count = np.int64(1)
+    seed = np.int64(777)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 
-    # Input 10: Different seed value
-    buffer_size = np.array(8, dtype=np.int64)
-    count = np.array(4, dtype=np.int64)
-    seed = np.array(1000, dtype=np.int64)
+    # Input 10: Larger count
+    buffer_size = np.int64(9)
+    count = np.int64(5)
+    seed = np.int64(444)
     input_dict = {"buffer_size": buffer_size, "count": count, "seed": seed}
     list_of_inputs.append(input_dict)
 

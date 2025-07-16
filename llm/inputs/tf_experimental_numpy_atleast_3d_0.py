@@ -26,39 +26,38 @@ def tf_experimental_numpy_atleast_3d_inputs():
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multiple arrays (scalar, 1D, 2D)
-    arys = [np.array(5), np.array([6, 7]), np.array([[8, 9], [10, 11]])]
+    # Input 4: Array with negative values
+    arys = [np.array([[-1, -2], [-3, -4]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Already 3D array
-    arys = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
+    # Input 5: Array with float values
+    arys = [np.array([[1.5, 2.5], [3.5, 4.5]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different dtypes (int, float)
-    arys = [np.array([1, 2, 3], dtype=np.int32), np.array([4.0, 5.0, 6.0], dtype=np.float32)]
+    # Input 6: Empty array
+    arys = [np.array([])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Array with negative values
-    arys = [np.array([-1, -2, -3])]
+    # Input 7: Single element 2D array
+    arys = [np.array([[5]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8: Combination of different shapes and dtypes, removing scalar to prevent errors.
-    arys = [np.array([11.0, 12.0], dtype=np.float64), np.array([[13, 14]], dtype=np.int16)]
+    # Input 8: List containing zeros
+    arys = [np.array([0, 0, 0])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: A larger 2D array
-    arys = [np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])]
+    
+    # Input 9: Scalar
+    arys = [np.array(-1)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.experimental.numpy.atleast_3d"] = tf_experimental_numpy_atleast_3d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

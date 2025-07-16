@@ -8,14 +8,14 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
+def tf_raw_ops_CropAndResizeGradBoxes_inputs():
     list_of_inputs = []
 
     # Input 1
-    grads = np.random.rand(1, 24, 24, 3).astype(np.float32)
-    image = np.random.rand(1, 100, 100, 3).astype(np.float32)
-    boxes = np.array([[0.1, 0.1, 0.9, 0.9]]).astype(np.float32)
-    box_ind = np.array([0]).astype(np.int32)
+    grads = np.random.rand(2, 10, 10, 3).astype(np.float32)
+    image = np.random.rand(1, 20, 20, 3).astype(np.float32)
+    boxes = np.array([[0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]], dtype=np.float32)
+    box_ind = np.array([0, 0], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_1"
 
@@ -30,10 +30,10 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    grads = np.random.rand(2, 12, 12, 1).astype(np.float32)
-    image = np.random.rand(2, 50, 50, 1).astype(np.float32)
-    boxes = np.array([[0.2, 0.2, 0.8, 0.8], [0.3, 0.3, 0.7, 0.7]]).astype(np.float32)
-    box_ind = np.array([0, 1]).astype(np.int32)
+    grads = np.random.rand(1, 5, 5, 1).astype(np.float32)
+    image = np.random.rand(2, 15, 15, 1).astype(np.float32)
+    boxes = np.array([[0.0, 0.0, 1.0, 1.0]], dtype=np.float32)
+    box_ind = np.array([0], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_2"
 
@@ -48,10 +48,10 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    grads = np.random.rand(3, 8, 8, 3).astype(np.float32)
-    image = np.random.rand(1, 32, 32, 3).astype(np.float32)
-    boxes = np.array([[0.0, 0.0, 1.0, 1.0], [0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]]).astype(np.float32)
-    box_ind = np.array([0, 0, 0]).astype(np.int32)
+    grads = np.random.rand(3, 7, 7, 2).astype(np.float32)
+    image = np.random.rand(3, 14, 14, 2).astype(np.float32)
+    boxes = np.array([[0.2, 0.3, 0.7, 0.8], [0.1, 0.0, 0.9, 0.5], [0.5, 0.5, 0.6, 0.6]], dtype=np.float32)
+    box_ind = np.array([0, 1, 2], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_3"
 
@@ -65,11 +65,11 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 4
-    grads = np.random.rand(1, 16, 16, 3).astype(np.float32)
-    image = np.random.rand(1, 64, 64, 3).astype(np.float32)
-    boxes = np.array([[0.1, 0.2, 0.7, 0.8]]).astype(np.float32)
-    box_ind = np.array([0]).astype(np.int32)
+    # Input 4
+    grads = np.random.rand(4, 3, 3, 4).astype(np.float32)
+    image = np.random.rand(4, 6, 6, 4).astype(np.float32)
+    boxes = np.array([[0.0, 0.0, 0.5, 0.5], [0.5, 0.5, 1.0, 1.0], [0.2, 0.2, 0.8, 0.8], [0.3, 0.3, 0.7, 0.7]], dtype=np.float32)
+    box_ind = np.array([0, 1, 2, 3], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_4"
 
@@ -84,10 +84,10 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    grads = np.random.rand(4, 4, 4, 1).astype(np.float32)
-    image = np.random.rand(4, 16, 16, 1).astype(np.float32)
-    boxes = np.array([[0.0, 0.0, 0.5, 0.5], [0.25, 0.25, 0.75, 0.75], [0.5, 0.5, 1.0, 1.0], [0.1, 0.3, 0.6, 0.8]]).astype(np.float32)
-    box_ind = np.array([0, 1, 2, 3]).astype(np.int32)
+    grads = np.random.rand(1, 12, 12, 3).astype(np.float32)
+    image = np.random.rand(1, 24, 24, 3).astype(np.float32)
+    boxes = np.array([[0.8, 0.8, 0.2, 0.2]], dtype=np.float32)
+    box_ind = np.array([0], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_5"
 
@@ -101,11 +101,11 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: y1 > y2, x1 > x2
-    grads = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    image = np.random.rand(1, 32, 32, 3).astype(np.float32)
-    boxes = np.array([[0.8, 0.7, 0.2, 0.1]]).astype(np.float32)
-    box_ind = np.array([0]).astype(np.int32)
+    # Input 6
+    grads = np.random.rand(2, 8, 8, 1).astype(np.float32)
+    image = np.random.rand(2, 16, 16, 1).astype(np.float32)
+    boxes = np.array([[0.1, 0.9, 0.9, 0.1], [0.9, 0.1, 0.1, 0.9]], dtype=np.float32)
+    box_ind = np.array([0, 1], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_6"
 
@@ -119,11 +119,11 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: boxes outside [0, 1] range
-    grads = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    image = np.random.rand(1, 32, 32, 3).astype(np.float32)
-    boxes = np.array([[-0.1, -0.2, 1.1, 1.2]]).astype(np.float32)
-    box_ind = np.array([0]).astype(np.int32)
+   # Input 7
+    grads = np.zeros((1, 1, 1, 1), dtype=np.float32)
+    image = np.ones((1, 2, 2, 1), dtype=np.float32)
+    boxes = np.array([[0.0, 0.0, 1.0, 1.0]], dtype=np.float32)
+    box_ind = np.array([0], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_7"
 
@@ -137,11 +137,11 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: multiple boxes, same image
-    grads = np.random.rand(2, 8, 8, 3).astype(np.float32)
-    image = np.random.rand(1, 32, 32, 3).astype(np.float32)
-    boxes = np.array([[0.1, 0.1, 0.4, 0.4], [0.6, 0.6, 0.9, 0.9]]).astype(np.float32)
-    box_ind = np.array([0, 0]).astype(np.int32)
+    # Input 8
+    grads = np.random.rand(1, 1, 1, 3).astype(np.float32)
+    image = np.random.rand(1, 2, 2, 3).astype(np.float32)
+    boxes = np.array([[0.5, 0.5, 0.5, 0.5]], dtype=np.float32)
+    box_ind = np.array([0], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_8"
 
@@ -155,11 +155,11 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: different image types (uint8)
-    grads = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    image = np.random.randint(0, 256, size=(1, 32, 32, 3)).astype(np.uint8)
-    boxes = np.array([[0.1, 0.1, 0.9, 0.9]]).astype(np.float32)
-    box_ind = np.array([0]).astype(np.int32)
+    # Input 9
+    grads = np.random.rand(2, 4, 4, 1).astype(np.float32)
+    image = np.random.rand(3, 8, 8, 1).astype(np.float32)
+    boxes = np.array([[0.1, 0.2, 0.3, 0.4], [0.5, 0.6, 0.7, 0.8]], dtype=np.float32)
+    box_ind = np.array([0, 2], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_9"
 
@@ -173,11 +173,11 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: 2 batches, different boxes
-    grads = np.random.rand(2, 8, 8, 3).astype(np.float32)
-    image = np.random.rand(2, 32, 32, 3).astype(np.float32)
-    boxes = np.array([[0.1, 0.1, 0.3, 0.3], [0.6, 0.6, 0.8, 0.8]]).astype(np.float32)
-    box_ind = np.array([0, 1]).astype(np.int32)
+    # Input 10
+    grads = np.random.rand(1, 2, 2, 1).astype(np.float32)
+    image = np.random.rand(1, 4, 4, 1).astype(np.float32)
+    boxes = np.array([[1.1, 1.1, -0.1, -0.1]], dtype=np.float32)
+    box_ind = np.array([0], dtype=np.int32)
     method = "bilinear"
     name = "crop_and_resize_grad_boxes_10"
 
@@ -194,10 +194,11 @@ def tf_raw_ops_crop_and_resize_grad_boxes_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_crop_and_resize_grad_boxes_inputs()
-generated_inputs["tf.raw_ops.CropAndResizeGradBoxes"] = []
-for input_dict in inputs:
-    generated_inputs["tf.raw_ops.CropAndResizeGradBoxes"].append({k: input_dict[k] for k in ("grads", "image", "boxes", "box_ind", "method", "name")})
+generated_inputs["tf.raw_ops.CropAndResizeGradBoxes"] = tf_raw_ops_CropAndResizeGradBoxes_inputs()
+api = tf.raw_ops.CropAndResizeGradBoxes
+for i in range(len(generated_inputs["tf.raw_ops.CropAndResizeGradBoxes"])):
+    inp = generated_inputs["tf.raw_ops.CropAndResizeGradBoxes"][i]
+    generated_inputs["tf.raw_ops.CropAndResizeGradBoxes"][i] = {"args": [], "kwargs": inp}
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

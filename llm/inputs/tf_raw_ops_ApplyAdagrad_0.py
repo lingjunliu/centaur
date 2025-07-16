@@ -11,216 +11,90 @@ import copy
 def tf_raw_ops_apply_adagrad_inputs():
     list_of_inputs = []
 
+    def create_input_dict(var, accum, lr, grad, use_locking, update_slots, name):
+        return {
+            "var": var,
+            "accum": accum,
+            "lr": lr,
+            "grad": grad,
+            "use_locking": use_locking,
+            "update_slots": update_slots,
+            "name": name
+        }
+
     # Input 1: Basic float32 example
-    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    accum = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    use_locking = False
-    update_slots = True
-    name = "adagrad_1"
+    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    accum = tf.Variable(np.array([0.1, 0.2, 0.3], dtype=np.float32))
+    lr = tf.constant(0.01, dtype=np.float32)
+    grad = tf.constant([0.1, 0.2, 0.3], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, False, True, "adagrad_1")))
 
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Float64 example
+    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float64))
+    accum = tf.Variable(np.array([0.1, 0.2, 0.3], dtype=np.float64))
+    lr = tf.constant(0.01, dtype=np.float64)
+    grad = tf.constant([0.1, 0.2, 0.3], dtype=np.float64)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, True, False, "adagrad_2")))
 
-    # Input 2: float64 example with different values
-    var = np.array([1.0, -2.0, 3.0], dtype=np.float64)
-    accum = np.array([0.1, 0.2, 0.3], dtype=np.float64)
-    lr = np.array(0.01, dtype=np.float64)
-    grad = np.array([-0.1, 0.2, -0.3], dtype=np.float64)
-    use_locking = True
-    update_slots = False
-    name = "adagrad_2"
+    # Input 3: Int32 example
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
+    accum = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
+    lr = tf.constant(1, dtype=np.int32)
+    grad = tf.constant([1, 2, 3], dtype=np.int32)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, False, True, "adagrad_3")))
 
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Negative values
+    var = tf.Variable(np.array([-1.0, -2.0, -3.0], dtype=np.float32))
+    accum = tf.Variable(np.array([0.1, 0.2, 0.3], dtype=np.float32))
+    lr = tf.constant(0.01, dtype=np.float32)
+    grad = tf.constant([-0.1, -0.2, -0.3], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, True, False, "adagrad_4")))
 
-    # Input 3: int32 example
-    var = np.array([1, 2, 3], dtype=np.int32)
-    accum = np.array([1, 2, 3], dtype=np.int32)
-    lr = np.array(1, dtype=np.int32)
-    grad = np.array([1, 2, 3], dtype=np.int32)
-    use_locking = False
-    update_slots = True
-    name = "adagrad_3"
+    # Input 5: Multi-dimensional array
+    var = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
+    accum = tf.Variable(np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32))
+    lr = tf.constant(0.01, dtype=np.float32)
+    grad = tf.constant([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, False, True, "adagrad_5")))
 
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Larger values and negative learning rate (valid for int types)
-    var = np.array([-10, 20, -30], dtype=np.int32)
-    accum = np.array([5, 5, 5], dtype=np.int32)
-    lr = np.array(-2, dtype=np.int32)
-    grad = np.array([5, -5, 5], dtype=np.int32)
-    use_locking = True
-    update_slots = False
-    name = "adagrad_4"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 2D float32 example
-    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
-    use_locking = False
-    update_slots = True
-    name = "adagrad_5"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: 2D int32 example
-    var = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    accum = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    lr = np.array(1, dtype=np.int32)
-    grad = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    use_locking = True
-    update_slots = False
-    name = "adagrad_6"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 7: float32 with zeros
-    var = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    accum = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    use_locking = False
-    update_slots = True
-    name = "adagrad_7"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: int64 example
-    var = np.array([1, 2, 3], dtype=np.int64)
-    accum = np.array([1, 2, 3], dtype=np.int64)
-    lr = np.array(1, dtype=np.int64)
-    grad = np.array([1, 2, 3], dtype=np.int64)
-    use_locking = False
-    update_slots = True
-    name = "adagrad_8"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: complex64
-    var = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    accum = np.array([0.1+0.1j, 0.2+0.2j, 0.3+0.3j], dtype=np.complex64)
-    lr = np.array(0.01+0.01j, dtype=np.complex64)
-    grad = np.array([0.1+0.1j, 0.2+0.2j, 0.3+0.3j], dtype=np.complex64)
-    use_locking = True
-    update_slots = False
-    name = "adagrad_9"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: bfloat16
-    var = np.array([1.0, 2.0, 3.0], dtype=np.float32).astype(np.float16)
-    var = tf.constant(var)
-    var = tf.cast(var, tf.bfloat16).numpy()
-    accum = np.array([0.1, 0.2, 0.3], dtype=np.float32).astype(np.float16)
-    accum = tf.constant(accum)
-    accum = tf.cast(accum, tf.bfloat16).numpy()
-    lr = np.array(0.01, dtype=np.float32).astype(np.float16)
-    lr = tf.constant(lr)
-    lr = tf.cast(lr, tf.bfloat16).numpy()
-    grad = np.array([0.1, 0.2, 0.3], dtype=np.float32).astype(np.float16)
-    grad = tf.constant(grad)
-    grad = tf.cast(grad, tf.bfloat16).numpy()
-    use_locking = False
-    update_slots = True
-    name = "adagrad_10"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Int64
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.int64))
+    accum = tf.Variable(np.array([1, 2, 3], dtype=np.int64))
+    lr = tf.constant(1, dtype=np.int64)
+    grad = tf.constant([1, 2, 3], dtype=np.int64)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, True, False, "adagrad_6")))
     
+    # Input 7: uint8
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.uint8))
+    accum = tf.Variable(np.array([1, 2, 3], dtype=np.uint8))
+    lr = tf.constant(1, dtype=np.uint8)
+    grad = tf.constant([1, 2, 3], dtype=np.uint8)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, False, True, "adagrad_7")))
+
+    # Input 8: int16
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.int16))
+    accum = tf.Variable(np.array([1, 2, 3], dtype=np.int16))
+    lr = tf.constant(1, dtype=np.int16)
+    grad = tf.constant([1, 2, 3], dtype=np.int16)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, True, False, "adagrad_8")))
+
+    # Input 9: uint16
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.uint16))
+    accum = tf.Variable(np.array([1, 2, 3], dtype=np.uint16))
+    lr = tf.constant(1, dtype=np.uint16)
+    grad = tf.constant([1, 2, 3], dtype=np.uint16)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, False, True, "adagrad_9")))
+
+    # Input 10: int8
+    var = tf.Variable(np.array([1, 2, 3], dtype=np.int8))
+    accum = tf.Variable(np.array([1, 2, 3], dtype=np.int8))
+    lr = tf.constant(1, dtype=np.int8)
+    grad = tf.constant([1, 2, 3], dtype=np.int8)
+    list_of_inputs.append(copy.deepcopy(create_input_dict(var, accum, lr, grad, True, False, "adagrad_10")))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.ApplyAdagrad"] = tf_raw_ops_apply_adagrad_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

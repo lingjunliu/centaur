@@ -12,173 +12,99 @@ def tf_raw_ops_assign_inputs():
     list_of_inputs = []
 
     # Input 1: Basic assignment
-    ref_np = np.array([1, 2, 3], dtype=np.int32)
+    ref_np = np.array(1, dtype=np.int32)
+    value_np = np.array(2, dtype=np.int32)
     ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([4, 5, 6], dtype=np.int32))
-    validate_shape = True
-    use_locking = True
-    name = "assign_op_1"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": True, "name": "assign_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Assignment with shape validation disabled
-    ref_np = np.array([1, 2, 3], dtype=np.int32)
+    # Input 2: Different shape, validate_shape=False
+    ref_np = np.array([1, 2], dtype=np.int32)
+    value_np = np.array([3, 4, 5], dtype=np.int32)
     ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([4, 5, 6], dtype=np.int32))
-    validate_shape = False
-    use_locking = False
-    name = "assign_op_2"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": False, "use_locking": False, "name": "assign_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multi-dimensional assignment
+    # Input 3: Multi-dimensional array
     ref_np = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    value_np = np.array([[5, 6], [7, 8]], dtype=np.float32)
     ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([[5, 6], [7, 8]], dtype=np.float32))
-    validate_shape = True
-    use_locking = True
-    name = "assign_op_3"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": True, "name": "assign_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Assignment with different data type
-    ref_np = np.array([1, 2, 3], dtype=np.int64)
+    # Input 4: Boolean array
+    ref_np = np.array([True, False], dtype=np.bool_)
+    value_np = np.array([False, True], dtype=np.bool_)
     ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([4, 5, 6], dtype=np.int64))
-    validate_shape = True
-    use_locking = True
-    name = "assign_op_4"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": False, "name": "assign_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Assignment with a different name
+    # Input 5: String array
+    ref_np = np.array(["a", "b"], dtype=np.string_)
+    value_np = np.array(["c", "d"], dtype=np.string_)
+    ref = tf.Variable(ref_np)
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": True, "name": "assign_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Negative values
+    ref_np = np.array([-1, -2], dtype=np.int32)
+    value_np = np.array([-3, -4], dtype=np.int32)
+    ref = tf.Variable(ref_np)
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": False, "name": "assign_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different dtype (float64)
+    ref_np = np.array(1.0, dtype=np.float64)
+    value_np = np.array(2.0, dtype=np.float64)
+    ref = tf.Variable(ref_np)
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": False, "name": "assign_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: More complex shape
+    ref_np = np.zeros((2, 3, 4), dtype=np.int32)
+    value_np = np.ones((2, 3, 4), dtype=np.int32)
+    ref = tf.Variable(ref_np)
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": True, "name": "assign_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: validate_shape = False, different shape (again)
     ref_np = np.array([1, 2, 3], dtype=np.int32)
+    value_np = np.array([4, 5], dtype=np.int32)
     ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([7, 8, 9], dtype=np.int32))
-    validate_shape = True
-    use_locking = True
-    name = "different_name"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": False, "use_locking": False, "name": "assign_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Scalar assignment
+    ref_np = np.array(1.5, dtype=np.float32)
+    value_np = np.array(3.7, dtype=np.float32)
+    ref = tf.Variable(ref_np)
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": True, "name": "assign_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Float data type
-    ref_np = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    # Input 11: Assigning a scalar value to a tensor
+    ref_np = np.array([1, 2, 3], dtype=np.int32)
+    value_np = np.array(5, dtype=np.int32)
     ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([4.5, 5.5, 6.5], dtype=np.float32))
-    validate_shape = True
-    use_locking = True
-    name = "float_assign"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": False, "use_locking": True, "name": "assign_11"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 2D float
-    ref_np = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    # Input 12: Assigning a tensor to a tensor of same shape
+    ref_np = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    value_np = np.array([[5, 6], [7, 8]], dtype=np.float32)
     ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64))
-    validate_shape = True
-    use_locking = True
-    name = "2d_float"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Boolean values
-    ref_np = np.array([True, False, True], dtype=np.bool_)
-    ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([False, True, False], dtype=np.bool_))
-    validate_shape = True
-    use_locking = True
-    name = "bool_assign"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Int8
-    ref_np = np.array([1, 2, 3], dtype=np.int8)
-    ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([4, 5, 6], dtype=np.int8))
-    validate_shape = True
-    use_locking = True
-    name = "int8_assign"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Rank 3 Tensor
-    ref_np = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    ref = tf.Variable(ref_np)
-    value = tf.constant(np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32))
-    validate_shape = True
-    use_locking = True
-    name = "rank_3_assign"
-
-    input_dict = {
-        "ref": ref.numpy(),
-        "value": value.numpy(),
-        "validate_shape": validate_shape,
-        "use_locking": use_locking,
-        "name": name
-    }
+    value = tf.constant(value_np)
+    input_dict = {"ref": ref, "value": value, "validate_shape": True, "use_locking": True, "name": "assign_12"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

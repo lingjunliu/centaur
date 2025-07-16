@@ -8,15 +8,34 @@ import tensorflow as tf
 import numpy as np
 import copy
 
+def check_valid(api, input_list, lib="tf", suffix="0"):
+    for i, input_dict in enumerate(input_list):
+        try:
+            if lib == "tf":
+                api = eval(api)
+            inp = {"args": [], "kwargs": input_dict}
+            output = run_api(api, input_dict, cpu=True, lib=lib)
+        except Exception as e:
+            print(f"Error in input {i}: {e}")
+
+def run_api(func, input_dict, cpu=True, lib="tf"):
+    if lib == "torch":
+        inp = {"args": [], "kwargs": input_dict}
+        result = func(*inp["args"], **inp["kwargs"])
+    elif lib == "tf":
+        result = func(**input_dict)
+    return result
+
 def tf_raw_ops_deserialize_many_sparse_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic valid input
     serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
+        [b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00'],
+        [b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00']
     ], dtype=np.object_)
     dtype = tf.float32
-    name = "sparse_tensor_1"
+    name = "sparse_deserialization_1"
 
     input_dict = {
         "serialized_sparse": serialized_sparse,
@@ -25,13 +44,13 @@ def tf_raw_ops_deserialize_many_sparse_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
+    # Input 2: Different dtype
     serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04'],
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x04\x05\x06\x07', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
+        [b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00'],
+        [b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00']
     ], dtype=np.object_)
     dtype = tf.int32
-    name = "sparse_tensor_2"
+    name = "sparse_deserialization_2"
 
     input_dict = {
         "serialized_sparse": serialized_sparse,
@@ -40,115 +59,13 @@ def tf_raw_ops_deserialize_many_sparse_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 3
+     # Input 3: Different name
     serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
+        [b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00'],
+        [b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00', b'\x08\x01*\x00\x12\x08\x08\x01\x10\x00\x18\x01"\x08\x08\x01\x10\x00\x18\x00']
     ], dtype=np.object_)
-    dtype = tf.float64
-    name = "sparse_tensor_3"
-
-    input_dict = {
-        "serialized_sparse": serialized_sparse,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04'],
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x04\x05\x06\x07', b'\x1a\x08\x08\x02\x10\x02\x18\x04'],
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x08\t\n\x0b', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
-    ], dtype=np.object_)
-    dtype = tf.int64
-    name = "sparse_tensor_4"
-
-    input_dict = {
-        "serialized_sparse": serialized_sparse,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
-    ], dtype=np.object_)
-    dtype = tf.uint8
-    name = "sparse_tensor_5"
-
-    input_dict = {
-        "serialized_sparse": serialized_sparse,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04'],
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x04\x05\x06\x07', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
-    ], dtype=np.object_)
-    dtype = tf.uint16
-    name = "sparse_tensor_6"
-
-    input_dict = {
-        "serialized_sparse": serialized_sparse,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
-    ], dtype=np.object_)
-    dtype = tf.uint32
-    name = "sparse_tensor_7"
-
-    input_dict = {
-        "serialized_sparse": serialized_sparse,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04'],
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x04\x05\x06\x07', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
-    ], dtype=np.object_)
-    dtype = tf.uint64
-    name = "sparse_tensor_8"
-
-    input_dict = {
-        "serialized_sparse": serialized_sparse,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
-    ], dtype=np.object_)
-    dtype = tf.int8
-    name = "sparse_tensor_9"
-
-    input_dict = {
-        "serialized_sparse": serialized_sparse,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 10
-    serialized_sparse = np.array([
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x00\x01\x02\x03', b'\x1a\x08\x08\x02\x10\x02\x18\x04'],
-        [b'\x08\x00\x10\x02\x1a\x04\x08\x01\x10\x01', b'\x12\x04\x04\x05\x06\x07', b'\x1a\x08\x08\x02\x10\x02\x18\x04']
-    ], dtype=np.object_)
-    dtype = tf.bfloat16
-    name = "sparse_tensor_10"
+    dtype = tf.float32
+    name = "another_sparse_name"
 
     input_dict = {
         "serialized_sparse": serialized_sparse,

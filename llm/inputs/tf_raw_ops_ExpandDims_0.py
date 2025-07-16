@@ -11,82 +11,64 @@ import copy
 def tf_raw_ops_expanddims_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with positive axis
+    # Input 1
     input_tensor = np.array([1, 2, 3], dtype=np.int32)
     axis_tensor = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic case with negative axis
-    input_tensor = np.array([1, 2, 3], dtype=np.int32)
-    axis_tensor = np.array(-1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: 2D tensor
+    # Input 2
     input_tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
     axis_tensor = np.array(1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 3D tensor
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64)
-    axis_tensor = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Higher dimension tensor
-    input_tensor = np.arange(24).reshape((2, 3, 4)).astype(np.int64)
-    axis_tensor = np.array(2, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Expanding at the end
-    input_tensor = np.array([1, 2, 3], dtype=np.int32)
+    # Input 3
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
     axis_tensor = np.array(-1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Expanding with int64 axis
-    input_tensor = np.array([1, 2, 3], dtype=np.int32)
-    axis_tensor = np.array(0, dtype=np.int64)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
+    # Input 4
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+    axis_tensor = np.array(-2, dtype=np.int32)
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Expanding 2D with int64 axis
-    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    axis_tensor = np.array(1, dtype=np.int64)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Tensor with string type
-    input_tensor = np.array(["a", "b", "c"], dtype=np.string_)
-    axis_tensor = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: Empty array
-    input_tensor = np.array([], dtype=np.int32)
-    axis_tensor = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Scalar input
+    # Input 5
     input_tensor = np.array(5, dtype=np.int32)
     axis_tensor = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Scalar input with negative axis
-    input_tensor = np.array(5, dtype=np.int32)
-    axis_tensor = np.array(-1, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 13: Expand along existing dim
-    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    # Input 6
+    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
     axis_tensor = np.array(0, dtype=np.int32)
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": None}
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([1, 2, 3], dtype=np.int64)
+    axis_tensor = np.array(0, dtype=np.int32)
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 8
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    axis_tensor = np.array(1, dtype=np.int32)
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
+    axis_tensor = np.array(-1, dtype=np.int32)
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+    axis_tensor = np.array(-2, dtype=np.int32)
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "name": "expand_dim_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

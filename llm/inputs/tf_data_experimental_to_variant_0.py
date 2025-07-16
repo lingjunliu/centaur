@@ -6,95 +6,57 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import copy
-import numpy as np
 
 def tf_data_experimental_to_variant_inputs():
     list_of_inputs = []
 
-    # Helper function to convert Dataset to numpy array
-    def dataset_to_numpy(dataset):
-        numpy_list = []
-        for element in dataset:
-            if isinstance(element, tf.Tensor):
-                numpy_list.append(element.numpy())
-            else:
-                numpy_list.append(np.array(element))
-        return np.array(numpy_list)
-
-    # Input 1: Empty dataset
-    dataset = tf.data.Dataset.from_tensor_slices([])
-    input_dict = {"dataset": tf.constant(np.array([]))}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Dataset with integers
+    # Input 1: Simple dataset
     dataset = tf.data.Dataset.from_tensor_slices([1, 2, 3, 4, 5])
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 3: Dataset with strings
+    # Input 2: Dataset with different data types (string)
     dataset = tf.data.Dataset.from_tensor_slices(["a", "b", "c"])
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 4: Dataset with floats
-    dataset = tf.data.Dataset.from_tensor_slices([1.0, 2.0, 3.0])
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    # Input 3: Dataset with a range of numbers
+    dataset = tf.data.Dataset.range(10)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 5: Dataset with tf.int64 data type
-    dataset = tf.data.Dataset.from_tensor_slices(tf.constant([1, 2, 3], dtype=tf.int64))
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    # Input 4: Empty dataset
+    dataset = tf.data.Dataset.from_tensor_slices([])
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    # Input 6: Dataset with multi-dimensional tensors
-    dataset = tf.data.Dataset.from_tensor_slices([tf.constant([[1, 2], [3, 4]]), tf.constant([[5, 6], [7, 8]])])
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: Dataset with different length sequences, but convert to numpy array first
-    list_data = [[1, 2], [3, 4, 5]]
-    max_len = max(len(x) for x in list_data)
-    padded_list = [x + [0] * (max_len - len(x)) for x in list_data]
-    numpy_array = np.array(padded_list)
-    dataset = tf.data.Dataset.from_tensor_slices(numpy_array)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Dataset containing only float32 tensors
-    dataset = tf.data.Dataset.from_tensor_slices([tf.constant([1.0, 2.0], dtype=tf.float32), tf.constant([3.0, 4.0], dtype=tf.float32)])
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: Dataset of booleans
+    # Input 5: Dataset of tensors
+    a = tf.constant([[1, 1], [2, 2]])
+    dataset = tf.data.Dataset.from_tensor_slices([a])
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 6: Dataset of boolean values
     dataset = tf.data.Dataset.from_tensor_slices([True, False, True])
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: Dataset with 2D array of boolean
-    dataset = tf.data.Dataset.from_tensor_slices([[True, False], [False, True]])
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Dataset containing tensors of different dtypes.
-    dataset = tf.data.Dataset.from_tensor_slices([1, 2.0, "string"])
-    
-    def convert_to_string(element):
-      return tf.strings.as_string(element)
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
-    dataset = dataset.map(convert_to_string)
-    numpy_array = dataset_to_numpy(dataset)
-    input_dict = {"dataset": tf.constant(numpy_array)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Dataset with numpy arrays
+    import numpy as np
+    a = np.array([[1, 2], [3, 4]])
+    dataset = tf.data.Dataset.from_tensor_slices([a])
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 9: Dataset of bytes
+    dataset = tf.data.Dataset.from_tensor_slices([b'test1', b'test2'])
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 10: Dataset with only one element
+    dataset = tf.data.Dataset.from_tensor_slices([100])
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

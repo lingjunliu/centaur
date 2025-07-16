@@ -11,204 +11,64 @@ import copy
 def tf_raw_ops_BatchMatMul_inputs():
     list_of_inputs = []
 
-    # Input 1
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float32)
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    # Input 1: Basic example with float32
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
+    y = np.array([[[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    y = np.array([[5, 6], [7, 8]], dtype=np.float32)
-    adj_x = True
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    # Input 2: Different batch size and adjoint x
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    y = np.array([[[5.0, 6.0], [7.0, 8.0]], [[9.0, 10.0], [11.0, 12.0]]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "adj_x": True, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    x = np.array([[[1, 2, 3], [4, 5, 6]]], dtype=np.float32)
-    y = np.array([[[7, 8], [9, 10], [11, 12]]], dtype=np.float32)
-    adj_x = False
-    adj_y = True
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    # Input 3: Adjoint y
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
+    y = np.array([[[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": True, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float64)
-    adj_x = True
-    adj_y = True
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    # Input 4: Both adjoint
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
+    y = np.array([[[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "adj_x": True, "adj_y": True, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 5
-    x = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex64)
-    y = np.array([[[9+9j, 10+10j], [11+11j, 12+12j]], [[13+13j, 14+14j], [15+15j, 16+16j]]], dtype=np.complex64)
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    # Input 5: Different matrix dimensions
+    x = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]], dtype=np.float32)
+    y = np.array([[[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
+    # Input 6: Complex64 type
+    x = np.array([[[1.0+1j, 2.0+2j], [3.0+3j, 4.0+4j]]], dtype=np.complex64)
+    y = np.array([[[5.0+5j, 6.0+6j], [7.0+7j, 8.0+8j]]], dtype=np.complex64)
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Int32 type
     x = np.array([[[1, 2], [3, 4]]], dtype=np.int32)
     y = np.array([[[5, 6], [7, 8]]], dtype=np.int32)
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
+   # Input 8: Multiple batches with int64
     x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int64)
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    y = np.array([[[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.int64)
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: bfloat16
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float16)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float16)
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    # Input 9: half
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float16)
+    y = np.array([[[5.0, 6.0], [7.0, 8.0]]], dtype=np.float16)
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    x = np.array([[[1, 2], [3, 4]]], dtype=np.float32)
-    y = np.array([[[5, 6], [7, 8]]], dtype=np.float32)
-    adj_x = True
-    adj_y = True
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.complex128)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.complex128)
-    adj_x = True
-    adj_y = True
-    grad_x = False
-    grad_y = False
-    name = None
-
-    input_dict = {
-        "x": x,
-        "y": y,
-        "adj_x": adj_x,
-        "adj_y": adj_y,
-        "grad_x": grad_x,
-        "grad_y": grad_y,
-        "name": name
-    }
+    # Input 10: Complex128 type
+    x = np.array([[[1.0+1j, 2.0+2j], [3.0+3j, 4.0+4j]]], dtype=np.complex128)
+    y = np.array([[[5.0+5j, 6.0+6j], [7.0+7j, 8.0+8j]]], dtype=np.complex128)
+    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -12,48 +12,26 @@ def tf_nn_conv1d_transpose_inputs():
     list_of_inputs = []
 
     # Input 1
-    input1 = np.random.rand(1, 5, 3).astype(np.float32)
-    filters1 = np.random.rand(3, 3, 3).astype(np.float32)
-    output_shape1 = np.array([1, 5, 3]).astype(np.int32)
-    strides1 = [1]
-    padding1 = 'SAME'
-    data_format1 = 'NWC'
-    dilations1 = [1]
-    name1 = 'conv1d_transpose_1'
+    input_tensor = np.random.rand(1, 5, 3).astype(np.float32)
+    filters_tensor = np.random.rand(3, 2, 3).astype(np.float32)
+    output_shape_tensor = np.array([1, 7, 2]).astype(np.int32)
+    strides_list = [1]
+    padding_string = 'SAME'
+    data_format_string = 'NWC'
+    dilations_list = [1]
+    name_string = 'transpose_conv1d_1'
 
-    input_dict1 = {
-        "input": input1,
-        "filters": filters1,
-        "output_shape": output_shape1,
-        "strides": strides1,
-        "padding": padding1,
-        "data_format": data_format1,
-        "dilations": dilations1,
-        "name": name1
+    input_dict = {
+        "input": input_tensor,
+        "filters": filters_tensor,
+        "output_shape": output_shape_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
-
-    # Input 2
-    input2 = np.random.rand(2, 10, 2).astype(np.float32)
-    filters2 = np.random.rand(5, 2, 2).astype(np.float32)
-    output_shape2 = np.array([2, 14, 2]).astype(np.int32)
-    strides2 = [2]
-    padding2 = 'VALID'
-    data_format2 = 'NWC'
-    dilations2 = [1]
-    name2 = 'conv1d_transpose_2'
-
-    input_dict2 = {
-        "input": input2,
-        "filters": filters2,
-        "output_shape": output_shape2,
-        "strides": strides2,
-        "padding": padding2,
-        "data_format": data_format2,
-        "dilations": dilations2,
-        "name": name2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

@@ -21,7 +21,7 @@ def tf_raw_ops_empty_inputs():
 
     # Input 2
     shape = np.array([5], dtype=np.int32)
-    dtype = tf.int64
+    dtype = tf.int32
     init = True
     name = "empty_tensor_2"
     input_dict = {"shape": shape, "dtype": dtype, "init": init, "name": name}
@@ -53,7 +53,7 @@ def tf_raw_ops_empty_inputs():
 
     # Input 6
     shape = np.array([1], dtype=np.int32)
-    dtype = tf.uint8
+    dtype = tf.float64
     init = True
     name = "empty_tensor_6"
     input_dict = {"shape": shape, "dtype": dtype, "init": init, "name": name}
@@ -61,22 +61,22 @@ def tf_raw_ops_empty_inputs():
 
     # Input 7
     shape = np.array([2, 2, 2, 2, 2], dtype=np.int32)
-    dtype = tf.bfloat16
+    dtype = tf.int64
     init = False
     name = "empty_tensor_7"
     input_dict = {"shape": shape, "dtype": dtype, "init": init, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    shape = np.array([1, 1], dtype=np.int32)
-    dtype = tf.float64
+    shape = np.array([7], dtype=np.int32)
+    dtype = tf.uint8
     init = True
     name = "empty_tensor_8"
     input_dict = {"shape": shape, "dtype": dtype, "init": init, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 9
-    shape = np.array([7, 7, 7], dtype=np.int32)
+    shape = np.array([1, 5, 1], dtype=np.int32)
     dtype = tf.qint8
     init = False
     name = "empty_tensor_9"
@@ -84,13 +84,13 @@ def tf_raw_ops_empty_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    shape = np.array([128], dtype=np.int32)
-    dtype = tf.float16
+    shape = np.array([4, 4], dtype=np.int32)
+    dtype = tf.bfloat16
     init = True
     name = "empty_tensor_10"
     input_dict = {"shape": shape, "dtype": dtype, "init": init, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

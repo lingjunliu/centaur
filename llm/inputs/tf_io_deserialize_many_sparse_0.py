@@ -11,162 +11,103 @@ import copy
 def tf_io_deserialize_many_sparse_inputs():
     list_of_inputs = []
 
-    # Input 1
-    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values = np.array([1, 2], dtype=np.int64)
-    shape = np.array([1, 2], dtype=np.int64)
-    sparse_tensor = tf.SparseTensor(indices, values, shape)
-    serialized_sparse = tf.io.serialize_sparse(sparse_tensor)
-    serialized_sparse = np.array([[serialized_sparse.numpy()]], dtype=object)
+    # Input 1: Basic case
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.float32)
+    shape = np.array([2, 2], dtype=np.int64)
+    st = tf.SparseTensor(indices, values, shape)
+    serialized_sparse = tf.io.serialize_sparse(st)
+    serialized_sparse = np.array([[serialized_sparse.numpy()], [serialized_sparse.numpy()]], dtype=object)
 
-    dtype = np.int64
+    dtype = np.float32
     rank = 2
     name = "sparse_tensor_1"
     input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    indices1 = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values1 = np.array([1.0, 2.0], dtype=np.float32)
-    shape1 = np.array([1, 2], dtype=np.int64)
-    sparse_tensor1 = tf.SparseTensor(indices1, values1, shape1)
-    serialized_sparse1 = tf.io.serialize_sparse(sparse_tensor1)
-
-    indices2 = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values2 = np.array([4.0, 5.0], dtype=np.float32)
-    shape2 = np.array([1, 2], dtype=np.int64)
-    sparse_tensor2 = tf.SparseTensor(indices2, values2, shape2)
-    serialized_sparse2 = tf.io.serialize_sparse(sparse_tensor2)
-
-    serialized_sparse = np.array([[serialized_sparse1.numpy()], [serialized_sparse2.numpy()]], dtype=object)
-
-    dtype = np.float32
+    # Input 2: Different dtype
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    values = np.array([1, 2, 3, 4], dtype=np.int32)
+    shape = np.array([2, 2], dtype=np.int64)
+    st = tf.SparseTensor(indices, values, shape)
+    serialized_sparse = tf.io.serialize_sparse(st)
+    serialized_sparse = np.array([[serialized_sparse.numpy()], [serialized_sparse.numpy()]], dtype=object)
+    dtype = np.int32
     rank = 2
     name = "sparse_tensor_2"
     input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values = np.array([1, 2], dtype=np.int32)
-    shape = np.array([1, 2], dtype=np.int64)
-    sparse_tensor = tf.SparseTensor(indices, values, shape)
-    serialized_sparse = tf.io.serialize_sparse(sparse_tensor)
-    serialized_sparse = np.array([[serialized_sparse.numpy()]], dtype=object)
-
-    dtype = np.int32
-    rank = 2
-    name = None
+    # Input 3: Different rank
+    indices = np.array([[0], [1], [2]], dtype=np.int64)
+    values = np.array([1, 2, 3], dtype=np.float32)
+    shape = np.array([3], dtype=np.int64)
+    st = tf.SparseTensor(indices, values, shape)
+    serialized_sparse = tf.io.serialize_sparse(st)
+    serialized_sparse = np.array([[serialized_sparse.numpy()], [serialized_sparse.numpy()]], dtype=object)
+    dtype = np.float32
+    rank = 1
+    name = "sparse_tensor_3"
     input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
+    # Input 4: Different minibatch size (N=3)
     indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values = np.array([1.0, 2.0], dtype=np.float64)
+    values = np.array([1, 2], dtype=np.float32)
     shape = np.array([1, 2], dtype=np.int64)
-    sparse_tensor = tf.SparseTensor(indices, values, shape)
-    serialized_sparse = tf.io.serialize_sparse(sparse_tensor)
-    serialized_sparse = np.array([[serialized_sparse.numpy()]], dtype=object)
+    st = tf.SparseTensor(indices, values, shape)
+    serialized_sparse = tf.io.serialize_sparse(st)
+    serialized_sparse = np.array([[serialized_sparse.numpy()], [serialized_sparse.numpy()], [serialized_sparse.numpy()]], dtype=object)
 
-    dtype = np.float64
+    dtype = np.float32
     rank = 2
     name = "sparse_tensor_4"
     input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
+    # Input 5: Different name
+    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    values = np.array([1, 2], dtype=np.float32)
+    shape = np.array([1, 2], dtype=np.int64)
+    st = tf.SparseTensor(indices, values, shape)
+    serialized_sparse = tf.io.serialize_sparse(st)
+    serialized_sparse = np.array([[serialized_sparse.numpy()], [serialized_sparse.numpy()]], dtype=object)
+    dtype = np.float32
+    rank = 2
+    name = "another_sparse_tensor"
+    input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: dtype=tf.string
+    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    values = np.array(["a", "b"], dtype=np.string_)
+    shape = np.array([1, 2], dtype=np.int64)
+    st = tf.SparseTensor(indices, values, shape)
+    serialized_sparse = tf.io.serialize_sparse(st)
+    serialized_sparse = np.array([[serialized_sparse.numpy()], [serialized_sparse.numpy()]], dtype=object)
+    dtype = np.string_
+    rank = 2
+    name = "string_tensor"
+    input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different shapes in minibatch. Pad to the max shape.
     indices1 = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values1 = np.array([True, False], dtype=np.bool_)
+    values1 = np.array([1, 2], dtype=np.float32)
     shape1 = np.array([1, 2], dtype=np.int64)
-    sparse_tensor1 = tf.SparseTensor(indices1, values1, shape1)
-    serialized_sparse1 = tf.io.serialize_sparse(sparse_tensor1)
+    st1 = tf.SparseTensor(indices1, values1, shape1)
+    serialized_sparse1 = tf.io.serialize_sparse(st1)
 
-    indices2 = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values2 = np.array([True, True], dtype=np.bool_)
-    shape2 = np.array([1, 2], dtype=np.int64)
-    sparse_tensor2 = tf.SparseTensor(indices2, values2, shape2)
-    serialized_sparse2 = tf.io.serialize_sparse(sparse_tensor2)
+    indices2 = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    values2 = np.array([3, 4], dtype=np.float32)
+    shape2 = np.array([2, 2], dtype=np.int64)
+    st2 = tf.SparseTensor(indices2, values2, shape2)
+    serialized_sparse2 = tf.io.serialize_sparse(st2)
+
     serialized_sparse = np.array([[serialized_sparse1.numpy()], [serialized_sparse2.numpy()]], dtype=object)
-
-    dtype = np.bool_
+    dtype = np.float32
     rank = 2
-    name = "sparse_tensor_5"
-    input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values = np.array([1, 2], dtype=np.int16)
-    shape = np.array([1, 2], dtype=np.int64)
-    sparse_tensor = tf.SparseTensor(indices, values, shape)
-    serialized_sparse = tf.io.serialize_sparse(sparse_tensor)
-    serialized_sparse = np.array([[serialized_sparse.numpy()]], dtype=object)
-
-    dtype = np.int16
-    rank = 2
-    name = "sparse_tensor_6"
-    input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values = np.array([1, 2], dtype=np.int8)
-    shape = np.array([1, 2], dtype=np.int64)
-    sparse_tensor = tf.SparseTensor(indices, values, shape)
-    serialized_sparse = tf.io.serialize_sparse(sparse_tensor)
-    serialized_sparse = np.array([[serialized_sparse.numpy()]], dtype=object)
-
-    dtype = np.int8
-    rank = 2
-    name = "sparse_tensor_7"
-    input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values = np.array([1, 2], dtype=np.uint8)
-    shape = np.array([1, 2], dtype=np.int64)
-    sparse_tensor = tf.SparseTensor(indices, values, shape)
-    serialized_sparse = tf.io.serialize_sparse(sparse_tensor)
-    serialized_sparse = np.array([[serialized_sparse.numpy()]], dtype=object)
-
-    dtype = np.uint8
-    rank = 2
-    name = "sparse_tensor_8"
-    input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    indices1 = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values1 = np.array([1, 2], dtype=np.uint16)
-    shape1 = np.array([1, 2], dtype=np.int64)
-    sparse_tensor1 = tf.SparseTensor(indices1, values1, shape1)
-    serialized_sparse1 = tf.io.serialize_sparse(sparse_tensor1)
-
-    indices2 = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values2 = np.array([4, 5], dtype=np.uint16)
-    shape2 = np.array([1, 2], dtype=np.int64)
-    sparse_tensor2 = tf.SparseTensor(indices2, values2, shape2)
-    serialized_sparse2 = tf.io.serialize_sparse(sparse_tensor2)
-    serialized_sparse = np.array([[serialized_sparse1.numpy()], [serialized_sparse2.numpy()]], dtype=object)
-
-    dtype = np.uint16
-    rank = 2
-    name = "sparse_tensor_9"
-    input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    values = np.array([1+1j, 2+2j], dtype=np.complex64)
-    shape = np.array([1, 2], dtype=np.int64)
-    sparse_tensor = tf.SparseTensor(indices, values, shape)
-    serialized_sparse = tf.io.serialize_sparse(sparse_tensor)
-    serialized_sparse = np.array([[serialized_sparse.numpy()]], dtype=object)
-
-    dtype = np.complex64
-    rank = 2
-    name = "sparse_tensor_10"
+    name = "diff_dims"
     input_dict = {"serialized_sparse": serialized_sparse, "dtype": dtype, "rank": rank, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

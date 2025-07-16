@@ -11,124 +11,46 @@ import copy
 def tf_case_inputs():
     list_of_inputs = []
 
-    def f1():
-        return [tf.constant(17)]
-
-    def f2():
-        return [tf.constant(23)]
-
-    def f3():
-        return [tf.constant(-1)]
-    
-    def f4():
-        return [tf.constant(17.0)]
-    
-    def f5():
-        return [tf.constant([[1,2],[3,4]])]
-
-    def f6():
-        return [tf.constant(17), tf.constant(18)]
-    
-    def f7():
-        return [tf.constant(23), tf.constant(24)]
-
-    # Input 1: Basic example with default
-    pred_fn_pairs = [(tf.constant(False), f1)]
-    default = f2
+    # Input 1: Basic case with default
     exclusive = False
     strict = False
     name = "case_1"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
+    input_dict = {"pred_fn_pairs": [(tf.constant(False), lambda: [tf.constant(1)])], "default": lambda: [tf.constant(3)], "exclusive": exclusive, "strict": strict, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic example without default
-    pred_fn_pairs = [(tf.constant(True), f1)]
-    default = f2
+    # Input 2: One predicate is True
     exclusive = False
     strict = False
     name = "case_2"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
+    input_dict = {"pred_fn_pairs": [(tf.constant(True), lambda: [tf.constant(10)])], "default": lambda: [tf.constant(30)], "exclusive": exclusive, "strict": strict, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multiple predicates, first one true
-    pred_fn_pairs = [(tf.constant(True), f1), (tf.constant(False), f2)]
-    default = f3
-    exclusive = False
+    # Input 3: Exclusive is True, only one True predicate
+    exclusive = True
     strict = False
     name = "case_3"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
+    input_dict = {"pred_fn_pairs": [(tf.constant(True), lambda: [tf.constant(100)])], "default": lambda: [tf.constant(300)], "exclusive": exclusive, "strict": strict, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multiple predicates, none true, with default
-    pred_fn_pairs = [(tf.constant(False), f1), (tf.constant(False), f2)]
-    default = f3
+    # Input 4: Nested tensors
     exclusive = False
     strict = False
     name = "case_4"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
+    input_dict = {"pred_fn_pairs": [(tf.constant(False), lambda: [tf.constant([[1, 2], [3, 4]])])], "default": lambda: [tf.constant([[9, 10], [11, 12]])], "exclusive": exclusive, "strict": strict, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Exclusive is True, multiple predicates true (should error, but testing input)
-    pred_fn_pairs = [(tf.constant(True), f1), (tf.constant(True), f2)]
-    default = f3
-    exclusive = True
+    # Input 5: Multiple tensors returned
+    exclusive = False
     strict = False
     name = "case_5"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
+    input_dict = {"pred_fn_pairs": [(tf.constant(True), lambda: [tf.constant(1), tf.constant(2)])], "default": lambda: [tf.constant(5), tf.constant(6)], "exclusive": exclusive, "strict": strict, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Empty pred_fn_pairs, with default
-    pred_fn_pairs = []
-    default = f3
+    # Input 6: No default
     exclusive = False
     strict = False
     name = "case_6"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: different return types
-    pred_fn_pairs = [(tf.constant(True), f4)]
-    default = f4
-    exclusive = False
-    strict = False
-    name = "case_8"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 9: More complex Tensors
-    pred_fn_pairs = [(tf.constant(True), f5)]
-    default = f5
-    exclusive = False
-    strict = False
-    name = "case_9"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: multiple outputs from lambdas
-    pred_fn_pairs = [(tf.constant(True), f6)]
-    default = f7
-    exclusive = False
-    strict = False
-    name = "case_10"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Predicate with a numpy boolean
-    pred_fn_pairs = [(tf.convert_to_tensor(np.array(True, dtype=np.bool_)), f1)]
-    default = f2
-    exclusive = False
-    strict = False
-    name = "case_11"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Predicate with a numpy boolean False
-    pred_fn_pairs = [(tf.convert_to_tensor(np.array(False, dtype=np.bool_)), f1)]
-    default = f2
-    exclusive = False
-    strict = False
-    name = "case_12"
-    input_dict = {"pred_fn_pairs": pred_fn_pairs, "default": default, "exclusive": exclusive, "strict": strict, "name": name}
+    input_dict = {"pred_fn_pairs": [(tf.constant(True), lambda: [tf.constant(1)])], "default": None, "exclusive": exclusive, "strict": strict, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

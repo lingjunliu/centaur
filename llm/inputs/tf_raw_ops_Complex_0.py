@@ -11,103 +11,83 @@ import copy
 def tf_raw_ops_complex_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32 complex64
-    real_np = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    imag_np = np.array([4.0, 5.0, 6.0], dtype=np.float32)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
+    # Input 1
+    real = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    imag = np.array([4.0, 5.0, 6.0], dtype=np.float32)
     Tout = tf.complex64
-    name = "complex_example_1"
+    name = "complex_numbers_1"
     input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic float64 complex128
-    real_np = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    imag_np = np.array([4.0, 5.0, 6.0], dtype=np.float64)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
-    Tout = tf.complex128
-    name = "complex_example_2"
-    input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Multi-dimensional array, float32 complex64
-    real_np = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    imag_np = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
+    # Input 2
+    real = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    imag = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
     Tout = tf.complex64
-    name = "complex_example_3"
+    name = "complex_numbers_2"
     input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multi-dimensional array, float64 complex128
-    real_np = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
-    imag_np = np.array([[[9.0, 10.0], [11.0, 12.0]], [[13.0, 14.0], [15.0, 16.0]]], dtype=np.float64)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
+    # Input 3
+    real = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    imag = np.array([4.0, 5.0, 6.0], dtype=np.float64)
     Tout = tf.complex128
-    name = "complex_example_4"
+    name = "complex_numbers_3"
     input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Negative values, float32, complex64
-    real_np = np.array([-1.0, -2.0, 3.0], dtype=np.float32)
-    imag_np = np.array([4.0, -5.0, -6.0], dtype=np.float32)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
+    # Input 4
+    real = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    imag = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64)
+    Tout = tf.complex128
+    name = "complex_numbers_4"
+    input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    real = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    imag = np.array([-4.0, -5.0, -6.0], dtype=np.float32)
     Tout = tf.complex64
-    name = "complex_example_5"
+    name = "complex_numbers_5"
     input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Negative values, float64, complex128
-    real_np = np.array([-1.0, -2.0, 3.0], dtype=np.float64)
-    imag_np = np.array([4.0, -5.0, -6.0], dtype=np.float64)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
-    Tout = tf.complex128
-    name = "complex_example_6"
-    input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 7:  float32, default Tout
-    real_np = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    imag_np = np.array([4.0, 5.0, 6.0], dtype=np.float32)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
+     # Input 6
+    real = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    imag = np.array([0.0, 0.0, 0.0], dtype=np.float32)
     Tout = tf.complex64
-    name = "complex_example_7"
+    name = "complex_numbers_6"
     input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float64, default Tout
-    real_np = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    imag_np = np.array([4.0, 5.0, 6.0], dtype=np.float64)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
-    Tout = tf.complex128
-    name = "complex_example_8"
-    input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Zero values, float32, complex64
-    real_np = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    imag_np = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
+    # Input 7
+    real = np.array([1.5, 2.5, 3.5], dtype=np.float32)
+    imag = np.array([4.5, 5.5, 6.5], dtype=np.float32)
     Tout = tf.complex64
-    name = "complex_example_9"
+    name = "complex_numbers_7"
     input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float64, complex128, different values
-    real_np = np.array([1.1, 2.2, 3.3], dtype=np.float64)
-    imag_np = np.array([4.4, 5.5, 6.6], dtype=np.float64)
-    real = tf.constant(real_np)
-    imag = tf.constant(imag_np)
+    # Input 8
+    real = np.array([1.0], dtype=np.float32)
+    imag = np.array([4.0], dtype=np.float32)
+    Tout = tf.complex64
+    name = "complex_numbers_8"
+    input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    real = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float64)
+    imag = np.array([[5.0, -6.0], [-7.0, 8.0]], dtype=np.float64)
     Tout = tf.complex128
-    name = "complex_example_10"
+    name = "complex_numbers_9"
+    input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    real = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    imag = np.array([6.0, 7.0, 8.0, 9.0, 10.0], dtype=np.float32)
+    Tout = tf.complex64
+    name = "complex_numbers_10"
     input_dict = {"real": real, "imag": imag, "Tout": Tout, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

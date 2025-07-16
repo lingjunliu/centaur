@@ -11,86 +11,92 @@ import copy
 def tf_math_add_n_inputs():
     list_of_inputs = []
 
-    def create_input_dict(inputs, name=None):
-        return {"inputs": inputs, "name": name}
-
     # Input 1: Basic case with two tensors
     a = np.array([[1, 2], [3, 4]], dtype=np.int32)
     b = np.array([[5, 6], [7, 8]], dtype=np.int32)
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]
+    name = "add_op_1"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Three tensors, different values
-    a = np.array([[1, -2], [-3, 4]], dtype=np.int32)
-    b = np.array([[5, 6], [7, -8]], dtype=np.int32)
-    c = np.array([[-9, 10], [11, 12]], dtype=np.int32)
-    inputs = [tf.constant(a), tf.constant(b), tf.constant(c)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs, "sum_of_three")))
-
-    # Input 3: Tensors with float32 type
-    a = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float32)
-    b = np.array([[5.5, 6.5], [7.5, 8.5]], dtype=np.float32)
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
-
-    # Input 4: Tensors with float64 type
-    a = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float64)
-    b = np.array([[5.5, 6.5], [7.5, 8.5]], dtype=np.float64)
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
-
-    # Input 5: Three dimensional tensors
-    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    b = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32)
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
-
-    # Input 6: One tensor
-    a = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    inputs = [tf.constant(a)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
-
-    # Input 7: Several tensors, all zeros
-    a = np.zeros((2, 2), dtype=np.int32)
-    b = np.zeros((2, 2), dtype=np.int32)
-    c = np.zeros((2, 2), dtype=np.int32)
-    inputs = [tf.constant(a), tf.constant(b), tf.constant(c)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
-
-    # Input 8: Tensors with int64 type
-    a = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    b = np.array([[5, 6], [7, 8]], dtype=np.int64)
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
-
-    # Input 9: Tensors with negative values
+    # Input 2: Three tensors with negative values
     a = np.array([[-1, 2], [3, -4]], dtype=np.int32)
     b = np.array([[5, -6], [-7, 8]], dtype=np.int32)
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
+    c = np.array([[0, 1], [1, 0]], dtype=np.int32)
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b), tf.convert_to_tensor(c)]
+    name = "add_op_2"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Simple vector addition
-    a = np.array([1, 2, 3], dtype=np.int32)
-    b = np.array([4, 5, 6], dtype=np.int32)
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
+    # Input 3: Tensors with different dtype (float32)
+    a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]
+    name = "add_op_3"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Different shapes but same length (should throw error in TF) - Added it as a potential test
-    a = np.array([1, 2, 3, 4], dtype=np.int32).reshape((2, 2))
-    b = np.array([5, 6, 7, 8], dtype=np.int32).reshape((4, 1))
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
+    # Input 4: Three dimensional tensors
+    a = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    b = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.int32)
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]
+    name = "add_op_4"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12: Broadcasting not supported - Test
+     # Input 5: Empty name
     a = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    b = np.array([1, 2], dtype=np.int32)
-    inputs = [tf.constant(a), tf.constant(b)]
-    list_of_inputs.append(copy.deepcopy(create_input_dict(inputs)))
+    b = np.array([[5, 6], [7, 8]], dtype=np.int32)
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]
+    name = ""
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: One Tensor
+    a = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    inputs = [tf.convert_to_tensor(a)]
+    name = "add_op_6"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: int64 tensors
+    a = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    b = np.array([[5, 6], [7, 8]], dtype=np.int64)
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]
+    name = "add_op_7"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Large values
+    a = np.array([[1000000000, 2000000000], [3000000000, 4000000000]], dtype=np.int64)
+    b = np.array([[5000000000, 6000000000], [7000000000, 8000000000]], dtype=np.int64)
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]
+    name = "add_op_8"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: float64
+    a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64)
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]
+    name = "add_op_9"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: zero tensors
+    a = np.array([[0, 0], [0, 0]], dtype=np.int32)
+    b = np.array([[0, 0], [0, 0]], dtype=np.int32)
+    inputs = [tf.convert_to_tensor(a), tf.convert_to_tensor(b)]
+    name = "add_op_10"
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
 generated_inputs["tf.math.add_n"] = tf_math_add_n_inputs()
+for i in range(len(generated_inputs["tf.math.add_n"])):
+    generated_inputs["tf.math.add_n"][i]["inputs"] = [np.array(tensor) if isinstance(tensor, tf.Tensor) else tensor for tensor in generated_inputs["tf.math.add_n"][i]["inputs"]]
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

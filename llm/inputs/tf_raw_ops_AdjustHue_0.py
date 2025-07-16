@@ -12,75 +12,65 @@ def tf_raw_ops_adjust_hue_inputs():
     list_of_inputs = []
 
     # Input 1: Basic valid input
-    images = np.array([[[1.0, 0.0, 0.0]]], dtype=np.float32)
+    images = np.random.rand(10, 10, 3).astype(np.float32)
     delta = np.array(0.5, dtype=np.float32)
-    name = None
-    input_dict = {"images": images, "delta": delta, "name": name}
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple images, small delta
-    images = np.array([[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]], [[0.0, 0.0, 1.0], [1.0, 1.0, 1.0]]], dtype=np.float32)
-    delta = np.array(0.1, dtype=np.float32)
-    name = "adjust_hue_op_2"
-    input_dict = {"images": images, "delta": delta, "name": name}
+    # Input 2: Different image size
+    images = np.random.rand(20, 30, 3).astype(np.float32)
+    delta = np.array(-0.2, dtype=np.float32)
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Larger delta value
-    images = np.array([[[0.5, 0.5, 0.5]]], dtype=np.float32)
-    delta = np.array(1.5, dtype=np.float32)
-    name = "adjust_hue_op_3"
-    input_dict = {"images": images, "delta": delta, "name": name}
+    # Input 3: Half precision images
+    images = np.random.rand(5, 5, 3).astype(np.float16)
+    delta = np.array(1.0, dtype=np.float32)
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Negative delta value
-    images = np.array([[[1.0, 0.0, 0.0]]], dtype=np.float32)
-    delta = np.array(-0.5, dtype=np.float32)
-    name = "adjust_hue_op_4"
-    input_dict = {"images": images, "delta": delta, "name": name}
+    # Input 4: 4D images
+    images = np.random.rand(2, 10, 10, 3).astype(np.float32)
+    delta = np.array(0.75, dtype=np.float32)
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 4D Input
-    images = np.random.rand(2, 3, 4, 3).astype(np.float32)
-    delta = np.array(0.2, dtype=np.float32)
-    name = "adjust_hue_op_5"
-    input_dict = {"images": images, "delta": delta, "name": name}
+    # Input 5: Large delta
+    images = np.random.rand(8, 8, 3).astype(np.float32)
+    delta = np.array(5.0, dtype=np.float32)
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Half type
-    images = np.array([[[1.0, 0.0, 0.0]]], dtype=np.float16)
+    # Input 6: Negative delta
+    images = np.random.rand(12, 12, 3).astype(np.float32)
+    delta = np.array(-2.5, dtype=np.float32)
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Small delta
+    images = np.random.rand(4, 4, 3).astype(np.float32)
+    delta = np.array(0.01, dtype=np.float32)
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Different dimensions
+    images = np.random.rand(1, 5, 5, 3).astype(np.float32)
     delta = np.array(0.3, dtype=np.float32)
-    name = "adjust_hue_op_6"
-    input_dict = {"images": images, "delta": delta, "name": name}
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 3D Input with different values
-    images = np.array([[[0.2, 0.4, 0.6], [0.8, 0.3, 0.1]], [[0.5, 0.7, 0.9], [0.1, 0.2, 0.3]]], dtype=np.float32)
-    delta = np.array(0.7, dtype=np.float32)
-    name = "adjust_hue_op_7"
-    input_dict = {"images": images, "delta": delta, "name": name}
+    # Input 9: Zero delta
+    images = np.random.rand(7, 7, 3).astype(np.float32)
+    delta = np.array(0.0, dtype=np.float32)
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Delta > 1
-    images = np.array([[[0.2, 0.4, 0.6], [0.8, 0.3, 0.1]]], dtype=np.float32)
-    delta = np.array(2.0, dtype=np.float32)
-    name = "adjust_hue_op_8"
-    input_dict = {"images": images, "delta": delta, "name": name}
+    # Input 10: Another image size and delta
+    images = np.random.rand(15, 25, 3).astype(np.float32)
+    delta = np.array(0.9, dtype=np.float32)
+    input_dict = {"images": images, "delta": delta, "name": "adjust_hue_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Delta < -1
-    images = np.array([[[0.2, 0.4, 0.6], [0.8, 0.3, 0.1]]], dtype=np.float32)
-    delta = np.array(-2.0, dtype=np.float32)
-    name = "adjust_hue_op_9"
-    input_dict = {"images": images, "delta": delta, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: larger image size, positive delta
-    images = np.random.rand(50, 50, 3).astype(np.float32)
-    delta = np.array(0.6, dtype=np.float32)
-    name = "adjust_hue_op_10"
-    input_dict = {"images": images, "delta": delta, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

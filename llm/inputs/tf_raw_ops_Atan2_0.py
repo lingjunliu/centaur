@@ -11,82 +11,78 @@ import copy
 def tf_raw_ops_atan2_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic positive values
+    # Input 1: Basic float32
     y = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     x = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    name = "atan2_basic_pos"
-    input_dict = {"y": y, "x": x, "name": name}
+    input_dict = {"y": y, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Negative values
-    y = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    x = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    name = "atan2_negative_y"
-    input_dict = {"y": y, "x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Mixed positive and negative
-    y = np.array([1.0, -2.0, 3.0], dtype=np.float32)
-    x = np.array([-1.0, 1.0, -3.0], dtype=np.float32)
-    name = "atan2_mixed"
-    input_dict = {"y": y, "x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Zero values
-    y = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    x = np.array([1.0, -1.0, 0.0], dtype=np.float32)
-    name = "atan2_zero_y"
-    input_dict = {"y": y, "x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: 2D arrays
-    y = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    x = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
-    name = "atan2_2d"
-    input_dict = {"y": y, "x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Different float types
-    y = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    # Input 2: Basic float64
+    y = np.array([-1.0, -2.0, -3.0], dtype=np.float64)
     x = np.array([1.0, 1.0, 1.0], dtype=np.float64)
-    name = "atan2_float64"
-    input_dict = {"y": y, "x": x, "name": name}
+    input_dict = {"y": y, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: x values of zero, y positive
-    y = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    x = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    name = "atan2_x_zero_y_pos"
-    input_dict = {"y": y, "x": x, "name": name}
+    # Input 3: Different values, including zero
+    y = np.array([0.0, 1.0, -1.0], dtype=np.float32)
+    x = np.array([1.0, 0.0, -1.0], dtype=np.float32)
+    input_dict = {"y": y, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: x values of zero, y negative
-    y = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    x = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    name = "atan2_x_zero_y_neg"
-    input_dict = {"y": y, "x": x, "name": name}
+    # Input 4: Multidimensional array
+    y = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    x = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    input_dict = {"y": y, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float16
-    y = np.array([1.0, 2.0], dtype=np.float16)
-    x = np.array([1.0, 1.0], dtype=np.float16)
-    name = "atan2_half"
-    input_dict = {"y": y, "x": x, "name": name}
+    # Input 5: Negative values in multidimensional array
+    y = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float64)
+    x = np.array([[5.0, -6.0], [-7.0, 8.0]], dtype=np.float64)
+    input_dict = {"y": y, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Different shapes
-    y = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    x = np.array([[[0.5, 1.0], [1.5, 2.0]], [[2.5, 3.0], [3.5, 4.0]]], dtype=np.float32)
-    name = "atan2_3d"
-    input_dict = {"y": y, "x": x, "name": name}
+    # Input 6: Mixed positive and negative
+    y = np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float32)
+    x = np.array([5.0, -6.0, 7.0, -8.0], dtype=np.float32)
+    input_dict = {"y": y, "x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: half
+    y = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    x = np.array([4.0, 5.0, 6.0], dtype=np.float16)
+    input_dict = {"y": y, "x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 9: Different shapes but broadcastable
+    y = np.array([1.0, 2.0], dtype=np.float32)
+    x = np.array([[1.0], [1.0]], dtype=np.float32)
+    input_dict = {"y": y, "x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Larger array sizes
+    y = np.random.rand(100, 100).astype(np.float64)
+    x = np.random.rand(100, 100).astype(np.float64)
+    input_dict = {"y": y, "x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: y and x being equal to zero
+    y = np.array([0.0, 0.0], dtype=np.float32)
+    x = np.array([0.0, 0.0], dtype=np.float32)
+    input_dict = {"y": y, "x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: 3D Tensor
+    y = np.random.rand(2, 3, 4).astype(np.float32)
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    input_dict = {"y": y, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11: All zeros
-    y = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    x = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    name = "atan2_all_zeros"
-    input_dict = {"y": y, "x": x, "name": name}
+    # Input 13: Scalar values
+    y = np.array(1.0, dtype=np.float32)
+    x = np.array(1.0, dtype=np.float32)
+    input_dict = {"y": y, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    
 
     return list_of_inputs
 

@@ -12,13 +12,12 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
     list_of_inputs = []
 
     # Input 1
-    orig_input_shape = np.array([1, 5, 5, 5, 3], dtype=np.int32)
-    grad = np.random.rand(1, 3, 3, 3, 3).astype(np.float32)
-    ksize = [1, 2, 2, 2, 1]
-    strides = [1, 1, 1, 1, 1]
+    orig_input_shape = np.array([1, 3, 3, 3, 1], dtype=np.int32)
+    grad = np.random.rand(1, 1, 1, 1, 1).astype(np.float32)
+    ksize = [1, 2, 1, 1, 1]
+    strides = [1, 2, 1, 1, 1]
     padding = "VALID"
     data_format = "NDHWC"
-    name = "avg_pool_grad_1"
 
     input_dict = {
         "orig_input_shape": orig_input_shape,
@@ -27,18 +26,17 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": "avg_pool_grad"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    orig_input_shape = np.array([1, 10, 10, 10, 1], dtype=np.int32)
-    grad = np.random.rand(1, 5, 5, 5, 1).astype(np.float32)
-    ksize = [1, 3, 3, 3, 1]
-    strides = [1, 2, 2, 2, 1]
+    orig_input_shape = np.array([2, 5, 5, 5, 3], dtype=np.int32)
+    grad = np.random.rand(2, 2, 2, 2, 3).astype(np.float32)
+    ksize = [1, 3, 1, 1, 1]
+    strides = [1, 1, 1, 1, 1]
     padding = "SAME"
     data_format = "NDHWC"
-    name = "avg_pool_grad_2"
 
     input_dict = {
         "orig_input_shape": orig_input_shape,
@@ -47,18 +45,17 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": "avg_pool_grad"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    orig_input_shape = np.array([2, 8, 8, 8, 5], dtype=np.int32)
-    grad = np.random.rand(2, 4, 4, 4, 5).astype(np.float32)
-    ksize = [1, 4, 4, 4, 1]
-    strides = [1, 2, 2, 2, 1]
+    orig_input_shape = np.array([1, 4, 4, 4, 1], dtype=np.int32)
+    grad = np.random.rand(1, 2, 2, 2, 1).astype(np.float32)
+    ksize = [1, 1, 2, 1, 1]
+    strides = [1, 1, 1, 1, 1]
     padding = "VALID"
-    data_format = "NDHWC"
-    name = "avg_pool_grad_3"
+    data_format = "NCDHW"
 
     input_dict = {
         "orig_input_shape": orig_input_shape,
@@ -67,18 +64,17 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": "avg_pool_grad"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    orig_input_shape = np.array([1, 6, 6, 6, 3], dtype=np.int32)
-    grad = np.random.rand(1, 6, 3, 6, 3).astype(np.float32)
-    ksize = [1, 2, 1, 2, 1]
-    strides = [1, 1, 1, 1, 1]
+    orig_input_shape = np.array([4, 8, 8, 8, 5], dtype=np.int32)
+    grad = np.random.rand(4, 4, 4, 4, 5).astype(np.float32)
+    ksize = [1, 1, 1, 4, 1]
+    strides = [1, 1, 1, 2, 1]
     padding = "SAME"
     data_format = "NCDHW"
-    name = "avg_pool_grad_4"
 
     input_dict = {
         "orig_input_shape": orig_input_shape,
@@ -87,38 +83,93 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": "avg_pool_grad"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    orig_input_shape = np.array([2, 5, 5, 5, 4], dtype=np.int32)
-    grad = np.random.rand(2, 1, 2, 1, 4).astype(np.float32)
-    ksize = [1, 2, 3, 2, 1]
+   # Input 5
+    orig_input_shape = np.array([3, 6, 6, 6, 2], dtype=np.int32)
+    grad = np.random.rand(3, 3, 3, 3, 2).astype(np.float32)
+    ksize = [1, 1, 1, 1, 1]
+    strides = [1, 3, 3, 3, 1]
+    padding = "VALID"
+    data_format = "NDHWC"
+
+    input_dict = {
+        "orig_input_shape": orig_input_shape,
+        "grad": grad,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": "avg_pool_grad"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 6
+    orig_input_shape = np.array([1, 7, 7, 7, 1], dtype=np.int32)
+    grad = np.random.rand(1, 1, 1, 1, 1).astype(np.float32)
+    ksize = [1, 1, 1, 1, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "SAME"
+    data_format = "NDHWC"
+
+    input_dict = {
+        "orig_input_shape": orig_input_shape,
+        "grad": grad,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": "avg_pool_grad"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    orig_input_shape = np.array([1, 3, 3, 3, 1], dtype=np.int32)
+    grad = np.random.rand(1, 2, 2, 2, 1).astype(np.float32)
+    ksize = [1, 1, 1, 1, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "VALID"
+    data_format = "NDHWC"
+
+    input_dict = {
+        "orig_input_shape": orig_input_shape,
+        "grad": grad,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": "avg_pool_grad"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    orig_input_shape = np.array([1, 3, 3, 3, 1], dtype=np.int32)
+    grad = np.random.rand(1, 1, 1, 1, 1).astype(np.float32)
+    ksize = [1, 3, 1, 1, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "SAME"
+    data_format = "NDHWC"
+
+    input_dict = {
+        "orig_input_shape": orig_input_shape,
+        "grad": grad,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": "avg_pool_grad"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    orig_input_shape = np.array([1, 3, 3, 3, 1], dtype=np.int32)
+    grad = np.random.rand(1, 1, 1, 1, 1).astype(np.float32)
+    ksize = [1, 3, 1, 1, 1]
     strides = [1, 3, 1, 1, 1]
     padding = "VALID"
-    data_format = "NCDHW"
-    name = "avg_pool_grad_5"
-
-    input_dict = {
-        "orig_input_shape": orig_input_shape,
-        "grad": grad,
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    orig_input_shape = np.array([1, 7, 7, 7, 2], dtype=np.int32)
-    grad = np.random.rand(1, 3, 3, 3, 2).astype(np.float32)
-    ksize = [1, 2, 2, 2, 1]
-    strides = [1, 2, 2, 2, 1]
-    padding = "SAME"
     data_format = "NDHWC"
-    name = "avg_pool_grad_6"
 
     input_dict = {
         "orig_input_shape": orig_input_shape,
@@ -127,38 +178,17 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": "avg_pool_grad"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7
-    orig_input_shape = np.array([1, 9, 9, 9, 1], dtype=np.int32)
-    grad = np.random.rand(1, 3, 3, 3, 1).astype(np.float32)
-    ksize = [1, 4, 4, 4, 1]
-    strides = [1, 2, 2, 2, 1]
-    padding = "VALID"
-    data_format = "NDHWC"
-    name = "avg_pool_grad_7"
-
-    input_dict = {
-        "orig_input_shape": orig_input_shape,
-        "grad": grad,
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: different grad shape
-    orig_input_shape = np.array([1, 5, 5, 5, 3], dtype=np.int32)
-    grad = np.random.rand(1, 1, 1, 1, 3).astype(np.float32)
-    ksize = [1, 2, 2, 2, 1]
+    # Input 10
+    orig_input_shape = np.array([4, 4, 4, 4, 4], dtype=np.int32)
+    grad = np.random.rand(4, 2, 2, 2, 4).astype(np.float32)
+    ksize = [1, 1, 2, 1, 1]
     strides = [1, 1, 1, 1, 1]
     padding = "VALID"
     data_format = "NDHWC"
-    name = "avg_pool_grad_9"
 
     input_dict = {
         "orig_input_shape": orig_input_shape,
@@ -167,18 +197,17 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": "avg_pool_grad"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float32
-    orig_input_shape = np.array([1, 5, 5, 5, 3], dtype=np.int32)
-    grad = np.random.rand(1, 3, 3, 3, 3).astype(np.float32)
-    ksize = [1, 2, 2, 2, 1]
-    strides = [1, 1, 1, 1, 1]
+    # Input 11
+    orig_input_shape = np.array([1, 3, 3, 3, 1], dtype=np.int32)
+    grad = np.random.rand(1, 1, 1, 1, 1).astype(np.float32)
+    ksize = [1, 2, 1, 1, 1]
+    strides = [1, 2, 1, 1, 1]
     padding = "VALID"
     data_format = "NDHWC"
-    name = "avg_pool_grad_10"
 
     input_dict = {
         "orig_input_shape": orig_input_shape,
@@ -187,10 +216,10 @@ def tf_raw_ops_AvgPool3DGrad_inputs():
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": "avg_pool_grad"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

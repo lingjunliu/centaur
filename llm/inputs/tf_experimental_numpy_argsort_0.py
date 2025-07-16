@@ -11,54 +11,101 @@ import copy
 def tf_experimental_numpy_argsort_inputs():
     list_of_inputs = []
 
-    # Input 1: 1D array, default axis, quicksort
+    # Input 1
     a = np.array([3, 1, 4, 1, 5, 9, 2, 6])
-    input_dict = {"a": a, "axis": int(-1), "kind": "quicksort", "order": None}
+    axis = -1
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D array, axis=0, mergesort
-    a = np.array([[3, 1, 4], [1, 5, 9], [2, 6, 5]])
-    input_dict = {"a": a, "axis": int(0), "kind": "mergesort", "order": None}
+    # Input 2
+    a = np.array([[0, 3], [2, 2]])
+    axis = 0
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D array, axis=1, heapsort
-    a = np.array([[3, 1, 4], [1, 5, 9], [2, 6, 5]])
-    input_dict = {"a": a, "axis": int(1), "kind": "heapsort", "order": None}
+    # Input 3
+    a = np.array([[0, 3], [2, 2]])
+    axis = 1
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 3D array, axis=0
-    a = np.random.rand(2, 3, 4)
-    input_dict = {"a": a, "axis": int(0), "kind": "quicksort", "order": None}
+    # Input 4
+    a = np.array([1, 2, 3], dtype=np.int32)
+    axis = -1
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D array, axis=1
-    a = np.random.rand(2, 3, 4)
-    input_dict = {"a": a, "axis": int(1), "kind": "quicksort", "order": None}
+    # Input 5
+    a = np.array([5, 4, 3, 2, 1])
+    axis = 0
+    kind = 'mergesort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D array, axis=2
-    a = np.random.rand(2, 3, 4)
-    input_dict = {"a": a, "axis": int(2), "kind": "quicksort", "order": None}
+    # Input 6
+    a = np.array([[5, 4], [3, 2]])
+    axis = 1
+    kind = 'heapsort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Negative values, axis=0
-    a = np.array([[-3, 1, -4], [1, -5, 9], [-2, 6, -5]])
-    input_dict = {"a": a, "axis": int(0), "kind": "quicksort", "order": None}
+    # Input 7
+    a = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    axis = 0
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Negative values, axis=1
-    a = np.array([[-3, 1, -4], [1, -5, 9], [-2, 6, -5]])
-    input_dict = {"a": a, "axis": int(1), "kind": "quicksort", "order": None}
+   # Input 8
+    a = np.array([[9, 8, 7], [6, 5, 4]], dtype=np.int64)
+    axis = 0
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Large array, axis=-1
-    a = np.random.rand(100, 100)
-    input_dict = {"a": a, "axis": int(-1), "kind": "quicksort", "order": None}
+    # Input 9
+    a = np.array([('a', 2), ('c', 1), ('b', 9)],
+                 dtype=[('x', 'S1'), ('y', int)])
+    axis = -1
+    kind = 'quicksort'
+    order = ['x', 'y']
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Array with duplicate values
-    a = np.array([[1, 2, 1], [3, 1, 3]])
-    input_dict = {"a": a, "axis": int(1), "kind": "quicksort", "order": None}
+    # Input 10
+    a = np.array([1, 2, 1, 4, 5], dtype=np.float32)
+    axis = 0
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    axis = 1
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    a = np.array([1, 2, 3])
+    axis = -1
+    kind = 'quicksort'
+    order = None
+    input_dict = {"a": a, "axis": axis, "kind": kind, "order": order}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

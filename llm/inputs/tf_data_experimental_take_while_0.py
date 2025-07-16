@@ -11,7 +11,7 @@ import copy
 def tf_data_experimental_take_while_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple predicate, always true
+    # Input 1: Simple predicate always true
     def predicate1(x):
         return tf.constant(True)
     input_dict1 = {"predicate": [predicate1]}

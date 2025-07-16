@@ -5,61 +5,55 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
-
-tf.random.set_seed(1)
+import numpy as np
 
 def tf_experimental_numpy_random_randn_inputs():
     list_of_inputs = []
 
-    # Input 1: Single integer
-    args = (np.int64(5),)
-    input_dict = {"args": args}
+    # Input 1: Scalar shape
+    input_dict = {"args": (np.array(1, dtype=np.int64),)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Two integers
-    args = (np.int64(2), np.int64(3))
-    input_dict = {"args": args}
+    # Input 2: 1D shape
+    input_dict = {"args": (np.array(5, dtype=np.int64),)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Three integers
-    args = (np.int64(2), np.int64(3), np.int64(4))
-    input_dict = {"args": args}
+    # Input 3: 2D shape
+    input_dict = {"args": (np.array(2, dtype=np.int64), np.array(3, dtype=np.int64))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Large integers
-    args = (np.int64(100), np.int64(100))
-    input_dict = {"args": args}
+    # Input 4: 3D shape
+    input_dict = {"args": (np.array(2, dtype=np.int64), np.array(3, dtype=np.int64), np.array(4, dtype=np.int64))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: One
-    args = (np.int64(1),)
-    input_dict = {"args": args}
+    # Input 5: Larger shape
+    input_dict = {"args": (np.array(10, dtype=np.int64), np.array(10, dtype=np.int64))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Square matrix
-    args = (np.int64(7), np.int64(7))
-    input_dict = {"args": args}
+    # Input 6: Shape with one dimension being 1
+    input_dict = {"args": (np.array(1, dtype=np.int64), np.array(5, dtype=np.int64), np.array(1, dtype=np.int64))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 4D tensor
-    args = (np.int64(2), np.int64(3), np.int64(2), np.int64(2))
-    input_dict = {"args": args}
+    # Input 7:  Empty tuple. Should return a scalar.
+    input_dict = {"args": ()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: 5D tensor
-    args = (np.int64(1), np.int64(2), np.int64(3), np.int64(4), np.int64(5))
-    input_dict = {"args": args}
+    # Input 8: Shape with zero dimension
+    input_dict = {"args": (np.array(0, dtype=np.int64), np.array(5, dtype=np.int64))}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Different sized dims
-    args = (np.int64(10), np.int64(5), np.int64(2))
-    input_dict = {"args": args}
+    # Input 9: Shape with large numbers
+    input_dict = {"args": (np.array(100, dtype=np.int64), np.array(100, dtype=np.int64))}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Shape with one large number
+    input_dict = {"args": (np.array(1000, dtype=np.int64),)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+tf.random.set_seed(1)
 generated_inputs = {}
 generated_inputs["tf.experimental.numpy.random.randn"] = tf_experimental_numpy_random_randn_inputs()
 

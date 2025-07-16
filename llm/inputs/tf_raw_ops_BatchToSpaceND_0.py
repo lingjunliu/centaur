@@ -11,76 +11,78 @@ import copy
 def tf_raw_ops_batch_to_space_nd_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple example from documentation
+    # Input 1: Simple case
     input_tensor = np.array([[[[1]]], [[[2]]], [[[3]]], [[[4]]]], dtype=np.int32)
     block_shape = np.array([2, 2], dtype=np.int32)
     crops = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
+    input_dict = {"name": "input1", "input": input_tensor, "block_shape": block_shape, "crops": crops}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Another simple example from documentation
-    input_tensor = np.array([[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]], dtype=np.int32)
-    block_shape = np.array([2, 2], dtype=np.int32)
-    crops = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Example with crops
-    input_tensor = np.array([[[[[0], [1], [3]]], [[[0], [9], [11]]], [[[0], [2], [4]]], [[[0], [10], [12]]], [[[0], [5], [7]]], [[[0], [13], [15]]], [[[0], [6], [8]]], [[[0], [14], [16]]]]], dtype=np.int32)
-    block_shape = np.array([2, 2], dtype=np.int32)
-    crops = np.array([[0, 0], [2, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Example with block_shape > 1 and crops = 0
-    input_tensor = np.random.randint(0, 10, size=(8, 2, 2, 1), dtype=np.int32)
-    block_shape = np.array([2, 2], dtype=np.int32)
-    crops = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Different data type
+    # Input 2: Different data type, float32
     input_tensor = np.array([[[[1.0]]], [[[2.0]]], [[[3.0]]], [[[4.0]]]], dtype=np.float32)
     block_shape = np.array([2, 2], dtype=np.int32)
     crops = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
+    input_dict = {"name": "input2", "input": input_tensor, "block_shape": block_shape, "crops": crops}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6:  Larger block_shape
-    input_tensor = np.random.randint(0, 10, size=(16, 1, 1, 1), dtype=np.int32)
-    block_shape = np.array([4, 4], dtype=np.int32)
+    # Input 3: Crops applied
+    input_tensor = np.array([[[[0], [1], [3]]], [[[0], [9], [11]]], [[[0], [2], [4]]], [[[0], [10], [12]]],
+                           [[[0], [5], [7]]], [[[0], [13], [15]]], [[[0], [6], [8]]], [[[0], [14], [16]]]], dtype=np.int32)
+    block_shape = np.array([2, 2], dtype=np.int32)
+    crops = np.array([[0, 0], [2, 0]], dtype=np.int32)
+    input_dict = {"name": "input3", "input": input_tensor, "block_shape": block_shape, "crops": crops}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Different shape
+    input_tensor = np.array([[[[1, 2, 3]]], [[[4, 5, 6]]], [[[7, 8, 9]]], [[[10, 11, 12]]]], dtype=np.int32)
+    block_shape = np.array([2, 2], dtype=np.int32)
     crops = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
+    input_dict = {"name": "input4", "input": input_tensor, "block_shape": block_shape, "crops": crops}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different crops
-    input_tensor = np.random.randint(0, 10, size=(4, 2, 2, 1), dtype=np.int32)
+    # Input 5: Block shape as int64
+    input_tensor = np.array([[[[1]]], [[[2]]], [[[3]]], [[[4]]]], dtype=np.int32)
+    block_shape = np.array([2, 2], dtype=np.int64)
+    crops = np.array([[0, 0], [0, 0]], dtype=np.int32)
+    input_dict = {"name": "input5", "input": input_tensor, "block_shape": block_shape, "crops": crops}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: crops as int64
+    input_tensor = np.array([[[[0], [1], [3]]], [[[0], [9], [11]]], [[[0], [2], [4]]], [[[0], [10], [12]]],
+                           [[[0], [5], [7]]], [[[0], [13], [15]]], [[[0], [6], [8]]], [[[0], [14], [16]]]], dtype=np.int32)
+    block_shape = np.array([2, 2], dtype=np.int32)
+    crops = np.array([[0, 0], [2, 0]], dtype=np.int64)
+    input_dict = {"name": "input6", "input": input_tensor, "block_shape": block_shape, "crops": crops}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 7: 3D input
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    block_shape = np.array([1], dtype=np.int32)
+    crops = np.array([[0, 0]], dtype=np.int32)
+    input_dict = {"name": "input7", "input": input_tensor, "block_shape": block_shape, "crops": crops}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: 5D input
+    input_tensor = np.random.randint(0, 10, size=(4, 1, 1, 1, 1), dtype=np.int32)
+    block_shape = np.array([2, 2], dtype=np.int32)
+    crops = np.array([[0, 0], [0, 0]], dtype=np.int32)
+    input_dict = {"name": "input8", "input": input_tensor, "block_shape": block_shape, "crops": crops}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Larger input
+    input_tensor = np.random.randint(0, 10, size=(16, 2, 2, 3), dtype=np.int32)
     block_shape = np.array([2, 2], dtype=np.int32)
     crops = np.array([[1, 0], [0, 1]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
+    input_dict = {"name": "input9", "input": input_tensor, "block_shape": block_shape, "crops": crops}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 3D spatial shape, different block shapes
-    input_tensor = np.random.randint(0, 10, size=(8, 1, 2, 3, 1), dtype=np.int32)
-    block_shape = np.array([2, 1, 2], dtype=np.int32)
-    crops = np.array([[0, 0], [0, 0], [0, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: int64 type
-    input_tensor = np.array([[[[1]]], [[[2]]], [[[3]]], [[[4]]]], dtype=np.int64)
-    block_shape = np.array([2, 2], dtype=np.int64)
-    crops = np.array([[0, 0], [0, 0]], dtype=np.int64)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Larger crops, still valid
-    input_tensor = np.random.randint(0, 10, size=(4, 2, 2, 1), dtype=np.int32)
+    # Input 10: Different crop values
+    input_tensor = np.array([[[[1]]], [[[2]]], [[[3]]], [[[4]]]], dtype=np.int32)
     block_shape = np.array([2, 2], dtype=np.int32)
-    crops = np.array([[1, 1], [1, 1]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "block_shape": block_shape, "crops": crops, "name": None}
+    crops = np.array([[1, 0], [0, 1]], dtype=np.int32)
+    input_dict = {"name": "input10", "input": input_tensor, "block_shape": block_shape, "crops": crops}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

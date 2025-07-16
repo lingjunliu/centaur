@@ -11,76 +11,76 @@ import copy
 def tf_raw_ops_ensure_shape_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array([1, 2, 3, 4, 5])
-    shape = [5]
-    name = "ensure_shape_op_1"
-    input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
-
-    # Input 2
-    input_tensor = np.array([[1, 2], [3, 4]])
-    shape = [2, 2]
-    name = "ensure_shape_op_2"
-    input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
-
-    # Input 3
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    shape = [2, 2, 2]
-    name = "ensure_shape_op_3"
-    input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
-
-    # Input 4
-    input_tensor = np.array([1.0, 2.0, 3.0])
+    # Input 1: Valid shape, 1D array
+    input_tensor = np.array([1, 2, 3], dtype=np.int32)
     shape = [3]
-    name = "ensure_shape_op_4"
+    name = "ensure_shape_1"
     input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    # Input 2: Valid shape, 2D array
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.float32)
     shape = [2, 2]
-    name = "ensure_shape_op_5"
+    name = "ensure_shape_2"
     input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.int64)
-    shape = [5]
-    name = "ensure_shape_op_6"
-    input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
-
-    # Input 7
-    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.float32)
-    shape = [5]
-    name = "ensure_shape_op_7"
-    input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
-
-    # Input 8
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    # Input 3: Valid shape, 3D array
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
     shape = [2, 2, 2]
-    name = "ensure_shape_op_8"
+    name = "ensure_shape_3"
     input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    # Input 4: Valid shape, different dtype
+    input_tensor = np.array([True, False, True], dtype=np.bool_)
+    shape = [3]
+    name = "ensure_shape_4"
+    input_dict = {"input": input_tensor, "shape": shape, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Valid shape, empty array
+    input_tensor = np.array([], dtype=np.int32)
+    shape = [0]
+    name = "ensure_shape_5"
+    input_dict = {"input": input_tensor, "shape": shape, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Valid shape, scalar (0-dimensional array)
+    input_tensor = np.array(5, dtype=np.int32)
+    shape = []
+    name = "ensure_shape_6"
+    input_dict = {"input": input_tensor, "shape": shape, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Valid shape, 2D array with different shape
+    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
     shape = [2, 3]
-    name = "ensure_shape_op_9"
+    name = "ensure_shape_7"
     input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    input_tensor = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32).reshape((2, 2, 2))
-    shape = [2, 2, 2]
-    name = "ensure_shape_op_10"
+    # Input 8: Valid shape, 1D array with negative values
+    input_tensor = np.array([-1, -2, -3], dtype=np.int32)
+    shape = [3]
+    name = "ensure_shape_8"
     input_dict = {"input": input_tensor, "shape": shape, "name": name}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 9: Valid shape, large array
+    input_tensor = np.random.rand(10, 10)
+    shape = [10, 10]
+    name = "ensure_shape_9"
+    input_dict = {"input": input_tensor, "shape": shape, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Valid shape, different dtype, complex numbers
+    input_tensor = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128)
+    shape = [3]
+    name = "ensure_shape_10"
+    input_dict = {"input": input_tensor, "shape": shape, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

@@ -8,66 +8,19 @@ import tensorflow as tf
 import copy
 import numpy as np
 
+@tf.function
 def tf_data_experimental_ignore_errors_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: log_warning = True
     input_dict = {
         "log_warning": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
+    # Input 2: log_warning = False
     input_dict = {
         "log_warning": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    input_dict = {
-        "log_warning": bool(True)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_dict = {
-        "log_warning": bool(False)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input_dict = {
-        "log_warning": np.bool_(True)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_dict = {
-        "log_warning": np.bool_(False)
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input_dict = {
-        "log_warning": np.array(True, dtype=np.bool_).item()
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_dict = {
-        "log_warning": np.array(False, dtype=np.bool_).item()
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_dict = {
-        "log_warning": np.array([True], dtype=np.bool_)[0].item()
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_dict = {
-        "log_warning": np.array([False], dtype=np.bool_)[0].item()
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

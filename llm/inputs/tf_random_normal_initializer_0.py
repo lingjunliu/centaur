@@ -12,74 +12,74 @@ def tf_random_normal_initializer_inputs():
     list_of_inputs = []
 
     # Input 1
-    mean = np.float32(0.0)
-    stddev = np.float32(0.05)
+    mean = 0.0
+    stddev = 0.05
     seed = None
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
 
     # Input 2
-    mean = np.float32(1.0)
-    stddev = np.float32(0.1)
-    seed = np.int32(123)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    mean = 1.0
+    stddev = 0.1
+    seed = 123
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
 
     # Input 3
-    mean = np.float64(-1.0)
-    stddev = np.float64(0.5)
-    seed = np.int64(42)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    mean = -1.0
+    stddev = 0.2
+    seed = 42
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
 
     # Input 4
-    mean = np.float32(0.5)
-    stddev = np.float32(0.01)
-    seed = np.int32(0)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    mean = 0.5
+    stddev = 0.01
+    seed = 1
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
 
     # Input 5
-    mean = np.float64(-0.5)
-    stddev = np.float64(0.2)
-    seed = np.int64(-1)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    mean = -0.5
+    stddev = 0.02
+    seed = 2
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
+
     # Input 6
-    mean = np.float32(2.5)
-    stddev = np.float32(0.75)
-    seed = np.int32(7)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    mean = 2.0
+    stddev = 0.5
+    seed = 100
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
 
     # Input 7
-    mean = np.float64(-3.2)
-    stddev = np.float64(0.3)
-    seed = np.int64(15)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    mean = np.float32(10.0)
-    stddev = np.float32(2.0)
-    seed = np.int32(101)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    mean = -2.0
+    stddev = 1.0
+    seed = 200
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
 
-    # Input 9
-    mean = np.float64(-5.0)
-    stddev = np.float64(1.0)
-    seed = np.int64(55)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8
+    mean = 0.0
+    stddev = 1e-6
+    seed = 300
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
+
+   # Input 9
+    mean = 10.0
+    stddev = 5.0
+    seed = 400
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
 
     # Input 10
-    mean = np.float32(0.0)
-    stddev = np.float32(1.0)
-    seed = np.int32(66)
-    input_dict = {"mean": mean, "stddev": stddev, "seed": seed}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    mean = -10.0
+    stddev = 2.5
+    seed = 500
+    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

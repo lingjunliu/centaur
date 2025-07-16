@@ -15,21 +15,21 @@ def tf_raw_ops_dequantize_inputs():
     input_tensor = np.array([10, 20, 30], dtype=np.int8)
     min_range_tensor = np.array(0.0, dtype=np.float32)
     max_range_tensor = np.array(100.0, dtype=np.float32)
-    mode = "MIN_COMBINED"
-    narrow_range = False
-    axis = -1
-    dtype = tf.float32
-    name = None
+    mode_str = "MIN_COMBINED"
+    narrow_range_bool = False
+    axis_int = -1
+    dtype_type = tf.float32
+    name_str = "dequantize_1"
 
     input_dict = {
         "input": input_tensor,
         "min_range": min_range_tensor,
         "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
+        "mode": mode_str,
+        "narrow_range": narrow_range_bool,
+        "axis": axis_int,
+        "dtype": dtype_type,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -37,197 +37,153 @@ def tf_raw_ops_dequantize_inputs():
     input_tensor = np.array([[1, 2], [3, 4]], dtype=np.uint8)
     min_range_tensor = np.array(-1.0, dtype=np.float32)
     max_range_tensor = np.array(1.0, dtype=np.float32)
-    mode = "MIN_FIRST"
-    narrow_range = True
-    axis = 0
-    dtype = tf.float32
-    name = "dequantize_example"
+    mode_str = "MIN_FIRST"
+    narrow_range_bool = True
+    axis_int = 0
+    dtype_type = tf.float32
+    name_str = "dequantize_2"
 
     input_dict = {
         "input": input_tensor,
         "min_range": min_range_tensor,
         "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
+        "mode": mode_str,
+        "narrow_range": narrow_range_bool,
+        "axis": axis_int,
+        "dtype": dtype_type,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([[-1, 0, 1], [2, 3, 4]], dtype=np.int8)
-    min_range_tensor = np.array(-5.0, dtype=np.float32)
-    max_range_tensor = np.array(5.0, dtype=np.float32)
-    mode = "SCALED"
-    narrow_range = False
-    axis = 1
-    dtype = tf.float32
-    name = None
+    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    min_range_tensor = np.array(10.0, dtype=np.float32)
+    max_range_tensor = np.array(20.0, dtype=np.float32)
+    mode_str = "SCALED"
+    narrow_range_bool = False
+    axis_int = -1
+    dtype_type = tf.float32
+    name_str = "dequantize_3"
 
     input_dict = {
         "input": input_tensor,
         "min_range": min_range_tensor,
         "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_tensor = np.array([1000, 2000, 3000], dtype=np.int32)
-    min_range_tensor = np.array(0.0, dtype=np.float32)
-    max_range_tensor = np.array(10000.0, dtype=np.float32)
-    mode = "MIN_COMBINED"
-    narrow_range = True
-    axis = -1
-    dtype = tf.float32
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "min_range": min_range_tensor,
-        "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
+        "mode": mode_str,
+        "narrow_range": narrow_range_bool,
+        "axis": axis_int,
+        "dtype": dtype_type,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array([[10, 20], [30, 40]], dtype=np.int16)
-    min_range_tensor = np.array(-10.0, dtype=np.float32)
-    max_range_tensor = np.array(10.0, dtype=np.float32)
-    mode = "MIN_FIRST"
-    narrow_range = False
-    axis = 0
-    dtype = tf.float32
-    name = None
+    input_tensor = np.array([1, 2, 3], dtype=np.uint8)
+    min_range_tensor = np.array(0.0, dtype=np.float32)
+    max_range_tensor = np.array(255.0, dtype=np.float32)
+    mode_str = "MIN_FIRST"
+    narrow_range_bool = False
+    axis_int = 0
+    dtype_type = tf.float32
+    name_str = "dequantize_5"
 
     input_dict = {
         "input": input_tensor,
         "min_range": min_range_tensor,
         "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
+        "mode": mode_str,
+        "narrow_range": narrow_range_bool,
+        "axis": axis_int,
+        "dtype": dtype_type,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.array([10, 20, 30], dtype=np.uint16)
-    min_range_tensor = np.array(0.0, dtype=np.float32)
-    max_range_tensor = np.array(50.0, dtype=np.float32)
-    mode = "SCALED"
-    narrow_range = True
-    axis = -1
-    dtype = tf.float32
-    name = None
+    input_tensor = np.array([1000, 2000, 3000], dtype=np.int32)
+    min_range_tensor = np.array(-5000.0, dtype=np.float32)
+    max_range_tensor = np.array(5000.0, dtype=np.float32)
+    mode_str = "SCALED"
+    narrow_range_bool = True
+    axis_int = -1
+    dtype_type = tf.float32
+    name_str = "dequantize_6"
 
     input_dict = {
         "input": input_tensor,
         "min_range": min_range_tensor,
         "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
+        "mode": mode_str,
+        "narrow_range": narrow_range_bool,
+        "axis": axis_int,
+        "dtype": dtype_type,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = np.array([10, 20, 30], dtype=np.int8)
+    input_tensor = np.array([10, 20, 30], dtype=np.int16)
     min_range_tensor = np.array(0.0, dtype=np.float32)
     max_range_tensor = np.array(100.0, dtype=np.float32)
-    mode = "MIN_COMBINED"
-    narrow_range = False
-    axis = -1
-    dtype = tf.bfloat16
-    name = None
+    mode_str = "MIN_COMBINED"
+    narrow_range_bool = False
+    axis_int = -1
+    dtype_type = tf.bfloat16
+    name_str = "dequantize_7"
 
     input_dict = {
         "input": input_tensor,
         "min_range": min_range_tensor,
         "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
+        "mode": mode_str,
+        "narrow_range": narrow_range_bool,
+        "axis": axis_int,
+        "dtype": dtype_type,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    min_range_tensor = np.array(-100.0, dtype=np.float32)
-    max_range_tensor = np.array(100.0, dtype=np.float32)
-    mode = "MIN_COMBINED"
-    narrow_range = False
-    axis = 0
-    dtype = tf.float32
-    name = "test_dequantize"
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.uint16)
+    min_range_tensor = np.array(0.0, dtype=np.float32)
+    max_range_tensor = np.array(65535.0, dtype=np.float32)
+    mode_str = "MIN_FIRST"
+    narrow_range_bool = True
+    axis_int = 0
+    dtype_type = tf.float32
+    name_str = "dequantize_8"
 
     input_dict = {
         "input": input_tensor,
         "min_range": min_range_tensor,
         "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
+        "mode": mode_str,
+        "narrow_range": narrow_range_bool,
+        "axis": axis_int,
+        "dtype": dtype_type,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.int16)
-    min_range_tensor = np.array(5.0, dtype=np.float32)
-    max_range_tensor = np.array(10.0, dtype=np.float32)
-    mode = "MIN_FIRST"
-    narrow_range = True
-    axis = -1
-    dtype = tf.float32
-    name = "test_dequantize"
+     # Input 9
+    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    min_range_tensor = np.array(-1.0, dtype=np.float32)
+    max_range_tensor = np.array(1.0, dtype=np.float32)
+    mode_str = "SCALED"
+    narrow_range_bool = True
+    axis_int = -1
+    dtype_type = tf.float32
+    name_str = "dequantize_9"
 
     input_dict = {
         "input": input_tensor,
         "min_range": min_range_tensor,
         "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 10
-    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.uint8)
-    min_range_tensor = np.array(-5.0, dtype=np.float32)
-    max_range_tensor = np.array(10.0, dtype=np.float32)
-    mode = "SCALED"
-    narrow_range = True
-    axis = -1
-    dtype = tf.float32
-    name = "test_dequantize"
-
-    input_dict = {
-        "input": input_tensor,
-        "min_range": min_range_tensor,
-        "max_range": max_range_tensor,
-        "mode": mode,
-        "narrow_range": narrow_range,
-        "axis": axis,
-        "dtype": dtype,
-        "name": name
+        "mode": mode_str,
+        "narrow_range": narrow_range_bool,
+        "axis": axis_int,
+        "dtype": dtype_type,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

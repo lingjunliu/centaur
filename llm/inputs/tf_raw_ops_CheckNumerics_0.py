@@ -11,79 +11,68 @@ import copy
 def tf_raw_ops_check_numerics_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Valid float32 tensor with no NaN or Inf
     tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     message = "Test 1"
-    name = "CheckNumerics1"
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
+    # Input 2: Valid float64 tensor with no NaN or Inf
     tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
     message = "Test 2"
-    name = "CheckNumerics2"
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    message = ""
-    name = None
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
+    # Input 3: bfloat16 tensor with no NaN or Inf
+    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    message = "Test 3"
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    # Input 4: half tensor with no NaN or Inf
+    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16)
     message = "Test 4"
-    name = ""
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    message = "Test 5"
-    name = "CheckNumerics5"
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    message = "Test 6"
-    name = "CheckNumerics6"
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
+    
+    # Input 5: float32 multi-dimensional array
     tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    message = "Test 5"
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: float64 single element
+    tensor = np.array(5.0, dtype=np.float64)
+    message = "Test 6"
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: float32 with a large number
+    tensor = np.array([1e9], dtype=np.float32)
     message = "Test 7"
-    name = "CheckNumerics7"
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    tensor = np.array([1.0], dtype=np.float32)
+    # Input 8: bfloat16 tensor with small values
+    tensor = np.array([1e-5, 2e-5, 3e-5], dtype=np.float16)
     message = "Test 8"
-    name = "CheckNumerics8"
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    tensor = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    
+    # Input 9: half 2D array
+    tensor = np.array([[1e-5, 2e-5], [3e-5, 4e-5]], dtype=np.float16)
     message = "Test 9"
-    name = "CheckNumerics9"
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    tensor = np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float64)
+    
+    # Input 10: float64 with a negative number
+    tensor = np.array([-5.0], dtype=np.float64)
     message = "Test 10"
-    name = "CheckNumerics10"
-    input_dict = {"tensor": tf.convert_to_tensor(tensor), "message": message, "name": name}
+    input_dict = {"tensor": tensor, "message": message, "name": "check_numerics_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.CheckNumerics"] = tf_raw_ops_check_numerics_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

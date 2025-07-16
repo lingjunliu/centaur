@@ -8,74 +8,74 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_BiasAddGrad_inputs():
+def tf_raw_ops_bias_add_grad_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Simple float32, NHWC
     out_backprop = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
     data_format = "NHWC"
     name = "bias_add_grad_1"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    out_backprop = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    # Input 2: Simple float32, NCHW
+    out_backprop = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
     data_format = "NCHW"
     name = "bias_add_grad_2"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    out_backprop = np.array([1, 2, 3, 4, 5], dtype=np.float64)
+    # Input 3: Float64, NHWC
+    out_backprop = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
     data_format = "NHWC"
     name = "bias_add_grad_3"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    out_backprop = np.array([[[1.0+1j, 2.0+2j], [3.0+3j, 4.0+4j]], [[5.0+5j, 6.0+6j], [7.0+7j, 8.0+8j]]], dtype=np.complex64)
+    # Input 4: Int32, NCHW
+    out_backprop = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
     data_format = "NCHW"
     name = "bias_add_grad_4"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5
-    out_backprop = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int64)
+    # Input 5: Complex64, NHWC
+    out_backprop = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
     data_format = "NHWC"
     name = "bias_add_grad_5"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    out_backprop = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0], dtype=np.float16)
+    # Input 6: Int8, NCHW
+    out_backprop = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int8)
     data_format = "NCHW"
     name = "bias_add_grad_6"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    out_backprop = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.int8)
+    # Input 7: Bfloat16, NHWC
+    out_backprop = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16).astype(np.float32).astype(np.float16)
     data_format = "NHWC"
     name = "bias_add_grad_7"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    out_backprop = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.uint8)
+    # Input 8: Half, NCHW
+    out_backprop = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16)
     data_format = "NCHW"
     name = "bias_add_grad_8"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    out_backprop = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]], [[[9, 10], [11, 12]], [[13, 14], [15, 16]]]], dtype=np.int16)
+    # Input 9: Multiple dimensions, NHWC
+    out_backprop = np.random.rand(2, 3, 4, 5).astype(np.float32)
     data_format = "NHWC"
     name = "bias_add_grad_9"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    out_backprop = np.array([1.0+1j, 2.0+2j, 3.0+3j, 4.0+4j], dtype=np.complex128)
+    # Input 10: Multiple dimensions, NCHW
+    out_backprop = np.random.rand(2, 3, 4, 5).astype(np.float32)
     data_format = "NCHW"
     name = "bias_add_grad_10"
     input_dict = {"out_backprop": out_backprop, "data_format": data_format, "name": name}
@@ -84,7 +84,7 @@ def tf_raw_ops_BiasAddGrad_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.BiasAddGrad"] = tf_raw_ops_BiasAddGrad_inputs()
+generated_inputs["tf.raw_ops.BiasAddGrad"] = tf_raw_ops_bias_add_grad_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -12,15 +12,15 @@ def tf_raw_ops_FusedBatchNormGradV2_inputs():
     list_of_inputs = []
 
     # Input 1
-    y_backprop = np.random.rand(1, 28, 28, 3).astype(np.float32)
-    x = np.random.rand(1, 28, 28, 3).astype(np.float32)
-    scale = np.random.rand(3).astype(np.float32)
-    reserve_space_1 = np.random.rand(3).astype(np.float32)
-    reserve_space_2 = np.random.rand(3).astype(np.float32)
+    y_backprop = np.random.randn(1, 32, 32, 3).astype(np.float32)
+    x = np.random.randn(1, 32, 32, 3).astype(np.float32)
+    scale = np.random.randn(3).astype(np.float32)
+    reserve_space_1 = np.random.randn(3).astype(np.float32)
+    reserve_space_2 = np.random.randn(3).astype(np.float32)
     epsilon = 0.001
     data_format = "NHWC"
     is_training = True
-    name = "batch_norm_grad_1"
+    name = "batchnorm_grad_1"
 
     input_dict = {
         "y_backprop": y_backprop,
@@ -36,15 +36,15 @@ def tf_raw_ops_FusedBatchNormGradV2_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    y_backprop = np.random.rand(2, 14, 14, 64).astype(np.float32)
-    x = np.random.rand(2, 14, 14, 64).astype(np.float32)
-    scale = np.random.rand(64).astype(np.float32)
-    reserve_space_1 = np.random.rand(64).astype(np.float32)
-    reserve_space_2 = np.random.rand(64).astype(np.float32)
+    y_backprop = np.random.randn(4, 16, 16, 64).astype(np.float32)
+    x = np.random.randn(4, 16, 16, 64).astype(np.float32)
+    scale = np.random.randn(64).astype(np.float32)
+    reserve_space_1 = np.random.randn(64).astype(np.float32)
+    reserve_space_2 = np.random.randn(64).astype(np.float32)
     epsilon = 0.00001
     data_format = "NHWC"
     is_training = False
-    name = "batch_norm_grad_2"
+    name = "batchnorm_grad_2"
 
     input_dict = {
         "y_backprop": y_backprop,
@@ -60,15 +60,15 @@ def tf_raw_ops_FusedBatchNormGradV2_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    y_backprop = np.random.rand(4, 32, 32, 16).astype(np.float32)
-    x = np.random.rand(4, 32, 32, 16).astype(np.float32)
-    scale = np.random.rand(16).astype(np.float32)
-    reserve_space_1 = np.random.rand(16).astype(np.float32)
-    reserve_space_2 = np.random.rand(16).astype(np.float32)
+    y_backprop = np.random.randn(2, 3, 64, 64).astype(np.float32)
+    x = np.random.randn(2, 3, 64, 64).astype(np.float32)
+    scale = np.random.randn(3).astype(np.float32)
+    reserve_space_1 = np.random.randn(3).astype(np.float32)
+    reserve_space_2 = np.random.randn(3).astype(np.float32)
     epsilon = 0.0005
-    data_format = "NHWC"
+    data_format = "NCHW"
     is_training = True
-    name = "batch_norm_grad_3"
+    name = "batchnorm_grad_3"
 
     input_dict = {
         "y_backprop": y_backprop,
@@ -84,15 +84,15 @@ def tf_raw_ops_FusedBatchNormGradV2_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    y_backprop = np.random.rand(1, 3, 224, 224).astype(np.float32)
-    x = np.random.rand(1, 3, 224, 224).astype(np.float32)
-    scale = np.random.rand(3).astype(np.float32)
-    reserve_space_1 = np.random.rand(3).astype(np.float32)
-    reserve_space_2 = np.random.rand(3).astype(np.float32)
+    y_backprop = np.random.randn(1, 128, 128, 1).astype(np.float32)
+    x = np.random.randn(1, 128, 128, 1).astype(np.float32)
+    scale = np.random.randn(1).astype(np.float32)
+    reserve_space_1 = np.random.randn(1).astype(np.float32)
+    reserve_space_2 = np.random.randn(1).astype(np.float32)
     epsilon = 0.0001
-    data_format = "NCHW"
+    data_format = "NHWC"
     is_training = True
-    name = "batch_norm_grad_4"
+    name = "batchnorm_grad_4"
 
     input_dict = {
         "y_backprop": y_backprop,
@@ -108,15 +108,15 @@ def tf_raw_ops_FusedBatchNormGradV2_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    y_backprop = np.random.rand(1, 3, 128, 128).astype(np.float32)
-    x = np.random.rand(1, 3, 128, 128).astype(np.float32)
-    scale = np.random.rand(3).astype(np.float32)
-    reserve_space_1 = np.random.rand(3).astype(np.float32)
-    reserve_space_2 = np.random.rand(3).astype(np.float32)
+    y_backprop = np.random.randn(8, 8, 8, 8).astype(np.float32)
+    x = np.random.randn(8, 8, 8, 8).astype(np.float32)
+    scale = np.random.randn(8).astype(np.float32)
+    reserve_space_1 = np.random.randn(8).astype(np.float32)
+    reserve_space_2 = np.random.randn(8).astype(np.float32)
     epsilon = 0.0001
-    data_format = "NCHW"
+    data_format = "NHWC"
     is_training = False
-    name = "batch_norm_grad_5"
+    name = "batchnorm_grad_5"
 
     input_dict = {
         "y_backprop": y_backprop,
@@ -130,127 +130,6 @@ def tf_raw_ops_FusedBatchNormGradV2_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 6
-    y_backprop = np.random.rand(1, 16, 64, 64).astype(np.float32)
-    x = np.random.rand(1, 16, 64, 64).astype(np.float32)
-    scale = np.random.rand(16).astype(np.float32)
-    reserve_space_1 = np.random.rand(16).astype(np.float32)
-    reserve_space_2 = np.random.rand(16).astype(np.float32)
-    epsilon = 0.0001
-    data_format = "NHWC"
-    is_training = True
-    name = "batch_norm_grad_6"
-
-    input_dict = {
-        "y_backprop": y_backprop,
-        "x": x,
-        "scale": scale,
-        "reserve_space_1": reserve_space_1,
-        "reserve_space_2": reserve_space_2,
-        "epsilon": epsilon,
-        "data_format": data_format,
-        "is_training": is_training,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    y_backprop = np.random.rand(1, 16, 64, 64).astype(np.float32)
-    x = np.random.rand(1, 16, 64, 64).astype(np.float32)
-    scale = np.random.rand(16).astype(np.float32)
-    reserve_space_1 = np.random.rand(16).astype(np.float32)
-    reserve_space_2 = np.random.rand(16).astype(np.float32)
-    epsilon = 0.0001
-    data_format = "NHWC"
-    is_training = True
-    name = "batch_norm_grad_7"
-
-    input_dict = {
-        "y_backprop": y_backprop,
-        "x": x,
-        "scale": scale,
-        "reserve_space_1": reserve_space_1,
-        "reserve_space_2": reserve_space_2,
-        "epsilon": epsilon,
-        "data_format": data_format,
-        "is_training": is_training,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    y_backprop = np.random.rand(2, 3, 224, 224).astype(np.float32)
-    x = np.random.rand(2, 3, 224, 224).astype(np.float32)
-    scale = np.random.rand(3).astype(np.float32)
-    reserve_space_1 = np.random.rand(3).astype(np.float32)
-    reserve_space_2 = np.random.rand(3).astype(np.float32)
-    epsilon = 0.0001
-    data_format = "NCHW"
-    is_training = True
-    name = "batch_norm_grad_8"
-
-    input_dict = {
-        "y_backprop": y_backprop,
-        "x": x,
-        "scale": scale,
-        "reserve_space_1": reserve_space_1,
-        "reserve_space_2": reserve_space_2,
-        "epsilon": epsilon,
-        "data_format": data_format,
-        "is_training": is_training,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    y_backprop = np.random.rand(4, 64, 32, 32).astype(np.float32)
-    x = np.random.rand(4, 64, 32, 32).astype(np.float32)
-    scale = np.random.rand(64).astype(np.float32)
-    reserve_space_1 = np.random.rand(64).astype(np.float32)
-    reserve_space_2 = np.random.rand(64).astype(np.float32)
-    epsilon = 0.0001
-    data_format = "NCHW"
-    is_training = False
-    name = "batch_norm_grad_9"
-
-    input_dict = {
-        "y_backprop": y_backprop,
-        "x": x,
-        "scale": scale,
-        "reserve_space_1": reserve_space_1,
-        "reserve_space_2": reserve_space_2,
-        "epsilon": epsilon,
-        "data_format": data_format,
-        "is_training": is_training,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    y_backprop = np.random.rand(8, 128, 16, 16).astype(np.float32)
-    x = np.random.rand(8, 128, 16, 16).astype(np.float32)
-    scale = np.random.rand(128).astype(np.float32)
-    reserve_space_1 = np.random.rand(128).astype(np.float32)
-    reserve_space_2 = np.random.rand(128).astype(np.float32)
-    epsilon = 0.0001
-    data_format = "NHWC"
-    is_training = True
-    name = "batch_norm_grad_10"
-
-    input_dict = {
-        "y_backprop": y_backprop,
-        "x": x,
-        "scale": scale,
-        "reserve_space_1": reserve_space_1,
-        "reserve_space_2": reserve_space_2,
-        "epsilon": epsilon,
-        "data_format": data_format,
-        "is_training": is_training,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}

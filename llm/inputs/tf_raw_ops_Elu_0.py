@@ -11,70 +11,73 @@ import copy
 def tf_raw_ops_Elu_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
-    features = np.array([1.0, 0.0, -1.0], dtype=np.float32)
+    # Input 1
+    features = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
     name = None
     input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 2, valid
-    features = np.array([-5.0, -2.0, 0.0, 3.0], dtype=np.float64)
+    # Input 2
+    features = np.array([[-2.0, -1.0], [0.0, 1.0]], dtype=np.float32)
     name = "elu_op"
     input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 3, valid, multi-dimensional
-    features = np.array([[1, -1], [2, -2]], dtype=np.float32)
+    # Input 3
+    features = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
     name = None
     input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 4, valid, float16
-    features = np.array([1.0, -1.0, 0.0], dtype=np.float16)
+    # Input 4
+    features = np.array([-0.5, 0.5, -1.5, 1.5], dtype=np.float64)
     name = None
     input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 5, valid, half
-    features = np.array([1.0, -1.0, 0.0], dtype=np.float16)
+    # Input 5
+    features = np.array([[-10.0, -5.0], [5.0, 10.0]], dtype=np.float64)
+    name = "elu_op_2"
+    input_dict = {"features": features, "name": name}
+    list_of_inputs.append(input_dict)
+
+    # Input 6
+    features = np.array([1, 2, 3, 4, 5], dtype=np.float32)
     name = None
     input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 6, valid, large negative number
-    features = np.array([-1000.0], dtype=np.float32)
+    # Input 7
+    features = np.array([0.1, -0.2, 0.3, -0.4], dtype=np.float32)
+    name = "test_name"
+    input_dict = {"features": features, "name": name}
+    list_of_inputs.append(input_dict)
+
+    # Input 8
+    features = np.array([[-0.001, 0.001], [-0.002, 0.002]], dtype=np.float32)
     name = None
     input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 7, valid, large positive number
-    features = np.array([1000.0], dtype=np.float32)
+    # Input 9
+    features = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
     name = None
     input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 8, valid, zero
-    features = np.array([0.0], dtype=np.float32)
+    # Input 10
+    features = np.array([1.0, 2.0, 3.0], dtype=np.float64)
     name = None
     input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9, valid, multi-dimensional array
-    features = np.array([[[1.0, -1.0], [2.0, -2.0]], [[3.0, -3.0], [4.0, -4.0]]], dtype=np.float32)
-    name = None
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10, valid, different values
-    features = np.array([-2.5, -1.0, 0.0, 1.5, 3.0], dtype=np.float32)
-    name = "another_elu"
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.Elu"] = tf_raw_ops_Elu_inputs()
+inputs = tf_raw_ops_Elu_inputs()
+generated_inputs["tf.raw_ops.Elu"] = []
+for input_dict in inputs:
+    generated_inputs["tf.raw_ops.Elu"].append({"args": (), "kwargs": copy.deepcopy(input_dict)})
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

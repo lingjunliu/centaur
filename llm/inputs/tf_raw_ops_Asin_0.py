@@ -11,54 +11,54 @@ import copy
 def tf_raw_ops_asin_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, 1D array, positive values
-    x = np.array([0.0, 0.5, 1.0], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 1: float32, scalar
+    x = np.array(0.5, dtype=np.float32)
+    input_dict = {"x": x, "name": "asin_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32, 1D array, negative values
-    x = np.array([-0.5, -1.0, 0.0], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": "asin_neg"}
+    # Input 2: float64, 1D array
+    x = np.array([-0.2, 0.0, 0.2, 0.4], dtype=np.float64)
+    input_dict = {"x": x, "name": "asin_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float64, 2D array
-    x = np.array([[0.2, 0.4], [0.6, 0.8]], dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 3: bfloat16, 2D array
+    x = np.array([[-0.8, 0.1], [0.3, 0.9]], dtype=np.float16)
+    input_dict = {"x": x, "name": "asin_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64, 2D array, negative values
-    x = np.array([[-0.2, -0.4], [-0.6, -0.8]], dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": "asin_neg_2d"}
+    # Input 4: half, 3D array
+    x = np.array([[[0.5, -0.5], [0.2, -0.2]], [[0.8, -0.8], [0.9, -0.9]]], dtype=np.float16)
+    input_dict = {"x": x, "name": "asin_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float32, 3D array
-    x = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 5: complex64, scalar
+    x = np.complex64(0.5 + 0.5j)
+    input_dict = {"x": x, "name": "asin_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: complex64, 1D array
-    x = np.array([0.1 + 0.1j, 0.2 + 0.2j, 0.3 + 0.3j], dtype=np.complex64)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 6: complex128, 1D array
+    x = np.array([0.1 + 0.1j, 0.2 - 0.2j, -0.3 + 0.3j], dtype=np.complex128)
+    input_dict = {"x": x, "name": "asin_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: complex128, 2D array
-    x = np.array([[0.4 + 0.4j, 0.5 + 0.5j], [0.6 + 0.6j, 0.7 + 0.7j]], dtype=np.complex128)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": "asin_complex_2d"}
+    # Input 7: float32, values close to 1 and -1
+    x = np.array([0.999, -0.999], dtype=np.float32)
+    input_dict = {"x": x, "name": "asin_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: bfloat16, 1D array
-    x = np.array([0.2, 0.8, 0.5], dtype=np.float16).astype(tf.bfloat16.as_numpy_dtype)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    # Input 8: float64, larger array
+    x = np.random.uniform(-1, 1, size=(5, 5)).astype(np.float64)
+    input_dict = {"x": x, "name": "asin_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: half, 1D array
-    x = np.array([-0.3, 0.7, -0.1], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": "asin_half"}
+    
+    # Input 9: complex64, array with zero imaginary part
+    x = np.array([0.2+0j, 0.5+0j, -0.1+0j], dtype=np.complex64)
+    input_dict = {"x": x, "name": "asin_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: float32, scalar value
-    x = np.array(0.9, dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x), "name": None}
+    
+    # Input 10: bfloat16, single negative value
+    x = np.array([-0.75], dtype=np.float16)
+    input_dict = {"x": x, "name": "asin_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

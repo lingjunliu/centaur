@@ -13,189 +13,97 @@ def tf_raw_ops_FakeQuantWithMinMaxVars_inputs():
 
     # Input 1
     inputs = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
-    min_val = np.array(-1.0, dtype=np.float32)
-    max_val = np.array(1.0, dtype=np.float32)
+    min_val = np.array([-1.0], dtype=np.float32)
+    max_val = np.array([1.0], dtype=np.float32)
     num_bits = 8
     narrow_range = False
-    name = "test1"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    name = "fake_quant1"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     inputs = np.array([[1.2, -0.3, 0.7], [2.1, 0.5, -1.0]], dtype=np.float32)
-    min_val = np.array(-0.5, dtype=np.float32)
-    max_val = np.array(0.8, dtype=np.float32)
+    min_val = np.array([-0.5], dtype=np.float32)
+    max_val = np.array([0.8], dtype=np.float32)
     num_bits = 8
     narrow_range = False
-    name = "test2"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    name = "fake_quant2"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     inputs = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float32)
-    min_val = np.array(0.0, dtype=np.float32)
-    max_val = np.array(1.0, dtype=np.float32)
+    min_val = np.array([0.0], dtype=np.float32)
+    max_val = np.array([1.0], dtype=np.float32)
     num_bits = 4
     narrow_range = True
-    name = "test3"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    name = "fake_quant3"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    inputs = np.array([[-2.0, -1.0], [1.0, 2.0]], dtype=np.float32)
-    min_val = np.array(-2.0, dtype=np.float32)
-    max_val = np.array(2.0, dtype=np.float32)
+    inputs = np.array([-5.0, -2.5, 0.0, 2.5, 5.0], dtype=np.float32)
+    min_val = np.array([-5.0], dtype=np.float32)
+    max_val = np.array([5.0], dtype=np.float32)
     num_bits = 16
     narrow_range = False
-    name = "test4"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    name = "fake_quant4"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    inputs = np.array([1.0], dtype=np.float32)
-    min_val = np.array(0.0, dtype=np.float32)
-    max_val = np.array(1.0, dtype=np.float32)
+    inputs = np.array([[-1.0, 0.0], [0.5, 1.0]], dtype=np.float32)
+    min_val = np.array([-1.0], dtype=np.float32)
+    max_val = np.array([1.0], dtype=np.float32)
     num_bits = 2
     narrow_range = True
-    name = "test5"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    name = "fake_quant5"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    inputs = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    min_val = np.array(1.0, dtype=np.float32)
-    max_val = np.array(8.0, dtype=np.float32)
+    inputs = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    min_val = np.array([1.0], dtype=np.float32)
+    max_val = np.array([3.0], dtype=np.float32)
     num_bits = 8
     narrow_range = False
-    name = "test6"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    name = "fake_quant6"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    inputs = np.array([-0.5], dtype=np.float32)
-    min_val = np.array(-1.0, dtype=np.float32)
-    max_val = np.array(0.0, dtype=np.float32)
+    inputs = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    min_val = np.array([-3.0], dtype=np.float32)
+    max_val = np.array([-1.0], dtype=np.float32)
     num_bits = 8
-    narrow_range = True
-    name = "test7"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    narrow_range = False
+    name = "fake_quant7"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    inputs = np.array([5.0, 10.0, 15.0], dtype=np.float32)
-    min_val = np.array(0.0, dtype=np.float32)
-    max_val = np.array(20.0, dtype=np.float32)
-    num_bits = 12
+    inputs = np.array([0.0], dtype=np.float32)
+    min_val = np.array([0.0], dtype=np.float32)
+    max_val = np.array([0.0], dtype=np.float32)
+    num_bits = 8
     narrow_range = False
-    name = "test8"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    name = "fake_quant8"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    inputs = np.array([[-0.1, 0.2], [-0.3, 0.4]], dtype=np.float32)
-    min_val = np.array(-0.5, dtype=np.float32)
-    max_val = np.array(0.5, dtype=np.float32)
+    inputs = np.array([1.5, 2.5, 3.5, 4.5], dtype=np.float32)
+    min_val = np.array([1.0], dtype=np.float32)
+    max_val = np.array([5.0], dtype=np.float32)
     num_bits = 6
     narrow_range = True
-    name = "test9"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
+    name = "fake_quant9"
+    input_dict = {"inputs": inputs, "min": min_val, "max": max_val, "num_bits": num_bits, "narrow_range": narrow_range, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    inputs = np.array([0.0], dtype=np.float32)
-    min_val = np.array(0.0, dtype=np.float32)
-    max_val = np.array(0.0, dtype=np.float32)
-    num_bits = 8
-    narrow_range = False
-    name = "test10"
-
-    input_dict = {
-        "inputs": tf.convert_to_tensor(inputs, dtype=tf.float32),
-        "min": tf.convert_to_tensor(min_val, dtype=tf.float32),
-        "max": tf.convert_to_tensor(max_val, dtype=tf.float32),
-        "num_bits": num_bits,
-        "narrow_range": narrow_range,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}
 generated_inputs["tf.raw_ops.FakeQuantWithMinMaxVars"] = tf_raw_ops_FakeQuantWithMinMaxVars_inputs()
-tf.experimental.numpy.experimental_enable_numpy_behavior()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

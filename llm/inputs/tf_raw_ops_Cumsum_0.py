@@ -11,7 +11,7 @@ import copy
 def tf_raw_ops_cumsum_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example
+    # Input 1: Basic 1D array, exclusive=False, reverse=False
     x = np.array([1, 2, 3, 4, 5], dtype=np.int32)
     axis = np.int32(0)
     exclusive = False
@@ -20,8 +20,8 @@ def tf_raw_ops_cumsum_inputs():
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Exclusive cumsum
-    x = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    # Input 2: 1D array, exclusive=True, reverse=False
+    x = np.array([1, 2, 3, 4, 5], dtype=np.float32)
     axis = np.int32(0)
     exclusive = True
     reverse = False
@@ -29,8 +29,8 @@ def tf_raw_ops_cumsum_inputs():
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Reverse cumsum
-    x = np.array([1, 2, 3], dtype=np.int64)
+    # Input 3: 1D array, exclusive=False, reverse=True
+    x = np.array([1, 2, 3, 4, 5], dtype=np.int64)
     axis = np.int32(0)
     exclusive = False
     reverse = True
@@ -38,8 +38,8 @@ def tf_raw_ops_cumsum_inputs():
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Exclusive and reverse cumsum
-    x = np.array([1, 2, 3], dtype=np.int32)
+    # Input 4: 1D array, exclusive=True, reverse=True
+    x = np.array([1, 2, 3, 4, 5], dtype=np.complex64)
     axis = np.int32(0)
     exclusive = True
     reverse = True
@@ -47,44 +47,44 @@ def tf_raw_ops_cumsum_inputs():
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D array
-    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
-    axis = np.int32(1)
+    # Input 5: 2D array, axis=0
+    x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
+    axis = np.int32(0)
     exclusive = False
     reverse = False
     name = "cumsum_5"
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 2D array, reverse axis
-    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    axis = np.int32(0)
+    # Input 6: 2D array, axis=1
+    x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float64)
+    axis = np.int32(1)
     exclusive = False
-    reverse = True
+    reverse = False
     name = "cumsum_6"
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 3D array
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    axis = np.int32(2)
-    exclusive = False
-    reverse = False
+    # Input 7: 2D array, axis=0, exclusive=True, reverse=True
+    x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int8)
+    axis = np.int32(0)
+    exclusive = True
+    reverse = True
     name = "cumsum_7"
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 8: complex64 type
-    x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    axis = np.int32(0)
+    # Input 8: 3D array, axis=1
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint8)
+    axis = np.int32(1)
     exclusive = False
     reverse = False
     name = "cumsum_8"
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 9: uint8
-    x = np.array([1, 2, 3], dtype=np.uint8)
+    # Input 9: Negative values
+    x = np.array([-1, 2, -3, 4, -5], dtype=np.int32)
     axis = np.int32(0)
     exclusive = False
     reverse = False
@@ -92,48 +92,30 @@ def tf_raw_ops_cumsum_inputs():
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: 2D uint16 with exclusive
-    x = np.array([[1, 2], [3, 4]], dtype=np.uint16)
-    axis = np.int32(1)
-    exclusive = True
+    # Input 10: Larger array, axis=-1
+    x = np.random.rand(5, 5, 5).astype(np.float32)
+    axis = np.int32(-1)
+    exclusive = False
     reverse = False
     name = "cumsum_10"
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Negative values
-    x = np.array([-1, 2, -3, 4, -5], dtype=np.int32)
-    axis = np.int32(0)
+
+    # Input 11: different axis type
+    x = np.array([1, 2, 3], dtype=np.int32)
+    axis = np.int64(0)
     exclusive = False
     reverse = False
     name = "cumsum_11"
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 12: uint32
     x = np.array([1, 2, 3], dtype=np.uint32)
     axis = np.int32(0)
     exclusive = False
     reverse = False
     name = "cumsum_12"
-    input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: uint64
-    x = np.array([1, 2, 3], dtype=np.uint64)
-    axis = np.int32(0)
-    exclusive = False
-    reverse = False
-    name = "cumsum_13"
-    input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14: float16
-    x = np.array([1, 2, 3], dtype=np.float16)
-    axis = np.int32(0)
-    exclusive = False
-    reverse = False
-    name = "cumsum_14"
     input_dict = {"x": x, "axis": axis, "exclusive": exclusive, "reverse": reverse, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

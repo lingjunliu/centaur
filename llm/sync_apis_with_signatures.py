@@ -29,6 +29,11 @@ def main():
         sig = signatures[variation]
         supported = True
         
+        if api.startswith("tf.raw_ops"):    # tf.raw_ops should have no args, only kwargs
+            for arg, domain in sig["args"].items():
+                sig["kwargs"][arg] = domain
+            sig["args"] = {}
+
         for key in ["args", "kwargs"]:
             for arg, domain in sig[key].items():
                 if domain not in supported_paramtypes:

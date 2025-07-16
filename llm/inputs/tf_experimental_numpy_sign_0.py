@@ -14,73 +14,94 @@ def tf_experimental_numpy_sign_inputs():
     # Input 1
     x = np.array([-1, 0, 1], dtype=np.int32)
     out = np.array([-2, -2, -2], dtype=np.int32)
-    where = np.array([True, True, True], dtype=bool)
+    where = np.array([True, True, True], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    x = np.array([-5.2, 1.3, 0], dtype=np.float32)
+    x = np.array([-1.5, 0.0, 1.5], dtype=np.float32)
     out = np.array([-2.0, -2.0, -2.0], dtype=np.float32)
-    where = np.array([True, False, True], dtype=bool)
+    where = np.array([True, True, True], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    x = np.array([[-1, 2], [3, -4]], dtype=np.int64)
-    out = np.array([[0, 0], [0, 0]], dtype=np.int64)
-    where = np.array([[True, False], [False, True]], dtype=bool)
+    x = np.array([[-1, 0], [1, -2]], dtype=np.int64)
+    out = np.array([[-2, -2], [-2, -2]], dtype=np.int64)
+    where = np.array([[True, False], [False, True]], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    x = np.array([[-0.5, 0.0], [0.5, -0.0]], dtype=np.float64)
-    out = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
-    where = np.array([[True, True], [True, True]], dtype=bool)
+    x = np.array([[-1.0, 0.0], [1.0, -2.0]], dtype=np.float64)
+    out = np.array([[-2.0, -2.0], [-2.0, -2.0]], dtype=np.float64)
+    where = np.array([[True, False], [False, True]], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    x = np.array([1, 2, 3], dtype=np.int16)
-    out = np.array([0, 0, 0], dtype=np.int16)
-    where = np.array([False, False, False], dtype=bool)
+    x = np.array([-5, 5, -5, 5], dtype=np.int32)
+    out = np.array([-2, -2, -2, -2], dtype=np.int32)
+    where = np.array([True, False, True, False], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    x = np.array([-1.5, -0.5, 0, 0.5, 1.5], dtype=np.float16)
-    out = np.array([0.0, 0.0, 0.0, 0.0, 0.0], dtype=np.float16)
-    where = np.array([True, True, True, True, True], dtype=bool)
+    x = np.array([-5.0, 5.0, -5.0, 5.0], dtype=np.float32)
+    out = np.array([-2.0, -2.0, -2.0, -2.0], dtype=np.float32)
+    where = np.array([True, False, True, False], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    x = np.array([[-1, 0, 1], [-2, 0, 2]], dtype=np.int8)
-    out = np.array([[0, 0, 0], [0, 0, 0]], dtype=np.int8)
-    where = np.array([[True, False, True], [False, True, False]], dtype=bool)
+    x = np.array([1, -2, 3, -4], dtype=np.int16)
+    out = np.array([-2, -2, -2, -2], dtype=np.int16)
+    where = np.array([True, True, False, False], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    x = np.array([1], dtype=np.int32)
-    out = np.array([0], dtype=np.int32)
-    where = np.array([True], dtype=bool)
+    x = np.array([1.0, -2.0, 3.0, -4.0], dtype=np.float16)
+    out = np.array([-2.0, -2.0, -2.0, -2.0], dtype=np.float16)
+    where = np.array([True, True, False, False], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    x = np.array([[-1.0, 1.0], [0.0, -0.0]], dtype=np.float32)
-    out = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
-    where = np.array([[True, True], [False, True]], dtype=bool)
+    x = np.array([[-1, -2], [3, 4]], dtype=np.int8)
+    out = np.array([[-2, -2], [-2, -2]], dtype=np.int8)
+    where = np.array([[True, False], [True, False]], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    x = np.array([[[1, -1], [0, -0]], [[-2, 2], [-3, 3]]], dtype=np.int32)
-    out = np.array([[[0, 0], [0, 0]], [[0, 0], [0, 0]]], dtype=np.int32)
-    where = np.array([[[True, False], [True, True]], [[False, True], [True, False]]], dtype=bool)
+    x = np.array([[-1.0, -2.0], [3.0, 4.0]], dtype=np.float32)
+    out = np.array([[-2.0, -2.0], [-2.0, -2.0]], dtype=np.float32)
+    where = np.array([[True, False], [True, False]], dtype=np.bool_)
     input_dict = {"x": x, "out": out, "where": where}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 11
+    x = np.array(10, dtype=np.int32)
+    out = np.array(-2, dtype=np.int32)
+    where = True
+    input_dict = {"x": x, "out": out, "where": where}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12
+    x = np.array(-10.5, dtype=np.float64)
+    out = np.array(-2.0, dtype=np.float64)
+    where = True
+    input_dict = {"x": x, "out": out, "where": where}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13
+    x = np.array([1, 2, 3], dtype=np.int32)
+    out = np.array([4, 5, 6], dtype=np.int32)
+    where = np.array([True, False, True], dtype=np.bool_)
+    input_dict = {"x": x, "out": out, "where": where}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

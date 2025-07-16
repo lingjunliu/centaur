@@ -12,85 +12,101 @@ def tf_raw_ops_dynamic_partition_inputs():
     list_of_inputs = []
 
     # Input 1
-    data = np.array([10, 20, 30, 40, 50], dtype=np.int32)
-    partitions = np.array([0, 0, 1, 1, 0], dtype=np.int32)
+    data = np.array([10, 20, 30, 40, 50]).astype(np.int32)
+    partitions = np.array([0, 0, 1, 1, 0]).astype(np.int32)
     num_partitions = 2
-    name = "partition1"
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    partitions = np.array([0, 1, 0], dtype=np.int32)
+    data = np.array([[1, 2], [3, 4], [5, 6], [7, 8]]).astype(np.float32)
+    partitions = np.array([0, 1, 0, 1]).astype(np.int32)
     num_partitions = 2
-    name = "partition2"
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    partitions = np.array([0, 1], dtype=np.int32)
+    data = np.array([1, 2, 3, 4, 5, 6]).reshape((2, 3)).astype(np.int64)
+    partitions = np.array([0, 1]).astype(np.int32)
     num_partitions = 3
-    name = "partition3"
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float64)
-    partitions = np.array([1, 0, 1], dtype=np.int32)
+    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).astype(np.float64)
+    partitions = np.array([0, 1]).astype(np.int32)
     num_partitions = 3
-    name = "partition4"
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    data = np.array([10, 20], dtype=np.int32)
-    partitions = np.array(1, dtype=np.int32)
+    data = np.array([10, 20]).astype(np.int32)
+    partitions = np.array(1).astype(np.int32)
     num_partitions = 2
-    name = "partition5"
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6
-    data = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
-    partitions = np.array([0, 1, 2, 0, 1, 2, 0, 1], dtype=np.int32)
+    # Input 6
+    data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12]]).astype(np.int32)
+    partitions = np.array([0, 1, 2, 0]).astype(np.int32)
+    num_partitions = 3
+    name = None
+    input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 7
+    data = np.array([1, 2, 3, 4, 5, 6, 7, 8]).astype(np.int32)
+    partitions = np.array([0, 1, 0, 1, 0, 1, 0, 1]).astype(np.int32)
     num_partitions = 4
-    name = "partition6"
-    input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]],[[9,10],[11,12]]], dtype=np.int32)
-    partitions = np.array([0, 1, 0], dtype=np.int32)
-    num_partitions = 2
-    name = "partition7"
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    data = np.array([10, 20, 30], dtype=np.int32)
-    partitions = np.array([0, 0, 0], dtype=np.int32)
-    num_partitions = 1
-    name = "partition8"
+    data = np.array([1, 2, 3, 4]).reshape((2,2)).astype(np.float32)
+    partitions = np.array([0, 1]).astype(np.int32)
+    num_partitions = 2
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    data = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    partitions = np.array([0, 1], dtype=np.int32)
-    num_partitions = 5
-    name = "partition9"
+    data = np.array([[[1,2],[3,4]],[[5,6],[7,8]]]).astype(np.int32)
+    partitions = np.array([0,1]).astype(np.int32)
+    num_partitions = 2
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    data = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
-    partitions = np.array([0, 1, 0, 1, 0, 1], dtype=np.int32)
-    num_partitions = 2
-    name = "partition10"
+    data = np.array([1,2,3,4,5]).astype(np.int32)
+    partitions = np.array([0,0,0,0,0]).astype(np.int32)
+    num_partitions = 5
+    name = None
+    input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    data = np.array([[1, 2], [3, 4], [5, 6]]).astype(np.float32)
+    partitions = np.array([0, 1, 0]).astype(np.int32)
+    num_partitions = 3
+    name = None
     input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 12
+    data = np.array([1, 2, 3, 4, 5, 6]).astype(np.int32).reshape((2, 3))
+    partitions = np.array([0, 1]).astype(np.int32)
+    num_partitions = 4
+    name = None
+    input_dict = {"data": data, "partitions": partitions, "num_partitions": num_partitions, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

@@ -8,15 +8,15 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_barrier_insert_many_inputs():
+def tf_raw_ops_BarrierInsertMany_inputs():
     list_of_inputs = []
 
     # Input 1
-    handle = tf.constant("barrier_handle", dtype=tf.string)
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
     keys = tf.constant(["key1", "key2"], dtype=tf.string)
     values = tf.constant([[1, 2], [3, 4]], dtype=tf.int32)
     component_index = 0
-    name = None
+    name = "insert_op_1"
 
     input_dict = {
         "handle": handle,
@@ -28,11 +28,11 @@ def tf_raw_ops_barrier_insert_many_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    handle = tf.constant("another_handle", dtype=tf.string)
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
     keys = tf.constant(["key3"], dtype=tf.string)
     values = tf.constant([[5, 6, 7]], dtype=tf.float32)
     component_index = 1
-    name = None
+    name = "insert_op_2"
 
     input_dict = {
         "handle": handle,
@@ -44,11 +44,11 @@ def tf_raw_ops_barrier_insert_many_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    handle = tf.constant("handle3", dtype=tf.string)
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
     keys = tf.constant(["key4", "key5", "key6"], dtype=tf.string)
-    values = tf.constant([[8], [9], [10]], dtype=tf.int64)
+    values = tf.constant([["a", "b"], ["c", "d"], ["e", "f"]], dtype=tf.string)
     component_index = 2
-    name = None
+    name = "insert_op_3"
 
     input_dict = {
         "handle": handle,
@@ -60,11 +60,11 @@ def tf_raw_ops_barrier_insert_many_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    handle = tf.constant("handle4", dtype=tf.string)
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
     keys = tf.constant(["key7"], dtype=tf.string)
-    values = tf.constant([[11, 12, 13, 14]], dtype=tf.float32)
-    component_index = 0
-    name = None
+    values = tf.constant([10], dtype=tf.int64)
+    component_index = 3
+    name = "insert_op_4"
 
     input_dict = {
         "handle": handle,
@@ -76,11 +76,11 @@ def tf_raw_ops_barrier_insert_many_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    handle = tf.constant("handle5", dtype=tf.string)
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
     keys = tf.constant(["key8", "key9"], dtype=tf.string)
-    values = tf.constant([[1, 0], [0, 1]], dtype=tf.int32)
-    component_index = 1
-    name = None
+    values = tf.constant([[1.5, 2.5, 3.5], [4.5, 5.5, 6.5]], dtype=tf.float64)
+    component_index = 0
+    name = "insert_op_5"
 
     input_dict = {
         "handle": handle,
@@ -91,12 +91,12 @@ def tf_raw_ops_barrier_insert_many_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6
-    handle = tf.constant("handle6", dtype=tf.string)
+    # Input 6
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
     keys = tf.constant(["key10"], dtype=tf.string)
-    values = tf.constant([[15.5]], dtype=tf.float64)
-    component_index = 2
-    name = None
+    values = tf.constant([[[1, 2], [3, 4]]], dtype=tf.int32)
+    component_index = 1
+    name = "insert_op_6"
 
     input_dict = {
         "handle": handle,
@@ -108,11 +108,11 @@ def tf_raw_ops_barrier_insert_many_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    handle = tf.constant("handle7", dtype=tf.string)
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
     keys = tf.constant(["key11", "key12"], dtype=tf.string)
-    values = tf.constant([[16, 17, 18], [19, 20, 21]], dtype=tf.int16)
-    component_index = 0
-    name = None
+    values = tf.constant([True, False], dtype=tf.bool)
+    component_index = 2
+    name = "insert_op_7"
 
     input_dict = {
         "handle": handle,
@@ -124,11 +124,11 @@ def tf_raw_ops_barrier_insert_many_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    handle = tf.constant("handle8", dtype=tf.string)
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
     keys = tf.constant(["key13"], dtype=tf.string)
-    values = tf.constant([[1]], dtype=tf.int32)
-    component_index = 1
-    name = None
+    values = tf.constant([12345], dtype=tf.int32)
+    component_index = 0
+    name = "insert_op_8"
 
     input_dict = {
         "handle": handle,
@@ -140,11 +140,11 @@ def tf_raw_ops_barrier_insert_many_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    handle = tf.constant("handle9", dtype=tf.string)
-    keys = tf.constant(["key14", "key15", "key16"], dtype=tf.string)
-    values = tf.constant([[1,2,3]], dtype=tf.int8)
-    component_index = 2
-    name = None
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
+    keys = tf.constant(["key14", "key15"], dtype=tf.string)
+    values = tf.constant([[-1, -2], [-3, -4]], dtype=tf.int32)
+    component_index = 1
+    name = "insert_op_9"
 
     input_dict = {
         "handle": handle,
@@ -156,11 +156,11 @@ def tf_raw_ops_barrier_insert_many_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    handle = tf.constant("handle10", dtype=tf.string)
-    keys = tf.constant(["key17"], dtype=tf.string)
-    values = tf.constant([[[4, 5], [6, 7]]], dtype=tf.int32)
-    component_index = 0
-    name = None
+    handle = tf.Variable("dummy_handle", dtype=tf.string)
+    keys = tf.constant(["key16"], dtype=tf.string)
+    values = tf.constant([[[1.1, 2.2], [3.3, 4.4]], [[5.5, 6.6], [7.7, 8.8]]], dtype=tf.float32)
+    component_index = 2
+    name = "insert_op_10"
 
     input_dict = {
         "handle": handle,
@@ -174,7 +174,7 @@ def tf_raw_ops_barrier_insert_many_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.BarrierInsertMany"] = tf_raw_ops_barrier_insert_many_inputs()
+generated_inputs["tf.raw_ops.BarrierInsertMany"] = tf_raw_ops_BarrierInsertMany_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

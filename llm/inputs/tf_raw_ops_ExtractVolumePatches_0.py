@@ -11,154 +11,155 @@ import copy
 def tf_raw_ops_ExtractVolumePatches_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid case with float32
-    input1 = np.float32(np.random.rand(1, 3, 10, 10, 1))
-    ksizes1 = [1, 1, 3, 3, 1]
-    strides1 = [1, 1, 2, 2, 1]
-    padding1 = "VALID"
+    # Input 1
+    input_tensor = np.random.rand(1, 3, 10, 10, 3).astype(np.float32)
+    ksizes = [1, 1, 3, 3, 1]
+    strides = [1, 1, 2, 2, 1]
+    padding = "VALID"
 
-    input_dict1 = {
-        "input": tf.constant(input1, dtype=tf.float32),
-        "ksizes": ksizes1,
-        "strides": strides1,
-        "padding": padding1,
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
         "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different ksizes and strides with int32
-    input2 = np.int32(np.random.randint(0, 10, size=(2, 5, 8, 8, 3)))
-    ksizes2 = [1, 2, 2, 2, 1]
-    strides2 = [1, 2, 1, 1, 1]
-    padding2 = "SAME"
+    # Input 2
+    input_tensor = np.random.rand(2, 5, 8, 8, 1).astype(np.float64)
+    ksizes = [1, 3, 3, 3, 1]
+    strides = [1, 2, 2, 2, 1]
+    padding = "SAME"
 
-    input_dict2 = {
-        "input": tf.constant(input2, dtype=tf.int32),
-        "ksizes": ksizes2,
-        "strides": strides2,
-        "padding": padding2,
-        "name": "extract_patches_2"
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
+        "name": "extract_patches"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different data type (uint8)
-    input3 = np.uint8(np.random.randint(0, 256, size=(1, 4, 6, 6, 1)))
-    ksizes3 = [1, 2, 3, 3, 1]
-    strides3 = [1, 1, 1, 1, 1]
-    padding3 = "VALID"
+    # Input 3
+    input_tensor = np.random.randint(0, 10, size=(1, 4, 6, 6, 2), dtype=np.int32)
+    ksizes = [1, 2, 2, 2, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "VALID"
 
-    input_dict3 = {
-        "input": tf.constant(input3, dtype=tf.uint8),
-        "ksizes": ksizes3,
-        "strides": strides3,
-        "padding": padding3,
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
         "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Larger batch size
-    input4 = np.float32(np.random.rand(4, 2, 5, 5, 2))
-    ksizes4 = [1, 1, 2, 2, 1]
-    strides4 = [1, 1, 1, 1, 1]
-    padding4 = "SAME"
+    # Input 4
+    input_tensor = np.random.randint(0, 256, size=(1, 2, 4, 4, 1), dtype=np.uint8)
+    ksizes = [1, 1, 2, 2, 1]
+    strides = [1, 1, 2, 2, 1]
+    padding = "SAME"
 
-    input_dict4 = {
-        "input": tf.constant(input4, dtype=tf.float32),
-        "ksizes": ksizes4,
-        "strides": strides4,
-        "padding": padding4,
-        "name": "extract_patches_4"
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
+        "name": "extract_patches"
     }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: int64 data type
-    input5 = np.int64(np.random.randint(-100, 100, size=(1, 3, 7, 7, 1)))
-    ksizes5 = [1, 1, 3, 3, 1]
-    strides5 = [1, 1, 2, 2, 1]
-    padding5 = "VALID"
+    # Input 5
+    input_tensor = np.random.randint(-100, 100, size=(2, 3, 5, 5, 3), dtype=np.int16)
+    ksizes = [1, 1, 3, 3, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "VALID"
 
-    input_dict5 = {
-        "input": tf.constant(input5, dtype=tf.int64),
-        "ksizes": ksizes5,
-        "strides": strides5,
-        "padding": padding5,
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
         "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different padding SAME with larger strides
-    input6 = np.float32(np.random.rand(1, 3, 10, 10, 1))
-    ksizes6 = [1, 1, 3, 3, 1]
-    strides6 = [1, 1, 3, 3, 1]
-    padding6 = "SAME"
+    # Input 6
+    input_tensor = np.random.randint(-50, 50, size=(1, 2, 3, 3, 1), dtype=np.int8)
+    ksizes = [1, 1, 1, 1, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "SAME"
 
-    input_dict6 = {
-        "input": tf.constant(input6, dtype=tf.float32),
-        "ksizes": ksizes6,
-        "strides": strides6,
-        "padding": padding6,
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
+        "name": "extract_patches"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.random.randint(-1000, 1000, size=(1, 3, 7, 7, 2), dtype=np.int64)
+    ksizes = [1, 2, 3, 3, 1]
+    strides = [1, 1, 2, 2, 1]
+    padding = "VALID"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
         "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Larger depth
-    input7 = np.float32(np.random.rand(1, 3, 10, 10, 5))
-    ksizes7 = [1, 1, 3, 3, 1]
-    strides7 = [1, 1, 2, 2, 1]
-    padding7 = "VALID"
+   # Input 8
+    input_tensor = np.random.rand(1, 3, 10, 10, 3).astype(np.float32)
+    ksizes = [1, 3, 5, 5, 1]
+    strides = [1, 1, 2, 2, 1]
+    padding = "VALID"
 
-    input_dict7 = {
-        "input": tf.constant(input7, dtype=tf.float32),
-        "ksizes": ksizes7,
-        "strides": strides7,
-        "padding": padding7,
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
         "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 8: bfloat16 data type
-    input8 = np.float32(np.random.rand(1, 3, 7, 7, 1)).astype(np.float16)
-    ksizes8 = [1, 1, 3, 3, 1]
-    strides8 = [1, 1, 2, 2, 1]
-    padding8 = "VALID"
+    # Input 9
+    input_tensor = np.random.rand(2, 5, 8, 8, 1).astype(np.float64)
+    ksizes = [1, 1, 3, 3, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "SAME"
 
-    input_dict8 = {
-        "input": tf.constant(input8, dtype=tf.bfloat16),
-        "ksizes": ksizes8,
-        "strides": strides8,
-        "padding": padding8,
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
+        "name": "extract_patches"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.random.randint(0, 10, size=(1, 4, 6, 6, 2), dtype=np.int32)
+    ksizes = [1, 1, 1, 1, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "VALID"
+
+    input_dict = {
+        "input": input_tensor,
+        "ksizes": ksizes,
+        "strides": strides,
+        "padding": padding,
         "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-
-    # Input 9: Large input with valid
-    input9 = np.float32(np.random.rand(2, 4, 12, 12, 3))
-    ksizes9 = [1, 2, 4, 4, 1]
-    strides9 = [1, 2, 2, 2, 1]
-    padding9 = "VALID"
-    input_dict9 = {
-        "input": tf.constant(input9, dtype=tf.float32),
-        "ksizes": ksizes9,
-        "strides": strides9,
-        "padding": padding9,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
-
-    # Input 10: uint32
-    input10 = np.uint32(np.random.randint(0, 100, size=(1, 3, 7, 7, 1)))
-    ksizes10 = [1, 1, 3, 3, 1]
-    strides10 = [1, 1, 2, 2, 1]
-    padding10 = "VALID"
-
-    input_dict10 = {
-        "input": tf.constant(input10, dtype=tf.uint32),
-        "ksizes": ksizes10,
-        "strides": strides10,
-        "padding": padding10,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

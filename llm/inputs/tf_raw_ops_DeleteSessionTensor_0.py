@@ -6,7 +6,6 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
-import copy
 
 def tf_raw_ops_delete_session_tensor_inputs():
     list_of_inputs = []
@@ -15,70 +14,70 @@ def tf_raw_ops_delete_session_tensor_inputs():
     handle = np.array(b"tensor_handle_1", dtype=np.string_)
     name = None
     input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 2
-    handle = np.array(b"tensor_handle_2", dtype=np.string_)
+    handle = np.array(b"another_handle", dtype=np.string_)
     name = "delete_op_1"
     input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 3
-    handle = np.array(b"very_long_tensor_handle", dtype=np.string_)
-    name = "complex_op_name"
+    handle = np.array(b"yet_another_handle_123", dtype=np.string_)
+    name = "delete_op_2"
     input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 4
-    handle = np.array(b"short", dtype=np.string_)
-    name = ""
+    handle = np.array(b"", dtype=np.string_)
+    name = "delete_op_3"
     input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 5
-    handle = np.array(b"1234567890", dtype=np.string_)
-    name = "op_5"
-    input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    handle = np.array(b"handle_with_symbols!@#$", dtype=np.string_)
-    name = "delete_with_symbols!@#$"
-    input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    handle = np.array(b"handle_with_spaces", dtype=np.string_)
-    name = "delete with spaces"
-    input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    handle = np.array(b"another_handle", dtype=np.string_)
+    handle = np.array(b"handle_with_numbers_12345", dtype=np.string_)
     name = None
     input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
+
+    # Input 6
+    handle = np.array(b"handle_with_special_chars!@#$", dtype=np.string_)
+    name = "delete_op_4"
+    input_dict = {"handle": handle, "name": name}
+    list_of_inputs.append(input_dict)
+
+    # Input 7
+    handle = np.array(b"a_very_long_handle_" + b"a"*50, dtype=np.string_)
+    name = None
+    input_dict = {"handle": handle, "name": name}
+    list_of_inputs.append(input_dict)
+
+    # Input 8
+    handle = np.array(b"handle_with_unicode", dtype=np.string_)
+    name = "delete_op_5"
+    input_dict = {"handle": handle, "name": name}
+    list_of_inputs.append(input_dict)
 
     # Input 9
-    handle = np.array(b"", dtype=np.string_)
-    name = "empty_handle"
+    handle = np.array(b"handle_with_newline\ncharacter", dtype=np.string_)
+    name = None
     input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 10
-    handle = np.array(b"abcdefghijk", dtype=np.string_)
-    name = "another_op"
+    handle = np.array(b"handle_with_tab\tcharacter", dtype=np.string_)
+    name = "delete_op_6"
     input_dict = {"handle": handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 
 generated_inputs = {}
-temp_list = tf_raw_ops_delete_session_tensor_inputs()
-converted_list = []
-for item in temp_list:
-  converted_list.append({"kwargs": item})
-generated_inputs["tf.raw_ops.DeleteSessionTensor"] = converted_list
+api_name = "tf.raw_ops.DeleteSessionTensor"
+inputs = tf_raw_ops_delete_session_tensor_inputs()
+generated_inputs[api_name] = []
+for input_dict in inputs:
+  generated_inputs[api_name].append({"kwargs": {"handle": input_dict["handle"], "name": input_dict["name"]}})
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

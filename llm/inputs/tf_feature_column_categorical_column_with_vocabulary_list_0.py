@@ -4,112 +4,100 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import tensorflow as tf
 import numpy as np
-import copy
 
 def tf_feature_column_categorical_column_with_vocabulary_list_inputs():
     list_of_inputs = []
 
-    # Input 1: String vocabulary, default default_value
     input_dict = {
-        "key": "color",
-        "vocabulary_list": list(["red", "green", "blue"]),
-        "dtype": np.dtype('U5'),
-        "default_value": -1,
-        "num_oov_buckets": 0
+        'key': 'color',
+        'vocabulary_list': ['red', 'green', 'blue'],
+        'dtype': np.dtype(np.str_),
+        'default_value': -1,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 2: Integer vocabulary, default default_value
     input_dict = {
-        "key": "number",
-        "vocabulary_list": list([1, 2, 3, 4]),
-        "dtype": np.dtype(np.int64),
-        "default_value": 0,
-        "num_oov_buckets": 0
+        'key': 'number',
+        'vocabulary_list': [1, 2, 3, 4],
+        'dtype': np.dtype(np.int64),
+        'default_value': 0,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 3: String vocabulary, num_oov_buckets
     input_dict = {
-        "key": "city",
-        "vocabulary_list": list(["london", "paris", "tokyo"]),
-        "dtype": np.dtype('U6'),
-        "default_value": -1,
-        "num_oov_buckets": 2
+        'key': 'shape',
+        'vocabulary_list': ['square', 'circle', 'triangle'],
+        'dtype': np.dtype(np.str_),
+        'default_value': -1,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 4: Integer vocabulary, num_oov_buckets
     input_dict = {
-        "key": "age",
-        "vocabulary_list": list([20, 30, 40, 50]),
-        "dtype": np.dtype(np.int32),
-        "default_value": -1,
-        "num_oov_buckets": 1
+        'key': 'fruit',
+        'vocabulary_list': ['apple', 'banana', 'orange'],
+        'dtype': np.dtype(np.str_),
+        'default_value': 0,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 5: Mixed string vocabulary with special chars, default default_value
     input_dict = {
-        "key": "item",
-        "vocabulary_list": list(["item_1", "item-2", "item.3"]),
-        "dtype": np.dtype('U6'),
-        "default_value": 10,
-        "num_oov_buckets": 0
+        'key': 'size',
+        'vocabulary_list': [10, 20, 30, 40, 50],
+        'dtype': np.dtype(np.int64),
+        'default_value': -1,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 6:  String vocabulary, with empty string, default default_value
     input_dict = {
-        "key": "name",
-        "vocabulary_list": list(["john", "jane", ""]),
-        "dtype": np.dtype('U4'),
-        "default_value": -1,
-        "num_oov_buckets": 0
+        'key': 'animal',
+        'vocabulary_list': ['dog', 'cat', 'bird', 'fish'],
+        'dtype': np.dtype(np.str_),
+        'default_value': -1,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 7: Longer vocabulary
     input_dict = {
-        "key": "weekday",
-        "vocabulary_list": list(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
-        "dtype": np.dtype('U3'),
-        "default_value": 0,
-        "num_oov_buckets": 0
+        'key': 'city',
+        'vocabulary_list': ['london', 'paris', 'tokyo'],
+        'dtype': np.dtype(np.str_),
+        'default_value': 1,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 8: Integer vocabulary with negative values
     input_dict = {
-        "key": "temperature",
-        "vocabulary_list": list([-10, 0, 10, 20, 30]),
-        "dtype": np.dtype(np.int32),
-        "default_value": -2,
-        "num_oov_buckets": 0
+        'key': 'score',
+        'vocabulary_list': [100, 200, 300, 400],
+        'dtype': np.dtype(np.int64),
+        'default_value': -1,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-   # Input 9: String vocabulary with uppercase and lowercase
     input_dict = {
-        "key": "letter",
-        "vocabulary_list": list(["a", "B", "c", "D"]),
-        "dtype": np.dtype('U1'),
-        "default_value": -1,
-        "num_oov_buckets": 0
+        'key': 'day',
+        'vocabulary_list': ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+        'dtype': np.dtype(np.str_),
+        'default_value': -1,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-    # Input 10: Integer, larger oov buckets
     input_dict = {
-        "key": "id",
-        "vocabulary_list": list([100, 200, 300]),
-        "dtype": np.dtype(np.int64),
-        "default_value": -1,
-        "num_oov_buckets": 5
+        'key': 'count',
+        'vocabulary_list': [1, 5, 10, 15, 20, 25],
+        'dtype': np.dtype(np.int64),
+        'default_value': 0,
+        'num_oov_buckets': 0
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

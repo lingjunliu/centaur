@@ -11,67 +11,67 @@ import copy
 def tf_linalg_tridiagonal_solve_inputs():
     list_of_inputs = []
 
-    # Input 1: compact format, basic case
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.float32)
-    rhs = np.array([[10, 11, 12]], dtype=np.float32)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'compact', "transpose_rhs": False, "conjugate_rhs": False, "name": None, "partial_pivoting": True, "perturb_singular": False}
+    # Input 1
+    diagonals = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]], dtype=np.float32)
+    rhs = np.array([[10.0, 11.0, 12.0]], dtype=np.float32)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'compact', 'transpose_rhs': False, 'conjugate_rhs': False, 'name': 'test1', 'partial_pivoting': True, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: compact format, multiple rhs
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.float32)
-    rhs = np.array([[10, 13], [11, 14], [12, 15]], dtype=np.float32)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'compact', "transpose_rhs": False, "conjugate_rhs": False, "name": None, "partial_pivoting": True, "perturb_singular": False}
+    # Input 2
+    diagonals = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]], dtype=np.float64)
+    rhs = np.array([[10.0, 11.0, 12.0]], dtype=np.float64)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'compact', 'transpose_rhs': False, 'conjugate_rhs': False, 'name': 'test2', 'partial_pivoting': False, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: sequence format
-    superdiag = np.array([[1, 2]], dtype=np.float32)
-    diag = np.array([[4, 5, 6]], dtype=np.float32)
-    subdiag = np.array([[7, 8]], dtype=np.float32)
-    diagonals = (superdiag, diag, subdiag)
-    rhs = np.array([[10, 11, 12]], dtype=np.float32)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'sequence', "transpose_rhs": False, "conjugate_rhs": False, "name": None, "partial_pivoting": True, "perturb_singular": False}
+    # Input 3
+    diagonals = np.array([[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]], dtype=np.complex64)
+    rhs = np.array([[7.0+1j, 8.0+2j]], dtype=np.complex64)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'compact', 'transpose_rhs': True, 'conjugate_rhs': True, 'name': 'test3', 'partial_pivoting': True, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: matrix format
-    diagonals = np.array([[[1, 2, 0], [7, 4, 5], [0, 8, 6]]], dtype=np.float32)
-    rhs = np.array([[10, 11, 12]], dtype=np.float32)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'matrix', "transpose_rhs": False, "conjugate_rhs": False, "name": None, "partial_pivoting": True, "perturb_singular": False}
+    # Input 4
+    diagonals = np.array([[[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]], dtype=np.complex128)
+    rhs = np.array([[7.0+1j, 8.0+2j]], dtype=np.complex128)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'compact', 'transpose_rhs': True, 'conjugate_rhs': False, 'name': 'test4', 'partial_pivoting': False, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: complex numbers
-    diagonals = np.array([[[1+1j, 2+2j, 3+3j], [4+4j, 5+5j, 6+6j], [7+7j, 8+8j, 9+9j]]], dtype=np.complex64)
-    rhs = np.array([[10+10j, 11+11j, 12+12j]], dtype=np.complex64)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'compact', "transpose_rhs": False, "conjugate_rhs": False, "name": None, "partial_pivoting": True, "perturb_singular": False}
+    # Input 5
+    diagonals = np.array([[[1.0, 0.0, 0.0], [2.0, 3.0, 0.0], [0.0, 4.0, 5.0]]], dtype=np.float32)
+    rhs = np.array([[6.0, 7.0, 8.0]], dtype=np.float32)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'matrix', 'transpose_rhs': False, 'conjugate_rhs': False, 'name': 'test5', 'partial_pivoting': True, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: transpose_rhs=True - Corrected
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.float32)
-    rhs = np.array([[10], [11], [12]], dtype=np.float32)  # Reshape rhs
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'compact', "transpose_rhs": True, "conjugate_rhs": False, "name": None, "partial_pivoting": True, "perturb_singular": False}
+    # Input 6
+    sup = np.array([1.0, 2.0], dtype=np.float32)
+    main = np.array([3.0, 4.0, 5.0], dtype=np.float32)
+    sub = np.array([6.0, 7.0], dtype=np.float32)
+    rhs = np.array([[8.0, 9.0, 10.0]], dtype=np.float32)
+    diagonals = (sup, main, sub)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'sequence', 'transpose_rhs': False, 'conjugate_rhs': False, 'name': 'test6', 'partial_pivoting': True, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: conjugate_rhs=True, complex
-    diagonals = np.array([[[1+1j, 2+2j, 3+3j], [4+4j, 5+5j, 6+6j], [7+7j, 8+8j, 9+9j]]], dtype=np.complex64)
-    rhs = np.array([[10+10j, 11+11j, 12+12j]], dtype=np.complex64)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'compact', "transpose_rhs": False, "conjugate_rhs": True, "name": None, "partial_pivoting": True, "perturb_singular": False}
+    # Input 7
+    diagonals = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]], dtype=np.float32)
+    rhs = np.array([[10.0, 11.0, 12.0]], dtype=np.float32)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'compact', 'transpose_rhs': False, 'conjugate_rhs': False, 'name': 'test7', 'partial_pivoting': True, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: partial_pivoting=False
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.float32)
-    rhs = np.array([[10, 11, 12]], dtype=np.float32)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'compact', "transpose_rhs": False, "conjugate_rhs": False, "name": None, "partial_pivoting": False, "perturb_singular": False}
+    # Input 8
+    diagonals = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]], dtype=np.float32)
+    rhs = np.array([[10.0, 11.0, 12.0]], dtype=np.float32)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'compact', 'transpose_rhs': False, 'conjugate_rhs': False, 'name': 'test8', 'partial_pivoting': True, 'perturb_singular': True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: perturb_singular=True
-    diagonals = np.array([[[1e-8, 2, 3], [4, 1e-8, 6], [7, 8, 1e-8]]], dtype=np.float32)
-    rhs = np.array([[10, 11, 12]], dtype=np.float32)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'compact', "transpose_rhs": False, "conjugate_rhs": False, "name": None, "partial_pivoting": True, "perturb_singular": True}
+    # Input 9: Complex64 with perturb_singular
+    diagonals = np.array([[[1.0+1j, 2.0+2j, 3.0+3j], [4.0+4j, 5.0+5j, 6.0+6j], [7.0+7j, 8.0+8j, 9.0+9j]]], dtype=np.complex64)
+    rhs = np.array([[10.0+10j, 11.0+11j, 12.0+12j]], dtype=np.complex64)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'compact', 'transpose_rhs': False, 'conjugate_rhs': False, 'name': 'test9', 'partial_pivoting': True, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
-  
-    # Input 10: batch dimension
-    diagonals = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]], [[9, 8, 7], [6, 5, 4], [3, 2, 1]]], dtype=np.float32)
-    rhs = np.array([[10, 11, 12], [13, 14, 15]], dtype=np.float32)
-    input_dict = {"diagonals": diagonals, "rhs": rhs, "diagonals_format": 'compact', "transpose_rhs": False, "conjugate_rhs": False, "name": None, "partial_pivoting": True, "perturb_singular": False}
+
+    # Input 10: solving multiple RHS
+    diagonals = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]], dtype=np.float32)
+    rhs = np.array([[10.0, 11.0, 12.0], [13.0, 14.0, 15.0]], dtype=np.float32)
+    input_dict = {'diagonals': diagonals, 'rhs': rhs, 'diagonals_format': 'compact', 'transpose_rhs': False, 'conjugate_rhs': False, 'name': 'test10', 'partial_pivoting': True, 'perturb_singular': False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

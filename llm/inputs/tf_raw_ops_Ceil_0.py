@@ -11,54 +11,54 @@ import copy
 def tf_raw_ops_ceil_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, scalar
-    x = np.array(3.14, dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    # Input 1: half, positive
+    x = np.array([1.5, 2.3, 3.7], dtype=np.float16)
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32, vector
-    x = np.array([-2.7, 0.0, 1.5, 4.2], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    # Input 2: half, negative
+    x = np.array([-1.5, -2.3, -3.7], dtype=np.float16)
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, matrix
-    x = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    # Input 3: float32, mixed positive and negative
+    x = np.array([-1.5, 2.3, -3.7, 4.1], dtype=np.float32)
+    input_dict = {"x": tf.constant(x).numpy(), "name": "ceil_float32"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64, scalar
-    x = np.array(-5.6, dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    # Input 4: float64, large values
+    x = np.array([1000.5, 2000.3, 3000.7], dtype=np.float64)
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float64, vector
-    x = np.array([1.0, -2.0, 3.0, -4.0], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    # Input 5: float32, multi-dimensional array
+    x = np.array([[1.5, 2.3], [3.7, 4.1]], dtype=np.float32)
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float16, scalar
-    x = np.array(9.9, dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    # Input 6: half, zero values
+    x = np.array([0.0, -0.0, 1.0], dtype=np.float16)
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float16, vector
-    x = np.array([5.5, 6.6, 7.7, 8.8], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    # Input 7: float64, small values
+    x = np.array([0.1, -0.2, 0.3], dtype=np.float64)
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: float32, a larger array
+    x = np.array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6], dtype=np.float32).reshape((2,3))
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float32, 3D tensor
-    x = np.array([[[1.2, 2.3], [3.4, 4.5]], [[5.6, 6.7], [7.8, 8.9]]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    # Input 9: float32, with integer values
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float64, matrix with some integers and floats
-    x = np.array([[1.0, 2.5], [3, 4.9]], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: float16, matrix
-    x = np.array([[0.1, -0.2], [0.3, -0.4]], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    # Input 10: float64, a 3D array
+    x = np.array([[[1.1, 2.2], [3.3, 4.4]], [[5.5, 6.6], [7.7, 8.8]]], dtype=np.float64)
+    input_dict = {"x": tf.constant(x).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

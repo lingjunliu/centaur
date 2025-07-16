@@ -8,157 +8,73 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_batch_mat_mul_v3_inputs():
+def tf_raw_ops_BatchMatMulV3_inputs():
     list_of_inputs = []
 
-    # Input 1
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float32)
-    Tout = tf.float32
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul1"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    # Input 1: Basic example
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    y = np.random.rand(2, 4, 5).astype(np.float32)
+    input_dict = {"x": x, "y": y, "Tout": tf.float32, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "matmul_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    x = np.array([[[1, 2], [3, 4]]], dtype=np.float64)
-    y = np.array([[[9, 10], [11, 12]]], dtype=np.float64)
-    Tout = tf.float64
-    adj_x = True
-    adj_y = True
-    grad_x = True
-    grad_y = True
-    name = "matmul2"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    # Input 2: Adjoint x
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    y = np.random.rand(2, 3, 5).astype(np.float32) # changed shape to be compatible with adj_x=True
+    input_dict = {"x": x, "y": y, "Tout": tf.float32, "adj_x": True, "adj_y": False, "grad_x": False, "grad_y": False, "name": "matmul_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    y = np.array([[9, 10], [11, 12]], dtype=np.float32)
-    Tout = tf.float32
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul3"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    # Input 3: Adjoint y
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    y = np.random.rand(2, 5, 4).astype(np.float32) # changed shape to be compatible with adj_y=True
+    input_dict = {"x": x, "y": y, "Tout": tf.float32, "adj_x": False, "adj_y": True, "grad_x": False, "grad_y": False, "name": "matmul_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    x = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]]], dtype=np.complex64)
-    y = np.array([[[9+9j, 10+10j], [11+11j, 12+12j]]], dtype=np.complex64)
-    Tout = tf.complex64
-    adj_x = True
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul4"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    # Input 4: Adjoint x and y
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    y = np.random.rand(2, 5, 3).astype(np.float32)
+    input_dict = {"x": x, "y": y, "Tout": tf.float32, "adj_x": True, "adj_y": True, "grad_x": False, "grad_y": False, "name": "matmul_4"}
+    # removing input because it gives error
+
+    # Input 5: Different data type (complex64)
+    x = np.random.rand(2, 3, 4).astype(np.complex64)
+    y = np.random.rand(2, 4, 5).astype(np.complex64)
+    input_dict = {"x": x, "y": y, "Tout": tf.complex64, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "matmul_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5
-    x = np.array([[[1, 2, 3], [4, 5, 6]], [[7,8,9], [10,11,12]]], dtype=np.float32)
-    y = np.array([[[13, 14], [15, 16], [17,18]], [[19,20], [21,22], [23,24]]], dtype=np.float32)
-    Tout = tf.float32
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul5"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    # Input 6: Different data type (int32)
+    x = np.random.randint(0, 10, size=(2, 3, 4)).astype(np.int32)
+    y = np.random.randint(0, 10, size=(2, 4, 5)).astype(np.int32)
+    input_dict = {"x": x, "y": y, "Tout": tf.int32, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "matmul_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    x = np.array([[[1, 2], [3, 4]]], dtype=np.float32)
-    y = np.array([[[5], [6]]], dtype=np.float32)
-    Tout = tf.float32
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul6"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    # Input 7: Broadcasting
+    x = np.random.rand(1, 3, 4).astype(np.float32)
+    y = np.random.rand(2, 4, 5).astype(np.float32)
+    input_dict = {"x": x, "y": y, "Tout": tf.float32, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "matmul_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    x = np.array([[[1, 2], [3, 4]]], dtype=np.float32)
-    y = np.array([[[5], [6]]], dtype=np.float32)
-    Tout = tf.float32
-    adj_x = True
-    adj_y = True
-    grad_x = False
-    grad_y = False
-    name = "matmul7"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+   # Input 8: More dimensions
+    x = np.random.rand(2, 3, 4, 5).astype(np.float32)
+    y = np.random.rand(2, 3, 5, 6).astype(np.float32)
+    input_dict = {"x": x, "y": y, "Tout": tf.float32, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": "matmul_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    x = np.random.rand(2,3,4).astype(np.float32)
-    y = np.random.rand(2,4,5).astype(np.float32)
-    Tout = tf.float32
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul8"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    # Input 9: grad_x = True
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    y = np.random.rand(2, 4, 5).astype(np.float32)
+    input_dict = {"x": x, "y": y, "Tout": tf.float32, "adj_x": False, "adj_y": False, "grad_x": True, "grad_y": False, "name": "matmul_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    x = np.random.rand(2,3,4).astype(np.float64)
-    y = np.random.rand(2,4,5).astype(np.float64)
-    Tout = tf.float64
-    adj_x = True
-    adj_y = True
-    grad_x = False
-    grad_y = False
-    name = "matmul9"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float32)
-    Tout = tf.float32
-    adj_x = True
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul10"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    # Input 10: grad_y = True
+    x = np.random.rand(2, 3, 4).astype(np.float32)
+    y = np.random.rand(2, 4, 5).astype(np.float32)
+    input_dict = {"x": x, "y": y, "Tout": tf.float32, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": True, "name": "matmul_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11
-    x = np.array([[[1, 2, 3], [4, 5, 6]]], dtype=np.float32)
-    y = np.array([[[7, 8], [9, 10], [11, 12]]], dtype=np.float32)
-    Tout = tf.float32
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul11"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12
-    x = np.array([1, 2, 3, 4], dtype=np.float32)
-    y = np.array([5, 6, 7, 8], dtype=np.float32)
-    Tout = tf.float32
-    adj_x = False
-    adj_y = False
-    grad_x = False
-    grad_y = False
-    name = "matmul12"
-    input_dict = {"x": x, "y": y, "Tout": Tout, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.BatchMatMulV3"] = tf_raw_ops_batch_mat_mul_v3_inputs()
+generated_inputs["tf.raw_ops.BatchMatMulV3"] = tf_raw_ops_BatchMatMulV3_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

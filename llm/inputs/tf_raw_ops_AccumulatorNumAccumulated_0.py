@@ -12,63 +12,63 @@ def tf_raw_ops_AccumulatorNumAccumulated_inputs():
     list_of_inputs = []
 
     # Input 1
-    handle = tf.constant("accumulator_handle_1")
-    name = "AccumulatorNumAccumulated_1"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("accumulator_handle_1")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    handle = tf.constant("accumulator_handle_2")
-    name = None
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("accumulator_handle_2")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": "AccumulatorCount"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    handle = tf.constant("accumulator_handle_3")
-    name = "AccumulatorNumAccumulated_3"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("long_accumulator_handle")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    handle = tf.constant("accumulator_handle_4")
-    name = None
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("another_handle_example")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": "DifferentName"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    handle = tf.constant("accumulator_handle_5")
-    name = "AccumulatorNumAccumulated_5"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("handle_5")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    handle = tf.constant("another_handle")
-    name = None
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": "EmptyHandle"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 7
-    handle = tf.constant("handle_7")
-    name = "AccumulatorNumAccumulated_7"
-    input_dict = {"handle": handle, "name": name}
+    # Input 7
+    handle = tf.compat.as_bytes(" ")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    handle = tf.constant("handle_8")
-    name = None
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("handle_with_numbers_123")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": "HandleWithNumbers"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    handle = tf.constant("handle_9")
-    name = "AccumulatorNumAccumulated_9"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("handle_with_symbols_!@#$")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 10
-    handle = tf.constant("handle_10")
-    name = None
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.compat.as_bytes("unicode_handle_你好世界")
+    handle = tf.convert_to_tensor(handle, dtype=tf.string)
+    input_dict = {"handle": handle, "name": "UnicodeHandle"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

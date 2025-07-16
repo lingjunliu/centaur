@@ -11,91 +11,67 @@ import copy
 def tf_group_inputs():
     list_of_inputs = []
 
+    def create_dummy_op(name):
+        v = tf.Variable(1.0, name=name)
+        return v.assign(2.0).op
+
     # Input 1: Empty list of tensors
-    input_dict = {
-        "inputs": [],
-        "name": "empty_group"
-    }
+    input_dict = {"inputs": [], "name": "group_empty"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Single tensor
-    a = tf.constant(np.array([1, 2, 3], dtype=np.int32))
-    input_dict = {
-        "inputs": [a],
-        "name": "single_tensor"
-    }
+    op1 = create_dummy_op("op1")
+    input_dict = {"inputs": [op1], "name": "group_single"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Two 1D tensors of same dtype but different values
-    a = tf.constant(np.array([1, 2], dtype=np.int32))
-    b = tf.constant(np.array([3, 4], dtype=np.int32))
-    input_dict = {
-        "inputs": [a, b],
-        "name": "two_1d_tensors"
-    }
+    # Input 3: Multiple tensors
+    op1 = create_dummy_op("op2")
+    op2 = create_dummy_op("op3")
+    input_dict = {"inputs": [op1, op2], "name": "group_multiple"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Tensors with different data types, same shape
-    a = tf.constant(np.array([1, 2], dtype=np.int32))
-    b = tf.constant(np.array([4.0, 5.0], dtype=np.float32))
-    input_dict = {
-        "inputs": [a, b],
-        "name": "tensors_diff_dtypes"
-    }
+    # Input 4: Tensors with different shapes
+    op1 = create_dummy_op("op4")
+    op2 = create_dummy_op("op5")
+    input_dict = {"inputs": [op1, op2], "name": "group_different_shapes"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Scalar tensor and a 1D tensor
-    a = tf.constant(np.array(10, dtype=np.int32))
-    b = tf.constant(np.array([3.14, 2.71], dtype=np.float32))
-    input_dict = {
-        "inputs": [a, b],
-        "name": "scalar_tensors"
-    }
+    # Input 5: Tensors with different data types
+    op1 = create_dummy_op("op6")
+    op2 = create_dummy_op("op7")
+    input_dict = {"inputs": [op1, op2], "name": "group_different_dtypes"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Tensors with negative values
-    a = tf.constant(np.array([-1, -2], dtype=np.int32))
-    b = tf.constant(np.array([-4.5, -5.6], dtype=np.float32))
-    input_dict = {
-        "inputs": [a, b],
-        "name": "negative_values"
-    }
+    # Input 6: Tensors with different ranks (number of dimensions)
+    op1 = create_dummy_op("op8")
+    op2 = create_dummy_op("op9")
+    op3 = create_dummy_op("op10")
+    input_dict = {"inputs": [op1, op2, op3], "name": "group_different_ranks"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7: Tensors with zero values
-    a = tf.constant(np.array([0, 0], dtype=np.int32))
-    b = tf.constant(np.array([0.0, 0.0], dtype=np.float32))
-    input_dict = {
-        "inputs": [a, b],
-        "name": "zero_values"
-    }
+    op1 = create_dummy_op("op11")
+    op2 = create_dummy_op("op12")
+    input_dict = {"inputs": [op1, op2], "name": "group_zero_values"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8:  Two larger tensors of same shape
-    a = tf.constant(np.random.rand(5, 5).astype(np.float32))
-    b = tf.constant(np.random.rand(5, 5).astype(np.int32))
-    input_dict = {
-        "inputs": [a, b],
-        "name": "larger_tensors"
-    }
+    # Input 8: Tensors with negative values
+    op1 = create_dummy_op("op13")
+    op2 = create_dummy_op("op14")
+    input_dict = {"inputs": [op1, op2], "name": "group_negative_values"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9:  Three 1D tensors
-    a = tf.constant(np.array([1], dtype=np.int32))
-    b = tf.constant(np.array([2], dtype=np.int32))
-    c = tf.constant(np.array([3], dtype=np.int32))
-    input_dict = {
-        "inputs": [a, b, c],
-        "name": "more_tensors"
-    }
+    # Input 9: Larger tensors
+    op1 = create_dummy_op("op15")
+    op2 = create_dummy_op("op16")
+    input_dict = {"inputs": [op1, op2], "name": "group_larger_tensors"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 10: Single 2D Tensor
-    a = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
-    input_dict = {
-        "inputs": [a],
-        "name": "single_2d_tensor"
-    }
+    # Input 10: Tensors with different dtypes and shapes
+    op1 = create_dummy_op("op17")
+    op2 = create_dummy_op("op18")
+    op3 = create_dummy_op("op19")
+    input_dict = {"inputs": [op1, op2, op3], "name": "group_complex"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

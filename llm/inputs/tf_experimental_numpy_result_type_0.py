@@ -11,53 +11,45 @@ import copy
 def tf_experimental_numpy_result_type_inputs():
     list_of_inputs = []
 
-    # Input 1: Single dtype
-    input_dict = {"arrays_and_dtypes": [np.int32]}
+    # Input 1: Basic integers
+    input_dict = {"arrays_and_dtypes": [np.dtype(np.int32), np.dtype(np.int64)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple dtypes
-    input_dict = {"arrays_and_dtypes": [np.int32, np.float64]}
+    # Input 2: Floats
+    input_dict = {"arrays_and_dtypes": [np.dtype(np.float32), np.dtype(np.float64)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Single array
-    a = np.array([1, 2, 3], dtype=np.int16)
+    # Input 3: Mixed integers and floats
+    input_dict = {"arrays_and_dtypes": [np.dtype(np.int16), np.dtype(np.float16)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Booleans and integers
+    input_dict = {"arrays_and_dtypes": [np.dtype(np.bool_), np.dtype(np.int8)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Complex numbers
+    input_dict = {"arrays_and_dtypes": [np.dtype(np.complex64), np.dtype(np.complex128)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Unsigned integers
+    input_dict = {"arrays_and_dtypes": [np.dtype(np.uint8), np.dtype(np.uint32)]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Only one array
+    a = np.array([1, 2, 3], dtype=np.int32)
     input_dict = {"arrays_and_dtypes": [a]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multiple arrays
-    a = np.array([1, 2, 3], dtype=np.int16)
-    b = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"arrays_and_dtypes": [a, b]}
+    # Input 8: Only one dtype
+    input_dict = {"arrays_and_dtypes": [np.dtype(np.float64)]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Array and dtype
-    a = np.array([1, 2, 3], dtype=np.int16)
-    input_dict = {"arrays_and_dtypes": [a, np.float64]}
+    # Input 9: character
+    input_dict = {"arrays_and_dtypes": [np.dtype('U10')]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: More arrays and dtypes (removed complex and object)
-    a = np.array([1, 2, 3], dtype=np.int8)
-    b = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    input_dict = {"arrays_and_dtypes": [a, b, np.int64]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7:  Unsigned int array
-    a = np.array([1, 2, 3], dtype=np.uint32)
-    input_dict = {"arrays_and_dtypes": [a]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Boolean array
-    a = np.array([True, False, True], dtype=np.bool_)
-    input_dict = {"arrays_and_dtypes": [a]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Multi-dimensional array
-    a = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    input_dict = {"arrays_and_dtypes": [a]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Mix of different shapes and types, removed object dtype, only use np.dtype
-    input_dict = {"arrays_and_dtypes": [np.float32, np.int32]}
+    # Input 10: Empty list
+    input_dict = {"arrays_and_dtypes": []}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -5,69 +5,57 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_compat_dimension_at_index_inputs():
     list_of_inputs = []
 
     # Input 1
     shape = tf.TensorShape([1, 2, 3])
-    index = np.int32(0)
+    index = 0
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     shape = tf.TensorShape([None, 2, 3])
-    index = np.int32(0)
+    index = 1
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     shape = tf.TensorShape([1, None, 3])
-    index = np.int32(1)
+    index = 0
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     shape = tf.TensorShape([1, 2, None])
-    index = np.int32(2)
+    index = 1
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    shape = tf.TensorShape([None, None, None])
-    index = np.int32(0)
+    shape = tf.TensorShape([1])
+    index = 0
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    shape = tf.TensorShape([1])
-    index = np.int32(0)
+    shape = tf.TensorShape([None])
+    index = 0
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    shape = tf.TensorShape([None])
-    index = np.int32(0)
+    shape = tf.TensorShape([1, 2])
+    index = 1
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    shape = tf.TensorShape([1, 2, 3, 4, 5])
-    index = np.int32(4)
-    input_dict = {"shape": shape, "index": index}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    shape = tf.TensorShape([1, 2])
-    index = np.int32(1)
-    input_dict = {"shape": shape, "index": index}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    shape = tf.TensorShape([None, 2])
-    index = np.int32(1)
+    shape = tf.TensorShape([1, None, 3])
+    index = 1
     input_dict = {"shape": shape, "index": index}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

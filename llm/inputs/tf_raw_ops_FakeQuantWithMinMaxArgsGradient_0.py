@@ -12,13 +12,12 @@ def tf_raw_ops_FakeQuantWithMinMaxArgsGradient_inputs():
     list_of_inputs = []
 
     # Input 1
-    gradients = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    inputs = np.array([0.5, 1.5, 2.5, 3.5], dtype=np.float32)
+    gradients = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    inputs = np.array([0.5, 1.5, 2.5], dtype=np.float32)
     min_val = -1.0
-    max_val = 4.0
+    max_val = 3.0
     num_bits = 8
     narrow_range = False
-    name = "test_op_1"
 
     input_dict = {
         "gradients": gradients,
@@ -27,18 +26,17 @@ def tf_raw_ops_FakeQuantWithMinMaxArgsGradient_inputs():
         "max": max_val,
         "num_bits": num_bits,
         "narrow_range": narrow_range,
-        "name": name
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 2
-    gradients = np.array([-1.0, -2.0, -3.0, -4.0], dtype=np.float32)
-    inputs = np.array([-0.5, -1.5, -2.5, -3.5], dtype=np.float32)
-    min_val = -4.0
+    gradients = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    inputs = np.array([-0.5, -1.5, -2.5], dtype=np.float32)
+    min_val = -3.0
     max_val = 1.0
     num_bits = 8
-    narrow_range = False
-    name = "test_op_2"
+    narrow_range = True
 
     input_dict = {
         "gradients": gradients,
@@ -47,18 +45,17 @@ def tf_raw_ops_FakeQuantWithMinMaxArgsGradient_inputs():
         "max": max_val,
         "num_bits": num_bits,
         "narrow_range": narrow_range,
-        "name": name
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 3
     gradients = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     inputs = np.array([[0.5, 1.5], [2.5, 3.5]], dtype=np.float32)
-    min_val = -1.0
+    min_val = 0.0
     max_val = 4.0
-    num_bits = 8
+    num_bits = 4
     narrow_range = False
-    name = "test_op_3"
 
     input_dict = {
         "gradients": gradients,
@@ -67,9 +64,9 @@ def tf_raw_ops_FakeQuantWithMinMaxArgsGradient_inputs():
         "max": max_val,
         "num_bits": num_bits,
         "narrow_range": narrow_range,
-        "name": name
+        "name": None
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

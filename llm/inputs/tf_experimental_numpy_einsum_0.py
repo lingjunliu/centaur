@@ -14,63 +14,63 @@ def tf_experimental_numpy_einsum_inputs():
     # Input 1
     subscripts = "ij,jk->ik"
     operands = [np.random.rand(2, 3).astype(np.float32), np.random.rand(3, 4).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]), tf.constant(operands[1]))}
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     subscripts = "i->i"
     operands = [np.random.rand(5).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]),)}
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    subscripts = "ii"
-    operands = [np.random.rand(3, 3).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]),)}
+    subscripts = "...,...->..."
+    operands = [np.random.rand(2, 3, 4).astype(np.float32), np.random.rand(2, 3, 4).astype(np.float32)]
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    subscripts = "ij,j->i"
-    operands = [np.random.rand(4, 5).astype(np.float32), np.random.rand(5).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]), tf.constant(operands[1]))}
+    subscripts = "i,i"
+    operands = [np.random.rand(5).astype(np.float32), np.random.rand(5).astype(np.float32)]
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    subscripts = "i,j->ij"
-    operands = [np.random.rand(2).astype(np.float32), np.random.rand(3).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]), tf.constant(operands[1]))}
+    subscripts = "ij,i->j"
+    operands = [np.random.rand(3, 4).astype(np.float32), np.random.rand(3).astype(np.float32)]
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    subscripts = "...,...->..."
-    operands = [np.random.rand(2, 3, 4).astype(np.float32), np.random.rand(2, 3, 4).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]), tf.constant(operands[1]))}
+   # Input 6
+    subscripts = "i,j->ij"
+    operands = [np.random.rand(2).astype(np.float32), np.random.rand(3).astype(np.float32)]
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    subscripts = "i,i"
-    operands = [np.random.rand(5).astype(np.float32), np.random.rand(5).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]), tf.constant(operands[1]))}
+    subscripts = "ij,jk,kl->il"
+    operands = [np.random.rand(2, 3).astype(np.float32), np.random.rand(3, 4).astype(np.float32), np.random.rand(4, 5).astype(np.float32)]
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    subscripts = "ij,ik->ijk"
-    operands = [np.random.rand(2, 3).astype(np.float32), np.random.rand(2, 4).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]), tf.constant(operands[1]))}
+    subscripts = "i,i,i->i"
+    operands = [np.random.rand(4).astype(np.float32), np.random.rand(4).astype(np.float32), np.random.rand(4).astype(np.float32)]
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    subscripts = "i,j,k->ijk"
-    operands = [np.random.rand(2).astype(np.float32), np.random.rand(3).astype(np.float32), np.random.rand(4).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]), tf.constant(operands[1]), tf.constant(operands[2]))}
+    subscripts = "->"
+    operands = []
+    input_dict = {"subscripts": subscripts, "operands": operands}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     subscripts = "abc,cd->abd"
-    operands = [np.random.rand(2,3,4).astype(np.float32), np.random.rand(4,5).astype(np.float32)]
-    input_dict = {"subscripts": subscripts, "operands": (tf.constant(operands[0]), tf.constant(operands[1]))}
+    operands = [np.random.rand(2, 3, 4).astype(np.float32), np.random.rand(4, 5).astype(np.float32)]
+    input_dict = {"subscripts": subscripts, "operands": [tf.convert_to_tensor(op) for op in operands]}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs = {}

@@ -11,65 +11,74 @@ import copy
 def tf_raw_ops_draw_bounding_boxes_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid input
+    # Input 1: Basic case
     images = np.random.rand(1, 100, 200, 3).astype(np.float32)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Multiple bounding boxes
-    images = np.random.rand(1, 50, 100, 3).astype(np.float32)
+    images = np.random.rand(1, 100, 200, 3).astype(np.float32)
     boxes = np.array([[[0.1, 0.2, 0.5, 0.9], [0.6, 0.1, 0.8, 0.3]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    name = "multiple_boxes"
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multiple images in a batch
-    images = np.random.rand(2, 64, 64, 3).astype(np.float32)
-    boxes = np.array([[[0.1, 0.2, 0.5, 0.9]], [[0.2, 0.3, 0.6, 0.7]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    # Input 3: Multiple images in batch
+    images = np.random.rand(2, 100, 200, 3).astype(np.float32)
+    boxes = np.array([[[0.1, 0.2, 0.5, 0.9]], [[0.6, 0.1, 0.8, 0.3]]]).astype(np.float32)
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different image dimensions
-    images = np.random.rand(1, 256, 256, 3).astype(np.float32)
-    boxes = np.array([[[0.1, 0.2, 0.5, 0.9]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    # Input 4: Different image size
+    images = np.random.rand(1, 50, 50, 3).astype(np.float32)
+    boxes = np.array([[[0.2, 0.3, 0.7, 0.8]]]).astype(np.float32)
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Box at the edge of the image
-    images = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    # Input 5: Box at the edge
+    images = np.random.rand(1, 100, 200, 3).astype(np.float32)
     boxes = np.array([[[0.0, 0.0, 1.0, 1.0]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Half type
-    images = np.random.rand(1, 32, 32, 3).astype(np.float16)
-    boxes = np.array([[[0.2, 0.2, 0.8, 0.8]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    # Input 6: Small box
+    images = np.random.rand(1, 100, 200, 3).astype(np.float32)
+    boxes = np.array([[[0.4, 0.5, 0.45, 0.55]]]).astype(np.float32)
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Name specified
-    images = np.random.rand(1, 32, 32, 3).astype(np.float32)
-    boxes = np.array([[[0.3, 0.3, 0.7, 0.7]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": "my_bounding_boxes"}
+    # Input 7:  Half precision
+    images = np.random.rand(1, 100, 200, 3).astype(np.float16)
+    boxes = np.array([[[0.1, 0.2, 0.5, 0.9]]]).astype(np.float32)
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Small values
-    images = np.random.rand(1, 16, 16, 3).astype(np.float32)
-    boxes = np.array([[[0.01, 0.02, 0.05, 0.09]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+     # Input 8: Zero boxes
+    images = np.random.rand(1, 100, 200, 3).astype(np.float32)
+    boxes = np.array([]).reshape(1, 0, 4).astype(np.float32)
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: boxes values close to 1
-    images = np.random.rand(1, 16, 16, 3).astype(np.float32)
-    boxes = np.array([[[0.91, 0.92, 0.95, 0.99]]]).astype(np.float32)
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    # Input 9: Box with ymin == ymax
+    images = np.random.rand(1, 100, 200, 3).astype(np.float32)
+    boxes = np.array([[[0.1, 0.2, 0.1, 0.9]]]).astype(np.float32)
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Batch size larger than 1, many boxes
-    images = np.random.rand(3, 32, 32, 3).astype(np.float32)
-    boxes = np.random.rand(3, 5, 4).astype(np.float32)
-    boxes = np.clip(boxes, 0.0, 1.0) # ensure boxes are within [0, 1]
-    input_dict = {"images": images, "boxes": boxes, "name": None}
+    # Input 10: Box with xmin == xmax
+    images = np.random.rand(1, 100, 200, 3).astype(np.float32)
+    boxes = np.array([[[0.1, 0.2, 0.5, 0.2]]]).astype(np.float32)
+    name = None
+    input_dict = {"images": images, "boxes": boxes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

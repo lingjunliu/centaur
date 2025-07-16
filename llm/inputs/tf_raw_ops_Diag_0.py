@@ -11,64 +11,64 @@ import copy
 def tf_raw_ops_diag_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D array
+    # Input 1: Rank 1, int32
     diagonal = np.array([1, 2, 3, 4], dtype=np.int32)
-    name = "diag_1"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal), "name": name}
+    name = "diag_int32"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Float data type
-    diagonal = np.array([1.0, 2.5, 3.7], dtype=np.float32)
-    name = "diag_2"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal), "name": name}
+    # Input 2: Rank 1, float32
+    diagonal = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    name = "diag_float32"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Int64 data type
-    diagonal = np.array([1000000000, 2000000000], dtype=np.int64)
-    name = "diag_3"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal), "name": name}
+    # Input 3: Rank 1, complex64
+    diagonal = np.array([1 + 1j, 2 + 2j, 3 + 3j, 4 + 4j], dtype=np.complex64)
+    name = "diag_complex64"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty array
-    diagonal = np.array([], dtype=np.float32)
-    name = "diag_4"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal), "name": name}
+    # Input 4: Rank 1, int64
+    diagonal = np.array([1, 2, 3, 4], dtype=np.int64)
+    name = "diag_int64"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Complex64
-    diagonal = np.array([1 + 1j, 2 - 2j], dtype=np.complex64)
-    name = "diag_5"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal), "name": name}
+    # Input 5: Rank 1, float64
+    diagonal = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+    name = "diag_float64"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Bfloat16 (needs conversion for numpy)
-    diagonal = np.array([1, 2], dtype=np.float16)
-    name = "diag_6"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal, dtype=tf.float32), "name": name}
+    # Input 6: Rank 1, bfloat16
+    diagonal = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float16).astype(np.float32) #bfloat16 not directly supported in numpy, emulate with float16 conversion
+    name = "diag_bfloat16"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Half (float16)
-    diagonal = np.array([3, 4], dtype=np.float16)
-    name = "diag_7"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal, dtype=tf.float32), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: negative integers
-    diagonal = np.array([-1, -2, -3], dtype=np.int32)
-    name = "diag_8"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal), "name": name}
+    # Input 7: Rank 1, half
+    diagonal = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float16)
+    name = "diag_half"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Rank 0 tensor (scalar)
+    # Input 8: Rank 0, int32 (scalar)
     diagonal = np.array(5, dtype=np.int32)
-    name = "diag_9"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal), "name": name}
+    name = "diag_scalar_int32"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: complex128
-    diagonal = np.array([1 + 1j, 2 - 2j], dtype=np.complex128)
-    name = "diag_10"
-    input_dict = {"diagonal": tf.convert_to_tensor(diagonal), "name": name}
+    # Input 9: Rank 0, float32 (scalar)
+    diagonal = np.array(5.5, dtype=np.float32)
+    name = "diag_scalar_float32"
+    input_dict = {"diagonal": diagonal, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Rank 1, negative values, int32
+    diagonal = np.array([-1, -2, -3, -4], dtype=np.int32)
+    name = "diag_negative_int32"
+    input_dict = {"diagonal": diagonal, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

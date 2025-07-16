@@ -11,55 +11,51 @@ import copy
 def tf_raw_ops_cosh_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, scalar
-    x = np.array(0.0, dtype=np.float32)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: float32, 1D array
+    # Input 1: float32, 1D
     x = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "cosh_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, 2D array
-    x = np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    # Input 2: float64, 2D
+    x = np.array([[-2.0, 0.5], [1.5, 3.0]], dtype=np.float64)
+    input_dict = {"x": x, "name": "cosh_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64, scalar
-    x = np.array(0.0, dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    # Input 3: bfloat16, 3D
+    x = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float16)
+    input_dict = {"x": x, "name": "cosh_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float64, 1D array
-    x = np.array([-1.0, 0.0, 1.0], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
+    # Input 4: half, 1D
+    x = np.array([-0.5, 1.5, -2.5], dtype=np.float16)
+    input_dict = {"x": x, "name": "cosh_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: complex64, scalar
-    x = np.array(1 + 1j, dtype=np.complex64)
-    input_dict = {"x": x, "name": None}
+    # Input 5: complex64, 2D
+    x = np.array([[1+1j, 2-2j], [3+0j, 0-4j]], dtype=np.complex64)
+    input_dict = {"x": x, "name": "cosh_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: complex128, 1D array
-    x = np.array([-1j, 0.0, 1 + 1j], dtype=np.complex128)
-    input_dict = {"x": x, "name": None}
+    # Input 6: complex128, 1D
+    x = np.array([1j, -1j, 2+1j], dtype=np.complex128)
+    input_dict = {"x": x, "name": "cosh_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float16, scalar
-    x = np.array(1.0, dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    # Input 7: float32, scalar
+    x = np.array(5.0, dtype=np.float32)
+    input_dict = {"x": x, "name": "cosh_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float32, 3D array
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
+    # Input 8: float64, zero array
+    x = np.zeros((2, 3), dtype=np.float64)
+    input_dict = {"x": x, "name": "cosh_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float32, scalar, with name
-    x = np.array(2.0, dtype=np.float32)
-    input_dict = {"x": x, "name": "my_cosh"}
+    # Input 9: float32, large values
+    x = np.array([-10.0, 10.0], dtype=np.float32)
+    input_dict = {"x": x, "name": "cosh_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

@@ -5,8 +5,8 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
 def tf_random_uniform_initializer_inputs():
     list_of_inputs = []
@@ -15,71 +15,92 @@ def tf_random_uniform_initializer_inputs():
     minval = 0.0
     maxval = 1.0
     seed = 123
-    input_dict = {"minval": np.float32(minval), "maxval": np.float32(maxval), "seed": seed}
-    list_of_inputs.append(input_dict)
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     minval = -1.0
     maxval = 0.0
     seed = 456
-    input_dict = {"minval": np.float32(minval), "maxval": np.float32(maxval), "seed": seed}
-    list_of_inputs.append(input_dict)
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     minval = -0.5
     maxval = 0.5
     seed = 789
-    input_dict = {"minval": np.float32(minval), "maxval": np.float32(maxval), "seed": seed}
-    list_of_inputs.append(input_dict)
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    minval = 1.0
-    maxval = 2.0
+    minval = 0.1
+    maxval = 0.9
     seed = 101
-    input_dict = {"minval": np.float32(minval), "maxval": np.float32(maxval), "seed": seed}
-    list_of_inputs.append(input_dict)
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     minval = -2.0
-    maxval = -1.0
-    seed = 202
-    input_dict = {"minval": np.float32(minval), "maxval": np.float32(maxval), "seed": seed}
-    list_of_inputs.append(input_dict)
-    
+    maxval = 2.0
+    seed = 112
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 6
-    minval = np.float64(0.0)
-    maxval = np.float64(1.0)
-    seed = np.int32(123)
-    input_dict = {"minval": minval, "maxval": maxval, "seed": seed}
-    list_of_inputs.append(input_dict)
+    minval = -0.01
+    maxval = 0.01
+    seed = 131
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    minval = np.float32(-1.0)
-    maxval = np.float32(0.0)
-    seed = np.int64(456)
-    input_dict = {"minval": minval, "maxval": maxval, "seed": seed}
-    list_of_inputs.append(input_dict)
+    minval = 5.0
+    maxval = 10.0
+    seed = 414
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    minval = np.float64(-0.5)
-    maxval = np.float64(0.5)
-    seed = 789
-    input_dict = {"minval": minval, "maxval": maxval, "seed": seed}
-    list_of_inputs.append(input_dict)
-    
+    minval = -10.0
+    maxval = -5.0
+    seed = 515
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 9
-    minval = np.float32(1.0)
-    maxval = np.float32(2.0)
-    seed = 101
-    input_dict = {"minval": minval, "maxval": maxval, "seed": seed}
-    list_of_inputs.append(input_dict)
+    minval = 1.5
+    maxval = 2.5
+    seed = 616
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    minval = np.float64(-2.0)
-    maxval = np.float64(-1.0)
-    seed = 202
-    input_dict = {"minval": minval, "maxval": maxval, "seed": seed}
-    list_of_inputs.append(input_dict)
+    minval = -2.5
+    maxval = 1.5
+    seed = 717
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Larger seed value
+    minval = 0.2
+    maxval = 0.8
+    seed = 2**31 - 1
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 14: Zero seed
+    minval = -0.1
+    maxval = 0.1
+    seed = 0
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 15: small values for min and max
+    minval = 1e-6
+    maxval = 1e-5
+    seed = 818
+    input_dict = {"minval": float(minval), "maxval": float(maxval), "seed": seed}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

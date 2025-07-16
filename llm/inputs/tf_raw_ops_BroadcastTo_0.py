@@ -8,73 +8,73 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_broadcast_to_inputs():
+def tf_raw_ops_BroadcastTo_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = tf.constant([1, 2, 3], dtype=tf.int32).numpy()
-    shape_tensor = tf.constant([2, 3], dtype=tf.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([1, 2, 3], dtype=np.int32)
+    shape_tensor = np.array([2, 3], dtype=np.int32)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = tf.constant([[1, 2]], dtype=tf.float32).numpy()
-    shape_tensor = tf.constant([2, 2], dtype=tf.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([[1], [2]], dtype=np.int32)
+    shape_tensor = np.array([2, 3], dtype=np.int32)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = tf.constant(10, dtype=tf.int64).numpy()
-    shape_tensor = tf.constant([5], dtype=tf.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array(1, dtype=np.int32)
+    shape_tensor = np.array([2, 3, 4], dtype=np.int32)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = tf.constant([[[1]]], dtype=tf.float64).numpy()
-    shape_tensor = tf.constant([2, 1, 1], dtype=tf.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([1, 2], dtype=np.int64)
+    shape_tensor = np.array([2, 2], dtype=np.int64)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = tf.constant([1, 2], dtype=tf.int32).numpy()
-    shape_tensor = tf.constant([2, 2], dtype=tf.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([[1, 2]], dtype=np.int32)
+    shape_tensor = np.array([5, 1, 2], dtype=np.int32)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = tf.constant([[1], [2]], dtype=tf.float32).numpy()
-    shape_tensor = tf.constant([2, 3], dtype=tf.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([[[1]]], dtype=np.int32)
+    shape_tensor = np.array([2, 3, 1], dtype=np.int32)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = tf.constant([1], dtype=tf.int64).numpy()
-    shape_tensor = tf.constant([1, 5], dtype=tf.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([1], dtype=np.int32)
+    shape_tensor = np.array([5, 5, 5, 5], dtype=np.int32)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = tf.constant([1,2,3,4], dtype=tf.int32).numpy()
-    shape_tensor = tf.constant([2,2,4], dtype=tf.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([[1, 2, 3]], dtype=np.int64)
+    shape_tensor = np.array([1, 1, 3], dtype=np.int64)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = tf.constant(np.array([1,2,3]), dtype=tf.float32).numpy()
-    shape_tensor = tf.constant(np.array([3,3]), dtype=np.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([1, 2], dtype=np.int32)
+    shape_tensor = np.array([2, 2], dtype=np.int32)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = tf.constant(np.array([[1],[2]]), dtype=tf.int32).numpy()
-    shape_tensor = tf.constant(np.array([2,3]), dtype=np.int32).numpy()
-    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": None}
+    input_tensor = np.array([[[1], [2]]], dtype=np.int32)
+    shape_tensor = np.array([1, 2, 3], dtype=np.int32)
+    input_dict = {"input": input_tensor, "shape": shape_tensor, "name": "broadcast_example_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.BroadcastTo"] = tf_raw_ops_broadcast_to_inputs()
+generated_inputs["tf.raw_ops.BroadcastTo"] = tf_raw_ops_BroadcastTo_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

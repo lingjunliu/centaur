@@ -26,69 +26,90 @@ def tf_nest_pack_sequence_as_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Dictionary structure
-    structure = {"a": 1, "b": 2, "c": 3}
-    flat_sequence = [4, 5, 6]
+    structure = {"a": 1, "b": 2}
+    flat_sequence = [3, 4]
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Nested dictionary
-    structure = {"a": {"b": 1, "c": 2}, "d": 3}
-    flat_sequence = [4, 5, 6]
+    # Input 4: Nested dictionary and tuple structure
+    structure = {"a": (1, 2), "b": {"c": 3, "d": 4}}
+    flat_sequence = [5, 6, 7, 8]
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: List with a numpy array
-    structure = [np.array([1])]
-    flat_sequence = [np.array([4])]
+    # Input 5: List with same data types to avoid ValueError later
+    structure = [1.0, 2.0, 3.0]
+    flat_sequence = [4.0, 5.0, 6.0]
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: More complex nested structure
-    structure = ({"a": 1, "b": (2,)}, [4, 5])
-    flat_sequence = [6, 7, 8, 9, 10]
+    # Input 6: Deeper nested structure
+    structure = [[1, [2, 3]], 4]
+    flat_sequence = [5, 6, 7, 8]
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 7: Empty structure
+    # Input 7: Empty structure
     structure = []
     flat_sequence = []
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Single element structure
-    structure = [1]
-    flat_sequence = [2]
+    # Input 8: List with numpy arrays - Using single element arrays consistently
+    structure = [np.array([1]), np.array([3])]
+    flat_sequence = [np.array([4]), np.array([5])]
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Structure with numpy array and different data types
-    structure = [np.array([1.0]), 3]
-    flat_sequence = [np.array([4.0]), 6]
+    # Input 9: Dictionary with numpy arrays - Using single element arrays consistently
+    structure = {"a": np.array([1]), "b": np.array([2])}
+    flat_sequence = [np.array([4]), np.array([6])]
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Tuple with a numpy array.
-
-    structure = (1,np.array(2))
-    flat_sequence = [3,np.array(4)]
+    # Input 10: Nested structure with numpy arrays - Using single element arrays consistently and same type, and consistent structure for numbers
+    structure = {"a": [np.array([1])], "b": (np.array([4]), np.array([5]))}
+    flat_sequence = [np.array([6]), np.array([7]), np.array([8])]
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12: Boolean values
-
-    structure = [True, False]
-    flat_sequence = [False, True]
+    # Input 11: More numpy array tests, consistent shape
+    structure = [np.array([1, 2]), np.array([3, 4])]
+    flat_sequence = [np.array([5, 6]), np.array([7, 8])]
     expand_composites = False
     input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: Float numpy arrays
+    structure = [np.array([1.0]), np.array([2.0])]
+    flat_sequence = [np.array([3.0]), np.array([4.0])]
+    expand_composites = False
+    input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13: More complex numpy structure - Ensure consistency
+    structure = {"a": (np.array([1, 2]), np.array([3])), "b": [np.array([4]), np.array([5])]}
+    flat_sequence = [np.array([6, 7]), np.array([8]), np.array([9]), np.array([10])]
+    expand_composites = False
+    input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 14: Structure only with numpy arrays of consistent types and shapes
+    structure = [np.array([1.0, 2.0]), np.array([3.0, 4.0])]
+    flat_sequence = [np.array([5.0, 6.0]), np.array([7.0, 8.0])]
+    expand_composites = False
+    input_dict = {"structure": structure, "flat_sequence": flat_sequence, "expand_composites": expand_composites}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+
     return list_of_inputs
 
 generated_inputs = {}

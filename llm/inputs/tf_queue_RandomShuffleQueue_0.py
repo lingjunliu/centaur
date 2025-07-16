@@ -13,134 +13,134 @@ def tf_queue_randomshufflequeue_inputs():
 
     # Input 1
     input_dict = {
-        "capacity": 10,
-        "min_after_dequeue": 5,
-        "dtypes": [np.int32],
-        "shapes": [(2, 2)],
-        "names": ["data"],
-        "seed": 123,
-        "shared_name": "queue1",
-        "name": "random_queue_1"
+        'capacity': 10,
+        'min_after_dequeue': 5,
+        'dtypes': [np.int32],
+        'shapes': [(2, 2)],
+        'names': [b'my_tensor'],
+        'seed': 123,
+        'shared_name': 'queue1',
+        'name': 'random_queue_1'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     input_dict = {
-        "capacity": 20,
-        "min_after_dequeue": 10,
-        "dtypes": [np.float32, np.int64],
-        "shapes": [(10,), ()],
-        "names": ["feature", "label"],
-        "seed": 456,
-        "shared_name": "queue2",
-        "name": "random_queue_2"
+        'capacity': 20,
+        'min_after_dequeue': 10,
+        'dtypes': [np.float32, np.int64],
+        'shapes': [(), ()],
+        'names': [b'float_tensor', b'int_tensor'],
+        'seed': 456,
+        'shared_name': 'queue2',
+        'name': 'random_queue_2'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     input_dict = {
-        "capacity": 5,
-        "min_after_dequeue": 2,
-        "dtypes": [np.bytes_],
-        "shapes": [(1,)],
-        "names": ["text"],
-        "seed": 789,
-        "shared_name": "queue3",
-        "name": "random_queue_3"
+        'capacity': 5,
+        'min_after_dequeue': 2,
+        'dtypes': [tf.string],
+        'shapes': [(3,)],
+        'names': [b'string_tensor'],
+        'seed': 789,
+        'shared_name': 'queue3',
+        'name': 'random_queue_3'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     input_dict = {
-        "capacity": 15,
-        "min_after_dequeue": 7,
-        "dtypes": [np.bool_],
-        "shapes": [(3, 3, 3)],
-        "names": ["mask"],
-        "seed": 101,
-        "shared_name": "queue4",
-        "name": "random_queue_4"
+        'capacity': 15,
+        'min_after_dequeue': 7,
+        'dtypes': [np.bool_],
+        'shapes': [(1, 5)],
+        'names': [b'bool_tensor'],
+        'seed': 101,
+        'shared_name': 'queue4',
+        'name': 'random_queue_4'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     input_dict = {
-        "capacity": 8,
-        "min_after_dequeue": 3,
-        "dtypes": [np.complex64],
-        "shapes": [(4,)],
-        "names": ["complex_data"],
-        "seed": 202,
-        "shared_name": "queue5",
-        "name": "random_queue_5"
+        'capacity': 8,
+        'min_after_dequeue': 3,
+        'dtypes': [np.complex64],
+        'shapes': [(2, 3, 4)],
+        'names': [b'complex_tensor'],
+        'seed': 202,
+        'shared_name': 'queue5',
+        'name': 'random_queue_5'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     input_dict = {
-        "capacity": 12,
-        "min_after_dequeue": 6,
-        "dtypes": [np.int32, np.float64],
-        "shapes": [(), (5, 5)],
-        "names": ["id", "matrix"],
-        "seed": 303,
-        "shared_name": "queue6",
-        "name": "random_queue_6"
+        'capacity': 12,
+        'min_after_dequeue': 6,
+        'dtypes': [np.int32, np.float64, tf.string],
+        'shapes': [(10,), (), (2, 2)],
+        'names': [b'int_data', b'float_data', b'string_data'],
+        'seed': 303,
+        'shared_name': 'queue6',
+        'name': 'random_queue_6'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
+     # Input 7
     input_dict = {
-        "capacity": 30,
-        "min_after_dequeue": 15,
-        "dtypes": [np.uint8],
-        "shapes": [(64, 64, 3)],
-        "names": ["image"],
-        "seed": 404,
-        "shared_name": "queue7",
-        "name": "random_queue_7"
+        'capacity': 3,
+        'min_after_dequeue': 1,
+        'dtypes': [np.int8],
+        'shapes': [(5, 5)],
+        'names': [b'tiny_int'],
+        'seed': 404,
+        'shared_name': 'queue7',
+        'name': 'random_queue_7'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     input_dict = {
-        "capacity": 7,
-        "min_after_dequeue": 1,
-        "dtypes": [np.int16],
-        "shapes": [()],
-        "names": ["scalar"],
-        "seed": 505,
-        "shared_name": "queue8",
-        "name": "random_queue_8"
+        'capacity': 7,
+        'min_after_dequeue': 3,
+        'dtypes': [np.uint16],
+        'shapes': [(7,)],
+        'names': [b'unsigned_short'],
+        'seed': 505,
+        'shared_name': 'queue8',
+        'name': 'random_queue_8'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     input_dict = {
-        "capacity": 25,
-        "min_after_dequeue": 12,
-        "dtypes": [np.float16],
-        "shapes": [(2, 3, 4, 5)],
-        "names": ["tensor_4d"],
-        "seed": 606,
-        "shared_name": "queue9",
-        "name": "random_queue_9"
+        'capacity': 25,
+        'min_after_dequeue': 12,
+        'dtypes': [np.int64, np.float32],
+        'shapes': [(), (1, 1)],
+        'names': [b'long_int', b'single_precision'],
+        'seed': 606,
+        'shared_name': 'queue9',
+        'name': 'random_queue_9'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     input_dict = {
-        "capacity": 40,
-        "min_after_dequeue": 20,
-        "dtypes": [np.int8, np.float32],
-        "shapes": [(1, 1), (100,)],
-        "names": ["tiny_matrix", "vector"],
-        "seed": 707,
-        "shared_name": "queue10",
-        "name": "random_queue_10"
+        'capacity': 4,
+        'min_after_dequeue': 1,
+        'dtypes': [np.float16],
+        'shapes': [(4,4)],
+        'names': [b'half_precision'],
+        'seed': 707,
+        'shared_name': 'queue10',
+        'name': 'random_queue_10'
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs = {}

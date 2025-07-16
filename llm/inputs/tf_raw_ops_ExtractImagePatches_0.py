@@ -11,48 +11,8 @@ import copy
 def tf_raw_ops_extract_image_patches_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid input
-    images = np.random.rand(1, 10, 10, 3).astype(np.float32)
-    ksizes = [1, 3, 3, 1]
-    strides = [1, 2, 2, 1]
-    rates = [1, 1, 1, 1]
-    padding = "VALID"
-    name = None
-    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Different batch size and depth
-    images = np.random.rand(2, 20, 20, 5).astype(np.float32)
-    ksizes = [1, 5, 5, 1]
-    strides = [1, 3, 3, 1]
-    rates = [1, 1, 1, 1]
-    padding = "SAME"
-    name = "extract_patches_2"
-    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Different strides and rates
-    images = np.random.rand(1, 15, 15, 3).astype(np.float32)
-    ksizes = [1, 4, 4, 1]
-    strides = [1, 1, 1, 1]
-    rates = [1, 2, 2, 1]
-    padding = "VALID"
-    name = None
-    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Different padding
-    images = np.random.rand(1, 12, 12, 3).astype(np.float32)
-    ksizes = [1, 3, 3, 1]
-    strides = [1, 2, 2, 1]
-    rates = [1, 1, 1, 1]
-    padding = "SAME"
-    name = None
-    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Different ksize
-    images = np.random.rand(1, 8, 8, 3).astype(np.float32)
+    # Input 1
+    images = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.float32)
     ksizes = [1, 2, 2, 1]
     strides = [1, 1, 1, 1]
     rates = [1, 1, 1, 1]
@@ -61,50 +21,40 @@ def tf_raw_ops_extract_image_patches_inputs():
     input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Using int32
-    images = np.random.randint(0, 255, size=(1, 10, 10, 3)).astype(np.int32)
-    ksizes = [1, 3, 3, 1]
-    strides = [1, 2, 2, 1]
-    rates = [1, 1, 1, 1]
-    padding = "VALID"
-    name = None
-    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Using uint8
-    images = np.random.randint(0, 255, size=(1, 10, 10, 3)).astype(np.uint8)
-    ksizes = [1, 3, 3, 1]
-    strides = [1, 2, 2, 1]
-    rates = [1, 1, 1, 1]
-    padding = "VALID"
-    name = None
-    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Using half
-    images = np.random.rand(1, 10, 10, 3).astype(np.float16)
-    ksizes = [1, 3, 3, 1]
-    strides = [1, 2, 2, 1]
-    rates = [1, 1, 1, 1]
-    padding = "VALID"
-    name = None
-    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Large ksizes
-    images = np.random.rand(1, 32, 32, 3).astype(np.float32)
-    ksizes = [1, 16, 16, 1]
-    strides = [1, 8, 8, 1]
-    rates = [1, 1, 1, 1]
-    padding = "VALID"
-    name = None
-    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: ksizes == images size, stride 1
-    images = np.random.rand(1, 8, 8, 3).astype(np.float32)
-    ksizes = [1, 8, 8, 1]
+    # Input 2
+    images = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.float32)
+    ksizes = [1, 1, 1, 1]
     strides = [1, 1, 1, 1]
+    rates = [1, 1, 1, 1]
+    padding = "SAME"
+    name = "test_op"
+    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    images = np.array([[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]], dtype=np.float32)
+    ksizes = [1, 2, 2, 1]
+    strides = [1, 1, 1, 1]
+    rates = [1, 1, 1, 1]
+    padding = "VALID"
+    name = None
+    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    images = np.array([[[[1], [2], [3]], [[4], [5], [6]], [[7], [8], [9]]]], dtype=np.float32)
+    ksizes = [1, 3, 3, 1]
+    strides = [1, 1, 1, 1]
+    rates = [1, 1, 1, 1]
+    padding = "VALID"
+    name = None
+    input_dict = {"images": images, "ksizes": ksizes, "strides": strides, "rates": rates, "padding": padding, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    images = np.array([[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]], dtype=np.float32)
+    ksizes = [1, 2, 2, 1]
+    strides = [1, 2, 2, 1]
     rates = [1, 1, 1, 1]
     padding = "VALID"
     name = None
@@ -114,8 +64,7 @@ def tf_raw_ops_extract_image_patches_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_extract_image_patches_inputs()
-generated_inputs["tf.raw_ops.ExtractImagePatches"] = inputs
+generated_inputs["tf.raw_ops.ExtractImagePatches"] = tf_raw_ops_extract_image_patches_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

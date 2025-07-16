@@ -7,183 +7,95 @@ generated_inputs = dict()
 import tensorflow as tf
 import numpy as np
 import copy
-import os
 
 def tf_io_decode_jpeg_inputs():
     list_of_inputs = []
 
-    # Create a dummy JPEG file if it doesn't exist
-    if not os.path.exists('image.jpg'):
-        with open('image.jpg', 'wb') as f:
-            f.write(b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c $.\' ", #\'.\x02\t\x0b\x08\x0b\x1d!\x1c!4+;\x1e4\x00\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x03\x01"\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x1c\x00\x00\x00\x08\x00\x00\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xd2\xcf \x00\xff\xd9')
-
-    # Input 1: Basic valid JPEG data
-    try:
-        jpeg_data = tf.io.read_file('image.jpg')  # Replace 'image.jpg' with a valid JPEG file
-    except tf.errors.NotFoundError:
-        print("Error: image.jpg not found. Please provide a valid JPEG file.")
-        return []
+    # Input 1
+    contents = np.array(b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb\x00C\x00\x03\x02\x02\x03\x02\x02\x03\x03\x03\x03\x04\x03\x03\x04\x05\x08\x05\x05\x04\x04\x05\n\x07\x07\x06\x08\x0c\n\x0c\x0c\x0b\n\n\x0b\x0e\r\x0e\x10\x10\x0f\r\x11\x13\x16\x13\x12\x11\x11\x13\x18\x1a\x18\x16\x19\x1b\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c \x1f#\x24\x26\x24\x20\x28\x2d(\x2938\x32\x30\x342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x03\x01"\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01\x7d\x01\x02\x03\x00\x04\x11\x05\x12!1A\x06\x13Qa\x07"q\x142\x81\x91\xa1\x08#B\r\x15R\x82\xb1\xc1\xf0$3br\x16CS\x83\xd1\xe1!1\x92\xa2\xb2\xc2\xf1%&\'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz\xff\xc4\x00\x1f\x01\x00\x03\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x11\x00\x02\x01\x02\x04\x04\x03\x04\x07\x05\x04\x04\x00\x01\x02w\x00\x01\x02\x03\x11\x04\x05!1\x12A\x06\x13Qa"2\x81\x07q\x91\x14B\xf0#3R\x15br\x82$4\xa1\xb1%C\x16S\x83c\xd1\xe1*\'()*56789:DEFGHIJSTUVWXYZdefghijstuvwxyz\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xf6\xff\xd9', dtype=np.string_)
+    channels = 0
+    ratio = 1
+    fancy_upscaling = True
+    try_recover_truncated = False
+    acceptable_fraction = 1.0
+    dct_method = ""
+    name = None
 
     input_dict = {
-        "contents": jpeg_data,
-        "channels": 0,
-        "ratio": 1,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "",
-        "name": None
+        "contents": contents,
+        "channels": channels,
+        "ratio": ratio,
+        "fancy_upscaling": fancy_upscaling,
+        "try_recover_truncated": try_recover_truncated,
+        "acceptable_fraction": acceptable_fraction,
+        "dct_method": dct_method,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Grayscale, channels = 1
+    # Input 2
+    contents = np.array(b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb\x00C\x00\x03\x02\x02\x03\x02\x02\x03\x03\x03\x03\x04\x03\x03\x04\x05\x08\x05\x05\x04\x04\x05\n\x07\x07\x06\x08\x0c\n\x0c\x0c\x0b\n\n\x0b\x0e\r\x0e\x10\x10\x0f\r\x11\x13\x16\x13\x12\x11\x11\x13\x18\x1a\x18\x16\x19\x1b\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c \x1f#\x24\x26\x24\x20\x28\x2d(\x2938\x32\x30\x342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x03\x01"\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01\x7d\x01\x02\x03\x00\x04\x11\x05\x12!1A\x06\x13Qa\x07"q\x142\x81\x91\xa1\x08#B\r\x15R\x82\xb1\xc1\xf0$3br\x16CS\x83\xd1\xe1!1\x92\xa2\xb2\xc2\xf1%&\'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz\xff\xc4\x00\x1f\x01\x00\x03\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x11\x00\x02\x01\x02\x04\x04\x03\x04\x07\x05\x04\x04\x00\x01\x02w\x00\x01\x02\x03\x11\x04\x05!1\x12A\x06\x13Qa"2\x81\x07q\x91\x14B\xf0#3R\x15br\x82$4\xa1\xb1%C\x16S\x83c\xd1\xe1*\'()*56789:DEFGHIJSTUVWXYZdefghijstuvwxyz\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xf6\xff\xd9', dtype=np.string_)
+    channels = 1
+    ratio = 2
+    fancy_upscaling = False
+    try_recover_truncated = True
+    acceptable_fraction = 0.5
+    dct_method = "INTEGER_FAST"
+    name = "decode_jpeg_op"
+
     input_dict = {
-        "contents": jpeg_data,
-        "channels": 1,
-        "ratio": 1,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "",
-        "name": None
+        "contents": contents,
+        "channels": channels,
+        "ratio": ratio,
+        "fancy_upscaling": fancy_upscaling,
+        "try_recover_truncated": try_recover_truncated,
+        "acceptable_fraction": acceptable_fraction,
+        "dct_method": dct_method,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: RGB, channels = 3
+    # Input 3
+    contents = np.array(b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb\x00C\x00\x03\x02\x02\x03\x02\x02\x03\x03\x03\x03\x04\x03\x03\x04\x05\x08\x05\x05\x04\x04\x05\n\x07\x07\x06\x08\x0c\n\x0c\x0c\x0b\n\n\x0b\x0e\r\x0e\x10\x10\x0f\r\x11\x13\x16\x13\x12\x11\x11\x13\x18\x1a\x18\x16\x19\x1b\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c \x1f#\x24\x26\x24\x20\x28\x2d(\x2938\x32\x30\x342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x03\x01"\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01\x7d\x01\x02\x03\x00\x04\x11\x05\x12!1A\x06\x13Qa\x07"q\x142\x81\x91\xa1\x08#B\r\x15R\x82\xb1\xc1\xf0$3br\x16CS\x83\xd1\xe1!1\x92\xa2\xb2\xc2\xf1%&\'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz\xff\xc4\x00\x1f\x01\x00\x03\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x11\x00\x02\x01\x02\x04\x04\x03\x04\x07\x05\x04\x04\x00\x01\x02w\x00\x01\x02\x03\x11\x04\x05!1\x12A\x06\x13Qa"2\x81\x07q\x91\x14B\xf0#3R\x15br\x82$4\xa1\xb1%C\x16S\x83c\xd1\xe1*\'()*56789:DEFGHIJSTUVWXYZdefghijstuvwxyz\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xf6\xff\xd9', dtype=np.string_)
+    channels = 3
+    ratio = 4
+    fancy_upscaling = True
+    try_recover_truncated = False
+    acceptable_fraction = 1.0
+    dct_method = "INTEGER_ACCURATE"
+    name = None
+
     input_dict = {
-        "contents": jpeg_data,
-        "channels": 3,
-        "ratio": 1,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "",
-        "name": None
+        "contents": contents,
+        "channels": channels,
+        "ratio": ratio,
+        "fancy_upscaling": fancy_upscaling,
+        "try_recover_truncated": try_recover_truncated,
+        "acceptable_fraction": acceptable_fraction,
+        "dct_method": dct_method,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Downscaling ratio = 2
-    input_dict = {
-        "contents": jpeg_data,
-        "channels": 0,
-        "ratio": 2,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "",
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Fancy upscaling = False
-    input_dict = {
-        "contents": jpeg_data,
-        "channels": 0,
-        "ratio": 1,
-        "fancy_upscaling": False,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "",
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Try Recover Truncated = True, Acceptable Fraction = 0.5
-    # Create a truncated JPEG file
-    try:
-        with open('image.jpg', 'rb') as f:  # Replace 'image.jpg' with a valid JPEG file
-            truncated_jpeg_data = f.read(100) # Read only first 100 bytes
-    except FileNotFoundError:
-        print("Error: image.jpg not found. Please provide a valid JPEG file.")
-        return []
+    # Input 4
+    contents = np.array(b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xff\xdb\x00C\x00\x03\x02\x02\x03\x02\x02\x03\x03\x03\x03\x04\x03\x03\x04\x05\x08\x05\x05\x04\x04\x05\n\x07\x07\x06\x08\x0c\n\x0c\x0c\x0b\n\n\x0b\x0e\r\x0e\x10\x10\x0f\r\x11\x13\x16\x13\x12\x11\x11\x13\x18\x1a\x18\x16\x19\x1b\x1d\x1a\x1f\x1e\x1d\x1a\x1c\x1c \x1f#\x24\x26\x24\x20\x28\x2d(\x2938\x32\x30\x342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x03\x01"\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01\x7d\x01\x02\x03\x00\x04\x11\x05\x12!1A\x06\x13Qa\x07"q\x142\x81\x91\xa1\x08#B\r\x15R\x82\xb1\xc1\xf0$3br\x16CS\x83\xd1\xe1!1\x92\xa2\xb2\xc2\xf1%&\'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz\xff\xc4\x00\x1f\x01\x00\x03\x01\x01\x01\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x11\x00\x02\x01\x02\x04\x04\x03\x04\x07\x05\x04\x04\x00\x01\x02w\x00\x01\x02\x03\x11\x04\x05!1\x12A\x06\x13Qa"2\x81\x07q\x91\x14B\xf0#3R\x15br\x82$4\xa1\xb1%C\x16S\x83c\xd1\xe1*\'()*56789:DEFGHIJSTUVWXYZdefghijstuvwxyz\xff\xda\x00\x08\x01\x01\x00\x00?\x00\xf6\xff\xd9', dtype=np.string_)
+    channels = 0
+    ratio = 8
+    fancy_upscaling = False
+    try_recover_truncated = True
+    acceptable_fraction = 0.9
+    dct_method = ""
+    name = "my_jpeg"
 
     input_dict = {
-        "contents": tf.convert_to_tensor(truncated_jpeg_data, dtype=tf.string),
-        "channels": 0,
-        "ratio": 1,
-        "fancy_upscaling": True,
-        "try_recover_truncated": True,
-        "acceptable_fraction": 0.5,
-        "dct_method": "",
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: DCT Method = INTEGER_FAST
-    input_dict = {
-        "contents": jpeg_data,
-        "channels": 0,
-        "ratio": 1,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "INTEGER_FAST",
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: DCT Method = INTEGER_ACCURATE
-    input_dict = {
-        "contents": jpeg_data,
-        "channels": 0,
-        "ratio": 1,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "INTEGER_ACCURATE",
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Name specified
-    input_dict = {
-        "contents": jpeg_data,
-        "channels": 0,
-        "ratio": 1,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "",
-        "name": "decode_jpeg_test"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Ratio = 4
-    input_dict = {
-        "contents": jpeg_data,
-        "channels": 0,
-        "ratio": 4,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "",
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 11: Acceptable Fraction = 0.9
-    input_dict = {
-        "contents": tf.convert_to_tensor(truncated_jpeg_data, dtype=tf.string),
-        "channels": 0,
-        "ratio": 1,
-        "fancy_upscaling": True,
-        "try_recover_truncated": True,
-        "acceptable_fraction": 0.9,
-        "dct_method": "",
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: Ratio = 8
-    input_dict = {
-        "contents": jpeg_data,
-        "channels": 0,
-        "ratio": 8,
-        "fancy_upscaling": True,
-        "try_recover_truncated": False,
-        "acceptable_fraction": 1.0,
-        "dct_method": "",
-        "name": None
+        "contents": contents,
+        "channels": channels,
+        "ratio": ratio,
+        "fancy_upscaling": fancy_upscaling,
+        "try_recover_truncated": try_recover_truncated,
+        "acceptable_fraction": acceptable_fraction,
+        "dct_method": dct_method,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

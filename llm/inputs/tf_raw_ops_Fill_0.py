@@ -11,64 +11,64 @@ import copy
 def tf_raw_ops_fill_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with int32 dims and float value
+    # Input 1
     dims = np.array([2, 3], dtype=np.int32)
-    value = np.array(9.0, dtype=np.float32)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int32), "value": tf.convert_to_tensor(value, dtype=tf.float32), "name": None}
+    value = np.array(9, dtype=np.int32)
+    input_dict = {"dims": tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: int64 dims and int value
+    # Input 2
     dims = np.array([5], dtype=np.int64)
-    value = np.array(-3, dtype=np.int32)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int64), "value": tf.convert_to_tensor(value, dtype=tf.int32), "name": "fill_example_2"}
+    value = np.array(-1, dtype=np.int32)
+    input_dict = {"dims":  tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multi-dimensional with bool value
-    dims = np.array([2, 2, 2], dtype=np.int32)
-    value = np.array(True, dtype=np.bool_)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int32), "value": tf.convert_to_tensor(value, dtype=tf.bool), "name": None}
+    # Input 3
+    dims = np.array([1, 4, 2], dtype=np.int32)
+    value = np.array(1, dtype=np.int32)
+    input_dict = {"dims":  tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Larger dimensions
-    dims = np.array([10, 5], dtype=np.int64)
-    value = np.array(1, dtype=np.int64)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int64), "value": tf.convert_to_tensor(value, dtype=tf.int64), "name": "fill_example_4"}
+    # Input 4
+    dims = np.array([3, 2, 1, 2], dtype=np.int64)
+    value = np.array(0, dtype=np.int32)
+    input_dict = {"dims":  tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Single element dimension
-    dims = np.array([1], dtype=np.int32)
-    value = np.array(3.14, dtype=np.float64)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int32), "value": tf.convert_to_tensor(value, dtype=tf.float64), "name": None}
+    # Input 5
+    dims = np.array([0], dtype=np.int32)
+    value = np.array(0, dtype=np.int32)
+    input_dict = {"dims":  tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: int8 value
-    dims = np.array([3, 4], dtype=np.int64)
-    value = np.array(-5, dtype=np.int8)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int64), "value": tf.convert_to_tensor(value, dtype=tf.int8), "name": "fill_example_6"}
+    # Input 6
+    dims = np.array([10], dtype=np.int64)
+    value = np.array(1, dtype=np.int32)
+    input_dict = {"dims":  tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: uint8 value
-    dims = np.array([2, 5], dtype=np.int32)
-    value = np.array(255, dtype=np.uint8)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int32), "value": tf.convert_to_tensor(value, dtype=tf.uint8), "name": None}
+    # Input 7
+    dims = np.array([2, 2, 2, 2, 2], dtype=np.int32)
+    value = np.array(7, dtype=tf.int32)
+    input_dict = {"dims":  tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Empty array dimension
-    dims = np.array([0], dtype=np.int64)
-    value = np.array(10, dtype=np.int32)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int64), "value": tf.convert_to_tensor(value, dtype=tf.int32), "name": "fill_example_8"}
+    # Input 8
+    dims = np.array([1, 1, 1, 1], dtype=np.int64)
+    value = np.array(1, dtype=np.int32)
+    input_dict = {"dims":  tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Larger dimension sizes.
-    dims = np.array([100, 100], dtype=np.int32)
-    value = np.array(0.5, dtype=np.float32)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int32), "value": tf.convert_to_tensor(value, dtype=tf.float32), "name": None}
+     # Input 9
+    dims = np.array([1, 2], dtype=np.int32)
+    value = np.array(1000, dtype=np.int32)
+    input_dict = {"dims":  tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float16 value
-    dims = np.array([4, 2], dtype=np.int64)
-    value = np.array(0.123, dtype=np.float16)
-    input_dict = {"dims": tf.convert_to_tensor(dims, dtype=tf.int64), "value": tf.convert_to_tensor(value, dtype=tf.float16), "name": "fill_example_10"}
+    # Input 10
+    dims = np.array([1], dtype=np.int64)
+    value = np.array(-5, dtype=np.int32)
+    input_dict = {"dims": tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

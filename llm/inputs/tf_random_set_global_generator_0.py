@@ -6,68 +6,71 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import copy
-import numpy as np
 
 def tf_random_set_global_generator_inputs():
     list_of_inputs = []
 
-    # Input 1
-    generator = tf.random.Generator.from_seed(1234)
+    # Input 1: Basic Generator
+    generator = tf.random.Generator.from_seed(123)
     input_dict = {"generator": generator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    generator = tf.random.Generator.from_non_deterministic_state()
-    input_dict = {"generator": generator}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    generator = tf.random.Generator.from_seed(0)
-    input_dict = {"generator": generator}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    generator = tf.random.Generator.from_seed(2**31 - 1)
-    input_dict = {"generator": generator}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    generator = tf.random.Generator.from_seed(-1) # Negative seed is allowed
-    input_dict = {"generator": generator}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    generator = tf.random.Generator.from_seed(1234567890)
-    input_dict = {"generator": generator}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
+    # Input 2: Generator with different seed
     generator = tf.random.Generator.from_seed(42)
     input_dict = {"generator": generator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    generator = tf.random.Generator.from_seed(1000)
+    # Input 3: Generator created from split
+    initial_generator = tf.random.Generator.from_seed(7)
+    splits = initial_generator.split()
+    generator = splits[0]
     input_dict = {"generator": generator}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: Create a generator with a specific algorithm
-    generator = tf.random.Generator.from_seed(123, alg='philox')
+
+    # Input 4: Another generator created from split. Check length.
+    initial_generator = tf.random.Generator.from_seed(15)
+    splits = initial_generator.split()
+    if len(splits) > 1:
+        generator = splits[1]
+    else:
+        generator = tf.random.Generator.from_seed(16)  # Use a default generator if split fails
     input_dict = {"generator": generator}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: Generator with different seed
-    generator = tf.random.Generator.from_seed(5000, alg='threefry')
+
+    # Input 5: Generator after some random number generation
+    generator = tf.random.Generator.from_seed(22)
+    #generator.normal(shape=(2, 2)) #Removed operation, Generator doesn't have shape
     input_dict = {"generator": generator}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: Create a generator with auto selection
-    generator = tf.random.Generator.from_seed(2147483647, alg='auto_select')
+
+    # Input 6: Generator after reset
+    generator = tf.random.Generator.from_seed(30)
+    generator.reset_from_seed(40)
     input_dict = {"generator": generator}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: Larger Seed
-    generator = tf.random.Generator.from_seed(2147483648, alg='philox')
+
+    # Input 7: Generator with large seed
+    generator = tf.random.Generator.from_seed(2**31 - 1)
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Generator using different algorithm
+    generator = tf.random.Generator.from_seed(10, alg='philox')
+    input_dict = {"generator": generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Generator from a saved state
+    generator = tf.random.Generator.from_seed(50)
+    state = generator.state
+    new_generator = tf.random.Generator.from_state(state, alg=generator.algorithm)
+    input_dict = {"generator": new_generator}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Generator with same seed as global generator (before setting)
+    global_generator_before = tf.random.get_global_generator()
+    #seed_before = global_generator_before.seed  # Removed access to non-existent attribute
+    generator = tf.random.Generator.from_seed(60) # Use a different seed instead
+
     input_dict = {"generator": generator}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

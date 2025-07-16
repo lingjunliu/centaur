@@ -11,64 +11,56 @@ import copy
 def tf_raw_ops_DebugGradientRefIdentity_inputs():
     list_of_inputs = []
 
-    def to_numpy(tensor):
-        if isinstance(tensor, tf.Variable):
-            return tensor.numpy()
-        else:
-            return tensor
-
-    # Input 1: Simple float32 array
+    # Input 1: Basic float32 tensor
     input_tensor = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    input_dict = {"input": input_tensor, "name": "float32_array"}
+    input_dict = {"input": input_tensor, "name": "float32_tensor_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Simple int32 array
-    input_tensor = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
-    input_dict = {"input": input_tensor, "name": "int32_array"}
+    # Input 2: Int32 tensor
+    input_tensor = tf.Variable(np.array([-1, 0, 1], dtype=np.int32))
+    input_dict = {"input": input_tensor, "name": "int32_tensor_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D float64 array
-    input_tensor = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
-    input_dict = {"input": input_tensor, "name": "float64_2d_array"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: 3D int64 array
-    input_tensor = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64))
-    input_dict = {"input": input_tensor, "name": "int64_3d_array"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: boolean array
+    # Input 3: Bool tensor
     input_tensor = tf.Variable(np.array([True, False, True], dtype=np.bool_))
-    input_dict = {"input": input_tensor, "name": "bool_array"}
+    input_dict = {"input": input_tensor, "name": "bool_tensor_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Complex64 array
+    # Input 4: 2D float64 tensor
+    input_tensor = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
+    input_dict = {"input": input_tensor, "name": "float64_tensor_2d"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 3D int64 tensor
+    input_tensor = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64))
+    input_dict = {"input": input_tensor, "name": "int64_tensor_3d"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: String tensor
+    input_tensor = tf.Variable(np.array(["hello", "world"], dtype=np.string_))
+    input_dict = {"input": input_tensor, "name": "string_tensor_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Complex64 tensor
     input_tensor = tf.Variable(np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64))
-    input_dict = {"input": input_tensor, "name": "complex64_array"}
+    input_dict = {"input": input_tensor, "name": "complex64_tensor_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Complex128 array
-    input_tensor = tf.Variable(np.array([1+1j, 2+2j, 3+3j], dtype=np.complex128))
-    input_dict = {"input": input_tensor, "name": "complex128_array"}
+    # Input 8: 0-dimensional tensor (scalar)
+    input_tensor = tf.Variable(np.array(10.0, dtype=np.float32))
+    input_dict = {"input": input_tensor, "name": "scalar_float32"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float16 array
-    input_tensor = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float16))
-    input_dict = {"input": input_tensor, "name": "float16_array"}
+    # Input 9: Negative values in int32 tensor
+    input_tensor = tf.Variable(np.array([-5, -2, 0, 3], dtype=np.int32))
+    input_dict = {"input": input_tensor, "name": "negative_int32"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: int8 array with negative values
-    input_tensor = tf.Variable(np.array([-1, 0, 1], dtype=np.int8))
-    input_dict = {"input": input_tensor, "name": "int8_array"}
+    # Input 10: Large values in int64 tensor
+    input_tensor = tf.Variable(np.array([2**30, 2**20, 2**10], dtype=np.int64))
+    input_dict = {"input": input_tensor, "name": "large_int64"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Different name
-    input_tensor = tf.Variable(np.array([5.0, 6.0, 7.0], dtype=np.float32))
-    input_dict = {"input": input_tensor, "name": "another_name"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    for i in range(len(list_of_inputs)):
-        list_of_inputs[i]["input"] = to_numpy(list_of_inputs[i]["input"])
     return list_of_inputs
 
 generated_inputs = {}

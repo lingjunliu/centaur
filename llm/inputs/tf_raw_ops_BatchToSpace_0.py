@@ -8,100 +8,83 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_batch_to_space_inputs():
+def tf_raw_ops_batchtospace_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array([[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]], dtype=np.float32)
-    crops_tensor = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    block_size_val = 2
-    name_val = "batch_to_space_1"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic valid input
+    input1 = np.arange(1 * 2 * 2 * 3).reshape(1 * 2 * 2, 1, 1, 3).astype(np.float32)
+    crops1 = np.array([[0, 0], [0, 0]]).astype(np.int32)
+    block_size1 = 2
+    input_dict1 = {"input": input1, "crops": crops1, "block_size": block_size1, "name": "batch_to_space_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2
-    input_tensor = np.array([[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], dtype=np.int32)
-    crops_tensor = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    block_size_val = 2
-    name_val = "batch_to_space_2"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Cropping
+    input2 = np.arange(4 * 2 * 2 * 1).reshape(4 * 2 * 2, 1, 1, 1).astype(np.float32)
+    crops2 = np.array([[1, 1], [1, 1]]).astype(np.int32)
+    block_size2 = 2
+    input_dict2 = {"input": input2, "crops": crops2, "block_size": block_size2, "name": "batch_to_space_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3
-    input_tensor = np.array([[[[1.0, 2.0]], [[3.0, 4.0]]], [[[5.0, 6.0]], [[7.0, 8.0]]]], dtype=np.float64)
-    crops_tensor = np.array([[0, 0], [0, 0]], dtype=np.int64)
-    block_size_val = 2
-    name_val = "batch_to_space_3"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: Different depth
+    input3 = np.arange(1 * 2 * 2 * 5).reshape(1 * 2 * 2, 1, 1, 5).astype(np.float32)
+    crops3 = np.array([[0, 0], [0, 0]]).astype(np.int32)
+    block_size3 = 2
+    input_dict3 = {"input": input3, "crops": crops3, "block_size": block_size3, "name": "batch_to_space_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4
-    input_tensor = np.array([[[[1], [2], [3]], [[4], [5], [6]], [[7], [8], [9]]],
-                            [[[10], [11], [12]], [[13], [14], [15]], [[16], [17], [18]]],
-                            [[[19], [20], [21]], [[22], [23], [24]], [[25], [26], [27]]],
-                            [[[28], [29], [30]], [[31], [32], [33]], [[34], [35], [36]]]], dtype=np.int32)
-    crops_tensor = np.array([[1, 1], [1, 1]], dtype=np.int32)
-    block_size_val = 2
-    name_val = "batch_to_space_4"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: Larger input
+    input4 = np.arange(4 * 3 * 3 * 2).reshape(4 * 3 * 3, 1, 1, 2).astype(np.float32)
+    crops4 = np.array([[0, 0], [0, 0]]).astype(np.int32)
+    block_size4 = 3
+    input_dict4 = {"input": input4, "crops": crops4, "block_size": block_size4, "name": "batch_to_space_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5
-    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]],
-                            [[[13, 14, 15], [16, 17, 18]], [[19, 20, 21], [22, 23, 24]]],
-                            [[[25, 26, 27], [28, 29, 30]], [[31, 32, 33], [34, 35, 36]]],
-                            [[[37, 38, 39], [40, 41, 42]], [[43, 44, 45], [46, 47, 48]]]], dtype=np.float32)
-    crops_tensor = np.array([[0, 1], [1, 0]], dtype=np.int32)
-    block_size_val = 2
-    name_val = "batch_to_space_5"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Int64 crops
+    input5 = np.arange(1 * 2 * 2 * 3).reshape(1 * 2 * 2, 1, 1, 3).astype(np.float32)
+    crops5 = np.array([[0, 0], [0, 0]]).astype(np.int64)
+    block_size5 = 2
+    input_dict5 = {"input": input5, "crops": crops5, "block_size": block_size5, "name": "batch_to_space_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 6
-    input_tensor = np.array([[[[1]], [[2]], [[3]]], [[[4]], [[5]], [[6]]], [[[7]], [[8]], [[9]]], [[[10]], [[11]], [[12]]]], dtype=np.int64)
-    crops_tensor = np.array([[0, 0], [0, 0]], dtype=np.int64)
-    block_size_val = 2
-    name_val = "batch_to_space_6"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Non-zero crops
+    input6 = np.arange(4 * 2 * 2 * 1).reshape(4 * 2 * 2, 1, 1, 1).astype(np.float32)
+    crops6 = np.array([[0, 1], [1, 0]]).astype(np.int32)
+    block_size6 = 2
+    input_dict6 = {"input": input6, "crops": crops6, "block_size": block_size6, "name": "batch_to_space_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    # Input 7
-    input_tensor = np.array([[[[1]], [[2]]], [[[3]], [[4]]]], dtype=np.int32)
-    crops_tensor = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    block_size_val = 2
-    name_val = "batch_to_space_7"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: block_size = 3
+    input7 = np.arange(1 * 3 * 3 * 2).reshape(1 * 3 * 3, 1, 1, 2).astype(np.float32)
+    crops7 = np.array([[0, 0], [0, 0]]).astype(np.int32)
+    block_size7 = 3
+    input_dict7 = {"input": input7, "crops": crops7, "block_size": block_size7, "name": "batch_to_space_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
-    # Input 8
-    input_tensor = np.arange(16).reshape((4, 1, 1, 4)).astype(np.int32)
-    crops_tensor = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    block_size_val = 2
-    name_val = "batch_to_space_9"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Different height and width (1,2)
+    input8 = np.arange(1 * 2 * 2 * 3).reshape(1 * 2 * 2, 1, 1, 3).astype(np.float32)
+    crops8 = np.array([[0, 0], [0, 0]]).astype(np.int32)
+    block_size8 = 2
+    input_dict8 = {"input": input8, "crops": crops8, "block_size": block_size8, "name": "batch_to_space_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
 
     # Input 9
-    input_tensor = np.array([[[[1]], [[2]]], [[[3]], [[4]]]], dtype=np.int32)
-    crops_tensor = np.array([[1, 0], [0, 1]], dtype=np.int32)
-    block_size_val = 2
-    name_val = "batch_to_space_10"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input9 = np.arange(4 * 2 * 2 * 1).reshape(4 * 2 * 2, 1, 1, 1).astype(np.float32)
+    crops9 = np.array([[0, 0], [0, 0]]).astype(np.int32)
+    block_size9 = 2
+    input_dict9 = {"input": input9, "crops": crops9, "block_size": block_size9, "name": "batch_to_space_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
 
-    # Input 10
-    input_tensor = np.array([[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]], dtype=np.int32)
-    crops_tensor = np.array([[0, 1], [1, 0]], dtype=np.int32)
-    block_size_val = 2
-    name_val = "batch_to_space_11"
-    input_dict = {"input": input_tensor, "crops": crops_tensor, "block_size": block_size_val, "name": name_val}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: Different shape.
+    input10 = np.arange(16 * 2 * 2 * 1).reshape(16 * 2 * 2, 1, 1, 1).astype(np.float32)
+    crops10 = np.array([[0, 0], [0, 0]]).astype(np.int32)
+    block_size10 = 4
+    input_dict10 = {"input": input10, "crops": crops10, "block_size": block_size10, "name": "batch_to_space_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_batch_to_space_inputs()
-generated_inputs["tf.raw_ops.BatchToSpace"] = inputs
+generated_inputs["tf.raw_ops.BatchToSpace"] = tf_raw_ops_batchtospace_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

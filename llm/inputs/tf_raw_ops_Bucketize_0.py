@@ -11,64 +11,64 @@ import copy
 def tf_raw_ops_bucketize_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic test
-    input_val = np.array([-5, 5, 15, 105]).astype(np.int32)
-    boundaries_val = [0, 10, 100]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 1: Basic case with integers and boundaries
+    input_np = np.array([-5, 5, 15, 25, 35], dtype=np.int32)
+    boundaries = [0.0, 10.0, 20.0, 30.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Float input
-    input_val = np.array([-5.0, 5.0, 15.0, 105.0]).astype(np.float32)
-    boundaries_val = [0.0, 10.0, 100.0]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 2: Float input and boundaries
+    input_np = np.array([-2.5, 2.5, 7.5, 12.5, 17.5], dtype=np.float32)
+    boundaries = [0.0, 5.0, 10.0, 15.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 2D input
-    input_val = np.array([[-5, 5], [15, 105]]).astype(np.int64)
-    boundaries_val = [0, 10, 100]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 3: Negative boundaries
+    input_np = np.array([-15, -5, 5, 15], dtype=np.int64)
+    boundaries = [-10.0, 0.0, 10.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty boundaries
-    input_val = np.array([1, 2, 3]).astype(np.int32)
-    boundaries_val = []
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 4: 2D input
+    input_np = np.array([[-5, 5], [15, 25]], dtype=np.float64)
+    boundaries = [0.0, 10.0, 20.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: One boundary
-    input_val = np.array([1, 2, 3]).astype(np.float64)
-    boundaries_val = [2]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 5: Empty boundaries list
+    input_np = np.array([1, 2, 3], dtype=np.int32)
+    boundaries = []
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: All negative input
-    input_val = np.array([-1, -2, -3]).astype(np.int32)
-    boundaries_val = [-4, -2]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 6: All values greater than largest boundary
+    input_np = np.array([10, 20, 30], dtype=np.int32)
+    boundaries = [1.0, 5.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Identical boundaries
-    input_val = np.array([1, 2, 3]).astype(np.int64)
-    boundaries_val = [2, 2]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 7: All values less than smallest boundary
+    input_np = np.array([-10, -20, -30], dtype=np.float32)
+    boundaries = [-5.0, -1.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 3D input
-    input_val = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).astype(np.float32)
-    boundaries_val = [2, 5, 7]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 8: One boundary value
+    input_np = np.array([-1, 0, 1], dtype=np.int64)
+    boundaries = [0.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Large boundaries
-    input_val = np.array([1000, 2000, 3000]).astype(np.int32)
-    boundaries_val = [500, 1500, 2500]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 9: Repeated boundary values
+    input_np = np.array([4, 5, 6], dtype=np.float64)
+    boundaries = [4.0, 4.0, 5.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Same value in the input
-    input_val = np.array([5, 5, 5]).astype(np.int32)
-    boundaries_val = [0, 5, 10]
-    input_dict = {"input": input_val, "boundaries": boundaries_val, "name": None}
+    # Input 10: 3D input with negative and positive values
+    input_np = np.array([[[ -1, 1], [ 2, -2]], [[-3, 3], [4, -4]]], dtype=np.int32)
+    boundaries = [-2.0, 0.0, 2.0]
+    input_dict = {"input": input_np, "boundaries": boundaries, "name": "bucketize_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

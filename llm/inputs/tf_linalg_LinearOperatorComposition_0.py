@@ -8,12 +8,14 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_linalg_linear_operator_composition_inputs():
+def tf_linalg_LinearOperatorComposition_inputs():
     list_of_inputs = []
 
     # Input 1
-    operator1 = tf.linalg.LinearOperatorFullMatrix(np.array([[1.0, 2.0], [3.0, 4.0]]))
-    operator2 = tf.linalg.LinearOperatorFullMatrix(np.array([[5.0, 6.0], [7.0, 8.0]]))
+    matrix1 = np.array([[1., 2.], [3., 4.]])
+    matrix2 = np.array([[5., 6.], [7., 8.]])
+    operator1 = tf.linalg.LinearOperatorFullMatrix(matrix1)
+    operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
     operators = [operator1, operator2]
     is_non_singular = True
     is_self_adjoint = False
@@ -32,13 +34,14 @@ def tf_linalg_linear_operator_composition_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    operator1 = tf.linalg.LinearOperatorScaledIdentity(3, 2.0)
-    operator2 = tf.linalg.LinearOperatorFullMatrix(np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+    operator1 = tf.linalg.LinearOperatorScaledIdentity(num_rows=3, multiplier=2.0)
+    matrix2 = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
+    operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
     operators = [operator1, operator2]
-    is_non_singular = False
-    is_self_adjoint = True
-    is_positive_definite = True
-    is_square = True
+    is_non_singular = None
+    is_self_adjoint = None
+    is_positive_definite = None
+    is_square = None
     name = "composition_2"
 
     input_dict = {
@@ -52,12 +55,15 @@ def tf_linalg_linear_operator_composition_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    operator1 = tf.linalg.LinearOperatorFullMatrix(np.array([[1.0, 0.0], [0.0, 1.0]]))
-    operators = [operator1]
-    is_non_singular = None
-    is_self_adjoint = None
-    is_positive_definite = None
-    is_square = None
+    matrix1 = np.random.rand(2, 3, 4, 5)
+    matrix2 = np.random.rand(2, 3, 5, 6)
+    operator1 = tf.linalg.LinearOperatorFullMatrix(matrix1)
+    operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
+    operators = [operator1, operator2]
+    is_non_singular = False
+    is_self_adjoint = False
+    is_positive_definite = False
+    is_square = False
     name = "composition_3"
 
     input_dict = {
@@ -70,15 +76,15 @@ def tf_linalg_linear_operator_composition_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    matrix1 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    matrix2 = np.array([[[9.0, 10.0], [11.0, 12.0]], [[13.0, 14.0], [15.0, 16.0]]])
+     # Input 4
+    matrix1 = np.random.rand(4, 4)
+    matrix2 = np.random.rand(4, 4)
     operator1 = tf.linalg.LinearOperatorFullMatrix(matrix1)
     operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
     operators = [operator1, operator2]
     is_non_singular = True
-    is_self_adjoint = False
-    is_positive_definite = False
+    is_self_adjoint = True
+    is_positive_definite = True
     is_square = True
     name = "composition_4"
 
@@ -93,12 +99,11 @@ def tf_linalg_linear_operator_composition_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    operator1 = tf.linalg.LinearOperatorScaledIdentity(2, 2.0)
-    operator2 = tf.linalg.LinearOperatorFullMatrix(np.array([[1.0, 0.0], [0.0, 1.0]]))
-    operators = [operator1, operator2]
-    is_non_singular = True
-    is_self_adjoint = True
-    is_positive_definite = True
+    operator1 = tf.linalg.LinearOperatorScaledIdentity(num_rows=2, multiplier=1.0)
+    operators = [operator1]
+    is_non_singular = None
+    is_self_adjoint = None
+    is_positive_definite = None
     is_square = True
     name = "composition_5"
 
@@ -112,9 +117,11 @@ def tf_linalg_linear_operator_composition_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6
-    operator1 = tf.linalg.LinearOperatorFullMatrix(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
-    operator2 = tf.linalg.LinearOperatorFullMatrix(np.array([[7.0, 8.0], [9.0, 10.0], [11.0, 12.0]]))
+    # Input 6
+    matrix1 = np.random.rand(2, 3, 4, 5)
+    matrix2 = np.random.rand(2, 3, 5, 6)
+    operator1 = tf.linalg.LinearOperatorFullMatrix(matrix1)
+    operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
     operators = [operator1, operator2]
     is_non_singular = False
     is_self_adjoint = False
@@ -132,17 +139,16 @@ def tf_linalg_linear_operator_composition_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Batch operators
-    batch_matrix1 = np.random.rand(2, 3, 4, 5)
-    batch_matrix2 = np.random.rand(2, 3, 5, 6)
-    operator1 = tf.linalg.LinearOperatorFullMatrix(batch_matrix1)
-    operator2 = tf.linalg.LinearOperatorFullMatrix(batch_matrix2)
+    # Input 7
+    operator1 = tf.linalg.LinearOperatorScaledIdentity(num_rows=3, multiplier=-2.0)
+    matrix2 = np.array([[1., 0., 0.], [0., 1., 0.], [0., 0., 1.]])
+    operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
     operators = [operator1, operator2]
     is_non_singular = False
-    is_self_adjoint = False
+    is_self_adjoint = None
     is_positive_definite = False
-    is_square = False
-    name = "batch_composition"
+    is_square = True
+    name = "composition_7"
 
     input_dict = {
         "operators": operators,
@@ -155,13 +161,16 @@ def tf_linalg_linear_operator_composition_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    identity_op = tf.linalg.LinearOperatorIdentity(num_rows=5)
-    operators = [identity_op]
+    matrix1 = np.random.rand(2, 2)
+    matrix2 = np.random.rand(2, 2)
+    operator1 = tf.linalg.LinearOperatorFullMatrix(matrix1)
+    operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
+    operators = [operator1, operator2]
     is_non_singular = True
-    is_self_adjoint = True
-    is_positive_definite = True
+    is_self_adjoint = False
+    is_positive_definite = False
     is_square = True
-    name = "identity_composition"
+    name = "composition_8"
 
     input_dict = {
         "operators": operators,
@@ -173,17 +182,16 @@ def tf_linalg_linear_operator_composition_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: More complex batch operators
-    batch_matrix1 = np.random.rand(2, 1, 4, 5)
-    batch_matrix2 = np.random.rand(1, 3, 5, 6)
-    operator1 = tf.linalg.LinearOperatorFullMatrix(batch_matrix1)
-    operator2 = tf.linalg.LinearOperatorFullMatrix(batch_matrix2)
+    # Input 9
+    operator1 = tf.linalg.LinearOperatorIdentity(num_rows=4)
+    matrix2 = np.eye(4)
+    operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
     operators = [operator1, operator2]
-    is_non_singular = False
-    is_self_adjoint = False
-    is_positive_definite = False
-    is_square = False
-    name = "complex_batch_composition"
+    is_non_singular = True
+    is_self_adjoint = True
+    is_positive_definite = True
+    is_square = True
+    name = "composition_9"
 
     input_dict = {
         "operators": operators,
@@ -196,14 +204,16 @@ def tf_linalg_linear_operator_composition_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    scalar_identity = tf.linalg.LinearOperatorScaledIdentity(4, 1.0)
-    matrix_op = tf.linalg.LinearOperatorFullMatrix(np.eye(4))
-    operators = [scalar_identity, matrix_op]
-    is_non_singular = True
-    is_self_adjoint = True
-    is_positive_definite = True
+    matrix1 = np.random.rand(1, 1)
+    matrix2 = np.random.rand(1, 1)
+    operator1 = tf.linalg.LinearOperatorFullMatrix(matrix1)
+    operator2 = tf.linalg.LinearOperatorFullMatrix(matrix2)
+    operators = [operator1, operator2]
+    is_non_singular = False
+    is_self_adjoint = False
+    is_positive_definite = False
     is_square = True
-    name = "scalar_matrix_composition"
+    name = "composition_10"
 
     input_dict = {
         "operators": operators,
@@ -217,8 +227,7 @@ def tf_linalg_linear_operator_composition_inputs():
 
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.linalg.LinearOperatorComposition"] = tf_linalg_linear_operator_composition_inputs()
+generated_inputs["tf.linalg.LinearOperatorComposition"] = tf_linalg_LinearOperatorComposition_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

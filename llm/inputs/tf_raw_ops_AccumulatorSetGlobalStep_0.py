@@ -12,135 +12,64 @@ def tf_raw_ops_accumulator_set_global_step_inputs():
     list_of_inputs = []
 
     # Input 1
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(10, dtype=tf.int64)
-    name = "set_global_step_op_1"
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"accumulator_handle_1", dtype=np.dtype('string'))
+    new_global_step = np.array(100, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(0, dtype=tf.int64)
-    name = None
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"accumulator_handle_2", dtype=np.dtype('string'))
+    new_global_step = np.array(0, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(-5, dtype=tf.int64)
-    name = "negative_step"
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"accumulator_handle_3", dtype=np.dtype('string'))
+    new_global_step = np.array(-1, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(2**31 - 1, dtype=tf.int64)  # Max int32
-    name = "max_int32_step"
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"accumulator_handle_4", dtype=np.dtype('string'))
+    new_global_step = np.array(2**31 - 1, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 5
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(2**63 - 1, dtype=tf.int64)  # Max int64
-    name = "max_int64_step"
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"accumulator_handle_5", dtype=np.dtype('string'))
+    new_global_step = np.array(-(2**31), dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(np.array(15, dtype=np.int64))
-    name = "numpy_step"
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"accumulator_handle_6", dtype=np.dtype('string'))
+    new_global_step = np.array(1, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(-2**63, dtype=tf.int64)  # Min int64
-    name = "min_int64_step"
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"long_accumulator_handle_7", dtype=np.dtype('string'))
+    new_global_step = np.array(9999999999, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(1, dtype=tf.int64)
-    name = ""
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"", dtype=np.dtype('string'))
+    new_global_step = np.array(12345, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(123456789, dtype=tf.int64)
-    name = "some_long_name"
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"accumulator_handle_9", dtype=np.dtype('string'))
+    new_global_step = np.array(-12345, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    accumulator = tf.compat.v1.accumulator(dtype=tf.float32, shape=[])
-    handle = accumulator.resource_handle
-    new_global_step = tf.constant(-123456789, dtype=tf.int64)
-    name = "some_long_negative_name"
-
-    input_dict = {
-        "handle": handle,
-        "new_global_step": new_global_step,
-        "name": name
-    }
+    handle = np.array(b"12345", dtype=np.dtype('string'))
+    new_global_step = np.array(67890, dtype=np.int64)
+    input_dict = {"handle": handle, "new_global_step": new_global_step, "name": "set_global_step_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
 
     return list_of_inputs
 

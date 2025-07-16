@@ -11,66 +11,105 @@ import copy
 def tf_raw_ops_BatchMatMulV2_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 2D matrices
+    # Input 1
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float32)
+    adj_x = False
+    adj_y = False
+    grad_x = False
+    grad_y = False
+    name = "batch_matmul_1"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
     x = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    y = np.array([[5, 6], [7, 8]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    y = np.array([[9, 10], [11, 12]], dtype=np.float32)
+    adj_x = True
+    adj_y = True
+    grad_x = False
+    grad_y = False
+    name = "batch_matmul_2"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 3D matrices, adj_x=True
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": True, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: 3D matrices, adj_y=True
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": True, "grad_x": False, "grad_y": False, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Different dimensions
+    # Input 3
     x = np.array([[[1, 2, 3], [4, 5, 6]]], dtype=np.float32)
     y = np.array([[[7, 8], [9, 10], [11, 12]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    adj_x = False
+    adj_y = False
+    grad_x = True
+    grad_y = False
+    name = "batch_matmul_3"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Complex numbers
-    x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
-    y = np.array([[5+5j, 6+6j], [7+7j, 8+8j]], dtype=np.complex64)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    # Input 4
+    x = np.array([[[1, 2], [3, 4]]], dtype=np.float32)
+    y = np.array([[[5, 6], [7, 8]]], dtype=np.float32)
+    adj_x = True
+    adj_y = False
+    grad_x = False
+    grad_y = True
+    name = "batch_matmul_4"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different batch sizes
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    y = np.array([[[9, 10], [11, 12]]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+    # Input 5
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.complex64)
+    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.complex64)
+    adj_x = False
+    adj_y = True
+    grad_x = True
+    grad_y = True
+    name = "batch_matmul_5"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: int32
-    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    y = np.array([[5, 6], [7, 8]], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
+   # Input 6
+    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
+    y = np.array([[7, 8], [9, 10], [11, 12]], dtype=np.float64)
+    adj_x = False
+    adj_y = False
+    grad_x = False
+    grad_y = False
+    name = "batch_matmul_6"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: adj_x and adj_y true
+    # Input 7
+    x = np.array([[[1, 2], [3, 4]]], dtype=np.int32)
+    y = np.array([[[5, 6], [7, 8]]], dtype=np.int32)
+    adj_x = True
+    adj_y = True
+    grad_x = True
+    grad_y = False
+    name = "batch_matmul_7"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float16)
+    y = np.array([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.float16)
+    adj_x = True
+    adj_y = False
+    grad_x = True
+    grad_y = False
+    name = "batch_matmul_9"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
     x = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    y = np.array([[5, 6], [7, 8]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": True, "adj_y": True, "grad_x": False, "grad_y": False, "name": None}
+    y = np.array([[[5, 6], [7, 8]]], dtype=np.float32)
+    adj_x = False
+    adj_y = False
+    grad_x = False
+    grad_y = False
+    name = "batch_matmul_10"
+    input_dict = {"x": x, "y": y, "adj_x": adj_x, "adj_y": adj_y, "grad_x": grad_x, "grad_y": grad_y, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: 4D tensors, reduced size and removed batch size
-    x = np.random.rand(3, 2, 2).astype(np.float32)
-    y = np.random.rand(3, 2, 2).astype(np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: bfloat16 simplified
-    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    y = np.array([[5, 6], [7, 8]], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "adj_x": False, "adj_y": False, "grad_x": False, "grad_y": False, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

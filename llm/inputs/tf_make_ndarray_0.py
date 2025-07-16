@@ -12,65 +12,15 @@ def tf_make_ndarray_inputs():
     list_of_inputs = []
 
     # Input 1: Simple 1D tensor
-    a = tf.constant([1, 2, 3, 4, 5], dtype=tf.int32)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    tensor1 = tf.make_tensor_proto(np.array([1, 2, 3, 4, 5]))
+    input_dict1 = {"tensor": tensor1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: 2D tensor with float32
-    a = tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float32)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Tensor with negative values
-    a = tf.constant([-1, -2, -3], dtype=tf.int32)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Tensor with boolean values
-    a = tf.constant([True, False, True], dtype=tf.bool)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Tensor with string values
-    a = tf.constant(["hello", "world"], dtype=tf.string)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Tensor with int64 values
-    a = tf.constant([123456789012345, 987654321098765], dtype=tf.int64)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Tensor with float64 values
-    a = tf.constant([1.123456789, 2.987654321], dtype=tf.float64)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: scalar tensor
-    a = tf.constant(5, dtype=tf.int32)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Simple 2D tensor
+    tensor2 = tf.make_tensor_proto(np.array([[1, 2, 3], [4, 5, 6]]))
+    input_dict2 = {"tensor": tensor2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
     
-    #Input 9: 3D Tensor
-    a = tf.constant([[[1,2],[3,4]],[[5,6],[7,8]]], dtype=tf.int32)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    #Input 10: 1x1 Tensor
-    a = tf.constant([[5]], dtype=tf.int32)
-    proto_tensor = tf.make_tensor_proto(a)
-    input_dict = {"tensor": proto_tensor}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs["tf.make_ndarray"] = tf_make_ndarray_inputs()

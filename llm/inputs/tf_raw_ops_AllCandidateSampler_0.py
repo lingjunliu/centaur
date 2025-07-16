@@ -12,115 +12,194 @@ def tf_raw_ops_all_candidate_sampler_inputs():
     list_of_inputs = []
 
     # Input 1
-    true_classes = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    num_true = 1
+    true_classes = np.array([[0, 1]], dtype=np.int64)
+    num_true = 2
     num_sampled = 5
     unique = True
-    seed = 0
-    seed2 = 0
-    name = "sampler1"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    seed = 1
+    seed2 = 2
+    name = None
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    true_classes = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int64)
-    num_true = 2
+    true_classes = np.array([[0, 1, 2], [0, 1, 2]], dtype=np.int64)
+    num_true = 3
     num_sampled = 3
     unique = False
     seed = 123
     seed2 = 456
-    name = "sampler2"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    name = "sampler"
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    true_classes = np.array([[1], [2], [3]], dtype=np.int64)
+    true_classes = np.array([[0], [1], [2]], dtype=np.int64)
     num_true = 1
-    num_sampled = 2
+    num_sampled = 10
     unique = True
     seed = 789
     seed2 = 101
-    name = "sampler3"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    name = None
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    true_classes = np.array([[1, 2, 3, 4]], dtype=np.int64)
-    num_true = 3
-    num_sampled = 10
+    true_classes = np.array([[0, 1, 2, 3]], dtype=np.int64)
+    num_true = 4
+    num_sampled = 7
     unique = False
-    seed = 0
+    seed = 1000
     seed2 = 1
-    name = "sampler4"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    name = "test_sampler"
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 5
-    true_classes = np.array([[1, 2], [3, 4], [5,6], [7,8]], dtype=np.int64)
-    num_true = 1
-    num_sampled = 4
+    # Input 5
+    true_classes = np.array([[0, 1], [0, 1], [0, 1], [0, 1]], dtype=np.int64)
+    num_true = 2
+    num_sampled = 2
     unique = True
     seed = 10
     seed2 = 20
-    name = "sampler5"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    name = None
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    true_classes = np.array([[1, 2]], dtype=np.int64)
-    num_true = 1
-    num_sampled = 1
-    unique = True
-    seed = 1
-    seed2 = 1
-    name = "sampler6"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    true_classes = np.array([[0, 1, 2, 3, 4]], dtype=np.int64)
+    num_true = 5
+    num_sampled = 8
+    unique = False
+    seed = 55
+    seed2 = 66
+    name = "sampler_6"
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    true_classes = np.array([[1000, 2000], [3000, 4000]], dtype=np.int64)
+    true_classes = np.array([[0]], dtype=np.int64)
     num_true = 1
-    num_sampled = 5
+    num_sampled = 1
     unique = True
-    seed = 0
-    seed2 = 0
-    name = "sampler7"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    seed = 111
+    seed2 = 222
+    name = None
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    true_classes = np.array([[1], [2], [3]], dtype=np.int64)
-    num_true = 1
-    num_sampled = 10
+    true_classes = np.array([[0, 1, 2, 3, 4, 5]], dtype=np.int64)
+    num_true = 6
+    num_sampled = 9
     unique = False
-    seed = 1234
-    seed2 = 5678
-    name = "sampler8"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    seed = 777
+    seed2 = 888
+    name = "test8"
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    true_classes = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
+    true_classes = np.array([[0, 1], [0, 1]], dtype=np.int64)
     num_true = 2
-    num_sampled = 3
+    num_sampled = 4
     unique = True
-    seed = 9
-    seed2 = 8
-    name = "sampler9"
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    seed = 444
+    seed2 = 555
+    name = None
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    true_classes = np.array([[1, 2], [3, 4]], dtype=np.int64)
-    num_true = 1
-    num_sampled = 5
+    true_classes = np.array([[0, 1, 2, 3, 4, 5, 6]], dtype=np.int64)
+    num_true = 7
+    num_sampled = 10
     unique = False
-    seed = 1
-    seed2 = 2
-    name = None
-    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "seed": seed, "seed2": seed2, "name": name}
+    seed = 999
+    seed2 = 12
+    name = "sampler_10"
+    input_dict = {
+        "true_classes": true_classes,
+        "num_true": num_true,
+        "num_sampled": num_sampled,
+        "unique": unique,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}

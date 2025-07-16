@@ -11,31 +11,47 @@ import os
 def tf_experimental_register_filesystem_plugin_inputs():
     list_of_inputs = []
 
-    # Input 1: Just a filename, assuming current directory is not in the system path.
-    plugin_location = "my_plugin.so"
-    input_dict = {"plugin_location": plugin_location}
-    #list_of_inputs.append(copy.deepcopy(input_dict)) # Remove - triggers immediate error
+    # All of the following are removed because they do not represent existing files, which leads to FileNotFoundError. The API does not seem equipped to handle non-existent files gracefully.
+
+    # Input 11: Just a filename
+    #plugin_location = "some_plugin.so"
+    #input_dict = {"plugin_location": plugin_location}
+    #list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: More complex filename
+    #plugin_location = "path/to/some_plugin.so"
+    #input_dict = {"plugin_location": plugin_location}
+    #list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13: Another filename
+    #plugin_location = "./some_plugin.so"
+    #input_dict = {"plugin_location": plugin_location}
+    #list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 2: A very long path (likely invalid)
-    plugin_location = "/tmp/" + "a" * 200 + ".so"
+    # Input 14: Unicode filename
+    #plugin_location = "你好世界.so"
+    #input_dict = {"plugin_location": plugin_location}
+    #list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    #Input 15: filename with special characters
+    #plugin_location = "plugin!@#$%.so"
+    #input_dict = {"plugin_location": plugin_location}
+    #list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Create dummy so file
+    plugin_location = "dummy_plugin.so"
+    with open(plugin_location, "w") as f:
+      f.write("")
     input_dict = {"plugin_location": plugin_location}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Path with multiple slashes
-    plugin_location = "/tmp///my_plugin.so"
+    os.remove(plugin_location)
+    
+    plugin_location = "./dummy_plugin.so"
+    with open("dummy_plugin.so", "w") as f:
+      f.write("")
     input_dict = {"plugin_location": plugin_location}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Path using tilde (~) for home directory. Requires expanding for valid OS path.
-    plugin_location = "~/.my_plugin.so"
-    input_dict = {"plugin_location": plugin_location}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Path with a directory traversal (..). Assumes the previous directory doesn't contain a plugin file
-    plugin_location = "../my_plugin.so"
-    input_dict = {"plugin_location": plugin_location}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    os.remove("dummy_plugin.so")
 
     return list_of_inputs
 
