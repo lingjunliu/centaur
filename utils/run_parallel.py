@@ -26,11 +26,11 @@ def summarize_results(result_dir, result_file):
     for file in files:
         if file.endswith(".csv"):
             with open(os.path.join(result_dir, file), "r") as f:
-                result_str += f.read()
+                result_str += f.read().strip() + "\n"
 
     with open(result_file, "r") as f:
         header = f.readline()
-        result_str = header + result_str
+        result_str = header.strip() + "\n" + result_str
     
     with open(result_file, "w") as f:
         f.write(result_str)

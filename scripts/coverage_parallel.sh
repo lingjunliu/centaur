@@ -69,7 +69,9 @@ fi
 
 job_name=cov
 echo "Running coverage script"
-python -m utils.run_parallel "python -m eval.coverage" "${lib} ${method} ${native}" "$PROJECT_DIR/.tmp/coverage_results" "$PROJECT_DIR/.tmp/coverage_${lib}.csv" ${job_name} ${max_parallel}
+result=$PROJECT_DIR/.tmp/coverage_${lib}.csv
+echo "api,SLATE,line_cov_SLATE" > ${result}
+python -m utils.run_parallel "python -m eval.coverage" "${lib} ${method} ${native}" "$PROJECT_DIR/.tmp/coverage_results" ${result} ${job_name} ${max_parallel}
 
 # Re-install vanilla library
 pip install ${lib_ins} --force-reinstall
