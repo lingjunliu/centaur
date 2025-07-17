@@ -1,7 +1,7 @@
 import torch
 import copy
 import time
-from utils.new_api_utils import get_signature, get_lib_version, get_n_variations, match_signature_to_input
+from utils.new_api_utils import get_signature, get_lib_version, get_n_variations, match_signature_to_input, get_raw_op_mapping
 from utils.misc import get_dir_in_root, save_to_new_pkl, read_pkl, read_file_in_root, bcolors
 from generator.input_generators import get_random_input, get_abstract_input, concretize_input, abstract_print
 from eval.oracle import oracle_crash
@@ -320,16 +320,32 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffi
         return []
     
     lib_api = get_lib_version(api, lib=lib)
+    raw_op_map = get_raw_op_mapping()
     variation = f"{lib_api}_{suffix}" if suffix > 0 else lib_api
     # Return LLM generated inputs if available
     if variation in valid_inputs.generated_inputs:
         print(f"\nAdding LLM generated inputs for {variation}\n")
         list_of_inputs = valid_inputs.generated_inputs[variation]
+    elif lib_api in raw_op_map:
+        print(f"\nUsing inputs from a variation of {lib_api} as {raw_op_map[lib_api]}\n")
+        n_variations_new = get_n_variations(raw_op_map[lib_api], lib=lib)
+        if n_variations_new == 1:
+            if raw_op_map[lib_api] in valid_inputs.generated_inputs:
+                list_of_inputs = valid_inputs.generated_inputs[raw_op_map[lib_api]]
+            else:
+                print(f"{bcolors.WARNING}Warning: {raw_op_map[lib_api]} not found in valid_inputs.generated_inputs{bcolors.ENDC}")
+        else:
+            for i in range(1, n_variations_new + 1):
+                variation_new = f"{raw_op_map[lib_api]}_{i}"
+                if variation_new in valid_inputs.generated_inputs:
+                    list_of_inputs += valid_inputs.generated_inputs[variation_new]
+    else:
+        print(f"{bcolors.WARNING}Warning: {variation} not found in valid_inputs.generated_inputs{bcolors.ENDC}")
 
     input_file = os.path.join(get_dir_in_root(f"valid_inputs_{lib}"), f"{api}.pkl")
     
     # If there already is a saved file, read from that and concretize
-    if os.path.isfile(input_file):
+    if os.path.exists(input_file):
         print(f"Adding saved inputs for {api} from {input_file}")
         abstract_inputs = read_pkl(input_file)
         for abs_inp, saved_seed, suff in abstract_inputs:

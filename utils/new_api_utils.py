@@ -372,3 +372,13 @@ def get_doc_tf(api):
     func = get_func(api, lib="tf")
     signature = f"{api}{str(inspect.signature(func))}"
     return signature + '\n' + func.__doc__ if func else None
+
+def get_raw_op_mapping():
+    cur_dir = os.path.dirname(os.path.abspath(__file__))
+    raw_op_mapping_file = os.path.join(cur_dir, "../map_tf_api_to_raw_ops.csv")
+    raw_op_map = {}
+    with open(raw_op_mapping_file, "r") as f:
+        for line in f.readlines():
+            api, raw_op = line.strip().split(",")
+            raw_op_map[raw_op] = api
+    return raw_op_map
