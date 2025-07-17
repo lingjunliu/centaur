@@ -11,84 +11,95 @@ import copy
 def tf_raw_ops_placeholder_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple int32 scalar
-    input_dict = {
-        "dtype": tf.int32,
-        "shape": [],
-        "name": "int32_scalar"
-    }
+    # Input 1
+    dtype = tf.float32
+    shape = None
+    name = "placeholder_1"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Float32 vector
-    input_dict = {
-        "dtype": tf.float32,
-        "shape": [5],
-        "name": "float32_vector"
-    }
+    # Input 2
+    dtype = tf.int32
+    shape = [2, 3]
+    name = "placeholder_2"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: String matrix
-    input_dict = {
-        "dtype": tf.string,
-        "shape": [2, 3],
-        "name": "string_matrix"
-    }
+    # Input 3
+    dtype = tf.bool
+    shape = [1, 5, 7]
+    name = "placeholder_3"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Bool tensor with unknown shape
-    input_dict = {
-        "dtype": tf.bool,
-        "shape": None,
-        "name": "bool_unknown_shape"
-    }
+    # Input 4
+    dtype = tf.string
+    shape = [4]
+    name = "placeholder_4"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Int64 tensor with 3 dimensions
-    input_dict = {
-        "dtype": tf.int64,
-        "shape": [1, 4, 2],
-        "name": "int64_3d"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: Complex64 vector
-    input_dict = {
-        "dtype": tf.complex64,
-        "shape": [10],
-        "name": "complex64_vector"
-    }
+    # Input 5
+    dtype = tf.complex64
+    shape = [2, 2, 2, 2]
+    name = "placeholder_5"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Float16 matrix
-    input_dict = {
-        "dtype": tf.float16,
-        "shape": [4, 4],
-        "name": "float16_matrix"
-    }
+    # Input 6
+    dtype = tf.int64
+    shape = []  # Scalar shape
+    name = "placeholder_6"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: UInt8 tensor
-    input_dict = {
-        "dtype": tf.uint8,
-        "shape": [2, 2, 2, 2],
-        "name": "uint8_4d"
-    }
+    # Input 7
+    dtype = tf.uint8
+    shape = [100]
+    name = "placeholder_7"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: BFloat16 scalar
-    input_dict = {
-        "dtype": tf.bfloat16,
-        "shape": [],
-        "name": "bfloat16_scalar"
-    }
+    # Input 8
+    dtype = tf.float64
+    shape = [1, 1, 1, 1, 1]
+    name = "placeholder_8"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: Quint8 Tensor
-    input_dict = {
-        "dtype": tf.quint8,
-        "shape": [3, 4],
-        "name": "quint8_matrix"
-    }
+
+    # Input 9
+    dtype = tf.qint8
+    shape = [3, 5]
+    name = "placeholder_9"
+    input_dict = {"dtype": dtype, "shape": shape, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    dtype = tf.resource
+    shape = None
+    name = "placeholder_10"
+    input_dict = {"dtype": dtype, "shape": None, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    dtype = tf.string
+    shape = None
+    name = "placeholder_11"
+    input_dict = {"dtype": dtype, "shape": None, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12
+    dtype = tf.float16
+    shape = []
+    name = "placeholder_12"
+    input_dict = {"dtype": dtype, "shape": [], "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13
+    dtype = tf.variant
+    shape = [4,5]
+    name = "placeholder_13"
+    input_dict = {"dtype": dtype, "shape": [4,5], "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
 

@@ -8,104 +8,153 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_SparseAddGrad_inputs():
+def tf_raw_ops_sparse_add_grad_inputs():
     list_of_inputs = []
 
     # Input 1
     backprop_val_grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     a_indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
     b_indices = np.array([[0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    sum_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    name = "sparse_add_grad_1"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
+    sum_indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_1"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    backprop_val_grad = np.array([-1.0, -2.0], dtype=np.float64)
+    backprop_val_grad = np.array([1, 2, 3], dtype=np.int32)
     a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    sum_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    name = "sparse_add_grad_2"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
+    b_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    sum_indices = np.array([[0, 0], [0, 1], [1, 1]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_2"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    backprop_val_grad = np.array([1, 2, 3, 4], dtype=np.int32)
-    a_indices = np.array([[0, 0, 0], [0, 1, 0]], dtype=np.int64)
-    b_indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
-    sum_indices = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.int64)
-    name = "sparse_add_grad_3"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    backprop_val_grad = np.array([1, 2], dtype=np.int64)
+    backprop_val_grad = np.array([1.0], dtype=np.float64)
     a_indices = np.array([[0, 0]], dtype=np.int64)
     b_indices = np.array([[0, 0]], dtype=np.int64)
     sum_indices = np.array([[0, 0]], dtype=np.int64)
-    name = "sparse_add_grad_4"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_3"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    backprop_val_grad = np.array([1, 2, 3, 4], dtype=np.int64)
+    a_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    b_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    sum_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_4"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    backprop_val_grad = np.array([1.0], dtype=np.float32)
-    a_indices = np.array([[0, 0, 0, 0]], dtype=np.int64)
-    b_indices = np.array([[0, 0, 0, 0]], dtype=np.int64)
-    sum_indices = np.array([[0, 0, 0, 0]], dtype=np.int64)
-    name = "sparse_add_grad_5"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6
-    backprop_val_grad = np.array([1+1j, 2-2j], dtype=np.complex64)
-    a_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    b_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
-    sum_indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
-    name = "sparse_add_grad_6"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
+    backprop_val_grad = np.array([1.0, 2.0], dtype=np.float32)
+    a_indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
+    b_indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
+    sum_indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_5"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    backprop_val_grad = np.array([1, 2], dtype=np.uint8)
-    a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    sum_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    name = "sparse_add_grad_7"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
+   # Input 6
+    backprop_val_grad = np.array([1,2,3], dtype=np.int8)
+    a_indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
+    b_indices = np.array([[0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    sum_indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_6"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+   # Input 7
+    backprop_val_grad = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    a_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    b_indices = np.array([[0, 1], [1, 0], [1, 1], [2,2]], dtype=np.int64)
+    sum_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_7"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 8
-    backprop_val_grad = np.array([1, 2], dtype=np.int16)
+    backprop_val_grad = np.array([1j, 2j, 3j], dtype=np.complex64)
     a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    sum_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    name = "sparse_add_grad_8"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
+    b_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    sum_indices = np.array([[0, 0], [0, 1], [1, 1]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_8"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    backprop_val_grad = np.array([1, 2, 3], dtype=np.int8)
-    a_indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
-    b_indices = np.array([[0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    sum_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    name = "sparse_add_grad_9"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    backprop_val_grad = np.array([1.0, 2.0], dtype=np.float32)
-    a_indices = np.array([[0, 0], [1, 0]], dtype=np.int64)
-    b_indices = np.array([[0, 0], [1, 0]], dtype=np.int64)
-    sum_indices = np.array([[0, 0], [1, 0]], dtype=np.int64)
-    name = "sparse_add_grad_10"
-    input_dict = {"backprop_val_grad": backprop_val_grad, "a_indices": a_indices, "b_indices": b_indices, "sum_indices": sum_indices, "name": name}
+    backprop_val_grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    a_indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 0]], dtype=np.int64)
+    b_indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 0]], dtype=np.int64)
+    sum_indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 0]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_9"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10
+    backprop_val_grad = np.array([1, 2,3], dtype=np.int32)
+    a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    b_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    sum_indices = np.array([[0, 0], [0, 1], [1, 1]], dtype=np.int64)
+    input_dict = {
+        "backprop_val_grad": backprop_val_grad,
+        "a_indices": a_indices,
+        "b_indices": b_indices,
+        "sum_indices": sum_indices,
+        "name": "sparse_add_grad_10"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.SparseAddGrad"] = tf_raw_ops_SparseAddGrad_inputs()
+generated_inputs["tf.raw_ops.SparseAddGrad"] = tf_raw_ops_sparse_add_grad_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

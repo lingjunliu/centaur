@@ -12,211 +12,192 @@ def tf_raw_ops_quantized_avg_pool_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int8)
-    min_input_val = np.array(-1.0, dtype=np.float32)
-    max_input_val = np.array(1.0, dtype=np.float32)
-    ksize_val = [1, 1, 1, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "VALID"
+    input_tensor = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.int8)
+    min_input_tensor = np.array([0.0], dtype=np.float32)
+    max_input_tensor = np.array([5.0], dtype=np.float32)
+    ksize = [1, 2, 2, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
 
     input_dict = {
+        "name": "avg_pool_1",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.uint8)
-    min_input_val = np.array(0.0, dtype=np.float32)
-    max_input_val = np.array(255.0, dtype=np.float32)
-    ksize_val = [1, 2, 2, 1]
-    strides_val = [1, 2, 2, 1]
-    padding_val = "SAME"
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.uint8)
+    min_input_tensor = np.array([0.0], dtype=np.float32)
+    max_input_tensor = np.array([255.0], dtype=np.float32)
+    ksize = [1, 2, 2, 1]
+    strides = [1, 2, 2, 1]
+    padding = "SAME"
 
     input_dict = {
+        "name": "avg_pool_2",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int8)
-    min_input_val = np.array(-10.0, dtype=np.float32)
-    max_input_val = np.array(10.0, dtype=np.float32)
-    ksize_val = [1, 1, 1, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "VALID"
+    input_tensor = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.int32)
+    min_input_tensor = np.array([-10.0], dtype=np.float32)
+    max_input_tensor = np.array([10.0], dtype=np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
 
     input_dict = {
+        "name": "avg_pool_3",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int8)
-    min_input_val = np.array(-5.0, dtype=np.float32)
-    max_input_val = np.array(5.0, dtype=np.float32)
-    ksize_val = [1, 2, 2, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "SAME"
+     # Input 4
+    input_tensor = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]]], dtype=np.int16)
+    min_input_tensor = np.array([-5.0], dtype=np.float32)
+    max_input_tensor = np.array([15.0], dtype=np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
 
     input_dict = {
+        "name": "avg_pool_4",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.uint8)
-    min_input_val = np.array(0.0, dtype=np.float32)
-    max_input_val = np.array(100.0, dtype=np.float32)
-    ksize_val = [1, 1, 1, 1]
-    strides_val = [1, 2, 2, 1]
-    padding_val = "VALID"
+    input_tensor = np.array([[[[1], [2]], [[3], [4]]]], dtype=np.uint16)
+    min_input_tensor = np.array([0.0], dtype=np.float32)
+    max_input_tensor = np.array([65535.0], dtype=np.float32)
+    ksize = [1, 2, 2, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
 
     input_dict = {
+        "name": "avg_pool_5",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6 (multiple channels)
-    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]]]], dtype=np.int8)
-    min_input_val = np.array(-1.0, dtype=np.float32)
-    max_input_val = np.array(1.0, dtype=np.float32)
-    ksize_val = [1, 1, 1, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "VALID"
+    # Input 6
+    input_tensor = np.array([[[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]]], dtype=np.int8)
+    min_input_tensor = np.array([-128.0], dtype=np.float32)
+    max_input_tensor = np.array([127.0], dtype=np.float32)
+    ksize = [1, 2, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
 
     input_dict = {
+        "name": "avg_pool_6",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7 (different ksize and strides)
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.uint8)
-    min_input_val = np.array(0.0, dtype=np.float32)
-    max_input_val = np.array(255.0, dtype=np.float32)
-    ksize_val = [1, 2, 1, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "SAME"
+    # Input 7
+    input_tensor = np.array([[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]], dtype=np.uint8)
+    min_input_tensor = np.array([0.0], dtype=np.float32)
+    max_input_tensor = np.array([200.0], dtype=np.float32)
+    ksize = [2, 2, 2, 1]
+    strides = [1, 2, 2, 1]
+    padding = "VALID"
 
     input_dict = {
+        "name": "avg_pool_7",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8 (negative min/max)
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int8)
-    min_input_val = np.array(-20.0, dtype=np.float32)
-    max_input_val = np.array(-10.0, dtype=np.float32)
-    ksize_val = [1, 1, 1, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "VALID"
+    # Input 8
+    input_tensor = np.array([[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]], dtype=np.int32)
+    min_input_tensor = np.array([-20.0], dtype=np.float32)
+    max_input_tensor = np.array([30.0], dtype=np.float32)
+    ksize = [2, 1, 2, 1]
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
 
     input_dict = {
+        "name": "avg_pool_8",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int8)
-    min_input_val = np.array(10.0, dtype=np.float32)
-    max_input_val = np.array(20.0, dtype=np.float32)
-    ksize_val = [1, 2, 2, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "SAME"
+    input_tensor = np.array([[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]], dtype=np.int16)
+    min_input_tensor = np.array([-10.0], dtype=np.float32)
+    max_input_tensor = np.array([10.0], dtype=np.float32)
+    ksize = [2, 2, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
 
     input_dict = {
+        "name": "avg_pool_9",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 10 (batch size > 1)
-    input_tensor = np.array([[[[1, 2], [3, 4]]], [[[5, 6], [7, 8]]]], dtype=np.int8)
-    min_input_val = np.array(-1.0, dtype=np.float32)
-    max_input_val = np.array(1.0, dtype=np.float32)
-    ksize_val = [1, 1, 1, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "VALID"
+    # Input 10
+    input_tensor = np.array([[[[1], [2]], [[3], [4]]], [[[5], [6]], [[7], [8]]]], dtype=np.uint16)
+    min_input_tensor = np.array([0.0], dtype=np.float32)
+    max_input_tensor = np.array([50000.0], dtype=np.float32)
+    ksize = [2, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
 
     input_dict = {
+        "name": "avg_pool_10",
         "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11 (Larger Kernel)
-    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.uint8)
-    min_input_val = np.array(0.0, dtype=np.float32)
-    max_input_val = np.array(255.0, dtype=np.float32)
-    ksize_val = [1, 2, 2, 1]
-    strides_val = [1, 1, 1, 1]
-    padding_val = "VALID"
-
-    input_dict = {
-        "input": input_tensor,
-        "min_input": min_input_val,
-        "max_input": max_input_val,
-        "ksize": ksize_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "name": None
+        "min_input": min_input_tensor,
+        "max_input": max_input_tensor,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -11,76 +11,66 @@ import copy
 def tf_raw_ops_minimum_inputs():
     list_of_inputs = []
 
-    # Input 1
-    x = np.array([1, 2, 3], dtype=np.float32)
-    y = np.array([4, 1, 5], dtype=np.float32)
-    name = "minimum_1"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 1: Basic float32 tensors
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    x = np.array([-1, -2, -3], dtype=np.int32)
-    y = np.array([0, -1, -5], dtype=np.int32)
-    name = "minimum_2"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 2: Integer tensors
+    x = np.array([1, 2, 3], dtype=np.int32)
+    y = np.array([2, 1, 4], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    x = np.array([[1, 2], [3, 4]], dtype=np.float64)
-    y = np.array([[5, 1], [2, 6]], dtype=np.float64)
-    name = "minimum_3"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 3: Broadcasting example
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    y = np.array([2.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    x = np.array([[-1, -2], [-3, -4]], dtype=np.int64)
-    y = np.array([[0, -1], [-2, -5]], dtype=np.int64)
-    name = "minimum_4"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 4: Negative values
+    x = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
+    y = np.array([2.0, -1.0, 4.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
+    # Input 5: Multi-dimensional arrays
+    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    y = np.array([[2, 1], [4, 3]], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Different dtypes (int64)
+    x = np.array([1, 2, 3], dtype=np.int64)
+    y = np.array([2, 1, 4], dtype=np.int64)
+    input_dict = {"x": x, "y": y, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different dtypes (float64)
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float64)
+    input_dict = {"x": x, "y": y, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 8: uint8
     x = np.array([1, 2, 3], dtype=np.uint8)
-    y = np.array([4, 1, 5], dtype=np.uint8)
-    name = "minimum_5"
-    input_dict = {"x": x, "y": y, "name": name}
+    y = np.array([2, 1, 4], dtype=np.uint8)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    x = np.array([1, 2, 3], dtype=np.int8)
-    y = np.array([4, 1, 5], dtype=np.int8)
-    name = "minimum_6"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 9: float16
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float16)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
-    y = np.array([[7, 8, 9], [1, 2, 3]], dtype=np.float32)
-    name = "minimum_7"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 10: Different shapes that can be broadcasted
+    x = np.array([[1.0, 2.0, 3.0]], dtype=np.float32)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    y = np.array([[[9, 10], [11, 12]], [[1, 2], [3, 4]]], dtype=np.int32)
-    name = "minimum_8"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    x = np.array([-1.5, 2.5, -3.5], dtype=np.float32)
-    y = np.array([4.5, -1.5, 5.5], dtype=np.float32)
-    name = "minimum_9"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    x = np.array([1, 2, 3, 4, 5], dtype=np.uint64)
-    y = np.array([6, 7, 1, 9, 2], dtype=np.uint64)
-    name = "minimum_10"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

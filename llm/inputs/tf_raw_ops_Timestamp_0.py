@@ -7,19 +7,18 @@ generated_inputs = dict()
 import tensorflow as tf
 import copy
 
-def tf_raw_ops_timestamp_inputs():
+def tf_raw_ops_Timestamp_inputs():
     list_of_inputs = []
 
-    # Input 1: No name provided
+    # Input 1
     input_dict = {
         "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.Timestamp"] = tf_raw_ops_timestamp_inputs()
+generated_inputs["tf.raw_ops.Timestamp"] = tf_raw_ops_Timestamp_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -11,81 +11,74 @@ import copy
 def tf_raw_ops_SparseReshape_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic reshape
+    # Input 1
     input_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
-    input_shape = np.array([2, 3], dtype=np.int64)
-    new_shape = np.array([3, 2], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
+    input_shape = np.array([2, 5], dtype=np.int64)
+    new_shape = np.array([1, 10], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_1", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Reshape with -1
+    # Input 2
     input_indices = np.array([[0, 0], [0, 1], [0, 2]], dtype=np.int64)
     input_shape = np.array([1, 3], dtype=np.int64)
-    new_shape = np.array([-1], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
+    new_shape = np.array([3, 1], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_2", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Reshape from 3D to 2D
+    # Input 3
     input_indices = np.array([[0, 0, 0], [0, 1, 1]], dtype=np.int64)
     input_shape = np.array([1, 2, 2], dtype=np.int64)
-    new_shape = np.array([2, 2], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
+    new_shape = np.array([1, 4], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_3", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Reshape from 2D to 3D
-    input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    input_shape = np.array([2, 2], dtype=np.int64)
-    new_shape = np.array([1, 2, 2], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
+    # Input 4
+    input_indices = np.array([[0, 0], [1, 2], [2, 1]], dtype=np.int64)
+    input_shape = np.array([3, 5], dtype=np.int64)
+    new_shape = np.array([5, 3], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_4", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Reshape with larger values in indices
-    input_indices = np.array([[0, 0], [9, 9]], dtype=np.int64)
-    input_shape = np.array([10, 10], dtype=np.int64)
-    new_shape = np.array([100], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Reshape to a single element
+    # Input 5
     input_indices = np.array([[0, 0]], dtype=np.int64)
     input_shape = np.array([1, 1], dtype=np.int64)
     new_shape = np.array([1], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
+    input_dict = {"name": "sparse_reshape_5", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Reshape to multiple dimensions with -1
-    input_indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
-    input_shape = np.array([1, 1, 2], dtype=np.int64)
-    new_shape = np.array([1, -1], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
+    # Input 6
+    input_indices = np.array([[0, 0, 0]], dtype=np.int64)
+    input_shape = np.array([1, 1, 1], dtype=np.int64)
+    new_shape = np.array([1], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_6", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Reshape with a different arrangement
-    input_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
-    input_shape = np.array([2, 2], dtype=np.int64)
-    new_shape = np.array([4], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Reshape with different sizes
-    input_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [2, 0]], dtype=np.int64)
-    input_shape = np.array([3, 2], dtype=np.int64)
-    new_shape = np.array([2, 3], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Reshape and keep the same shape
+    # Input 7
     input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
     input_shape = np.array([2, 2], dtype=np.int64)
-    new_shape = np.array([2, 2], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
+    new_shape = np.array([4], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_7", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Reshape with empty indices
-    input_indices = np.array([], dtype=np.int64).reshape(0, 2)
-    input_shape = np.array([2, 3], dtype=np.int64)
-    new_shape = np.array([3, 2], dtype=np.int64)
-    input_dict = {"input_indices": tf.constant(input_indices, dtype=tf.int64), "input_shape": tf.constant(input_shape, dtype=tf.int64), "new_shape": tf.constant(new_shape, dtype=tf.int64), "name": None}
+    # Input 8
+    input_indices = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]], dtype=np.int64)
+    input_shape = np.array([3, 3, 3], dtype=np.int64)
+    new_shape = np.array([27], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_8", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    input_shape = np.array([2, 2], dtype=np.int64)
+    new_shape = np.array([1, 4], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_9", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_indices = np.array([[0, 0], [1, 0], [0, 1], [1,1]], dtype=np.int64)
+    input_shape = np.array([2, 2], dtype=np.int64)
+    new_shape = np.array([4], dtype=np.int64)
+    input_dict = {"name": "sparse_reshape_10", "input_indices": input_indices, "input_shape": input_shape, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

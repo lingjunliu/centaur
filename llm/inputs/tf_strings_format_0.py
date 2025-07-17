@@ -11,94 +11,121 @@ import copy
 def tf_strings_format_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic single tensor formatting
+    # Input 1: Single tensor, default placeholder and summarize
     template = "Tensor: {}"
-    inputs = [np.array([1, 2, 3, 4, 5], dtype=np.int32)]
-    placeholder = "{}"
-    summarize = 3
-    name = None
-    input_dict = {"template": template, "inputs": [inputs[0]], "placeholder": placeholder, "summarize": summarize, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: Multiple tensors
-    template = "A: {}, B: {}"
-    inputs = [np.array([1, 2], dtype=np.int32), np.array([3, 4], dtype=np.int32)]
+    inputs = [np.array([1, 2, 3, 4, 5])]
     placeholder = "{}"
     summarize = 3
     name = None
     input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different placeholder
-    template = "Value is %s"
-    inputs = [np.array(10, dtype=np.int32)]
-    placeholder = "%s"
-    summarize = 3
-    name = None
-    input_dict = {"template": template, "inputs": [inputs[0]], "placeholder": placeholder, "summarize": summarize, "name": name}
+    # Input 2: Multiple tensors, custom placeholder
+    template = "A: {}, B: {}"
+    inputs = [np.array([10, 20]), np.array([30, 40])]
+    placeholder = "{}"
+    summarize = 2
+    name = "format_example"
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Summarize -1 (show all)
-    template = "Tensor: {}"
-    inputs = [np.array([1, 2, 3, 4, 5], dtype=np.int32)]
+    # Input 3: Single tensor, summarize -1 (all elements)
+    template = "Matrix: {}"
+    inputs = [np.array([[1, 2], [3, 4]])]
     placeholder = "{}"
     summarize = -1
     name = None
-    input_dict = {"template": template, "inputs": [inputs[0]], "placeholder": placeholder, "summarize": summarize, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Multi-dimensional tensor
-    template = "Matrix: {}"
-    inputs = [np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)]
-    placeholder = "{}"
-    summarize = 2
-    name = None
-    input_dict = {"template": template, "inputs": [inputs[0]], "placeholder": placeholder, "summarize": summarize, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: String tensor
-    template = "String: {}"
-    inputs = [np.array(["hello", "world"], dtype=np.unicode_)]
-    placeholder = "{}"
-    summarize = 3
-    name = None
-    input_dict = {"template": template, "inputs": [inputs[0]], "placeholder": placeholder, "summarize": summarize, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Large summarize value
-    template = "Tensor: {}"
-    inputs = [np.array([1, 2, 3, 4, 5], dtype=np.int32)]
-    placeholder = "{}"
-    summarize = 10
-    name = None
-    input_dict = {"template": template, "inputs": [inputs[0]], "placeholder": placeholder, "summarize": summarize, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 8: Template with no placeholders
-    template = "No placeholders"
-    inputs = [] # No tensors expected as there's no placeholder
-    placeholder = "{}"
-    summarize = 3
-    name = None
     input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: More complex template
-    template = "Value1: {}, Value2: {}, Value3:{}"
-    inputs = [np.array(1, dtype=np.int32), np.array([2, 3], dtype=np.int32), np.array([[4, 5], [6, 7]], dtype=np.int32)]
+    # Input 4: Multi-dimensional tensor
+    template = "3D Tensor: {}"
+    inputs = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
     placeholder = "{}"
     summarize = 1
     name = None
     input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: name parameter
+    # Input 5: No summarize
     template = "Tensor: {}"
-    inputs = [np.array([1, 2, 3], dtype=np.int32)]
+    inputs = [np.array([1, 2, 3])]
     placeholder = "{}"
     summarize = 3
-    name = "my_format_op"
-    input_dict = {"template": template, "inputs": [inputs[0]], "placeholder": placeholder, "summarize": summarize, "name": name}
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty tensor
+    template = "Empty: {}"
+    inputs = [np.array([])]
+    placeholder = "{}"
+    summarize = 3
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Placeholder not default
+    template = "Test: <tensor>"
+    inputs = [np.array([1, 2, 3])]
+    placeholder = "<tensor>"
+    summarize = 3
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Multiple tensors, different summarize
+    template = "A: {}, B: {}"
+    inputs = [np.array([1, 2, 3, 4]), np.array([5, 6, 7])]
+    placeholder = "{}"
+    summarize = 1
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 9: String template with no placeholder
+    template = "No placeholders here!"
+    inputs = [np.array([1])] # added a dummy input
+    placeholder = "{}"
+    summarize = 3
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: More complicated template
+    template = "Values are: {}, {}, {}"
+    inputs = [np.array([1, 2]), np.array([3, 4]), np.array([5, 6])]
+    placeholder = "{}"
+    summarize = 2
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Multiple tensors and placeholder
+    template = "a: {}, b: {}"
+    inputs = [np.array([1, 2, 3]), np.array([4, 5])]
+    placeholder = "{}"
+    summarize = 2
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Multiple placeholders with the same name
+    template = "Value: {x}, again: {x}"
+    inputs = [np.array([1,2])]
+    placeholder = "{x}"
+    summarize = 3
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13: different datatype
+    template = "Tensor: {}"
+    inputs = [np.array([1.1, 2.2, 3.3])]
+    placeholder = "{}"
+    summarize = 3
+    name = None
+    input_dict = {"template": template, "inputs": inputs, "placeholder": placeholder, "summarize": summarize, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

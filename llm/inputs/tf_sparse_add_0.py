@@ -11,86 +11,56 @@ import copy
 def tf_sparse_add_inputs():
     list_of_inputs = []
 
-    def get_range(tensor):
-        if isinstance(tensor, tf.sparse.SparseTensor):
-            return [np.min(tensor.values.numpy()), np.max(tensor.values.numpy())] if tf.size(tensor.values).numpy() > 0 else [0, 0]
-        elif isinstance(tensor, tf.Tensor):
-            return [np.min(tensor.numpy()), np.max(tensor.numpy())] if tensor.numpy().size > 0 else [0, 0]
-        else:
-            return [np.min(tensor), np.max(tensor)]
-
-    # Input 1: SparseTensor + Tensor
+    # Input 1: Sparse + Dense, threshold 0
     a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
-    b = tf.constant([[1, 0, 0], [0, 0, 3]], dtype=tf.int32)
-    threshold = tf.constant(0.0, dtype=tf.float32)
+    b = tf.constant([[3, 0, 1], [0, 4, 0]], dtype=tf.int32)
+    threshold = tf.constant(0, dtype=tf.float32)
     input_dict = {"a": a, "b": b, "threshold": threshold}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Tensor + SparseTensor
-    a = tf.constant([[1, 0, 0], [0, 0, 3]], dtype=tf.int32)
+    # Input 2: Dense + Sparse, threshold 0
+    a = tf.constant([[3, 0, 1], [0, 4, 0]], dtype=tf.int32)
     b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
-    threshold = tf.constant(0.0, dtype=tf.float32)
+    threshold = tf.constant(0, dtype=tf.float32)
     input_dict = {"a": a, "b": b, "threshold": threshold}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: SparseTensor + SparseTensor, threshold = 0
-    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
-    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[3, -2], dense_shape=[2, 3])
-    threshold = tf.constant(0.0, dtype=tf.float32)
-    input_dict = {"a": a, "b": b, "threshold": threshold}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: SparseTensor + SparseTensor, threshold > 0
-    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
-    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[-1, 2], dense_shape=[2, 3])
+    # Input 3: Sparse + Sparse, threshold > 0
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1.0, 2.0], dense_shape=[2, 3])
+    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[-1.0, 1.0], dense_shape=[2, 3])
     threshold = tf.constant(0.5, dtype=tf.float32)
     input_dict = {"a": a, "b": b, "threshold": threshold}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D SparseTensor + Tensor
-    a = tf.sparse.SparseTensor(indices=[[0, 0, 0], [1, 1, 2]], values=[1, 2], dense_shape=[2, 2, 3])
-    b = tf.constant([[[1, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 3]]], dtype=tf.int32)
-    threshold = tf.constant(0.0, dtype=tf.float32)
+    # Input 4: Sparse + Sparse, threshold = 0, different values
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
+    b = tf.sparse.SparseTensor(indices=[[0, 1], [1, 0]], values=[3, 4], dense_shape=[2, 3])
+    threshold = tf.constant(0, dtype=tf.float32)
     input_dict = {"a": a, "b": b, "threshold": threshold}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Tensor + 3D SparseTensor
-    a = tf.constant([[[1, 0, 0], [0, 0, 0]], [[0, 0, 0], [0, 0, 3]]], dtype=tf.int32)
-    b = tf.sparse.SparseTensor(indices=[[0, 0, 0], [1, 1, 2]], values=[1, 2], dense_shape=[2, 2, 3])
-    threshold = tf.constant(0.0, dtype=tf.float32)
-    input_dict = {"a": a, "b": b, "threshold": threshold}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: SparseTensor + SparseTensor, float32 values
+    # Input 5: Sparse + Sparse, all values cancel out
     a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1.0, 2.0], dense_shape=[2, 3])
-    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[3.0, -2.0], dense_shape=[2, 3])
+    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[-1.0, -2.0], dense_shape=[2, 3])
     threshold = tf.constant(0.0, dtype=tf.float32)
     input_dict = {"a": a, "b": b, "threshold": threshold}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: SparseTensor + SparseTensor, float32 values, threshold > 0
-    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1.0, 2.0], dense_shape=[2, 3])
-    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 1]], values=[-1.0, 2.0], dense_shape=[2, 3])
-    threshold = tf.constant(0.5, dtype=tf.float32)
+    # Input 6: Sparse + Dense, different dtype
+    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
+    b = tf.constant([[3.0, 0.0, 1.0], [0.0, 4.0, 0.0]], dtype=tf.float32)
+    threshold = tf.constant(0, dtype=tf.float32)
     input_dict = {"a": a, "b": b, "threshold": threshold}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Complex SparseTensor
-    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1 + 1j, 2 + 2j], dense_shape=[2, 3])
-    b = tf.constant([[1, 0, 0], [0, 0, 3]], dtype=tf.complex128)
-    threshold = tf.constant(0.0, dtype=tf.float64) # Threshold should be float64 for complex128
-    input_dict = {"a": a, "b": b, "threshold": threshold}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: SparseTensor + Tensor, with negative values and float64
-    a = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[-1.5, 2.5], dense_shape=[2, 3])
-    b = tf.constant([[1.0, 0.0, 0.0], [0.0, 0.0, -3.0]], dtype=tf.float64)
-    threshold = tf.constant(0.0, dtype=tf.float64)
+    # Input 7: Dense + Sparse, different dtype
+    a = tf.constant([[3.0, 0.0, 1.0], [0.0, 4.0, 0.0]], dtype=tf.float32)
+    b = tf.sparse.SparseTensor(indices=[[0, 0], [1, 2]], values=[1, 2], dense_shape=[2, 3])
+    threshold = tf.constant(0, dtype=tf.float32)
     input_dict = {"a": a, "b": b, "threshold": threshold}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
-
 generated_inputs = {}
 generated_inputs["tf.sparse.add"] = tf_sparse_add_inputs()
 

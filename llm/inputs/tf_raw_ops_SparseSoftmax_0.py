@@ -15,88 +15,76 @@ def tf_raw_ops_SparseSoftmax_inputs():
     sp_indices = np.array([[0, 0], [0, 1], [1, 0]], dtype=np.int64)
     sp_values = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     sp_shape = np.array([2, 2], dtype=np.int64)
-    name = "sparse_softmax_1"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    sp_indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
-    sp_values = np.array([0.1, 0.5, 0.9], dtype=np.float64)
-    sp_shape = np.array([3, 3], dtype=np.int64)
-    name = "sparse_softmax_2"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    sp_indices = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]], dtype=np.int64)
+    sp_values = np.array([0.5, 1.5, 2.5], dtype=np.float64)
+    sp_shape = np.array([1, 2, 2], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    sp_indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 1]], dtype=np.int64)
-    sp_values = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    sp_shape = np.array([2, 2, 2], dtype=np.int64)
-    name = "sparse_softmax_3"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    sp_indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    sp_values = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    sp_shape = np.array([3, 3], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    sp_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    sp_values = np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float32)
-    sp_shape = np.array([2, 2], dtype=np.int64)
-    name = "sparse_softmax_4"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    sp_indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 1], [1, 1, 0]], dtype=np.int64)
+    sp_values = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+    sp_shape = np.array([2, 2, 2], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    sp_indices = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0], [1, 1, 1]], dtype=np.int64)
-    sp_values = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float64)
-    sp_shape = np.array([2, 2, 2], dtype=np.int64)
-    name = "sparse_softmax_5"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    sp_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1], [2, 0]], dtype=np.int64)
+    sp_values = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float32)
+    sp_shape = np.array([3, 2], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6
-    sp_indices = np.array([[0, 0], [1, 0], [1, 1], [2, 1], [2, 2]], dtype=np.int64)
-    sp_values = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    sp_shape = np.array([3, 3], dtype=np.int64)
-    name = "sparse_softmax_6"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    # Input 6
+    sp_indices = np.array([[0, 0, 0, 0], [0, 0, 0, 1]], dtype=np.int64)
+    sp_values = np.array([1.0, 2.0], dtype=np.float64)
+    sp_shape = np.array([1, 1, 1, 2], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    sp_indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 0], [1, 1, 0]], dtype=np.int64)
-    sp_values = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    sp_shape = np.array([2, 2, 2], dtype=np.int64)
-    name = "sparse_softmax_7"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: half type
     sp_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    sp_values = np.array([1.0, 2.0], dtype=np.float16)
+    sp_values = np.array([1.0, -1.0], dtype=np.float32)
     sp_shape = np.array([2, 2], dtype=np.int64)
-    name = "sparse_softmax_8"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: larger shape
-    sp_indices = np.array([[0, 0], [1, 1], [2, 2], [3,3]], dtype=np.int64)
-    sp_values = np.array([0.1, 0.5, 0.9, 0.2], dtype=np.float64)
-    sp_shape = np.array([4, 4], dtype=np.int64)
-    name = "sparse_softmax_9"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    # Input 8
+    sp_indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
+    sp_values = np.array([-2.0, -3.0], dtype=np.float64)
+    sp_shape = np.array([1, 1, 2], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: bigger indices
-    sp_indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 1], [2,1,1]], dtype=np.int64)
-    sp_values = np.array([1.0, 2.0, 3.0, 1.0], dtype=np.float32)
-    sp_shape = np.array([3, 2, 2], dtype=np.int64)
-    name = "sparse_softmax_10"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": name}
+    # Input 9
+    sp_indices = np.array([[0, 0], [1, 0], [1, 1]], dtype=np.int64)
+    sp_values = np.array([1.0, 2.0, 1.0], dtype=np.float32)
+    sp_shape = np.array([2, 2], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    sp_indices = np.array([[0, 0, 0], [0, 1, 0], [0, 1, 1]], dtype=np.int64)
+    sp_values = np.array([0.5, 0.5, 0.5], dtype=np.float64)
+    sp_shape = np.array([1, 2, 2], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "name": "sparse_softmax_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.SparseSoftmax"] = []
-for input_data in tf_raw_ops_SparseSoftmax_inputs():
-  generated_inputs["tf.raw_ops.SparseSoftmax"].append({"args": (), "kwargs": input_data})
+generated_inputs["tf.raw_ops.SparseSoftmax"] = tf_raw_ops_SparseSoftmax_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

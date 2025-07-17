@@ -11,91 +11,54 @@ import copy
 def tf_raw_ops_mod_inputs():
     list_of_inputs = []
 
-    # Input 1: int32, basic
-    x = np.array([5, 3, 9, 21], dtype=np.int32)
-    y = np.array([2, 4, 7, 4], dtype=np.int32)
-    name = "mod_example_1"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 1: Basic integers
+    x = np.array([5, 10, 15], dtype=np.int32)
+    y = np.array([2, 3, 4], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "mod_basic_int"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: int64, broadcasting
-    x = np.array([5, 3, 9, 21], dtype=np.int64)
-    y = np.array([4], dtype=np.int64)
-    name = "mod_example_2"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 2: Broadcasting
+    x = np.array([5, 10, 15], dtype=np.int64)
+    y = np.array(2, dtype=np.int64)
+    input_dict = {"x": x, "y": y, "name": "mod_broadcast"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, basic
-    x = np.array([5.0, 3.0, 9.0, 21.0], dtype=np.float32)
-    y = np.array([2.0, 4.0, 7.0, 4.0], dtype=np.float32)
-    name = "mod_example_3"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 3: Negative numbers
+    x = np.array([-5, -10, 15], dtype=np.int32)
+    y = np.array([2, -3, 4], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "mod_negative"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64, broadcasting
-    x = np.array([5.0, 3.0, 9.0, 21.0], dtype=np.float64)
-    y = np.array([4.0], dtype=np.float64)
-    name = "mod_example_4"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 4: Floats
+    x = np.array([5.5, 10.2, 15.7], dtype=np.float32)
+    y = np.array([2.1, 3.0, 4.5], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "mod_float"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: int32, multi-dimensional
-    x = np.array([[5, 3], [9, 21]], dtype=np.int32)
-    y = np.array([[2, 4], [7, 4]], dtype=np.int32)
-    name = "mod_example_5"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 5: Double precision floats
+    x = np.array([5.5, 10.2, 15.7], dtype=np.float64)
+    y = np.array([2.1, 3.0, 4.5], dtype=np.float64)
+    input_dict = {"x": x, "y": y, "name": "mod_double"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: int64, multi-dimensional with broadcasting
-    x = np.array([[5, 3], [9, 21]], dtype=np.int64)
-    y = np.array([4,2], dtype=np.int64)
-    name = "mod_example_6"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 6: Multi-dimensional array
+    x = np.array([[5, 10], [15, 20]], dtype=np.int32)
+    y = np.array([[2, 3], [4, 5]], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "mod_multi_dim"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float32, negative values
-    x = np.array([-5.0, 3.0, -9.0, 21.0], dtype=np.float32)
-    y = np.array([2.0, -4.0, 7.0, -4.0], dtype=np.float32)
-    name = "mod_example_7"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 7: Large integers
+    x = np.array([2**31 - 1, 2**31 - 2], dtype=np.int64)
+    y = np.array([3, 5], dtype=np.int64)
+    input_dict = {"x": x, "y": y, "name": "mod_large_int"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float64, negative values with broadcasting
-    x = np.array([-5.0, 3.0, -9.0, 21.0], dtype=np.float64)
-    y = np.array([-4.0], dtype=np.float64)
-    name = "mod_example_8"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 8: Different shapes, with broadcasting
+    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    y = np.array([1, 2, 3], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "mod_diff_shape"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-
-    # Input 11: int64, large numbers
-    x = np.array([2**31 -1, 2**30, 2**63 - 1, 2**50], dtype=np.int64)
-    y = np.array([1000, 2000, 3000, 4000], dtype=np.int64)
-    name = "mod_example_11"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: float64, test with 2D
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    y = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float64)
-    name = "mod_example_12"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13: bfloat16,
-    x = np.array([5.0, 3.0, 9.0, 21.0], dtype=tf.bfloat16.as_numpy_dtype())
-    y = np.array([2.0, 4.0, 7.0, 4.0], dtype=tf.bfloat16.as_numpy_dtype())
-    name = "mod_example_13"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 14: half,
-    x = np.array([5.0, 3.0, 9.0, 21.0], dtype=np.float16)
-    y = np.array([2.0, 4.0, 7.0, 4.0], dtype=np.float16)
-    name = "mod_example_14"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

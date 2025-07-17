@@ -13,265 +13,272 @@ def tf_raw_ops_max_pool_grad_grad_inputs():
 
     # Input 1
     orig_input = np.random.rand(1, 5, 5, 3).astype(np.float32)
-    orig_output = np.random.rand(1, 3, 3, 3).astype(np.float32)
-    grad = np.random.rand(1, 3, 3, 3).astype(np.float32)
+    orig_output = np.random.rand(1, 2, 2, 3).astype(np.float32)
+    grad = np.random.rand(1, 2, 2, 3).astype(np.float32)
     ksize = [1, 3, 3, 1]
     strides = [1, 2, 2, 1]
     padding = "VALID"
     data_format = "NHWC"
-    name = "max_pool_grad_grad_1"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    orig_input = np.random.rand(1, 7, 7, 1).astype(np.float64)
-    orig_output = np.random.rand(1, 4, 4, 1).astype(np.float64)
-    grad = np.random.rand(1, 4, 4, 1).astype(np.float64)
-    ksize = [1, 3, 3, 1]
+    orig_input = np.random.rand(2, 10, 10, 1).astype(np.float64)
+    orig_output = np.random.rand(2, 5, 5, 1).astype(np.float64)
+    grad = np.random.rand(2, 5, 5, 1).astype(np.float64)
+    ksize = [1, 2, 2, 1]
     strides = [1, 2, 2, 1]
     padding = "SAME"
     data_format = "NHWC"
-    name = "max_pool_grad_grad_2"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    orig_input = np.random.rand(2, 6, 6, 3).astype(np.int32)
-    orig_output = np.random.rand(2, 3, 3, 3).astype(np.int32)
-    grad = np.random.rand(2, 3, 3, 3).astype(np.int32)
-    ksize = [1, 2, 2, 1]
-    strides = [1, 2, 2, 1]
+    orig_input = np.random.rand(1, 3, 32, 32).astype(np.float32)
+    orig_output = np.random.rand(1, 1, 16, 16).astype(np.float32)
+    grad = np.random.rand(1, 1, 16, 16).astype(np.float32)
+    ksize = [1, 1, 2, 2]
+    strides = [1, 1, 2, 2]
     padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_grad_grad_3"
+    data_format = "NCHW"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    orig_input = np.random.rand(1, 5, 5, 3).astype(np.uint8)
-    orig_output = np.random.rand(1, 2, 2, 3).astype(np.uint8)
-    grad = np.random.rand(1, 2, 2, 3).astype(np.uint8)
-    ksize = [1, 4, 4, 1]
+    orig_input = np.random.rand(4, 8, 8, 8).astype(np.float32)
+    orig_output = np.random.rand(4, 4, 4, 8).astype(np.float32)
+    grad = np.random.rand(4, 4, 4, 8).astype(np.float32)
+    ksize = [1, 2, 2, 1]
     strides = [1, 2, 2, 1]
-    padding = "VALID"
+    padding = "SAME"
     data_format = "NHWC"
-    name = "max_pool_grad_grad_4"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    orig_input = np.random.rand(1, 8, 8, 1).astype(np.int16)
-    orig_output = np.random.rand(1, 4, 4, 1).astype(np.int16)
-    grad = np.random.rand(1, 4, 4, 1).astype(np.int16)
+    orig_input = np.random.rand(1, 16, 16, 16).astype(np.float32)
+    orig_output = np.random.rand(1, 8, 8, 16).astype(np.float32)
+    grad = np.random.rand(1, 8, 8, 16).astype(np.float32)
     ksize = [1, 2, 2, 1]
     strides = [1, 2, 2, 1]
-    padding = "SAME"
+    padding = "VALID"
     data_format = "NHWC"
-    name = "max_pool_grad_grad_5"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    orig_input = np.random.rand(1, 5, 5, 3).astype(np.int8)
-    orig_output = np.random.rand(1, 1, 1, 3).astype(np.int8)
-    grad = np.random.rand(1, 1, 1, 3).astype(np.int8)
-    ksize = [1, 5, 5, 1]
-    strides = [1, 5, 5, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_grad_grad_6"
-
-    input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    orig_input = np.random.rand(1, 10, 10, 1).astype(np.int64)
-    orig_output = np.random.rand(1, 5, 5, 1).astype(np.int64)
-    grad = np.random.rand(1, 5, 5, 1).astype(np.int64)
+    orig_input = np.random.rand(2, 4, 4, 2).astype(np.float32)
+    orig_output = np.random.rand(2, 2, 2, 2).astype(np.float32)
+    grad = np.random.rand(2, 2, 2, 2).astype(np.float32)
     ksize = [1, 2, 2, 1]
     strides = [1, 2, 2, 1]
-    padding = "VALID"
+    padding = "SAME"
     data_format = "NHWC"
-    name = "max_pool_grad_grad_7"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    orig_input = np.random.rand(1, 4, 4, 3).astype(np.float16)
-    orig_output = np.random.rand(1, 2, 2, 3).astype(np.float16)
-    grad = np.random.rand(1, 2, 2, 3).astype(np.float16)
+   # Input 7
+    orig_input = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    orig_output = np.random.rand(1, 2, 2, 3).astype(np.float32)
+    grad = np.random.rand(1, 2, 2, 3).astype(np.float32)
     ksize = [1, 3, 3, 1]
     strides = [1, 2, 2, 1]
-    padding = "SAME"
+    padding = "VALID"
     data_format = "NHWC"
-    name = "max_pool_grad_grad_8"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    orig_input = np.random.rand(1, 8, 8, 1).astype(np.uint16)
-    orig_output = np.random.rand(1, 8, 8, 1).astype(np.uint16)
-    grad = np.random.rand(1, 8, 8, 1).astype(np.uint16)
-    ksize = [1, 1, 1, 1]
-    strides = [1, 1, 1, 1]
-    padding = "SAME"
+   # Input 8
+    orig_input = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    orig_output = np.random.rand(1, 2, 2, 3).astype(np.float32)
+    grad = np.random.rand(1, 2, 2, 3).astype(np.float32)
+    ksize = [1, 3, 3, 1]
+    strides = [1, 2, 2, 1]
+    padding = "VALID"
     data_format = "NHWC"
-    name = "max_pool_grad_grad_9"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 9
+    orig_input = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    orig_output = np.random.rand(1, 2, 2, 3).astype(np.float32)
+    grad = np.random.rand(1, 2, 2, 3).astype(np.float32)
+    ksize = [1, 3, 3, 1]
+    strides = [1, 2, 2, 1]
+    padding = "VALID"
+    data_format = "NHWC"
+
+    input_dict = {
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    orig_input = np.random.rand(2, 4, 4, 3).astype(np.float16)
-    orig_output = np.random.rand(2, 2, 2, 3).astype(np.float16)
-    grad = np.random.rand(2, 2, 2, 3).astype(np.float16)
-    ksize = [1, 2, 2, 1]
-    strides = [1, 2, 2, 1]
-    padding = "VALID"
-    data_format = "NHWC"
-    name = "max_pool_grad_grad_10"
-
-    input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 11 NCHW format
-    orig_input = np.random.rand(1, 3, 5, 5).astype(np.float32)
-    orig_output = np.random.rand(1, 3, 3, 3).astype(np.float32)
-    grad = np.random.rand(1, 3, 3, 3).astype(np.float32)
-    ksize = [1, 1, 3, 3]
-    strides = [1, 1, 2, 2]
-    padding = "VALID"
-    data_format = "NCHW"
-    name = "max_pool_grad_grad_11"
-
-    input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12
     orig_input = np.random.rand(1, 5, 5, 3).astype(np.float32)
-    orig_output = np.random.rand(1, 3, 3, 3).astype(np.float32)
-    grad = np.random.rand(1, 3, 3, 3).astype(np.float32)
+    orig_output = np.random.rand(1, 2, 2, 3).astype(np.float32)
+    grad = np.random.rand(1, 2, 2, 3).astype(np.float32)
     ksize = [1, 3, 3, 1]
     strides = [1, 2, 2, 1]
     padding = "VALID"
     data_format = "NHWC"
-    name = "max_pool_grad_grad_12"
 
     input_dict = {
-        "orig_input": tf.constant(orig_input),
-        "orig_output": tf.constant(orig_output),
-        "grad": tf.constant(grad),
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
         "data_format": data_format,
-        "name": name
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    orig_input = np.random.rand(2, 7, 7, 5).astype(np.float32)
+    orig_output = np.random.rand(2, 4, 4, 5).astype(np.float32)
+    grad = np.random.rand(2, 4, 4, 5).astype(np.float32)
+    ksize = [1, 3, 3, 1]
+    strides = [1, 2, 2, 1]
+    padding = "VALID"
+    data_format = "NHWC"
+
+    input_dict = {
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12
+    orig_input = np.random.rand(1, 7, 7, 1).astype(np.float32)
+    orig_output = np.random.rand(1, 7, 7, 1).astype(np.float32)
+    grad = np.random.rand(1, 7, 7, 1).astype(np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
+    data_format = "NHWC"
+    input_dict = {
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13
+    orig_input = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    orig_output = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    grad = np.random.rand(1, 5, 5, 3).astype(np.float32)
+    ksize = [1, 1, 1, 1]
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
+    data_format = "NHWC"
+    input_dict = {
+        "orig_input": orig_input,
+        "orig_output": orig_output,
+        "grad": grad,
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

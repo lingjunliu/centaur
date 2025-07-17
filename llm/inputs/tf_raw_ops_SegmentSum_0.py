@@ -14,61 +14,67 @@ def tf_raw_ops_segment_sum_inputs():
     # Input 1: Basic example with int32 data and segment_ids
     data = np.array([1, 2, 3, 4], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "basic_int32"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32 data with int32 segment_ids
+    # Input 2: float32 data and segment_ids
     data = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
     segment_ids = np.array([0, 0, 1, 1, 2], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "basic_float32"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: int64 data with int64 segment_ids
-    data = np.array([1, 2, 3, 4, 5], dtype=np.int64)
-    segment_ids = np.array([0, 0, 1, 1, 2], dtype=np.int64)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: 2D data with int32 segment_ids
-    data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
-    segment_ids = np.array([0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: complex64 data
-    data = np.array([1 + 1j, 2 + 2j, 3 + 3j, 4 + 4j], dtype=np.complex64)
-    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Empty segment
+    # Input 3: int64 segment_ids
     data = np.array([1, 2, 3, 4], dtype=np.int32)
-    segment_ids = np.array([0, 0, 2, 2], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int64)
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "int64_segment_ids"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: uint8 data
+    # Input 4: Different data type (float64)
+    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "float64_data"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: One segment ID
+    data = np.array([1, 2, 3], dtype=np.int32)
+    segment_ids = np.array([0, 0, 0], dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "one_segment"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: No segments
+    data = np.array([1, 2, 3], dtype=np.int32)
+    segment_ids = np.array([0, 1, 2], dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "no_segments"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Multi-dimensional data
+    data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1], dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "multi_dim_data"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Larger segment IDs
+    data = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    segment_ids = np.array([1, 1, 2, 3, 3], dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "larger_segment_ids"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: uint8 data type
     data = np.array([1, 2, 3, 4], dtype=np.uint8)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "uint8_data"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Different segment IDs
-    data = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
-    segment_ids = np.array([0, 1, 2, 0, 1, 2], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    # Input 10: More complex multi-dimensional data
+    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.int32)
+    segment_ids = np.array([0, 1, 1], dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "complex_multi_dim"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 9: bfloat16 data
-    data = np.array([1, 2, 3, 4], dtype=np.float16)
+    
+    # Input 11: bfloat16 data type
+    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float16)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: uint32 data
-    data = np.array([1, 2, 3, 4], dtype=np.uint32)
-    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    input_dict = {"data": data, "segment_ids": segment_ids, "name": None}
+    input_dict = {"data": data, "segment_ids": segment_ids, "name": "bfloat16_data"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

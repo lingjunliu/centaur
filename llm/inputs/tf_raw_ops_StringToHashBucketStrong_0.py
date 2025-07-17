@@ -11,130 +11,74 @@ import copy
 def tf_raw_ops_string_to_hash_bucket_strong_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array(["Hello", "TF"], dtype=np.object_)
+    # Input 1: Basic test
+    input_tensor = np.array(["Hello", "TF", "World"], dtype=np.object_)
     num_buckets = 3
     key = [1, 2]
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "basic_test"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = np.array(["This", "is", "a", "test"], dtype=np.object_)
+    # Input 2: Different strings
+    input_tensor = np.array(["This is a long string", "Short", ""], dtype=np.object_)
     num_buckets = 5
-    key = [10, 20]
-    name = "test_hash"
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    key = [12345, 67890]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "different_strings"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_tensor = np.array(["", "Empty", "String"], dtype=np.object_)
+    # Input 3: Single string
+    input_tensor = np.array(["Just one string"], dtype=np.object_)
+    num_buckets = 10
+    key = [98765, 43210]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "single_string"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Multiple identical strings
+    input_tensor = np.array(["Same", "Same", "Same"], dtype=np.object_)
     num_buckets = 2
-    key = [0, 0]
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    key = [11111, 22222]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "identical_strings"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = np.array(["Longer", "String", "To", "Be", "Hashed"], dtype=np.object_)
+    # Input 5: Larger number of buckets
+    input_tensor = np.array(["A", "B", "C", "D", "E"], dtype=np.object_)
     num_buckets = 100
-    key = [2**32, 2**32 + 1]
-    name = "longer_test"
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    key = [33333, 44444]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "larger_buckets"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = np.array(["Same", "Input", "Repeated", "Same"], dtype=np.object_)
+    # Input 6: Different keys
+    input_tensor = np.array(["X", "Y", "Z"], dtype=np.object_)
     num_buckets = 4
-    key = [65535, 1]
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    key = [55555, 66666]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "different_keys"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6 (multidimensional)
-    input_tensor = np.array([["Hello", "World"], ["TensorFlow", "Rocks"]], dtype=np.object_)
+    # Input 7: Empty input tensor
+    input_tensor = np.array([], dtype=np.object_)
     num_buckets = 7
-    key = [5, 6]
-    name = "multi_dim"
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    key = [77777, 88888]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "empty_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    input_tensor = np.array(["Unicode", "Strings", "你好世界"], dtype=np.object_)
+    # Input 8: Tensor with Unicode strings
+    input_tensor = np.array(["你好", "世界", "你好世界"], dtype=np.object_)
     num_buckets = 6
-    key = [7, 8]
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    key = [99999, 10101]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "unicode_strings"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    input_tensor = np.array(["With", "Special", "Characters", "!@#$%^&*()_+"], dtype=np.object_)
-    num_buckets = 8
-    key = [9, 10]
-    name = "special_chars"
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    # Input 9: Very large number of buckets
+    input_tensor = np.array(["Large", "buckets"], dtype=np.object_)
+    num_buckets = 2**10
+    key = [12121, 13131]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "very_large_buckets"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    input_tensor = np.array(["Very", "Long", "String"]*10, dtype=np.object_)
-    num_buckets = 9
-    key = [11, 12]
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "num_buckets": num_buckets,
-        "key": key,
-        "name": name
-    }
+    # Input 10:  Long strings and large buckets
+    input_tensor = np.array(["This is a very long string to test the hashing function"], dtype=np.object_)
+    num_buckets = 2**8
+    key = [14141, 15151]
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "key": key, "name": "long_string_large_buckets"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

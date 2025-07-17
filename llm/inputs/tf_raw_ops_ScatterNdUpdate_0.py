@@ -11,104 +11,184 @@ import copy
 def tf_raw_ops_scatter_nd_update_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1, valid
     ref = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
     indices = np.array([[4], [3], [1], [7]], dtype=np.int32)
     updates = np.array([9, 10, 11, 12], dtype=np.int32)
     use_locking = True
     bad_indices_policy = ""
     name = "scatter_nd_update_1"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    ref = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
-    updates = np.array([5, 6], dtype=np.float32)
+    # Input 2, valid, int64 indices
+    ref = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    indices = np.array([[0], [2], [4]], dtype=np.int64)
+    updates = np.array([5.0, 6.0, 7.0], dtype=np.float32)
     use_locking = False
-    bad_indices_policy = ""
+    bad_indices_policy = "ignore"
     name = "scatter_nd_update_2"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    ref = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
-    updates = np.array([9, 10], dtype=np.int64)
+    # Input 3, valid, multi-dimensional updates
+    ref = np.zeros((5, 5), dtype=np.float32)
+    indices = np.array([[1], [3]], dtype=np.int32)
+    updates = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]], dtype=np.float32)
     use_locking = True
     bad_indices_policy = ""
     name = "scatter_nd_update_3"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    ref = np.array([1, 2, 3, 4], dtype=np.float64)
-    indices = np.array([[0], [2]], dtype=np.int64)
-    updates = np.array([5, 6], dtype=np.float64)
+    # Input 4, valid, K < P
+    ref = np.zeros((5, 5, 5), dtype=np.float32)
+    indices = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    updates = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]], dtype=np.float32)
     use_locking = False
-    bad_indices_policy = ""
+    bad_indices_policy = "ignore"
     name = "scatter_nd_update_4"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    ref = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    indices = np.array([[0, 1], [1, 2]], dtype=np.int32)
-    updates = np.array([7, 8], dtype=np.int32)
+     # Input 5, valid, K = P
+    ref = np.zeros((2, 2), dtype=np.float32)
+    indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
+    updates = np.array([1.0, 2.0], dtype=np.float32)
     use_locking = True
     bad_indices_policy = ""
     name = "scatter_nd_update_5"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    ref = np.array([1, 2, 3, 4], dtype=np.int32)
-    indices = np.array([[1], [3]], dtype=np.int32)
-    updates = np.array([-5, -6], dtype=np.int32)
+    # Input 6, valid, multiple dimensions
+    ref = np.zeros((2, 3, 4), dtype=np.float32)
+    indices = np.array([[0, 1, 2], [1, 2, 3]], dtype=np.int32)
+    updates = np.array([1.0, 2.0], dtype=np.float32)
     use_locking = False
     bad_indices_policy = ""
     name = "scatter_nd_update_6"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    ref = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    indices = np.array([[0, 0], [1, 0]], dtype=np.int32)
-    updates = np.array([5.0, 6.0], dtype=np.float32)
+    # Input 7, valid, different data type for ref and updates
+    ref = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    indices = np.array([[0], [2], [4]], dtype=np.int32)
+    updates = np.array([5, 6, 7], dtype=np.int32)
     use_locking = True
     bad_indices_policy = ""
     name = "scatter_nd_update_7"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    ref = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    indices = np.array([[0, 0, 0], [1, 0, 1]], dtype=np.int32)
-    updates = np.array([9, 10], dtype=np.int32)
-    use_locking = False
+    # Input 8, valid, empty updates
+    ref = np.array([1, 2, 3], dtype=np.int32)
+    indices = np.array([], dtype=np.int32).reshape(0, 1)
+    updates = np.array([], dtype=np.int32)
+    use_locking = True
     bad_indices_policy = ""
     name = "scatter_nd_update_8"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
-    ref = np.array([1, 2, 3], dtype=np.int32)
-    indices = np.array([[0], [1], [2]], dtype=np.int32)
-    updates = np.array([4, 5, 6], dtype=np.int32)
+    # Input 9, valid, higher rank indices
+    ref = np.zeros((3,3,3), dtype=np.float32)
+    indices = np.array([[[0, 0, 0]], [[1, 1, 1]]], dtype=np.int32)
+    updates = np.array([1.0, 2.0], dtype=np.float32)
     use_locking = True
     bad_indices_policy = ""
     name = "scatter_nd_update_9"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    ref = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
-    updates = np.array([-5, -6], dtype=np.int32)
-    use_locking = False
+    # Input 10, valid, name=None
+    ref = np.array([1, 2, 3, 4, 5, 6, 7, 8], dtype=np.int32)
+    indices = np.array([[4], [3], [1], [7]], dtype=np.int32)
+    updates = np.array([9, 10, 11, 12], dtype=np.int32)
+    use_locking = True
     bad_indices_policy = ""
-    name = "scatter_nd_update_10"
-    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "bad_indices_policy": bad_indices_policy, "name": name}
+    name = None
+
+    input_dict = {
+        "ref": ref,
+        "indices": indices,
+        "updates": updates,
+        "use_locking": use_locking,
+        "bad_indices_policy": bad_indices_policy,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

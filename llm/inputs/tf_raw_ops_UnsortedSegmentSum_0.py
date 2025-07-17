@@ -8,101 +8,83 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_unsorted_segment_sum_inputs():
+def tf_raw_ops_UnsortedSegmentSum_inputs():
     list_of_inputs = []
 
-    # Input 1
-    data = np.array([1, 2, 3, 4]).astype(np.float32)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int32)
-    num_segments = np.array(2).astype(np.int32)
-    name = "test_sum_1"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 1: Simple case with positive integers
+    data = np.array([1, 2, 3, 4], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    data = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [4, 3, 2, 1]]).astype(np.int32)
-    segment_ids = np.array([0, 1, 0]).astype(np.int32)
-    num_segments = np.array(2).astype(np.int32)
-    name = "test_sum_2"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 2: Different data type (float32)
+    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    data = np.array([1, 2, 3, 4]).astype(np.float64)
-    segment_ids = np.array([0, 0, 1, 0]).astype(np.int64)
-    num_segments = np.array(2).astype(np.int32)
-    name = "test_sum_3"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 3: Unsorted segment_ids
+    data = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    segment_ids = np.array([1, 0, 2, 1, 0], dtype=np.int32)
+    num_segments = np.array(3, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    data = np.array([1, 2, 3, 4, 5, 6]).astype(np.int64)
-    segment_ids = np.array([0, 1, 2, 0, 1, 0]).astype(np.int32)
-    num_segments = np.array(3).astype(np.int32)
-    name = "test_sum_4"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 4: Negative segment_ids (should be ignored)
+    data = np.array([1, 2, 3, 4], dtype=np.int32)
+    segment_ids = np.array([-1, 0, -1, 1], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different data type
-    data = np.array([1, 2, 3, 4]).astype(np.uint8)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int32)
-    num_segments = np.array(2).astype(np.int32)
-    name = "test_sum_5"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 5: Multi-dimensional data
+    data = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6: More dimensions
-    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).astype(np.int32)
-    segment_ids = np.array([0, 1]).astype(np.int32)
-    num_segments = np.array(2).astype(np.int32)
-    name = "test_sum_6"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 6: Different segment_ids type (int64)
+    data = np.array([1, 2, 3, 4], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int64)
+    num_segments = np.array(2, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: num_segments > max(segment_ids)
-    data = np.array([1, 2, 3]).astype(np.int32)
-    segment_ids = np.array([0, 1, 0]).astype(np.int32)
-    num_segments = np.array(5).astype(np.int32)
-    name = "test_sum_7"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 7: Different num_segments type (int64)
+    data = np.array([1, 2, 3, 4], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int64)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: int64 data and segment_ids
-    data = np.array([1, 2, 3, 4]).astype(np.int64)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int64)
-    num_segments = np.array(2).astype(np.int32)
-    name = "test_sum_8"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 8: Empty segment for a segment_id
+    data = np.array([1, 2, 3], dtype=np.int32)
+    segment_ids = np.array([0, 2, 0], dtype=np.int32)
+    num_segments = np.array(3, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: uint16 data
-    data = np.array([1, 2, 3, 4]).astype(np.uint16)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int32)
-    num_segments = np.array(2).astype(np.int32)
-    name = "test_sum_9"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 9: Data with a different dtype (uint8)
+    data = np.array([1, 2, 3, 4], dtype=np.uint8)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: bfloat16 data
-    data = np.array([1, 2, 3, 4]).astype(np.float16)
-    segment_ids = np.array([0, 0, 1, 1]).astype(np.int32)
-    num_segments = np.array(2).astype(np.int32)
-    name = "test_sum_11"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Empty data and segment_ids with num_segments=1
-    data = np.array([]).astype(np.float32)
-    segment_ids = np.array([]).astype(np.int32)
-    num_segments = np.array(1).astype(np.int32)
-    name = "test_sum_12"
-    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": name}
+    # Input 10: 3D data
+    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]]], dtype=np.int32)
+    segment_ids = np.array([0, 1, 0], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int32)
+    input_dict = {"data": data, "segment_ids": segment_ids, "num_segments": num_segments, "name": "input10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.UnsortedSegmentSum"] = tf_raw_ops_unsorted_segment_sum_inputs()
+generated_inputs["tf.raw_ops.UnsortedSegmentSum"] = tf_raw_ops_UnsortedSegmentSum_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

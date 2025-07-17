@@ -15,79 +15,87 @@ def tf_tensordot_inputs():
     a = np.array([[1, 2], [3, 4]], dtype=np.int32)
     b = np.array([[5, 6], [7, 8]], dtype=np.int32)
     axes = 1
-    name = "matrix_multiply"
+    name = "matrix_mult"
     input_dict = {"a": a, "b": b, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Outer product
-    a = np.array([1, 2, 3], dtype=np.float32)
-    b = np.array([4, 5], dtype=np.float32)
+    a = np.array([1, 2, 3], dtype=np.int32)
+    b = np.array([4, 5], dtype=np.int32)
     axes = 0
     name = "outer_product"
     input_dict = {"a": a, "b": b, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Higher order tensors, contraction over one axis
-    a = np.arange(24).reshape((2, 3, 4)).astype(np.int64)
-    b = np.arange(12).reshape((4, 3)).astype(np.int64)
+    # Input 3: 3D tensors
+    a = np.arange(24, dtype=np.int32).reshape(2, 3, 4)
+    b = np.arange(12, dtype=np.int32).reshape(3, 2, 2)
     axes = 1
-    name = "higher_order_contraction"
+    name = "3d_tensors"
     input_dict = {"a": a, "b": b, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Contraction over scalar values
-    a = np.array(5, dtype=np.float64)
-    b = np.array(3, dtype=np.float64)
-    axes = 0
-    name = "scalar_contraction"
-    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Different shapes, axes=0
-    a = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    b = np.array([[5, 6, 7], [8, 9, 10]], dtype=np.int32)
-    axes = 0
-    name = "diff_shape_outer"
-    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Negative Values
-    a = np.array([[-1, 2], [3, -4]], dtype=np.int32)
-    b = np.array([[5, -6], [-7, 8]], dtype=np.int32)
-    axes = 1
-    name = "negative_values"
-    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7: different datatypes (float64)
+    # Input 4: Different data type (float64)
     a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
     b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64)
     axes = 1
-    name = "float64_datatype"
+    name = "float64_tensors"
     input_dict = {"a": a, "b": b, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: different datatypes (float64) with different values and axes=0
-    a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    b = np.array([[5.0, -6.0], [-7.0, 8.0]], dtype=np.float64)
-    axes = 0
-    name = "float64_datatype_outer"
-    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: Single element tensors
-    a = np.array([[7]], dtype=np.int32)
-    b = np.array([[3]], dtype=np.int32)
+
+    # Input 5: Higher axes value - Adjusted for compatibility
+    a = np.arange(12, dtype=np.int32).reshape(3, 4)
+    b = np.arange(20, dtype=np.int32).reshape(4, 5)
     axes = 1
+    name = "higher_axes"
+    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Simple vector dot product
+    a = np.array([1, 2, 3], dtype=np.int32)
+    b = np.array([4, 5, 6], dtype=np.int32)
+    axes = 1
+    name = "vector_dot"
+    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Larger tensors
+    a = np.random.rand(5, 6, 7).astype(np.float32)
+    b = np.random.rand(7, 8, 9).astype(np.float32)
+    axes = 1
+    name = "large_tensors"
+    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: axes = 0 with different dimensions
+    a = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    b = np.array([5, 6], dtype=np.int32)
+    axes = 0
+    name = "axes_0_diff_dim"
+    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: More complex contraction - Adjusted for compatibility
+    a = np.arange(60).reshape(3, 4, 5).astype(np.int32)
+    b = np.arange(24).reshape(4, 3, 2).astype(np.int32)
+    axes = 2 #changed from 1 to 2
+    name = "complex_contraction"
+    input_dict = {"a": a, "b": b, "axes": axes, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Single element tensors
+    a = np.array(5, dtype=np.int32)
+    b = np.array(10, dtype=np.int32)
+    axes = 0
     name = "single_element"
     input_dict = {"a": a, "b": b, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10: axes = 0 with matching dims
-    a = np.arange(12).reshape((2, 2, 3)).astype(np.float32)
-    b = np.arange(12).reshape((2, 2, 3)).astype(np.float32)
+    # Input 11: Adjusted input for matrix multiplication
+    a = np.arange(12).reshape(3, 4).astype(np.int32)
+    b = np.arange(20).reshape(4, 5).astype(np.int32)
     axes = 1
-    name = "axes_0_match"
+    name = "adjusted_matrix_mult"
     input_dict = {"a": a, "b": b, "axes": axes, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

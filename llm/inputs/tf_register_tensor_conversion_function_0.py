@@ -11,102 +11,117 @@ import copy
 def tf_register_tensor_conversion_function_inputs():
     list_of_inputs = []
 
-    # Input 1: Custom class conversion
-    class MyClass:
+    def conversion_func_custom(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, CustomClass):
+            return tf.constant(value.value, dtype=dtype, name=name)
+        else:
+            return NotImplemented
+
+    class CustomClass:
         def __init__(self, value):
             self.value = value
 
-    def conversion_func_1(value, dtype=None, name=None, as_ref=False):
-        return tf.convert_to_tensor(value.value, dtype=dtype, name=name)
+    def conversion_func_list(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, list):
+            return tf.constant(np.array(value), dtype=dtype, name=name)
+        else:
+            return NotImplemented
 
-    input_dict = {
-        "base_type": (MyClass,),
-        "conversion_func": [conversion_func_1],
-        "priority": 50
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    def conversion_func_dict(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, dict):
+            return tf.constant(list(value.values()), dtype=dtype, name=name)
+        else:
+            return NotImplemented
 
-    # Input 2: Another custom class
-    class AnotherClass:
-        def __init__(self, data):
-            self.data = data
+    def conversion_func_variable(value, dtype=None, name=None, as_ref=False):
+        if as_ref:
+            return tf.Variable(value, dtype=dtype, name=name)
+        else:
+            return NotImplemented
 
-    def conversion_func_2(value, dtype=None, name=None, as_ref=False):
-        return tf.convert_to_tensor(value.data, dtype=dtype, name=name)
+    class AnotherCustomClass:
+        def __init__(self, value):
+            self.value = value
 
-    input_dict = {
-        "base_type": (AnotherClass,),
-        "conversion_func": [conversion_func_2],
-        "priority": 75
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    def conversion_func_another_custom(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, AnotherCustomClass):
+            return tf.constant(value.value, dtype=dtype, name=name)
+        else:
+            return NotImplemented
 
-    # Input 3: Custom class with specific dtype
     class YetAnotherClass:
         def __init__(self, value):
             self.value = value
 
-    def conversion_func_3(value, dtype=None, name=None, as_ref=False):
-        return tf.convert_to_tensor(value.value, dtype=tf.float32, name=name)
+    def conversion_func_yet_another(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, YetAnotherClass):
+            return tf.constant(value.value, dtype=dtype, name=name)
+        else:
+            return NotImplemented
 
-    input_dict = {
-        "base_type": (YetAnotherClass,),
-        "conversion_func": [conversion_func_3],
-        "priority": 100
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_1 = {"base_type": (CustomClass,), "conversion_func": [conversion_func_custom], "priority": 50}
+    list_of_inputs.append(copy.deepcopy(input_dict_1))
 
-    # Input 4: Using as_ref
+    input_dict_2 = {"base_type": (list,), "conversion_func": [conversion_func_list], "priority": 75}
+    list_of_inputs.append(copy.deepcopy(input_dict_2))
+
+    input_dict_3 = {"base_type": (dict,), "conversion_func": [conversion_func_dict], "priority": 100}
+    list_of_inputs.append(copy.deepcopy(input_dict_3))
+
+    input_dict_4 = {"base_type": (AnotherCustomClass,), "conversion_func": [conversion_func_another_custom], "priority": 25}
+    list_of_inputs.append(copy.deepcopy(input_dict_4))
+
+    input_dict_5 = {"base_type": (YetAnotherClass,), "conversion_func": [conversion_func_yet_another], "priority": 125}
+    list_of_inputs.append(copy.deepcopy(input_dict_5))
+
     class RefClass:
-        def __init__(self, value):
-            self.value = tf.Variable(value)
+      def __init__(self, value):
+        self.value = value
 
-    def conversion_func_4(value, dtype=None, name=None, as_ref=True):
-        return value.value
+    def conversion_func_ref(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, RefClass) and as_ref:
+          return tf.Variable(value.value, dtype=dtype, name=name)
+        else:
+          return NotImplemented
 
-    input_dict = {
-        "base_type": (RefClass,),
-        "conversion_func": [conversion_func_4],
-        "priority": 25
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_6 = {"base_type": (RefClass,), "conversion_func": [conversion_func_ref], "priority": 60}
+    list_of_inputs.append(copy.deepcopy(input_dict_6))
 
-    # Input 5: Returning NotImplemented
-    class NotImplClass:
+    def conversion_func_tuple(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, tuple):
+            return tf.constant(np.array(value), dtype=dtype, name=name)
+        else:
+            return NotImplemented
+
+    input_dict_7 = {"base_type": (tuple,), "conversion_func": [conversion_func_tuple], "priority": 80}
+    list_of_inputs.append(copy.deepcopy(input_dict_7))
+
+    class StringClass:
         def __init__(self, value):
             self.value = value
 
-    def conversion_func_5(value, dtype=None, name=None, as_ref=False):
-        return NotImplemented
+    def conversion_func_string_class(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, StringClass):
+            return tf.constant(value.value, dtype=dtype, name=name)
+        else:
+            return NotImplemented
 
-    input_dict = {
-        "base_type": (NotImplClass,),
-        "conversion_func": [conversion_func_5],
-        "priority": 125
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_8 = {"base_type": (StringClass,), "conversion_func": [conversion_func_string_class], "priority": 90}
+    list_of_inputs.append(copy.deepcopy(input_dict_8))
 
-    # Input 6: Numpy array
-    def conversion_func_6(value, dtype=None, name=None, as_ref=False):
-        return tf.convert_to_tensor(value, dtype=dtype, name=name)
 
-    input_dict = {
-        "base_type": (np.ndarray,),
-        "conversion_func": [conversion_func_6],
-        "priority": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    class BytesClass:
+        def __init__(self, value):
+            self.value = value
 
-    # Input 7: Integer
-    def conversion_func_7(value, dtype=None, name=None, as_ref=False):
-        return tf.convert_to_tensor(value, dtype=dtype, name=name)
+    def conversion_func_bytes_class(value, dtype=None, name=None, as_ref=False):
+        if isinstance(value, BytesClass):
+            return tf.constant(value.value, dtype=dtype, name=name)
+        else:
+            return NotImplemented
 
-    input_dict = {
-        "base_type": (np.int32,),
-        "conversion_func": [conversion_func_7],
-        "priority": 2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict_9 = {"base_type": (BytesClass,), "conversion_func": [conversion_func_bytes_class], "priority": 105}
+    list_of_inputs.append(copy.deepcopy(input_dict_9))
 
     return list_of_inputs
 

@@ -12,46 +12,112 @@ def tf_sparse_minimum_inputs():
     list_of_inputs = []
 
     def create_sparse_tensor(indices, values, dense_shape):
-        return tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+        return tf.SparseTensor(indices, values, dense_shape)
 
-    def is_valid_sparse_tensor(sparse_tensor):
-        return isinstance(sparse_tensor, tf.sparse.SparseTensor)
+    def get_tensor_size(tensor):
+        if isinstance(tensor, tf.SparseTensor):
+            return np.prod(tensor.dense_shape.numpy()) if tensor.dense_shape.numpy().size > 0 else 0
+        else:
+            return tensor.size
 
     # Input 1
-    sp_a = create_sparse_tensor(np.array([[0, 0], [1, 2]]), np.array([1, 2], dtype=np.int32), np.array([3, 4]))
-    sp_b = create_sparse_tensor(np.array([[0, 0], [1, 2]]), np.array([3, 4], dtype=np.int32), np.array([3, 4]))
+    indices_a = np.array([[0, 0], [1, 2]])
+    values_a = np.array([1, 2], dtype=np.int32)
+    dense_shape_a = np.array([3, 4])
+    sp_a = create_sparse_tensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [1, 2]])
+    values_b = np.array([3, 4], dtype=np.int32)
+    dense_shape_b = np.array([3, 4])
+    sp_b = create_sparse_tensor(indices_b, values_b, dense_shape_b)
+
     input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_1"}
-    if is_valid_sparse_tensor(sp_a) and is_valid_sparse_tensor(sp_b):
-        list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    sp_a = create_sparse_tensor(np.array([[0], [2]]), np.array([5, 6], dtype=np.int32), np.array([5]))
-    sp_b = create_sparse_tensor(np.array([[0], [2]]), np.array([7, 8], dtype=np.int32), np.array([5]))
+    indices_a = np.array([[0], [2]])
+    values_a = np.array([5, 6], dtype=np.int32)
+    dense_shape_a = np.array([5])
+    sp_a = create_sparse_tensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0], [2]])
+    values_b = np.array([7, 8], dtype=np.int32)
+    dense_shape_b = np.array([5])
+    sp_b = create_sparse_tensor(indices_b, values_b, dense_shape_b)
+
     input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_2"}
-    if is_valid_sparse_tensor(sp_a) and is_valid_sparse_tensor(sp_b):
-        list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3 (negative values)
-    sp_a = create_sparse_tensor(np.array([[0, 1], [2, 3]]), np.array([-1, -2], dtype=np.int32), np.array([4, 5]))
-    sp_b = create_sparse_tensor(np.array([[0, 1], [2, 3]]), np.array([0, -3], dtype=np.int32), np.array([4, 5]))
+    # Input 3
+    indices_a = np.array([[0, 0, 0], [1, 1, 1]])
+    values_a = np.array([9, 10], dtype=np.int32)
+    dense_shape_a = np.array([2, 2, 2])
+    sp_a = create_sparse_tensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0, 0], [1, 1, 1]])
+    values_b = np.array([11, 12], dtype=np.int32)
+    dense_shape_b = np.array([2, 2, 2])
+    sp_b = create_sparse_tensor(indices_b, values_b, dense_shape_b)
+
     input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_3"}
-    if is_valid_sparse_tensor(sp_a) and is_valid_sparse_tensor(sp_b):
-        list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4 (different values)
-    sp_a = create_sparse_tensor(np.array([[0, 0], [1, 1], [2, 2]]), np.array([10, 20, 30], dtype=np.int32), np.array([3, 3]))
-    sp_b = create_sparse_tensor(np.array([[0, 0], [1, 1], [2, 2]]), np.array([5, 25, 35], dtype=np.int32), np.array([3, 3]))
+    # Input 4
+    indices_a = np.array([[0, 1], [1, 0]])
+    values_a = np.array([-1, 2], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = create_sparse_tensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 1], [1, 0]])
+    values_b = np.array([3, -4], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = create_sparse_tensor(indices_b, values_b, dense_shape_b)
+
     input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_4"}
-    if is_valid_sparse_tensor(sp_a) and is_valid_sparse_tensor(sp_b):
-        list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5 (single element sparse tensor)
-    sp_a = create_sparse_tensor(np.array([[0]]), np.array([1], dtype=np.int32), np.array([1]))
-    sp_b = create_sparse_tensor(np.array([[0]]), np.array([2], dtype=np.int32), np.array([1]))
+    # Input 5
+    indices_a = np.array([[0, 0]])
+    values_a = np.array([1], dtype=np.int32)
+    dense_shape_a = np.array([1, 1])
+    sp_a = create_sparse_tensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0]])
+    values_b = np.array([1], dtype=np.int32)
+    dense_shape_b = np.array([1, 1])
+    sp_b = create_sparse_tensor(indices_b, values_b, dense_shape_b)
+
     input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_5"}
-    if is_valid_sparse_tensor(sp_a) and is_valid_sparse_tensor(sp_b):
-        list_of_inputs.append(copy.deepcopy(input_dict))
-        
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6 - Empty SparseTensor
+    indices_a = np.array([], dtype=np.int64).reshape(0, 2)
+    values_a = np.array([], dtype=np.int32)
+    dense_shape_a = np.array([2, 2])
+    sp_a = create_sparse_tensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([], dtype=np.int64).reshape(0, 2)
+    values_b = np.array([], dtype=np.int32)
+    dense_shape_b = np.array([2, 2])
+    sp_b = create_sparse_tensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7 - Different values, same indices
+    indices_a = np.array([[0, 0], [1, 1]])
+    values_a = np.array([10, 20], dtype=np.int32)
+    dense_shape_a = np.array([3, 3])
+    sp_a = create_sparse_tensor(indices_a, values_a, dense_shape_a)
+
+    indices_b = np.array([[0, 0], [1, 1]])
+    values_b = np.array([5, 15], dtype=np.int32)
+    dense_shape_b = np.array([3, 3])
+    sp_b = create_sparse_tensor(indices_b, values_b, dense_shape_b)
+
+    input_dict = {"sp_a": sp_a, "sp_b": sp_b, "name": "minimum_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

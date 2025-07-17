@@ -11,48 +11,165 @@ import copy
 def tf_raw_ops_restore_inputs():
     list_of_inputs = []
 
-    def create_input(file_pattern_str, tensor_name_str, dt_type, preferred_shard_val, name_str):
-        file_pattern = np.array(file_pattern_str, dtype="S")
-        tensor_name = np.array(tensor_name_str, dtype="S")
-        input_dict = {
-            "file_pattern": file_pattern,
-            "tensor_name": tensor_name,
-            "dt": dt_type,
-            "preferred_shard": preferred_shard_val,
-            "name": name_str
-        }
-        return copy.deepcopy(input_dict)
-
     # Input 1
-    list_of_inputs.append(create_input("checkpoint1", "tensor_a", tf.float32, -1, "restore_op_1"))
+    file_pattern = tf.constant("checkpoint_file_1", dtype=tf.string)
+    tensor_name = tf.constant("tensor_a", dtype=tf.string)
+    dt = np.float32
+    preferred_shard = -1
+    name = "restore_op_1"
+
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    list_of_inputs.append(create_input("checkpoint2*", "tensor_b", tf.int32, 0, "restore_op_2"))
+    file_pattern = tf.constant("checkpoint_file_2*", dtype=tf.string)
+    tensor_name = tf.constant("tensor_b", dtype=tf.string)
+    dt = np.int32
+    preferred_shard = 0
+    name = "restore_op_2"
+
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    list_of_inputs.append(create_input("checkpoint3?", "tensor_c", tf.float64, 1, "restore_op_3"))
+    file_pattern = tf.constant("checkpoint_file_3?", dtype=tf.string)
+    tensor_name = tf.constant("tensor_c", dtype=tf.string)
+    dt = np.int64
+    preferred_shard = 1
+    name = "restore_op_3"
+
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    list_of_inputs.append(create_input("checkpoint4", "tensor_d", tf.uint8, -1, "restore_op_4"))
+    file_pattern = tf.constant("checkpoint_file_4", dtype=tf.string)
+    tensor_name = tf.constant("tensor_d", dtype=tf.string)
+    dt = np.float64
+    preferred_shard = 2
+    name = "restore_op_4"
+
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    list_of_inputs.append(create_input("checkpoint5", "tensor_e", tf.int64, 2, "restore_op_5"))
+    file_pattern = tf.constant("checkpoint_file_5", dtype=tf.string)
+    tensor_name = tf.constant("tensor_e", dtype=tf.string)
+    dt = np.complex64
+    preferred_shard = -1
+    name = "restore_op_5"
 
-    # Input 6
-    list_of_inputs.append(create_input("checkpoint6", "tensor_f", tf.bool, -1, "restore_op_6"))
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6
+    file_pattern = tf.constant("checkpoint_file_6*", dtype=tf.string)
+    tensor_name = tf.constant("tensor_f", dtype=tf.string)
+    dt = np.complex128
+    preferred_shard = 0
+    name = "restore_op_6"
+
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    list_of_inputs.append(create_input("checkpoint7", "tensor_g", tf.complex64, -1, "restore_op_7"))
+    file_pattern = tf.constant("checkpoint_file_7?", dtype=tf.string)
+    tensor_name = tf.constant("tensor_g", dtype=tf.string)
+    dt = np.bfloat16
+    preferred_shard = 1
+    name = "restore_op_7"
+
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    list_of_inputs.append(create_input("checkpoint8", "tensor_h", tf.float32, 0, "restore_op_8"))
+    file_pattern = tf.constant("checkpoint_file_8", dtype=tf.string)
+    tensor_name = tf.constant("tensor_h", dtype=tf.string)
+    dt = np.uint8
+    preferred_shard = 2
+    name = "restore_op_8"
+
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    list_of_inputs.append(create_input("checkpoint9", "tensor_i", tf.int32, 1, "restore_op_9"))
+    file_pattern = tf.constant("checkpoint_file_9", dtype=tf.string)
+    tensor_name = tf.constant("tensor_i", dtype=tf.string)
+    dt = np.bool_
+    preferred_shard = -1
+    name = "restore_op_9"
+
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    list_of_inputs.append(create_input("checkpoint10", "tensor_j", tf.string, -1, "restore_op_10"))
+    file_pattern = tf.constant("checkpoint_file_10*", dtype=tf.string)
+    tensor_name = tf.constant("tensor_j", dtype=tf.string)
+    dt = np.int8
+    preferred_shard = 0
+    name = "restore_op_10"
 
+    input_dict = {
+        "file_pattern": file_pattern,
+        "tensor_name": tensor_name,
+        "dt": dt,
+        "preferred_shard": preferred_shard,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
 generated_inputs = {}

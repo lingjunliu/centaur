@@ -5,126 +5,104 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import copy
 import numpy as np
+import copy
 
-def tf_raw_ops_WholeFileReader_inputs():
+def tf_raw_ops_whole_file_reader_inputs():
     list_of_inputs = []
 
     # Input 1
-    container = b""
-    shared_name = b""
-    name = b""
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "",
+        "shared_name": "",
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    container = b"my_container"
-    shared_name = b"my_shared_name"
-    name = b"my_name"
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "my_container",
+        "shared_name": "my_shared_name",
+        "name": "my_op_name"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    container = b"another_container"
-    shared_name = b""
-    name = b"another_name"
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "another_container",
+        "shared_name": "",
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    container = b""
-    shared_name = b"another_shared_name"
-    name = b""
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "",
+        "shared_name": "another_shared_name",
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    container = b"a_long_container_name"
-    shared_name = b"a_long_shared_name"
-    name = b"a_long_name"
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "",
+        "shared_name": "",
+        "name": "another_op_name"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 6
-    container = b"container_with_numbers_123"
-    shared_name = b"shared_name_with_numbers_456"
-    name = b"name_with_numbers_789"
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "container_123",
+        "shared_name": "shared_123",
+        "name": "name_123"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    container = b"container_with_symbols_!@#$"
-    shared_name = b"shared_name_with_symbols_%^&*"
-    name = b"name_with_symbols_()_+=-"
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "special_container",
+        "shared_name": "",
+        "name": "special_name"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 8
-    container = b""
-    shared_name = b"shared_name_with_empty_container"
-    name = b"name_with_empty_container"
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "",
+        "shared_name": "unique_shared",
+        "name": "unique_name"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    container = b"container_with_empty_shared_name"
-    shared_name = b""
-    name = b"name_with_empty_shared_name"
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "test_container",
+        "shared_name": "test_shared",
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 10
-    container = b"container_with_empty_name"
-    shared_name = b"shared_name_with_empty_name"
-    name = b""
     input_dict = {
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
+        "container": "container4",
+        "shared_name": "",
+        "name": "name4"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.WholeFileReader"] = tf_raw_ops_WholeFileReader_inputs()
+temp_list = tf_raw_ops_whole_file_reader_inputs()
+final_list = []
+for input_dict in temp_list:
+  final_input_dict = {}
+  for k, v in input_dict.items():
+    final_input_dict[k] = np.array(v, dtype=np.string_)
+  final_list.append(final_input_dict)
+
+generated_inputs["tf.raw_ops.WholeFileReader"] = final_list
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -11,55 +11,56 @@ import copy
 def tf_raw_ops_string_strip_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic string
-    input_tensor = np.array("   TensorFlow   ", dtype=np.object_)
+    # Input 1: Basic string tensor
+    input_tensor = np.array(["  hello  ", " world "], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: String with leading and trailing newlines
-    input_tensor = np.array("\n\n  TensorFlow  \n\n", dtype=np.object_)
+    # Input 2: String tensor with different kinds of whitespace
+    input_tensor = np.array(["\n\t  mixed \r\n", "  whitespace\t"], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: String with only whitespace
-    input_tensor = np.array("     ", dtype=np.object_)
+    # Input 3: Empty string tensor
+    input_tensor = np.array(["", "  ", " "], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty string
-    input_tensor = np.array("", dtype=np.object_)
+    # Input 4: Tensor with special characters and whitespace
+    input_tensor = np.array(["  special!@#$  ", "  chars%^&*  "], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: String with no whitespace
-    input_tensor = np.array("TensorFlow", dtype=np.object_)
+    # Input 5: Tensor with leading and trailing non-whitespace characters
+    input_tensor = np.array(["abc  def  ghi", " jkl mno pqr "], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Multiple strings in a list
-    input_tensor = np.array(["   TensorFlow", "The python library    ", "  "], dtype=np.object_)
+    # Input 6: Multidimensional tensor
+    input_tensor = np.array([["  first  ", " second "], ["third  ", "  fourth"]], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Multiple strings with different whitespace patterns
-    input_tensor = np.array(["\n TensorFlow", "The python library \t", "   ", ""], dtype=np.object_)
+    # Input 7: Tensor with numbers as strings
+    input_tensor = np.array(["  123  ", " 456 "], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: String with inner whitespace
-    input_tensor = np.array("  Tensor Flow  ", dtype=np.object_)
+    # Input 8: Tensor with only whitespaces
+    input_tensor = np.array(["   ", "  \t "], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: String with unicode whitespace
-    input_tensor = np.array(" \u3000TensorFlow\u3000 ", dtype=np.object_)
+    # Input 9: Tensor with mixed alphanumeric and whitespace
+    input_tensor = np.array(["  a1b2c  ", " 3d4e5 "], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Batched input
-    input_tensor = np.array([["   TensorFlow   ", "  Python  "], ["  ML  ", "  "]], dtype=np.object_)
+    # Input 10: Empty tensor
+    input_tensor = np.array([], dtype=np.unicode_)
     input_dict = {"input": input_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    
 
     return list_of_inputs
 

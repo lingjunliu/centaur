@@ -8,87 +8,63 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_stringlength_inputs():
+def tf_raw_ops_StringLength_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic string tensor with BYTE unit
-    input_tensor = np.array(["hello", "world", ""], dtype=object)
-    unit = "BYTE"
-    name = None
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 1: Basic string tensor, byte length
+    input_tensor = tf.convert_to_tensor(np.array(["hello", "world", ""], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: String tensor with UTF8_CHAR unit
-    input_tensor = np.array(["你好", "世界", ""], dtype=object)
-    unit = "UTF8_CHAR"
-    name = "string_length_utf8"
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 2: String tensor, UTF8 character length
+    input_tensor = tf.convert_to_tensor(np.array(["你好", "世界", ""], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Empty string tensor
-    input_tensor = np.array([], dtype=object)
-    unit = "BYTE"
-    name = None
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    input_tensor = tf.convert_to_tensor(np.array([""], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": "empty_tensor"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D string tensor with BYTE unit
-    input_tensor = np.array([["hello", "world"], ["foo", "bar"]], dtype=object)
-    unit = "BYTE"
-    name = None
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 4: String tensor with special characters, byte length
+    input_tensor = tf.convert_to_tensor(np.array(["!@#$%^", "&*()_+", "-=[]{}|;':", ",./<>?"], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D string tensor with UTF8_CHAR unit
-    input_tensor = np.array([["你好", "世界"], ["你好世界", ""]], dtype=object)
-    unit = "UTF8_CHAR"
-    name = "string_length_utf8_2d"
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 5: String tensor with special characters, UTF8 length (all ASCII)
+    input_tensor = tf.convert_to_tensor(np.array(["!@#$%^", "&*()_+", "-=[]{}|;':", ",./<>?"], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: String tensor with mixed ASCII and UTF8 characters (BYTE)
-    input_tensor = np.array(["hello你好", "world世界", ""], dtype=object)
-    unit = "BYTE"
-    name = None
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 6: String tensor with mixed ASCII and UTF8 characters, byte length
+    input_tensor = tf.convert_to_tensor(np.array(["hello你好", "world世界", ""], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: String tensor with mixed ASCII and UTF8 characters (UTF8_CHAR)
-    input_tensor = np.array(["hello你好", "world世界", ""], dtype=object)
-    unit = "UTF8_CHAR"
-    name = "string_length_mixed_utf8"
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 7: String tensor with mixed ASCII and UTF8 characters, UTF8 length
+    input_tensor = tf.convert_to_tensor(np.array(["hello你好", "world世界", ""], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: String with special characters
-    input_tensor = np.array(["!@#$%^&*()", "`-=[]\\;',./", "~_+{}|\":<>?"], dtype=object)
-    unit = "BYTE"
-    name = None
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 8:  byte length
+    input_tensor = tf.convert_to_tensor(np.array([["hello"]], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "BYTE", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Long strings
-    long_string = "a" * 100
-    input_tensor = np.array([long_string, "short"], dtype=object)
-    unit = "BYTE"
-    name = None
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 9: UTF8 length
+    input_tensor = tf.convert_to_tensor(np.array([["你好"]], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Unicode characters
-    input_tensor = np.array(["\U0001F600", "\U0001F642", "\U0001F680"], dtype=object)
-    unit = "UTF8_CHAR"
-    name = "string_length_unicode"
-    input_dict = {"input": input_tensor, "unit": unit, "name": name}
+    # Input 10: Tensor with empty strings and UTF8 chars, UTF8 length
+    input_tensor = tf.convert_to_tensor(np.array(["", "世界", ""], dtype=np.object_))
+    input_dict = {"input": input_tensor, "unit": "UTF8_CHAR", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    for i in range(len(list_of_inputs)):
-      list_of_inputs[i]['input'] = tf.constant(list_of_inputs[i]['input'])
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.StringLength"] = tf_raw_ops_stringlength_inputs()
+generated_inputs["tf.raw_ops.StringLength"] = tf_raw_ops_StringLength_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

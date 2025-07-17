@@ -12,83 +12,168 @@ def tf_raw_ops_gather_nd_inputs():
     list_of_inputs = []
 
     # Input 1
-    params = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
-    bad_indices_policy = ""
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([['a', 'b'], ['c', 'd']], dtype=object)
+    indices = np.array([[0, 0], [1, 1]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    params = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    indices = np.array([[1], [0]], dtype=np.int32)
-    bad_indices_policy = ""
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([['a', 'b'], ['c', 'd']], dtype=object)
+    indices = np.array([[1], [0]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    indices = np.array([[1]], dtype=np.int32)
-    bad_indices_policy = ""
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([[1]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    indices = np.array([[0, 1], [1, 0]], dtype=np.int32)
-    bad_indices_policy = ""
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([[0, 1], [1, 0]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    indices = np.array([[0, 0, 1], [1, 0, 1]], dtype=np.int32)
-    bad_indices_policy = ""
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([[0, 0, 1], [1, 0, 1]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    params = np.array([['a', 'b'], ['c', 'd']], dtype=np.str_)
-    indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
-    bad_indices_policy = ""
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([['a', 'b'], ['c', 'd']], dtype=object)
+    indices = np.array([[[0, 0]], [[0, 1]]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    params = np.array([1, 2, 3, 4, 5], dtype=np.int32)
-    indices = np.array([[0], [2], [4]], dtype=np.int32)
-    bad_indices_policy = ""
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([['a', 'b'], ['c', 'd']], dtype=object)
+    indices = np.array([[[1]], [[0]]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    params = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    indices = np.array([[0, 0], [1, 1]], dtype=np.int16)
-    bad_indices_policy = "IGNORE"
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([[[1]], [[0]]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    params = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    bad_indices_policy = "DEFAULT"
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([[[0, 1], [1, 0]], [[0, 0], [1, 1]]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    params = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    indices = np.array([[1, 0], [0, 1]], dtype=np.int32) # Valid indices
-    bad_indices_policy = "IGNORE"
-    name = None
-    input_dict = {"params": params, "indices": indices, "bad_indices_policy": bad_indices_policy, "name": name}
+    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    indices = np.array([[[0, 0, 1], [1, 0, 1]], [[0, 1, 1], [1, 1, 0]]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    params = np.array([1, 2, 3, 4, 5])
+    indices = np.array([[0], [2], [4]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12, with bad_indices_policy = "IGNORE"
+    params = np.array([1, 2, 3])
+    indices = np.array([[0], [1], [5]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "IGNORE",
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13, int16 indices
+    params = np.array([1, 2, 3, 4, 5])
+    indices = np.array([[0], [2], [4]], dtype=np.int16)
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 14, int64 indices
+    params = np.array([1, 2, 3, 4, 5])
+    indices = np.array([[0], [2], [4]], dtype=np.int64)
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 15
+    params = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    indices = np.array([[0, 0], [1, 1]])
+    input_dict = {
+        "params": params,
+        "indices": indices,
+        "bad_indices_policy": "",
+        "name": ""
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

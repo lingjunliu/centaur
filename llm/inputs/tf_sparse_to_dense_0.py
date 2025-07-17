@@ -11,104 +11,60 @@ import copy
 def tf_sparse_to_dense_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1, 2])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    default_value = tf.constant(0, dtype=np.int64)
+    # Input 1
+    indices = np.array([[0, 1], [1, 0], [2, 2]])
+    values = np.array([1, 2, 3], dtype=np.int32)
+    dense_shape = np.array([3, 3])
+    sp_input = tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    default_value = tf.constant(0, dtype=np.int32)
     validate_indices = True
     name = "sparse_to_dense_1"
     input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different default value
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1, 2])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    default_value = tf.constant(-1, dtype=np.int64)
+    # Input 2
+    indices = np.array([[0, 0], [1, 1], [2, 2], [0, 2]])
+    values = np.array([4, 5, 6, 7], dtype=np.float32)
+    dense_shape = np.array([3, 3])
+    sp_input = tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    default_value = tf.constant(-1.0, dtype=np.float32)
     validate_indices = False
     name = "sparse_to_dense_2"
     input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different dtype
-    indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
-    values = np.array([1.5, 2.5], dtype=np.float32)
-    dense_shape = np.array([3, 4], dtype=np.int64)
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    default_value = tf.constant(0.0, dtype=np.float32)
+    # Input 3
+    indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 1]])
+    values = np.array([10, 11, 12], dtype=np.int64)
+    dense_shape = np.array([2, 2, 2])
+    sp_input = tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    default_value = tf.constant(0, dtype=np.int64)
     validate_indices = True
     name = "sparse_to_dense_3"
     input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 3D tensor
-    indices = np.array([[0, 0, 0], [1, 2, 1]])
-    values = np.array([1, 2])
-    dense_shape = np.array([2, 3, 4])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    default_value = tf.constant(0, dtype=np.int64)
+    # Input 4
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float64)
+    dense_shape = np.array([2, 2])
+    sp_input = tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    default_value = tf.constant(0.0, dtype=np.float64)
     validate_indices = False
     name = "sparse_to_dense_4"
     input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 1D tensor
-    indices = np.array([[0], [2]])
-    values = np.array([1, 2])
-    dense_shape = np.array([5])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    default_value = tf.constant(0, dtype=np.int64)
+    # Input 5
+    indices = np.array([[0, 0, 0], [1, 1, 1]])
+    values = np.array([-1, -2], dtype=np.int32)
+    dense_shape = np.array([2, 2, 2])
+    sp_input = tf.sparse.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    default_value = tf.constant(100, dtype=np.int32)
     validate_indices = True
     name = "sparse_to_dense_5"
     input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Bool values
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([True, False])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    default_value = tf.constant(False, dtype=tf.bool)
-    validate_indices = True
-    name = "sparse_to_dense_7"
-    input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 8: Large shape
-    indices = np.array([[0, 0], [99, 99]])
-    values = np.array([1, 2])
-    dense_shape = np.array([100, 100])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    default_value = tf.constant(0, dtype=np.int64)
-    validate_indices = True
-    name = "sparse_to_dense_8"
-    input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Negative values
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([-1, -2])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    default_value = tf.constant(0, dtype=np.int64)
-    validate_indices = False
-    name = "sparse_to_dense_9"
-    input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: String type. Remove due to string type
-    # indices = np.array([[0, 0], [1, 2]])
-    # values = np.array(["a", "b"])
-    # dense_shape = np.array([3, 4])
-    # sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    # default_value = tf.constant("", dtype=tf.string)
-    # validate_indices = True
-    # name = "sparse_to_dense_10"
-    # input_dict = {"sp_input": sp_input, "default_value": default_value, "validate_indices": validate_indices, "name": name}
-    # list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

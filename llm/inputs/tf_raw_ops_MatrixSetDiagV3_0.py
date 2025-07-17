@@ -11,145 +11,75 @@ import copy
 def tf_raw_ops_matrix_set_diag_v3_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]).astype(np.int32)
-    diagonal_tensor = np.array([[10, 11, 12]]).astype(np.int32)
-    k_tensor = np.array(0).astype(np.int32)
-    align_str = "RIGHT_LEFT"
-
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 1: Basic example with main diagonal
+    input_matrix = np.array([[[7, 7, 7], [7, 7, 7], [7, 7, 7]]], dtype=np.int32)
+    diagonal = np.array([[1, 2, 3]], dtype=np.int32)
+    k = np.array(0, dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]).astype(np.float32)
-    diagonal_tensor = np.array([[10.0, 11.0, 12.0]]).astype(np.float32)
-    k_tensor = np.array(1).astype(np.int32)
-    align_str = "LEFT_RIGHT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 2: Superdiagonal
+    input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.int32)
+    diagonal = np.array([[10, 11]], dtype=np.int32)
+    k = np.array(1, dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]).astype(np.int64)
-    diagonal_tensor = np.array([[10, 11, 12]]).astype(np.int64)
-    k_tensor = np.array(-1).astype(np.int32)
-    align_str = "LEFT_LEFT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 3: Subdiagonal
+    input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.int32)
+    diagonal = np.array([[10, 11]], dtype=np.int32)
+    k = np.array(-1, dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]).astype(np.float64)
-    diagonal_tensor = np.array([[10.0, 11.0, 12.0]]).astype(np.float64)
-    k_tensor = np.array(0).astype(np.int32)
-    align_str = "RIGHT_RIGHT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 4: Band of diagonals
+    input_matrix = np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]], dtype=np.int32)
+    diagonal = np.array([[[13, 14, 15], [16, 17, 18], [19, 20, 21], [22, 23, 24]]], dtype=np.int32)
+    k = np.array([-1, 2], dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).astype(np.int32)
-    diagonal_tensor = np.array([[10, 11], [12, 13]]).astype(np.int32)
-    k_tensor = np.array(0).astype(np.int32)
-    align_str = "RIGHT_LEFT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 5: Different alignment
+    input_matrix = np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]], dtype=np.int32)
+    diagonal = np.array([[[13, 14, 15], [16, 17, 18], [19, 20, 21], [22, 23, 24]]], dtype=np.int32)
+    k = np.array([-1, 2], dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "LEFT_RIGHT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).astype(np.float32)
-    diagonal_tensor = np.array([[10.0, 11.0], [12.0, 13.0]]).astype(np.float32)
-    k_tensor = np.array([0, 1]).astype(np.int32)
-    align_str = "LEFT_RIGHT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 6: k is scalar
+    input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.int32)
+    diagonal = np.array([[10, 11, 12]], dtype=np.int32)
+    k = np.array(0, dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).astype(np.int64)
-    diagonal_tensor = np.array([[10, 11], [12, 13]]).astype(np.int64)
-    k_tensor = np.array([-1, 0]).astype(np.int32)
-    align_str = "LEFT_LEFT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 7: Multiple batches
+    input_matrix = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.int32)
+    diagonal = np.array([[13, 14], [15, 16]], dtype=np.int32)
+    k = np.array(0, dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]).astype(np.float64)
-    diagonal_tensor = np.array([[10.0, 11.0], [12.0, 13.0]]).astype(np.float64)
-    k_tensor = np.array([-1, 1]).astype(np.int32)
-    align_str = "RIGHT_RIGHT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 8: Different data type
+    input_matrix = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
+    diagonal = np.array([[5.0, 6.0]], dtype=np.float32)
+    k = np.array(0, dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 9
-    input_tensor = np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]]).astype(np.int32)
-    diagonal_tensor = np.array([[[13, 14], [15, 16], [17, 18]]]).astype(np.int32)
-    k_tensor = np.array([-1, 1]).astype(np.int32)
-    align_str = "RIGHT_LEFT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 9: k[0] == k[1]
+    input_matrix = np.array([[[1, 2, 3], [4, 5, 6], [7, 8, 9]]], dtype=np.int32)
+    diagonal = np.array([[10, 11, 12]], dtype=np.int32)
+    k = np.array([0, 0], dtype=np.int32)
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    input_tensor = np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]]]).astype(np.float32)
-    diagonal_tensor = np.array([[[13.0, 14.0], [15.0, 16.0], [17.0, 18.0]]]).astype(np.float32)
-    k_tensor = np.array([-2, 0]).astype(np.int32)
-    align_str = "LEFT_RIGHT"
-    input_dict = {
-        "input": input_tensor,
-        "diagonal": diagonal_tensor,
-        "k": k_tensor,
-        "align": align_str,
-        "name": None
-    }
+    # Input 10: More complex band
+    input_matrix = np.array([[[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [11, 12, 13, 14, 15], [16, 17, 18, 19, 20]]], dtype=np.int32)
+    diagonal = np.array([[[21, 22, 23, 24], [25, 26, 27, 28], [29, 30, 31, 32], [33, 34, 35, 36], [37, 38, 39, 40]]], dtype=np.int32)
+    k = np.array([-2, 2], dtype=np.int32)
+
+    input_dict = {"input": input_matrix, "diagonal": diagonal, "k": k, "align": "RIGHT_LEFT", "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

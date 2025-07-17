@@ -11,60 +11,56 @@ import copy
 def tf_raw_ops_relu_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, positive values
+    # Input 1: float32, 1D, positive values
     features = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    name = "relu_op_1"
-    input_dict = {"features": tf.convert_to_tensor(features).numpy(), "name": name}
+    input_dict = {"features": features, "name": "relu_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32, negative and positive values
-    features = np.array([-1.0, 0.0, 2.0, -3.0], dtype=np.float32)
-    name = "relu_op_2"
-    input_dict = {"features": tf.convert_to_tensor(features).numpy(), "name": name}
+    # Input 2: float32, 1D, mixed positive and negative values
+    features = np.array([-1.0, 0.0, 3.0, -5.0], dtype=np.float32)
+    input_dict = {"features": features, "name": "relu_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: int32, positive values
+    # Input 3: float32, 2D, positive values
+    features = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input_dict = {"features": features, "name": "relu_3"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: float32, 2D, mixed positive and negative values
+    features = np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float32)
+    input_dict = {"features": features, "name": "relu_4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: int32, 1D, positive values
     features = np.array([1, 2, 3], dtype=np.int32)
-    name = "relu_op_3"
-    input_dict = {"features": tf.convert_to_tensor(features).numpy(), "name": name}
+    input_dict = {"features": features, "name": "relu_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: int32, negative and positive values
-    features = np.array([-1, 0, 2, -3], dtype=np.int32)
-    name = "relu_op_4"
-    input_dict = {"features": tf.convert_to_tensor(features).numpy(), "name": name}
+    # Input 6: int32, 1D, mixed positive and negative values
+    features = np.array([-1, 0, 3, -5], dtype=np.int32)
+    input_dict = {"features": features, "name": "relu_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float64, positive values, multi-dimensional
-    features = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    name = "relu_op_5"
-    input_dict = {"features": tf.convert_to_tensor(features).numpy(), "name": name}
+    # Input 7: int32, 2D, positive values
+    features = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    input_dict = {"features": features, "name": "relu_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: int64, negative values
-    features = np.array([-1, -2, -3], dtype=np.int64)
-    name = "relu_op_6"
-    input_dict = {"features":  tf.convert_to_tensor(features).numpy(), "name": name}
+    # Input 8: int32, 2D, mixed positive and negative values
+    features = np.array([[-1, 2], [3, -4]], dtype=np.int32)
+    input_dict = {"features": features, "name": "relu_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: uint8, positive values
-    features = np.array([1, 2, 3], dtype=np.uint8)
-    name = "relu_op_7"
-    input_dict = {"features": tf.convert_to_tensor(features).numpy(), "name": name}
+    # Input 9: float64, 3D, mixed positive and negative values
+    features = np.array([[[1.0, -2.0], [3.0, -4.0]], [[-5.0, 6.0], [-7.0, 8.0]]], dtype=np.float64)
+    input_dict = {"features": features, "name": "relu_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: uint32
-    features = np.array([1, 2, 3], dtype=np.uint32)
-    name = "relu_op_9"
-    input_dict = {"features": tf.convert_to_tensor(features).numpy(), "name": name}
+     # Input 10: uint8, 1D, values
+    features = np.array([1, 2, 255, 0], dtype=np.uint8)
+    input_dict = {"features": features, "name": "relu_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: uint64
-    features = np.array([1, 2, 3], dtype=np.uint64)
-    name = "relu_op_10"
-    input_dict = {"features": tf.convert_to_tensor(features).numpy(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}

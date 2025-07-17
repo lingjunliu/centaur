@@ -11,54 +11,70 @@ import copy
 def tf_raw_ops_greater_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with int32
+    # Input 1: Basic test with int32
     x = np.array([5, 4, 6], dtype=np.int32)
     y = np.array([5, 2, 5], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": "greater_int32_1"}
+    input_dict = {"x": x, "y": y, "name": "greater_test_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Broadcasting with int32
     x = np.array([5, 4, 6], dtype=np.int32)
     y = np.array([5], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": "greater_int32_2"}
+    input_dict = {"x": x, "y": y, "name": "greater_test_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative values with int32
-    x = np.array([-1, 0, 1], dtype=np.int32)
-    y = np.array([0, 0, 0], dtype=np.int32)
-    input_dict = {"x": x, "y": y, "name": "greater_int32_3"}
+    # Input 3: float32 comparison
+    x = np.array([5.0, 4.0, 6.0], dtype=np.float32)
+    y = np.array([5.0, 2.0, 5.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "greater_test_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Float32 with different shapes
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    y = np.array([2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "y": y, "name": "greater_float32_1"}
+    # Input 4: int64 comparison with negative values
+    x = np.array([-1, 0, 1], dtype=np.int64)
+    y = np.array([0, -1, 0], dtype=np.int64)
+    input_dict = {"x": x, "y": y, "name": "greater_test_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Float64 with negative values
-    x = np.array([-1.5, -0.5, 0.5], dtype=np.float64)
-    y = np.array([-1.0, 0.0, 1.0], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": "greater_float64_1"}
+    # Input 5: float64 comparison with different shapes
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    y = np.array([2.0, 3.0], dtype=np.float64)
+    input_dict = {"x": x, "y": y, "name": "greater_test_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: int64
-    x = np.array([5, 4, 6], dtype=np.int64)
-    y = np.array([5, 2, 5], dtype=np.int64)
-    input_dict = {"x": x, "y": y, "name": "greater_int64_1"}
+    # Input 6: uint8 comparison
+    x = np.array([255, 128, 0], dtype=np.uint8)
+    y = np.array([128, 64, 1], dtype=np.uint8)
+    input_dict = {"x": x, "y": y, "name": "greater_test_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 7: Two dimensional int32
+    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    y = np.array([[0, 3, 2], [5, 4, 7]], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "greater_test_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Broadcasting with int32 and different dimensions.
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    y = np.array([2, 3], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "greater_test_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: half comparison
+    x = np.array([1.5, 2.5, 3.5], dtype=np.float16)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float16)
+    input_dict = {"x": x, "y": y, "name": "greater_test_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: int16 comparison (replacing uint32 as it causes errors)
+    x = np.array([1000, 2000, 3000], dtype=np.int16)
+    y = np.array([500, 2500, 2000], dtype=np.int16)
+    input_dict = {"x": x, "y": y, "name": "greater_test_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_greater_inputs()
-generated_inputs["tf.raw_ops.Greater"] = []
-for input_dict in inputs:
-    x = tf.convert_to_tensor(input_dict["x"])
-    y = tf.convert_to_tensor(input_dict["y"])
-    generated_inputs["tf.raw_ops.Greater"].append({"x": x,
-                                                     "y": y,
-                                                     "name": input_dict["name"]})
+generated_inputs["tf.raw_ops.Greater"] = tf_raw_ops_greater_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

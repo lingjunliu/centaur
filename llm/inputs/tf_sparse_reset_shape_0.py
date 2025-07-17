@@ -11,93 +11,139 @@ import copy
 def tf_sparse_reset_shape_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic SparseTensor with new_shape
+    def get_range(tensor):
+      if isinstance(tensor, tf.SparseTensor):
+        values = tensor.values
+        if values.shape.rank == 0:
+          return [values.numpy(), values.numpy()] if values.numpy() is not None else [0,0]
+        else:
+          return [np.min(values.numpy()), np.max(values.numpy())] if values.numpy().size > 0 else [0, 0]
+      else:
+        return [np.min(tensor), np.max(tensor)] if tensor.size > 0 else [0, 0]
+
+    # Input 1
     indices = np.array([[0, 0], [1, 2]])
     values = np.array([1, 2])
-    shape = np.array([2, 3])
-    sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = np.array([3, 4])
-    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: SparseTensor with None new_shape (tight bounding box)
-    indices = np.array([[0, 1], [2, 0]])
-    values = np.array([3, 4])
-    shape = np.array([3, 2])
-    sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = None
-    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Empty SparseTensor with new_shape
-    indices = np.array([]).reshape(0, 2)
-    values = np.array([])
-    shape = np.array([2, 3])
+    shape = np.array([3, 4])
     sp_input = tf.SparseTensor(indices, values, shape)
     new_shape = np.array([4, 5])
     input_dict = {"sp_input": sp_input, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty SparseTensor with None new_shape
-    indices = np.array([]).reshape(0, 2)
+    # Input 2
+    indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 2]])
+    values = np.array([1, 2, 3])
+    shape = np.array([2, 2, 3])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([3, 3, 4])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    indices = np.array([[0, 0], [1, 1]])
+    values = np.array([1, 2])
+    shape = np.array([2, 2])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = None
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    indices = np.array([[0, 0, 0], [1, 2, 1]])
+    values = np.array([1, 2])
+    shape = np.array([2, 3, 4])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([3, 4, 5])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    indices = np.array([[0, 0, 0, 0]])
+    values = np.array([1])
+    shape = np.array([1, 1, 1, 1])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2, 2, 2, 2])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    indices = np.array([[0, 1]])
+    values = np.array([2])
+    shape = np.array([1, 2])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([5, 5])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    indices = np.array([[0, 0, 0]])
+    values = np.array([1])
+    shape = np.array([1, 1, 1])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([1, 1, 2])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    indices = np.array([[0, 0]])
+    values = np.array([1])
+    shape = np.array([1, 1])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2, 2])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    indices = np.array([[1, 2, 3]])
+    values = np.array([4])
+    shape = np.array([5, 6, 7])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = None
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    indices = np.array([[0, 0], [1, 2]])
+    values = np.array([1, 2])
+    shape = np.array([3, 4])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([5, 4])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11 - Corrected indices for empty SparseTensor
+    indices = np.empty((0, 2), dtype=np.int64)
     values = np.array([])
     shape = np.array([2, 3])
     sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = None
+    new_shape = np.array([3,4])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12 - All zeros
+    indices = np.array([[0, 0]])
+    values = np.array([0])
+    shape = np.array([1, 1])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2, 2])
+    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13 - Negative values in indices
+    indices = np.array([[0, 0]])
+    values = np.array([-1])
+    shape = np.array([1, 1])
+    sp_input = tf.SparseTensor(indices, values, shape)
+    new_shape = np.array([2, 2])
     input_dict = {"sp_input": sp_input, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D SparseTensor with new_shape
-    indices = np.array([[0, 0, 1], [1, 2, 0]])
-    values = np.array([5, 6])
-    shape = np.array([2, 3, 2])
+    # Input 14 - float values
+    indices = np.array([[0, 0]])
+    values = np.array([1.5])
+    shape = np.array([1, 1])
     sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = np.array([3, 4, 3])
-    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: 3D SparseTensor with None new_shape
-    indices = np.array([[0, 0, 1], [1, 2, 0]])
-    values = np.array([5, 6])
-    shape = np.array([2, 3, 2])
-    sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = None
-    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Higher values in indices with new_shape
-    indices = np.array([[1, 1], [2, 0]])
-    values = np.array([7, 8])
-    shape = np.array([3, 2])
-    sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = np.array([4, 3])
-    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Different data type for values with new_shape
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1.0, 2.0])
-    shape = np.array([2, 3])
-    sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = np.array([3, 4])
-    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Different data type for values with None new_shape
-    indices = np.array([[0, 1], [2, 0]])
-    values = np.array([3.0, 4.0])
-    shape = np.array([3, 2])
-    sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = None
-    input_dict = {"sp_input": sp_input, "new_shape": new_shape}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: SparseTensor with identity new_shape
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1, 2])
-    shape = np.array([2, 3])
-    sp_input = tf.SparseTensor(indices, values, shape)
-    new_shape = np.array([2, 3])
+    new_shape = np.array([2, 2])
     input_dict = {"sp_input": sp_input, "new_shape": new_shape}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

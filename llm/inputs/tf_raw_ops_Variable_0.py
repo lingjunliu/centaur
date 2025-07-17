@@ -16,91 +16,161 @@ def tf_raw_ops_variable_inputs():
     dtype = tf.float32
     container = ""
     shared_name = ""
-    name = "var1"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    name = "variable_1"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    shape = [1, 5, 7]
+    shape = [5]
     dtype = tf.int32
-    container = "my_container"
-    shared_name = "shared_var"
-    name = "var2"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    container = "container_2"
+    shared_name = "shared_2"
+    name = "variable_2"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    shape = [10]
-    dtype = tf.bool
+    shape = [1, 4, 2]
+    dtype = tf.complex64
     container = ""
-    shared_name = "bool_var"
-    name = "var3"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    shared_name = "shared_3"
+    name = "variable_3"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    shape = [2, 2, 2, 2]
-    dtype = tf.complex64
-    container = "complex_container"
+    shape = []
+    dtype = tf.bool
+    container = "container_4"
     shared_name = ""
-    name = "var4"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    name = "variable_4"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    shape = []  # Scalar
-    dtype = tf.string
+    shape = [2, 2]
+    dtype = tf.float64
     container = ""
-    shared_name = "scalar_string"
-    name = "var5"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    shared_name = ""
+    name = "variable_5"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    shape = [3, 4, 5]
-    dtype = tf.float64
-    container = "double_container"
-    shared_name = "double_var"
-    name = "var6"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    shape = [1]
+    dtype = tf.string
+    container = "container_6"
+    shared_name = "shared_6"
+    name = "variable_6"
 
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     # Input 7
-    shape = [7, 1]
-    dtype = tf.int16
-    container = ""
-    shared_name = "int16_var"
-    name = "var7"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    shape = [2,2]
+    dtype = tf.uint8
+    container = "container_7"
+    shared_name = ""
+    name = "variable_7"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    shape = [1, 1, 1, 1, 1]
-    dtype = tf.uint8
-    container = "uint8_container"
-    shared_name = ""
-    name = "var8"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    shape = [3]
+    dtype = tf.int64
+    container = ""
+    shared_name = "shared_8"
+    name = "variable_8"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    shape = [4]
-    dtype = tf.qint8
-    container = ""
-    shared_name = "qint8_var"
-    name = "var9"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    shape = [1,1]
+    dtype = tf.bfloat16
+    container = "container_9"
+    shared_name = ""
+    name = "variable_9"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    shape = [8, 8]
-    dtype = tf.quint8
-    container = "quint8_container"
-    shared_name = "my_quint8"
-    name = "var10"
-    input_dict = {"shape": shape, "dtype": dtype, "container": container, "shared_name": shared_name, "name": name}
+    shape = [4]
+    dtype = tf.float16
+    container = ""
+    shared_name = "shared_10"
+    name = "variable_10"
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     return list_of_inputs
 
 generated_inputs = {}

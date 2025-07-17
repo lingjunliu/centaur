@@ -11,76 +11,66 @@ import copy
 def tf_raw_ops_parallel_concat_inputs():
     list_of_inputs = []
 
-    # Input 1: Valid case with 1D tensors
-    values = [np.array([[1]], dtype=np.int32), np.array([[2]], dtype=np.int32), np.array([[3]], dtype=np.int32)]
-    shape = np.array([3, 1], dtype=np.int32)
-    name = "concat_1d"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
+    # Input 1: Basic example with integers
+    values = [np.array([[1, 2]], dtype=np.int32), np.array([[3, 4]], dtype=np.int32), np.array([[5, 6]], dtype=np.int32)]
+    shape = [3, 2]
+    input_dict = {"values": values, "shape": shape, "name": "concat_int"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Valid case with 2D tensors
-    values = [np.array([[1, 2]], dtype=np.float32), np.array([[3, 4]], dtype=np.float32), np.array([[5, 6]], dtype=np.float32)]
-    shape = np.array([3, 2], dtype=np.int32)
-    name = "concat_2d"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
+    # Input 2: Float values
+    values = [np.array([[1.5, 2.5]], dtype=np.float32), np.array([[3.5, 4.5]], dtype=np.float32)]
+    shape = [2, 2]
+    input_dict = {"values": values, "shape": shape, "name": "concat_float"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Valid case with 3D tensors
-    values = [np.array([[[1, 2, 3]]], dtype=np.int64), np.array([[[4, 5, 6]]], dtype=np.int64), np.array([[[7, 8, 9]]], dtype=np.int64)]
-    shape = np.array([3, 1, 3], dtype=np.int32)
-    name = "concat_3d"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
+    # Input 3: Negative values
+    values = [np.array([[-1, -2]], dtype=np.int32), np.array([[-3, -4]], dtype=np.int32)]
+    shape = [2, 2]
+    input_dict = {"values": values, "shape": shape, "name": "concat_negative"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Valid case with different dtype (float64)
-    values = [np.array([[1.1]], dtype=np.float64), np.array([[2.2]], dtype=np.float64), np.array([[3.3]], dtype=np.float64)]
-    shape = np.array([3, 1], dtype=np.int32)
-    name = "concat_float64"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Valid case with more tensors
-    values = [np.array([[i]], dtype=np.int32) for i in range(1, 6)]
-    shape = np.array([5, 1], dtype=np.int32)
-    name = "concat_many"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Valid case with negative values
-    values = [np.array([[-1]], dtype=np.int32), np.array([[-2]], dtype=np.int32), np.array([[-3]], dtype=np.int32)]
-    shape = np.array([3, 1], dtype=np.int32)
-    name = "concat_negative"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 7: Valid case with shape specified as tuple
-    values = [np.array([[1]], dtype=np.int32), np.array([[2]], dtype=np.int32), np.array([[3]], dtype=np.int32)]
-    shape = np.array([3, 1], dtype=np.int32)
-    name = "concat_1d_tuple"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Valid case with complex numbers
-    values = [np.array([[1+1j]], dtype=np.complex64), np.array([[2+2j]], dtype=np.complex64), np.array([[3+3j]], dtype=np.complex64)]
-    shape = np.array([3, 1], dtype=np.int32)
-    name = "concat_complex"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: More complex shapes
+    # Input 4: Different shape
     values = [np.array([[1, 2, 3]], dtype=np.int32), np.array([[4, 5, 6]], dtype=np.int32)]
-    shape = np.array([2, 3], dtype=np.int32)
-    name = "concat_wider"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
+    shape = [2, 3]
+    input_dict = {"values": values, "shape": shape, "name": "concat_diffshape"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Different type for shape (list of integers). Previously used tuples.
-    values = [np.array([[1, 2]], dtype=np.float32), np.array([[3, 4]], dtype=np.float32)]
-    shape = np.array([2, 2], dtype=np.int32)
-    name = "concat_2d_ints"
-    input_dict = {"values": values, "shape": shape.tolist(), "name": name}
+    # Input 5: More values
+    values = [np.array([[1]], dtype=np.int32), np.array([[2]], dtype=np.int32), np.array([[3]], dtype=np.int32), np.array([[4]], dtype=np.int32)]
+    shape = [4, 1]
+    input_dict = {"values": values, "shape": shape, "name": "concat_morevalues"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 6: bool values
+    values = [np.array([[True, False]], dtype=np.bool_), np.array([[False, True]], dtype=np.bool_)]
+    shape = [2, 2]
+    input_dict = {"values": values, "shape": shape, "name": "concat_bool"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: int64
+    values = [np.array([[10000000000]], dtype=np.int64), np.array([[20000000000]], dtype=np.int64)]
+    shape = [2, 1]
+    input_dict = {"values": values, "shape": shape, "name": "concat_int64"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: float64
+    values = [np.array([[1.7976931348623157e+308]], dtype=np.float64), np.array([[2.2250738585072014e-308]], dtype=np.float64)]
+    shape = [2, 1]
+    input_dict = {"values": values, "shape": shape, "name": "concat_float64"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Complex64
+    values = [np.array([[1+1j]], dtype=np.complex64), np.array([[2+2j]], dtype=np.complex64)]
+    shape = [2, 1]
+    input_dict = {"values": values, "shape": shape, "name": "concat_complex64"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 10: Complex128
+    values = [np.array([[1+1j]], dtype=np.complex128), np.array([[2+2j]], dtype=np.complex128)]
+    shape = [2, 1]
+    input_dict = {"values": values, "shape": shape, "name": "concat_complex128"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

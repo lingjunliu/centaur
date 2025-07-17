@@ -11,45 +11,51 @@ import copy
 def tf_sparse_expand_dims_inputs():
     list_of_inputs = []
 
+    def create_sparse_tensor(indices, values, dense_shape):
+        return tf.SparseTensor(indices=np.array(indices), values=np.array(values), dense_shape=np.array(dense_shape))
+
     # Input 1
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1, 2])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    sp_input = create_sparse_tensor([[0, 0], [1, 2]], [1, 2], [3, 4])
     axis = 0
-    name = "expand_0"
+    name = "sparse_expanded"
     input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1, 2])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    sp_input = create_sparse_tensor([[0, 0, 0], [1, 1, 1], [2, 2, 2]], [1, 2, 3], [3, 3, 3])
     axis = 1
-    name = "expand_1"
+    name = None
     input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1, 2])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    sp_input = create_sparse_tensor([[0], [1], [2]], [1, 2, 3], [3])
     axis = -1
-    name = "expand_-1"
+    name = "sparse_expanded_neg"
     input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    indices = np.array([[0, 0], [1, 2]])
-    values = np.array([1, 2])
-    dense_shape = np.array([3, 4])
-    sp_input = tf.SparseTensor(indices=indices, values=values, dense_shape=dense_shape)
+    sp_input = create_sparse_tensor([[0, 1], [2, 3]], [4, 5], [4, 4])
     axis = -2
-    name = "expand_-2"
+    name = None
     input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    sp_input = create_sparse_tensor([[0,0,0,0]], [7], [2,2,2,2])
+    axis = 2
+    name = "sparse_expanded_four_dim"
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    sp_input = create_sparse_tensor([[0]], [8], [10])
+    axis = 0
+    name = None
+    input_dict = {"sp_input": sp_input, "axis": axis, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
 
     return list_of_inputs
 

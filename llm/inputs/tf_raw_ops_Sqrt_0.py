@@ -11,65 +11,59 @@ import copy
 def tf_raw_ops_sqrt_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, scalar
+    # Input 1: Valid, float32, scalar
     x = np.array(4.0, dtype=np.float32)
-    name = "sqrt_scalar"
-    input_dict = {"x": x, "name": name}
+    input_dict = {"x": x, "name": "sqrt_scalar"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32, 1D array
-    x = np.array([1.0, 4.0, 9.0, 16.0], dtype=np.float32)
-    name = "sqrt_1d"
-    input_dict = {"x": x, "name": name}
+    # Input 2: Valid, float64, 1D array
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    input_dict = {"x": x, "name": "sqrt_1d"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, 2D array
+    # Input 3: Valid, float32, 2D array (replaces bfloat16)
     x = np.array([[1.0, 4.0], [9.0, 16.0]], dtype=np.float32)
-    name = "sqrt_2d"
-    input_dict = {"x": x, "name": name}
+    input_dict = {"x": x, "name": "sqrt_2d_float32"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float32, 3D array
-    x = np.array([[[1.0, 4.0], [9.0, 16.0]], [[25.0, 36.0], [49.0, 64.0]]], dtype=np.float32)
-    name = "sqrt_3d"
-    input_dict = {"x": x, "name": name}
+    # Input 4: Valid, half (float16), 3D array
+    x = np.array([[[1.0, 4.0], [9.0, 16.0]], [[25.0, 36.0], [49.0, 64.0]]], dtype=np.float16)
+    input_dict = {"x": x, "name": "sqrt_3d_half"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float64, scalar
-    x = np.array(4.0, dtype=np.float64)
-    name = "sqrt_scalar_float64"
-    input_dict = {"x": x, "name": name}
+    # Input 5: Valid, complex64, scalar
+    x = np.complex64(4 + 3j)
+    input_dict = {"x": x, "name": "sqrt_complex64"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: complex64, scalar
-    x = np.array(4.0 + 3.0j, dtype=np.complex64)
-    name = "sqrt_complex64"
-    input_dict = {"x": x, "name": name}
+    # Input 6: Valid, complex128, 1D array
+    x = np.array([1 + 0j, 0 + 1j, -1 + 0j, 0 - 1j], dtype=np.complex128)
+    input_dict = {"x": x, "name": "sqrt_complex128"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: complex128, 1D array
-    x = np.array([1.0 + 0j, 4.0 + 0j, 0 + 9j], dtype=np.complex128)
-    name = "sqrt_complex128"
-    input_dict = {"x": x, "name": name}
+    # Input 7: Valid, float32, array with zero and positive values
+    x = np.array([0.0, 1.0, 2.25, 4.0], dtype=np.float32)
+    input_dict = {"x": x, "name": "sqrt_float32_positive_zero"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Valid, float64, large values
+    x = np.array([1e10, 1e20, 1e30], dtype=np.float64)
+    input_dict = {"x": x, "name": "sqrt_float64_large"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Valid, complex64, multi-dimensional array
+    x = np.array([[[1+1j, 2+2j], [3+3j, 4+4j]], [[5+5j, 6+6j], [7+7j, 8+8j]]], dtype=np.complex64)
+    input_dict = {"x": x, "name": "sqrt_complex64_multidim"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Valid, float32, matrix
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input_dict = {"x": x, "name": "sqrt_float32_matrix"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8: bfloat16, scalar
-    x = np.array(4.0, dtype=np.float32)
-    x = tf.dtypes.cast(x, dtype=tf.bfloat16).numpy()
-    name = "sqrt_bfloat16"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: half, scalar
-    x = np.array(4.0, dtype=np.float16)
-    name = "sqrt_half"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: float32 with zero
-    x = np.array(0.0, dtype=np.float32)
-    name = "sqrt_zero"
-    input_dict = {"x": x, "name": name}
+    # Input 11: Valid, float64, scalar
+    x = np.array(9.0, dtype=np.float64)
+    input_dict = {"x": x, "name": "sqrt_float64_scalar"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

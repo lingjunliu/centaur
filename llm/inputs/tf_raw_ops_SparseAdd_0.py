@@ -14,210 +14,231 @@ def tf_raw_ops_sparseadd_inputs():
     # Input 1
     a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
     a_values = np.array([1.0, 2.0], dtype=np.float32)
-    a_shape = np.array([3, 4], dtype=np.int64)
+    a_shape = np.array([2, 3], dtype=np.int64)
     b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
     b_values = np.array([3.0, 4.0], dtype=np.float32)
-    b_shape = np.array([3, 4], dtype=np.int64)
+    b_shape = np.array([2, 3], dtype=np.int64)
     thresh = np.array(0.0, dtype=np.float32)
 
     input_dict = {
+        "name": "sparse_add_1",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    a_indices = np.array([[0, 1], [2, 0]], dtype=np.int64)
-    a_values = np.array([5, 6], dtype=np.int32)
-    a_shape = np.array([3, 2], dtype=np.int64)
-    b_indices = np.array([[1, 0], [2, 0]], dtype=np.int64)
-    b_values = np.array([7, 8], dtype=np.int32)
-    b_shape = np.array([3, 2], dtype=np.int64)
-    thresh = np.array(2, dtype=np.int32)
+    a_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    a_values = np.array([1, 2], dtype=np.int32)
+    a_shape = np.array([3, 3], dtype=np.int64)
+    b_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
+    b_values = np.array([3, 4], dtype=np.int32)
+    b_shape = np.array([3, 3], dtype=np.int64)
+    thresh = np.array(1, dtype=np.int32)
 
     input_dict = {
+        "name": "sparse_add_2",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    a_indices = np.array([[0, 0]], dtype=np.int64)
-    a_values = np.array([1.5], dtype=np.float64)
-    a_shape = np.array([1, 1], dtype=np.int64)
-    b_indices = np.array([[0, 0]], dtype=np.int64)
-    b_values = np.array([2.5], dtype=np.float64)
-    b_shape = np.array([1, 1], dtype=np.int64)
+    a_indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
+    a_values = np.array([1.0, 2.0], dtype=np.float64)
+    a_shape = np.array([2, 2, 2], dtype=np.int64)
+    b_indices = np.array([[0, 0, 0], [1, 0, 1]], dtype=np.int64)
+    b_values = np.array([3.0, 4.0], dtype=np.float64)
+    b_shape = np.array([2, 2, 2], dtype=np.int64)
     thresh = np.array(0.0, dtype=np.float64)
 
     input_dict = {
+        "name": "sparse_add_3",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    a_indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
+    a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
     a_values = np.array([1, 2], dtype=np.int64)
-    a_shape = np.array([2, 2, 2], dtype=np.int64)
-    b_indices = np.array([[0, 0, 0], [1, 0, 1]], dtype=np.int64)
+    a_shape = np.array([2, 3], dtype=np.int64)
+    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
     b_values = np.array([3, 4], dtype=np.int64)
-    b_shape = np.array([2, 2, 2], dtype=np.int64)
-    thresh = np.array(1, dtype=np.int64)
+    b_shape = np.array([2, 3], dtype=np.int64)
+    thresh = np.array(0, dtype=np.int64)
 
     input_dict = {
+        "name": "sparse_add_4",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 5
     a_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    a_values = np.array([1, 2], dtype=np.uint8)
-    a_shape = np.array([1, 2], dtype=np.int64)
-    b_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    b_values = np.array([3, 4], dtype=np.uint8)
-    b_shape = np.array([1, 2], dtype=np.int64)
-    thresh = np.array(0, dtype=np.uint8)
+    a_values = np.array([1.0, 2.0], dtype=np.float32)
+    a_shape = np.array([2, 2], dtype=np.int64)
+    b_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
+    b_values = np.array([3.0, 4.0], dtype=np.float32)
+    b_shape = np.array([2, 2], dtype=np.int64)
+    thresh = np.array(0.5, dtype=np.float32)
 
     input_dict = {
+        "name": "sparse_add_5",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    a_values = np.array([1, 2], dtype=np.int16)
-    a_shape = np.array([2, 2], dtype=np.int64)
-    b_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
-    b_values = np.array([3, 4], dtype=np.int16)
-    b_shape = np.array([2, 2], dtype=np.int64)
-    thresh = np.array(1, dtype=np.int16)
+    a_indices = np.array([[0, 0]], dtype=np.int64)
+    a_values = np.array([1], dtype=np.int32)
+    a_shape = np.array([1, 1], dtype=np.int64)
+    b_indices = np.array([[0, 0]], dtype=np.int64)
+    b_values = np.array([2], dtype=np.int32)
+    b_shape = np.array([1, 1], dtype=np.int64)
+    thresh = np.array(0, dtype=np.int32)
 
     input_dict = {
+        "name": "sparse_add_6",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    a_values = np.array([1, 2], dtype=np.int8)
-    a_shape = np.array([2, 2], dtype=np.int64)
-    b_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
-    b_values = np.array([3, 4], dtype=np.int8)
-    b_shape = np.array([2, 2], dtype=np.int64)
-    thresh = np.array(1, dtype=np.int8)
+    a_indices = np.array([[0, 0, 0], [0, 1, 1]], dtype=np.int64)
+    a_values = np.array([1, 2], dtype=np.int32)
+    a_shape = np.array([1, 2, 2], dtype=np.int64)
+    b_indices = np.array([[0, 0, 0], [0, 1, 0]], dtype=np.int64)
+    b_values = np.array([3, 4], dtype=np.int32)
+    b_shape = np.array([1, 2, 2], dtype=np.int64)
+    thresh = np.array(1, dtype=np.int32)
 
     input_dict = {
+        "name": "sparse_add_7",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    a_indices = np.array([[0, 0]], dtype=np.int64)
-    a_values = np.array([1 + 1j], dtype=np.complex64)
-    a_shape = np.array([1, 1], dtype=np.int64)
-    b_indices = np.array([[0, 0]], dtype=np.int64)
-    b_values = np.array([2 - 1j], dtype=np.complex64)
-    b_shape = np.array([1, 1], dtype=np.int64)
-    thresh = np.array(0, dtype=np.float32)
+    a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    a_values = np.array([1.0, 2.0], dtype=np.float64)
+    a_shape = np.array([2, 3], dtype=np.int64)
+    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    b_values = np.array([3.0, 4.0], dtype=np.float64)
+    b_shape = np.array([2, 3], dtype=np.int64)
+    thresh = np.array(0.0, dtype=np.float64)
 
     input_dict = {
+        "name": "sparse_add_8",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     a_indices = np.array([[0, 0]], dtype=np.int64)
-    a_values = np.array([1 + 1j], dtype=np.complex128)
+    a_values = np.array([1], dtype=np.int8)
     a_shape = np.array([1, 1], dtype=np.int64)
     b_indices = np.array([[0, 0]], dtype=np.int64)
-    b_values = np.array([2 - 1j], dtype=np.complex128)
+    b_values = np.array([2], dtype=np.int8)
     b_shape = np.array([1, 1], dtype=np.int64)
-    thresh = np.array(0, dtype=np.float64)
+    thresh = np.array(0, dtype=np.int8)
 
     input_dict = {
+        "name": "sparse_add_9",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
     a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    a_values = np.array([1, 2], dtype=np.uint32)
+    a_values = np.array([1, 2], dtype=np.int64)
     a_shape = np.array([2, 2], dtype=np.int64)
     b_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
-    b_values = np.array([3, 4], dtype=np.uint32)
+    b_values = np.array([3, 4], dtype=np.int64)
     b_shape = np.array([2, 2], dtype=np.int64)
-    thresh = np.array(1, dtype=np.uint32)
+    thresh = np.array(2, dtype=np.int64)
 
     input_dict = {
+        "name": "sparse_add_10",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
         "b_shape": b_shape,
-        "thresh": thresh,
-        "name": None
+        "thresh": thresh
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    a_values = np.array([1.0 + 1j, 2.0 + 2j], dtype=np.complex64)
+    a_shape = np.array([2, 3], dtype=np.int64)
+    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    b_values = np.array([3.0 - 1j, 4.0 + 0j], dtype=np.complex64)
+    b_shape = np.array([2, 3], dtype=np.int64)
+    thresh = np.array(0.0, dtype=np.float32) # Using float32 for complex thresh
+
+    input_dict = {
+        "name": "sparse_add_11",
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b_indices": b_indices,
+        "b_values": b_values,
+        "b_shape": b_shape,
+        "thresh": thresh
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

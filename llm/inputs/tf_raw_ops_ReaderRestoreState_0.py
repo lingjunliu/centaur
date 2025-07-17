@@ -12,73 +12,255 @@ def tf_raw_ops_ReaderRestoreState_inputs():
     list_of_inputs = []
 
     # Input 1
-    reader_handle = np.array(b"reader_handle_1", dtype=np.object_)
-    state = np.array(b"state_1", dtype=np.object_)
-    name = "restore_op_1"
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+
+    state = tf.constant("state_string")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_1"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    reader_handle = np.array(b"reader_handle_2", dtype=np.object_)
-    state = np.array(b"state_2", dtype=np.object_)
-    name = None
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_2"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    reader_handle = np.array(b"reader_handle_3", dtype=np.object_)
-    state = np.array(b"state_3_very_long_state_string", dtype=np.object_)
-    name = "restore_op_3_long_name"
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("Another state string")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_3"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    reader_handle = np.array(b"reader_handle_4", dtype=np.object_)
-    state = np.array(b"", dtype=np.object_)
-    name = ""
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+   # Input 4
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("State with some numbers 1234567890")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_4"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    reader_handle = np.array(b"reader_handle_5", dtype=np.object_)
-    state = np.array(b"state_5", dtype=np.object_)
-    name = "restore_op_5"
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("State with special characters !@#$%^&*()")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_5"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6
-    reader_handle = np.array(b"reader_handle_6", dtype=np.object_)
-    state = np.array(b"state_6", dtype=np.object_)
-    name = "restore_op_6"
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    # Input 6
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("State with unicode characters 你好世界")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_6"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 7
-    reader_handle = np.array(b"reader_handle_7", dtype=np.object_)
-    state = np.array(b"state_7", dtype=np.object_)
-    name = "restore_op_7"
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    # Input 7
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("Very long state " * 200)
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_7"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8
-    reader_handle = np.array(b"reader_handle_8", dtype=np.object_)
-    state = np.array(b"state_8", dtype=np.object_)
-    name = "restore_op_8"
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    # Input 8
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("State with mixed characters 123abc你好")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_8"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
-    reader_handle = np.array(b"reader_handle_9", dtype=np.object_)
-    state = np.array(b"state_9", dtype=np.object_)
-    name = "restore_op_9"
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    # Input 9
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("\n\t\r\f")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_9"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 10
-    reader_handle = np.array(b"reader_handle_10", dtype=np.object_)
-    state = np.array(b"state_10", dtype=np.object_)
-    name = "restore_op_10"
-    input_dict = {"reader_handle": reader_handle, "state": state, "name": name}
+    # Input 10
+    try:
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    except Exception as e:
+        print(f"Error creating dataset: {e}")
+        dataset = tf.data.Dataset.range(10)
+        iterator = tf.compat.v1.data.make_one_shot_iterator(dataset)
+        reader_handle = iterator.string_handle()
+        with tf.compat.v1.Session() as sess:
+            reader_handle_value = sess.run(reader_handle)
+        reader_handle = tf.constant(reader_handle_value)
+    state = tf.constant("This is a basic state string.")
+
+    input_dict = {
+        "reader_handle": reader_handle,
+        "state": state,
+        "name": "restore_10"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

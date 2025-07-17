@@ -11,55 +11,30 @@ import copy
 def tf_raw_ops_real_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array([1+2j, 3+4j, 5+6j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "Tout": tf.float32, "name": "real_op_1"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: complex64, default Tout
+    input1 = np.array([1+2j, 3+4j, 5+6j], dtype=np.complex64)
+    input_dict1 = {"input": input1, "Tout": tf.float32, "name": "real_part1"}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2
-    input_tensor = np.array([-1-2j, -3-4j, -5-6j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "Tout": tf.float32, "name": "real_op_2"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: complex128, default Tout
+    input2 = np.array([-1.5+2.5j, 3.7-4.8j, 0+1j], dtype=np.complex128)
+    input_dict2 = {"input": input2, "Tout": tf.float64, "name": "real_part2"}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3
-    input_tensor = np.array([1.5+2.5j, 3.5+4.5j, 5.5+6.5j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "Tout": tf.float32, "name": "real_op_3"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: complex64, Tout=tf.float32
+    input3 = np.array([1j, -2j, 3j], dtype=np.complex64)
+    input_dict3 = {"input": input3, "Tout": tf.float32, "name": "real_part3"}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4
-    input_tensor = np.array([[1+2j, 3+4j], [5+6j, 7+8j]], dtype=np.complex128)
-    input_dict = {"input": input_tensor, "Tout": tf.float64, "name": "real_op_4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: complex128, Tout=tf.float64
+    input4 = np.array([1+0j, 0+1j, -1+0j, 0-1j], dtype=np.complex128)
+    input_dict4 = {"input": input4, "Tout": tf.float64, "name": "real_part4"}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5
-    input_tensor = np.array([-1-2j, -3-4j, -5-6j], dtype=np.complex128)
-    input_dict = {"input": input_tensor, "Tout": tf.float64, "name": "real_op_5"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_tensor = np.array([1.5+2.5j, 3.5+4.5j, 5.5+6.5j], dtype=np.complex128)
-    input_dict = {"input": input_tensor, "Tout": tf.float64, "name": "real_op_6"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input_tensor = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "Tout": tf.float32, "name": "real_op_7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    input_tensor = np.array([0+0j, 0+0j, 0+0j], dtype=np.complex128)
-    input_dict = {"input": input_tensor, "Tout": tf.float64, "name": "real_op_8"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input_tensor = np.array([1+0j, 0+1j, -1+0j, 0-1j], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "Tout": tf.float32, "name": "real_op_9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_tensor = np.array([[1+1j, 2-2j], [3+3j, 4-4j]], dtype=np.complex64)
-    input_dict = {"input": input_tensor, "Tout": tf.float32, "name": "real_op_10"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: complex64, 2D array, default Tout
+    input5 = np.array([[1+2j, 3+4j], [5+6j, 7+8j]], dtype=np.complex64)
+    input_dict5 = {"input": input5, "Tout": tf.float32, "name": "real_part5"}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
     return list_of_inputs
 

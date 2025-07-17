@@ -29,8 +29,42 @@ def tf_raw_ops_SparseReduceSum_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    input_indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 2]], dtype=np.int64)
     input_values = np.array([1, 2, 3], dtype=np.int32)
+    input_shape = np.array([2, 2, 3], dtype=np.int64)
+    reduction_axes = np.array([0, 2], dtype=np.int32)
+    keep_dims = True
+
+    input_dict = {
+        "input_indices": input_indices,
+        "input_values": input_values,
+        "input_shape": input_shape,
+        "reduction_axes": reduction_axes,
+        "keep_dims": keep_dims,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_indices = np.array([[0], [1], [2]], dtype=np.int64)
+    input_values = np.array([1.5, 2.5, 3.5], dtype=np.float64)
+    input_shape = np.array([3], dtype=np.int64)
+    reduction_axes = np.array([0], dtype=np.int32)
+    keep_dims = False
+
+    input_dict = {
+        "input_indices": input_indices,
+        "input_values": input_values,
+        "input_shape": input_shape,
+        "reduction_axes": reduction_axes,
+        "keep_dims": keep_dims,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
+    input_values = np.array([1, 2, 3], dtype=np.int64)
     input_shape = np.array([3, 3], dtype=np.int64)
     reduction_axes = np.array([0], dtype=np.int32)
     keep_dims = True
@@ -45,26 +79,9 @@ def tf_raw_ops_SparseReduceSum_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
-    input_values = np.array([1.0, 2.0], dtype=np.float64)
-    input_shape = np.array([2, 2, 2], dtype=np.int64)
-    reduction_axes = np.array([0, 1], dtype=np.int32)
-    keep_dims = False
-
-    input_dict = {
-        "input_indices": input_indices,
-        "input_values": input_values,
-        "input_shape": input_shape,
-        "reduction_axes": reduction_axes,
-        "keep_dims": keep_dims,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
+    # Input 5
     input_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    input_values = np.array([1, 2, 3, 4], dtype=np.int64)
+    input_values = np.array([1, 2, 3, 4], dtype=np.int32)
     input_shape = np.array([2, 2], dtype=np.int64)
     reduction_axes = np.array([0, 1], dtype=np.int32)
     keep_dims = False
@@ -79,9 +96,43 @@ def tf_raw_ops_SparseReduceSum_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    input_values = np.array([1, 2, 3, 4], dtype=np.int64)
+    # Input 6
+    input_indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
+    input_values = np.array([1, 2], dtype=np.float32)
+    input_shape = np.array([2, 2, 2], dtype=np.int64)
+    reduction_axes = np.array([1], dtype=np.int32)
+    keep_dims = True
+
+    input_dict = {
+        "input_indices": input_indices,
+        "input_values": input_values,
+        "input_shape": input_shape,
+        "reduction_axes": reduction_axes,
+        "keep_dims": keep_dims,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_indices = np.array([[0], [1]], dtype=np.int64)
+    input_values = np.array([1, 2], dtype=np.float64)
+    input_shape = np.array([2], dtype=np.int64)
+    reduction_axes = np.array([0], dtype=np.int32)
+    keep_dims = True
+
+    input_dict = {
+        "input_indices": input_indices,
+        "input_values": input_values,
+        "input_shape": input_shape,
+        "reduction_axes": reduction_axes,
+        "keep_dims": keep_dims,
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: No reduction axes
+    input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    input_values = np.array([1, 2], dtype=np.int32)
     input_shape = np.array([2, 2], dtype=np.int64)
     reduction_axes = np.array([], dtype=np.int32)
     keep_dims = False
@@ -96,41 +147,7 @@ def tf_raw_ops_SparseReduceSum_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    input_values = np.array([1+1j, 2+2j], dtype=np.complex64)
-    input_shape = np.array([2, 2], dtype=np.int64)
-    reduction_axes = np.array([0], dtype=np.int32)
-    keep_dims = False
-
-    input_dict = {
-        "input_indices": input_indices,
-        "input_values": input_values,
-        "input_shape": input_shape,
-        "reduction_axes": reduction_axes,
-        "keep_dims": keep_dims,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 7
-    input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    input_values = np.array([1.0, 2.0], dtype=np.float16)
-    input_shape = np.array([2, 2], dtype=np.int64)
-    reduction_axes = np.array([0], dtype=np.int32)
-    keep_dims = True
-
-    input_dict = {
-        "input_indices": input_indices,
-        "input_values": input_values,
-        "input_shape": input_shape,
-        "reduction_axes": reduction_axes,
-        "keep_dims": keep_dims,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 8
+    # Input 9: negative reduction axes
     input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
     input_values = np.array([1.0, 2.0], dtype=np.float32)
     input_shape = np.array([2, 2], dtype=np.int64)
@@ -147,11 +164,11 @@ def tf_raw_ops_SparseReduceSum_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
-    input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    input_values = np.array([1.0, 2.0], dtype=np.float32)
-    input_shape = np.array([2, 2], dtype=np.int64)
-    reduction_axes = np.array([0], dtype=np.int32)
+    # Input 10
+    input_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    input_values = np.array([1.0, 2.0], dtype=np.uint8)
+    input_shape = np.array([2, 3], dtype=np.int64)
+    reduction_axes = np.array([1], dtype=np.int32)
     keep_dims = False
 
     input_dict = {
@@ -160,16 +177,16 @@ def tf_raw_ops_SparseReduceSum_inputs():
         "input_shape": input_shape,
         "reduction_axes": reduction_axes,
         "keep_dims": keep_dims,
-        "name": "my_sparse_reduce_sum"
+        "name": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_indices = np.array([[0, 0, 0], [1, 1, 1], [2, 2, 2]], dtype=np.int64)
-    input_values = np.array([1, 2, 3], dtype=np.uint8)
-    input_shape = np.array([3, 3, 3], dtype=np.int64)
-    reduction_axes = np.array([0,2], dtype=np.int32)
-    keep_dims = True
+    
+    # Input 11: all dimensions are reduced, and a tensor with a single element is returned
+    input_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    input_values = np.array([1.0, 2.0], dtype=np.float32)
+    input_shape = np.array([2, 2], dtype=np.int64)
+    reduction_axes = np.array([0, 1], dtype=np.int32)
+    keep_dims = False
 
     input_dict = {
         "input_indices": input_indices,

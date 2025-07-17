@@ -11,43 +11,60 @@ import copy
 def tf_raw_ops_relu6_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, 1D array
-    features = np.array([-1.0, 0.0, 1.0, 5.0, 7.0], dtype=np.float32)
-    name = "relu6_float32_1d"
-    input_dict = {"features": features, "name": name}
+    # Input 1: float32, 1D array, positive values
+    features = np.array([1.0, 2.0, 3.0, 4.0, 5.0]).astype(np.float32)
+    input_dict = {"features": features, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64, 2D array
-    features = np.array([[-2.0, 0.5, 2.0], [4.0, 6.5, 8.0]], dtype=np.float64)
-    name = "relu6_float64_2d"
-    input_dict = {"features": features, "name": name}
+    # Input 2: float32, 1D array, negative and positive values
+    features = np.array([-1.0, 2.0, -3.0, 4.0, -5.0]).astype(np.float32)
+    input_dict = {"features": features, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: int32, 3D array
-    features = np.array([[[1, -1], [2, 0]], [[3, 5], [4, 7]]], dtype=np.int32)
-    name = "relu6_int32_3d"
-    input_dict = {"features": features, "name": name}
+    # Input 3: float32, 2D array
+    features = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]]).astype(np.float32)
+    input_dict = {"features": features, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: uint8, scalar
-    features = np.array(3, dtype=np.uint8)
-    name = "relu6_uint8_scalar"
-    input_dict = {"features": features, "name": name}
+    # Input 4: float32, 2D array, with negative values
+    features = np.array([[-1.0, 2.0], [-3.0, 4.0], [-5.0, -6.0]]).astype(np.float32)
+    input_dict = {"features": features, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: int16, 1D array with large values
-    features = np.array([-100, 200, 5, 7000], dtype=np.int16)
-    name = "relu6_int16_large"
-    input_dict = {"features": features, "name": name}
+    # Input 5: float32, 3D array
+    features = np.random.rand(2, 3, 4).astype(np.float32)
+    input_dict = {"features": features, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: int32, 1D array
+    features = np.array([1, 2, 3, 4, 5]).astype(np.int32)
+    input_dict = {"features": features, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: int32, 1D array, negative values
+    features = np.array([-1, -2, -3, -4, -5]).astype(np.int32)
+    input_dict = {"features": features, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: int64, 2D array
+    features = np.array([[1, 2], [3, 4], [5, 6]]).astype(np.int64)
+    input_dict = {"features": features, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: float64, scalar
+    features = np.array(3.14159).astype(np.float64)
+    input_dict = {"features": features, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: float16, 1D array
+    features = np.array([1.0, 2.0, 3.0, 4.0, 5.0]).astype(np.float16)
+    input_dict = {"features": features, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_relu6_inputs()
-generated_inputs["tf.raw_ops.Relu6"] = []
-for input_dict in inputs:
-  generated_inputs["tf.raw_ops.Relu6"].append(input_dict)
+generated_inputs["tf.raw_ops.Relu6"] = tf_raw_ops_relu6_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

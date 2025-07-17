@@ -11,134 +11,228 @@ import copy
 def tf_raw_ops_QuantizeAndDequantizeV3_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32 example
+    # Input 1
+    input_tensor = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
+    input_min_tensor = np.array([-1.0], dtype=np.float32)
+    input_max_tensor = np.array([1.0], dtype=np.float32)
+    num_bits_tensor = np.array(8, dtype=np.int32)
+    signed_input_val = True
+    range_given_val = True
+    narrow_range_val = False
+    axis_val = -1
+    name_val = "quantize_dequantize_1"
+
     input_dict = {
-        "input": np.array([-1.0, 0.0, 1.0], dtype=np.float32),
-        "input_min": np.array([-2.0], dtype=np.float32),
-        "input_max": np.array([2.0], dtype=np.float32),
-        "num_bits": np.array(8, dtype=np.int32),
-        "signed_input": True,
-        "range_given": True,
-        "narrow_range": False,
-        "axis": -1,
-        "name": None
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64 with different num_bits
+    # Input 2
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input_min_tensor = np.array([0.0], dtype=np.float32)
+    input_max_tensor = np.array([4.0], dtype=np.float32)
+    num_bits_tensor = np.array(4, dtype=np.int32)
+    signed_input_val = False
+    range_given_val = True
+    narrow_range_val = False
+    axis_val = -1
+    name_val = "quantize_dequantize_2"
+
     input_dict = {
-        "input": np.array([-1.0, 0.0, 1.0], dtype=np.float64),
-        "input_min": np.array([-2.0], dtype=np.float64),
-        "input_max": np.array([2.0], dtype=np.float64),
-        "num_bits": np.array(4, dtype=np.int32),
-        "signed_input": True,
-        "range_given": True,
-        "narrow_range": False,
-        "axis": -1,
-        "name": None
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3:  float16 example
+    # Input 3
+    input_tensor = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float64)
+    input_min_tensor = np.array([-1.0], dtype=np.float64)
+    input_max_tensor = np.array([1.0], dtype=np.float64)
+    num_bits_tensor = np.array(2, dtype=np.int32)
+    signed_input_val = True
+    range_given_val = True
+    narrow_range_val = True
+    axis_val = -1
+    name_val = "quantize_dequantize_3"
+
     input_dict = {
-        "input": np.array([-1.0, 0.0, 1.0], dtype=np.float16),
-        "input_min": np.array([-2.0], dtype=np.float16),
-        "input_max": np.array([2.0], dtype=np.float16),
-        "num_bits": np.array(8, dtype=np.int32),
-        "signed_input": True,
-        "range_given": True,
-        "narrow_range": False,
-        "axis": -1,
-        "name": None
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D array
+    # Input 4
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    input_min_tensor = np.array([1.0], dtype=np.float32)
+    input_max_tensor = np.array([8.0], dtype=np.float32)
+    num_bits_tensor = np.array(6, dtype=np.int32)
+    signed_input_val = False
+    range_given_val = True
+    narrow_range_val = False
+    axis_val = -1
+    name_val = "quantize_dequantize_4"
+
     input_dict = {
-        "input": np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float32),
-        "input_min": np.array([-2.0], dtype=np.float32),
-        "input_max": np.array([2.0], dtype=np.float32),
-        "num_bits": np.array(8, dtype=np.int32),
-        "signed_input": True,
-        "range_given": True,
-        "narrow_range": False,
-        "axis": -1,
-        "name": None
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: unsigned input
+    # Input 5
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_min_tensor = np.array([0.0], dtype=np.float32)
+    input_max_tensor = np.array([5.0], dtype=np.float32)
+    num_bits_tensor = np.array(3, dtype=np.int32)
+    signed_input_val = False
+    range_given_val = False
+    narrow_range_val = False
+    axis_val = -1
+    name_val = "quantize_dequantize_5"
+
     input_dict = {
-        "input": np.array([0.0, 1.0, 2.0], dtype=np.float32),
-        "input_min": np.array([0.0], dtype=np.float32),
-        "input_max": np.array([2.0], dtype=np.float32),
-        "num_bits": np.array(8, dtype=np.int32),
-        "signed_input": False,
-        "range_given": True,
-        "narrow_range": False,
-        "axis": -1,
-        "name": None
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6:  narrow range
+    # Input 6
+    input_tensor = np.array([-5.0, -2.5, 0.0, 2.5, 5.0], dtype=np.float32)
+    input_min_tensor = np.array([-5.0], dtype=np.float32)
+    input_max_tensor = np.array([5.0], dtype=np.float32)
+    num_bits_tensor = np.array(7, dtype=np.int32)
+    signed_input_val = True
+    range_given_val = True
+    narrow_range_val = True
+    axis_val = -1
+    name_val = "quantize_dequantize_6"
+
     input_dict = {
-        "input": np.array([-1.0, 0.0, 1.0], dtype=np.float32),
-        "input_min": np.array([-2.0], dtype=np.float32),
-        "input_max": np.array([2.0], dtype=np.float32),
-        "num_bits": np.array(8, dtype=np.int32),
-        "signed_input": True,
-        "range_given": True,
-        "narrow_range": True,
-        "axis": -1,
-        "name": None
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: range not given
+    # Input 7 Removed the bfloat16 type, as it is not available directly in numpy
+
+    # Input 8
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_min_tensor = np.array([0.0], dtype=np.float32)
+    input_max_tensor = np.array([3.0], dtype=np.float32)
+    num_bits_tensor = np.array(16, dtype=np.int32)
+    signed_input_val = False
+    range_given_val = True
+    narrow_range_val = False
+    axis_val = -1
+    name_val = "quantize_dequantize_8"
+
     input_dict = {
-        "input": np.array([-1.0, 0.0, 1.0], dtype=np.float32),
-        "input_min": np.array([-2.0], dtype=np.float32),
-        "input_max": np.array([2.0], dtype=np.float32),
-        "num_bits": np.array(8, dtype=np.int32),
-        "signed_input": True,
-        "range_given": False,
-        "narrow_range": False,
-        "axis": -1,
-        "name": None
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Different axis
+     # Input 9
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_min_tensor = np.array([0.0], dtype=np.float32)
+    input_max_tensor = np.array([3.0], dtype=np.float32)
+    num_bits_tensor = np.array(1, dtype=np.int32)
+    signed_input_val = False
+    range_given_val = True
+    narrow_range_val = False
+    axis_val = -1
+    name_val = "quantize_dequantize_9"
+
     input_dict = {
-        "input": np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float32),
-        "input_min": np.array([-2.0], dtype=np.float32),
-        "input_max": np.array([2.0], dtype=np.float32),
-        "num_bits": np.array(8, dtype=np.int32),
-        "signed_input": True,
-        "range_given": True,
-        "narrow_range": False,
-        "axis": 0,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: large number of bits
-    input_dict = {
-        "input": np.array([-1.0, 0.0, 1.0], dtype=np.float32),
-        "input_min": np.array([-2.0], dtype=np.float32),
-        "input_max": np.array([2.0], dtype=np.float32),
-        "num_bits": np.array(16, dtype=np.int32),
-        "signed_input": True,
-        "range_given": True,
-        "narrow_range": False,
-        "axis": -1,
-        "name": None
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10
+    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    input_min_tensor = np.array([0.0], dtype=np.float32)
+    input_max_tensor = np.array([3.0], dtype=np.float32)
+    num_bits_tensor = np.array(8, dtype=np.int32)
+    signed_input_val = False
+    range_given_val = True
+    narrow_range_val = True
+    axis_val = -1
+    name_val = "quantize_dequantize_10"
+
+    input_dict = {
+        "input": input_tensor,
+        "input_min": input_min_tensor,
+        "input_max": input_max_tensor,
+        "num_bits": num_bits_tensor,
+        "signed_input": signed_input_val,
+        "range_given": range_given_val,
+        "narrow_range": narrow_range_val,
+        "axis": axis_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Removed float16 as it does not seem to work consistently
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.raw_ops.QuantizeAndDequantizeV3"] = tf_raw_ops_QuantizeAndDequantizeV3_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

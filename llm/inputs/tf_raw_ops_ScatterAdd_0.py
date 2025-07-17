@@ -8,177 +8,103 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_scatter_add_inputs():
+def tf_raw_ops_ScatterAdd_inputs():
     list_of_inputs = []
 
-    # Input 1, valid
-    ref = np.array([1, 2, 3, 4], dtype=np.float32)
+    # Input 1
+    ref = np.array([1, 2, 3, 4], dtype=np.int32)
     indices = np.array([0, 2], dtype=np.int32)
-    updates = np.array([5, 6], dtype=np.float32)
+    updates = np.array([5, 6], dtype=np.int32)
     use_locking = False
-    name = "scatter_add_example_1"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    name = "scatter_add_1"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid
-    ref = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
-    indices = np.array([0, 1], dtype=np.int32)
-    updates = np.array([[7, 8], [9, 10]], dtype=np.int32)
+    # Input 2
+    ref = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    indices = np.array([0, 2], dtype=np.int32)
+    updates = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
     use_locking = True
-    name = "scatter_add_example_2"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    name = "scatter_add_2"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3, valid
+    # Input 3
     ref = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    indices = np.array([1], dtype=np.int64)
-    updates = np.array([4.0], dtype=np.float64)
+    indices = np.array([0, 1, 2], dtype=np.int32)
+    updates = np.array([0.5, 1.0, 1.5], dtype=np.float64)
     use_locking = False
-    name = "scatter_add_example_3"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    name = "scatter_add_3"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4, valid, empty updates
-    ref = np.array([1, 2, 3], dtype=np.int32)
-    indices = np.array([], dtype=np.int32)
-    updates = np.array([], dtype=np.int32)
+    # Input 4
+    ref = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int64)
+    indices = np.array([0, 1], dtype=np.int64)
+    updates = np.array([[10, 11, 12], [13, 14, 15]], dtype=np.int64)
     use_locking = True
-    name = "scatter_add_example_4"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    name = "scatter_add_4"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5, valid, updates.shape = []
-    ref = np.array([1, 2, 3], dtype=np.int32)
-    indices = np.array([1], dtype=np.int32)
-    updates = np.array(5, dtype=np.int32)
+   # Input 5
+    ref = np.array([1, 2, 3, 4], dtype=np.int32)
+    indices = np.array([0, 1, 2, 3], dtype=np.int32)
+    updates = np.array([5, 6, 7, 8], dtype=np.int32)
     use_locking = False
-    name = "scatter_add_example_5"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    name = "scatter_add_5"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6, valid, multi-dimensional indices
-    ref = np.zeros((5, 5), dtype=np.float32)
-    indices = np.array([[0, 1], [2, 3]], dtype=np.int32)
-    updates = np.array([1.0, 2.0], dtype=np.float32)
+    # Input 6
+    ref = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    indices = np.array([1, 0], dtype=np.int32)
+    updates = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
     use_locking = True
-    name = "scatter_add_example_6"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    name = "scatter_add_6"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 7, valid, int64 ref
-    ref = np.array([1, 2, 3, 4], dtype=np.int64)
-    indices = np.array([0, 2], dtype=np.int32)
-    updates = np.array([5, 6], dtype=np.int64)
+    # Input 7
+    ref = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
+    indices = np.array([5, 0, 2], dtype=np.int32)
+    updates = np.array([7, 8, 9], dtype=np.int32)
     use_locking = False
-    name = "scatter_add_example_7"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    name = "scatter_add_7"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8, valid, uint8 ref
-    ref = np.array([1, 2, 3, 4], dtype=np.uint8)
-    indices = np.array([0, 2], dtype=np.int32)
-    updates = np.array([5, 6], dtype=np.uint8)
-    use_locking = False
-    name = "scatter_add_example_8"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    # Input 8
+    ref = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int32)
+    updates = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=np.float32)
+    use_locking = True
+    name = "scatter_add_8"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9, valid, half ref
-    ref = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float16)
-    indices = np.array([0, 2], dtype=np.int32)
-    updates = np.array([5.0, 6.0], dtype=np.float16)
+    # Input 9
+    ref = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
+    indices = np.array([4, 3, 2, 1, 0], dtype=np.int32)
+    updates = np.array([0.5, 1.0, 1.5, 2.0, 2.5], dtype=np.float64)
     use_locking = False
-    name = "scatter_add_example_9"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    name = "scatter_add_9"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10, valid, complex64 ref
-    ref = np.array([1+1j, 2+2j, 3+3j, 4+4j], dtype=np.complex64)
-    indices = np.array([0, 2], dtype=np.int32)
-    updates = np.array([5+5j, 6+6j], dtype=np.complex64)
-    use_locking = False
-    name = "scatter_add_example_10"
-
-    input_dict = {
-        "ref": ref,
-        "indices": indices,
-        "updates": updates,
-        "use_locking": use_locking,
-        "name": name
-    }
+    # Input 10
+    ref = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.int64)
+    indices = np.array([3, 0], dtype=np.int64)
+    updates = np.array([[10, 11], [13, 14]], dtype=np.int64)
+    use_locking = True
+    name = "scatter_add_10"
+    input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.ScatterAdd"] = tf_raw_ops_scatter_add_inputs()
-for i in range(len(generated_inputs["tf.raw_ops.ScatterAdd"])):
-  generated_inputs["tf.raw_ops.ScatterAdd"][i]["ref"] = tf.Variable(generated_inputs["tf.raw_ops.ScatterAdd"][i]["ref"])
-  generated_inputs["tf.raw_ops.ScatterAdd"][i]["indices"] = tf.convert_to_tensor(generated_inputs["tf.raw_ops.ScatterAdd"][i]["indices"])
-  generated_inputs["tf.raw_ops.ScatterAdd"][i]["updates"] = tf.convert_to_tensor(generated_inputs["tf.raw_ops.ScatterAdd"][i]["updates"])
+generated_inputs["tf.raw_ops.ScatterAdd"] = tf_raw_ops_ScatterAdd_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

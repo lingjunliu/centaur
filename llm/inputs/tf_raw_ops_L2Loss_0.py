@@ -11,64 +11,54 @@ import copy
 def tf_raw_ops_l2loss_inputs():
     list_of_inputs = []
 
-    # Input 1
-    t = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    name = None
-    input_dict = {"t": tf.constant(t).numpy(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    t = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    name = "l2loss_op"
-    input_dict = {"t": tf.constant(t).numpy(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
+    # Input 1: Simple 2D float32
     t = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    name = None
-    input_dict = {"t": tf.constant(t).numpy(), "name": name}
+    input_dict = {"t": t, "name": "l2loss_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
+    # Input 2: 1D float64
+    t = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
+    input_dict = {"t": t, "name": "l2loss_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D float32
     t = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    name = "another_l2loss"
-    input_dict = {"t": tf.constant(t).numpy(), "name": name}
+    input_dict = {"t": t, "name": "l2loss_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    t = np.array([1.0], dtype=np.float32)
-    name = None
-    input_dict = {"t": tf.constant(t).numpy(), "name": name}
+    # Input 4: 2D half
+    t = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16)
+    input_dict = {"t": t, "name": "l2loss_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
+    # Input 5: 1D float32, replacing bfloat16
     t = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    name = "my_l2loss"
-    input_dict = {"t": tf.constant(t).numpy(), "name": name}
+    input_dict = {"t": t, "name": "l2loss_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    t = np.array([0.0, 0.0, 0.0], dtype=np.float32)
-    name = None
-    input_dict = {"t": tf.constant(t).numpy(), "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8, bfloat16
-    t = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    name = None
-    input_dict = {"t": tf.constant(t, dtype=tf.bfloat16).numpy(), "name": name}
+    # Input 6: 2D float32 with negative values
+    t = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float32)
+    input_dict = {"t": t, "name": "l2loss_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9, float64
-    t = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    name = "l2loss_op_float64"
-    input_dict = {"t": tf.constant(t).numpy(), "name": name}
+    # Input 7: 1D float64 with zeros
+    t = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+    input_dict = {"t": t, "name": "l2loss_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10, half
-    t = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    name = None
-    input_dict = {"t": tf.constant(t, dtype=tf.float16).numpy(), "name": name}
+    # Input 8: 3D half with negative values
+    t = np.array([[[1.0, -2.0], [3.0, 4.0]], [[-5.0, 6.0], [7.0, -8.0]]], dtype=np.float16)
+    input_dict = {"t": t, "name": "l2loss_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: 2D float32 with mixed values, replacing bfloat16
+    t = np.array([[-1.0, 0.0], [3.0, -4.0]], dtype=np.float32)
+    input_dict = {"t": t, "name": "l2loss_9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Empty 2D float32
+    t = np.array([[]], dtype=np.float32)
+    input_dict = {"t": t, "name": "l2loss_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

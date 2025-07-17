@@ -11,55 +11,85 @@ import copy
 def tf_raw_ops_ReaderSerializeState_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple string reader handle
-    reader_handle = tf.constant("my_reader_handle")
-    input_dict = {"reader_handle": reader_handle, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1
+    try:
+      reader = tf.compat.v1.TFRecordReader()
+      input_dict = {"reader_handle": reader.reader_handle, "name": None}
+      list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+      pass
 
-    # Input 2: Reader handle with a name
-    reader_handle = tf.constant("another_reader")
-    input_dict = {"reader_handle": reader_handle, "name": "my_reader_state"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2
+    try:
+      reader = tf.compat.v1.TFRecordReader()
+      input_dict = {"reader_handle": reader.reader_handle, "name": "serialize_state"}
+      list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+      pass
 
-    # Input 3: Another reader handle, empty string
-    reader_handle = tf.constant("")
-    input_dict = {"reader_handle": reader_handle, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3
+    try:
+        reader = tf.compat.v1.TFRecordReader()
+        input_dict = {"reader_handle": reader.reader_handle, "name": None}
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+        pass
 
-    # Input 4: Reader handle with a longer name
-    reader_handle = tf.constant("yet_another_reader")
-    input_dict = {"reader_handle": reader_handle, "name": "a_very_long_and_descriptive_name"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4
+    try:
+        reader = tf.compat.v1.TFRecordReader()
+        input_dict = {"reader_handle": reader.reader_handle, "name": "another_name"}
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+        pass
+    
+    # Input 5
+    try:
+        reader = tf.compat.v1.TFRecordReader()
+        input_dict = {"reader_handle": reader.reader_handle, "name": ""}
+        list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+        pass
 
-    # Input 5: Reader handle created using a numpy array
-    reader_handle = tf.constant(np.array("my_handle").astype(np.string_))
-    input_dict = {"reader_handle": reader_handle, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6
+    try:
+      reader = tf.compat.v1.TFRecordReader()
+      input_dict = {"reader_handle": reader.reader_handle, "name": "serialize_state_2"}
+      list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+      pass
 
-    # Input 6: Different reader handle string
-    reader_handle = tf.constant("different_handle")
-    input_dict = {"reader_handle": reader_handle, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7
+    try:
+      reader = tf.compat.v1.TFRecordReader()
+      input_dict = {"reader_handle": reader.reader_handle, "name": "name123"}
+      list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+      pass
+    
+    # Input 8
+    try:
+      reader = tf.compat.v1.TFRecordReader()
+      input_dict = {"reader_handle": reader.reader_handle, "name": "reader_state"}
+      list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+      pass
 
-    # Input 7: Reader handle with special chars in name
-    reader_handle = tf.constant("special_reader")
-    input_dict = {"reader_handle": reader_handle, "name": "reader.state-123"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Reader handle initialized to a dummy value using constant
-    reader_handle = tf.constant("dummy_value")
-    input_dict = {"reader_handle": reader_handle, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Name as an empty string
-    reader_handle = tf.constant("empty_name_reader")
-    input_dict = {"reader_handle": reader_handle, "name": ""}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Reader handle from numpy and slightly different name
-    reader_handle = tf.constant(np.array("stateful_reader").astype(np.string_))
-    input_dict = {"reader_handle": reader_handle, "name": "serialised_state"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9
+    try:
+      reader = tf.compat.v1.TFRecordReader()
+      input_dict = {"reader_handle": reader.reader_handle, "name": "state_reader"}
+      list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+      pass
+    
+    # Input 10
+    try:
+      reader = tf.compat.v1.TFRecordReader()
+      input_dict = {"reader_handle": reader.reader_handle, "name": "data_reader"}
+      list_of_inputs.append(copy.deepcopy(input_dict))
+    except:
+      pass
 
     return list_of_inputs
 

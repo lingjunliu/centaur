@@ -8,73 +8,63 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_queueisclosed_inputs():
+def tf_raw_ops_QueueIsClosed_inputs():
     list_of_inputs = []
 
     # Input 1
-    handle = np.array("queue_handle_1", dtype=np.string_)
-    name = None
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("test_queue")
+    input_dict = {"handle": handle, "name": "queue_closed_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    handle = np.array("queue_handle_2", dtype=np.string_)
-    name = "QueueIsClosedOp_2"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("another_queue")
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    handle = np.array("queue_handle_3", dtype=np.string_)
-    name = ""
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("queue_three")
+    input_dict = {"handle": handle, "name": "queue_closed_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 4
-    handle = np.array("queue_handle_4_long_name", dtype=np.string_)
-    name = "ThisIsALongNameForAnOp"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("")
+    input_dict = {"handle": handle, "name": "empty_queue"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    handle = np.array("queue_handle_5", dtype=np.string_)
-    name = "5"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("some_queue")
+    input_dict = {"handle": handle, "name": "named_queue"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    handle = np.array("queue_handle_6", dtype=np.string_)
-    name = "queue_is_closed_6"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("yet_another_queue")
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
     # Input 7
-    handle = np.array("queue_handle_7", dtype=np.string_)
-    name = "7_with_underscore"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("queue_seven")
+    input_dict = {"handle": handle, "name": "queue_closed_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    handle = np.array("queue_handle_8", dtype=np.string_)
-    name = "8WithCamelCase"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("8th_queue")
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    handle = np.array("queue_handle_9", dtype=np.string_)
-    name = "9.With.Dots"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("ninth_queue")
+    input_dict = {"handle": handle, "name": "queue_closed_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 10
-    handle = np.array("queue_handle_10", dtype=np.string_)
-    name = "10-With-Hyphens"
-    input_dict = {"handle": handle, "name": name}
+    handle = tf.constant("tenth_queue")
+    input_dict = {"handle": handle, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.QueueIsClosed"] = tf_raw_ops_queueisclosed_inputs()
+generated_inputs["tf.raw_ops.QueueIsClosed"] = tf_raw_ops_QueueIsClosed_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

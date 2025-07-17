@@ -8,11 +8,29 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_MapClear_inputs():
+def tf_raw_ops_mapclear_inputs():
     list_of_inputs = []
 
     # Input 1
     dtypes = [tf.float32]
+    capacity = 10
+    memory_limit = 1024
+    container = "testcontainer1"
+    shared_name = "testsharedname1"
+    name = "testname1"
+
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    dtypes = [tf.int32]
     capacity = 0
     memory_limit = 0
     container = ""
@@ -29,31 +47,13 @@ def tf_raw_ops_MapClear_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    dtypes = [tf.int32, tf.float64]
-    capacity = 10
-    memory_limit = 1024
-    container = "container1"
-    shared_name = "shared1"
-    name = "op_name1"
-
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     # Input 3
     dtypes = [tf.string]
     capacity = 100
-    memory_limit = 1024 * 1024
-    container = "container2"
-    shared_name = "shared2"
-    name = "op_name2"
+    memory_limit = 5000
+    container = "container3"
+    shared_name = "shared3"
+    name = "name3"
 
     input_dict = {
         "dtypes": dtypes,
@@ -65,13 +65,13 @@ def tf_raw_ops_MapClear_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    dtypes = [tf.bool, tf.int64]
+     # Input 4
+    dtypes = [tf.bool]
     capacity = 1
     memory_limit = 1
-    container = "container3"
-    shared_name = "shared3"
-    name = "op_name3"
+    container = "boolcontainer"
+    shared_name = "boolshared"
+    name = "boolname"
 
     input_dict = {
         "dtypes": dtypes,
@@ -84,12 +84,12 @@ def tf_raw_ops_MapClear_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    dtypes = [tf.complex64]
-    capacity = 5
-    memory_limit = 512
-    container = "container4"
-    shared_name = "shared4"
-    name = "op_name4"
+    dtypes = [tf.float16]
+    capacity = 20
+    memory_limit = 2048
+    container = "mixedcontainer"
+    shared_name = "mixedshared"
+    name = "mixedname"
 
     input_dict = {
         "dtypes": dtypes,
@@ -102,12 +102,30 @@ def tf_raw_ops_MapClear_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
+    dtypes = [tf.complex64]
+    capacity = 5
+    memory_limit = 100
+    container = "complexcontainer"
+    shared_name = "complexshared"
+    name = "complexname"
+
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
     dtypes = [tf.resource]
     capacity = 1000
-    memory_limit = 2048
-    container = ""
-    shared_name = "shared5"
-    name = "op_name5"
+    memory_limit = 1000000
+    container = "resourcecontainer"
+    shared_name = "resourceshared"
+    name = "resourcename"
 
     input_dict = {
         "dtypes": dtypes,
@@ -119,31 +137,13 @@ def tf_raw_ops_MapClear_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7
+   # Input 8
     dtypes = [tf.variant]
-    capacity = 200
-    memory_limit = 4096
-    container = "container6"
-    shared_name = ""
-    name = "op_name6"
-
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    dtypes = [tf.bfloat16]
     capacity = 2
-    memory_limit = 128
-    container = ""
-    shared_name = ""
-    name = None
+    memory_limit = 20
+    container = "variantcontainer"
+    shared_name = "variantshared"
+    name = "variantname"
 
     input_dict = {
         "dtypes": dtypes,
@@ -156,12 +156,12 @@ def tf_raw_ops_MapClear_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    dtypes = [tf.qint8, tf.quint8, tf.qint16, tf.quint16, tf.qint32]
+    dtypes = [tf.qint8]
     capacity = 7
-    memory_limit = 777
-    container = "q_container"
-    shared_name = "q_shared"
-    name = "q_op"
+    memory_limit = 7777
+    container = "quantizedcontainer"
+    shared_name = "quantizedshared"
+    name = "quantizedname"
 
     input_dict = {
         "dtypes": dtypes,
@@ -174,12 +174,12 @@ def tf_raw_ops_MapClear_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    dtypes = [tf.half]
-    capacity = 42
-    memory_limit = 21
-    container = "forty_two"
-    shared_name = "meaning_of_life"
-    name = "deep_thought"
+    dtypes = [tf.bfloat16]
+    capacity = 33
+    memory_limit = 3333
+    container = "bfloatcontainer"
+    shared_name = "bfloatshared"
+    name = "bfloatname"
 
     input_dict = {
         "dtypes": dtypes,
@@ -194,7 +194,7 @@ def tf_raw_ops_MapClear_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.MapClear"] = tf_raw_ops_MapClear_inputs()
+generated_inputs["tf.raw_ops.MapClear"] = tf_raw_ops_mapclear_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

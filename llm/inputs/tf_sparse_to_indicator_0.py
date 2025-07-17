@@ -11,106 +11,142 @@ import copy
 def tf_sparse_to_indicator_inputs():
     list_of_inputs = []
 
-    # Input 1
-    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    values = np.array([0, 1, 2, 3], dtype=np.int64)
-    dense_shape = np.array([2, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 5
-    name = "indicator_1"
+    def get_sparse_tensor_size(sp_input):
+        return np.prod(tf.sparse.to_dense(sp_input).shape.numpy())
+
+    # Input 1: Basic valid input
+    indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 3], [1, 1, 1]])
+    values = np.array([0, 10, 103, 150], dtype=np.int64)
+    dense_shape = np.array([2, 2, 4], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 200
+    name = "indicator_tensor_1"
     input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
+    # Input 2: Different shape, smaller vocab_size
     indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
     values = np.array([0, 1, 2, 3], dtype=np.int32)
-    dense_shape = np.array([2, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 4
-    name = "indicator_2"
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 5
+    name = "indicator_tensor_2"
     input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    indices = np.array([[0, 0], [0, 1], [0, 1]])
-    values = np.array([0, 1, 2], dtype=np.int64)
-    dense_shape = np.array([1, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 3
-    name = "indicator_3"
-    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: larger vocab_size
-    indices = np.array([[0, 0], [0, 1]])
-    values = np.array([1, 5], dtype=np.int32)
-    dense_shape = np.array([1, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    # Input 3: One dimensional SparseTensor
+    indices = np.array([[0], [1], [2], [3]])
+    values = np.array([1, 5, 2, 8], dtype=np.int64)
+    dense_shape = np.array([4], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
     vocab_size = 10
-    name = "indicator_4"
+    name = "indicator_tensor_3"
     input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 3D input
-    indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 0]])
-    values = np.array([2, 1, 0], dtype=np.int64)
-    dense_shape = np.array([2, 2, 1])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 3
-    name = "indicator_5"
+    # Input 4: Three dimensional SparseTensor
+    indices = np.array([
+        [0, 0, 0],
+        [0, 1, 1],
+        [1, 0, 2],
+        [1, 1, 0],
+        [1, 1, 1],
+    ])
+    values = np.array([5, 3, 7, 9, 2], dtype=np.int32)
+    dense_shape = np.array([2, 2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 10
+    name = "indicator_tensor_4"
     input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6: Empty SparseTensor
-    indices = np.array([], dtype=np.int64).reshape(0, 2)
-    values = np.array([], dtype=np.int64)
-    dense_shape = np.array([2, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 5
-    name = "indicator_6"
-    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Different dense shape
-    indices = np.array([[0, 0], [1, 1], [2, 2]])
-    values = np.array([0, 1, 2], dtype=np.int32)
-    dense_shape = np.array([3, 3])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 4
-    name = "indicator_7"
-    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: single dimension
-    indices = np.array([[0], [1], [2]])
-    values = np.array([0, 1, 2], dtype=np.int64)
-    dense_shape = np.array([3])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 3
-    name = "indicator_8"
-    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: larger indices values
+    # Input 5:  vocab_size = 1
     indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    values = np.array([1, 3, 2, 0], dtype=np.int32)
-    dense_shape = np.array([2, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 5
-    name = "indicator_9"
+    values = np.array([0, 0, 0, 0], dtype=np.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 1
+    name = "indicator_tensor_5"
     input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    def _sparse_size(sparse_tensor):
-      return np.prod(sparse_tensor.dense_shape).numpy() if isinstance(sparse_tensor.dense_shape, tf.TensorShape) else np.prod(sparse_tensor.dense_shape)
+    # Input 6:  Larger vocab size
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values = np.array([100, 200, 300, 400], dtype=np.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 500
+    name = "indicator_tensor_6"
+    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Reduced dimensions for indices to match dense shape
-    indices = np.array([[0, 0], [0, 1], [1, 0]])
-    values = np.array([0, 1, 2], dtype=np.int64)
-    dense_shape = np.array([2, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    vocab_size = 3
-    name = "indicator_10"
+    # Input 7:  Empty SparseTensor
+    indices = np.array([], dtype=np.int64).reshape(0, 2)
+    values = np.array([], dtype=np.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 10
+    name = "indicator_tensor_7"
+    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8:  One element SparseTensor
+    indices = np.array([[0, 0]], dtype=np.int64)
+    values = np.array([5], dtype=np.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 10
+    name = "indicator_tensor_8"
+    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: large number of elements
+    indices = np.array([[i, 0] for i in range(100)], dtype=np.int64)
+    values = np.array([i for i in range(100)], dtype=np.int32)
+    dense_shape = np.array([100, 1], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 101
+    name = "indicator_tensor_9"
+    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: 2D, large vocab size, int64 values
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
+    values = np.array([100000, 200000, 300000, 400000], dtype=np.int64)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 500000
+    name = "indicator_tensor_10"
+    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: with name None
+    indices = np.array([[0, 0, 0], [0, 1, 0], [1, 0, 3], [1, 1, 1]])
+    values = np.array([0, 10, 103, 150], dtype=np.int64)
+    dense_shape = np.array([2, 2, 4], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 200
+    name = None
+    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    #Input 12: sp_input value is tf.constant
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values = tf.constant([0, 1, 2, 3], dtype=tf.int32)
+    dense_shape = np.array([2, 2], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 5
+    name = "indicator_tensor_12"
+    input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    #Input 13: dense_shape is tf.constant
+    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    values = np.array([0, 1, 2, 3], dtype=np.int32)
+    dense_shape = tf.constant([2, 2], dtype=tf.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
+    vocab_size = 5
+    name = "indicator_tensor_13"
     input_dict = {"sp_input": sp_input, "vocab_size": vocab_size, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

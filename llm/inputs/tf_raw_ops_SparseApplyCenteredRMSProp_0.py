@@ -11,19 +11,19 @@ import copy
 def tf_raw_ops_SparseApplyCenteredRMSProp_inputs():
     list_of_inputs = []
 
-    # Input 1
-    var = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    mg = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float32)
-    ms = np.array([0.5, 0.6, 0.7, 0.8], dtype=np.float32)
-    mom = np.array([0.01, 0.02, 0.03, 0.04], dtype=np.float32)
+    # Input 1, valid
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    mg = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    ms = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
+    mom = np.array([[0.9, 1.0], [1.1, 1.2]], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
     rho = np.array(0.9, dtype=np.float32)
     momentum = np.array(0.0, dtype=np.float32)
     epsilon = np.array(1e-7, dtype=np.float32)
-    grad = np.array([0.5, 0.0, 0.2, 0.0], dtype=np.float32)
-    indices = np.array([0, 2], dtype=np.int32)
+    grad = np.array([[0.2, 0.3]], dtype=np.float32)
+    indices = np.array([0], dtype=np.int32)
     use_locking = False
-    name = "sparse_apply_centered_rms_prop_1"
+    name = "sparse_apply_centered_rmsprop_1"
 
     input_dict = {
         "var": var,
@@ -41,19 +41,19 @@ def tf_raw_ops_SparseApplyCenteredRMSProp_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    var = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
-    mg = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float64)
-    ms = np.array([0.5, 0.6, 0.7, 0.8], dtype=np.float64)
-    mom = np.array([0.01, 0.02, 0.03, 0.04], dtype=np.float64)
+    # Input 2, valid, different data type
+    var = np.array([[1, 2], [3, 4]], dtype=np.float64)
+    mg = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float64)
+    ms = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float64)
+    mom = np.array([[0.9, 1.0], [1.1, 1.2]], dtype=np.float64)
     lr = np.array(0.01, dtype=np.float64)
     rho = np.array(0.9, dtype=np.float64)
     momentum = np.array(0.0, dtype=np.float64)
     epsilon = np.array(1e-7, dtype=np.float64)
-    grad = np.array([0.5, 0.0, 0.2, 0.0], dtype=np.float64)
-    indices = np.array([0, 2], dtype=np.int64)
+    grad = np.array([[0.2, 0.3]], dtype=np.float64)
+    indices = np.array([0], dtype=np.int64)
     use_locking = True
-    name = "sparse_apply_centered_rms_prop_2"
+    name = "sparse_apply_centered_rmsprop_2"
 
     input_dict = {
         "var": var,
@@ -71,19 +71,49 @@ def tf_raw_ops_SparseApplyCenteredRMSProp_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    var = np.array([1, 2, 3, 4], dtype=np.int32)
-    mg = np.array([0, 0, 0, 0], dtype=np.int32)
-    ms = np.array([1, 1, 1, 1], dtype=np.int32)
-    mom = np.array([0, 0, 0, 0], dtype=np.int32)
-    lr = np.array(1, dtype=np.int32)
-    rho = np.array(0, dtype=np.int32)
-    momentum = np.array(0, dtype=np.int32)
-    epsilon = np.array(1, dtype=np.int32)
-    grad = np.array([1, 0, 1, 0], dtype=np.int32)
+    # Input 3, valid, different values
+    var = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float32)
+    mg = np.array([[0.15, 0.25], [0.35, 0.45]], dtype=np.float32)
+    ms = np.array([[0.55, 0.65], [0.75, 0.85]], dtype=np.float32)
+    mom = np.array([[0.95, 1.05], [1.15, 1.25]], dtype=np.float32)
+    lr = np.array(0.02, dtype=np.float32)
+    rho = np.array(0.8, dtype=np.float32)
+    momentum = np.array(0.1, dtype=np.float32)
+    epsilon = np.array(1e-8, dtype=np.float32)
+    grad = np.array([[0.25, 0.35]], dtype=np.float32)
+    indices = np.array([1], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_centered_rmsprop_3"
+
+    input_dict = {
+        "var": var,
+        "mg": mg,
+        "ms": ms,
+        "mom": mom,
+        "lr": lr,
+        "rho": rho,
+        "momentum": momentum,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 4, valid, multi-dimensional grad and indices
+    var = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
+    mg = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]], dtype=np.float32)
+    ms = np.array([[0.5, 0.6], [0.7, 0.8], [0.9, 1.0]], dtype=np.float32)
+    mom = np.array([[0.9, 1.0], [1.1, 1.2], [1.3, 1.4]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    rho = np.array(0.9, dtype=np.float32)
+    momentum = np.array(0.0, dtype=np.float32)
+    epsilon = np.array(1e-7, dtype=np.float32)
+    grad = np.array([[0.2, 0.3], [0.4, 0.5]], dtype=np.float32)
     indices = np.array([0, 2], dtype=np.int32)
     use_locking = False
-    name = "sparse_apply_centered_rms_prop_3"
+    name = "sparse_apply_centered_rmsprop_4"
 
     input_dict = {
         "var": var,
@@ -101,19 +131,49 @@ def tf_raw_ops_SparseApplyCenteredRMSProp_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 4
-    var = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    mg = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float32)
-    ms = np.array([0.5, 0.6, 0.7, 0.8], dtype=np.float32)
-    mom = np.array([0.01, 0.02, 0.03, 0.04], dtype=np.float32)
+    # Input 5, valid, different shapes
+    var = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    mg = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=np.float32)
+    ms = np.array([[0.5, 0.6, 0.7], [0.8, 0.9, 1.0]], dtype=np.float32)
+    mom = np.array([[0.9, 1.0, 1.1], [1.2, 1.3, 1.4]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    rho = np.array(0.9, dtype=np.float32)
+    momentum = np.array(0.0, dtype=np.float32)
+    epsilon = np.array(1e-7, dtype=np.float32)
+    grad = np.array([[0.2, 0.3, 0.4]], dtype=np.float32)
+    indices = np.array([1], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_centered_rmsprop_5"
+
+    input_dict = {
+        "var": var,
+        "mg": mg,
+        "ms": ms,
+        "mom": mom,
+        "lr": lr,
+        "rho": rho,
+        "momentum": momentum,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6, valid, momentum > 0
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    mg = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    ms = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
+    mom = np.array([[0.9, 1.0], [1.1, 1.2]], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
     rho = np.array(0.9, dtype=np.float32)
     momentum = np.array(0.1, dtype=np.float32)
-    epsilon = np.array(1e-8, dtype=np.float32)
-    grad = np.array([0.5, 0.0, 0.2, 0.0], dtype=np.float32)
-    indices = np.array([0, 2], dtype=np.int64)
+    epsilon = np.array(1e-7, dtype=np.float32)
+    grad = np.array([[0.2, 0.3]], dtype=np.float32)
+    indices = np.array([0], dtype=np.int32)
     use_locking = False
-    name = "sparse_apply_centered_rms_prop_4"
+    name = "sparse_apply_centered_rmsprop_6"
 
     input_dict = {
         "var": var,
@@ -131,169 +191,79 @@ def tf_raw_ops_SparseApplyCenteredRMSProp_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    var = np.array([-1.0, -2.0, -3.0, -4.0], dtype=np.float32)
-    mg = np.array([-0.1, -0.2, -0.3, -0.4], dtype=np.float32)
-    ms = np.array([-0.5, -0.6, -0.7, -0.8], dtype=np.float32)
-    mom = np.array([-0.01, -0.02, -0.03, -0.04], dtype=np.float32)
+    # Input 7, valid, larger learning rate
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    mg = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    ms = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
+    mom = np.array([[0.9, 1.0], [1.1, 1.2]], dtype=np.float32)
+    lr = np.array(0.1, dtype=np.float32)
+    rho = np.array(0.9, dtype=np.float32)
+    momentum = np.array(0.0, dtype=np.float32)
+    epsilon = np.array(1e-7, dtype=np.float32)
+    grad = np.array([[0.2, 0.3]], dtype=np.float32)
+    indices = np.array([0], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_centered_rmsprop_7"
+
+    input_dict = {
+        "var": var,
+        "mg": mg,
+        "ms": ms,
+        "mom": mom,
+        "lr": lr,
+        "rho": rho,
+        "momentum": momentum,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8, valid, different rho
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    mg = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    ms = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
+    mom = np.array([[0.9, 1.0], [1.1, 1.2]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    rho = np.array(0.5, dtype=np.float32)
+    momentum = np.array(0.0, dtype=np.float32)
+    epsilon = np.array(1e-7, dtype=np.float32)
+    grad = np.array([[0.2, 0.3]], dtype=np.float32)
+    indices = np.array([0], dtype=np.int32)
+    use_locking = False
+    name = "sparse_apply_centered_rmsprop_8"
+
+    input_dict = {
+        "var": var,
+        "mg": mg,
+        "ms": ms,
+        "mom": mom,
+        "lr": lr,
+        "rho": rho,
+        "momentum": momentum,
+        "epsilon": epsilon,
+        "grad": grad,
+        "indices": indices,
+        "use_locking": use_locking,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+
+    var = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    mg = np.array([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
+    ms = np.array([[0.5, 0.6], [0.7, 0.8], [0.9, 1.0], [1.1, 1.2]], dtype=np.float32)
+    mom = np.array([[0.9, 1.0], [1.1, 1.2], [1.3, 1.4], [1.5, 1.6]], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
     rho = np.array(0.9, dtype=np.float32)
     momentum = np.array(0.0, dtype=np.float32)
     epsilon = np.array(1e-7, dtype=np.float32)
-    grad = np.array([-0.5, 0.0, -0.2, 0.0], dtype=np.float32)
-    indices = np.array([0, 2], dtype=np.int32)
+    grad = np.array([[0.2, 0.3], [0.4, 0.5], [0.6, 0.7]], dtype=np.float32)
+    indices = np.array([0, 2, 3], dtype=np.int32)
     use_locking = False
-    name = "sparse_apply_centered_rms_prop_5"
-
-    input_dict = {
-        "var": var,
-        "mg": mg,
-        "ms": ms,
-        "mom": mom,
-        "lr": lr,
-        "rho": rho,
-        "momentum": momentum,
-        "epsilon": epsilon,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    var = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.half)
-    mg = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.half)
-    ms = np.array([0.5, 0.6, 0.7, 0.8], dtype=np.half)
-    mom = np.array([0.01, 0.02, 0.03, 0.04], dtype=np.half)
-    lr = np.array(0.01, dtype=np.half)
-    rho = np.array(0.9, dtype=np.half)
-    momentum = np.array(0.0, dtype=np.half)
-    epsilon = np.array(1e-7, dtype=np.half)
-    grad = np.array([0.5, 0.0, 0.2, 0.0], dtype=np.half)
-    indices = np.array([0, 2], dtype=np.int32)
-    use_locking = False
-    name = "sparse_apply_centered_rms_prop_6"
-
-    input_dict = {
-        "var": var,
-        "mg": mg,
-        "ms": ms,
-        "mom": mom,
-        "lr": lr,
-        "rho": rho,
-        "momentum": momentum,
-        "epsilon": epsilon,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    var = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    mg = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float32)
-    ms = np.array([0.5, 0.6, 0.7, 0.8], dtype=np.float32)
-    mom = np.array([0.01, 0.02, 0.03, 0.04], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    rho = np.array(0.9, dtype=np.float32)
-    momentum = np.array(0.0, dtype=np.float32)
-    epsilon = np.array(1e-7, dtype=np.float32)
-    grad = np.array([0.5, 0.0, 0.2, 0.0], dtype=np.float32)
-    indices = np.array([0, 2], dtype=np.int32)
-    use_locking = False
-    name = None
-
-    input_dict = {
-        "var": var,
-        "mg": mg,
-        "ms": ms,
-        "mom": mom,
-        "lr": lr,
-        "rho": rho,
-        "momentum": momentum,
-        "epsilon": epsilon,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    var = np.array([1, 2, 3, 4], dtype=np.int64)
-    mg = np.array([0, 0, 0, 0], dtype=np.int64)
-    ms = np.array([1, 1, 1, 1], dtype=np.int64)
-    mom = np.array([0, 0, 0, 0], dtype=np.int64)
-    lr = np.array(1, dtype=np.int64)
-    rho = np.array(0, dtype=np.int64)
-    momentum = np.array(0, dtype=np.int64)
-    epsilon = np.array(1, dtype=np.int64)
-    grad = np.array([1, 0, 1, 0], dtype=np.int64)
-    indices = np.array([0, 2], dtype=np.int32)
-    use_locking = True
-    name = "sparse_apply_centered_rms_prop_8"
-
-    input_dict = {
-        "var": var,
-        "mg": mg,
-        "ms": ms,
-        "mom": mom,
-        "lr": lr,
-        "rho": rho,
-        "momentum": momentum,
-        "epsilon": epsilon,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    var = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    mg = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float32)
-    ms = np.array([0.5, 0.6, 0.7, 0.8], dtype=np.float32)
-    mom = np.array([0.01, 0.02, 0.03, 0.04], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    rho = np.array(0.9, dtype=np.float32)
-    momentum = np.array(0.0, dtype=np.float32)
-    epsilon = np.array(1e-7, dtype=np.float32)
-    grad = np.array([0.5, 0.0, 0.2, 0.0], dtype=np.float32)
-    indices = np.array([0, 1, 2, 3], dtype=np.int32)
-    use_locking = False
-    name = "sparse_apply_centered_rms_prop_9"
-
-    input_dict = {
-        "var": var,
-        "mg": mg,
-        "ms": ms,
-        "mom": mom,
-        "lr": lr,
-        "rho": rho,
-        "momentum": momentum,
-        "epsilon": epsilon,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    var = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32)
-    mg = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], dtype=np.float32)
-    ms = np.array([0.5, 0.6, 0.7, 0.8, 0.9, 1.0], dtype=np.float32)
-    mom = np.array([0.01, 0.02, 0.03, 0.04, 0.05, 0.06], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    rho = np.array(0.9, dtype=np.float32)
-    momentum = np.array(0.0, dtype=np.float32)
-    epsilon = np.array(1e-7, dtype=np.float32)
-    grad = np.array([0.5, 0.0, 0.2, 0.0, 0.1, 0.0], dtype=np.float32)
-    indices = np.array([0, 2, 4], dtype=np.int32)
-    use_locking = False
-    name = "sparse_apply_centered_rms_prop_10"
+    name = "sparse_apply_centered_rmsprop_10"
 
     input_dict = {
         "var": var,
@@ -314,16 +284,7 @@ def tf_raw_ops_SparseApplyCenteredRMSProp_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_SparseApplyCenteredRMSProp_inputs()
-generated_inputs["tf.raw_ops.SparseApplyCenteredRMSProp"] = []
-for input_dict in inputs:
-    new_input_dict = {}
-    for k, v in input_dict.items():
-        if isinstance(v, np.ndarray):
-            new_input_dict[k] = tf.constant(v)
-        else:
-            new_input_dict[k] = v
-    generated_inputs["tf.raw_ops.SparseApplyCenteredRMSProp"].append(new_input_dict)
+generated_inputs["tf.raw_ops.SparseApplyCenteredRMSProp"] = tf_raw_ops_SparseApplyCenteredRMSProp_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

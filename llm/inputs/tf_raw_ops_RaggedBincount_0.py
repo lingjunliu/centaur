@@ -11,117 +11,208 @@ import copy
 def tf_raw_ops_ragged_bincount_inputs():
     list_of_inputs = []
 
-    # Input 1
-    splits = np.array([0, 2, 5], dtype=np.int64)
-    values = np.array([1, 2, 0, 1, 2], dtype=np.int32)
-    size = np.array(5, dtype=np.int32)
+    # Input 1: Basic case with int32 values and float32 weights
+    splits = np.array([0, 3, 5], dtype=np.int64)
+    values = np.array([0, 1, 2, 0, 1], dtype=np.int32)
+    size = np.array(4, dtype=np.int32)
     weights = np.array([0.5, 1.0, 1.5, 2.0, 2.5], dtype=np.float32)
     binary_output = False
-    name = "bincount_1"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    splits = np.array([0, 3], dtype=np.int64)
-    values = np.array([0, 1, 2], dtype=np.int32)
-    size = np.array(3, dtype=np.int32)
-    weights = np.array([1, 2, 3], dtype=np.int32)
+    # Input 2: int64 values and int64 weights
+    splits = np.array([0, 2, 4], dtype=np.int64)
+    values = np.array([1, 5, 2, 3], dtype=np.int64)
+    size = np.array(7, dtype=np.int64)
+    weights = np.array([1, 2, 3, 4], dtype=np.int64)
     binary_output = True
-    name = "bincount_2"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
+    name = "bincount_int64"
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    splits = np.array([0, 1, 2, 3], dtype=np.int64)
-    values = np.array([0, 1, 2], dtype=np.int32)
-    size = np.array(4, dtype=np.int32)
-    weights = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    binary_output = False
-    name = "bincount_3"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
+    # Input 3: Empty weights
     splits = np.array([0, 2], dtype=np.int64)
-    values = np.array([0, 1], dtype=np.int64)
-    size = np.array(2, dtype=np.int64)
-    weights = np.array([1, 2], dtype=np.int64)
-    binary_output = True
-    name = "bincount_4"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    splits = np.array([0, 1, 3], dtype=np.int64)
-    values = np.array([0, 1, 2], dtype=np.int64)[:1]
-    size = np.array(5, dtype=np.int64)
-    weights = np.array([1.0], dtype=np.float32)
-    binary_output = False
-    name = "bincount_5"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    splits = np.array([0, 4], dtype=np.int64)
-    values = np.array([0, 1, 2, 3], dtype=np.int32)
-    size = np.array(6, dtype=np.int32)
-    weights = np.array([1, 2, 3, 4], dtype=np.int32)
-    binary_output = True
-    name = "bincount_6"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    splits = np.array([0, 0], dtype=np.int64)
-    values = np.array([], dtype=np.int32)
-    size = np.array(5, dtype=np.int32)
+    values = np.array([0, 1], dtype=np.int32)
+    size = np.array(3, dtype=np.int32)
     weights = np.array([], dtype=np.float32)
     binary_output = False
-    name = "bincount_7"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    splits = np.array([0, 3], dtype=np.int64)
-    values = np.array([2,1,0], dtype=np.int64)
-    size = np.array(4, dtype=np.int64)
-    weights = np.array([0.5, 0.25, 0.125], dtype=np.float64)
+    # Input 4: float64 weights
+    splits = np.array([0, 1, 3], dtype=np.int64)
+    values = np.array([2, 1, 2], dtype=np.int32)
+    size = np.array(5, dtype=np.int32)
+    weights = np.array([1.5, 2.5, 3.5], dtype=np.float64)
     binary_output = True
-    name = "bincount_8"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    splits = np.array([0, 1, 2, 3], dtype=np.int64)
-    values = np.array([0,1,2], dtype=np.int32)
-    size = np.array(3, dtype=np.int32)
-    weights = np.array([1,1,1], dtype=np.int32)
-    binary_output = True
-    name = "bincount_9"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    splits = np.array([0, 2, 4], dtype=np.int64)
-    values = np.array([0, 1, 0, 1], dtype=np.int64)
-    size = np.array(4, dtype=np.int64)
-    weights = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+    # Input 5: Larger size
+    splits = np.array([0, 4], dtype=np.int64)
+    values = np.array([0, 1, 2, 3], dtype=np.int32)
+    size = np.array(10, dtype=np.int32)
+    weights = np.array([1, 1, 1, 1], dtype=np.int32)
     binary_output = False
-    name = "bincount_10"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11
-    splits = np.array([0, 0, 0], dtype=np.int64)
-    values = np.array([], dtype=np.int32)
-    size = np.array(3, dtype=np.int32)
-    weights = np.array([], dtype=np.int32)
+
+    # Input 6: All values out of range
+    splits = np.array([0, 3], dtype=np.int64)
+    values = np.array([5, 6, 7], dtype=np.int32)
+    size = np.array(4, dtype=np.int32)
+    weights = np.array([1, 1, 1], dtype=np.float32)
+    binary_output = False
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Mixed values in and out of range
+    splits = np.array([0, 4], dtype=np.int64)
+    values = np.array([0, 1, 5, 2], dtype=np.int32)
+    size = np.array(4, dtype=np.int32)
+    weights = np.array([1, 2, 3, 4], dtype=np.float32)
+    binary_output = False
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: One split
+    splits = np.array([0, 5], dtype=np.int64)
+    values = np.array([0, 1, 2, 3, 0], dtype=np.int32)
+    size = np.array(4, dtype=np.int32)
+    weights = np.array([1, 1, 1, 1, 1], dtype=np.float32)
     binary_output = True
-    name = "bincount_11"
-    input_dict = {"splits": splits, "values": values, "size": size, "weights": weights, "binary_output": binary_output, "name": name}
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: int64 values, float32 weights
+    splits = np.array([0, 3], dtype=np.int64)
+    values = np.array([0, 1, 2], dtype=np.int64)
+    size = np.array(4, dtype=np.int64)
+    weights = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    binary_output = False
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: int32 values, int64 weights, binary_output=True
+    splits = np.array([0, 2, 4], dtype=np.int64)
+    values = np.array([0, 1, 0, 2], dtype=np.int32)
+    size = np.array(3, dtype=np.int32)
+    weights = np.array([1, 2, 3, 4], dtype=np.int64)
+    binary_output = True
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Zero size, empty values and weights
+    splits = np.array([0, 0], dtype=np.int64)
+    values = np.array([], dtype=np.int32)
+    size = np.array(0, dtype=np.int32)
+    weights = np.array([], dtype=np.float32)
+    binary_output = False
+    name = None
+
+    input_dict = {
+        "splits": splits,
+        "values": values,
+        "size": size,
+        "weights": weights,
+        "binary_output": binary_output,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
+
+generated_inputs = {}
+generated_inputs["tf.raw_ops.RaggedBincount"] = tf_raw_ops_ragged_bincount_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -11,75 +11,76 @@ import copy
 def tf_raw_ops_encode_base64_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = np.array(["hello"]).astype(np.string_)
+    # Input 1: Empty string
+    input_tensor = np.array([""], dtype=np.object_)
     pad_bool = False
-    name_str = None
+    name_str = "empty_string"
     input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = np.array(["hello", "world"]).astype(np.string_)
-    pad_bool = True
-    name_str = "encode_1"
-    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    input_tensor = np.array([""]).astype(np.string_)
+    # Input 2: Simple string, no padding
+    input_tensor = np.array(["hello"], dtype=np.object_)
     pad_bool = False
-    name_str = "encode_2"
+    name_str = "hello_no_pad"
     input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    input_tensor = np.array(["a", "b", "c"]).astype(np.string_)
+    # Input 3: Simple string, with padding
+    input_tensor = np.array(["hello"], dtype=np.object_)
     pad_bool = True
-    name_str = None
+    name_str = "hello_with_pad"
     input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = np.array(["This is a longer string."]).astype(np.string_)
+    # Input 4: String with special characters
+    input_tensor = np.array(["!@#$%^&*()_+=-`~[]{}|;':\",./<>?"], dtype=np.object_)
     pad_bool = False
-    name_str = "encode_3"
+    name_str = "special_chars"
     input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_tensor = np.array([["hello", "world"], ["foo", "bar"]]).astype(np.string_)
-    pad_bool = True
-    name_str = None
-    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input_tensor = np.array(["12345", "67890"]).astype(np.string_)
+    # Input 5: Multiple strings in a tensor
+    input_tensor = np.array(["hello", "world", "tensorflow"], dtype=np.object_)
     pad_bool = False
-    name_str = "encode_4"
+    name_str = "multiple_strings"
     input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    input_tensor = np.array(["!@#$%^", "&*()_+"]).astype(np.string_)
+    # Input 6: Multiple strings, with padding
+    input_tensor = np.array(["hello", "world", "tensorflow"], dtype=np.object_)
     pad_bool = True
-    name_str = None
+    name_str = "multiple_strings_pad"
     input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    input_tensor = np.array(["test_string"]).astype(np.string_)
+    # Input 7: Long string
+    input_tensor = np.array(["This is a very long string to test the base64 encoding."], dtype=np.object_)
     pad_bool = False
-    name_str = "encode_5"
+    name_str = "long_string"
     input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    input_tensor = np.array([["a"], ["b"]]).astype(np.string_)
-    pad_bool = True
-    name_str = None
+    # Input 8: String with numbers
+    input_tensor = np.array(["1234567890"], dtype=np.object_)
+    pad_bool = False
+    name_str = "numbers_string"
     input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: String with a mix of everything
+    input_tensor = np.array(["Hello World! 12345 @#$%^&*()"], dtype=np.object_)
+    pad_bool = True
+    name_str = "mixed_string"
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Another string with special characters
+    input_tensor = np.array(["~!@#$^&*()_+=-`"], dtype=np.object_)
+    pad_bool = False
+    name_str = "more_special_chars"
+    input_dict = {"input": input_tensor, "pad": pad_bool, "name": name_str}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

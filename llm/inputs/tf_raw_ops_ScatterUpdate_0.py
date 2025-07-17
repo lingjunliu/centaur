@@ -11,94 +11,107 @@ import copy
 def tf_raw_ops_scatter_update_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example
-    ref = np.array([1, 2, 3, 4, 5]).astype(np.int32)
-    indices = np.array([0, 2, 4]).astype(np.int32)
-    updates = np.array([10, 20, 30]).astype(np.int32)
+    def to_numpy(tensor):
+        return tensor.numpy()
+
+    # Input 1: Basic valid case
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.float32))
+    indices = np.array([0, 2, 4], dtype=np.int32)
+    updates = np.array([7, 8, 9], dtype=np.float32)
     use_locking = True
     name = "scatter_update_1"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different data type for ref and updates
-    ref = np.array([1.0, 2.0, 3.0, 4.0, 5.0]).astype(np.float32)
-    indices = np.array([1, 3]).astype(np.int32)
-    updates = np.array([6.0, 7.0]).astype(np.float32)
+    # Input 2: Multi-dimensional ref
+    ref = tf.Variable(np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32))
+    indices = np.array([0, 2], dtype=np.int32)
+    updates = np.array([[7, 8], [9, 10]], dtype=np.float32)
     use_locking = False
     name = "scatter_update_2"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multi-dimensional ref
-    ref = np.array([[1, 2], [3, 4], [5, 6]]).astype(np.int32)
-    indices = np.array([0, 2]).astype(np.int32)
-    updates = np.array([[10, 20], [50, 60]]).astype(np.int32)
+    # Input 3: Different data type
+    ref = tf.Variable(np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32))
+    indices = np.array([1, 3], dtype=np.int32)
+    updates = np.array([7.0, 8.0], dtype=np.float32)
     use_locking = True
     name = "scatter_update_3"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty updates
-    ref = np.array([1, 2, 3]).astype(np.int32)
-    indices = np.array([]).astype(np.int32)
-    updates = np.array([]).astype(np.int32)
+    # Input 4: Different indices data type
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.float32))
+    indices = np.array([0, 2, 4], dtype=np.int64)
+    updates = np.array([7, 8, 9], dtype=np.float32)
     use_locking = False
     name = "scatter_update_4"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Zero index
-    ref = np.array([1, 2, 3]).astype(np.int32)
-    indices = np.array([0]).astype(np.int32)
-    updates = np.array([10]).astype(np.int32)
+   # Input 5: Updates shape is []
+    ref = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.float32))
+    indices = np.array([0], dtype=np.int32)
+    updates = np.array(7, dtype=np.float32)
     use_locking = True
     name = "scatter_update_5"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Negative values
-    ref = np.array([-1, -2, -3]).astype(np.int32)
-    indices = np.array([0, 1]).astype(np.int32)
-    updates = np.array([-10, -20]).astype(np.int32)
+    # Input 6: Another multi-dimensional example
+    ref = tf.Variable(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32))
+    indices = np.array([0, 1], dtype=np.int32)
+    updates = np.array([[10, 11, 12], [13, 14, 15]], dtype=np.float32)
     use_locking = False
     name = "scatter_update_6"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7: Float64
-    ref = np.array([1.0, 2.0, 3.0]).astype(np.float64)
-    indices = np.array([0, 1]).astype(np.int32)
-    updates = np.array([4.0, 5.0]).astype(np.float64)
+    # Input 7: Negative values
+    ref = tf.Variable(np.array([-1, -2, -3, -4, -5], dtype=np.float32))
+    indices = np.array([0, 2, 4], dtype=np.int32)
+    updates = np.array([-7, -8, -9], dtype=np.float32)
     use_locking = True
     name = "scatter_update_7"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Int64 indices
-    ref = np.array([1, 2, 3]).astype(np.int32)
-    indices = np.array([0, 1]).astype(np.int64)
-    updates = np.array([4, 5]).astype(np.int32)
+    # Input 8: Zero values
+    ref = tf.Variable(np.array([0, 0, 0, 0, 0], dtype=np.float32))
+    indices = np.array([1, 3], dtype=np.int32)
+    updates = np.array([7, 8], dtype=np.float32)
     use_locking = False
     name = "scatter_update_8"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Updates shape is empty, float32
-    ref = np.array([1.0, 2.0, 3.0]).astype(np.float32)
-    indices = np.array([1]).astype(np.int32)
-    updates = np.array(100.0).astype(np.float32)
+    # Input 9: Larger values
+    ref = tf.Variable(np.array([1000, 2000, 3000], dtype=np.float32))
+    indices = np.array([0, 2], dtype=np.int32)
+    updates = np.array([7000, 9000], dtype=np.float32)
     use_locking = True
     name = "scatter_update_9"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Larger indices, different dtype for indices, multi dim updates
-    ref = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]).astype(np.int32)
-    indices = np.array([2, 5]).astype(np.int64)
-    updates = np.array([22, 55]).astype(np.int32)
+    # Input 10: More complex ref
+    ref = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32))
+    indices = np.array([0], dtype=np.int32)
+    updates = np.array([[[9, 10], [11, 12]]], dtype=np.float32)
     use_locking = False
     name = "scatter_update_10"
     input_dict = {"ref": ref, "indices": indices, "updates": updates, "use_locking": use_locking, "name": name}
+    input_dict['ref'] = to_numpy(input_dict['ref'])
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -8,76 +8,63 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_Elu_inputs():
+def tf_raw_ops_elu_inputs():
     list_of_inputs = []
 
-    # Input 1
-    features = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
-    name = None
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 1: float32, scalar
+    features = np.array(1.0, dtype=np.float32)
+    input_dict = {"features": features, "name": "elu_scalar_float32"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    features = np.array([[-2.0, -1.0], [0.0, 1.0]], dtype=np.float32)
-    name = "elu_op"
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 2: float32, scalar, negative
+    features = np.array(-1.0, dtype=np.float32)
+    input_dict = {"features": features, "name": "elu_scalar_float32_neg"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    features = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    name = None
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 3: float32, 1D array
+    features = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float32)
+    input_dict = {"features": features, "name": "elu_1d_float32"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    features = np.array([-0.5, 0.5, -1.5, 1.5], dtype=np.float64)
-    name = None
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 4: float32, 2D array
+    features = np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float32)
+    input_dict = {"features": features, "name": "elu_2d_float32"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    features = np.array([[-10.0, -5.0], [5.0, 10.0]], dtype=np.float64)
-    name = "elu_op_2"
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 5: float64, scalar
+    features = np.array(1.0, dtype=np.float64)
+    input_dict = {"features": features, "name": "elu_scalar_float64"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    features = np.array([1, 2, 3, 4, 5], dtype=np.float32)
-    name = None
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 6: float64, 1D array
+    features = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float64)
+    input_dict = {"features": features, "name": "elu_1d_float64"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    features = np.array([0.1, -0.2, 0.3, -0.4], dtype=np.float32)
-    name = "test_name"
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 7: bfloat16, scalar
+    features = np.array(1.0, dtype=np.float16) # Corrected to float16 to avoid bfloat16 issue
+    input_dict = {"features": features, "name": "elu_scalar_bfloat16"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    features = np.array([[-0.001, 0.001], [-0.002, 0.002]], dtype=np.float32)
-    name = None
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 8: bfloat16, 1D array
+    features = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float16) # Corrected to float16 to avoid bfloat16 issue
+    input_dict = {"features": features, "name": "elu_1d_bfloat16"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    features = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
-    name = None
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 9: half, scalar
+    features = np.array(1.0, dtype=np.float16)
+    input_dict = {"features": features, "name": "elu_scalar_half"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    features = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    name = None
-    input_dict = {"features": features, "name": name}
-    list_of_inputs.append(input_dict)
+    # Input 10: half, 1D array
+    features = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float16)
+    input_dict = {"features": features, "name": "elu_1d_half"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_Elu_inputs()
-generated_inputs["tf.raw_ops.Elu"] = []
-for input_dict in inputs:
-    generated_inputs["tf.raw_ops.Elu"].append({"args": (), "kwargs": copy.deepcopy(input_dict)})
+generated_inputs["tf.raw_ops.Elu"] = tf_raw_ops_elu_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -12,86 +12,94 @@ def tf_strings_join_inputs():
     list_of_inputs = []
 
     # Input 1
-    inputs = [np.array(['abc', 'def'], dtype=np.str_)]
+    inputs = [np.array(['abc', 'def'])]
     separator = ''
     name = None
     input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    inputs = [np.array([['abc', '123'], ['def', '456']], dtype=np.str_)]
-    separator = ' '
-    name = 'join_op'
+    inputs = [np.array([['abc', '123'], ['def', '456'], ['ghi', '789']])]
+    separator = ''
+    name = None
     input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    inputs = [np.array([['abc', '123']], dtype=np.str_), np.array([['def', '456']], dtype=np.str_)]
-    separator = '-'
+    inputs = [np.array([['abc', '123'], ['def', '456']])]
+    separator = ' '
     name = None
     input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    inputs = [np.array(['hello', 'world'], dtype=np.str_), np.array(['!', '.'], dtype=np.str_)]
-    separator = ' '
-    name = 'my_join'
-    input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    inputs = [np.array([[['a', 'b'], ['c', 'd']]], dtype=np.str_), np.array([[[ '1', '2'], ['3', '4']]], dtype=np.str_)]
-    separator = ','
+    inputs = [np.array(['hello', 'world']), np.array(['!', '!'])]
+    separator = ''
     name = None
     input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    inputs = [np.array([''], dtype=np.str_)]
-    separator = 'sep'
-    name = 'empty_string'
+    # Input 5
+    inputs = [np.array(['hello', 'world']), np.array(['!', '!'])]
+    separator = ' '
+    name = 'join_example'
     input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7
-    inputs = [np.array([['longstring1', 'longstring2']], dtype=np.str_)]
-    separator = 'verylongseparator'
-    name = 'long_strings'
+    # Input 6
+    inputs = [np.array([['a', 'b'], ['c', 'd']]), np.array([['1', '2'], ['3', '4']])]
+    separator = '-'
+    name = None
+    input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    inputs = [np.array([[['a', 'b'], ['c', 'd']]]), np.array([[['1', '2'], ['3', '4']]])]
+    separator = '+'
+    name = '3d_join'
     input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    inputs = [np.array([['','']], dtype=np.str_)]
-    separator = ''
+    inputs = [np.array(['', ''])]
+    separator = 'sep'
     name = None
     input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    inputs = [np.array(['string1', 'string2'], dtype=np.str_), np.array(['string3', 'string4'], dtype=np.str_), np.array(['string5', 'string6'], dtype=np.str_)]
-    separator = '---'
-    name = 'multiple_inputs'
-    input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    inputs = [np.array([['s1', 's2'], ['s3', 's4']], dtype=np.str_), np.array([['s5', 's6'], ['s7', 's8']], dtype=np.str_)]
-    separator = ''
+    inputs = [np.array([['', ''], ['', '']])]
+    separator = 'sep'
     name = None
     input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 10
+    inputs = [np.array(['abc', 'def', 'ghi']), np.array(['123', '456', '789']), np.array(['jkl', 'mno', 'pqr'])]
+    separator = ','
+    name = 'many_inputs'
+    input_dict = {'inputs': inputs, 'separator': separator, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}
-temp = tf_strings_join_inputs()
-for i in range(len(temp)):
-    temp_inputs = []
-    for x in temp[i]['inputs']:
-        temp_inputs.append(tf.convert_to_tensor(x))
-    temp[i]['inputs'] = temp_inputs
 
-generated_inputs["tf.strings.join"] = temp
+def process_inputs():
+    global generated_inputs
+    input_list = tf_strings_join_inputs()
+    
+    processed_list = []
+    for input_dict in input_list:
+        processed_input = {}
+        processed_input['inputs'] = [tf.convert_to_tensor(x, dtype=tf.string) for x in input_dict['inputs']]
+        processed_input['separator'] = input_dict['separator']
+        processed_input['name'] = input_dict['name']
+        processed_list.append(processed_input)
+        
+    generated_inputs["tf.strings.join"] = processed_list
+
+process_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

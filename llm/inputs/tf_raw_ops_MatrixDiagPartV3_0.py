@@ -15,15 +15,15 @@ def tf_raw_ops_MatrixDiagPartV3_inputs():
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     k_tensor = np.array(0, dtype=np.int32)
     padding_value_tensor = np.array(0, dtype=input_tensor.dtype)
-    align_string = "RIGHT_LEFT"
-    name_string = None
+    align_str = "RIGHT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -31,15 +31,15 @@ def tf_raw_ops_MatrixDiagPartV3_inputs():
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     k_tensor = np.array(1, dtype=np.int32)
     padding_value_tensor = np.array(0, dtype=input_tensor.dtype)
-    align_string = "LEFT_RIGHT"
-    name_string = "super_diagonal"
+    align_str = "RIGHT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
@@ -47,194 +47,129 @@ def tf_raw_ops_MatrixDiagPartV3_inputs():
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     k_tensor = np.array(-1, dtype=np.int32)
     padding_value_tensor = np.array(0, dtype=input_tensor.dtype)
-    align_string = "RIGHT_RIGHT"
-    name_string = "sub_diagonal"
+    align_str = "RIGHT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    k_tensor = np.array(0, dtype=np.int32)
+    input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    k_tensor = np.array([0, 1], dtype=np.int32)
     padding_value_tensor = np.array(0, dtype=input_tensor.dtype)
-    align_string = "LEFT_LEFT"
-    name_string = None
+    align_str = "RIGHT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    k_tensor = np.array([0, 1], dtype=np.int32)
+    k_tensor = np.array([-1, 1], dtype=np.int32)
     padding_value_tensor = np.array(0, dtype=input_tensor.dtype)
-    align_string = "RIGHT_LEFT"
-    name_string = "band"
+    align_str = "RIGHT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    k_tensor = np.array([-1, 1], dtype=np.int32)
+    k_tensor = np.array([-2, -1], dtype=np.int32)
     padding_value_tensor = np.array(0, dtype=input_tensor.dtype)
-    align_string = "LEFT_RIGHT"
-    name_string = "band_2"
+    align_str = "RIGHT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
     input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    k_tensor = np.array([-2, -1], dtype=np.int32)
+    k_tensor = np.array(0, dtype=np.int32)
     padding_value_tensor = np.array(9, dtype=input_tensor.dtype)
-    align_string = "RIGHT_LEFT"
-    name_string = None
+    align_str = "RIGHT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    k_tensor = np.array(1, dtype=np.int32)
-    padding_value_tensor = np.array(-1, dtype=input_tensor.dtype)
-    align_string = "RIGHT_LEFT"
-    name_string = "batch_super"
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    k_tensor = np.array(0, dtype=np.int32)
+    padding_value_tensor = np.array(0, dtype=input_tensor.dtype)
+    align_str = "RIGHT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = np.array([[1, 2], [3, 4], [5, 6]])
-    k_tensor = np.array([-2, 1], dtype=np.int32)
-    padding_value_tensor = np.array(100, dtype=input_tensor.dtype)
-    align_string = "LEFT_LEFT"
-    name_string = "rectangle"
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    k_tensor = np.array([-1, 1], dtype=np.int32)
+    padding_value_tensor = np.array(9, dtype=input_tensor.dtype)
+    align_str = "LEFT_RIGHT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-    k_tensor = np.array([0, 0], dtype=np.int32)
-    padding_value_tensor = np.array(0, dtype=input_tensor.dtype)
-    align_string = "RIGHT_LEFT"
-    name_string = None
+    input_tensor = np.array([[[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]], [[13, 14, 15, 16], [17, 18, 19, 20], [21, 22, 23, 24]]])
+    k_tensor = np.array([-1, 2], dtype=np.int32)
+    padding_value_tensor = np.array(-1, dtype=input_tensor.dtype)
+    align_str = "LEFT_LEFT"
+    name_str = None
 
     input_dict = {
         "input": input_tensor,
         "k": k_tensor,
         "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
+        "align": align_str,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11
-    input_tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
-    k_tensor = np.array(0, dtype=np.int32)
-    padding_value_tensor = np.array(0.0, dtype=input_tensor.dtype)
-    align_string = "RIGHT_LEFT"
-    name_string = None
-
-    input_dict = {
-        "input": input_tensor,
-        "k": k_tensor,
-        "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12
-    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    k_tensor = np.array(-1, dtype=np.int32)
-    padding_value_tensor = np.array(0, dtype=np.int32)
-    align_string = 'RIGHT_LEFT'
-    name_string = None
-
-    input_dict = {
-        "input": input_tensor,
-        "k": k_tensor,
-        "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
-    k_tensor = np.array(0, dtype=np.int32)
-    padding_value_tensor = np.array(0, dtype=np.int32)
-    align_string = 'RIGHT_LEFT'
-    name_string = None
-
-    input_dict = {
-        "input": input_tensor,
-        "k": k_tensor,
-        "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14
-    input_tensor = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
-    k_tensor = np.array([0, 1], dtype=np.int32)
-    padding_value_tensor = np.array(0, dtype=np.int32)
-    align_string = 'RIGHT_LEFT'
-    name_string = None
-
-    input_dict = {
-        "input": input_tensor,
-        "k": k_tensor,
-        "padding_value": padding_value_tensor,
-        "align": align_string,
-        "name": name_string,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
 
     return list_of_inputs
 

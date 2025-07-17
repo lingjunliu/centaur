@@ -11,65 +11,60 @@ import copy
 def tf_raw_ops_ZerosLike_inputs():
     list_of_inputs = []
 
-    # Input 1: int32, 1D
-    x = np.array([1, 2, 3], dtype=np.int32)
-    input_dict = {"x": x, "name": None}
+    # Input 1: Integer Tensor
+    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    input_dict = {"x": x, "name": "zeros_like_int"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32, 2D
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"x": x, "name": "float_matrix"}
+    # Input 2: Float Tensor
+    x = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    input_dict = {"x": x, "name": "zeros_like_float"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: int64, 3D
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    input_dict = {"x": x, "name": None}
+    # Input 3: Complex Tensor
+    x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex64)
+    input_dict = {"x": x, "name": "zeros_like_complex"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64, 1D, negative values
-    x = np.array([-1.0, -2.0, -3.0], dtype=np.float64)
-    input_dict = {"x": x, "name": "negative_floats"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: uint8, 2D
-    x = np.array([[1, 2], [3, 4]], dtype=np.uint8)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: complex64, 1D
-    x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    input_dict = {"x": x, "name": "complex_numbers"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: bool, 2D
+    # Input 4: Bool Tensor
     x = np.array([[True, False], [False, True]], dtype=np.bool_)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": x, "name": "zeros_like_bool"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: int16, 4D
-    x = np.random.randint(-100, 100, size=(2, 2, 2, 2), dtype=np.int16)
-    input_dict = {"x": x, "name": "4d_int"}
+    # Input 5: Multi-dimensional Tensor
+    x = np.random.rand(2, 3, 4).astype(np.float64)
+    input_dict = {"x": x, "name": "zeros_like_multi"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float16, 1D
-    x = np.array([1.5, 2.5, 3.5], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    # Input 6: Tensor with negative values
+    x = np.array([[-1, -2], [-3, -4]], dtype=np.int64)
+    input_dict = {"x": x, "name": "zeros_like_negative"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: string name
-    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    input_dict = {"x": x, "name": "my_tensor"}
+    # Input 7: Zero dimensional tensor (scalar)
+    x = np.array(5, dtype=np.int32)
+    input_dict = {"x": x, "name": "zeros_like_scalar"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Tensor with all zeros
+    x = np.zeros((2, 2), dtype=np.float32)
+    input_dict = {"x": x, "name": "zeros_like_zeros"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Tensor with different data types
+    x = np.array([[1, 2], [3, 4]], dtype=np.uint8)
+    input_dict = {"x": x, "name": "zeros_like_uint8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Larger tensor
+    x = np.random.randint(0, 100, size=(10, 10), dtype=np.int32)
+    input_dict = {"x": x, "name": "zeros_like_large"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_ZerosLike_inputs()
-generated_inputs["tf.raw_ops.ZerosLike"] = []
-for input_dict in inputs:
-    x_np = input_dict["x"]
-    x = tf.constant(x_np)
-    generated_inputs["tf.raw_ops.ZerosLike"].append({"x": x, "name": input_dict["name"]})
+generated_inputs["tf.raw_ops.ZerosLike"] = tf_raw_ops_ZerosLike_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

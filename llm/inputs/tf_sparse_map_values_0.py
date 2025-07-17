@@ -13,84 +13,133 @@ def tf_sparse_map_values_inputs():
 
     # Input 1
     s = tf.sparse.from_dense([[1, 2, 0], [0, 4, 0], [1, 0, 0]])
-    op = tf.ones_like
-    args = [s.values]
+    op = tf.math.abs
+    args = [s]
     kwargs = {}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     s = tf.sparse.from_dense([[1, 2, 0], [0, 4, 0], [1, 0, 0]])
-    op = tf.multiply
-    args = [s.values, tf.identity(s.values)]
+    op = tf.math.square
+    args = [s]
     kwargs = {}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     s = tf.sparse.from_dense([[1, 2, 0], [0, 4, 0], [1, 0, 0]])
-    op = tf.add
-    args = [s.values, tf.constant(5, dtype=tf.int64)]
+    op = tf.math.add
+    args = [s, tf.constant(5)]
     kwargs = {}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    s = tf.sparse.from_dense([[-1, 2, 0], [0, -4, 0], [1, 0, -2]])
-    op = tf.abs
-    args = [s.values]
+    # Input 4: Different dense shape
+    s = tf.sparse.from_dense([[1, 2], [0, 4]])
+    op = tf.math.negative
+    args = [s]
     kwargs = {}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    s = tf.sparse.from_dense([[1.0, 2.0, 0.0], [0.0, 4.0, 0.0], [1.0, 0.0, 0.0]])
-    op = tf.math.sqrt
-    args = [s.values]
+    # Input 5: Different values
+    s = tf.sparse.from_dense([[10, -2, 0], [0, 4, -1]])
+    op = tf.math.sin
+    args = [s]
     kwargs = {}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
+    # Input 6: Using kwargs
     s = tf.sparse.from_dense([[1, 2, 0], [0, 4, 0], [1, 0, 0]])
-    op = tf.add
-    args = [s.values]
-    kwargs = {"y": tf.constant(5, dtype=tf.int64)}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
+    op = tf.math.multiply
+    args = [s]
+    kwargs = {'y': tf.constant(2)}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    s1 = tf.sparse.from_dense([[1, 2, 0], [0, 4, 0], [1, 0, 0]])
-    s2 = tf.sparse.from_dense([[5, 6, 0], [0, 8, 0], [5, 0, 0]])
-
-    op = tf.multiply
-    args = [s1.values, s2.values]
-    kwargs = {}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
+    # Input 7: 3D tensor
     s = tf.sparse.from_dense([[[1, 0], [0, 2]], [[3, 0], [0, 4]]])
-    op = tf.math.log1p
-    args = [s.values]
+    op = tf.math.cos
+    args = [s]
     kwargs = {}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    s = tf.sparse.from_dense([[1, 2, 0], [0, 4, 0], [1, 0, 0]])
+    # Input 8: multiple sparse tensors with same shape
+    s1 = tf.sparse.from_dense([[1, 2, 0], [0, 4, 0]])
+    s2 = tf.sparse.from_dense([[5, 0, 1], [2, 0, 3]])
+    op = tf.math.add
+    args = [s1, s2]
+    kwargs = {}
+
+    input_dict = {
+        "op": s1,
+        "*args": args,
+        "**kwargs": kwargs
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 9: with different dtype
+    s = tf.sparse.from_dense(np.array([[1.0, 2.0, 0.0], [0.0, 4.0, 0.0]], dtype=np.float32))
+    op = tf.math.exp
+    args = [s]
+    kwargs = {}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: with different dtype and op
+    s = tf.sparse.from_dense(np.array([[1, 2, 0], [0, 4, 0]], dtype=np.int64))
     op = tf.cast
-    args = [s.values]
-    kwargs = {"dtype": tf.float32}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    s = tf.sparse.from_dense([[1, 2, 0], [0, 4, 0], [1, 0, 0]])
-    op = tf.negative
-    args = [s.values]
+    args = [s, tf.float32]
     kwargs = {}
-    input_dict = {"op": op, "*args": args, "**kwargs": kwargs}
+
+    input_dict = {
+        "op": s,
+        "*args": args,
+        "**kwargs": kwargs
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

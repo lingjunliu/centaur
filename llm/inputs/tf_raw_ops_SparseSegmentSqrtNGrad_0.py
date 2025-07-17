@@ -16,159 +16,95 @@ def tf_raw_ops_SparseSegmentSqrtNGrad_inputs():
     indices = np.array([0, 1, 2, 3], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     output_dim0 = np.array(4, dtype=np.int32)
-    name = "test_op_1"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    grad = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    indices = np.array([0, 1, 2], dtype=np.int64)
-    segment_ids = np.array([0, 0, 0], dtype=np.int64)
-    output_dim0 = np.array(3, dtype=np.int32)
-    name = "test_op_2"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
+    grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    indices = np.array([0, 2, 5], dtype=np.int64)
+    segment_ids = np.array([0, 0, 1], dtype=np.int64)
+    output_dim0 = np.array(6, dtype=np.int32)
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    grad = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32).reshape((2,3))
+    grad = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float64)
     indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 1, 0], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1], dtype=np.int32)
     output_dim0 = np.array(3, dtype=np.int32)
-    name = "test_op_3"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     grad = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    indices = np.array([3, 1, 2, 0], dtype=np.int32)
-    segment_ids = np.array([1, 0, 1, 0], dtype=np.int32)
+    indices = np.array([3, 1, 0, 2], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     output_dim0 = np.array(4, dtype=np.int32)
-    name = "test_op_4"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5
-    grad = np.array([-1.0, 2.0, -3.0, 4.0], dtype=np.float32)
+    # Input 5
+    grad = np.array([1.0, 2.0], dtype=np.float16)
+    indices = np.array([0, 1], dtype=np.int32)
+    segment_ids = np.array([0, 0], dtype=np.int32)
+    output_dim0 = np.array(2, dtype=np.int32)
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6
+    grad = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    indices = np.array([0, 1, 2, 3], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    output_dim0 = np.array(5, dtype=np.int32)
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: empty grad
+    grad = np.array([], dtype=np.float32)
+    indices = np.array([], dtype=np.int32)
+    segment_ids = np.array([], dtype=np.int32)
+    output_dim0 = np.array(0, dtype=np.int32)
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: more complex segment_ids
+    grad = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32)
+    indices = np.array([0, 1, 2, 3, 4, 5], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1, 2, 2], dtype=np.int32)
+    output_dim0 = np.array(6, dtype=np.int32)
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: different indices
+    grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    indices = np.array([1, 3, 5], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1], dtype=np.int32)
+    output_dim0 = np.array(6, dtype=np.int32)
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: different output_dim0
+    grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    indices = np.array([0, 1, 2], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1], dtype=np.int32)
+    output_dim0 = np.array(5, dtype=np.int32)
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    grad = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
     indices = np.array([0, 1, 2, 3], dtype=np.int32)
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     output_dim0 = np.array(4, dtype=np.int32)
-    name = "test_op_5"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    grad = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 0, 0], dtype=np.int32)
-    output_dim0 = np.array(3, dtype=np.int32)
-    name = "test_op_6"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    grad = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 0, 0], dtype=np.int32)
-    output_dim0 = np.array(3, dtype=np.int32)
-    name = "test_op_7"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    grad = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32).reshape((3,2))
-    indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 1, 0], dtype=np.int32)
-    output_dim0 = np.array(3, dtype=np.int32)
-    name = "test_op_8"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    grad = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0], dtype=np.float32).reshape((4,2))
+    
+    # Input 12
+    grad = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
     indices = np.array([0, 1, 2, 3], dtype=np.int32)
     segment_ids = np.array([0, 1, 0, 1], dtype=np.int32)
     output_dim0 = np.array(4, dtype=np.int32)
-    name = "test_op_9"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    grad = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    indices = np.array([3, 1, 2, 0], dtype=np.int64)
-    segment_ids = np.array([1, 0, 1, 0], dtype=np.int64)
-    output_dim0 = np.array(4, dtype=np.int32)
-    name = "test_op_10"
-
-    input_dict = {
-        "grad": grad,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "output_dim0": output_dim0,
-        "name": name
-    }
+    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

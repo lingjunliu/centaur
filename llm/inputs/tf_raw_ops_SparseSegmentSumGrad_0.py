@@ -11,94 +11,154 @@ import copy
 def tf_raw_ops_SparseSegmentSumGrad_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple case with float32
-    grad = np.array([1.0, 2.0, 3.0]).astype(np.float32)
-    indices = np.array([0, 1, 2]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1]).astype(np.int32)
-    output_dim0 = np.array(3).astype(np.int32)
-    name = "sparse_segment_sum_grad_1"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 1, valid
+    grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    indices = np.array([0, 1, 2], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1], dtype=np.int32)
+    output_dim0 = np.array(3, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_1",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different data type (float64) and different segment_ids
-    grad = np.array([1.0, 2.0, 3.0, 4.0]).astype(np.float64)
-    indices = np.array([0, 1, 2, 3]).astype(np.int64)
-    segment_ids = np.array([0, 1, 0, 1]).astype(np.int64)
-    output_dim0 = np.array(4).astype(np.int32)
-    name = "sparse_segment_sum_grad_2"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 2, valid
+    grad = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
+    indices = np.array([0, 1, 2, 3], dtype=np.int64)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int64)
+    output_dim0 = np.array(4, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_2",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: More complex segment_ids
-    grad = np.array([1.0, 2.0, 3.0, 4.0, 5.0]).astype(np.float32)
-    indices = np.array([0, 1, 2, 3, 4]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1, 1, 2]).astype(np.int32)
-    output_dim0 = np.array(5).astype(np.int32)
-    name = "sparse_segment_sum_grad_3"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 3, valid
+    grad = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32)
+    indices = np.array([0, 1, 2, 0, 1, 2], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 2, 2, 3], dtype=np.int32)
+    output_dim0 = np.array(5, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_3",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different indices
-    grad = np.array([1.0, 2.0, 3.0]).astype(np.float32)
-    indices = np.array([2, 0, 1]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1]).astype(np.int32)
-    output_dim0 = np.array(3).astype(np.int32)
-    name = "sparse_segment_sum_grad_4"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+   # Input 4, valid, different types
+    grad = np.array([1.0, 2.0], dtype=np.half)
+    indices = np.array([0, 1], dtype=np.int32)
+    segment_ids = np.array([0, 0], dtype=np.int32)
+    output_dim0 = np.array(2, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_4",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: One segment
-    grad = np.array([1.0, 2.0, 3.0]).astype(np.float32)
-    indices = np.array([0, 1, 2]).astype(np.int32)
-    segment_ids = np.array([0, 0, 0]).astype(np.int32)
-    output_dim0 = np.array(3).astype(np.int32)
-    name = "sparse_segment_sum_grad_5"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 5, valid, larger segment_ids
+    grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    indices = np.array([0, 1, 2], dtype=np.int32)
+    segment_ids = np.array([1, 1, 2], dtype=np.int32)
+    output_dim0 = np.array(3, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_5",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6: Float16 data type
-    grad = np.array([1.0, 2.0, 3.0]).astype(np.float16)
-    indices = np.array([0, 1, 2]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1]).astype(np.int32)
-    output_dim0 = np.array(3).astype(np.int32)
-    name = "sparse_segment_sum_grad_6"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 6, valid, different indices
+    grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    indices = np.array([2, 1, 0], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1], dtype=np.int32)
+    output_dim0 = np.array(3, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_6",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Float16 data type, different values
-    grad = np.array([0.5, 1.5, 2.5]).astype(np.float16)
-    indices = np.array([0, 1, 2]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1]).astype(np.int32)
-    output_dim0 = np.array(3).astype(np.int32)
-    name = "sparse_segment_sum_grad_7"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 7, valid, larger output_dim0
+    grad = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    indices = np.array([0, 1, 2], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1], dtype=np.int32)
+    output_dim0 = np.array(5, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_7",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Different output dim0
-    grad = np.array([1.0, 2.0, 3.0]).astype(np.float32)
-    indices = np.array([0, 1, 2]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1]).astype(np.int32)
-    output_dim0 = np.array(5).astype(np.int32)
-    name = "sparse_segment_sum_grad_8"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 8, valid
+    grad = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    indices = np.array([0, 1, 2, 0], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    output_dim0 = np.array(3, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_8",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: More segment IDs
-    grad = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0]).astype(np.float32)
-    indices = np.array([0, 1, 2, 3, 4, 5]).astype(np.int32)
-    segment_ids = np.array([0, 0, 1, 1, 2, 2]).astype(np.int32)
-    output_dim0 = np.array(6).astype(np.int32)
-    name = "sparse_segment_sum_grad_9"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 9, valid
+    grad = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    indices = np.array([0, 1, 2, 3, 0], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 2, 2], dtype=np.int32)
+    output_dim0 = np.array(4, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_9",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty grad array
-    grad = np.array([]).astype(np.float32)
-    indices = np.array([]).astype(np.int32)
-    segment_ids = np.array([]).astype(np.int32)
-    output_dim0 = np.array(0).astype(np.int32)
-    name = "sparse_segment_sum_grad_10"
-    input_dict = {"grad": grad, "indices": indices, "segment_ids": segment_ids, "output_dim0": output_dim0, "name": name}
+    # Input 10, valid, one element
+    grad = np.array([1.0], dtype=np.float32)
+    indices = np.array([0], dtype=np.int32)
+    segment_ids = np.array([0], dtype=np.int32)
+    output_dim0 = np.array(1, dtype=np.int32)
+
+    input_dict = {
+        "name": "sparse_segment_sum_grad_10",
+        "grad": grad,
+        "indices": indices,
+        "segment_ids": segment_ids,
+        "output_dim0": output_dim0
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

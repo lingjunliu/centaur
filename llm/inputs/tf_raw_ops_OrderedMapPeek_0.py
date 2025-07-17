@@ -8,79 +8,26 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_ordered_map_peek_inputs():
+def tf_raw_ops_OrderedMapPeek_inputs():
     list_of_inputs = []
 
     # Input 1
-    key = np.array(1, dtype=np.int64)
+    key = np.array(10, dtype=np.int64)
     indices = np.array([0], dtype=np.int32)
     dtypes = [tf.float32]
-    capacity = 10
-    memory_limit = 1024
-    container = "test_container"
-    shared_name = "test_shared_name"
-    name = "test_op"
-
-    input_dict = {
-        "key": key,
-        "indices": indices,
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    key = np.array(2, dtype=np.int64)
-    indices = np.array([0, 1], dtype=np.int32)
-    dtypes = [tf.int32, tf.int64]
-    capacity = 0
-    memory_limit = 0
-    container = ""
-    shared_name = ""
-    name = None
-
-    input_dict = {
-        "key": key,
-        "indices": indices,
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    key = np.array(3, dtype=np.int64)
-    indices = np.array([[0, 1], [2, 3]], dtype=np.int32)
-    dtypes = [tf.float64, tf.string]
     capacity = 100
-    memory_limit = 2048
-    container = "container2"
-    shared_name = "shared2"
-    name = "op2"
-
-    input_dict = {
-        "key": key,
-        "indices": indices,
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    memory_limit = 1024
+    container = "testcontainer"
+    shared_name = "testsharedname"
+    name = "testop"
+    input_dict = {"key": key, "indices": indices, "dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.OrderedMapPeek"] = tf_raw_ops_ordered_map_peek_inputs()
+generated_inputs["tf.raw_ops.OrderedMapPeek"] = tf_raw_ops_OrderedMapPeek_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

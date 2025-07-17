@@ -11,213 +11,162 @@ import copy
 def tf_raw_ops_SparseSparseMinimum_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic case with int32
     a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
-    a_values = np.array([1, 2], dtype=np.float32)
+    a_values = np.array([1, 2], dtype=np.int32)
     a_shape = np.array([2, 3], dtype=np.int64)
-    b_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
-    b_values = np.array([3, 4], dtype=np.float32)
+    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    b_values = np.array([3, 4], dtype=np.int32)
     b_shape = np.array([2, 3], dtype=np.int64)
-    name = "sparse_minimum_1"
 
     input_dict = {
+        "name": "sparse_minimum_1",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
+        "b_shape": b_shape
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    a_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
-    a_values = np.array([5, 6], dtype=np.int32)
-    a_shape = np.array([2, 2], dtype=np.int64)
-    b_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
-    b_values = np.array([7, 8], dtype=np.int32)
-    b_shape = np.array([2, 2], dtype=np.int64)
-    name = "sparse_minimum_2"
+    # Input 2: Float32 values
+    a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    a_values = np.array([1.5, 2.5], dtype=np.float32)
+    a_shape = np.array([2, 3], dtype=np.int64)
+    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    b_values = np.array([3.5, 4.5], dtype=np.float32)
+    b_shape = np.array([2, 3], dtype=np.int64)
 
     input_dict = {
+        "name": "sparse_minimum_2",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
+        "b_shape": b_shape
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    a_indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
-    a_values = np.array([1.5, 2.5], dtype=np.float64)
-    a_shape = np.array([2, 2, 2], dtype=np.int64)
-    b_indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
-    b_values = np.array([3.5, 4.5], dtype=np.float64)
-    b_shape = np.array([2, 2, 2], dtype=np.int64)
-    name = "sparse_minimum_3"
+    # Input 3: Different sparse structure, int64 values
+    a_indices = np.array([[0, 1], [2, 0]], dtype=np.int64)
+    a_values = np.array([5, 6], dtype=np.int64)
+    a_shape = np.array([3, 2], dtype=np.int64)
+    b_indices = np.array([[0, 0], [2, 1]], dtype=np.int64)
+    b_values = np.array([7, 8], dtype=np.int64)
+    b_shape = np.array([3, 2], dtype=np.int64)
 
     input_dict = {
+        "name": "sparse_minimum_3",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
+        "b_shape": b_shape
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    a_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    a_values = np.array([10, 20, 30, 40], dtype=np.int64)
-    a_shape = np.array([2, 2], dtype=np.int64)
-    b_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    b_values = np.array([15, 25, 35, 45], dtype=np.int64)
-    b_shape = np.array([2, 2], dtype=np.int64)
-    name = "sparse_minimum_4"
-
-    input_dict = {
-        "a_indices": a_indices,
-        "a_values": a_values,
-        "a_shape": a_shape,
-        "b_indices": b_indices,
-        "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    a_values = np.array([-1, -2], dtype=np.int32)
+    # Input 4: Empty SparseTensor
+    a_indices = np.array([], dtype=np.int64).reshape(0, 2)
+    a_values = np.array([], dtype=np.float64)
     a_shape = np.array([2, 2], dtype=np.int64)
     b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    b_values = np.array([1, -3], dtype=np.int32)
+    b_values = np.array([1.0, 2.0], dtype=np.float64)
     b_shape = np.array([2, 2], dtype=np.int64)
-    name = "sparse_minimum_5"
 
     input_dict = {
+        "name": "sparse_minimum_4",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
+        "b_shape": b_shape
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 6
-    a_indices = np.array([[0, 0]], dtype=np.int64)
-    a_values = np.array([1], dtype=np.uint8)
-    a_shape = np.array([1, 1], dtype=np.int64)
-    b_indices = np.array([[0, 0]], dtype=np.int64)
-    b_values = np.array([2], dtype=np.uint8)
-    b_shape = np.array([1, 1], dtype=np.int64)
-    name = "sparse_minimum_6"
+    # Input 5: Overlapping indices, uint8
+    a_indices = np.array([[0, 0], [0, 0], [1, 1]], dtype=np.int64)
+    a_values = np.array([1, 2, 3], dtype=np.uint8)
+    a_shape = np.array([2, 2], dtype=np.int64)
+    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    b_values = np.array([4, 5], dtype=np.uint8)
+    b_shape = np.array([2, 2], dtype=np.int64)
 
     input_dict = {
+        "name": "sparse_minimum_5",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
+        "b_shape": b_shape
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    a_indices = np.array([[0, 0, 0], [0, 1, 1]], dtype=np.int64)
+   # Input 6: half
+    a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
     a_values = np.array([1, 2], dtype=np.float16)
-    a_shape = np.array([1, 2, 2], dtype=np.int64)
-    b_indices = np.array([[0, 0, 0], [0, 1, 1]], dtype=np.int64)
-    b_values = np.array([3, 4], dtype=np.float16)
-    b_shape = np.array([1, 2, 2], dtype=np.int64)
-    name = "sparse_minimum_7"
-
-    input_dict = {
-        "a_indices": a_indices,
-        "a_values": a_values,
-        "a_shape": a_shape,
-        "b_indices": b_indices,
-        "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    a_values = np.array([1j, 2j], dtype=np.complex64)
-    a_shape = np.array([2, 2], dtype=np.int64)
-    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    b_values = np.array([3j, 4j], dtype=np.complex64)
-    b_shape = np.array([2, 2], dtype=np.int64)
-    name = "sparse_minimum_8"
-
-    input_dict = {
-        "a_indices": a_indices,
-        "a_values": a_values,
-        "a_shape": a_shape,
-        "b_indices": b_indices,
-        "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    a_indices = np.array([[0, 0]], dtype=np.int64)
-    a_values = np.array([1], dtype=np.uint32)
-    a_shape = np.array([1, 1], dtype=np.int64)
-    b_indices = np.array([[0, 0]], dtype=np.int64)
-    b_values = np.array([2], dtype=np.uint32)
-    b_shape = np.array([1, 1], dtype=np.int64)
-    name = "sparse_minimum_9"
-
-    input_dict = {
-        "a_indices": a_indices,
-        "a_values": a_values,
-        "a_shape": a_shape,
-        "b_indices": b_indices,
-        "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
-    a_values = np.array([1, 2], dtype=np.float32)
     a_shape = np.array([2, 3], dtype=np.int64)
     b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    b_values = np.array([3, 4], dtype=np.float32)
+    b_values = np.array([3, 4], dtype=np.float16)
     b_shape = np.array([2, 3], dtype=np.int64)
-    name = "sparse_minimum_10"
 
     input_dict = {
+        "name": "sparse_minimum_6",
         "a_indices": a_indices,
         "a_values": a_values,
         "a_shape": a_shape,
         "b_indices": b_indices,
         "b_values": b_values,
-        "b_shape": b_shape,
-        "name": name
+        "b_shape": b_shape
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: larger shape
+    a_indices = np.array([[0, 0], [1, 2], [3, 1], [4, 0]], dtype=np.int64)
+    a_values = np.array([1, 2, 3, 4], dtype=np.int32)
+    a_shape = np.array([5, 3], dtype=np.int64)
+    b_indices = np.array([[0, 0], [1, 1], [3, 1], [4, 2]], dtype=np.int64)
+    b_values = np.array([5, 6, 7, 8], dtype=np.int32)
+    b_shape = np.array([5, 3], dtype=np.int64)
+
+    input_dict = {
+        "name": "sparse_minimum_8",
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b_indices": b_indices,
+        "b_values": b_values,
+        "b_shape": b_shape
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different dtypes and values.
+    a_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    a_values = np.array([1.0, 2.0], dtype=np.float64)
+    a_shape = np.array([2, 2], dtype=np.int64)
+    b_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    b_values = np.array([0.5, 1.5], dtype=np.float64)
+    b_shape = np.array([2, 2], dtype=np.int64)
+
+    input_dict = {
+        "name": "sparse_minimum_10",
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b_indices": b_indices,
+        "b_values": b_values,
+        "b_shape": b_shape
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_SparseSparseMinimum_inputs()
-generated_inputs["tf.raw_ops.SparseSparseMinimum"] = []
-for input_dict in inputs:
-    generated_inputs["tf.raw_ops.SparseSparseMinimum"].append({k: tf.constant(v) if k != "name" else v for k, v in input_dict.items()})
+generated_inputs["tf.raw_ops.SparseSparseMinimum"] = tf_raw_ops_SparseSparseMinimum_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

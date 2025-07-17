@@ -5,116 +5,186 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
+import numpy as np
 
-def tf_raw_ops_StageClear_inputs():
+def tf_raw_ops_stageclear_inputs():
     list_of_inputs = []
 
     # Input 1
     dtypes = [tf.float32.as_numpy_dtype]
+    capacity = 10
+    memory_limit = 1024
+    container = "testcontainer1"
+    shared_name = "testsharedname1"
+    name = "testname1"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    dtypes = [tf.int32.as_numpy_dtype]
     capacity = 0
     memory_limit = 0
     container = ""
     shared_name = ""
     name = None
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    dtypes = [tf.int32.as_numpy_dtype]
-    capacity = 10
-    memory_limit = 1024
-    container = "test_container"
-    shared_name = "test_shared_name"
-    name = "StageClear_Op"
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     dtypes = [tf.string.as_numpy_dtype]
     capacity = 1
     memory_limit = 1
-    container = "container_1"
-    shared_name = "shared_name_1"
-    name = None
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
+    container = "container3"
+    shared_name = "shared3"
+    name = "name3"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     dtypes = [tf.bool.as_numpy_dtype]
     capacity = 100
-    memory_limit = 512
-    container = "container_2"
-    shared_name = "shared_name_2"
-    name = "clear_stage"
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
+    memory_limit = 10000
+    container = "container4"
+    shared_name = "shared4"
+    name = "name4"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     dtypes = [tf.uint8.as_numpy_dtype]
-    capacity = 5
+    capacity = 2
     memory_limit = 2048
-    container = ""
-    shared_name = ""
-    name = None
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
+    container = "container5"
+    shared_name = "sharedname5"
+    name = "name5"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 6
     dtypes = [tf.float16.as_numpy_dtype]
-    capacity = 0
-    memory_limit = 0
-    container = "float16_complex64"
-    shared_name = "float16_complex64"
-    name = "clear_stage_float16_complex64"
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
+    capacity = 5
+    memory_limit = 512
+    container = "resourcecontainer"
+    shared_name = "resourcesharedname"
+    name = "resourcename"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 7
-    dtypes = [tf.int64.as_numpy_dtype]
-    capacity = 2
-    memory_limit = 4096
-    container = "resource_container"
-    shared_name = "resource_shared_name"
-    name = None
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
+    dtypes = [tf.int8.as_numpy_dtype]
+    capacity = 7
+    memory_limit = 777
+    container = "variantcontainer"
+    shared_name = "variantshared"
+    name = "variantname"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    dtypes = [tf.float64.as_numpy_dtype]
-    capacity = 1000
-    memory_limit = 65536
-    container = "variant_container"
-    shared_name = "variant_shared_name"
-    name = "clear_stage_variant"
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    dtypes = [tf.qint8.as_numpy_dtype]
-    capacity = 128
-    memory_limit = 16384
-    container = ""
-    shared_name = ""
-    name = None
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
     dtypes = [tf.bfloat16.as_numpy_dtype]
-    capacity = 64
-    memory_limit = 8192
-    container = "bfloat16_container"
-    shared_name = "bfloat16_shared_name"
-    name = "clear_stage_bfloat16"
-    input_dict = {'dtypes': dtypes, 'capacity': capacity, 'memory_limit': memory_limit, 'container': container, 'shared_name': shared_name, 'name': name}
+    capacity = 8
+    memory_limit = 8888
+    container = "bfloat16container"
+    shared_name = "bfloat16shared"
+    name = "bfloat16name"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9
+    dtypes = [tf.qint32.as_numpy_dtype]
+    capacity = 9
+    memory_limit = 999
+    container = "qint8container"
+    shared_name = "qint8shared"
+    name = "qint8name"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 10
+    dtypes = [tf.quint16.as_numpy_dtype]
+    capacity = 10
+    memory_limit = 1000
+    container = "quint8container"
+    shared_name = "quint8shared"
+    name = "quint8name"
+    input_dict = {
+        "dtypes": dtypes,
+        "capacity": capacity,
+        "memory_limit": memory_limit,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name,
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.StageClear"] = tf_raw_ops_StageClear_inputs()
+generated_inputs["tf.raw_ops.StageClear"] = tf_raw_ops_stageclear_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

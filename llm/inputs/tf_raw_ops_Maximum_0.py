@@ -11,64 +11,64 @@ import copy
 def tf_raw_ops_maximum_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32
+    # Input 1: Basic float32 test
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([2.0, 1.0, 4.0], dtype=np.float32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic int32
+    # Input 2: Negative values and different shape (broadcasting)
+    x = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
+    y = np.array([-2.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Integer type (int32)
     x = np.array([1, 2, 3], dtype=np.int32)
     y = np.array([2, 1, 4], dtype=np.int32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative values, float64
-    x = np.array([-1.0, 2.0, -3.0], dtype=np.float64)
-    y = np.array([2.0, -1.0, 4.0], dtype=np.float64)
+    # Input 4: Integer type (int64)
+    x = np.array([-1, -2, -3], dtype=np.int64)
+    y = np.array([-2, -1, -4], dtype=np.int64)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Zero values, int64
-    x = np.array([0, 2, 0], dtype=np.int64)
-    y = np.array([2, 0, 4], dtype=np.int64)
+    # Input 5: float16
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float16)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D arrays, uint8
-    x = np.array([[1, 2], [3, 4]], dtype=np.uint8)
-    y = np.array([[2, 1], [4, 3]], dtype=np.uint8)
+    # Input 6: float64
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float64)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different shapes (broadcasting), float32
-    x = np.array([1.0, 2.0], dtype=np.float32)
-    y = np.array([2.0], dtype=np.float32)
+    # Input 7: uint8
+    x = np.array([1, 2, 3], dtype=np.uint8)
+    y = np.array([2, 1, 4], dtype=np.uint8)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 3D arrays, int16
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int16)
-    y = np.array([[[2, 1], [4, 3]], [[6, 5], [8, 7]]], dtype=np.int16)
+    # Input 8: Multi-dimensional array
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    y = np.array([[2.0, 1.0], [4.0, 3.0]], dtype=np.float32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: bfloat16
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float16) # Simulate bfloat16 with float16 as bfloat16 is not directly supported by numpy
-    y = np.array([2.0, 1.0, 4.0], dtype=np.float16) # Simulate bfloat16 with float16 as bfloat16 is not directly supported by numpy
+    # Input 9: Broadcasting with multi-dimensional array
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    y = np.array([2.0, 1.0], dtype=np.float32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: uint32
-    x = np.array([1, 2, 3], dtype=np.uint32)
-    y = np.array([2, 1, 0], dtype=np.uint32)
+    
+    # Input 10: int8
+    x = np.array([1, 2, 3], dtype=np.int8)
+    y = np.array([2, 1, 0], dtype=np.int8)
     input_dict = {"x": x, "y": y, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 10: name, uint64
-    x = np.array([1, 2], dtype=np.uint64)
-    y = np.array([3, 1], dtype=np.uint64)
-    input_dict = {"x": x, "y": y, "name": "my_maximum"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

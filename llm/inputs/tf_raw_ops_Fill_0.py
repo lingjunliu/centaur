@@ -11,64 +11,64 @@ import copy
 def tf_raw_ops_fill_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic integer fill
     dims = np.array([2, 3], dtype=np.int32)
-    value = np.array(9, dtype=np.int32)
-    input_dict = {"dims": tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_1"}
+    value = np.array(5, dtype=np.int32)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    dims = np.array([5], dtype=np.int64)
-    value = np.array(-1, dtype=np.int32)
-    input_dict = {"dims":  tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_2"}
+    # Input 2: Different shape, integer value
+    dims = np.array([1, 5, 2], dtype=np.int32)
+    value = np.array(-2, dtype=np.int32)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    dims = np.array([1, 4, 2], dtype=np.int32)
-    value = np.array(1, dtype=np.int32)
-    input_dict = {"dims":  tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_3"}
+    # Input 3:  Long type
+    dims = np.array([4, 1], dtype=np.int64)
+    value = np.array(100, dtype=np.int32)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    dims = np.array([3, 2, 1, 2], dtype=np.int64)
-    value = np.array(0, dtype=np.int32)
-    input_dict = {"dims":  tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_4"}
+    # Input 4:  float value
+    dims = np.array([2, 2, 2], dtype=np.int32)
+    value = np.array(3.14, dtype=np.float32)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    dims = np.array([0], dtype=np.int32)
-    value = np.array(0, dtype=np.int32)
-    input_dict = {"dims":  tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_5"}
+    # Input 5:  bool value
+    dims = np.array([3, 3], dtype=np.int32)
+    value = np.array(True, dtype=np.bool_)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    dims = np.array([10], dtype=np.int64)
-    value = np.array(1, dtype=np.int32)
-    input_dict = {"dims":  tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_6"}
+    # Input 6:  float16 value
+    dims = np.array([4, 4], dtype=np.int32)
+    value = np.array(1.5, dtype=np.float16)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    dims = np.array([2, 2, 2, 2, 2], dtype=np.int32)
-    value = np.array(7, dtype=tf.int32)
-    input_dict = {"dims":  tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_7"}
+    # Input 7:  int8 value
+    dims = np.array([5, 1], dtype=np.int32)
+    value = np.array(-10, dtype=np.int8)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    dims = np.array([1, 1, 1, 1], dtype=np.int64)
-    value = np.array(1, dtype=np.int32)
-    input_dict = {"dims":  tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_8"}
+    # Input 8:  uint8 value
+    dims = np.array([1, 5], dtype=np.int32)
+    value = np.array(200, dtype=np.uint8)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 9
-    dims = np.array([1, 2], dtype=np.int32)
-    value = np.array(1000, dtype=np.int32)
-    input_dict = {"dims":  tf.constant(dims, dtype=tf.int32), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_9"}
+    # Input 9: int64 dims, int64 value
+    dims = np.array([2, 3], dtype=np.int64)
+    value = np.array(1234567890, dtype=np.int64)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    dims = np.array([1], dtype=np.int64)
-    value = np.array(-5, dtype=np.int32)
-    input_dict = {"dims": tf.constant(dims, dtype=tf.int64), "value": tf.constant(value, dtype=tf.int32), "name": "fill_op_10"}
+    # Input 10: Empty dims, float32 value
+    dims = np.array([], dtype=np.int32)
+    value = np.array(2.5, dtype=np.float32)
+    input_dict = {"dims": dims, "value": value, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

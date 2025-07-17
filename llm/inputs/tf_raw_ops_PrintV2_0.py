@@ -11,56 +11,94 @@ import copy
 def tf_raw_ops_printv2_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic string tensor
-    input_tensor = np.array("Hello, TensorFlow!", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "stderr", "end": "\n", "name": "print_op_1"}
+    # Input 1
+    input_tensor = np.array("Hello, world!", dtype=np.object_)
+    output_stream = "stderr"
+    end = "\n"
+    name = "print_op_1"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Empty string
-    input_tensor = np.array("", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "stdout", "end": "\r\n", "name": "print_op_2"}
+    # Input 2
+    input_tensor = np.array("This is a test.", dtype=np.object_)
+    output_stream = "stdout"
+    end = "\r\n"
+    name = "print_op_2"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multiline string
-    input_tensor = np.array("This is a\nmultiline string.", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "stderr", "end": "", "name": "print_op_3"}
+    # Input 3
+    input_tensor = np.array("Another test.", dtype=np.object_)
+    output_stream = "stderr"
+    end = ""
+    name = "print_op_3"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: String with special characters
-    input_tensor = np.array("String with \\ \" \t \n \r", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "stdout", "end": "END", "name": "print_op_4"}
+    # Input 4
+    input_tensor = np.array("With a custom name.", dtype=np.object_)
+    output_stream = "stdout"
+    end = "!!!"
+    name = "custom_name"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different output_stream
-    input_tensor = np.array("To log level INFO", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "info", "end": "\n", "name": "print_op_5"}
+    # Input 5
+    input_tensor = np.array("Using default output stream.", dtype=np.object_)
+    output_stream = "stderr"
+    end = "..."
+    name = "print_op_5"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different output_stream
-    input_tensor = np.array("To log level WARNING", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "warning", "end": "\n", "name": "print_op_6"}
+    # Input 6
+    input_tensor = np.array("Empty end string.", dtype=np.object_)
+    output_stream = "stderr"
+    end = ""
+    name = "print_op_6"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different output_stream
-    input_tensor = np.array("To log level ERROR", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "error", "end": "\n", "name": "print_op_7"}
+    # Input 7
+    input_tensor = np.array("Testing different end characters.", dtype=np.object_)
+    output_stream = "stderr"
+    end = "\t"
+    name = "print_op_7"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: String with numbers
-    input_tensor = np.array("Numbers: 1234567890", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "stderr", "end": "\n", "name": "print_op_10"}
+    # Input 8
+    input_tensor = np.array("Long string for testing.", dtype=np.object_)
+    output_stream = "stdout"
+    end = "----"
+    name = "print_op_8"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: String with escape sequence
-    input_tensor = np.array("String with tab: \t and newline: \n", dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "stderr", "end": "\n", "name": "print_op_11"}
+     # Input 9
+    input_tensor = np.array("String with special characters: !@#$%^&*()_+", dtype=np.object_)
+    output_stream = "stderr"
+    end = ".\n"
+    name = "print_op_9"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Long String
-    long_string = "This is a very long string. " * 20
-    input_tensor = np.array(long_string, dtype=np.bytes_)
-    input_dict = {"input": input_tensor, "output_stream": "stderr", "end": "\n", "name": "print_op_9"}
+    # Input 10
+    input_tensor = np.array("A final test.", dtype=np.object_)
+    output_stream = "stdout"
+    end = "DONE"
+    name = "print_op_10"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    input_tensor = np.array("", dtype=np.object_)
+    output_stream = "stdout"
+    end = ""
+    name = "print_op_11"
+    input_dict = {"input": input_tensor, "output_stream": output_stream, "end": end, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

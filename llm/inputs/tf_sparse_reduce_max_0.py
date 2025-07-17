@@ -12,124 +12,28 @@ def tf_sparse_reduce_max_inputs():
     list_of_inputs = []
 
     # Input 1
-    indices = np.array([[0, 0], [0, 2], [1, 1]])
+    indices = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
     values = np.array([1, 2, 3], dtype=np.int32)
-    dense_shape = np.array([2, 3])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
     axis = None
     keepdims = False
     output_is_sparse = False
-    name = "reduce_max_1"
+    name = "sparse_reduce_max_1"
     input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 2
-    indices = np.array([[0, 0], [0, 2], [1, 1]])
+    indices = np.array([[0, 0], [0, 2], [1, 1]], dtype=np.int64)
     values = np.array([1, 2, 3], dtype=np.int32)
-    dense_shape = np.array([2, 3])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
+    dense_shape = np.array([2, 3], dtype=np.int64)
+    sp_input = tf.SparseTensor(indices, values, dense_shape)
     axis = [0]
     keepdims = False
     output_is_sparse = False
-    name = "reduce_max_2"
+    name = "sparse_reduce_max_2"
     input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    indices = np.array([[0, 0], [0, 2], [1, 1]])
-    values = np.array([1, 2, 3], dtype=np.int32)
-    dense_shape = np.array([2, 3])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    axis = [1]
-    keepdims = True
-    output_is_sparse = False
-    name = "reduce_max_3"
-    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    indices = np.array([[0, 0], [1, 0], [1, 1]])
-    values = np.array([-7, 4, 3], dtype=np.int32)
-    dense_shape = np.array([3, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    axis = [1]
-    keepdims = False
-    output_is_sparse = False
-    name = "reduce_max_4"
-    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    values = np.array([1, 2, 3, 4], dtype=np.int32)
-    dense_shape = np.array([2, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    axis = [0, 1]
-    keepdims = False
-    output_is_sparse = False
-    name = "reduce_max_5"
-    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    indices = np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0], [1, 0, 0]])
-    values = np.array([1, 2, 3, 4], dtype=np.int32)
-    dense_shape = np.array([2, 2, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    axis = [0]
-    keepdims = True
-    output_is_sparse = False
-    name = "reduce_max_6"
-    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    indices = np.array([[0, 0], [0, 2], [1, 1]])
-    values = np.array([1, 2, 3], dtype=np.int32)
-    dense_shape = np.array([2, 3])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    axis = [0]
-    keepdims = False
-    output_is_sparse = True
-    name = "reduce_max_7"
-    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 8
-    indices = np.array([[0, 0], [1, 1], [2, 2]])
-    values = np.array([5, 2, 9], dtype=np.int32)
-    dense_shape = np.array([3, 3])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    axis = [0]
-    keepdims = True
-    output_is_sparse = True
-    name = "reduce_max_8"
-    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    indices = np.array([[0, 0], [0, 2], [1, 1]])
-    values = np.array([1, 2, 3], dtype=np.int32)
-    dense_shape = np.array([2, 3])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    axis = [0,1]
-    keepdims = True
-    output_is_sparse = False
-    name = "reduce_max_9"
-    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
-    values = np.array([1, 2, 3, 4], dtype=np.int32)
-    dense_shape = np.array([2, 2])
-    sp_input = tf.sparse.SparseTensor(indices, values, dense_shape)
-    axis = None
-    keepdims = True
-    output_is_sparse = False
-    name = "reduce_max_10"
-    input_dict = {"sp_input": sp_input, "axis": axis, "keepdims": keepdims, "output_is_sparse": output_is_sparse, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

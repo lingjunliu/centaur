@@ -115,12 +115,9 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7, bfloat16
-    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
-    filter_tensor = np.random.rand(3, 3, 3, 2).astype(np.float32)
-    input_tensor = tf.cast(input_tensor, dtype=tf.bfloat16).numpy()
-    filter_tensor = tf.cast(filter_tensor, dtype=tf.bfloat16).numpy()
-
+    # Input 7, float64
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float64)
+    filter_tensor = np.random.rand(3, 3, 3, 2).astype(np.float64)
     strides = [1, 1, 1, 1]
     padding = "VALID"
     input_dict = {
@@ -135,9 +132,9 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8, float64
-    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float64)
-    filter_tensor = np.random.rand(3, 3, 3, 2).astype(np.float64)
+    # Input 8, Larger filter
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    filter_tensor = np.random.rand(5, 5, 3, 2).astype(np.float32)
     strides = [1, 1, 1, 1]
     padding = "VALID"
     input_dict = {
@@ -146,6 +143,41 @@ def tf_raw_ops_DepthwiseConv2dNative_inputs():
         "strides": strides,
         "padding": padding,
         "explicit_paddings": [],
+        "data_format": "NHWC",
+        "dilations": [1, 1, 1, 1],
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9, channel_multiplier > 1
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    filter_tensor = np.random.rand(3, 3, 3, 4).astype(np.float32)
+    strides = [1, 1, 1, 1]
+    padding = "VALID"
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "strides": strides,
+        "padding": padding,
+        "explicit_paddings": [],
+        "data_format": "NHWC",
+        "dilations": [1, 1, 1, 1],
+        "name": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10, explicit paddings with SAME padding
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    filter_tensor = np.random.rand(3, 3, 3, 2).astype(np.float32)
+    strides = [1, 1, 1, 1]
+    padding = "SAME"
+    explicit_paddings = [0, 0, 1, 1, 1, 1, 0, 0]
+    input_dict = {
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "strides": strides,
+        "padding": padding,
+        "explicit_paddings": explicit_paddings,
         "data_format": "NHWC",
         "dilations": [1, 1, 1, 1],
         "name": None

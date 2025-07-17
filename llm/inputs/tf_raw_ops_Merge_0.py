@@ -11,64 +11,49 @@ import copy
 def tf_raw_ops_merge_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with two tensors.
-    inputs = [tf.constant([1, 2, 3]), tf.constant([4, 5, 6])]
-    name = None
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 1: Basic case with two float tensors
+    inputs = [tf.constant([1.0, 2.0, 3.0], dtype=tf.float32), tf.constant([4.0, 5.0, 6.0], dtype=tf.float32)]
+    input_dict = {"inputs": inputs, "name": "merge_example_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Two tensors with different values.
-    inputs = [tf.constant([7, 8, 9]), tf.constant([10, 11, 12])]
-    name = "merge_op_2"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 2: Two int32 tensors
+    inputs = [tf.constant([1, 2, 3], dtype=tf.int32), tf.constant([4, 5, 6], dtype=tf.int32)]
+    input_dict = {"inputs": inputs, "name": "merge_example_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Three tensors.
-    inputs = [tf.constant([13, 14, 15]), tf.constant([16, 17, 18]), tf.constant([19, 20, 21])]
-    name = "merge_op_3"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 3: Two bool tensors
+    inputs = [tf.constant([True, False], dtype=tf.bool), tf.constant([False, True], dtype=tf.bool)]
+    input_dict = {"inputs": inputs, "name": "merge_example_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Tensors of type float32.
-    inputs = [tf.constant([1.0, 2.0, 3.0]), tf.constant([4.0, 5.0, 6.0])]
-    name = "merge_op_5"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 4: Two string tensors
+    inputs = [tf.constant(["a", "b"]), tf.constant(["c", "d"])]
+    input_dict = {"inputs": inputs, "name": "merge_example_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Tensors of type int64.
-    inputs = [tf.constant([1, 2, 3], dtype=tf.int64), tf.constant([4, 5, 6], dtype=tf.int64)]
-    name = "merge_op_6"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 5: More than two tensors (3 tensors of type int64)
+    inputs = [tf.constant([1, 2], dtype=tf.int64), tf.constant([3, 4], dtype=tf.int64), tf.constant([5, 6], dtype=tf.int64)]
+    input_dict = {"inputs": inputs, "name": "merge_example_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Tensors with shape (2, 2).
-    inputs = [tf.constant([[1, 2], [3, 4]]), tf.constant([[5, 6], [7, 8]])]
-    name = "merge_op_7"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 7: Two float64 tensors
+    inputs = [tf.constant([1.0, 2.0], dtype=tf.float64), tf.constant([3.0, 4.0], dtype=tf.float64)]
+    input_dict = {"inputs": inputs, "name": "merge_example_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7:  Tensors with boolean values
-    inputs = [tf.constant([True, False, True]), tf.constant([False, True, False])]
-    name = "merge_op_10"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 9: Two tensors with negative values.
+    inputs = [tf.constant([-1, -2], dtype=tf.int32), tf.constant([-3, -4], dtype=tf.int32)]
+    input_dict = {"inputs": inputs, "name": "merge_example_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Scalar tensors
-    inputs = [tf.constant(5), tf.constant(10)]
-    name = "merge_op_12"
-    input_dict = {"inputs": inputs, "name": name}
+    # Input 10: Two tensors, shape (2, 2)
+    inputs = [tf.constant([[1, 2], [3, 4]], dtype=tf.int32), tf.constant([[5, 6], [7, 8]], dtype=tf.int32)]
+    input_dict = {"inputs": inputs, "name": "merge_example_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Rank 3 tensors
-    inputs = [tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]]), tf.constant([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])]
-    name = "merge_op_13"
-    input_dict = {"inputs": inputs, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Different shapes
-    inputs = [tf.constant([1, 2, 3]), tf.constant([[4, 5, 6], [7, 8, 9]])]
-    name = "merge_op_15"
-    input_dict = {"inputs": inputs, "name": name}
+    
+    # Input 11: Two tensors of different shapes, but same type
+    inputs = [tf.constant(1, dtype=tf.int32), tf.constant([2,3], dtype=tf.int32)]
+    input_dict = {"inputs": inputs, "name": "merge_example_11"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

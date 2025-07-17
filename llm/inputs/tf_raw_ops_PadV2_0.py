@@ -12,72 +12,86 @@ def tf_raw_ops_PadV2_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.array([[1, 1], [2, 2]], dtype=np.int32)
-    paddings_tensor = np.array([[1, 1], [2, 2]], dtype=np.int32)
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    paddings_tensor = np.array([[1, 1], [1, 1]], dtype=np.int32)
     constant_values_tensor = np.array(0, dtype=np.int32)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([1, 2, 3], dtype=np.float32)
-    paddings_tensor = np.array([[2, 1]], dtype=np.int32)
-    constant_values_tensor = np.array(2.5, dtype=np.float32)
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    paddings_tensor = np.array([[1, 1], [1, 1], [1, 1]], dtype=np.int32)
+    constant_values_tensor = np.array(1.0, dtype=np.float32)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    paddings_tensor = np.array([[0, 0], [1, 1], [2, 0]], dtype=np.int32)
+    input_tensor = np.array([1, 2, 3], dtype=np.int64)
+    paddings_tensor = np.array([[2, 1]], dtype=np.int64)
     constant_values_tensor = np.array(-1, dtype=np.int64)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    paddings_tensor = np.array([[0, 2]], dtype=np.int64)
-    constant_values_tensor = np.array(10.0, dtype=np.float64)
+    input_tensor = np.array(10, dtype=np.float64)
+    paddings_tensor = np.array([[0, 0]], dtype=np.int32)
+    constant_values_tensor = np.array(2.5, dtype=np.float64)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    paddings_tensor = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    constant_values_tensor = np.array(5, dtype=np.int32)
+    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0]], dtype=np.int32)
+    constant_values_tensor = np.array(0, dtype=np.int32)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.array([1, 2, 3], dtype=np.int64)
-    paddings_tensor = np.array([[2, 0]], dtype=np.int64)
-    constant_values_tensor = np.array(0, dtype=np.int64)
-    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input_tensor = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float32)
-    paddings_tensor = np.array([[1, 0], [0, 1]], dtype=np.int32)
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    paddings_tensor = np.array([[1, 1], [1, 1]], dtype=np.int32)
     constant_values_tensor = np.array(-2.0, dtype=np.float32)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 7
+    input_tensor = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]], dtype=np.int64)
+    paddings_tensor = np.array([[1, 1], [1, 1], [1, 1]], dtype=np.int64)
+    constant_values_tensor = np.array(0, dtype=np.int64)
+    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 8
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    paddings_tensor = np.array([[1, 0], [0, 1], [0, 0]], dtype=np.int32)
-    constant_values_tensor = np.array(100, dtype=np.int32)
+    input_tensor = np.array([1, 2], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0]], dtype=np.int32)
+    constant_values_tensor = np.array(-5, dtype=np.int32)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = np.array([1, 2, 3], dtype=np.float64)
-    paddings_tensor = np.array([[0, 0]], dtype=np.int32)
-    constant_values_tensor = np.array(1.0, dtype=np.float64)
+    input_tensor = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float64)
+    paddings_tensor = np.array([[1, 1], [1, 1]], dtype=np.int64)
+    constant_values_tensor = np.array(0.0, dtype=np.float64)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    paddings_tensor = np.array([[2, 1], [1, 2]], dtype=np.int64)
-    constant_values_tensor = np.array(-1, dtype=np.int32)
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    paddings_tensor = np.array([[1, 1], [1, 1], [1, 1]], dtype=np.int32)
+    constant_values_tensor = np.array(99, dtype=np.int32)
+    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    input_tensor = np.array(5, dtype=np.int32)
+    paddings_tensor = np.array([[0, 0]], dtype=np.int32)
+    constant_values_tensor = np.array(2, dtype=np.int32)
+    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    input_tensor = np.array([1, 2, 3], dtype=np.int64)
+    paddings_tensor = np.array([[0, 0]], dtype=np.int64)
+    constant_values_tensor = np.array(-1, dtype=np.int64)
     input_dict = {"input": input_tensor, "paddings": paddings_tensor, "constant_values": constant_values_tensor, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

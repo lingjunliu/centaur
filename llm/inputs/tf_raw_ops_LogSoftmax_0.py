@@ -12,53 +12,53 @@ def tf_raw_ops_logsoftmax_inputs():
     list_of_inputs = []
 
     # Input 1: float32, basic case
-    logits = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"logits": tf.constant(logits), "name": None}
+    logits = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    input_dict = {"logits": logits, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64, with negative values
-    logits = np.array([[-1.0, 0.0], [-2.0, -3.0]], dtype=np.float64)
-    input_dict = {"logits": tf.constant(logits), "name": "log_softmax_op"}
+    # Input 2: float64, negative values
+    logits = np.array([[-1.0, -2.0, -3.0], [-4.0, -5.0, -6.0]], dtype=np.float64)
+    input_dict = {"logits": logits, "name": "log_softmax_negative"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: half (float16), different values
-    logits = np.array([[0.5, -0.5], [1.5, -1.5]], dtype=np.float16)
-    input_dict = {"logits": tf.constant(logits), "name": None}
+    # Input 3: float32, zero values
+    logits = np.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], dtype=np.float32)
+    input_dict = {"logits": logits, "name": "log_softmax_zero"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: bfloat16, all zeros
-    logits = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=tf.bfloat16.as_numpy_dtype)
-    input_dict = {"logits": tf.constant(logits), "name": None}
+    # Input 4: half (float16)
+    logits = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16)
+    input_dict = {"logits": logits, "name": "log_softmax_half"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float32, larger values
-    logits = np.array([[100.0, 200.0], [300.0, 400.0]], dtype=np.float32)
-    input_dict = {"logits": tf.constant(logits), "name": "another_op"}
+    # Input 5: float32, larger batch size
+    logits = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
+    input_dict = {"logits": logits, "name": "log_softmax_large_batch"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float64, all same values
-    logits = np.array([[5.0, 5.0], [5.0, 5.0]], dtype=np.float64)
-    input_dict = {"logits": tf.constant(logits), "name": None}
+    # Input 6: float64, larger number of classes
+    logits = np.array([[1.0, 2.0, 3.0, 4.0, 5.0], [6.0, 7.0, 8.0, 9.0, 10.0]], dtype=np.float64)
+    input_dict = {"logits": logits, "name": "log_softmax_more_classes"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 7: half, small values
-    logits = np.array([[0.001, 0.002], [0.003, 0.004]], dtype=np.float16)
-    input_dict = {"logits": tf.constant(logits), "name": None}
+    # Input 7: float32, mixed positive and negative values
+    logits = np.array([[-1.0, 2.0, -3.0], [4.0, -5.0, 6.0]], dtype=np.float32)
+    input_dict = {"logits": logits, "name": "log_softmax_mixed"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: bfloat16, negative and positive
-    logits = np.array([[-1.0, 1.0], [-2.0, 2.0]], dtype=tf.bfloat16.as_numpy_dtype)
-    input_dict = {"logits": tf.constant(logits), "name": None}
+    # Input 8: float32, small values
+    logits = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=np.float32)
+    input_dict = {"logits": logits, "name": "log_softmax_small"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float32, more diverse values
-    logits = np.array([[-5.2, 2.7], [0.1, -10.5]], dtype=np.float32)
-    input_dict = {"logits": tf.constant(logits), "name": None}
+    # Input 9: float64, with one extremely large number
+    logits = np.array([[1.0, 2.0, 1000.0], [4.0, 5.0, 6.0]], dtype=np.float64)
+    input_dict = {"logits": logits, "name": "log_softmax_large_value"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float64, large negative value
-    logits = np.array([[1.0, -1000.0], [2.0, -2000.0]], dtype=np.float64)
-    input_dict = {"logits": tf.constant(logits), "name": None}
+    # Input 10: float32, with one extremely small number
+    logits = np.array([[1.0, 2.0, -1000.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    input_dict = {"logits": logits, "name": "log_softmax_small_value"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

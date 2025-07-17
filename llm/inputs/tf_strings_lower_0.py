@@ -12,70 +12,70 @@ def tf_strings_lower_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.array("CamelCase string and ALL CAPS")
+    input_tensor = tf.constant("CamelCase string and ALL CAPS").numpy()
     encoding = ""
     name = None
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array("MixedCase123")
+    input_tensor = tf.constant("MixedCase123!@#").numpy()
     encoding = "utf-8"
     name = "lower_case_string"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array("ALLCAPS")
+    input_tensor = tf.constant(["String1", "String2", "String3"]).numpy()
     encoding = ""
     name = None
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array("lowercase")
+    input_tensor = tf.constant([["String1", "String2"], ["String3", "String4"]]).numpy()
     encoding = "utf-8"
-    name = None
+    name = "name2"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array("12345")
+    input_tensor = tf.constant("ALREADY LOWER").numpy()
     encoding = ""
     name = None
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.array("!@#$%^")
+    input_tensor = tf.constant("Numbers12345").numpy()
     encoding = "utf-8"
     name = None
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = np.array("  Leading and trailing spaces  ")
+    input_tensor = tf.constant("").numpy()
     encoding = ""
     name = None
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = np.array("你好World")
+    input_tensor = tf.constant("   Leading and Trailing Spaces   ").numpy()
     encoding = "utf-8"
-    name = None
+    name = "space_test"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = np.array("")
+    input_tensor = tf.constant("!@#$%^&*()").numpy()
     encoding = ""
     name = None
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = np.array("UPPER lower")
+    input_tensor = np.array([s.decode('utf-8') for s in [b"BYtestring1", b"BYtestring2"]], dtype=np.str_)
     encoding = "utf-8"
     name = None
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}

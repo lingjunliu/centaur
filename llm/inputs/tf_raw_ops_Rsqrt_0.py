@@ -8,73 +8,63 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_rsqrt_inputs():
+def tf_raw_ops_Rsqrt_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, simple case
+    # Input 1: float32, 1D
     x = np.array([1.0, 4.0, 9.0], dtype=np.float32)
-    name = "rsqrt_1"
-    input_dict = {"x": x, "name": name}
+    input_dict = {"x": x, "name": "sqrt_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64, simple case
-    x = np.array([1.0, 4.0, 9.0], dtype=np.float64)
-    name = "rsqrt_2"
-    input_dict = {"x": x, "name": name}
+    # Input 2: float64, 2D
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    input_dict = {"x": x, "name": "sqrt_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: bfloat16, simple case
-    x = np.array([1.0, 4.0, 9.0], dtype=np.float16)
-    name = "rsqrt_3"
-    input_dict = {"x": x, "name": name}
+    # Input 3: complex64, 1D
+    x = np.array([1.0 + 1j, 2.0 + 2j, 3.0 + 3j], dtype=np.complex64)
+    input_dict = {"x": x, "name": "sqrt_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: half, simple case
-    x = np.array([1.0, 4.0, 9.0], dtype=np.float16)
-    name = "rsqrt_4"
-    input_dict = {"x": x, "name": name}
+    # Input 4: complex128, 2D
+    x = np.array([[1.0 + 0j, 0 + 1.0j], [-1.0 + 0j, 0 - 1.0j]], dtype=np.complex128)
+    input_dict = {"x": x, "name": "sqrt_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: complex64, simple case
-    x = np.array([1.0 + 1j, 4.0 + 2j, 9.0 + 3j], dtype=np.complex64)
-    name = "rsqrt_5"
-    input_dict = {"x": x, "name": name}
+    # Input 5: bfloat16, 1D.  Needs to be cast to numpy.
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16).astype(np.float32)
+    input_dict = {"x": x, "name": "sqrt_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: complex128, simple case
-    x = np.array([1.0 + 1j, 4.0 + 2j, 9.0 + 3j], dtype=np.complex128)
-    name = "rsqrt_6"
-    input_dict = {"x": x, "name": name}
+    # Input 6: half, 2D
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float16)
+    input_dict = {"x": x, "name": "sqrt_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float32, multi-dimensional
-    x = np.array([[1.0, 4.0], [9.0, 16.0]], dtype=np.float32)
-    name = "rsqrt_7"
-    input_dict = {"x": x, "name": name}
+    # Input 7: float32, 3D
+    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    input_dict = {"x": x, "name": "sqrt_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: float64, 1D with large values
+    x = np.array([100.0, 400.0, 900.0], dtype=np.float64)
+    input_dict = {"x": x, "name": "sqrt_8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: complex64, 1D with zero imaginary part
+    x = np.array([1.0 + 0j, 4.0 + 0j, 9.0 + 0j], dtype=np.complex64)
+    input_dict = {"x": x, "name": "sqrt_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float64, zero value
-    x = np.array([0.0], dtype=np.float64)
-    name = "rsqrt_8"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: float32, larger array
-    x = np.arange(1, 101, dtype=np.float32)
-    name = "rsqrt_9"
-    input_dict = {"x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: complex128, more complex numbers
-    x = np.array([1.0 + 0.5j, 0.5 + 1.0j, 2.0 + 2.0j], dtype=np.complex128)
-    name = "rsqrt_10"
-    input_dict = {"x": x, "name": name}
+    # Input 10: bfloat16, 1D with various values
+    x = np.array([0.5, 1.5, 2.5, 3.5], dtype=np.float16).astype(np.float32)
+    input_dict = {"x": x, "name": "sqrt_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.Rsqrt"] = tf_raw_ops_rsqrt_inputs()
+generated_inputs["tf.raw_ops.Rsqrt"] = tf_raw_ops_Rsqrt_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

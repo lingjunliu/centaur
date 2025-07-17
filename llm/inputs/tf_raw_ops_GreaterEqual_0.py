@@ -11,64 +11,52 @@ import copy
 def tf_raw_ops_greater_equal_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with integers
+    # Input 1: Basic int32
     x = np.array([5, 4, 6, 7], dtype=np.int32)
     y = np.array([5, 2, 5, 10], dtype=np.int32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Broadcasting case with integers
+    # Input 2: Broadcasting with int32
     x = np.array([5, 4, 6, 7], dtype=np.int32)
     y = np.array([5], dtype=np.int32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Floats
+    # Input 3: float32
     x = np.array([5.0, 4.0, 6.0, 7.0], dtype=np.float32)
     y = np.array([5.0, 2.0, 5.0, 10.0], dtype=np.float32)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Negative values
-    x = np.array([-5, -4, -6, -7], dtype=np.int32)
-    y = np.array([-5, -2, -5, -10], dtype=np.int32)
+    # Input 4: Negative values with int64
+    x = np.array([-5, -4, -6, -7], dtype=np.int64)
+    y = np.array([-5, -2, -5, -10], dtype=np.int64)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different shapes
-    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    y = np.array([[2, 1], [4, 3]], dtype=np.int32)
+    # Input 5: 2D array with float64
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    y = np.array([[2.0, 1.0], [4.0, 3.0]], dtype=np.float64)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: All True
-    x = np.array([5, 5, 5, 5], dtype=np.int32)
-    y = np.array([1, 2, 3, 4], dtype=np.int32)
+    # Input 6: 1D with uint8
+    x = np.array([1, 2, 3, 4], dtype=np.uint8)
+    y = np.array([2, 1, 4, 3], dtype=np.uint8)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: All False
-    x = np.array([1, 2, 3, 4], dtype=np.int32)
-    y = np.array([5, 5, 5, 5], dtype=np.int32)
+    # Input 7: half
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    y = np.array([2.0, 1.0, 3.0], dtype=np.float16)
     input_dict = {"x": x, "y": y, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Zero values
-    x = np.array([0, 0, 0, 0], dtype=np.int32)
-    y = np.array([0, 1, -1, 0], dtype=np.int32)
+    
+    # Input 8: int16
+    x = np.array([1, 2, 3, 4], dtype=np.int16)
+    y = np.array([2, 1, 4, 3], dtype=np.int16)
     input_dict = {"x": x, "y": y, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Uint8
-    x = np.array([5, 4, 6, 7], dtype=np.uint8)
-    y = np.array([5, 2, 5, 10], dtype=np.uint8)
-    input_dict = {"x": x, "y": y, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Float64, name provided
-    x = np.array([5.0, 4.0, 6.0, 7.0], dtype=np.float64)
-    y = np.array([5.0, 2.0, 5.0, 10.0], dtype=np.float64)
-    input_dict = {"x": x, "y": y, "name": "my_greater_equal"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

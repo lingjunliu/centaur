@@ -11,65 +11,72 @@ import copy
 def tf_raw_ops_SparseFillEmptyRowsGrad_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with float32 grad_values
+    # Input 1
     reverse_index_map = np.array([0, 1, 2], dtype=np.int64)
     grad_values = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different reverse_index_map and float64 grad_values
-    reverse_index_map = np.array([2, 0, 1], dtype=np.int64)
-    grad_values = np.array([4.0, 5.0, 6.0], dtype=np.float64)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
+    # Input 2
+    reverse_index_map = np.array([0, 2], dtype=np.int64)
+    grad_values = np.array([1.0, 0.0, 3.0], dtype=np.float32)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: grad_values with larger size than reverse_index_map (N_full > N)
-    reverse_index_map = np.array([0, 1], dtype=np.int64)
-    grad_values = np.array([7.0, 8.0, 9.0], dtype=np.float32)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: grad_values with complex64 type
-    reverse_index_map = np.array([0, 1, 2], dtype=np.int64)
-    grad_values = np.array([1.0+1j, 2.0+2j, 3.0+3j], dtype=np.complex64)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: grad_values with int32 type
-    reverse_index_map = np.array([0, 1, 2], dtype=np.int64)
-    grad_values = np.array([1, 2, 3], dtype=np.int32)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: grad_values with int64 type
-    reverse_index_map = np.array([0, 1, 2], dtype=np.int64)
-    grad_values = np.array([1, 2, 3], dtype=np.int64)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test_name"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: reverse_index_map with some repeated indices
-    reverse_index_map = np.array([0, 0, 1], dtype=np.int64)
-    grad_values = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: larger range in reverse_index_map but still within grad_values bounds
-    reverse_index_map = np.array([2, 1, 0], dtype=np.int64)
-    grad_values = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 9: grad_values with complex128 type
-    reverse_index_map = np.array([0, 1, 2], dtype=np.int64)
-    grad_values = np.array([1.0+1j, 2.0+2j, 3.0+3j], dtype=np.complex128)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: different size
+    # Input 3
     reverse_index_map = np.array([0, 1, 2, 3, 4], dtype=np.int64)
-    grad_values = np.array([5.0, 6.0, 7.0, 8.0, 9.0], dtype=np.float32)
-    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": None}
+    grad_values = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float64)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    reverse_index_map = np.array([0], dtype=np.int64)
+    grad_values = np.array([1.0], dtype=np.float32)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test4"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    reverse_index_map = np.array([0, 1, 2, 3], dtype=np.int64)
+    grad_values = np.array([1, 2, 3, 4], dtype=np.int32)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    reverse_index_map = np.array([0, 2, 4], dtype=np.int64)
+    grad_values = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    reverse_index_map = np.array([0, 1], dtype=np.int64)
+    grad_values = np.array([-1.0, -2.0, 3.0], dtype=np.float32)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 8
+    reverse_index_map = np.array([0, 1, 2, 3, 4, 5, 6], dtype=np.int64)
+    grad_values = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0], dtype=np.float64)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    reverse_index_map = np.array([10, 20], dtype=np.int64)
+    grad_values = np.array([i for i in range(30)], dtype=np.float32)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    reverse_index_map = np.array([0, 1, 2, 3], dtype=np.int64)
+    grad_values = np.array([1, 2, 3, 4, 5, 6, 7], dtype=np.int32)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    reverse_index_map = np.array([0, 0, 0, 0], dtype=np.int64)
+    grad_values = np.array([1, 2, 3, 4, 5, 6, 7], dtype=np.int32)
+    input_dict = {"reverse_index_map": reverse_index_map, "grad_values": grad_values, "name": "test11"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

@@ -8,82 +8,133 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_ref_switch_inputs():
+def tf_raw_ops_RefSwitch_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple case with True pred
-    data = np.array([1, 2, 3], dtype=np.int32)
-    pred = np.array(True, dtype=np.bool_)
-    name = "switch_true"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 1
+    data = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
+    pred = tf.constant(True, dtype=tf.bool)
+    name = "switch_1"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Simple case with False pred
-    data = np.array([4, 5, 6], dtype=np.int32)
-    pred = np.array(False, dtype=np.bool_)
-    name = "switch_false"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 2
+    data = tf.Variable(np.array([[1, 2], [3, 4]], dtype=np.float32))
+    pred = tf.constant(False, dtype=tf.bool)
+    name = "switch_2"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Float data type
-    data = np.array([1.1, 2.2, 3.3], dtype=np.float32)
-    pred = np.array(True, dtype=np.bool_)
-    name = "switch_float"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 3
+    data = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64))
+    pred = tf.constant(True, dtype=tf.bool)
+    name = "switch_3"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Bool data type
-    data = np.array([True, False, True], dtype=np.bool_)
-    pred = np.array(False, dtype=np.bool_)
-    name = "switch_bool"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 4
+    data = tf.Variable(np.array([-1, -2, -3], dtype=np.int32))
+    pred = tf.constant(False, dtype=tf.bool)
+    name = "switch_4"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D data
-    data = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    pred = np.array(True, dtype=np.bool_)
-    name = "switch_2d"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 5
+    data = tf.Variable(np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float64))
+    pred = tf.constant(True, dtype=tf.bool)
+    name = "switch_5"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 3D data
-    data = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    pred = np.array(False, dtype=np.bool_)
-    name = "switch_3d"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 6
+    data = tf.Variable(np.array(5, dtype=np.int32))
+    pred = tf.constant(False, dtype=tf.bool)
+    name = "switch_6"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Empty data
-    data = np.array([], dtype=np.int32)
-    pred = np.array(True, dtype=np.bool_)
-    name = "switch_empty"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 7
+    data = tf.Variable(np.array([1, 2, 3, 4, 5], dtype=np.int32))
+    pred = tf.constant(True, dtype=tf.bool)
+    name = "switch_7"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Larger data
-    data = np.random.rand(100).astype(np.float32)
-    pred = np.array(False, dtype=np.bool_)
-    name = "switch_large"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 8
+    data = tf.Variable(np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32))
+    pred = tf.constant(False, dtype=tf.bool)
+    name = "switch_8"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Negative values in data
-    data = np.array([-1, -2, -3], dtype=np.int32)
-    pred = np.array(True, dtype=np.bool_)
-    name = "switch_negative"
-    input_dict = {"data": data, "pred": pred, "name": name}
+    # Input 9
+    data = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32))
+    pred = tf.constant(True, dtype=tf.bool)
+    name = "switch_9"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Zero value in data
-    data = np.array([0, 1, 2], dtype=np.int32)
-    pred = np.array(False, dtype=np.bool_)
-    name = "switch_zero"
-    input_dict = {"data": data, "pred": pred, "name": name}
+     # Input 10
+    data = tf.Variable(np.array([1], dtype=np.int32))
+    pred = tf.constant(False, dtype=tf.bool)
+    name = "switch_10"
+
+    input_dict = {
+        "data": data.numpy(),
+        "pred": pred,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
+
 generated_inputs = {}
-generated_inputs["tf.raw_ops.RefSwitch"] = tf_raw_ops_ref_switch_inputs()
+generated_inputs["tf.raw_ops.RefSwitch"] = tf_raw_ops_RefSwitch_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -14,10 +14,10 @@ def tf_raw_ops_fifo_queue_inputs():
     # Input 1
     component_types = [tf.float32]
     shapes = []
-    capacity = -1
+    capacity = 10
     container = ""
     shared_name = ""
-    name = None
+    name = ""
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -26,15 +26,15 @@ def tf_raw_ops_fifo_queue_inputs():
         "shared_name": shared_name,
         "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 2
     component_types = [tf.int32, tf.float64]
     shapes = [[10], [5, 5]]
-    capacity = 10
+    capacity = -1
     container = "test_container"
-    shared_name = "test_shared_name"
-    name = "test_name"
+    shared_name = "shared_queue_2"
+    name = ""
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -43,15 +43,15 @@ def tf_raw_ops_fifo_queue_inputs():
         "shared_name": shared_name,
         "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 3
     component_types = [tf.string]
     shapes = []
     capacity = 0
     container = ""
-    shared_name = "shared"
-    name = None
+    shared_name = ""
+    name = ""
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -60,15 +60,15 @@ def tf_raw_ops_fifo_queue_inputs():
         "shared_name": shared_name,
         "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 4
-    component_types = [tf.bool, tf.complex64]
-    shapes = [[1, 2, 3], [4, 5]]
+    component_types = [tf.bool, tf.int64, tf.complex64]
+    shapes = [[], [2, 3], [1, 1, 1]]
     capacity = 100
-    container = "container1"
-    shared_name = ""
-    name = "my_queue"
+    container = "another_container"
+    shared_name = "shared_queue_4"
+    name = ""
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -77,32 +77,15 @@ def tf_raw_ops_fifo_queue_inputs():
         "shared_name": shared_name,
         "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     # Input 5
-    component_types = [tf.uint8]
-    shapes = [[28, 28]]
-    capacity = -2
-    container = "container2"
-    shared_name = "shared_queue"
-    name = None
-    input_dict = {
-        "component_types": component_types,
-        "shapes": shapes,
-        "capacity": capacity,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
     component_types = [tf.float16]
-    shapes = []
-    capacity = -1
+    shapes = [[5, 5, 5, 5]]
+    capacity = 1
     container = ""
     shared_name = ""
-    name = None
+    name = ""
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -111,15 +94,32 @@ def tf_raw_ops_fifo_queue_inputs():
         "shared_name": shared_name,
         "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
+
+    # Input 6
+    component_types = [tf.uint8]
+    shapes = []
+    capacity = -1
+    container = "container_6"
+    shared_name = "shared_6"
+    name = ""
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(input_dict)
 
     # Input 7
-    component_types = [tf.int64]
-    shapes = [[1, 1, 1, 1]]
-    capacity = 1
-    container = "another_container"
-    shared_name = "another_shared_queue"
-    name = "queue_name"
+    component_types = [tf.qint8, tf.quint8]
+    shapes = [[2, 2], [3]]
+    capacity = 20
+    container = ""
+    shared_name = "shared_7"
+    name = ""
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -128,32 +128,15 @@ def tf_raw_ops_fifo_queue_inputs():
         "shared_name": shared_name,
         "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
-     # Input 8
-    component_types = [tf.qint32]
-    shapes = []
-    capacity = 5
-    container = "q_container"
-    shared_name = "q_shared"
-    name = None
-    input_dict = {
-        "component_types": component_types,
-        "shapes": shapes,
-        "capacity": capacity,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
+    # Input 8
     component_types = [tf.resource]
     shapes = []
-    capacity = -10
-    container = ''
-    shared_name = ''
-    name = "resource_queue"
+    capacity = 5
+    container = "res_container"
+    shared_name = ""
+    name = ""
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -162,15 +145,32 @@ def tf_raw_ops_fifo_queue_inputs():
         "shared_name": shared_name,
         "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
+
+    # Input 9
+    component_types = [tf.variant]
+    shapes = [[1,1,1]]
+    capacity = 15
+    container = ""
+    shared_name = "var_queue"
+    name = ""
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(input_dict)
 
     # Input 10
-    component_types = [tf.variant]
-    shapes = [[2, 2]]
-    capacity = 20
-    container = 'variant_container'
-    shared_name = 'variant_shared'
-    name = None
+    component_types = [tf.float32, tf.int32, tf.string]
+    shapes = [[10, 10], [5], []]
+    capacity = -1
+    container = "all_types_container"
+    shared_name = "shared_all_types"
+    name = ""
     input_dict = {
         "component_types": component_types,
         "shapes": shapes,
@@ -179,7 +179,7 @@ def tf_raw_ops_fifo_queue_inputs():
         "shared_name": shared_name,
         "name": name
     }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

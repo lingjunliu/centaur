@@ -8,153 +8,163 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_restore_v2_inputs():
+def tf_raw_ops_restorev2_inputs():
     list_of_inputs = []
 
     # Input 1
-    prefix = tf.constant("checkpoint_prefix", dtype=tf.string)
-    tensor_names = tf.constant(["tensor1", "tensor2"], dtype=tf.string)
+    prefix = tf.constant("checkpoint_prefix_1", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_a", "tensor_b"], dtype=tf.string)
     shape_and_slices = tf.constant(["", ""], dtype=tf.string)
     dtypes = [tf.float32, tf.int32]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_1"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    prefix = tf.constant("another_prefix", dtype=tf.string)
-    tensor_names = tf.constant(["tensor_a", "tensor_b", "tensor_c"], dtype=tf.string)
-    shape_and_slices = tf.constant(["", "-", "0:1,2:"], dtype=tf.string)
-    dtypes = [tf.float64, tf.int64, tf.float16]
+    prefix = tf.constant("checkpoint_prefix_2", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_c"], dtype=tf.string)
+    shape_and_slices = tf.constant([""], dtype=tf.string)
+    dtypes = [tf.bool]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_2"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    prefix = tf.constant("prefix_3", dtype=tf.string)
-    tensor_names = tf.constant(["weight", "bias"], dtype=tf.string)
+    prefix = tf.constant("checkpoint_prefix_3", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_d", "tensor_e"], dtype=tf.string)
     shape_and_slices = tf.constant(["", ""], dtype=tf.string)
-    dtypes = [tf.complex64, tf.bool]
+    dtypes = [tf.int64, tf.float64]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_3"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    prefix = tf.constant("prefix_4", dtype=tf.string)
-    tensor_names = tf.constant(["var1"], dtype=tf.string)
-    shape_and_slices = tf.constant(["0:10,20:30"], dtype=tf.string)
-    dtypes = [tf.float32]
+    prefix = tf.constant("checkpoint_prefix_4", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_g"], dtype=tf.string)
+    shape_and_slices = tf.constant([""], dtype=tf.string)
+    dtypes = [tf.complex64]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_4"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5
-    prefix = tf.constant("prefix_5", dtype=tf.string)
-    tensor_names = tf.constant(["tensor_x", "tensor_y"], dtype=tf.string)
+    # Input 5
+    prefix = tf.constant("checkpoint_prefix_5", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_h", "tensor_i"], dtype=tf.string)
     shape_and_slices = tf.constant(["", ""], dtype=tf.string)
-    dtypes = [tf.qint8, tf.quint8]
+    dtypes = [tf.uint8, tf.int16]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_5"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    prefix = tf.constant("prefix_6", dtype=tf.string)
-    tensor_names = tf.constant(["single_tensor"], dtype=tf.string)
-    shape_and_slices = tf.constant(["10:20"], dtype=tf.string)
-    dtypes = [tf.float32]
+   # Input 6
+    prefix = tf.constant("checkpoint_prefix_6", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_j"], dtype=tf.string)
+    shape_and_slices = tf.constant([""], dtype=tf.string)
+    dtypes = [tf.qint8]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_6"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    prefix = tf.constant("prefix_7", dtype=tf.string)
-    tensor_names = tf.constant(["tensor_z"], dtype=tf.string)
-    shape_and_slices = tf.constant([""], dtype=tf.string)
-    dtypes = [tf.float32]
+    prefix = tf.constant("checkpoint_prefix_7", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_k", "tensor_l"], dtype=tf.string)
+    shape_and_slices = tf.constant(["", ""], dtype=tf.string)
+    dtypes = [tf.quint8, tf.qint32]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_7"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    prefix = tf.constant("prefix_8", dtype=tf.string)
-    tensor_names = tf.constant(["sparse_tensor"], dtype=tf.string)
-    shape_and_slices = tf.constant(["0:100"], dtype=tf.string)
-    dtypes = [tf.float32] # Changed from tf.bfloat16
+    prefix = tf.constant("checkpoint_prefix_8", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_m"], dtype=tf.string)
+    shape_and_slices = tf.constant([""], dtype=tf.string)
+    dtypes = [tf.resource]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_8"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    prefix = tf.constant("prefix_9", dtype=tf.string)
-    tensor_names = tf.constant(["long_tensor"], dtype=tf.string)
+    prefix = tf.constant("checkpoint_prefix_9", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_n"], dtype=tf.string)
     shape_and_slices = tf.constant([""], dtype=tf.string)
-    dtypes = [tf.float32] # Changed from tf.uint8
+    dtypes = [tf.variant]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_9"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    prefix = tf.constant("prefix_10", dtype=tf.string)
-    tensor_names = tf.constant(["name_only"], dtype=tf.string)
+    prefix = tf.constant("checkpoint_prefix_10", dtype=tf.string)
+    tensor_names = tf.constant(["tensor_o", "tensor_p"], dtype=tf.string)
     shape_and_slices = tf.constant([""], dtype=tf.string)
-    dtypes = [tf.float32]
+    dtypes = [tf.bfloat16, tf.float16]
+
     input_dict = {
         "prefix": prefix,
         "tensor_names": tensor_names,
         "shape_and_slices": shape_and_slices,
         "dtypes": dtypes,
-        "name": "restore_op_10"
+        "name": ""
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.RestoreV2"] = tf_raw_ops_restore_v2_inputs()
+generated_inputs["tf.raw_ops.RestoreV2"] = tf_raw_ops_restorev2_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

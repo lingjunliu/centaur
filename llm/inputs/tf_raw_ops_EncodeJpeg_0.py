@@ -12,18 +12,31 @@ def tf_raw_ops_encodejpeg_inputs():
     list_of_inputs = []
 
     # Input 1
-    image = np.array([[[100, 150, 200], [50, 100, 150]], [[120, 170, 220], [70, 120, 170]]], dtype=np.uint8)
+    image = np.array([[[100, 150, 200], [50, 100, 150]], [[200, 250, 50], [150, 200, 250]]], dtype=np.uint8)
     format_ = ""
     quality = 75
     progressive = False
-    optimize_size = False
+    optimize_size = True
     chroma_downsampling = True
     density_unit = "in"
     x_density = 300
     y_density = 300
     xmp_metadata = ""
     name = None
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -31,14 +44,27 @@ def tf_raw_ops_encodejpeg_inputs():
     format_ = "grayscale"
     quality = 90
     progressive = True
-    optimize_size = True
+    optimize_size = False
     chroma_downsampling = False
     density_unit = "cm"
-    x_density = 150
-    y_density = 150
+    x_density = 200
+    y_density = 200
     xmp_metadata = "<xmp>metadata</xmp>"
-    name = "encode_jpeg_2"
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+    name = "encode_jpeg_op"
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
@@ -46,78 +72,143 @@ def tf_raw_ops_encodejpeg_inputs():
     format_ = "rgb"
     quality = 100
     progressive = False
-    optimize_size = True
+    optimize_size = False
     chroma_downsampling = True
     density_unit = "in"
     x_density = 600
     y_density = 600
     xmp_metadata = ""
     name = None
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    image = np.array([[[100, 100, 100]]], dtype=np.uint8)
+    image = np.array([[[128], [64]]], dtype=np.uint8)
     format_ = ""
     quality = 50
     progressive = True
-    optimize_size = False
+    optimize_size = True
     chroma_downsampling = False
     density_unit = "cm"
-    x_density = 72
-    y_density = 72
+    x_density = 150
+    y_density = 150
     xmp_metadata = "<xmp>test</xmp>"
-    name = "encode_jpeg_4"
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+    name = "another_op"
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 5
-    image = np.array([[[10], [20]], [[30], [40]]], dtype=np.uint8)
+    image = np.array([[[100, 50, 0], [200, 150, 100]]], dtype=np.uint8)
     format_ = ""
-    quality = 1
+    quality = 0
     progressive = False
-    optimize_size = True
+    optimize_size = False
     chroma_downsampling = True
     density_unit = "in"
-    x_density = 1
-    y_density = 1
+    x_density = 300
+    y_density = 300
     xmp_metadata = ""
     name = None
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
    # Input 6
-    image = np.array([[[1, 2, 3], [4, 5, 6]]], dtype=np.uint8)
-    format_ = ""
-    quality = 95
-    progressive = False
-    optimize_size = False
-    chroma_downsampling = True
-    density_unit = "in"
-    x_density = 300
-    y_density = 300
+    image = np.array([[[50, 100, 150]]], dtype=np.uint8)
+    format_ = "rgb"
+    quality = 10
+    progressive = True
+    optimize_size = True
+    chroma_downsampling = False
+    density_unit = "cm"
+    x_density = 50
+    y_density = 50
     xmp_metadata = ""
-    name = None
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+    name = "op6"
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    image = np.array([[[100, 150, 200], [50, 100, 150]], [[120, 170, 220], [70, 120, 170]]], dtype=np.uint8)
+    image = np.array([[[150], [200]]], dtype=np.uint8)
     format_ = ""
-    quality = 75
+    quality = 100
     progressive = False
     optimize_size = False
     chroma_downsampling = True
     density_unit = "in"
-    x_density = 300
-    y_density = 300
-    xmp_metadata = ""
-    name = "test"
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+    x_density = 1000
+    y_density = 1000
+    xmp_metadata = "<test>metadata</test>"
+    name = None
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    image = np.array([[[255, 255, 255], [0, 0, 0]]], dtype=np.uint8)
+    image = np.array([[[100, 200, 50]]], dtype=np.uint8)
     format_ = ""
     quality = 80
     progressive = True
@@ -125,16 +216,29 @@ def tf_raw_ops_encodejpeg_inputs():
     chroma_downsampling = False
     density_unit = "cm"
     x_density = 100
-    y_density = 100
-    xmp_metadata = "<xmp>another test</xmp>"
-    name = None
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+    y_density = 500
+    xmp_metadata = "<xmp>test</xmp>"
+    name = "op8"
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    image = np.array([[[100], [50]], [[120], [70]]], dtype=np.uint8)
+    image = np.array([[[10], [20]],[[30],[40]]], dtype=np.uint8)
     format_ = "grayscale"
-    quality = 95
+    quality = 60
     progressive = False
     optimize_size = False
     chroma_downsampling = True
@@ -142,25 +246,51 @@ def tf_raw_ops_encodejpeg_inputs():
     x_density = 300
     y_density = 300
     xmp_metadata = ""
-    name = "grayscale_encode"
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
+    name = None
+
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    image = np.array([[[200, 100, 50], [150, 75, 25]], [[220, 120, 70], [170, 90, 40]]], dtype=np.uint8)
-    format_ = "rgb"
-    quality = 60
+    image = np.array([[[10, 20, 30],[40, 50, 60]],[[70,80,90],[100,110,120]]], dtype=np.uint8)
+    format_ = ""
+    quality = 40
     progressive = True
     optimize_size = True
     chroma_downsampling = False
     density_unit = "cm"
-    x_density = 200
-    y_density = 200
-    xmp_metadata = "<xmp>rgb encode</xmp>"
-    name = None
-    input_dict = {"image": image, "format": format_, "quality": quality, "progressive": progressive, "optimize_size": optimize_size, "chroma_downsampling": chroma_downsampling, "density_unit": density_unit, "x_density": x_density, "y_density": y_density, "xmp_metadata": xmp_metadata, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    x_density = 500
+    y_density = 100
+    xmp_metadata = "<xmp>test metadata here</xmp>"
+    name = "test_op"
 
+    input_dict = {
+        "image": image,
+        "format": format_,
+        "quality": quality,
+        "progressive": progressive,
+        "optimize_size": optimize_size,
+        "chroma_downsampling": chroma_downsampling,
+        "density_unit": density_unit,
+        "x_density": x_density,
+        "y_density": y_density,
+        "xmp_metadata": xmp_metadata,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

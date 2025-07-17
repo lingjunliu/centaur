@@ -19,7 +19,7 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
     strides = [1, 1, 1, 1, 1]
     padding = "VALID"
     data_format = "NDHWC"
-    name = None
+    name = "max_pool_grad_grad_1"
 
     input_dict = {
         "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.float32),
@@ -39,9 +39,9 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
     grad = np.random.rand(1, 3, 3, 3, 3).astype(np.float64)
     ksize = [1, 3, 3, 3, 1]
     strides = [1, 2, 2, 2, 1]
-    padding = "VALID"
+    padding = "SAME"
     data_format = "NDHWC"
-    name = "MaxPool3DGradGrad_1"
+    name = "max_pool_grad_grad_2"
 
     input_dict = {
         "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.float64),
@@ -56,14 +56,14 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    orig_input = np.random.rand(2, 4, 4, 4, 2).astype(np.int32)
-    orig_output = np.random.rand(2, 4, 4, 4, 2).astype(np.int32)
-    grad = np.random.rand(2, 4, 4, 4, 2).astype(np.int32)
-    ksize = [1, 1, 1, 1, 1]
-    strides = [1, 1, 1, 1, 1]
-    padding = "SAME"
+    orig_input = np.random.rand(2, 7, 7, 7, 1).astype(np.int32)
+    orig_output = np.random.rand(2, 4, 4, 4, 1).astype(np.int32)
+    grad = np.random.rand(2, 4, 4, 4, 1).astype(np.int32)
+    ksize = [1, 4, 4, 4, 1]
+    strides = [1, 2, 2, 2, 1]
+    padding = "VALID"
     data_format = "NDHWC"
-    name = "MaxPool3DGradGrad_2"
+    name = "max_pool_grad_grad_3"
 
     input_dict = {
         "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.int32),
@@ -77,20 +77,20 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 4
-    orig_input = np.random.rand(1, 3, 3, 3, 1).astype(np.float32)
-    orig_output = np.random.rand(1, 3, 3, 3, 1).astype(np.float32)
-    grad = np.random.rand(1, 3, 3, 3, 1).astype(np.float32)
-    ksize = [1, 1, 1, 1, 1]
-    strides = [1, 1, 1, 1, 1]
-    padding = "SAME"
+    # Input 4
+    orig_input = np.random.rand(1, 4, 4, 4, 2).astype(np.uint8)
+    orig_output = np.random.rand(1, 2, 2, 2, 2).astype(np.uint8)
+    grad = np.random.rand(1, 2, 2, 2, 2).astype(np.uint8)
+    ksize = [1, 3, 3, 3, 1]
+    strides = [1, 2, 2, 2, 1]
+    padding = "VALID"
     data_format = "NDHWC"
-    name = None
+    name = "max_pool_grad_grad_4"
 
     input_dict = {
-        "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.float32),
-        "orig_output": tf.convert_to_tensor(orig_output, dtype=tf.float32),
-        "grad": tf.convert_to_tensor(grad, dtype=tf.float32),
+        "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.uint8),
+        "orig_output": tf.convert_to_tensor(orig_output, dtype=tf.uint8),
+        "grad": tf.convert_to_tensor(grad, dtype=tf.uint8),
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
@@ -100,19 +100,19 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    orig_input = np.random.rand(1, 5, 5, 5, 3).astype(np.float64)
-    orig_output = np.random.rand(1, 2, 2, 2, 3).astype(np.float64)
-    grad = np.random.rand(1, 2, 2, 2, 3).astype(np.float64)
+    orig_input = np.random.rand(1, 6, 6, 6, 1).astype(np.int16)
+    orig_output = np.random.rand(1, 3, 3, 3, 1).astype(np.int16)
+    grad = np.random.rand(1, 3, 3, 3, 1).astype(np.int16)
     ksize = [1, 4, 4, 4, 1]
     strides = [1, 2, 2, 2, 1]
     padding = "VALID"
     data_format = "NDHWC"
-    name = "MaxPool3DGradGrad_1"
+    name = "max_pool_grad_grad_5"
 
     input_dict = {
-        "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.float64),
-        "orig_output": tf.convert_to_tensor(orig_output, dtype=tf.float64),
-        "grad": tf.convert_to_tensor(grad, dtype=tf.float64),
+        "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.int16),
+        "orig_output": tf.convert_to_tensor(orig_output, dtype=tf.int16),
+        "grad": tf.convert_to_tensor(grad, dtype=tf.int16),
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
@@ -122,36 +122,14 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    orig_input = np.random.rand(2, 4, 4, 4, 2).astype(np.int32)
-    orig_output = np.random.rand(2, 4, 4, 4, 2).astype(np.int32)
-    grad = np.random.rand(2, 4, 4, 4, 2).astype(np.int32)
-    ksize = [1, 1, 1, 1, 1]
-    strides = [1, 1, 1, 1, 1]
-    padding = "SAME"
-    data_format = "NCDHW"
-    name = "MaxPool3DGradGrad_2"
-
-    input_dict = {
-        "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.int32),
-        "orig_output": tf.convert_to_tensor(orig_output, dtype=tf.int32),
-        "grad": tf.convert_to_tensor(grad, dtype=tf.int32),
-        "ksize": ksize,
-        "strides": strides,
-        "padding": padding,
-        "data_format": data_format,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    orig_input = np.random.rand(1, 3, 3, 3, 1).astype(np.int8)
-    orig_output = np.random.rand(1, 3, 3, 3, 1).astype(np.int8)
-    grad = np.random.rand(1, 3, 3, 3, 1).astype(np.int8)
-    ksize = [1, 1, 1, 1, 1]
-    strides = [1, 1, 1, 1, 1]
-    padding = "SAME"
+    orig_input = np.random.rand(1, 8, 8, 8, 1).astype(np.int8)
+    orig_output = np.random.rand(1, 4, 4, 4, 1).astype(np.int8)
+    grad = np.random.rand(1, 4, 4, 4, 1).astype(np.int8)
+    ksize = [1, 5, 5, 5, 1]
+    strides = [1, 2, 2, 2, 1]
+    padding = "VALID"
     data_format = "NDHWC"
-    name = None
+    name = "max_pool_grad_grad_6"
 
     input_dict = {
         "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.int8),
@@ -164,21 +142,21 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    orig_input = np.random.rand(1, 5, 5, 5, 3).astype(np.uint16)
-    orig_output = np.random.rand(1, 2, 2, 2, 3).astype(np.uint16)
-    grad = np.random.rand(1, 2, 2, 2, 3).astype(np.uint16)
-    ksize = [1, 4, 4, 4, 1]
-    strides = [1, 2, 2, 2, 1]
+
+     # Input 7
+    orig_input = np.random.rand(1, 2, 2, 2, 1).astype(np.int64)
+    orig_output = np.random.rand(1, 1, 1, 1, 1).astype(np.int64)
+    grad = np.random.rand(1, 1, 1, 1, 1).astype(np.int64)
+    ksize = [1, 2, 2, 2, 1]
+    strides = [1, 1, 1, 1, 1]
     padding = "VALID"
     data_format = "NDHWC"
-    name = "MaxPool3DGradGrad_1"
+    name = "max_pool_grad_grad_7"
 
     input_dict = {
-        "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.uint16),
-        "orig_output": tf.convert_to_tensor(orig_output, dtype=tf.uint16),
-        "grad": tf.convert_to_tensor(grad, dtype=tf.uint16),
+        "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.int64),
+        "orig_output": tf.convert_to_tensor(orig_output, dtype=tf.int64),
+        "grad": tf.convert_to_tensor(grad, dtype=tf.int64),
         "ksize": ksize,
         "strides": strides,
         "padding": padding,
@@ -187,15 +165,15 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    orig_input = np.random.rand(2, 4, 4, 4, 2).astype(np.float16)
-    orig_output = np.random.rand(2, 4, 4, 4, 2).astype(np.float16)
-    grad = np.random.rand(2, 4, 4, 4, 2).astype(np.float16)
-    ksize = [1, 1, 1, 1, 1]
+    # Input 8
+    orig_input = np.random.rand(1, 3, 3, 3, 1).astype(np.float16)
+    orig_output = np.random.rand(1, 2, 2, 2, 1).astype(np.float16)
+    grad = np.random.rand(1, 2, 2, 2, 1).astype(np.float16)
+    ksize = [1, 2, 2, 2, 1]
     strides = [1, 1, 1, 1, 1]
-    padding = "SAME"
-    data_format = "NCDHW"
-    name = "MaxPool3DGradGrad_2"
+    padding = "VALID"
+    data_format = "NDHWC"
+    name = "max_pool_grad_grad_8"
 
     input_dict = {
         "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.float16),
@@ -209,15 +187,37 @@ def tf_raw_ops_MaxPool3DGradGrad_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 9
+    orig_input = np.random.rand(1, 3, 3, 3, 1).astype(np.uint16)
+    orig_output = np.random.rand(1, 2, 2, 2, 1).astype(np.uint16)
+    grad = np.random.rand(1, 2, 2, 2, 1).astype(np.uint16)
+    ksize = [1, 2, 2, 2, 1]
+    strides = [1, 1, 1, 1, 1]
+    padding = "VALID"
+    data_format = "NDHWC"
+    name = "max_pool_grad_grad_9"
+
+    input_dict = {
+        "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.uint16),
+        "orig_output": tf.convert_to_tensor(orig_output, dtype=tf.uint16),
+        "grad": tf.convert_to_tensor(grad, dtype=tf.uint16),
+        "ksize": ksize,
+        "strides": strides,
+        "padding": padding,
+        "data_format": data_format,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 10
     orig_input = np.random.rand(1, 3, 3, 3, 1).astype(np.float16)
-    orig_output = np.random.rand(1, 3, 3, 3, 1).astype(np.float16)
-    grad = np.random.rand(1, 3, 3, 3, 1).astype(np.float16)
-    ksize = [1, 1, 1, 1, 1]
+    orig_output = np.random.rand(1, 2, 2, 2, 1).astype(np.float16)
+    grad = np.random.rand(1, 2, 2, 2, 1).astype(np.float16)
+    ksize = [1, 2, 2, 2, 1]
     strides = [1, 1, 1, 1, 1]
-    padding = "SAME"
+    padding = "VALID"
     data_format = "NDHWC"
-    name = None
+    name = "max_pool_grad_grad_10"
 
     input_dict = {
         "orig_input": tf.convert_to_tensor(orig_input, dtype=tf.float16),

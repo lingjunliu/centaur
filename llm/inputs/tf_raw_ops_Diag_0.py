@@ -8,73 +8,53 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_diag_inputs():
+def tf_raw_ops_Diag_inputs():
     list_of_inputs = []
 
-    # Input 1: Rank 1, int32
+    # Input 1: Basic integer diagonal
     diagonal = np.array([1, 2, 3, 4], dtype=np.int32)
-    name = "diag_int32"
-    input_dict = {"diagonal": diagonal, "name": name}
+    input_dict = {"diagonal": diagonal, "name": "diag1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Rank 1, float32
-    diagonal = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    name = "diag_float32"
-    input_dict = {"diagonal": diagonal, "name": name}
+    # Input 2: Float diagonal
+    diagonal = np.array([1.0, 2.5, 3.7, 4.2], dtype=np.float32)
+    input_dict = {"diagonal": diagonal, "name": "diag2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Rank 1, complex64
-    diagonal = np.array([1 + 1j, 2 + 2j, 3 + 3j, 4 + 4j], dtype=np.complex64)
-    name = "diag_complex64"
-    input_dict = {"diagonal": diagonal, "name": name}
+    # Input 3: Complex diagonal
+    diagonal = np.array([1+1j, 2+2j, 3+3j, 4+4j], dtype=np.complex64)
+    input_dict = {"diagonal": diagonal, "name": "diag3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Rank 1, int64
+    # Input 4: Int64 diagonal
     diagonal = np.array([1, 2, 3, 4], dtype=np.int64)
-    name = "diag_int64"
-    input_dict = {"diagonal": diagonal, "name": name}
+    input_dict = {"diagonal": diagonal, "name": "diag4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Rank 1, float64
-    diagonal = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
-    name = "diag_float64"
-    input_dict = {"diagonal": diagonal, "name": name}
+    # Input 5: Empty diagonal
+    diagonal = np.array([], dtype=np.float32)
+    input_dict = {"diagonal": diagonal, "name": "diag5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Rank 1, bfloat16
-    diagonal = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float16).astype(np.float32) #bfloat16 not directly supported in numpy, emulate with float16 conversion
-    name = "diag_bfloat16"
-    input_dict = {"diagonal": diagonal, "name": name}
+    # Input 6: Single element diagonal
+    diagonal = np.array([5], dtype=np.int32)
+    input_dict = {"diagonal": diagonal, "name": "diag6"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Half type diagonal
+    diagonal = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    input_dict = {"diagonal": diagonal, "name": "diag7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Rank 1, half
-    diagonal = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float16)
-    name = "diag_half"
-    input_dict = {"diagonal": diagonal, "name": name}
+    # Input 10: complex128 diagonal
+    diagonal = np.array([1+1j, 2+2j, 3+3j, 4+4j], dtype=np.complex128)
+    input_dict = {"diagonal": diagonal, "name": "diag10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Rank 0, int32 (scalar)
-    diagonal = np.array(5, dtype=np.int32)
-    name = "diag_scalar_int32"
-    input_dict = {"diagonal": diagonal, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Rank 0, float32 (scalar)
-    diagonal = np.array(5.5, dtype=np.float32)
-    name = "diag_scalar_float32"
-    input_dict = {"diagonal": diagonal, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Rank 1, negative values, int32
-    diagonal = np.array([-1, -2, -3, -4], dtype=np.int32)
-    name = "diag_negative_int32"
-    input_dict = {"diagonal": diagonal, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.Diag"] = tf_raw_ops_diag_inputs()
+generated_inputs["tf.raw_ops.Diag"] = tf_raw_ops_Diag_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

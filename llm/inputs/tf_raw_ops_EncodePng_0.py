@@ -12,57 +12,69 @@ def tf_raw_ops_EncodePng_inputs():
     list_of_inputs = []
 
     # Input 1: Basic grayscale image
-    image = np.zeros((10, 10, 1), dtype=np.uint8)
-    compression = -1
-    name = None
-    input_dict = {"image": image, "compression": compression, "name": name}
+    image = np.zeros((100, 100, 1), dtype=np.uint8)
+    input_dict = {"image": image, "compression": -1, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: RGB image with compression level 0
-    image = np.ones((20, 30, 3), dtype=np.uint8) * 255
-    compression = 0
-    name = "rgb_image"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 2: Basic RGB image
+    image = np.zeros((100, 100, 3), dtype=np.uint8)
+    input_dict = {"image": image, "compression": 0, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: RGBA image with high compression
-    image = np.random.randint(0, 256, size=(50, 40, 4), dtype=np.uint8)
-    compression = 9
-    name = "rgba_high_compression"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 3: RGBA image with compression
+    image = np.random.randint(0, 256, size=(50, 50, 4), dtype=np.uint8)
+    input_dict = {"image": image, "compression": 5, "name": "my_png"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Grayscale image with alpha channel
-    image = np.random.randint(0, 256, size=(15, 25, 2), dtype=np.uint8)
-    compression = 5
-    name = "grayscale_alpha"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 4: Grayscale + alpha
+    image = np.ones((25, 25, 2), dtype=np.uint8) * 128
+    input_dict = {"image": image, "compression": 9, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: uint16 RGB image
-    image = np.random.randint(0, 65536, size=(30, 20, 3), dtype=np.uint16)
-    compression = -1
-    name = "uint16_rgb"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 5: uint16 grayscale image
+    image = np.zeros((64, 64, 1), dtype=np.uint8)
+    input_dict = {"image": image, "compression": -1, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: uint16 RGBA image
-    image = np.random.randint(0, 65536, size=(40, 30, 4), dtype=np.uint16)
-    compression = 3
-    name = "uint16_rgba"
-    input_dict = {"image": image, "compression": compression, "name": name}
+    # Input 6: uint16 RGB image
+    image = np.random.randint(0, 2**8, size=(32, 32, 3), dtype=np.uint8)
+    input_dict = {"image": image, "compression": 1, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: uint16 RGBA image with compression
+    image = np.ones((16, 16, 4), dtype=np.uint8) * 256
+    input_dict = {"image": image, "compression": 7, "name": "test"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Small image
+    image = np.zeros((1, 1, 3), dtype=np.uint8)
+    input_dict = {"image": image, "compression": -1, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Grayscale image with non-zero values
+    image = np.random.randint(0, 256, size=(40, 40, 1), dtype=np.uint8)
+    input_dict = {"image": image, "compression": 2, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Grayscale + alpha with non-zero values
+    image = np.random.randint(0, 256, size=(30, 30, 2), dtype=np.uint8)
+    input_dict = {"image": image, "compression": 3, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: uint16 grayscale image
+    image = np.zeros((64, 64, 1), dtype=np.uint16)
+    input_dict = {"image": image, "compression": -1, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: uint16 RGB image
+    image = np.random.randint(0, 2**8, size=(32, 32, 3), dtype=np.uint16)
+    input_dict = {"image": image, "compression": 1, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.EncodePng"] = []
-for input_dict in tf_raw_ops_EncodePng_inputs():
-    generated_inputs["tf.raw_ops.EncodePng"].append({
-        "image": input_dict["image"],
-        "compression": input_dict["compression"],
-        "name": input_dict["name"]
-    })
+generated_inputs["tf.raw_ops.EncodePng"] = tf_raw_ops_EncodePng_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

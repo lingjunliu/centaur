@@ -14,81 +14,81 @@ def tf_raw_ops_min_inputs():
     # Input 1
     input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
     axis_tensor = np.array([0], dtype=np.int32)
-    keep_dims_val = False
-    name_val = "min_op_1"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    keep_dims = False
+    name = "min_op_1"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
     axis_tensor = np.array([1], dtype=np.int32)
-    keep_dims_val = True
-    name_val = "min_op_2"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    keep_dims = True
+    name = "min_op_2"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float64)
-    axis_tensor = np.array([0, 1], dtype=np.int64)
-    keep_dims_val = False
-    name_val = "min_op_3"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    axis_tensor = np.array([0, 1], dtype=np.int32)
+    keep_dims = False
+    name = "min_op_3"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.int64)
-    axis_tensor = np.array([0], dtype=np.int32)
-    keep_dims_val = True
-    name_val = "min_op_4"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    axis_tensor = np.array([0, 2], dtype=np.int32)
+    keep_dims = True
+    name = "min_op_4"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_tensor = np.array([[-1, -2, -3], [-4, -5, -6]], dtype=np.float32)
-    axis_tensor = np.array([0], dtype=np.int64)
-    keep_dims_val = False
-    name_val = None
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    input_tensor = np.array([-1, -2, -3, -4], dtype=np.int64)
+    axis_tensor = np.array([0], dtype=np.int32)
+    keep_dims = False
+    name = "min_op_5"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_tensor = np.array([[-1, -2, -3], [-4, -5, -6]], dtype=np.int32)
-    axis_tensor = np.array([1], dtype=np.int32)
-    keep_dims_val = True
-    name_val = "min_op_6"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+     # Input 6
+    input_tensor = np.array([1, 2, 3, 4], dtype=np.uint8)
+    axis_tensor = np.array([0], dtype=np.int32)
+    keep_dims = True
+    name = "min_op_6"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint8)
-    axis_tensor = np.array([1], dtype=np.int64)
-    keep_dims_val = True
-    name_val = "min_op_7"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.float64)
+    axis_tensor = np.array([-1], dtype=np.int32)
+    keep_dims = False
+    name = "min_op_7"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = np.array([1, 2, 3, 4, 5], dtype=np.int16)
-    axis_tensor = np.array([0], dtype=np.int32)
-    keep_dims_val = False
-    name_val = "min_op_8"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    input_tensor = np.array([1, 2, 3], dtype=np.int16)
+    axis_tensor = np.array([0], dtype=np.int64)
+    keep_dims = True
+    name = "min_op_8"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 9
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint32)
-    axis_tensor = np.array([1], dtype=np.int64)
-    keep_dims_val = True
-    name_val = "min_op_9"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    axis_tensor = np.array([0], dtype=np.int64)
+    keep_dims = True
+    name = "min_op_9"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
-    axis_tensor = np.array([0, 1], dtype=np.int32)
-    keep_dims_val = False
-    name_val = "min_op_10"
-    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims_val, "name": name_val}
+    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    axis_tensor = np.array([0,1,2], dtype=np.int64)
+    keep_dims = True
+    name = "min_op_10"
+    input_dict = {"input": input_tensor, "axis": axis_tensor, "keep_dims": keep_dims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

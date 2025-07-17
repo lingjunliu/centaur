@@ -14,91 +14,161 @@ def tf_raw_ops_truncated_normal_inputs():
     # Input 1
     shape = np.array([2, 3], dtype=np.int32)
     dtype = tf.float32
-    seed = 0
-    seed2 = 0
+    seed = 1
+    seed2 = 1
     name = "truncated_normal_1"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    shape = np.array([5, 5], dtype=np.int64)
+    shape = np.array([5], dtype=np.int32)
     dtype = tf.float64
     seed = 123
     seed2 = 456
     name = "truncated_normal_2"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    shape = np.array([10], dtype=np.int32)
-    dtype = tf.float32
+    shape = np.array([10, 10], dtype=np.int64)
+    dtype = tf.bfloat16
     seed = 789
     seed2 = 101
     name = "truncated_normal_3"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    shape = np.array([1, 2, 3, 4], dtype=np.int64)
-    dtype = tf.bfloat16
-    seed = 202
-    seed2 = 303
+    shape = np.array([4, 4, 4], dtype=np.int32)
+    dtype = tf.half
+    seed = 1
+    seed2 = 2
     name = "truncated_normal_4"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    shape = np.array([7, 7], dtype=np.int32)
-    dtype = tf.half
-    seed = 404
-    seed2 = 505
+    shape = np.array([1], dtype=np.int64)
+    dtype = tf.float32
+    seed = -1
+    seed2 = -2
     name = "truncated_normal_5"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    shape = np.array([2, 2, 2], dtype=np.int64)
-    dtype = tf.float32
-    seed = 606
-    seed2 = 707
+   # Input 6
+    shape = np.array([2, 2, 2, 2], dtype=np.int32)
+    dtype = tf.float64
+    seed = 1000
+    seed2 = 2000
     name = "truncated_normal_6"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    shape = np.array([3], dtype=np.int32)
-    dtype = tf.float64
-    seed = 808
-    seed2 = 909
+    shape = np.array([7], dtype=np.int64)
+    dtype = tf.bfloat16
+    seed = -10
+    seed2 = -20
     name = "truncated_normal_7"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    shape = np.array([4, 5, 6], dtype=np.int64)
-    dtype = tf.bfloat16
-    seed = 1010
-    seed2 = 1111
+    shape = np.array([3, 5], dtype=np.int32)
+    dtype = tf.half
+    seed = 15
+    seed2 = 25
     name = "truncated_normal_8"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    shape = np.array([8], dtype=np.int32)
-    dtype = tf.half
-    seed = 1212
-    seed2 = 1313
+    shape = np.array([1, 1, 1, 1, 1], dtype=np.int64)
+    dtype = tf.float32
+    seed = 12345
+    seed2 = 67890
     name = "truncated_normal_9"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    shape = np.array([1, 1, 1, 1, 1], dtype=np.int64)
-    dtype = tf.float32
-    seed = 1414
-    seed2 = 1515
+    shape = np.array([8, 2], dtype=np.int32)
+    dtype = tf.float64
+    seed = -1234
+    seed2 = -5678
     name = "truncated_normal_10"
-    input_dict = {"shape": shape, "dtype": dtype, "seed": seed, "seed2": seed2, "name": name}
+
+    input_dict = {
+        "shape": shape,
+        "dtype": dtype,
+        "seed": seed,
+        "seed2": seed2,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

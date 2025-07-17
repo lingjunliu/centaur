@@ -11,46 +11,68 @@ import copy
 def tf_raw_ops_pad_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 2D padding
-    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    # Input 1
+    input_tensor = np.array([[1, 1], [2, 2]], dtype=np.int32)
     paddings_tensor = np.array([[1, 1], [2, 2]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "name": None}
+    input_dict = {"name": "pad_example_1", "input": input_tensor, "paddings": paddings_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 1D padding
+    # Input 2
     input_tensor = np.array([1, 2, 3], dtype=np.float32)
-    paddings_tensor = np.array([[2, 1]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "name": None}
+    paddings_tensor = np.array([[1, 1]], dtype=np.int32)
+    input_dict = {"name": "pad_example_2", "input": input_tensor, "paddings": paddings_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D padding
+    # Input 3
     input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    paddings_tensor = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "name": None}
+    paddings_tensor = np.array([[0, 0], [1, 0], [0, 1]], dtype=np.int32)
+    input_dict = {"name": "pad_example_3", "input": input_tensor, "paddings": paddings_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Zero padding
-    input_tensor = np.array([[1, 2], [3, 4]], dtype=np.float64)
+    # Input 4
+    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float64)
     paddings_tensor = np.array([[0, 0], [0, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "name": None}
+    input_dict = {"name": "pad_example_4", "input": input_tensor, "paddings": paddings_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Large padding
-    input_tensor = np.array([1, 2], dtype=np.int32)
-    paddings_tensor = np.array([[10, 10]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "name": None}
+    # Input 5
+    input_tensor = np.array([1], dtype=np.int32)
+    paddings_tensor = np.array([[5, 5]], dtype=np.int32)
+    input_dict = {"name": "pad_example_5", "input": input_tensor, "paddings": paddings_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different paddings
-    input_tensor = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.complex64)
-    paddings_tensor = np.array([[1, 0], [0, 2]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "name": None}
+    # Input 6
+    input_tensor = np.array([0,0], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0]], dtype=np.int32)
+    input_dict = {"name": "pad_example_6", "input": input_tensor, "paddings": paddings_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 4D padding
-    input_tensor = np.random.rand(2, 3, 4, 5).astype(np.float32)
-    paddings_tensor = np.array([[1, 0], [0, 1], [1, 1], [0, 0]], dtype=np.int32)
-    input_dict = {"input": input_tensor, "paddings": paddings_tensor, "name": None}
+    # Input 7 - Corrected paddings, rank 0 tensor needs a rank 1 padding tensor but shape should be (1,2)
+    input_tensor = np.array(10, dtype=np.int32)
+    paddings_tensor = np.array([[2, 3]], dtype=np.int32)
+
+    # Input 8
+    input_tensor = np.array([[[1,2,3],[4,5,6]],[[7,8,9],[10,11,12]]], dtype=np.int32)
+    paddings_tensor = np.array([[1,0],[0,1],[1,1]], dtype=np.int32)
+    input_dict = {"name": "pad_example_8", "input": input_tensor, "paddings": paddings_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([1,2,3,4,5], dtype=np.int64)
+    paddings_tensor = np.array([[3,0]], dtype=np.int64)
+    input_dict = {"name": "pad_example_9", "input": input_tensor, "paddings": paddings_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([[1,2],[3,4]], dtype=np.float32)
+    paddings_tensor = np.array([[0,3],[3,0]], dtype=np.int32)
+    input_dict = {"name": "pad_example_10", "input": input_tensor, "paddings": paddings_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11 -- New input with rank 0 and paddings of appropriate rank and shape
+    input_tensor = np.array(5, dtype=np.int32)
+    paddings_tensor = np.array([[1,1]], dtype=np.int32)
+    input_dict = {"name": "pad_example_11", "input": input_tensor, "paddings": paddings_tensor}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

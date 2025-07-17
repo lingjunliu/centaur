@@ -11,56 +11,54 @@ import copy
 def tf_raw_ops_isinf_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with positive and negative inf
+    # Input 1
     x = np.array([np.inf, -np.inf, 1.0, 0.0, -1.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    input_dict = {"x": x, "name": "is_inf_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: All inf values (positive and negative)
-    x = np.array([np.inf, -np.inf, np.inf, -np.inf], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": "all_inf"}
+    # Input 2
+    x = np.array([[np.inf, 1.0], [-np.inf, 0.0]], dtype=np.float64)
+    input_dict = {"x": x, "name": "is_inf_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: No inf values
-    x = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 3
+    x = np.array([[[np.inf, -np.inf], [1.0, 0.0]], [[-1.0, np.inf], [0.0, -np.inf]]], dtype=np.float32)
+    input_dict = {"x": x, "name": "is_inf_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Mixed values including nan and inf
-    x = np.array([np.inf, -np.inf, np.nan, 1.0, 0.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": "mixed"}
+    # Input 4
+    x = np.array([np.inf, -np.inf, 1.0, 0.0, -1.0], dtype=np.float64)
+    input_dict = {"x": x, "name": "is_inf_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Multi-dimensional array
-    x = np.array([[np.inf, 1.0], [-np.inf, 2.0]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 5
+    x = np.array([-np.inf, -np.inf, -np.inf], dtype=np.float32)
+    input_dict = {"x": x, "name": "is_inf_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float64 array
-    x = np.array([np.inf, -np.inf, 1.0, 0.0], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 6
+    x = np.array([np.inf, np.inf, np.inf], dtype=np.float64)
+    input_dict = {"x": x, "name": "is_inf_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: An empty array
-    x = np.array([], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": "empty"}
+    # Input 7
+    x = np.array([0.0, 1.0, -1.0], dtype=np.float32)
+    input_dict = {"x": x, "name": "is_inf_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Array with zeros
-    x = np.array([0.0, 0.0, np.inf, -np.inf], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": "zeros"}
+    # Input 8
+    x = np.array([np.inf], dtype=np.float32)
+    input_dict = {"x": x, "name": "is_inf_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Multi-dimensional array with float64
-    x = np.array([[np.inf, 1.0], [-np.inf, 2.0]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x, dtype=tf.float64), "name": 'float64_multi'}
+    # Input 9
+    x = np.array([-np.inf], dtype=np.float64)
+    input_dict = {"x": x, "name": "is_inf_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Array with many dimensions and some inf values
-    x = np.zeros((2, 3, 4), dtype=np.float32)
-    x[0, 0, 0] = np.inf
-    x[1, 2, 3] = -np.inf
-    input_dict = {"x": tf.constant(x), "name": "many_dims"}
+     # Input 10
+    x = np.array([[np.inf, -np.inf], [1.0, 0.0]], dtype=np.float32)
+    input_dict = {"x": x, "name": "is_inf_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

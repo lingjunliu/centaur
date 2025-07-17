@@ -11,73 +11,73 @@ import copy
 def tf_raw_ops_inplace_add_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case
-    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    # Input 1: Basic test
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     i = np.array([0], dtype=np.int32)
-    v = np.array([[5, 6]], dtype=np.float32)
+    v = np.array([[5.0, 6.0]], dtype=np.float32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple indices
-    x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    # Input 2: Adding to multiple rows
+    x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     i = np.array([0, 2], dtype=np.int32)
-    v = np.array([[5, 6], [7, 8]], dtype=np.float32)
+    v = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Different data type (int32)
     x = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    i = np.array([0], dtype=np.int32)
+    i = np.array([1], dtype=np.int32)
     v = np.array([[5, 6]], dtype=np.int32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Higher dimensions
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    # Input 4: Adding a row of zeros
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     i = np.array([0], dtype=np.int32)
-    v = np.array([[[9, 10], [11, 12]]], dtype=np.float32)
+    v = np.array([[0.0, 0.0]], dtype=np.float32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 5: Negative values
-    x = np.array([[1, -2], [-3, 4]], dtype=np.float32)
+    # Input 5: Larger matrix
+    x = np.random.rand(5, 5).astype(np.float32)
+    i = np.array([1, 3], dtype=np.int32)
+    v = np.random.rand(2, 5).astype(np.float32)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Single element matrix
+    x = np.array([[1.0]], dtype=np.float32)
+    i = np.array([0], dtype=np.int32)
+    v = np.array([[2.0]], dtype=np.float32)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different index
+    x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     i = np.array([1], dtype=np.int32)
-    v = np.array([[-5, 6]], dtype=np.float32)
+    v = np.array([[7.0, 8.0]], dtype=np.float32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Larger x
-    x = np.random.rand(10, 5).astype(np.float32)
-    i = np.array([2, 5, 7], dtype=np.int32)
-    v = np.random.rand(3, 5).astype(np.float32)
+    # Input 8: Multiple additions
+    x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
+    i = np.array([0, 0], dtype=np.int32)
+    v = np.array([[1.0, 1.0], [2.0, 2.0]], dtype=np.float32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: i close to boundary of x
-    x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    i = np.array([2], dtype=np.int32)
-    v = np.array([[7, 8]], dtype=np.float32)
+   # Input 9: Different dtype (int64)
+    x = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    i = np.array([1], dtype=np.int32)
+    v = np.array([[5, 6]], dtype=np.int64)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Different data type (float64)
-    x = np.array([[1, 2], [3, 4]], dtype=np.float64)
-    i = np.array([0], dtype=np.int32)
-    v = np.array([[5, 6]], dtype=np.float64)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: name
-    x = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    i = np.array([0], dtype=np.int32)
-    v = np.array([[5, 6]], dtype=np.float32)
-    input_dict = {"x": x, "i": i, "v": v, "name": "my_inplace_add"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: More rows
-    x = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.float32)
-    i = np.array([0, 2], dtype=np.int32)
-    v = np.array([[9, 10], [11, 12]], dtype=np.float32)
+    # Input 10: Adding to the last row
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    i = np.array([1], dtype=np.int32)
+    v = np.array([[5.0, 6.0]], dtype=np.float32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

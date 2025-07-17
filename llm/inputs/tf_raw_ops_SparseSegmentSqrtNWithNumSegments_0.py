@@ -17,7 +17,7 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
     sparse_gradient = False
-    name = "test_op_1"
+    name = None
 
     input_dict = {
         "data": data,
@@ -30,12 +30,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    data = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    indices = np.array([0, 1, 2, 3, 4], dtype=np.int64)
-    segment_ids = np.array([0, 0, 1, 2, 2], dtype=np.int64)
-    num_segments = np.array(3, dtype=np.int64)
+    data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    indices = np.array([0, 1, 2, 3], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int32)
     sparse_gradient = True
-    name = "test_op_2"
+    name = "test2"
 
     input_dict = {
         "data": data,
@@ -48,12 +48,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float64)
-    indices = np.array([0, 1, 2, 3], dtype=np.int32)
-    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    num_segments = np.array(2, dtype=np.int32)
+    data = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float64)
+    indices = np.array([0, 1, 4, 5], dtype=np.int64)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int64)
+    num_segments = np.array(2, dtype=np.int64)
     sparse_gradient = False
-    name = "test_op_3"
+    name = None
 
     input_dict = {
         "data": data,
@@ -66,12 +66,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    indices = np.array([0, 1, 2, 3], dtype=np.int32)
-    segment_ids = np.array([0, 0, 1, 2], dtype=np.int32)
+    data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0], [9.0, 10.0]], dtype=np.float32)
+    indices = np.array([0, 2, 4], dtype=np.int32)
+    segment_ids = np.array([0, 1, 1], dtype=np.int32)
     num_segments = np.array(3, dtype=np.int32)
     sparse_gradient = False
-    name = "test_op_4"
+    name = None
 
     input_dict = {
         "data": data,
@@ -84,12 +84,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 5
-    data = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32)
-    indices = np.array([0, 1, 2, 3, 4, 5], dtype=np.int64)
-    segment_ids = np.array([0, 0, 0, 1, 1, 1], dtype=np.int64)
-    num_segments = np.array(2, dtype=np.int64)
-    sparse_gradient = True
-    name = "test_op_5"
+    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    indices = np.array([0, 1, 2, 3], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(3, dtype=np.int32)
+    sparse_gradient = False
+    name = None
 
     input_dict = {
         "data": data,
@@ -102,12 +102,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float16)
-    indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 1, 1], dtype=np.int32)
-    num_segments = np.array(2, dtype=np.int32)
-    sparse_gradient = False
-    name = "test_op_6"
+    data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
+    indices = np.array([0, 1, 2, 3], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(4, dtype=np.int32)
+    sparse_gradient = True
+    name = "test6"
 
     input_dict = {
         "data": data,
@@ -120,12 +120,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    data = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 0, 0], dtype=np.int32)
-    num_segments = np.array(1, dtype=np.int32)
-    sparse_gradient = True
-    name = "test_op_7"
+    data = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float64)
+    indices = np.array([0, 1, 4, 5], dtype=np.int64)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int64)
+    num_segments = np.array(3, dtype=np.int64)
+    sparse_gradient = False
+    name = None
 
     input_dict = {
         "data": data,
@@ -138,12 +138,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    data = np.array([1.0], dtype=np.float32)
-    indices = np.array([0], dtype=np.int32)
-    segment_ids = np.array([0], dtype=np.int32)
-    num_segments = np.array(1, dtype=np.int32)
+    data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0], [9.0, 10.0]], dtype=np.float32)
+    indices = np.array([0, 2, 4], dtype=np.int32)
+    segment_ids = np.array([0, 1, 1], dtype=np.int32)
+    num_segments = np.array(4, dtype=np.int32)
     sparse_gradient = False
-    name = "test_op_8"
+    name = None
 
     input_dict = {
         "data": data,
@@ -156,12 +156,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    data = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    indices = np.array([0, 1], dtype=np.int32)
-    segment_ids = np.array([0, 0], dtype=np.int32)
-    num_segments = np.array(1, dtype=np.int32)
-    sparse_gradient = True
-    name = "test_op_9"
+    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    indices = np.array([0, 1, 2, 3], dtype=np.int32)
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(5, dtype=np.int32)
+    sparse_gradient = False
+    name = None
 
     input_dict = {
         "data": data,
@@ -174,12 +174,12 @@ def tf_raw_ops_SparseSegmentSqrtNWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.half)
+    data = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
     indices = np.array([0, 1, 2, 3], dtype=np.int32)
-    segment_ids = np.array([0, 1, 0, 1], dtype=np.int32)
-    num_segments = np.array(2, dtype=np.int32)
-    sparse_gradient = False
-    name = "test_op_10"
+    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    num_segments = np.array(5, dtype=np.int32)
+    sparse_gradient = True
+    name = "test10"
 
     input_dict = {
         "data": data,

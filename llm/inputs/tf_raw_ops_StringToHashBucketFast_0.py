@@ -11,64 +11,64 @@ import copy
 def tf_raw_ops_string_to_hash_bucket_fast_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic string array and number of buckets
-    input_strings = np.array(["Hello", "TensorFlow", "2.x"], dtype=np.unicode_)
+    # Input 1: Basic example
+    input_tensor = np.array(["Hello", "TensorFlow", "2.x"], dtype=np.object_)
     num_buckets = 3
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Larger number of buckets
-    input_strings = np.array(["a", "b", "c", "d", "e"], dtype=np.unicode_)
+    # Input 2: Different number of buckets
+    input_tensor = np.array(["Hello", "TensorFlow", "2.x", "Another"], dtype=np.object_)
     num_buckets = 10
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Single string
-    input_strings = np.array(["Single"], dtype=np.unicode_)
+    input_tensor = np.array(["SingleString"], dtype=np.object_)
     num_buckets = 5
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: Empty string
-    input_strings = np.array([""], dtype=np.unicode_)
-    num_buckets = 4
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
+    input_tensor = np.array([""], dtype=np.object_)
+    num_buckets = 2
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: Array of empty strings
-    input_strings = np.array(["", "", ""], dtype=np.unicode_)
-    num_buckets = 6
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
+    input_tensor = np.array(["", "", ""], dtype=np.object_)
+    num_buckets = 4
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Array with mixed strings
-    input_strings = np.array(["", "test", ""], dtype=np.unicode_)
+    # Input 6: Long strings
+    input_tensor = np.array(["This is a very long string to test the hashing function."], dtype=np.object_)
     num_buckets = 7
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Larger strings
-    input_strings = np.array(["This is a longer string", "Another longer string"], dtype=np.unicode_)
+    # Input 7: Repeated strings
+    input_tensor = np.array(["repeat", "repeat", "repeat"], dtype=np.object_)
+    num_buckets = 5
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Numbers as strings
+    input_tensor = np.array(["123", "456", "789"], dtype=np.object_)
+    num_buckets = 6
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Special characters
+    input_tensor = np.array(["!@#$", "%^&*"], dtype=np.object_)
+    num_buckets = 4
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Another example
+    input_tensor = np.array(["abc", "def", "ghi"], dtype=np.object_)
     num_buckets = 8
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Strings with special characters
-    input_strings = np.array(["!@#$", "%^&*"], dtype=np.unicode_)
-    num_buckets = 9
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 9: Multidimensional input
-    input_strings = np.array([["string1", "string2"], ["string3", "string4"]], dtype=np.unicode_)
-    num_buckets = 11
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Unicode strings
-    input_strings = np.array(["你好", "世界"], dtype=np.unicode_)
-    num_buckets = 12
-    input_dict = {"input": tf.convert_to_tensor(input_strings, dtype=tf.string), "num_buckets": num_buckets, "name": None}
+    input_dict = {"input": input_tensor, "num_buckets": num_buckets, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

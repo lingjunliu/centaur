@@ -11,54 +11,54 @@ import copy
 def tf_raw_ops_Erfc_inputs():
     list_of_inputs = []
 
-    # Input 1: half
-    x = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.half), "name": "erfc_half"}
+    # Input 1: half scalar
+    x = np.array(1.0, dtype=np.float16)
+    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32
-    x = np.array([-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float32), "name": None}
+    # Input 2: float32 scalar
+    x = np.array(2.0, dtype=np.float32)
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float64
-    x = np.array([-4.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0], dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float64), "name": "erfc_double"}
+    # Input 3: float64 scalar
+    x = np.array(3.0, dtype=np.float64)
+    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: half, 2D
-    x = np.array([[-2.0, -1.0], [0.0, 1.0]], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.half), "name": "erfc_half_2d"}
+    # Input 4: half array
+    x = np.array([-2.0, 0.5, 2.0], dtype=np.float16)
+    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float32, 2D
-    x = np.array([[-3.0, -2.0], [-1.0, 0.0]], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float32), "name": None}
+    # Input 5: float32 array
+    x = np.array([-3.0, 1.5, 3.0], dtype=np.float32)
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float64, 2D
-    x = np.array([[-4.0, -3.0], [-2.0, -1.0]], dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float64), "name": "erfc_double_2d"}
+    # Input 6: float64 array
+    x = np.array([-4.0, 2.5, 4.0], dtype=np.float64)
+    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float32, 3D - Reduced size for safety
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]]], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float32), "name": None}
+    # Input 7: half matrix
+    x = np.array([[-2.0, 0.5], [2.0, 3.0]], dtype=np.float16)
+    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": "matrix_half"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: float32 matrix
+    x = np.array([[-3.0, 1.5], [3.0, 4.0]], dtype=np.float32)
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: half, large values - Reduced magnitude
-    x = np.array([10.0, 20.0, 30.0], dtype=np.float16)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.half), "name": "large_half"}
+    # Input 9: float64 matrix
+    x = np.array([[-4.0, 2.5], [4.0, 5.0]], dtype=np.float64)
+    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float32, small values
-    x = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float32), "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: float64, negative values
-    x = np.array([-0.1, -0.2, -0.3], dtype=np.float64)
-    input_dict = {"x": tf.convert_to_tensor(x, dtype=tf.float64), "name": "negative_double"}
+    # Input 10: float32 tensor
+    x = np.random.rand(2,3,4).astype(np.float32)
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -12,72 +12,72 @@ def tf_raw_ops_ReaderRead_inputs():
     list_of_inputs = []
 
     # Input 1
-    reader_handle = tf.compat.v1.get_variable("reader_handle_1", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_handle_1", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    name = "reader_read_op_1"
+    reader_handle = tf.constant("reader_handle", dtype=tf.string)
+    queue_handle = tf.constant("queue_handle", dtype=tf.string)
+    name = "test_read_1"
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    reader_handle = tf.compat.v1.get_variable("reader_handle_2", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_handle_2", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
+    reader_handle = tf.constant("another_reader", dtype=tf.string)
+    queue_handle = tf.constant("another_queue", dtype=tf.string)
     name = None
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    reader_handle = tf.compat.v1.get_variable("reader_handle_3", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_handle_3", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    name = "another_reader_op"
+    reader_handle = tf.constant("reader3", dtype=tf.string)
+    queue_handle = tf.constant("queue3", dtype=tf.string)
+    name = "read3"
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    reader_handle = tf.compat.v1.get_variable("reader_handle_4", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_handle_4", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
+    reader_handle = tf.constant("reader4", dtype=tf.string)
+    queue_handle = tf.constant("queue4", dtype=tf.string)
     name = ""
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    reader_handle = tf.compat.v1.get_variable("reader_handle_5", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_handle_5", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    name = "a_very_long_name_for_an_operation"
+    reader_handle = tf.constant("reader5", dtype=tf.string)
+    queue_handle = tf.constant("queue5", dtype=tf.string)
+    name = "test_read_5"
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    reader_handle = tf.compat.v1.get_variable("reader_6", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_6", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    name = "reader_read_6"
+     # Input 6
+    reader_handle = tf.constant("reader6", dtype=tf.string)
+    queue_handle = tf.constant("queue6", dtype=tf.string)
+    name = "read6"
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    reader_handle = tf.compat.v1.get_variable("reader_7", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_7", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    name = "reader_read_7"
+    reader_handle = tf.constant("reader7", dtype=tf.string)
+    queue_handle = tf.constant("queue7", dtype=tf.string)
+    name = None
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    reader_handle = tf.compat.v1.get_variable("reader_8", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_8", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    name = "reader_read_8"
+    reader_handle = tf.constant("reader8", dtype=tf.string)
+    queue_handle = tf.constant("queue8", dtype=tf.string)
+    name = "test_reader_8"
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 9
-    reader_handle = tf.compat.v1.get_variable("reader_9", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_9", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
+    reader_handle = tf.constant("reader9", dtype=tf.string)
+    queue_handle = tf.constant("queue9", dtype=tf.string)
     name = "reader_read_9"
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    reader_handle = tf.compat.v1.get_variable("reader_10", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    queue_handle = tf.compat.v1.get_variable("queue_handle_10", shape=[], dtype=tf.string, initializer=tf.compat.v1.zeros_initializer())
-    name = "reader_read_10"
+    reader_handle = tf.constant("reader10", dtype=tf.string)
+    queue_handle = tf.constant("queue10", dtype=tf.string)
+    name = "reader_read_test_10"
     input_dict = {"reader_handle": reader_handle, "queue_handle": queue_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

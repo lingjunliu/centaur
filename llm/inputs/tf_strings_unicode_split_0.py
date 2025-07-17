@@ -12,93 +12,93 @@ def tf_strings_unicode_split_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.array([s.encode('utf8') for s in (u'G\xf6\xf6dnight', u'\U0001f60a')])
+    input_tensor = np.array([s.encode('utf8') for s in (u'G\xf6\xf6dnight', u'\U0001f60a')], dtype=object)
     input_encoding = 'UTF-8'
     errors = 'replace'
     replacement_char = 65533
     name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([s.encode('utf16') for s in (u'Hello', u'World')])
-    input_encoding = 'UTF-16'
+    input_tensor = np.array([b'hello', b'world'], dtype=object)
+    input_encoding = 'UTF-8'
     errors = 'strict'
-    replacement_char = 0
-    name = 'test_name'
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
+    replacement_char = 65533
+    name = 'test_split'
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([u'你好世界'.encode('utf8'), u'你好'.encode('utf8')])
+    input_tensor = np.array([b''], dtype=object)
     input_encoding = 'UTF-8'
     errors = 'ignore'
-    replacement_char = 42
+    replacement_char = 0
     name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4 - scalar input
-    input_tensor = np.array(u'你好'.encode('utf8'))
+    # Input 4
+    input_tensor = np.array([s.encode('utf16') for s in (u'G\xf6\xf6dnight', u'\U0001f60a')], dtype=object)
+    input_encoding = 'UTF-16'
+    errors = 'replace'
+    replacement_char = 65533
+    name = None
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([b'\xf0\x9f\x98'], dtype=object)
+    input_encoding = 'UTF-8'
+    errors = 'ignore'
+    replacement_char = 65533
+    name = None
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 6
+    input_tensor = np.array([s.encode('latin-1') for s in (u'H\xe9llo', u'World')], dtype=object)
     input_encoding = 'UTF-8'
     errors = 'replace'
     replacement_char = 65533
     name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5 - different replacement char
-    input_tensor = np.array([s.encode('utf8') for s in (u'G\xf6\xf6dnight', u'\U0001f60a')])
+    # Input 7 (multidimensional)
+    input_tensor = np.array([[b'hello', b'world'], [b'foo', b'bar']], dtype=object)
     input_encoding = 'UTF-8'
-    errors = 'replace'
-    replacement_char = 1234
-    name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6 - empty strings
-    input_tensor = np.array([''.encode('utf8'), ''.encode('utf8')])
-    input_encoding = 'UTF-8'
-    errors = 'replace'
+    errors = 'strict'
     replacement_char = 65533
-    name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
+    name = 'test_split'
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7 - multi-dimensional array
-    input_tensor = np.array([[s.encode('utf8') for s in (u'G\xf6\xf6dnight', u'\U0001f60a')], [s.encode('utf8') for s in (u'Hello', u'World')]])
+    # Input 8
+    input_tensor = np.array([s.encode('utf8') for s in (u'你好世界', u'こんにちは世界')], dtype=object)
     input_encoding = 'UTF-8'
     errors = 'replace'
     replacement_char = 65533
     name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8 - ASCII strings
-    input_tensor = np.array(['Hello'.encode('ascii'), 'World'.encode('ascii')])
-    input_encoding = 'ASCII'
-    errors = 'replace'
-    replacement_char = 65533
-    name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9 - latin-1 encoding
-    input_tensor = np.array([u'café'.encode('latin-1'), u'España'.encode('latin-1')])
-    input_encoding = 'latin-1'
-    errors = 'replace'
-    replacement_char = 65533
-    name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10 - Errors strict with invalid utf8
-    input_tensor = np.array([b'\xff'])
+    # Input 9
+    input_tensor = np.array([b'\xf4\x80\x80\x80'], dtype=object) # Invalid UTF-8
     input_encoding = 'UTF-8'
     errors = 'replace'
     replacement_char = 65533
     name = None
-    input_dict = {'input': tf.constant(input_tensor, dtype=tf.string), 'input_encoding': input_encoding, 'errors': errors, 'replacement_char': int(replacement_char), 'name': name}
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([s.encode('utf32') for s in (u'A', u'B')], dtype=object)
+    input_encoding = 'UTF-32'
+    errors = 'replace'
+    replacement_char = 65533
+    name = None
+    input_dict = {"input": input_tensor, "input_encoding": input_encoding, "errors": errors, "replacement_char": replacement_char, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

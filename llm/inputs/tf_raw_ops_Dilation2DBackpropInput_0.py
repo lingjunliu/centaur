@@ -12,100 +12,194 @@ def tf_raw_ops_dilation2d_backprop_input_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.random.rand(1, 5, 5, 3).astype(np.float32)
-    filter_tensor = np.random.rand(3, 3, 3).astype(np.float32)
-    out_backprop_tensor = np.random.rand(1, 3, 3, 3).astype(np.float32)
-    strides = [1, 1, 1, 1]
-    rates = [1, 1, 1, 1]
-    padding = "VALID"
+    input_tensor = np.array([[[[1, 2]]]], dtype=np.float32)
+    filter_tensor = np.array([[[1, 2]]], dtype=np.float32)
+    out_backprop_tensor = np.array([[[[1, 2]]]], dtype=np.float32)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "VALID"
 
     input_dict = {
-        "input": tf.convert_to_tensor(input_tensor, dtype=tf.float32),
-        "filter": tf.convert_to_tensor(filter_tensor, dtype=tf.float32),
-        "out_backprop": tf.convert_to_tensor(out_backprop_tensor, dtype=tf.float32),
-        "strides": strides,
-        "rates": rates,
-        "padding": padding,
-        "name": None
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.random.rand(2, 10, 10, 1).astype(np.float64)
-    filter_tensor = np.random.rand(5, 5, 1).astype(np.float64)
-    out_backprop_tensor = np.random.rand(2, 6, 6, 1).astype(np.float64)
-    strides = [1, 2, 2, 1]
-    rates = [1, 1, 1, 1]
-    padding = "VALID"
+    input_tensor = np.array([[[[1, 2, 3]]]], dtype=np.float64)
+    filter_tensor = np.array([[[1, 2, 3]]], dtype=np.float64)
+    out_backprop_tensor = np.array([[[[1, 2, 3]]]], dtype=np.float64)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "SAME"
 
     input_dict = {
-        "input": tf.convert_to_tensor(input_tensor, dtype=tf.float64),
-        "filter": tf.convert_to_tensor(filter_tensor, dtype=tf.float64),
-        "out_backprop": tf.convert_to_tensor(out_backprop_tensor, dtype=tf.float64),
-        "strides": strides,
-        "rates": rates,
-        "padding": padding,
-        "name": None
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.random.randint(0, 10, size=(1, 8, 8, 2), dtype=np.int32)
-    filter_tensor = np.random.randint(0, 10, size=(2, 2, 2), dtype=np.int32)
-    out_backprop_tensor = np.random.randint(0, 10, size=(1, 8, 8, 2), dtype=np.int32)
-    strides = [1, 1, 1, 1]
-    rates = [1, 2, 2, 1]
-    padding = "SAME"
+    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int32)
+    filter_tensor = np.array([[[1, 2]]], dtype=np.int32)
+    out_backprop_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int32)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "VALID"
 
     input_dict = {
-        "input": tf.convert_to_tensor(input_tensor, dtype=tf.int32),
-        "filter": tf.convert_to_tensor(filter_tensor, dtype=tf.int32),
-        "out_backprop": tf.convert_to_tensor(out_backprop_tensor, dtype=tf.int32),
-        "strides": strides,
-        "rates": rates,
-        "padding": padding,
-        "name": None
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_tensor = np.random.rand(4, 12, 12, 4).astype(np.float32)
-    filter_tensor = np.random.rand(4, 4, 4).astype(np.float32)
-    out_backprop_tensor = np.random.rand(4, 6, 6, 4).astype(np.float32)
-    strides = [1, 2, 2, 1]
-    rates = [1, 1, 1, 1]
-    padding = "VALID"
+    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.uint8)
+    filter_tensor = np.array([[[1, 2]]], dtype=np.uint8)
+    out_backprop_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.uint8)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "SAME"
 
     input_dict = {
-        "input": tf.convert_to_tensor(input_tensor, dtype=tf.float32),
-        "filter": tf.convert_to_tensor(filter_tensor, dtype=tf.float32),
-        "out_backprop": tf.convert_to_tensor(out_backprop_tensor, dtype=tf.float32),
-        "strides": strides,
-        "rates": rates,
-        "padding": padding,
-        "name": None
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_tensor = np.random.rand(1, 7, 7, 1).astype(np.float32)
-    filter_tensor = np.random.rand(2, 2, 1).astype(np.float32)
-    out_backprop_tensor = np.random.rand(1, 7, 7, 1).astype(np.float32)
-    strides = [1, 1, 1, 1]
-    rates = [1, 1, 1, 1]
-    padding = "SAME"
+   # Input 5
+    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int16)
+    filter_tensor = np.array([[[1, 2]]], dtype=np.int16)
+    out_backprop_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int16)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "VALID"
 
     input_dict = {
-        "input": tf.convert_to_tensor(input_tensor, dtype=tf.float32),
-        "filter": tf.convert_to_tensor(filter_tensor, dtype=tf.float32),
-        "out_backprop": tf.convert_to_tensor(out_backprop_tensor, dtype=tf.float32),
-        "strides": strides,
-        "rates": rates,
-        "padding": padding,
-        "name": None
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 6
+    input_tensor = np.array([[[[1, 2, 3]]], [[[4, 5, 6]]]] , dtype=np.int8)
+    filter_tensor = np.array([[[1, 2, 3]]], dtype=np.int8)
+    out_backprop_tensor = np.array([[[[1, 2, 3]]], [[[4, 5, 6]]]], dtype=np.int8)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "SAME"
+
+    input_dict = {
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([[[[1, 2]]]], dtype=np.int64)
+    filter_tensor = np.array([[[1, 2]]], dtype=np.int64)
+    out_backprop_tensor = np.array([[[[1, 2]]]], dtype=np.int64)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "VALID"
+
+    input_dict = {
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([[[[1.0, 2.0]]]], dtype=np.float16)
+    filter_tensor = np.array([[[1.0, 2.0]]], dtype=np.float16)
+    out_backprop_tensor = np.array([[[[1.0, 2.0]]]], dtype=np.float16)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "VALID"
+
+    input_dict = {
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int32)
+    filter_tensor = np.array([[[1, 2]]], dtype=np.int32)
+    out_backprop_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.int32)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "VALID"
+
+    input_dict = {
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.half)
+    filter_tensor = np.array([[[1, 2]]], dtype=np.half)
+    out_backprop_tensor = np.array([[[[1, 2], [3, 4]]]], dtype=np.half)
+    strides_list = [1, 1, 1, 1]
+    rates_list = [1, 1, 1, 1]
+    padding_string = "SAME"
+
+    input_dict = {
+        "strides": strides_list,
+        "rates": rates_list,
+        "padding": padding_string,
+        "name": None,
+        "input": input_tensor,
+        "filter": filter_tensor,
+        "out_backprop": out_backprop_tensor
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

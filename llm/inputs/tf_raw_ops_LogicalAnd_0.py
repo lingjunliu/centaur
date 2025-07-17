@@ -11,74 +11,64 @@ import copy
 def tf_raw_ops_logical_and_inputs():
     list_of_inputs = []
 
-    # Input 1
-    x = np.array([True, False, True])
-    y = np.array([False, True, True])
-    name = None
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 1: Basic case, two bool tensors
+    x = np.array([True, False, True], dtype=bool)
+    y = np.array([False, True, True], dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    x = np.array(True)
-    y = np.array(False)
-    name = "and_op"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 2: Broadcasting, single element vs tensor
+    x = np.array(True, dtype=bool)
+    y = np.array([False, True, False], dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    x = np.array([[True, False], [False, True]])
-    y = np.array([[False, True], [False, False]])
-    name = None
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 3: Broadcasting, tensor vs single element
+    x = np.array([False, True, False], dtype=bool)
+    y = np.array(True, dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    x = np.array([True, False])
-    y = np.array(True)
-    name = None
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 4: Two tensors of different shapes (broadcasting)
+    x = np.array([[True, False], [False, True]], dtype=bool)
+    y = np.array([True, False], dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    x = np.array(False)
-    y = np.array([True, True, False])
-    name = "broadcast_and"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 5: Two tensors of different shapes (broadcasting) - different arrangement
+    x = np.array([True, False], dtype=bool)
+    y = np.array([[True], [False]], dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_5"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Two tensors, all False
+    x = np.array([False, False, False], dtype=bool)
+    y = np.array([False, False, False], dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    x = np.array([[[True, False], [False, True]], [[False, True], [True, False]]])
-    y = np.array([[[False, True], [True, False]], [[True, False], [False, True]]])
-    name = None
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 7: Two tensors, all True
+    x = np.array([True, True, True], dtype=bool)
+    y = np.array([True, True, True], dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_7"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Empty tensors
+    x = np.array([], dtype=bool)
+    y = np.array([], dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Broadcasting case
-    x = np.array([[True, False]])
-    y = np.array([[True], [False]])
-    name = None
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 9: Multi-dimensional tensors
+    x = np.array([[[True, False], [False, True]], [[False, True], [True, False]]], dtype=bool)
+    y = np.array([[[False, True], [True, False]], [[True, False], [False, True]]], dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    x = np.array([True])
-    y = np.array([False])
-    name = None
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    x = np.array([False, False, True, True])
-    y = np.array([False, True, False, True])
-    name = None
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    x = np.array([[[True, False], [False, True]]])
-    y = np.array([[[False, True], [True, False]]])
-    name = "logical_and_3d"
-    input_dict = {"x": x, "y": y, "name": name}
+    
+    # Input 10: Single element boolean values
+    x = np.array(True, dtype=bool)
+    y = np.array(False, dtype=bool)
+    input_dict = {"x": x, "y": y, "name": "logical_and_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

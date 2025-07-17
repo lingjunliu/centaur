@@ -11,67 +11,60 @@ import copy
 def tf_raw_ops_logical_not_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple boolean tensor
-    x = np.array([True, False, True])
-    name = "logical_not_1"
-    input_dict = {"x": x, "name": name}
+    # Input 1
+    x = np.array([True, False], dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 2D boolean tensor
-    x = np.array([[True, False], [False, True]])
-    name = "logical_not_2"
-    input_dict = {"x": x, "name": name}
+    # Input 2
+    x = np.array([[True, False], [False, True]], dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3D boolean tensor
-    x = np.array([[[True, False], [False, True]], [[False, True], [True, False]]])
-    name = "logical_not_3"
-    input_dict = {"x": x, "name": name}
+    # Input 3
+    x = np.array([[[True, False], [False, True]], [[False, True], [True, False]]], dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty boolean tensor
-    x = np.array([])
-    name = "logical_not_4"
-    input_dict = {"x": x, "name": name}
+    # Input 4
+    x = np.array([True], dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Single element boolean tensor
-    x = np.array([True])
-    name = "logical_not_5"
-    input_dict = {"x": x, "name": name}
+    # Input 5
+    x = np.array([False], dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: All True values
-    x = np.array([True, True, True])
-    name = "logical_not_6"
-    input_dict = {"x": x, "name": name}
+    # Input 6
+    x = np.array([True, True, True], dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: All False values
-    x = np.array([False, False, False])
-    name = "logical_not_7"
-    input_dict = {"x": x, "name": name}
+    # Input 7
+    x = np.array([False, False, False], dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Mixed values, different name
-    x = np.array([True, False, True, False])
-    name = "another_name"
-    input_dict = {"x": x, "name": name}
+    # Input 8
+    x = np.array([[True, True, False], [False, True, True]], dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Larger tensor
-    x = np.random.choice([True, False], size=(10, 10))
-    name = "logical_not_9"
-    input_dict = {"x": x, "name": name}
+    # Input 9
+    x = np.array(True, dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Another 3D tensor with larger dimensions
-    x = np.random.choice([True, False], size=(3, 4, 5))
-    name = "logical_not_10"
-    input_dict = {"x": x, "name": name}
+    # Input 10
+    x = np.array(False, dtype=np.bool_)
+    input_dict = {"x": x.astype(np.bool_), "name": "logical_not_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
+
+generated_inputs = {}
+generated_inputs["tf.raw_ops.LogicalNot"] = tf_raw_ops_logical_not_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

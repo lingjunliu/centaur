@@ -11,67 +11,104 @@ import copy
 def tf_raw_ops_string_to_hash_bucket_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple string tensor and a small number of buckets
-    string_tensor = np.array(["hello", "world", "tensorflow"], dtype=np.unicode_)
-    num_buckets = 5
-    name = "hash_bucket_1"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: String tensor with empty strings
-    string_tensor = np.array(["", "test", ""], dtype=np.unicode_)
+    # Input 1, valid
+    string_tensor = np.array(["hello", "world", "tensorflow"], dtype=np.str_)
     num_buckets = 10
-    name = "hash_bucket_2"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: String tensor with special characters
-    string_tensor = np.array(["!", "@", "#", "$", "%"], dtype=np.unicode_)
-    num_buckets = 7
-    name = "hash_bucket_3"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: String tensor with numbers
-    string_tensor = np.array(["123", "456", "789"], dtype=np.unicode_)
-    num_buckets = 3
-    name = "hash_bucket_4"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Larger number of buckets
-    string_tensor = np.array(["apple", "banana", "cherry"], dtype=np.unicode_)
+    # Input 2, valid
+    string_tensor = np.array([["hello", "world"], ["tensorflow", "rocks"]], dtype=np.str_)
     num_buckets = 100
-    name = "hash_bucket_5"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Multidimensional string tensor
-    string_tensor = np.array([["one", "two"], ["three", "four"]], dtype=np.unicode_)
+    # Input 3, valid
+    string_tensor = np.array([""], dtype=np.str_)
+    num_buckets = 5
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4, valid
+    string_tensor = np.array(["123", "456", "789"], dtype=np.str_)
+    num_buckets = 2
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5, valid
+    string_tensor = np.array(["a", "b", "c", "d", "e"], dtype=np.str_)
+    num_buckets = 1000
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6, valid, large array
+    string_tensor = np.array(["test" for _ in range(100)], dtype=np.str_)
+    num_buckets = 10
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7, valid, different strings
+    string_tensor = np.array(["string1", "string2", "string3", "string4"], dtype=np.str_)
     num_buckets = 4
-    name = "hash_bucket_6"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: String tensor with long strings
-    string_tensor = np.array(["This is a very long string", "Another very long string"], dtype=np.unicode_)
-    num_buckets = 8
-    name = "hash_bucket_8"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
+    # Input 8, valid
+    string_tensor = np.array(["example"], dtype=np.str_)
+    num_buckets = 2**31 - 1
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: String tensor with a mix of characters and numbers
-    string_tensor = np.array(["abc123", "def456", "ghi789"], dtype=np.unicode_)
-    num_buckets = 9
-    name = "hash_bucket_9"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
+    
+    # Input 9, valid, bytes-like strings
+    string_tensor = np.array([b"byte_string1", b"byte_string2"], dtype=np.object_)
+    num_buckets = 10
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Larger Multidimensional string tensor
-    string_tensor = np.array([[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]], dtype=np.unicode_)
-    num_buckets = 11
-    name = "hash_bucket_10"
-    input_dict = {"string_tensor": string_tensor, "num_buckets": num_buckets, "name": name}
+    
+    # Input 10, valid, bytes-like strings, empty
+    string_tensor = np.array([b"", b""], dtype=np.object_)
+    num_buckets = 10
+    input_dict = {
+        "string_tensor": string_tensor,
+        "num_buckets": num_buckets,
+        "name": "string"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

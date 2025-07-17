@@ -8,73 +8,73 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_reader_reset_inputs():
+def tf_raw_ops_ReaderReset_inputs():
     list_of_inputs = []
 
     # Input 1
-    reader_handle = np.array("reader_handle_1", dtype=np.string_)
-    name = None
-    input_dict = {"reader_handle": reader_handle, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    reader_handle = np.array("reader_handle_2", dtype=np.string_)
+    reader_handle = tf.constant("reader_handle_1", dtype=tf.string)
     name = "reset_op_1"
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 2
+    reader_handle = tf.constant("reader_handle_2", dtype=tf.string)
+    name = None
+    input_dict = {"reader_handle": reader_handle, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     # Input 3
-    reader_handle = np.array("reader_handle_3", dtype=np.string_)
-    name = "reader_reset_op"
+    reader_handle = tf.constant("reader_handle_3", dtype=tf.string)
+    name = "reset_op_3"
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    reader_handle = np.array("reader_handle_4", dtype=np.string_)
-    name = ""
+    reader_handle = tf.constant("reader_handle_4", dtype=tf.string)
+    name = None
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 5
-    reader_handle = np.array("reader_handle_5", dtype=np.string_)
-    name = "very_long_reader_name_for_testing_purposes"
+    reader_handle = tf.constant("reader_handle_5", dtype=tf.string)
+    name = "reset_op_5"
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    reader_handle = np.array("reader_handle_6", dtype=np.string_)
-    name = "name_with_numbers_123"
+    reader_handle = tf.constant("reader_handle_6", dtype=tf.string)
+    name = None
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    reader_handle = np.array("reader_handle_7", dtype=np.string_)
-    name = "name_with_symbols_@#$"
+    reader_handle = tf.constant("reader_handle_7", dtype=tf.string)
+    name = "reset_op_7"
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    reader_handle = np.array("reader_handle_8", dtype=np.string_)
-    name = "name_with_unicode_你好世界"
+    reader_handle = tf.constant("reader_handle_8", dtype=tf.string)
+    name = None
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 9
-    reader_handle = np.array("reader_handle_9", dtype=np.string_)
-    name = "reader_reset_again"
+    reader_handle = tf.constant("reader_handle_9", dtype=tf.string)
+    name = "reset_op_9"
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    reader_handle = np.array("reader_handle_10", dtype=np.string_)
-    name = "final_reader_reset"
+    reader_handle = tf.constant("reader_handle_10", dtype=tf.string)
+    name = None
     input_dict = {"reader_handle": reader_handle, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.ReaderReset"] = tf_raw_ops_reader_reset_inputs()
+generated_inputs["tf.raw_ops.ReaderReset"] = tf_raw_ops_ReaderReset_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

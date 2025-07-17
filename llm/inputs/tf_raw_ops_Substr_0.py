@@ -11,105 +11,195 @@ import copy
 def tf_raw_ops_substr_inputs():
     list_of_inputs = []
 
-    # Input 1: Scalar pos and len
-    input_val = np.array([b'Hello', b'World'], dtype=np.object_)
-    pos_val = np.array(1)
-    len_val = np.array(3)
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    def create_tensor(data, dtype):
+        return tf.constant(data, dtype=dtype)
+
+    # Input 1
+    input_tensor = np.array([b'Hello', b'World'])
+    pos_tensor = np.array(1)
+    len_tensor = np.array(3)
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Same shape pos and len
-    input_val = np.array([[b'ten', b'eleven', b'twelve'], [b'thirteen', b'fourteen', b'fifteen'], [b'sixteen', b'seventeen', b'eighteen']], dtype=np.object_)
-    pos_val = np.array([[1, 2, 3], [1, 2, 3], [1, 2, 3]])
-    len_val = np.array([[2, 3, 4], [4, 3, 2], [5, 5, 5]])
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 2
+    input_tensor = np.array([[b'ten', b'eleven', b'twelve'],
+                            [b'thirteen', b'fourteen', b'fifteen'],
+                            [b'sixteen', b'seventeen', b'eighteen']])
+    pos_tensor = np.array([[1, 2, 3],
+                           [1, 2, 3],
+                           [1, 2, 3]])
+    len_tensor = np.array([[2, 3, 4],
+                           [4, 3, 2],
+                           [5, 5, 5]])
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Broadcasting pos and len onto input
-    input_val = np.array([[b'ten', b'eleven', b'twelve'], [b'thirteen', b'fourteen', b'fifteen'], [b'sixteen', b'seventeen', b'eighteen'], [b'nineteen', b'twenty', b'twentyone']], dtype=np.object_)
-    pos_val = np.array([1, 2, 3])
-    len_val = np.array([1, 2, 3])
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 3
+    input_tensor = np.array([[b'ten', b'eleven', b'twelve'],
+                            [b'thirteen', b'fourteen', b'fifteen'],
+                            [b'sixteen', b'seventeen', b'eighteen'],
+                            [b'nineteen', b'twenty', b'twentyone']])
+    pos_tensor = np.array([1, 2, 3])
+    len_tensor = np.array([1, 2, 3])
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Broadcasting input onto pos and len
-    input_val = np.array(b'thirteen', dtype=np.object_)
-    pos_val = np.array([1, 5, 7])
-    len_val = np.array([3, 2, 1])
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 4
+    input_tensor = np.array(b'thirteen')
+    pos_tensor = np.array([1, 5, 7])
+    len_tensor = np.array([3, 2, 1])
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Negative position
-    input_val = np.array([b'Hello', b'World'], dtype=np.object_)
-    pos_val = np.array(-2)
-    len_val = np.array(2)
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 5
+    input_tensor = np.array([b'Hello', b'World'])
+    pos_tensor = np.array(-2)
+    len_tensor = np.array(1)
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: len exceeds string length
-    input_val = np.array([b'Hello', b'World'], dtype=np.object_)
-    pos_val = np.array(1)
-    len_val = np.array(10)
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 6
+    input_tensor = np.array([b'Hello', b'World'])
+    pos_tensor = np.array(1)
+    len_tensor = np.array(10)
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: UTF8_CHAR unit
-    input_val = np.array([b'Hello', b'World'], dtype=np.object_)
-    pos_val = np.array(1)
-    len_val = np.array(3)
-    unit_val = 'UTF8_CHAR'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 7
+    input_tensor = np.array([b'Hello', b'World'])
+    pos_tensor = np.array(1)
+    len_tensor = np.array(3)
+    unit_str = 'UTF8_CHAR'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8: UTF8_CHAR unit and negative position
-    input_val = np.array([b'Hello', b'World'], dtype=np.object_)
-    pos_val = np.array(-2)
-    len_val = np.array(1)
-    unit_val = 'UTF8_CHAR'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 8: Negative pos
+    input_tensor = np.array([b'Hello', b'World'])
+    pos_tensor = np.array(-2)
+    len_tensor = np.array(2)
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: int64 pos and len
-    input_val = np.array([b'Hello', b'World'], dtype=np.object_)
-    pos_val = np.array(1, dtype=np.int64)
-    len_val = np.array(3, dtype=np.int64)
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 9
+    input_tensor = np.array([b'abcdef', b'ghijkl'])
+    pos_tensor = np.array([1])
+    len_tensor = np.array([2])
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Multidimensional input, scalar pos, scalar len
-    input_val = np.array([[[b'one', b'two'], [b'three', b'four']], [[b'five', b'six'], [b'seven', b'eight']]], dtype=np.object_)
-    pos_val = np.array(1)
-    len_val = np.array(2)
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 10
+    input_tensor = np.array(b'abcdef')
+    pos_tensor = np.array([1, 2, 3])
+    len_tensor = np.array([1, 1, 1])
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int32), tf.int32),
+        "len": create_tensor(len_tensor.astype(np.int32), tf.int32),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: Empty string tensor
-    input_val = np.array([b''], dtype=np.object_)
-    pos_val = np.array(0)
-    len_val = np.array(0)
-    unit_val = 'BYTE'
-    name_val = None
-    input_dict = {"input": input_val, "pos": pos_val, "len": len_val, "unit": unit_val, "name": name_val}
+    # Input 11, int64 pos and len
+    input_tensor = np.array([b'Hello', b'World'])
+    pos_tensor = np.array(1)
+    len_tensor = np.array(3)
+    unit_str = 'BYTE'
+    name_str = None
+
+    input_dict = {
+        "input": create_tensor(input_tensor.astype(np.string_), tf.string),
+        "pos": create_tensor(pos_tensor.astype(np.int64), tf.int64),
+        "len": create_tensor(len_tensor.astype(np.int64), tf.int64),
+        "unit": unit_str,
+        "name": name_str
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+
     return list_of_inputs
 
 generated_inputs = {}

@@ -8,7 +8,7 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_SparseApplyAdagrad_inputs():
+def tf_raw_ops_sparse_apply_adagrad_inputs():
     list_of_inputs = []
 
     # Input 1
@@ -19,20 +19,8 @@ def tf_raw_ops_SparseApplyAdagrad_inputs():
     indices = np.array([0], dtype=np.int32)
     use_locking = False
     update_slots = True
-    name = "sparse_apply_adagrad_1"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    name = "adagrad_1"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -43,20 +31,8 @@ def tf_raw_ops_SparseApplyAdagrad_inputs():
     indices = np.array([0, 1], dtype=np.int32)
     use_locking = True
     update_slots = False
-    name = "sparse_apply_adagrad_2"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    name = "adagrad_2"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
@@ -67,164 +43,80 @@ def tf_raw_ops_SparseApplyAdagrad_inputs():
     indices = np.array([0], dtype=np.int64)
     use_locking = False
     update_slots = True
-    name = "sparse_apply_adagrad_3"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    name = "adagrad_3"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
+   # Input 4
     var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
-    indices = np.array([1, 0], dtype=np.int32)
+    grad = np.array([[0.5, 0.6]], dtype=np.float32)
+    indices = np.array([1], dtype=np.int32)
     use_locking = False
     update_slots = True
-    name = "sparse_apply_adagrad_4"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    name = "adagrad_4"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     accum = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([0.5], dtype=np.float32)
-    indices = np.array([1], dtype=np.int32)
+    lr = np.array(0.1, dtype=np.float32)
+    grad = np.array([0.5, 0.7], dtype=np.float32)
+    indices = np.array([0, 2], dtype=np.int32)
     use_locking = False
     update_slots = True
-    name = "sparse_apply_adagrad_5"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    name = "adagrad_5"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
     var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
-    indices = np.array([0, 1], dtype=np.int64)
+    grad = np.array([[0.5, 0.6]], dtype=np.float32)
+    indices = np.array([0], dtype=np.int64)
     use_locking = True
     update_slots = True
-    name = "sparse_apply_adagrad_6"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    name = "adagrad_6"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    var = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
-    accum = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9]], dtype=np.float32)
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([[0.5, 0.6, 0.7], [0.8, 0.9, 1.0]], dtype=np.float32)
-    indices = np.array([0, 2], dtype=np.int32)
+    grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int64)
     use_locking = False
-    update_slots = True
-    name = "sparse_apply_adagrad_7"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    update_slots = False
+    name = "adagrad_7"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    var = np.array([1.0, 2.0, 3.0, 4.0, 5.0], dtype=np.float32)
-    accum = np.array([0.1, 0.2, 0.3, 0.4, 0.5], dtype=np.float32)
-    lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([0.5, 0.6], dtype=np.float32)
-    indices = np.array([1, 3], dtype=np.int32)
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    accum = np.array([0.1, 0.2, 0.3], dtype=np.float32)
+    lr = np.array(0.1, dtype=np.float32)
+    grad = np.array([0.5], dtype=np.float32)
+    indices = np.array([1], dtype=np.int32)
     use_locking = True
-    update_slots = False
-    name = "sparse_apply_adagrad_8"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    update_slots = True
+    name = "adagrad_8"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
     var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
-    lr = np.array(0.5, dtype=np.float32)
-    grad = np.array([[0.1, 0.2]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    grad = np.array([[0.5, 0.6]], dtype=np.float32)
     indices = np.array([0], dtype=np.int32)
     use_locking = False
     update_slots = True
-    name = "sparse_apply_adagrad_9"
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    name = None
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
@@ -233,28 +125,31 @@ def tf_raw_ops_SparseApplyAdagrad_inputs():
     lr = np.array(0.01, dtype=np.float32)
     grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
     indices = np.array([0, 1], dtype=np.int32)
-    use_locking = False
+    use_locking = True
     update_slots = True
     name = ""
-
-    input_dict = {
-        "var": var,
-        "accum": accum,
-        "lr": lr,
-        "grad": grad,
-        "indices": indices,
-        "use_locking": use_locking,
-        "update_slots": update_slots,
-        "name": name
-    }
-    for key in ["var", "accum", "lr", "grad", "indices"]:
-        input_dict[key] = tf.convert_to_tensor(input_dict[key])
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 11
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    accum = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    grad = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int32)
+    use_locking = True
+    update_slots = True
+    name = "test_op"
+    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "indices": indices, "use_locking": use_locking, "update_slots": update_slots, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    for i in range(len(list_of_inputs)):
+        list_of_inputs[i]['var'] = tf.Variable(list_of_inputs[i]['var'])
+        list_of_inputs[i]['accum'] = tf.Variable(list_of_inputs[i]['accum'])
+        
     return list_of_inputs
 
-generated_inputs = {}
-generated_inputs["tf.raw_ops.SparseApplyAdagrad"] = tf_raw_ops_SparseApplyAdagrad_inputs()
+generated_inputs["tf.raw_ops.SparseApplyAdagrad"] = tf_raw_ops_sparse_apply_adagrad_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

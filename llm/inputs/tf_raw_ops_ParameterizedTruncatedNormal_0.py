@@ -13,12 +13,13 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
 
     # Input 1
     shape = np.array([2, 3], dtype=np.int32)
-    means = np.array(0.0, dtype=np.float32)
-    stdevs = np.array(1.0, dtype=np.float32)
-    minvals = np.array(-2.0, dtype=np.float32)
-    maxvals = np.array(2.0, dtype=np.float32)
-    seed = 0
-    seed2 = 0
+    means = np.array([0.0], dtype=np.float32)
+    stdevs = np.array([1.0], dtype=np.float32)
+    minvals = np.array([-1.0], dtype=np.float32)
+    maxvals = np.array([1.0], dtype=np.float32)
+    seed = 1
+    seed2 = 1
+    name = None
 
     input_dict = {
         "shape": shape,
@@ -28,18 +29,19 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    shape = np.array([5], dtype=np.int32)
-    means = np.array([0.0, 1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    stdevs = np.array([1.0, 1.0, 1.0, 1.0, 1.0], dtype=np.float32)
-    minvals = np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32)
-    maxvals = np.array([1.0, 1.5, 2.0, 2.5, 3.0], dtype=np.float32)
+    shape = np.array([5, 4], dtype=np.int64)
+    means = np.array([0.5], dtype=np.float64)
+    stdevs = np.array([0.5], dtype=np.float64)
+    minvals = np.array([0.0], dtype=np.float64)
+    maxvals = np.array([1.0], dtype=np.float64)
     seed = 1
     seed2 = 2
+    name = "test2"
 
     input_dict = {
         "shape": shape,
@@ -49,18 +51,19 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    shape = np.array([1, 2, 3], dtype=np.int32)
-    means = np.array(0.5, dtype=np.float64)
-    stdevs = np.array(0.2, dtype=np.float64)
-    minvals = np.array(0.0, dtype=np.float64)
-    maxvals = np.array(1.0, dtype=np.float64)
+    shape = np.array([10], dtype=np.int32)
+    means = np.array([0.0] * 1, dtype=np.float32)
+    stdevs = np.array([1.0] * 1, dtype=np.float32)
+    minvals = np.array([-2.0] * 1, dtype=np.float32)
+    maxvals = np.array([2.0] * 1, dtype=np.float32)
     seed = 123
     seed2 = 456
+    name = "test3"
 
     input_dict = {
         "shape": shape,
@@ -70,18 +73,19 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    shape = np.array([4, 2], dtype=np.int32)
-    means = np.array([0.0, 0.5, 1.0, 1.5], dtype=np.float32)
-    stdevs = np.array([0.5, 0.5, 0.5, 0.5], dtype=np.float32)
-    minvals = np.array([-1.0, -0.5, 0.0, 0.5], dtype=np.float32)
-    maxvals = np.array([1.0, 1.5, 2.0, 2.5], dtype=np.float32)
-    seed = 789
-    seed2 = 1011
+    shape = np.array([2, 2], dtype=np.int64)
+    means = np.array([0.1], dtype=np.float64)
+    stdevs = np.array([0.3], dtype=np.float64)
+    minvals = np.array([-0.5], dtype=np.float64)
+    maxvals = np.array([0.7], dtype=np.float64)
+    seed = 112
+    seed2 = 131
+    name = "test5"
 
     input_dict = {
         "shape": shape,
@@ -91,18 +95,19 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
      # Input 5
-    shape = np.array([3, 3], dtype=np.int32)
-    means = np.array(1.0, dtype=np.float16)
-    stdevs = np.array(0.5, dtype=np.float16)
-    minvals = np.array(0.0, dtype=np.float16)
-    maxvals = np.array(2.0, dtype=np.float16)
-    seed = 0
-    seed2 = 0
+    shape = np.array([1], dtype=np.int32)
+    means = np.array([1.0], dtype=np.float32)
+    stdevs = np.array([2.0], dtype=np.float32)
+    minvals = np.array([0.0], dtype=np.float32)
+    maxvals = np.array([3.0], dtype=np.float32)
+    seed = 42
+    seed2 = 24
+    name = "test6"
 
     input_dict = {
         "shape": shape,
@@ -112,18 +117,19 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    shape = np.array([2], dtype=np.int32)
-    means = np.array([2.0, 3.0], dtype=np.float64)
-    stdevs = np.array([0.1, 0.2], dtype=np.float64)
-    minvals = np.array([1.9, 2.8], dtype=np.float64)
-    maxvals = np.array([2.1, 3.2], dtype=np.float64)
-    seed = 42
-    seed2 = 1337
+    shape = np.array([4, 4], dtype=np.int64)
+    means = np.array([0.0], dtype=np.float64)
+    stdevs = np.array([1.0], dtype=np.float64)
+    minvals = np.array([-1.0], dtype=np.float64)
+    maxvals = np.array([1.0], dtype=np.float64)
+    seed = 1000
+    seed2 = 2000
+    name = "test7"
 
     input_dict = {
         "shape": shape,
@@ -133,18 +139,19 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    shape = np.array([1, 1, 1], dtype=np.int32)
-    means = np.array(0.0, dtype=np.float32)
-    stdevs = np.array(1.0, dtype=np.float32)
-    minvals = np.array(-np.inf, dtype=np.float32)
-    maxvals = np.array(np.inf, dtype=np.float32)
-    seed = 0
-    seed2 = 0
+    shape = np.array([2, 5], dtype=np.int32)
+    means = np.array([0.0], dtype=np.float32)
+    stdevs = np.array([1.0], dtype=np.float32)
+    minvals = np.array([-3.0], dtype=np.float32)
+    maxvals = np.array([3.0], dtype=np.float32)
+    seed = 5
+    seed2 = 6
+    name = "test8"
 
     input_dict = {
         "shape": shape,
@@ -154,18 +161,19 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    shape = np.array([2, 2], dtype=np.int64)
-    means = np.array([0.5, 1.5], dtype=np.float16)
-    stdevs = np.array([0.1, 0.2], dtype=np.float16)
-    minvals = np.array([0.4, 1.3], dtype=np.float16)
-    maxvals = np.array([0.6, 1.7], dtype=np.float16)
-    seed = 10
-    seed2 = 20
+    shape = np.array([10, 10], dtype=np.int64)
+    means = np.array([0.0], dtype=np.float64)
+    stdevs = np.array([0.1], dtype=np.float64)
+    minvals = np.array([-0.2], dtype=np.float64)
+    maxvals = np.array([0.2], dtype=np.float64)
+    seed = 7
+    seed2 = 8
+    name = "test9"
 
     input_dict = {
         "shape": shape,
@@ -175,18 +183,19 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    shape = np.array([2], dtype=np.int32)
-    means = np.array([0.0, 0.0], dtype=np.float32)
-    stdevs = np.array([1.0, 1.0], dtype=np.float32)
-    minvals = np.array([-1.0, -1.0], dtype=np.float32)
-    maxvals = np.array([1.0, 1.0], dtype=np.float32)
-    seed = 1234
-    seed2 = 5678
+    shape = np.array([3, 3, 3], dtype=np.int32)
+    means = np.array([0.5], dtype=np.float32)
+    stdevs = np.array([0.2], dtype=np.float32)
+    minvals = np.array([0.0], dtype=np.float32)
+    maxvals = np.array([1.0], dtype=np.float32)
+    seed = 9
+    seed2 = 10
+    name = "test10"
 
     input_dict = {
         "shape": shape,
@@ -196,28 +205,7 @@ def tf_raw_ops_ParameterizedTruncatedNormal_inputs():
         "maxvals": maxvals,
         "seed": seed,
         "seed2": seed2,
-        "name": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    shape = np.array([1], dtype=np.int64)
-    means = np.array([5.0], dtype=np.float64)
-    stdevs = np.array([2.0], dtype=np.float64)
-    minvals = np.array([1.0], dtype=np.float64)
-    maxvals = np.array([6.0], dtype=np.float64)
-    seed = 9012
-    seed2 = 3456
-
-    input_dict = {
-        "shape": shape,
-        "means": means,
-        "stdevs": stdevs,
-        "minvals": minvals,
-        "maxvals": maxvals,
-        "seed": seed,
-        "seed2": seed2,
-        "name": None
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

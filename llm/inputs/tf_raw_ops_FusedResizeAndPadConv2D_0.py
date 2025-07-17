@@ -8,253 +8,253 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_FusedResizeAndPadConv2D_inputs():
+def tf_raw_ops_fusedresizeandpadconv2d_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_val = np.random.rand(1, 28, 28, 3).astype(np.float32)
-    size_val = np.array([56, 56], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 3, 16).astype(np.float32)
-    mode_val = "REFLECT"
-    strides_val = [1, 1, 1, 1]
-    padding_val = "SAME"
-    resize_align_corners_val = False
-    name_val = "fused_resize_pad_conv2d_1"
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    size_tensor = np.array([64, 64], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(3, 3, 3, 16).astype(np.float32)
+    mode_str = "REFLECT"
+    strides_list = [1, 1, 1, 1]
+    padding_str = "VALID"
+    resize_align_corners_bool = False
+    name_str = "fused_resize_pad_conv2d_1"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_val = np.random.rand(4, 14, 14, 1).astype(np.float32)
-    size_val = np.array([28, 28], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [2, 2], [2, 2], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(5, 5, 1, 8).astype(np.float32)
-    mode_val = "SYMMETRIC"
-    strides_val = [1, 2, 2, 1]
-    padding_val = "VALID"
-    resize_align_corners_val = True
-    name_val = "fused_resize_pad_conv2d_2"
+    input_tensor = np.random.rand(4, 16, 16, 8).astype(np.float32)
+    size_tensor = np.array([32, 32], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [2, 2], [2, 2], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(5, 5, 8, 32).astype(np.float32)
+    mode_str = "SYMMETRIC"
+    strides_list = [1, 2, 2, 1]
+    padding_str = "SAME"
+    resize_align_corners_bool = True
+    name_str = "fused_resize_pad_conv2d_2"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_val = np.random.rand(2, 10, 10, 3).astype(np.float32)
-    size_val = np.array([20, 20], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [0, 0], [0, 0], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(2, 2, 3, 4).astype(np.float32)
-    mode_val = "REFLECT"
-    strides_val = [1, 1, 1, 1]
-    padding_val = "SAME"
-    resize_align_corners_val = False
-    name_val = "fused_resize_pad_conv2d_3"
+    input_tensor = np.random.rand(2, 64, 64, 1).astype(np.float32)
+    size_tensor = np.array([128, 128], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [0, 0], [0, 0], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(1, 1, 1, 4).astype(np.float32)
+    mode_str = "REFLECT"
+    strides_list = [1, 4, 4, 1]
+    padding_str = "VALID"
+    resize_align_corners_bool = False
+    name_str = "fused_resize_pad_conv2d_3"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 4
-    input_val = np.random.rand(1, 32, 32, 1).astype(np.float64)
-    size_val = np.array([64, 64], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [0, 0], [0, 0], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 1, 1).astype(np.float64)
-    mode_val = "SYMMETRIC"
-    strides_val = [1, 2, 2, 1]
-    padding_val = "VALID"
-    resize_align_corners_val = True
-    name_val = "fused_resize_pad_conv2d_4"
+    # Input 4
+    input_tensor = np.random.rand(1, 8, 8, 4).astype(np.float32)
+    size_tensor = np.array([16, 16], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [3, 3], [3, 3], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(7, 7, 4, 8).astype(np.float32)
+    mode_str = "SYMMETRIC"
+    strides_list = [1, 1, 1, 1]
+    padding_str = "SAME"
+    resize_align_corners_bool = True
+    name_str = "fused_resize_pad_conv2d_4"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    input_val = np.random.rand(4, 8, 8, 3).astype(np.float32)
-    size_val = np.array([16, 16], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 3, 2).astype(np.float32)
-    mode_val = "REFLECT"
-    strides_val = [1, 1, 1, 1]
-    padding_val = "SAME"
-    resize_align_corners_val = False
-    name_val = "fused_resize_pad_conv2d_5"
+   # Input 5, half
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float16)
+    size_tensor = np.array([64, 64], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(3, 3, 3, 16).astype(np.float16)
+    mode_str = "REFLECT"
+    strides_list = [1, 1, 1, 1]
+    padding_str = "VALID"
+    resize_align_corners_bool = False
+    name_str = "fused_resize_pad_conv2d_5"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_val = np.random.rand(1, 64, 64, 1).astype(np.float32)
-    size_val = np.array([32, 32], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [2, 2], [2, 2], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(5, 5, 1, 1).astype(np.float32)
-    mode_val = "SYMMETRIC"
-    strides_val = [1, 4, 4, 1]
-    padding_val = "VALID"
-    resize_align_corners_val = True
-    name_val = "fused_resize_pad_conv2d_6"
+    # Input 6, double
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float64)
+    size_tensor = np.array([64, 64], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(3, 3, 3, 16).astype(np.float64)
+    mode_str = "REFLECT"
+    strides_list = [1, 1, 1, 1]
+    padding_str = "VALID"
+    resize_align_corners_bool = False
+    name_str = "fused_resize_pad_conv2d_6"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 7
-    input_val = np.random.rand(2, 5, 5, 3).astype(np.float32)
-    size_val = np.array([10, 10], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [0, 1], [1, 0], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(2, 2, 3, 4).astype(np.float32)
-    mode_val = "REFLECT"
-    strides_val = [1, 1, 1, 1]
-    padding_val = "SAME"
-    resize_align_corners_val = False
-    name_val = "fused_resize_pad_conv2d_7"
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    size_tensor = np.array([64, 64], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(3, 3, 3, 16).astype(np.float32)
+    mode_str = "REFLECT"
+    strides_list = [1, 1, 2, 1]
+    padding_str = "VALID"
+    resize_align_corners_bool = False
+    name_str = "fused_resize_pad_conv2d_7"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 8
-    input_val = np.random.rand(1, 16, 16, 1).astype(np.float64)
-    size_val = np.array([8, 8], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [1, 0], [0, 1], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 1, 1).astype(np.float64)
-    mode_val = "SYMMETRIC"
-    strides_val = [1, 1, 1, 1]
-    padding_val = "VALID"
-    resize_align_corners_val = True
-    name_val = "fused_resize_pad_conv2d_8"
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    size_tensor = np.array([64, 64], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(3, 3, 3, 16).astype(np.float32)
+    mode_str = "REFLECT"
+    strides_list = [1, 1, 1, 1]
+    padding_str = "SAME"
+    resize_align_corners_bool = False
+    name_str = "fused_resize_pad_conv2d_8"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_val = np.random.rand(4, 4, 4, 3).astype(np.float32)
-    size_val = np.array([4, 4], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [0, 0], [0, 0], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(1, 1, 3, 2).astype(np.float32)
-    mode_val = "REFLECT"
-    strides_val = [1, 1, 1, 1]
-    padding_val = "SAME"
-    resize_align_corners_val = False
-    name_val = "fused_resize_pad_conv2d_9"
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    size_tensor = np.array([64, 64], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(3, 3, 3, 16).astype(np.float32)
+    mode_str = "SYMMETRIC"
+    strides_list = [1, 1, 1, 1]
+    padding_str = "VALID"
+    resize_align_corners_bool = False
+    name_str = "fused_resize_pad_conv2d_9"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_val = np.random.rand(1, 32, 32, 1).astype(np.float32)
-    size_val = np.array([16, 16], dtype=np.int32)
-    paddings_val = np.array([[0, 0], [2, 2], [2, 2], [0, 0]], dtype=np.int32)
-    filter_val = np.random.rand(3, 3, 1, 1).astype(np.float32)
-    mode_val = "SYMMETRIC"
-    strides_val = [1, 1, 1, 1]
-    padding_val = "VALID"
-    resize_align_corners_val = True
-    name_val = "fused_resize_pad_conv2d_10"
+    input_tensor = np.random.rand(1, 32, 32, 3).astype(np.float32)
+    size_tensor = np.array([64, 64], dtype=np.int32)
+    paddings_tensor = np.array([[0, 0], [1, 1], [1, 1], [0, 0]], dtype=np.int32)
+    filter_tensor = np.random.rand(3, 3, 3, 16).astype(np.float32)
+    mode_str = "REFLECT"
+    strides_list = [1, 1, 1, 1]
+    padding_str = "VALID"
+    resize_align_corners_bool = True
+    name_str = "fused_resize_pad_conv2d_10"
 
     input_dict = {
-        "input": input_val,
-        "size": size_val,
-        "paddings": paddings_val,
-        "filter": filter_val,
-        "mode": mode_val,
-        "strides": strides_val,
-        "padding": padding_val,
-        "resize_align_corners": resize_align_corners_val,
-        "name": name_val
+        "input": input_tensor,
+        "size": size_tensor,
+        "paddings": paddings_tensor,
+        "filter": filter_tensor,
+        "mode": mode_str,
+        "strides": strides_list,
+        "padding": padding_str,
+        "resize_align_corners": resize_align_corners_bool,
+        "name": name_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.FusedResizeAndPadConv2D"] = tf_raw_ops_FusedResizeAndPadConv2D_inputs()
+generated_inputs["tf.raw_ops.FusedResizeAndPadConv2D"] = tf_raw_ops_fusedresizeandpadconv2d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -8,7 +8,7 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_TemporaryVariable_inputs():
+def tf_raw_ops_temporary_variable_inputs():
     list_of_inputs = []
 
     # Input 1
@@ -22,79 +22,76 @@ def tf_raw_ops_TemporaryVariable_inputs():
     # Input 2
     shape = [5]
     dtype = tf.int32
-    var_name = ""
-    name = None
+    var_name = "temp_var_2"
+    name = "op_2"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     shape = [1, 4, 2]
     dtype = tf.complex64
-    var_name = "complex_var"
-    name = "complex_op"
+    var_name = "temp_var_3"
+    name = "op_3"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     shape = [10, 10]
     dtype = tf.bool
-    var_name = "bool_var"
-    name = "bool_op"
+    var_name = "temp_var_4"
+    name = "op_4"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     shape = [2, 2, 2, 2]
-    dtype = tf.float64
-    var_name = "float64_var"
-    name = "float64_op"
+    dtype = tf.uint8
+    var_name = "temp_var_5"
+    name = "op_5"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    shape = [7]
-    dtype = tf.int64
-    var_name = "int64_var"
-    name = "int64_op"
+    shape = [6]
+    dtype = tf.float64
+    var_name = "temp_var_6"
+    name = "op_6"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    shape = []
-    dtype = tf.string
-    var_name = "string_var"
-    name = "string_op"
+    shape = [3, 5, 7]
+    dtype = tf.int64
+    var_name = "temp_var_7"
+    name = "op_7"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     shape = [1]
-    dtype = tf.uint8
-    var_name = "uint8_var"
-    name = "uint8_op"
+    dtype = tf.bfloat16
+    var_name = "temp_var_8"
+    name = "op_8"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    shape = [3, 1]
-    dtype = tf.bfloat16
-    var_name = "bfloat16_var"
-    name = "bfloat16_op"
+   # Input 9
+    shape = [2, 4]
+    dtype = tf.qint8
+    var_name = "temp_var_9"
+    name = "op_9"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    shape = [4, 4, 4]
-    dtype = tf.float16
-    var_name = "float16_var"
-    name = "float16_op"
+    shape = [3, 1, 2]
+    dtype = tf.quint16
+    var_name = "temp_var_10"
+    name = "op_10"
     input_dict = {"shape": shape, "dtype": dtype, "var_name": var_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
-
-generated_inputs = {}
-generated_inputs["tf.raw_ops.TemporaryVariable"] = tf_raw_ops_TemporaryVariable_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

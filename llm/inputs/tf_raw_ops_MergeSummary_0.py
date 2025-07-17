@@ -11,163 +11,70 @@ import copy
 def tf_raw_ops_MergeSummary_inputs():
     list_of_inputs = []
 
-    # Input 1: Empty summary
-    inputs = [tf.constant(b"")]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 1: Basic valid input with a single summary
+    inputs = [b'\n\x06value_1\x12\x04data']
+    input_dict = {"inputs": inputs, "name": "summary_merge_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Single simple summary
-    summary_str = tf.compat.as_bytes("""
-    value {
-      tag: "simple_value"
-      simple_value: 1.0
-    }
-    """)
-    inputs = [tf.constant(summary_str)]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 2: Two summaries to merge
+    inputs = [
+        b'\n\x06value_1\x12\x04data',
+        b'\n\x06value_2\x12\x04data2'
+    ]
+    input_dict = {"inputs": inputs, "name": "summary_merge_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multiple simple summaries
-    summary_str1 = tf.compat.as_bytes("""
-    value {
-      tag: "simple_value_1"
-      simple_value: 1.0
-    }
-    """)
-    summary_str2 = tf.compat.as_bytes("""
-    value {
-      tag: "simple_value_2"
-      simple_value: 2.0
-    }
-    """)
-    inputs = [tf.constant(summary_str1), tf.constant(summary_str2)]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 3: Empty summaries
+    inputs = [b'', b'']
+    input_dict = {"inputs": inputs, "name": "summary_merge_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Summaries with different types of values
-    summary_str1 = tf.compat.as_bytes("""
-    value {
-      tag: "simple_value"
-      simple_value: 1.0
-    }
-    """)
-    summary_str2 = tf.compat.as_bytes("""
-    value {
-      tag: "tensor_value"
-      tensor {
-        dtype: DT_FLOAT
-        tensor_shape {
-          dim {
-            size: 2
-          }
-          dim {
-            size: 2
-          }
-        }
-        float_val: [1.0, 2.0, 3.0, 4.0]
-      }
-    }
-    """)
-    inputs = [tf.constant(summary_str1), tf.constant(summary_str2)]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 4: Three summaries to merge
+    inputs = [
+        b'\n\x06value_1\x12\x04data',
+        b'\n\x06value_2\x12\x04data2',
+        b'\n\x06value_3\x12\x04data3'
+    ]
+    input_dict = {"inputs": inputs, "name": "summary_merge_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Summaries with histograms
-    summary_str1 = tf.compat.as_bytes("""
-    value {
-      tag: "histogram_value"
-      histo {
-        min: 0.0
-        max: 1.0
-        num: 1.0
-        sum: 0.5
-        sum_squares: 0.25
-        bucket_limit: [1.0]
-        bucket: [1.0]
-      }
-    }
-    """)
-    inputs = [tf.constant(summary_str1)]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 5: Longer summary strings
+    inputs = [
+        b'\n\x06value_1\x12\x04data' * 10,
+        b'\n\x06value_2\x12\x04data2' * 10
+    ]
+    input_dict = {"inputs": inputs, "name": "summary_merge_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Summaries with images
-    summary_str1 = tf.compat.as_bytes("""
-    value {
-      tag: "image_value"
-      image {
-        height: 1
-        width: 1
-        colorspace: 1
-        encoded_image_string: "abc"
-      }
-    }
-    """)
-    inputs = [tf.constant(summary_str1)]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 6: Single input with longer summary
+    inputs = [b'\n\x06value_1\x12\x04data' * 20]
+    input_dict = {"inputs": inputs, "name": "summary_merge_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-
-    # Input 7: Summary with audio
-    summary_str1 = tf.compat.as_bytes("""
-    value {
-      tag: "audio_value"
-      audio {
-        sample_rate: 44100.0
-        num_channels: 1
-        length_secs: 1.0
-        encoded_audio_string: "abc"
-        content_type: "audio/wav"
-      }
-    }
-    """)
-    inputs = [tf.constant(summary_str1)]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 7: Unicode summary strings (encoded as bytes)
+    inputs = [b'\n\x06value_1\x12\x04\xe4\xbd\xa0\xe5\xa5\xbd']
+    input_dict = {"inputs": inputs, "name": "summary_merge_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Summary with metadata
-    summary_str1 = tf.compat.as_bytes("""
-    value {
-      tag: "scalar_value"
-      metadata {
-        plugin_data {
-          plugin_name: "scalars"
-          content: "abc"
-        }
-      }
-      simple_value: 1.0
-    }
-    """)
-    inputs = [tf.constant(summary_str1)]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 8: More unicode
+    inputs = [
+        b'\n\x06value_1\x12\x04\xe4\xbd\xa0\xe5\xa5\xbd',
+        b'\n\x06value_2\x12\x04\xe6\xac\xa2\xe8\xbf\x8e',
+    ]
+    input_dict = {"inputs": inputs, "name": "summary_merge_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: multiple inputs, with different names
-    summary_str1 = tf.compat.as_bytes("""
-    value {
-      tag: "scalar_value1"
-      simple_value: 1.0
-    }
-    """)
-    summary_str2 = tf.compat.as_bytes("""
-    value {
-      tag: "scalar_value2"
-      simple_value: 2.0
-    }
-    """)
-    inputs = [tf.constant(summary_str1), tf.constant(summary_str2)]
-    input_dict = {"inputs": inputs, "name": None}
+    # Input 9:  Different valid summary structures
+    inputs = [
+        b'\n\x12\x0bvalue_name\x12\x03tag\x1a\x04data',
+        b'\n\x12\x0bvalue_name2\x12\x03tag2\x1a\x04data2'
+    ]
+    input_dict = {"inputs": inputs, "name": "summary_merge_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: with name
-    summary_str1 = tf.compat.as_bytes("""
-    value {
-      tag: "scalar_value1"
-      simple_value: 1.0
-    }
-    """)
-    inputs = [tf.constant(summary_str1)]
-    input_dict = {"inputs": inputs, "name": "my_summary"}
+    # Input 10: Empty name
+    inputs = [b'\n\x06value_1\x12\x04data']
+    input_dict = {"inputs": inputs, "name": ""}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -11,83 +11,59 @@ import copy
 def tf_raw_ops_parallel_dynamic_stitch_inputs():
     list_of_inputs = []
 
-    # Input 1
-    indices = [np.array([0, 2, 1], dtype=np.int32)]
-    data = [np.array([10, 20, 30], dtype=np.int32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    def make_input(indices, data):
+        return {"indices": indices, "data": data, "name": None}
 
-    # Input 2
-    indices = [np.array([[0, 1], [2, 3]], dtype=np.int32)]
-    data = [np.array([[1, 2], [3, 4]], dtype=np.int32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Basic test case
+    indices = [np.array([0, 2, 1], dtype=np.int32), np.array([3, 4], dtype=np.int32)]
+    data = [np.array([10, 12, 11], dtype=np.int32), np.array([13, 14], dtype=np.int32)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
 
-    # Input 3
-    indices = [np.array([0], dtype=np.int32), np.array([1], dtype=np.int32)]
-    data = [np.array([100], dtype=np.int32), np.array([200], dtype=np.int32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    indices = [np.array([2, 0], dtype=np.int32), np.array([1], dtype=np.int32)]
-    data = [np.array([5, 7], dtype=np.int32), np.array([9], dtype=np.int32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
+    # Input 2: 2D data
     indices = [np.array([0, 1], dtype=np.int32), np.array([2, 3], dtype=np.int32)]
-    data = [np.array([1, 2], dtype=np.float32), np.array([3, 4], dtype=np.float32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    data = [np.array([[1, 2], [3, 4]], dtype=np.int32), np.array([[5, 6], [7, 8]], dtype=np.int32)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
 
-    # Input 6
-    indices = [np.array([[0, 1], [2, 3]], dtype=np.int32), np.array([[4, 5], [6, 7]], dtype=np.int32)]
-    data = [np.array([[1, 2], [3, 4]], dtype=np.float32), np.array([[5, 6], [7, 8]], dtype=np.float32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    indices = [np.array([0, 2], dtype=np.int32), np.array([1, 3], dtype=np.int32)]
-    data = [np.array([[1, 2], [3, 4]], dtype=np.float32), np.array([[5, 6], [7, 8]], dtype=np.float32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    indices = [np.array([0], dtype=np.int32), np.array([1, 2], dtype=np.int32), np.array([3], dtype=np.int32)]
-    data = [np.array([10], dtype=np.int32), np.array([20, 30], dtype=np.int32), np.array([40], dtype=np.int32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    indices = [np.array([0, 1, 2], dtype=np.int32)]
-    data = [np.array([1, 2, 3], dtype=np.int64)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
+    # Input 3: Scalar indices
     indices = [np.array([0], dtype=np.int32), np.array([1], dtype=np.int32)]
-    data = [np.array([10], dtype=np.float64), np.array([20], dtype=np.float64)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    data = [np.array([10], dtype=np.int32), np.array([11], dtype=np.int32)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
 
-    # Input 11
+    # Input 4: Different data types
+    indices = [np.array([0, 1], dtype=np.int32), np.array([2, 3], dtype=np.int32)]
+    data = [np.array([1.0, 2.0], dtype=np.float32), np.array([3.0, 4.0], dtype=np.float32)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
+
+    # Input 5: Empty data, but keeping the dimension
+    indices = [np.array([], dtype=np.int32).reshape((0,)), np.array([], dtype=np.int32).reshape((0,))]
+    data = [np.array([], dtype=np.int32).reshape((0,)), np.array([], dtype=np.int32).reshape((0,))]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
+    
+    # Input 6: Adding more tests and fixing the shape problems
+    indices = [np.array([0, 1, 2], dtype=np.int32), np.array([3], dtype=np.int32)]
+    data = [np.array([10, 11, 12], dtype=np.int32), np.array([13], dtype=np.int32)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
+
+    # Input 7: 2D Indices
+    indices = [np.array([[0, 1], [2, 3]], dtype=np.int32), np.array([[4, 5]], dtype=np.int32)]
+    data = [np.array([[[10]], [[11]], [[12]], [[13]]], dtype=np.int32), np.array([[[14]], [[15]]], dtype=np.int32)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
+        
+    # Input 8: Larger indices
+    indices = [np.array([0, 100], dtype=np.int32), np.array([200], dtype=np.int32)]
+    data = [np.array([10, 11], dtype=np.int32), np.array([12], dtype=np.int32)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
+
+    # Input 9: 3D data with consistent shape
+    indices = [np.array([0, 1], dtype=np.int32), np.array([2, 3], dtype=np.int32)]
+    data = [np.array([[[1, 2]], [[3, 4]]], dtype=np.int32), np.array([[[5, 6]], [[7, 8]]], dtype=np.int32)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
+
+    # Input 10: Multiple dimensions and different data type
     indices = [np.array([0, 1], dtype=np.int32), np.array([2], dtype=np.int32)]
-    data = [np.array([1, 2], dtype=np.int32), np.array([3], dtype=np.int32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    data = [np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64), np.array([[5.0, 6.0]], dtype=np.float64)]
+    list_of_inputs.append(copy.deepcopy(make_input(indices, data)))
 
-    # Input 12
-    indices = [np.array([0, 2], dtype=np.int32), np.array([1], dtype=np.int32)]
-    data = [np.array([1, 2], dtype=np.int32), np.array([3], dtype=np.int32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 13 - Adding a different shape and data type
-    indices = [np.array([0, 1], dtype=np.int32), np.array([2,3], dtype=np.int32)]
-    data = [np.array([1.1, 2.2], dtype=np.float32), np.array([3.3, 4.4], dtype=np.float32)]
-    input_dict = {"indices": indices, "data": data, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

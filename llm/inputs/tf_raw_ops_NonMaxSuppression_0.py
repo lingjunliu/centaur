@@ -8,12 +8,12 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_non_max_suppression_inputs():
+def tf_raw_ops_NonMaxSuppression_inputs():
     list_of_inputs = []
 
-    # Input 1
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
+    # Input 1: Basic valid case
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = 0.5
     name = None
@@ -27,45 +27,12 @@ def tf_raw_ops_non_max_suppression_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75], dtype=np.float32)
-    max_output_size = np.array(1, dtype=np.int32)
-    iou_threshold = 0.5
-    name = "non_max_suppression_1"
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
-    max_output_size = np.array(4, dtype=np.int32)
-    iou_threshold = 0.1
-    name = "non_max_suppression_2"
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
-    max_output_size = np.array(1, dtype=np.int32)
+    # Input 2: Different iou_threshold
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
+    max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = 0.9
-    name = "non_max_suppression_3"
-
+    name = None
     input_dict = {
         "boxes": boxes,
         "scores": scores,
@@ -75,29 +42,57 @@ def tf_raw_ops_non_max_suppression_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
+    # Input 3: Larger max_output_size
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
+    max_output_size = np.array(5, dtype=np.int32)
+    iou_threshold = 0.5
+    name = None
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Overlapping boxes
+    boxes = np.array([[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.8, 0.7], dtype=np.float32)
+    max_output_size = np.array(3, dtype=np.int32)
+    iou_threshold = 0.5
+    name = None
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Non-overlapping boxes
+    boxes = np.array([[0, 0, 1, 1], [2, 2, 3, 3], [4, 4, 5, 5]], dtype=np.float32)
+    scores = np.array([0.9, 0.8, 0.7], dtype=np.float32)
+    max_output_size = np.array(3, dtype=np.int32)
+    iou_threshold = 0.5
+    name = None
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: One box
     boxes = np.array([[0, 0, 1, 1]], dtype=np.float32)
     scores = np.array([0.9], dtype=np.float32)
     max_output_size = np.array(1, dtype=np.int32)
     iou_threshold = 0.5
-    name = "non_max_suppression_4"
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Different box coordinates
-    boxes = np.array([[0.1, 0.2, 0.8, 0.9], [0.2, 0.3, 0.9, 1.0], [0.0, 0.1, 0.7, 0.8]], dtype=np.float32)
-    scores = np.array([0.8, 0.9, 0.7], dtype=np.float32)
-    max_output_size = np.array(2, dtype=np.int32)
-    iou_threshold = 0.6
     name = None
-
     input_dict = {
         "boxes": boxes,
         "scores": scores,
@@ -107,13 +102,12 @@ def tf_raw_ops_non_max_suppression_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7:  Small max_output_size
+    # Input 7: Zero max_output_size
     boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
     scores = np.array([0.9, 0.75], dtype=np.float32)
     max_output_size = np.array(0, dtype=np.int32)
     iou_threshold = 0.5
     name = None
-
     input_dict = {
         "boxes": boxes,
         "scores": scores,
@@ -123,13 +117,12 @@ def tf_raw_ops_non_max_suppression_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Boxes with same scores
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.9], dtype=np.float32)
+   # Input 8: Larger coordinates
+    boxes = np.array([[100, 100, 200, 200], [150, 150, 250, 250]], dtype=np.float32)
+    scores = np.array([0.9, 0.75], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = 0.5
     name = None
-
     input_dict = {
         "boxes": boxes,
         "scores": scores,
@@ -139,8 +132,23 @@ def tf_raw_ops_non_max_suppression_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: no overlap
-    boxes = np.array([[0, 0, 0.5, 0.5], [0.6, 0.6, 1, 1]], dtype=np.float32)
+    # Input 9: boxes with same values
+    boxes = np.array([[0, 0, 0, 0], [0, 0, 0, 0]], dtype=np.float32)
+    scores = np.array([0.9, 0.75], dtype=np.float32)
+    max_output_size = np.array(2, dtype=np.int32)
+    iou_threshold = 0.5
+    name = None
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Different values for boxes
+    boxes = np.array([[0, 0, 1, 1], [0.1, 0.1, 0.9, 0.9]], dtype=np.float32)
     scores = np.array([0.9, 0.8], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = 0.5
@@ -154,27 +162,11 @@ def tf_raw_ops_non_max_suppression_inputs():
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10: All boxes overlap
-    boxes = np.array([[0, 0, 1, 1], [0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]], dtype=np.float32)
-    scores = np.array([0.9, 0.8, 0.7], dtype=np.float32)
-    max_output_size = np.array(3, dtype=np.int32)
-    iou_threshold = 0.5
-    name = None
 
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-    "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.NonMaxSuppression"] = tf_raw_ops_non_max_suppression_inputs()
+generated_inputs["tf.raw_ops.NonMaxSuppression"] = tf_raw_ops_NonMaxSuppression_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

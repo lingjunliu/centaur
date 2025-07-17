@@ -10,8 +10,25 @@ import copy
 def tf_timestamp_inputs():
     list_of_inputs = []
 
-    input_dict_1 = {"name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict_1))
+    # Input 1: No name (None)
+    input_dict = {"name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: Simple name
+    input_dict = {"name": "timestamp_op"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Name with underscores
+    input_dict = {"name": "time_stamp_op"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Another simple name
+    input_dict = {"name": "my_time"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Empty string
+    input_dict = {"name": ""}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

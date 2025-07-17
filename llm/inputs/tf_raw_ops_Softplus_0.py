@@ -11,64 +11,54 @@ import copy
 def tf_raw_ops_softplus_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, 1D array
-    features = np.array([-1.0, 0.0, 1.0, 2.0], dtype=np.float32)
-    name = "softplus_1"
-    input_dict = {"features": features, "name": name}
+    # Input 1: Basic float32 tensor
+    features = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
+    input_dict = {"features": features.astype(np.float32), "name": "softplus_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64, 2D array
-    features = np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float64)
-    name = "softplus_2"
-    input_dict = {"features": features, "name": name}
+    # Input 2: float16 tensor
+    features = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float32)
+    input_dict = {"features": features.astype(np.float16), "name": "softplus_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: half, 3D array
-    features = np.array([[[0.5, 1.0], [1.5, 2.0]], [[2.5, 3.0], [3.5, 4.0]]], dtype=np.float16)
-    name = "softplus_3"
-    input_dict = {"features": features, "name": name}
+    # Input 3: half tensor
+    features = np.array([-0.5, 0.0, 0.5], dtype=np.float32)
+    input_dict = {"features": features.astype(np.float16), "name": "softplus_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: bfloat16, scalar
-    features = np.array(-2.0, dtype=np.float16)
-    name = "softplus_4"
-    input_dict = {"features": features, "name": name}
+    # Input 4: float64 tensor
+    features = np.array([-3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0], dtype=np.float64)
+    input_dict = {"features": features.astype(np.float64), "name": "softplus_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float32, all zeros
-    features = np.zeros((2, 3), dtype=np.float32)
-    name = "softplus_5"
-    input_dict = {"features": features, "name": name}
+    # Input 5: 2D float32 tensor
+    features = np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float32)
+    input_dict = {"features": features.astype(np.float32), "name": "softplus_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float32, large positive values
-    features = np.array([100.0, 1000.0, 10000.0], dtype=np.float32)
-    name = "softplus_6"
-    input_dict = {"features": features, "name": name}
+    # Input 6: 3D float32 tensor
+    features = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    input_dict = {"features": features.astype(np.float32), "name": "softplus_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float32, large negative values
-    features = np.array([-100.0, -1000.0, -10000.0], dtype=np.float32)
-    name = "softplus_7"
-    input_dict = {"features": features, "name": name}
+    # Input 7: Larger float32 values
+    features = np.array([-10.0, 10.0, 100.0], dtype=np.float32)
+    input_dict = {"features": features.astype(np.float32), "name": "softplus_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float32, mixed positive and negative
-    features = np.array([-5.0, -2.0, 0.0, 3.0, 7.0], dtype=np.float32)
-    name = "softplus_8"
-    input_dict = {"features": features, "name": name}
+    # Input 8: All negative float32 values
+    features = np.array([-1.0, -2.0, -3.0, -4.0], dtype=np.float32)
+    input_dict = {"features": features.astype(np.float32), "name": "softplus_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float64, 1D array
-    features = np.array([0.1, 0.5, 1.0, 5.0], dtype=np.float64)
-    name = "softplus_9"
-    input_dict = {"features": features, "name": name}
+    # Input 9: Mixed positive and negative float64, different name
+    features = np.array([-5.0, 0.0, 5.0], dtype=np.float64)
+    input_dict = {"features": features.astype(np.float64), "name": "different_name"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: bfloat16, 2D array
-    features = np.array([[-0.5, 1.5], [2.5, -3.5]], dtype=np.float16)
-    name = "softplus_10"
-    input_dict = {"features": features, "name": name}
+    # Input 10: Zero float32
+    features = np.array([0.0], dtype=np.float32)
+    input_dict = {"features": features.astype(np.float32), "name": "softplus_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

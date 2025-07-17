@@ -11,158 +11,108 @@ import copy
 def tf_raw_ops_StringSplitV2_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with space as separator
-    input_tensor = np.array(["hello world", "a b c"], dtype=np.string_)
-    sep_tensor = np.array(" ", dtype=np.string_)
-    maxsplit = -1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 1: Basic example with space as separator
+    input_val = np.array(["hello world", "a b c"], dtype=np.string_)
+    sep_val = np.array(" ", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different separator
-    input_tensor = np.array(["1,2,3", "4,5,6"], dtype=np.string_)
-    sep_tensor = np.array(",", dtype=np.string_)
-    maxsplit = -1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 2: Using a different separator
+    input_val = np.array(["1,2,3", "4,5,6"], dtype=np.string_)
+    sep_val = np.array(",", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Maxsplit > 0
-    input_tensor = np.array(["a b c d"], dtype=np.string_)
-    sep_tensor = np.array(" ", dtype=np.string_)
-    maxsplit = 2
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 3: Limiting the number of splits
+    input_val = np.array(["one two three four"], dtype=np.string_)
+    sep_val = np.array(" ", dtype=np.string_)
+    maxsplit_val = 2
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty separator
-    input_tensor = np.array(["hello world"], dtype=np.string_)
-    sep_tensor = np.array("", dtype=np.string_)
-    maxsplit = -1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 4: Empty strings
+    input_val = np.array([""], dtype=np.string_)
+    sep_val = np.array(" ", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Consecutive delimiters
-    input_tensor = np.array(["1<>2<><>3"], dtype=np.string_)
-    sep_tensor = np.array("<>", dtype=np.string_)
-    maxsplit = -1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 5: Multiple separators in a row
+    input_val = np.array(["1<>2<><>3"], dtype=np.string_)
+    sep_val = np.array("<>", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Input with leading/trailing whitespace, empty separator
-    input_tensor = np.array(["  hello world  "], dtype=np.string_)
-    sep_tensor = np.array("", dtype=np.string_)
-    maxsplit = -1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 6: No separator provided (whitespace separation)
+    input_val = np.array([" hello  world  "], dtype=np.string_)
+    sep_val = np.array("", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Input with multiple spaces, empty separator
-    input_tensor = np.array(["hello   world"], dtype=np.string_)
-    sep_tensor = np.array("", dtype=np.string_)
-    maxsplit = -1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 7: Different separator characters
+    input_val = np.array(["a-b-c-d"], dtype=np.string_)
+    sep_val = np.array("-", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Maxsplit 0
-    input_tensor = np.array(["a b c d"], dtype=np.string_)
-    sep_tensor = np.array(" ", dtype=np.string_)
-    maxsplit = 0
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 8:  maxsplit=0
+    input_val = np.array(["one two three"], dtype=np.string_)
+    sep_val = np.array(" ", dtype=np.string_)
+    maxsplit_val = 0
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Sep is a longer string
-    input_tensor = np.array(["applebananaorange"], dtype=np.string_)
-    sep_tensor = np.array("banana", dtype=np.string_)
-    maxsplit = -1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 9: A more complex example
+    input_val = np.array(["this is,a test,string"], dtype=np.string_)
+    sep_val = np.array(",", dtype=np.string_)
+    maxsplit_val = 1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty input string
-    input_tensor = np.array([""], dtype=np.string_)
-    sep_tensor = np.array(" ", dtype=np.string_)
-    maxsplit = -1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    # Input 10: Empty separator with leading/trailing whitespace
+    input_val = np.array(["  leading and trailing  "], dtype=np.string_)
+    sep_val = np.array("", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: Test with different maxsplit values
-    input_tensor = np.array(["one two three four"], dtype=np.string_)
-    sep_tensor = np.array(" ", dtype=np.string_)
-    maxsplit = 1
-    name = None
-
-    input_dict = {
-        "input": input_tensor,
-        "sep": sep_tensor,
-        "maxsplit": maxsplit,
-        "name": name
-    }
+    
+    # Input 11: Empty separator with no leading/trailing whitespace
+    input_val = np.array(["onetwothree"], dtype=np.string_)
+    sep_val = np.array("", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: Longer strings
+    input_val = np.array(["This is a very long string to test the split function."], dtype=np.string_)
+    sep_val = np.array(" ", dtype=np.string_)
+    maxsplit_val = -1
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 13: maxsplit > number of splits
+    input_val = np.array(["a b"], dtype=np.string_)
+    sep_val = np.array(" ", dtype=np.string_)
+    maxsplit_val = 5
+    name_val = None
+    input_dict = {"input": input_val, "sep": sep_val, "maxsplit": maxsplit_val, "name": name_val}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

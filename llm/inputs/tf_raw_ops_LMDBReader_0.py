@@ -12,82 +12,112 @@ def tf_raw_ops_lmdb_reader_inputs():
     list_of_inputs = []
 
     # Input 1
+    container = np.array(b"", dtype=np.dtype('S'))
+    shared_name = np.array(b"", dtype=np.dtype('S'))
+    name = np.array(b"", dtype=np.dtype('S'))
     input_dict = {
-        "container": "".encode('utf-8'),
-        "shared_name": "".encode('utf-8'),
-        "name": "".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
+    container = np.array(b"my_container", dtype=np.dtype('S'))
+    shared_name = np.array(b"my_shared_name", dtype=np.dtype('S'))
+    name = np.array(b"my_op_name", dtype=np.dtype('S'))
     input_dict = {
-        "container": "my_container".encode('utf-8'),
-        "shared_name": "my_shared_name".encode('utf-8'),
-        "name": "my_name".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
+    container = np.array(b"another_container", dtype=np.dtype('S'))
+    shared_name = np.array(b"", dtype=np.dtype('S'))
+    name = np.array(b"another_op_name", dtype=np.dtype('S'))
     input_dict = {
-        "container": "another_container".encode('utf-8'),
-        "shared_name": "".encode('utf-8'),
-        "name": "".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
+    container = np.array(b"", dtype=np.dtype('S'))
+    shared_name = np.array(b"yet_another_shared_name", dtype=np.dtype('S'))
+    name = np.array(b"", dtype=np.dtype('S'))
     input_dict = {
-        "container": "".encode('utf-8'),
-        "shared_name": "another_shared_name".encode('utf-8'),
-        "name": "".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
+    container = np.array(b"a_very_long_container_name", dtype=np.dtype('S'))
+    shared_name = np.array(b"a_very_long_shared_name", dtype=np.dtype('S'))
+    name = np.array(b"a_very_long_op_name", dtype=np.dtype('S'))
     input_dict = {
-        "container": "".encode('utf-8'),
-        "shared_name": "".encode('utf-8'),
-        "name": "another_name".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
+    container = np.array(b"container_6", dtype=np.dtype('S'))
+    shared_name = np.array(b"", dtype=np.dtype('S'))
+    name = np.array(b"", dtype=np.dtype('S'))
     input_dict = {
-        "container": "container_1".encode('utf-8'),
-        "shared_name": "shared_name_1".encode('utf-8'),
-        "name": "name_1".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
+    container = np.array(b"", dtype=np.dtype('S'))
+    shared_name = np.array(b"shared_name_7", dtype=np.dtype('S'))
+    name = np.array(b"name_7", dtype=np.dtype('S'))
     input_dict = {
-        "container": "container_2".encode('utf-8'),
-        "shared_name": "".encode('utf-8'),
-        "name": "name_2".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
+    container = np.array(b"container_8", dtype=np.dtype('S'))
+    shared_name = np.array(b"shared_name_8", dtype=np.dtype('S'))
+    name = np.array(b"", dtype=np.dtype('S'))
     input_dict = {
-        "container": "".encode('utf-8'),
-        "shared_name": "shared_name_2".encode('utf-8'),
-        "name": "name_3".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
+    container = np.array(b"9", dtype=np.dtype('S'))
+    shared_name = np.array(b"", dtype=np.dtype('S'))
+    name = np.array(b"9", dtype=np.dtype('S'))
     input_dict = {
-        "container": "container_3".encode('utf-8'),
-        "shared_name": "shared_name_3".encode('utf-8'),
-        "name": "".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 10
+    # Input 10
+    container = np.array(b"", dtype=np.dtype('S'))
+    shared_name = np.array(b"10", dtype=np.dtype('S'))
+    name = np.array(b"", dtype=np.dtype('S'))
     input_dict = {
-        "container": "very_long_container_name".encode('utf-8'),
-        "shared_name": "very_long_shared_name".encode('utf-8'),
-        "name": "very_long_name".encode('utf-8')
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

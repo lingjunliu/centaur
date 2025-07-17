@@ -11,55 +11,56 @@ import copy
 def tf_raw_ops_GuaranteeConst_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple float32 tensor
-    input_tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "float32_tensor"}
+    # Input 1: Simple 1D tensor
+    input_tensor = np.array([1, 2, 3], dtype=np.int32)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_1d"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Int32 tensor with negative values
-    input_tensor = np.array([-1, 0, 1, -2, 2], dtype=np.int32)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "int32_tensor"}
+    # Input 2: 2D tensor with float values
+    input_tensor = np.array([[1.0, 2.5], [3.2, 4.7]], dtype=np.float32)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_2d_float"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Bool tensor
-    input_tensor = np.array([True, False, True, True, False], dtype=np.bool_)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "bool_tensor"}
+    # Input 3: 3D tensor with complex values
+    input_tensor = np.array([[[1+1j, 2-2j], [3+0j, 4-1j]]], dtype=np.complex64)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_3d_complex"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Rank 2 float64 tensor
-    input_tensor = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float64)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "float64_tensor"}
+    # Input 4: Tensor with boolean values
+    input_tensor = np.array([True, False, True], dtype=np.bool_)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_bool"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Rank 3 int64 tensor
-    input_tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "int64_tensor"}
+    # Input 5: Tensor with string values
+    input_tensor = np.array(["hello", "world"], dtype=np.string_)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_string"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: String tensor
-    input_tensor = np.array(["hello", "world"])
-    input_dict = {"input": tf.convert_to_tensor(input_tensor, dtype=tf.string), "name": "string_tensor"}
+    # Input 6: Empty tensor
+    input_tensor = np.array([], dtype=np.int32)
+    input_dict = {"input": tf.constant(input_tensor, dtype=tf.int32, shape=(0,)), "name": "const_empty"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Complex64 tensor
-    input_tensor = np.array([1+1j, 2+2j], dtype=np.complex64)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "complex64_tensor"}
+    # Input 7: Tensor with negative values
+    input_tensor = np.array([-1, -2, -3], dtype=np.int32)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_negative"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Complex128 tensor
-    input_tensor = np.array([3+3j, 4+4j], dtype=np.complex128)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "complex128_tensor"}
+    # Input 8: Tensor with large values
+    input_tensor = np.array([2**15 - 1, 2**15 - 2], dtype=np.int32)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_large"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: UInt8 tensor
-    input_tensor = np.array([255, 0, 128], dtype=np.uint8)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "uint8_tensor"}
+    # Input 9: Tensor with zeros
+    input_tensor = np.array([0, 0, 0], dtype=np.int32)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_zeros"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Int16 tensor
-    input_tensor = np.array([-32768, 0, 32767], dtype=np.int16)
-    input_dict = {"input": tf.convert_to_tensor(input_tensor), "name": "int16_tensor"}
+    # Input 10: Higher rank tensor
+    input_tensor = np.random.rand(2,3,4).astype(np.float32)
+    input_dict = {"input": tf.constant(input_tensor), "name": "const_high_rank"}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

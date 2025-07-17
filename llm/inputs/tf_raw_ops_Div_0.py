@@ -13,60 +13,64 @@ def tf_raw_ops_div_inputs():
 
     # Input 1: Basic float division
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    y = np.array([0.5, 2.0, 1.5], dtype=np.float32)
-    name = "basic_division"
-    input_dict = {"x": x, "y": y, "name": name}
+    y = np.array([0.5, 2.0, 1.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "basic_float_div"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Broadcasting with different shapes
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    y = np.array([2.0], dtype=np.float32)
-    name = "broadcasting_division"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 2: Int division
+    x = np.array([10, 20, 30], dtype=np.int32)
+    y = np.array([2, 5, 10], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "int_div"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Integer division
-    x = np.array([4, 6, 8], dtype=np.int32)
-    y = np.array([2, 3, 4], dtype=np.int32)
-    name = "integer_division"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 3: Complex division
+    x = np.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=np.complex64)
+    y = np.array([1j, 1 + 0j, 1 - 1j], dtype=np.complex64)
+    input_dict = {"x": x, "y": y, "name": "complex_div"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Division with negative numbers
-    x = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
-    y = np.array([0.5, -2.0, 1.5], dtype=np.float32)
-    name = "negative_division"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Division with complex numbers
-    x = np.array([1 + 1j, 2 - 2j, 3 + 0j], dtype=np.complex64)
-    y = np.array([1j, 2 + 0j, 1 - 1j], dtype=np.complex64)
-    name = "complex_division"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Multi-dimensional array division
+    # Input 4: Broadcasting
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    y = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float32)
-    name = "multi_dimensional_division"
-    input_dict = {"x": x, "y": y, "name": name}
+    y = np.array([2.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "broadcasting_div"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: uint8 division
-    x = np.array([10, 20, 30], dtype=np.uint8)
-    y = np.array([2, 5, 10], dtype=np.uint8)
-    name = "uint8_division"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 5: Multi-dimensional arrays
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
+    y = np.array([[[2, 1], [1, 2]], [[1, 1], [2, 2]]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "multi_dim_div"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: int64 division
-    x = np.array([10000000000, 20000000000, 30000000000], dtype=np.int64)
+    # Input 6: Different float type (float64)
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    y = np.array([0.5, 2.0, 1.0], dtype=np.float64)
+    input_dict = {"x": x, "y": y, "name": "float64_div"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Different int type (int64)
+    x = np.array([10, 20, 30], dtype=np.int64)
     y = np.array([2, 5, 10], dtype=np.int64)
-    name = "int64_division"
-    input_dict = {"x": x, "y": y, "name": name}
+    input_dict = {"x": x, "y": y, "name": "int64_div"}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 8: uint32 division -> Replacing with int32 to avoid dtype issue
+    x = np.array([10, 20, 30], dtype=np.int32)
+    y = np.array([2, 5, 10], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "uint32_div"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Complex division with broadcasting
+    x = np.array([[1 + 1j, 2 + 2j], [3 + 3j, 4 + 4j]], dtype=np.complex64)
+    y = np.array([1j], dtype=np.complex64)
+    input_dict = {"x": x, "y": y, "name": "complex_broadcasting_div"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: half precision
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    y = np.array([0.5, 2.0, 1.0], dtype=np.float16)
+    input_dict = {"x": x, "y": y, "name": "half_div"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

@@ -13,64 +13,54 @@ def tf_raw_ops_sin_inputs():
 
     # Input 1: float32, scalar
     x = np.array(0.0, dtype=np.float32)
-    input_dict = {"x": x, "name": "sin_0"}
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, 1D array
-    x = np.array([-np.pi, -np.pi/2, 0, np.pi/2, np.pi], dtype=np.float32)
-    input_dict = {"x": x, "name": "sin_1"}
+    x = np.array([0.0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi], dtype=np.float32)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, 2D array
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict = {"x": x, "name": "sin_2"}
+    # Input 3: float64, 2D array
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float64, scalar
-    x = np.array(1.0, dtype=np.float64)
-    input_dict = {"x": x, "name": "sin_3"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: float64, 1D array
-    x = np.array([-1.0, 0.0, 1.0], dtype=np.float64)
-    input_dict = {"x": x, "name": "sin_4"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: float16, scalar
-    x = np.array(0.5, dtype=np.float16)
-    input_dict = {"x": x, "name": "sin_5"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: float16, 2D array
-    x = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float16)
-    input_dict = {"x": x, "name": "sin_6"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: float16, scalar
-    x = np.array(0.7, dtype=np.float16)
-    input_dict = {"x": x, "name": "sin_7"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: float16, 1D array
-    x = np.array([-0.5, 0.0, 0.5], dtype=np.float16)
-    input_dict = {"x": x, "name": "sin_8"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: complex64, scalar
-    x = np.array(1+1j, dtype=np.complex64)
-    input_dict = {"x": x, "name": "sin_9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: complex128, scalar
-    x = np.array(1+1j, dtype=np.complex128)
-    input_dict = {"x": x, "name": "sin_10"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: float32, 3D array
+    # Input 4: float32, 3D array
     x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "name": "sin_11"}
+    input_dict = {"x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: half, scalar
+    x = np.array(1.0, dtype=np.float16)
+    input_dict = {"x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: complex64, 1D array
+    x = np.array([1.0 + 1j, 2.0 - 2j], dtype=np.complex64)
+    input_dict = {"x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: complex128, 2D array
+    x = np.array([[1.0 + 1j, 2.0 - 2j], [3.0 + 3j, 4.0 - 4j]], dtype=np.complex128)
+    input_dict = {"x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: float32, negative values
+    x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    input_dict = {"x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: float32, large values
+    x = np.array([1000.0, 2000.0, 3000.0], dtype=np.float32)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 10: half, 2D array with negative numbers and zero
+    x = np.array([[-1.0, 0.0], [1.0, -2.0]], dtype=np.float16)
+    input_dict = {"x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

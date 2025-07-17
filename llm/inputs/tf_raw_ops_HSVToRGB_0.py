@@ -11,64 +11,54 @@ import copy
 def tf_raw_ops_HSVToRGB_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 2D input with float32
-    images = np.array([[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]], dtype=np.float32)
-    name = None
-    input_dict = {"images": images, "name": name}
+    # Input 1: Basic 3D float32 tensor
+    images = np.array([[[0.5, 0.6, 0.7]]], dtype=np.float32)
+    input_dict = {"images": images, "name": "hsv_to_rgb_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 3D input with float64
-    images = np.random.rand(2, 3, 3).astype(np.float64)
-    name = "hsv_to_rgb_1"
-    input_dict = {"images": images, "name": name}
+    # Input 2: 4D half tensor
+    images = np.array([[[[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]]], dtype=np.float16)
+    input_dict = {"images": images, "name": "hsv_to_rgb_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D input with half
-    images = np.array([0.7, 0.8, 0.9], dtype=np.float16)
-    name = "hsv_to_rgb_2"
-    input_dict = {"images": images, "name": name}
+    # Input 3: 2D float32 tensor (Replaced bfloat16 with float32)
+    images = np.array([[0.8, 0.9, 0.0]], dtype=np.float32)
+    input_dict = {"images": images, "name": "hsv_to_rgb_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 4D input with bfloat16
-    images = np.random.rand(1, 2, 3, 3).astype(tf.bfloat16.as_numpy_dtype)
-    name = "hsv_to_rgb_3"
-    input_dict = {"images": images, "name": name}
+    # Input 4: Larger 3D float64 tensor
+    images = np.array([[[0.2, 0.4, 0.6], [0.8, 1.0, 0.2]], [[0.4, 0.6, 0.8], [1.0, 0.2, 0.4]]], dtype=np.float64)
+    input_dict = {"images": images, "name": "hsv_to_rgb_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: All zeros with float32
-    images = np.zeros((2, 3, 3), dtype=np.float32)
-    name = "hsv_to_rgb_4"
-    input_dict = {"images": images, "name": name}
+    # Input 5: 3D float32 tensor with values outside [0, 1]
+    images = np.array([[[1.2, -0.3, 0.5]]], dtype=np.float32)
+    input_dict = {"images": images, "name": "hsv_to_rgb_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: All ones with float64
-    images = np.ones((1, 1, 3), dtype=np.float64)
-    name = "hsv_to_rgb_5"
-    input_dict = {"images": images, "name": name}
+    # Input 6: 3D float32 tensor
+    images = np.array([[[0.0, 0.0, 0.0]]], dtype=np.float32)
+    input_dict = {"images": images, "name": "hsv_to_rgb_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different values with half
-    images = np.array([[0.1, 0.5, 0.9], [0.3, 0.7, 0.2]], dtype=np.float16)
-    name = "hsv_to_rgb_6"
-    input_dict = {"images": images, "name": name}
+    # Input 7: 3D float32 tensor
+    images = np.array([[[1.0, 1.0, 1.0]]], dtype=np.float32)
+    input_dict = {"images": images, "name": "hsv_to_rgb_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: 5D input with bfloat16
-    images = np.random.rand(1, 2, 1, 3, 3).astype(tf.bfloat16.as_numpy_dtype)
-    name = "hsv_to_rgb_7"
-    input_dict = {"images": images, "name": name}
+    # Input 8: 3D float32 tensor with different hsv values
+    images = np.array([[[0.1, 0.5, 0.9]]], dtype=np.float32)
+    input_dict = {"images": images, "name": "hsv_to_rgb_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 9: Values close to 1 with float32
-    images = np.array([[0.99, 0.98, 0.97], [0.96, 0.95, 0.94]], dtype=np.float32)
-    name = "hsv_to_rgb_8"
-    input_dict = {"images": images, "name": name}
+    # Input 9: 5D float32 tensor
+    images = np.random.rand(2, 2, 2, 2, 3).astype(np.float32)
+    input_dict = {"images": images, "name": "hsv_to_rgb_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Another 3D array, float 32
-    images = np.random.rand(4, 5, 3).astype(np.float32)
-    name = "hsv_to_rgb_9"
-    input_dict = {"images": images, "name": name}
+    # Input 10: 4D float64 tensor
+    images = np.random.rand(2, 3, 4, 3).astype(np.float64)
+    input_dict = {"images": images, "name": "hsv_to_rgb_11"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

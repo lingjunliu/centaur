@@ -17,171 +17,108 @@ def tf_raw_ops_MapIncompleteSize_inputs():
     memory_limit = 0
     container = ""
     shared_name = ""
-    name = "map_incomplete_size_1"
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    name = None
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    dtypes = [tf.float32, tf.int64]
+    dtypes = [tf.float32]
     capacity = 10
     memory_limit = 1024
-    container = "my_container"
-    shared_name = "my_shared_name"
-    name = "map_incomplete_size_2"
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    container = ""
+    shared_name = ""
+    name = "my_op"
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     dtypes = [tf.string]
-    capacity = 100
-    memory_limit = 2048
-    container = "container3"
-    shared_name = "shared3"
+    capacity = 1
+    memory_limit = 1
+    container = ""
+    shared_name = ""
     name = None
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    dtypes = [tf.bool, tf.int8]
-    capacity = 1
-    memory_limit = 1
-    container = "c4"
+    dtypes = [tf.bool]
+    capacity = 100
+    memory_limit = 10000
+    container = ""
     shared_name = ""
-    name = "map_incomplete_size_4"
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    name = "op4"
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    dtypes = [tf.uint8, tf.int16, tf.float64]
+    dtypes = [tf.uint8]
     capacity = 5
     memory_limit = 512
     container = ""
-    shared_name = "shared5"
-    name = "map_incomplete_size_5"
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    shared_name = ""
+    name = None
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    dtypes = [tf.complex64]
-    capacity = 0
-    memory_limit = 0
-    container = "container6"
+    dtypes = [tf.int16]
+    capacity = 20
+    memory_limit = 2048
+    container = ""
     shared_name = ""
-    name = "map_incomplete_size_6"
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    name = "op6"
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    dtypes = [tf.resource, tf.variant]
-    capacity = 2
-    memory_limit = 200
-    container = "container7"
-    shared_name = "shared7"
-    name = "map_incomplete_size_7"
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    dtypes = [tf.bfloat16]
-    capacity = 128
-    memory_limit = 4096
+    dtypes = [tf.qint8]
+    capacity = 0
+    memory_limit = 0
     container = ""
-    shared_name = "shared_name_8"
+    shared_name = ""
     name = None
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    # Input 8
+    dtypes = [tf.quint8]
+    capacity = 1000
+    memory_limit = 1000000
+    container = ""
+    shared_name = ""
+    name = "my_large_op"
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    dtypes = [tf.uint32, tf.uint64]
-    capacity = 64
-    memory_limit = 2048
-    container = "container_9"
+    dtypes = [tf.resource]
+    capacity = 2
+    memory_limit = 128
+    container = ""
     shared_name = ""
-    name = "map_incomplete_size_9"
+    name = None
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    # Input 10
+    dtypes = [tf.variant]
+    capacity = 50
+    memory_limit = 50000
+    container = ""
+    shared_name = ""
+    name = "variant_op"
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10
-    dtypes = [tf.half]
-    capacity = 32
-    memory_limit = 1024
-    container = "container_10"
-    shared_name = "shared_10"
+    # Input 11
+    dtypes = [tf.int64]
+    capacity = 256
+    memory_limit = 262144
+    container = ""
+    shared_name = "shared_resource"
     name = None
-
-    input_dict = {
-        "dtypes": dtypes,
-        "capacity": capacity,
-        "memory_limit": memory_limit,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name
-    }
+    input_dict = {"dtypes": dtypes, "capacity": capacity, "memory_limit": memory_limit, "container": container, "shared_name": shared_name, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

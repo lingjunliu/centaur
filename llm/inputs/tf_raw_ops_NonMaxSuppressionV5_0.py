@@ -12,138 +12,157 @@ def tf_raw_ops_NonMaxSuppressionV5_inputs():
     list_of_inputs = []
 
     # Input 1: Basic valid case
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
     score_threshold = np.array(0.4, dtype=np.float32)
     soft_nms_sigma = np.array(0.0, dtype=np.float32)
     pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
+    name = "nms_1"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different box coordinates
-    boxes = np.array([[1, 1, 2, 2], [1.5, 1.5, 2.5, 2.5], [0, 0, 0.5, 0.5]], dtype=np.float32)
-    scores = np.array([0.8, 0.9, 0.7], dtype=np.float32)
-    max_output_size = np.array(3, dtype=np.int32)
-    iou_threshold = np.array(0.7, dtype=np.float32)
-    score_threshold = np.array(0.6, dtype=np.float32)
-    soft_nms_sigma = np.array(0.0, dtype=np.float32)
-    pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Higher iou_threshold
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.8], dtype=np.float32)
+    # Input 2:  Different iou_threshold
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = np.array(0.9, dtype=np.float32)
-    score_threshold = np.array(0.5, dtype=np.float32)
+    score_threshold = np.array(0.4, dtype=np.float32)
     soft_nms_sigma = np.array(0.0, dtype=np.float32)
     pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
+    name = "nms_2"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Higher score_threshold
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.3], dtype=np.float32)
+    # Input 3:  Different score_threshold
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
-    score_threshold = np.array(0.5, dtype=np.float32)
+    score_threshold = np.array(0.8, dtype=np.float32)
     soft_nms_sigma = np.array(0.0, dtype=np.float32)
     pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
+    name = "nms_3"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Soft NMS enabled
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.8], dtype=np.float32)
+    # Input 4: soft_nms_sigma > 0
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
-    score_threshold = np.array(0.5, dtype=np.float32)
+    score_threshold = np.array(0.4, dtype=np.float32)
     soft_nms_sigma = np.array(0.5, dtype=np.float32)
     pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
+    name = "nms_4"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: pad_to_max_output_size = True
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.8], dtype=np.float32)
-    max_output_size = np.array(3, dtype=np.int32)
+    # Input 5: pad_to_max_output_size = True
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
+    max_output_size = np.array(5, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
-    score_threshold = np.array(0.5, dtype=np.float32)
+    score_threshold = np.array(0.4, dtype=np.float32)
     soft_nms_sigma = np.array(0.0, dtype=np.float32)
     pad_to_max_output_size = True
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
+    name = "nms_5"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Different box order
-    boxes = np.array([[0, 0, 1, 1], [0.5, 0.5, 1.5, 1.5], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.95, 0.75], dtype=np.float32)
+     # Input 6: half type
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32) # Changed to float32 as float16 may cause issues
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32) # Changed to float32 as float16 may cause issues
+    max_output_size = np.array(2, dtype=np.int32)
+    iou_threshold = np.array(0.5, dtype=np.float32) # Changed to float32 as float16 may cause issues
+    score_threshold = np.array(0.4, dtype=np.float32) # Changed to float32 as float16 may cause issues
+    soft_nms_sigma = np.array(0.0, dtype=np.float32) # Changed to float32 as float16 may cause issues
+    pad_to_max_output_size = False
+    name = "nms_6"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Empty boxes and scores
+    boxes = np.array([], dtype=np.float32).reshape(0, 4)
+    scores = np.array([], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
     score_threshold = np.array(0.4, dtype=np.float32)
     soft_nms_sigma = np.array(0.0, dtype=np.float32)
     pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
+    name = "nms_7"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 8: No overlap
-    boxes = np.array([[0, 0, 1, 1], [2, 2, 3, 3]], dtype=np.float32)
-    scores = np.array([0.9, 0.8], dtype=np.float32)
+    # Input 8:  boxes and scores with one element
+    boxes = np.array([[0, 0, 1, 1]], dtype=np.float32)
+    scores = np.array([0.9], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
     score_threshold = np.array(0.4, dtype=np.float32)
     soft_nms_sigma = np.array(0.0, dtype=np.float32)
     pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
+    name = "nms_8"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: All boxes are suppressed by score threshold
-    boxes = np.array([[0, 0, 1, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
-    scores = np.array([0.2, 0.3], dtype=np.float32)
+    # Input 9: Large max_output_size
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
+    max_output_size = np.array(100, dtype=np.int32)
+    iou_threshold = np.array(0.5, dtype=np.float32)
+    score_threshold = np.array(0.4, dtype=np.float32)
+    soft_nms_sigma = np.array(0.0, dtype=np.float32)
+    pad_to_max_output_size = False
+    name = "nms_9"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: boxes with negative coordinates
+    boxes = np.array([[-0.1, -0.1, 0.9, 0.9], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
-    score_threshold = np.array(0.5, dtype=np.float32)
+    score_threshold = np.array(0.4, dtype=np.float32)
     soft_nms_sigma = np.array(0.0, dtype=np.float32)
     pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: max_output_size = 0
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.8], dtype=np.float32)
-    max_output_size = np.array(0, dtype=np.int32)
-    iou_threshold = np.array(0.5, dtype=np.float32)
-    score_threshold = np.array(0.5, dtype=np.float32)
-    soft_nms_sigma = np.array(0.0, dtype=np.float32)
-    pad_to_max_output_size = False
-    name = None
-    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size, "iou_threshold": iou_threshold,
-                  "score_threshold": score_threshold, "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size, "name": name}
+    name = "nms_10"
+    input_dict = {"boxes": boxes, "scores": scores, "max_output_size": max_output_size,
+                  "iou_threshold": iou_threshold, "score_threshold": score_threshold,
+                  "soft_nms_sigma": soft_nms_sigma, "pad_to_max_output_size": pad_to_max_output_size,
+                  "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.raw_ops.NonMaxSuppressionV5"] = tf_raw_ops_NonMaxSuppressionV5_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

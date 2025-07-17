@@ -11,99 +11,85 @@ import copy
 def tf_raw_ops_sparse_concat_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic valid case
-    indices = [np.array([[0, 0], [1, 2]], dtype=np.int64), np.array([[0, 1], [1, 0]], dtype=np.int64)]
-    values = [np.array([1, 2]), np.array([3, 4])]
-    shapes = [np.array([2, 3], dtype=np.int64), np.array([2, 3], dtype=np.int64)]
+    # Input 1: Basic case
+    indices1 = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values1 = np.array([1, 2], dtype=np.int32)
+    shape1 = np.array([2, 3], dtype=np.int64)
+    indices2 = np.array([[0, 1], [1, 0]], dtype=np.int64)
+    values2 = np.array([3, 4], dtype=np.int32)
+    shape2 = np.array([2, 3], dtype=np.int64)
     concat_dim = 1
-    name = "concat_example_1"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
+
+    input_dict = {
+        "indices": [indices1, indices2],
+        "values": [values1, values2],
+        "shapes": [shape1, shape2],
+        "concat_dim": concat_dim,
+        "name": "sparse_concat_1"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: concat_dim = 0
-    indices = [np.array([[0, 0], [0, 1]], dtype=np.int64), np.array([[0, 0], [0, 1]], dtype=np.int64)]
-    values = [np.array([1, 2]), np.array([3, 4])]
-    shapes = [np.array([1, 2], dtype=np.int64), np.array([1, 2], dtype=np.int64)]
+    # Input 2: Different shapes along concat_dim
+    indices1 = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    values1 = np.array([1, 2], dtype=np.float32)
+    shape1 = np.array([2, 3], dtype=np.int64)
+    indices2 = np.array([[0, 1], [1, 0]], dtype=np.int64)
+    values2 = np.array([3, 4], dtype=np.float32)
+    shape2 = np.array([2, 4], dtype=np.int64)
+    concat_dim = 1
+
+    input_dict = {
+        "indices": [indices1, indices2],
+        "values": [values1, values2],
+        "shapes": [shape1, shape2],
+        "concat_dim": concat_dim,
+        "name": "sparse_concat_2"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: concat_dim = 0
+    indices1 = np.array([[0, 0], [0, 2]], dtype=np.int64)
+    values1 = np.array([1, 2], dtype=np.int64)
+    shape1 = np.array([1, 3], dtype=np.int64)
+    indices2 = np.array([[0, 1], [0, 0]], dtype=np.int64)
+    values2 = np.array([3, 4], dtype=np.int64)
+    shape2 = np.array([1, 3], dtype=np.int64)
     concat_dim = 0
-    name = "concat_example_2"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
+
+    input_dict = {
+        "indices": [indices1, indices2],
+        "values": [values1, values2],
+        "shapes": [shape1, shape2],
+        "concat_dim": concat_dim,
+        "name": "sparse_concat_3"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: More tensors to concatenate
-    indices = [np.array([[0, 0]], dtype=np.int64), np.array([[0, 0]], dtype=np.int64), np.array([[0, 0]], dtype=np.int64)]
-    values = [np.array([1]), np.array([2]), np.array([3])]
-    shapes = [np.array([1, 1], dtype=np.int64), np.array([1, 1], dtype=np.int64), np.array([1, 1], dtype=np.int64)]
+    # Input 4: More SparseTensors
+    indices1 = np.array([[0, 0]], dtype=np.int64)
+    values1 = np.array([1], dtype=np.int32)
+    shape1 = np.array([2, 3], dtype=np.int64)
+    indices2 = np.array([[1, 1]], dtype=np.int64)
+    values2 = np.array([2], dtype=np.int32)
+    shape2 = np.array([2, 3], dtype=np.int64)
+
     concat_dim = 1
-    name = "concat_example_3"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different shapes along concat_dim
-    indices = [np.array([[0, 0]], dtype=np.int64), np.array([[0, 0]], dtype=np.int64)]
-    values = [np.array([1]), np.array([2])]
-    shapes = [np.array([1, 2], dtype=np.int64), np.array([1, 3], dtype=np.int64)]
-    concat_dim = 1
-    name = "concat_example_4"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 5: Negative concat_dim (equivalent to -rank)
-    indices = [np.array([[0, 0], [1, 2]], dtype=np.int64), np.array([[0, 1], [1, 0]], dtype=np.int64)]
-    values = [np.array([1, 2]), np.array([3, 4])]
-    shapes = [np.array([2, 3], dtype=np.int64), np.array([2, 3], dtype=np.int64)]
-    concat_dim = -1
-    name = "concat_example_5"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: float32 values
-    indices = [np.array([[0, 0]], dtype=np.int64), np.array([[0, 0]], dtype=np.int64)]
-    values = [np.array([1.0], dtype=np.float32), np.array([2.0], dtype=np.float32)]
-    shapes = [np.array([1, 1], dtype=np.int64), np.array([1, 1], dtype=np.int64)]
-    concat_dim = 1
-    name = "concat_example_6"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: int64 values
-    indices = [np.array([[0, 0]], dtype=np.int64), np.array([[0, 0]], dtype=np.int64)]
-    values = [np.array([1], dtype=np.int64), np.array([2], dtype=np.int64)]
-    shapes = [np.array([1, 1], dtype=np.int64), np.array([1, 1], dtype=np.int64)]
-    concat_dim = 1
-    name = "concat_example_7"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: bool values
-    indices = [np.array([[0, 0]], dtype=np.int64), np.array([[0, 0]], dtype=np.int64)]
-    values = [np.array([True], dtype=np.bool_), np.array([False], dtype=np.bool_)]
-    shapes = [np.array([1, 1], dtype=np.int64), np.array([1, 1], dtype=np.int64)]
-    concat_dim = 1
-    name = "concat_example_8"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: string values
-    indices = [np.array([[0, 0]], dtype=np.int64), np.array([[0, 0]], dtype=np.int64)]
-    values = [np.array(["a"]), np.array(["b"])]
-    shapes = [np.array([1, 1], dtype=np.int64), np.array([1, 1], dtype=np.int64)]
-    concat_dim = 1
-    name = "concat_example_9"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: int32 values
-    indices = [np.array([[0, 0]], dtype=np.int64), np.array([[0, 0]], dtype=np.int64)]
-    values = [np.array([1], dtype=np.int32), np.array([2], dtype=np.int32)]
-    shapes = [np.array([1, 1], dtype=np.int64), np.array([1, 1], dtype=np.int64)]
-    concat_dim = 1
-    name = "concat_example_10"
-    input_dict = {'indices': indices, 'values': values, 'shapes': shapes, 'concat_dim': concat_dim, 'name': name}
+    input_dict = {
+        "indices": [indices1, indices2],
+        "values": [values1, values2],
+        "shapes": [shape1, shape2],
+        "concat_dim": concat_dim,
+        "name": "sparse_concat_4"
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
+def check_valid(api, generated_inputs, lib="tf", suffix=0):
+    pass
+
 generated_inputs["tf.raw_ops.SparseConcat"] = tf_raw_ops_sparse_concat_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

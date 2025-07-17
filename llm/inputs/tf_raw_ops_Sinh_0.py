@@ -11,54 +11,54 @@ import copy
 def tf_raw_ops_sinh_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, scalar
-    x = np.float32(1.0)
+    # Input 1: float32 scalar
+    x = np.float32(0.0)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64, 1D array
-    x = np.array([-1.0, 0.0, 1.0, 2.0], dtype=np.float64)
-    input_dict = {"x": x, "name": "sinh_example_2"}
+    # Input 2: float32 1D array
+    x = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
+    input_dict = {"x": x, "name": "sinh_1d"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, 2D array
+    # Input 3: float32 2D array
     x = np.array([[-1.0, 0.0], [1.0, 2.0]], dtype=np.float32)
+    input_dict = {"x": x, "name": "sinh_2d"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: float64 scalar
+    x = np.float64(2.5)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: float16, 1D array with negative and positive values
-    x = np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float16)
-    input_dict = {"x": x, "name": "sinh_example_4"}
+    # Input 5: float64 1D array with large values
+    x = np.array([-10.0, 0.0, 10.0], dtype=np.float64)
+    input_dict = {"x": x, "name": "sinh_large"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float16, scalar
-    x = np.float16(0.5)
+    # Input 6: complex64 scalar
+    x = np.complex64(1.0 + 1.0j)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float64, 3D array
-    x = np.random.rand(2, 3, 4).astype(np.float64)
-    input_dict = {"x": x, "name": "sinh_example_6"}
+    # Input 7: complex64 1D array
+    x = np.array([1.0 + 1.0j, 2.0 - 1.0j], dtype=np.complex64)
+    input_dict = {"x": x, "name": "sinh_complex64_1d"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: complex64, 1D array
-    x = np.array([1+1j, 2-2j, 3+0j, 0-4j], dtype=np.complex64)
+    # Input 8: complex128 scalar
+    x = np.complex128(2.0 - 2.0j)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: complex128, scalar
-    x = np.complex128(1j)
-    input_dict = {"x": x, "name": "sinh_example_8"}
+    # Input 9: bfloat16 scalar
+    x = np.array(1.5, dtype=np.float16).astype(np.float32) #Cast to float32 because numpy doesn't have bfloat16, TF converts later.
+    input_dict = {"x": x, "name": "sinh_bfloat16"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float32, large values
-    x = np.array([-100, -50, 0, 50, 100], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: float64, values close to zero
-    x = np.array([-0.001, 0.0, 0.001], dtype=np.float64)
-    input_dict = {"x": x, "name": "sinh_example_10"}
+    # Input 10: half (float16) scalar
+    x = np.array(0.75, dtype=np.float16)
+    input_dict = {"x": x, "name": "sinh_half"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

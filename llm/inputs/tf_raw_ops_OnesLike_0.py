@@ -8,73 +8,63 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_ones_like_inputs():
+def tf_raw_ops_OnesLike_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, 1D
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2: int32, 2D
-    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    input_dict = {"x": x, "name": "my_ones"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: bool, 3D
-    x = np.array([[[True, False], [False, True]], [[True, True], [False, False]]], dtype=np.bool_)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: complex64, 1D
-    x = np.array([1+1j, 2+2j, 3+3j], dtype=np.complex64)
-    input_dict = {"x": x, "name": "complex_ones"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: int64, 2D with negative values
-    x = np.array([[-1, 2], [-3, 4]], dtype=np.int64)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: uint8, 3D
-    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint8)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: float64, empty array
-    x = np.array([], dtype=np.float64)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: bfloat16, 2D
+    # Input 1: half
     x = np.array([[1, 2], [3, 4]], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
+    input_dict = {"x": tf.constant(x, dtype=tf.float16).numpy(), "name": "ones_like_half_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: uint32, 1D
-    x = np.array([1, 2, 3], dtype=np.uint32)
-    input_dict = {"x": x, "name": "uint32_ones"}
+    # Input 2: float32
+    x = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float32)
+    input_dict = {"x": tf.constant(x, dtype=tf.float32).numpy(), "name": "ones_like_float32_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: complex128, 2D
-    x = np.array([[1+1j, 2+2j], [3+3j, 4+4j]], dtype=np.complex128)
-    input_dict = {"x": x, "name": None}
+    # Input 3: float64
+    x = np.array([[1.1, 2.2], [3.3, 4.4]], dtype=np.float64)
+    input_dict = {"x": tf.constant(x, dtype=tf.float64).numpy(), "name": "ones_like_float64_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11: int8, 2D with different range
-    x = np.array([[-128, 127], [0, 1]], dtype=np.int8)
-    input_dict = {"x": x, "name": None}
+    # Input 4: int8
+    x = np.array([[-1, 2], [3, -4]], dtype=np.int8)
+    input_dict = {"x": tf.constant(x, dtype=tf.int8).numpy(), "name": "ones_like_int8_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: uint16, 4D
-    x = np.array([[[[1, 2], [3, 4]], [[5, 6], [7, 8]]], [[[9, 10], [11, 12]], [[13, 14], [15, 16]]]], dtype=np.uint16)
-    input_dict = {"x": x, "name": None}
+
+    # Input 5: uint8
+    x = np.array([[1, 2], [3, 4]], dtype=np.uint8)
+    input_dict = {"x": tf.constant(x, dtype=tf.uint8).numpy(), "name": "ones_like_uint8_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: int32, 3D
+    x = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    input_dict = {"x": tf.constant(x, dtype=tf.int32).numpy(), "name": "ones_like_int32_2"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: uint32
+    x = np.array([[1, 2], [3, 4]], dtype=np.uint32)
+    input_dict = {"x": tf.constant(x, dtype=tf.uint32).numpy(), "name": "ones_like_uint32_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: int64, 1D
+    x = np.array([1, 2, 3, 4], dtype=np.int64)
+    input_dict = {"x": tf.constant(x, dtype=tf.int64).numpy(), "name": "ones_like_int64_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: uint64
+    x = np.array([[1, 2], [3, 4]], dtype=np.uint64)
+    input_dict = {"x": tf.constant(x, dtype=tf.uint64).numpy(), "name": "ones_like_uint64_1"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: bool
+    x = np.array([[True, False], [False, True]], dtype=np.bool_)
+    input_dict = {"x": tf.constant(x, dtype=tf.bool).numpy(), "name": "ones_like_bool_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.OnesLike"] = tf_raw_ops_ones_like_inputs()
+generated_inputs["tf.raw_ops.OnesLike"] = tf_raw_ops_OnesLike_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

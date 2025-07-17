@@ -11,55 +11,69 @@ import copy
 def tf_raw_ops_string_to_number_inputs():
     list_of_inputs = []
 
-    # Input 1: float32
-    string_tensor = tf.constant(["1.2", "3.4", "5.6"], dtype=tf.string)
+    # Input 1: float32, simple case
+    string_tensor = np.array(["1.0", "2.0", "3.0"], dtype="S3")
     out_type = tf.float32
-    name = "float32_conversion"
+    name = "float_conversion"
     input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: int32
-    string_tensor = tf.constant(["1", "2", "3"], dtype=tf.string)
+    string_tensor = np.array(["1", "2", "3"], dtype="S1")
     out_type = tf.int32
-    name = "int32_conversion"
+    name = "int_conversion"
     input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: float64
-    string_tensor = tf.constant(["1.23456789", "9.87654321"], dtype=tf.string)
+    string_tensor = np.array(["1.1", "2.2", "3.3"], dtype="S3")
     out_type = tf.float64
-    name = "float64_conversion"
+    name = "double_conversion"
     input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4: int64
-    string_tensor = tf.constant(["1234567890", "9876543210"], dtype=tf.string)
+    string_tensor = np.array(["-1", "2", "3"], dtype="S2")
     out_type = tf.int64
     name = "int64_conversion"
     input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: uint32
-    string_tensor = tf.constant(["1000", "2000", "3000"], dtype=tf.string)
+    string_tensor = np.array(["1", "2", "3"], dtype="S1")
     out_type = tf.uint32
     name = "uint32_conversion"
     input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6: uint64
-    string_tensor = tf.constant(["4294967296", "8589934592"], dtype=tf.string)
+    string_tensor = np.array(["1", "2", "3"], dtype="S1")
     out_type = tf.uint64
     name = "uint64_conversion"
     input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: 2D tensor, float32
-    string_tensor = tf.constant([["1.1", "2.2"], ["3.3", "4.4"]], dtype=tf.string)
+    # Input 7: float32, with negative values
+    string_tensor = np.array(["-1.0", "2.0", "-3.0"], dtype="S4")
     out_type = tf.float32
-    name = "2d_float32"
+    name = "float_conversion_negative"
     input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 8: 2D array, int32
+    string_tensor = np.array([["1", "2"], ["3", "4"]], dtype="S1")
+    out_type = tf.int32
+    name = "int_conversion_2d"
+    input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: float32, with zero
+    string_tensor = np.array(["0.0", "2.0", "3.0"], dtype="S3")
+    out_type = tf.float32
+    name = "float_conversion_zero"
+    input_dict = {"string_tensor": string_tensor, "out_type": out_type, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

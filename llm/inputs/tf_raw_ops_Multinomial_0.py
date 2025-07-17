@@ -18,116 +18,100 @@ def tf_raw_ops_multinomial_inputs():
     seed2 = 456
     output_dtype = tf.int64
     name = "multinomial_1"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     logits = np.array([[0.1, 0.2, 0.7], [0.5, 0.3, 0.2]], dtype=np.float64)
     num_samples = np.array(5, dtype=np.int32)
-    seed = 0
-    seed2 = 0
+    seed = 1
+    seed2 = 2
     output_dtype = tf.int32
     name = "multinomial_2"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    logits = np.array([[-1.0, 0.0, 1.0], [2.0, 1.0, 0.0]], dtype=np.float32)
-    num_samples = np.array(1, dtype=np.int32)
+    logits = np.array([[-1.0, -2.0, -3.0], [-4.0, -5.0, -6.0]], dtype=np.float32)
+    num_samples = np.array(3, dtype=np.int32)
     seed = 789
     seed2 = 101
     output_dtype = tf.int64
     name = "multinomial_3"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    logits = np.array([[10, 20, 30]], dtype=np.int32)
-    num_samples = np.array(3, dtype=np.int32)
-    seed = 0
-    seed2 = 1
+    logits = np.array([[10.0, 5.0, 1.0]], dtype=np.float32)
+    num_samples = np.array(10, dtype=np.int32)
+    seed = 112
+    seed2 = 131
     output_dtype = tf.int32
     name = "multinomial_4"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    logits = np.array([[0.9, 0.05, 0.05]], dtype=np.float32)
-    num_samples = np.array(10, dtype=np.int32)
-    seed = 1
-    seed2 = 0
+    logits = np.array([[0.8, 0.1, 0.1], [0.2, 0.7, 0.1], [0.1, 0.2, 0.7]], dtype=np.float64)
+    num_samples = np.array(1, dtype=np.int32)
+    seed = 3
+    seed2 = 4
     output_dtype = tf.int64
     name = "multinomial_5"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    logits = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
+    logits = np.array([[1.0, 1.0, 1.0, 1.0]], dtype=np.float32)
     num_samples = np.array(4, dtype=np.int32)
-    seed = 10
-    seed2 = 20
+    seed = 456
+    seed2 = 789
     output_dtype = tf.int32
-    name = None
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    name = "multinomial_6"
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    logits = np.array([[1.5, 2.5, 3.5]], dtype=np.float64)
-    num_samples = np.array(6, dtype=np.int32)
-    seed = 25
-    seed2 = 35
+    logits = np.array([[0.0, 0.0, 0.0]], dtype=np.float64)
+    num_samples = np.array(7, dtype=np.int32)
+    seed = 5
+    seed2 = 6
     output_dtype = tf.int64
     name = "multinomial_7"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8
-    logits = np.array([[5, 5, 5]], dtype=np.int64)
-    num_samples = np.array(7, dtype=np.int32)
-    seed = 40
-    seed2 = 50
+   # Input 8
+    logits = np.array([[1.0, 2.0, 3.0, 4.0, 5.0]], dtype=np.float32)
+    num_samples = np.array(3, dtype=np.int32)
+    seed = 131
+    seed2 = 141
     output_dtype = tf.int32
     name = "multinomial_8"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9
-    logits = np.array([[0.0, 0.0, 0.0]], dtype=np.float32)
-    num_samples = np.array(8, dtype=np.int32)
-    seed = 55
-    seed2 = 65
+   # Input 9
+    logits = np.array([[0.25, 0.25, 0.25, 0.25]], dtype=np.float64)
+    num_samples = np.array(6, dtype=np.int32)
+    seed = 7
+    seed2 = 8
     output_dtype = tf.int64
     name = "multinomial_9"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    logits = np.array([[0.1, 0.8, 0.1]], dtype=np.float32)
-    num_samples = np.array(9, dtype=np.int32)
-    seed = 70
-    seed2 = 80
+    logits = np.array([[0.9, 0.05, 0.05], [0.05, 0.9, 0.05], [0.05, 0.05, 0.9]], dtype=np.float32)
+    num_samples = np.array(2, dtype=np.int32)
+    seed = 171
+    seed2 = 181
     output_dtype = tf.int32
     name = "multinomial_10"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
+    input_dict = {"seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name, "logits": logits, "num_samples": num_samples}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 11
-    logits = np.array([[1,2], [3,4]], dtype=np.int32)
-    num_samples = np.array(2, dtype=np.int32)
-    seed = 1
-    seed2 = 2
-    output_dtype = tf.int64
-    name = "multinomial_11"
-    input_dict = {"logits": logits, "num_samples": num_samples, "seed": seed, "seed2": seed2, "output_dtype": output_dtype, "name": name}
-    list_of_inputs.append(input_dict)
-
-    final_list = []
-    for input_dict in list_of_inputs:
-        final_input_dict = {}
-        final_input_dict["args"] = []
-        final_input_dict["kwargs"] = input_dict
-        final_list.append(final_input_dict)
-    return final_list
+    return list_of_inputs
 
 generated_inputs = {}
 generated_inputs["tf.raw_ops.Multinomial"] = tf_raw_ops_multinomial_inputs()

@@ -12,12 +12,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs = []
 
     # Input 1
-    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    indices = np.array([0, 1, 2, 3], dtype=np.int32)
-    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
-    num_segments = np.array(2, dtype=np.int32)
+    data = np.array([1, 2, 3, 4], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int32)
+    segment_ids = np.array([0, 0], dtype=np.int32)
+    num_segments = np.array(3, dtype=np.int32)
     sparse_gradient = False
-    name = "test_1"
+    name = "test1"
 
     input_dict = {
         "data": data,
@@ -30,12 +30,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    data = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.float32)
-    indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 0, 1], dtype=np.int32)
+    data = np.array([[1, 2, 3, 4], [-1, -2, -3, -4], [5, 6, 7, 8]], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int32)
+    segment_ids = np.array([0, 0], dtype=np.int32)
     num_segments = np.array(3, dtype=np.int32)
     sparse_gradient = True
-    name = "test_2"
+    name = "test2"
 
     input_dict = {
         "data": data,
@@ -48,12 +48,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    data = np.array([1, 2, 3, 4, 5], dtype=np.int32)
-    indices = np.array([0, 2, 4], dtype=np.int32)
-    segment_ids = np.array([0, 1, 2], dtype=np.int32)
+    data = np.array([[1, 2, 3, 4], [-1, -2, -3, -4], [5, 6, 7, 8]], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int32)
+    segment_ids = np.array([0, 2], dtype=np.int32)
     num_segments = np.array(4, dtype=np.int32)
     sparse_gradient = False
-    name = "test_3"
+    name = "test3"
 
     input_dict = {
         "data": data,
@@ -66,12 +66,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    data = np.array([-1.0, -2.0, -3.0, -4.0], dtype=np.float32)
-    indices = np.array([0, 1, 2, 3], dtype=np.int32)
-    segment_ids = np.array([0, 0, 1, 1], dtype=np.int32)
+    data = np.array([1, 2, 3, 4, 5, 6], dtype=np.int32)
+    indices = np.array([0, 2, 4], dtype=np.int32)
+    segment_ids = np.array([0, 1, 1], dtype=np.int32)
     num_segments = np.array(2, dtype=np.int32)
-    sparse_gradient = False
-    name = "test_4"
+    sparse_gradient = True
+    name = "test4"
 
     input_dict = {
         "data": data,
@@ -84,12 +84,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    data = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.float64)
-    indices = np.array([0, 1], dtype=np.int64)
-    segment_ids = np.array([0, 2], dtype=np.int64)
-    num_segments = np.array(4, dtype=np.int64)
-    sparse_gradient = True
-    name = "test_5"
+    data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float64)
+    indices = np.array([0, 1, 2], dtype=np.int64)
+    segment_ids = np.array([0, 0, 1], dtype=np.int64)
+    num_segments = np.array(3, dtype=np.int64)
+    sparse_gradient = False
+    name = "test5"
 
     input_dict = {
         "data": data,
@@ -102,12 +102,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    data = np.array([1, 2, 3, 4, 5], dtype=np.int64)
-    indices = np.array([0, 2, 4], dtype=np.int64)
-    segment_ids = np.array([0, 1, 2], dtype=np.int64)
-    num_segments = np.array(4, dtype=np.int64)
+    data = np.array([1, 2, 3, 4, 5, 6], dtype=np.uint8)
+    indices = np.array([0, 2, 4], dtype=np.int32)
+    segment_ids = np.array([0, 1, 1], dtype=np.int32)
+    num_segments = np.array(2, dtype=np.int32)
     sparse_gradient = False
-    name = "test_6"
+    name = "test6"
 
     input_dict = {
         "data": data,
@@ -120,30 +120,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    data = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 0, 0], dtype=np.int32)
-    num_segments = np.array(1, dtype=np.int32)
-    sparse_gradient = False
-    name = "test_7"
-
-    input_dict = {
-        "data": data,
-        "indices": indices,
-        "segment_ids": segment_ids,
-        "num_segments": num_segments,
-        "sparse_gradient": sparse_gradient,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 8
-    data = np.array([1, 2, 3, 4, 5], dtype=np.int32)
-    indices = np.array([0, 2, 4], dtype=np.int32)
-    segment_ids = np.array([0, 1, 2], dtype=np.int32)
-    num_segments = np.array(5, dtype=np.int32)
-    sparse_gradient = False
-    name = "test_8"
+    data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int64)
+    indices = np.array([0, 1, 2], dtype=np.int64)
+    segment_ids = np.array([0, 0, 1], dtype=np.int64)
+    num_segments = np.array(3, dtype=np.int64)
+    sparse_gradient = True
+    name = "test7"
 
     input_dict = {
         "data": data,
@@ -156,12 +138,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    data = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
-    indices = np.array([0, 1, 2], dtype=np.int32)
-    segment_ids = np.array([0, 0, 1], dtype=np.int32)
-    num_segments = np.array(3, dtype=np.int32)
+    data = np.array([1, 2, 3, 4], dtype=np.float32)
+    indices = np.array([0, 1], dtype=np.int64)
+    segment_ids = np.array([0, 0], dtype=np.int64)
+    num_segments = np.array(3, dtype=np.int64)
     sparse_gradient = False
-    name = "test_9"
+    name = "test9"
 
     input_dict = {
         "data": data,
@@ -174,12 +156,12 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    data = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0], dtype=np.float32)
-    indices = np.array([0, 2, 4], dtype=np.int32)
-    segment_ids = np.array([0, 1, 1], dtype=np.int32)
+    data = np.array([1, 2, 3, 4], dtype=np.int16)
+    indices = np.array([0, 1], dtype=np.int32)
+    segment_ids = np.array([0, 0], dtype=np.int32)
     num_segments = np.array(3, dtype=np.int32)
-    sparse_gradient = False
-    name = "test_10"
+    sparse_gradient = True
+    name = "test10"
 
     input_dict = {
         "data": data,
@@ -194,13 +176,7 @@ def tf_raw_ops_SparseSegmentSumWithNumSegments_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_SparseSegmentSumWithNumSegments_inputs()
-generated_inputs["tf.raw_ops.SparseSegmentSumWithNumSegments"] = []
-for input_dict in inputs:
-    generated_inputs["tf.raw_ops.SparseSegmentSumWithNumSegments"].append({
-        "args": [],
-        "kwargs": {k:v for k, v in input_dict.items()}
-    })
+generated_inputs["tf.raw_ops.SparseSegmentSumWithNumSegments"] = tf_raw_ops_SparseSegmentSumWithNumSegments_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

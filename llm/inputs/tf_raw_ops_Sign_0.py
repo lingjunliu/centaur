@@ -11,71 +11,56 @@ import copy
 def tf_raw_ops_sign_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, positive values
-    x = np.array([1.0, 2.5, 3.0], dtype=np.float32)
+    # Input 1: float32, scalar
+    x = np.float32(-5.0)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float32, negative values
-    x = np.array([-1.0, -2.5, -3.0], dtype=np.float32)
+    # Input 2: float32, 1D array
+    x = np.array([0.0, 2.0, -3.0], dtype=np.float32)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float32, mixed values
-    x = np.array([-1.0, 0.0, 3.0], dtype=np.float32)
+    # Input 3: float32, 2D array
+    x = np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float32)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: int32, positive values
-    x = np.array([1, 2, 3], dtype=np.int32)
+    # Input 4: int32, 1D array
+    x = np.array([0, 2, -3], dtype=np.int32)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: int32, negative values
-    x = np.array([-1, -2, -3], dtype=np.int32)
+    # Input 5: int64, scalar
+    x = np.int64(10)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: int32, mixed values
-    x = np.array([-1, 0, 3], dtype=np.int32)
+    # Input 6: complex64, 1D array
+    x = np.array([1 + 1j, -1 - 1j, 0 + 0j], dtype=np.complex64)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float64, array with shape (2, 2)
-    x = np.array([[1.0, -2.0], [3.0, -4.0]], dtype=np.float64)
+    # Input 7: float64, 3D array
+    x = np.random.randn(2, 3, 4).astype(np.float64)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: complex64
-    x = np.array([1 + 1j, -2 - 2j, 3 - 3j], dtype=np.complex64)
+    # Input 8: int16, 2D array with zeros
+    x = np.zeros((5, 5), dtype=np.int16)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: complex128, zero value
-    x = np.array([0 + 0j], dtype=np.complex128)
+    # Input 9: half, 1D array
+    x = np.array([-1.0, 0.0, 1.0], dtype=np.float16)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: half
-    x = np.array([1.0, -1.0, 0.0], dtype=np.float16)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: int8
-    x = np.array([1, -1, 0], dtype=np.int8)
+    # Input 10: complex128, 2D array
+    x = np.array([[1 + 2j, -2 - 1j], [0j, 3 - 4j]], dtype=np.complex128)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 12: int16
-    x = np.array([1, -1, 0], dtype=np.int16)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: int64
-    x = np.array([1, -1, 0], dtype=np.int64)
-    input_dict = {"x": x, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     return list_of_inputs
 
 generated_inputs = {}

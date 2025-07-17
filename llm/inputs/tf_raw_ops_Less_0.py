@@ -14,73 +14,62 @@ def tf_raw_ops_less_inputs():
     # Input 1: Basic integers
     x = np.array([1, 2, 3], dtype=np.int32)
     y = np.array([2, 2, 2], dtype=np.int32)
-    name = "less_basic_int"
-    input_dict = {"x": x, "y": y, "name": name}
+    input_dict = {"x": x, "y": y, "name": "less_int"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Floats with broadcasting
+    # Input 2: Basic floats
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "less_float"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Broadcasting with integers
+    x = np.array([1, 2, 3], dtype=np.int32)
+    y = np.array([2], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "less_int_broadcast"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Broadcasting with floats
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     y = np.array([2.0], dtype=np.float32)
-    name = "less_float_broadcast"
-    input_dict = {"x": x, "y": y, "name": name}
+    input_dict = {"x": x, "y": y, "name": "less_float_broadcast"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Negative integers
+    # Input 5: Negative integers
     x = np.array([-1, -2, -3], dtype=np.int32)
-    y = np.array([0, -1, -2], dtype=np.int32)
-    name = "less_negative_int"
-    input_dict = {"x": x, "y": y, "name": name}
+    y = np.array([-2, -2, -2], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "less_int_negative"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D array of integers
+    # Input 6: Negative floats
+    x = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
+    y = np.array([-2.0, -1.0, -4.0], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "less_float_negative"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Multi-dimensional integers
     x = np.array([[1, 2], [3, 4]], dtype=np.int32)
-    y = np.array([[2, 3], [4, 5]], dtype=np.int32)
-    name = "less_2d_int"
-    input_dict = {"x": x, "y": y, "name": name}
+    y = np.array([[2, 1], [4, 3]], dtype=np.int32)
+    input_dict = {"x": x, "y": y, "name": "less_int_multi"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D array of floats
+    # Input 8: Multi-dimensional floats
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    y = np.array([[0.5, 2.5], [3.5, 5.0]], dtype=np.float32)
-    name = "less_2d_float"
-    input_dict = {"x": x, "y": y, "name": name}
+    y = np.array([[2.0, 1.0], [4.0, 3.0]], dtype=np.float32)
+    input_dict = {"x": x, "y": y, "name": "less_float_multi"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 6: Different shapes with broadcasting (int64)
-    x = np.array([[1, 2, 3]], dtype=np.int64)
-    y = np.array([2], dtype=np.int64)
-    name = "less_diff_shape_int64"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 9: Different integer types
+    x = np.array([1, 2, 3], dtype=np.int64)
+    y = np.array([2, 1, 4], dtype=np.int64)
+    input_dict = {"x": x, "y": y, "name": "less_int64"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float32 with name
-    x = np.array([1.5, 2.5, 3.5], dtype=np.float32)
-    y = np.array([2.0, 3.0, 2.0], dtype=np.float32)
-    name = "test_less_with_name"
-    input_dict = {"x": x, "y": y, "name": name}
+    # Input 10: Different float types
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    y = np.array([2.0, 1.0, 4.0], dtype=np.float64)
+    input_dict = {"x": x, "y": y, "name": "less_float64"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: uint16
-    x = np.array([1, 2, 3], dtype=np.uint16)
-    y = np.array([2, 1, 4], dtype=np.uint16)
-    name = "less_uint16"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: half
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
-    y = np.array([2.0, 1.0, 4.0], dtype=np.float16)
-    name = "less_half"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Mixed positive and negative floats
-    x = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
-    y = np.array([0.0, 1.0, -2.0], dtype=np.float32)
-    name = "less_mixed_floats"
-    input_dict = {"x": x, "y": y, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
 
     return list_of_inputs
 

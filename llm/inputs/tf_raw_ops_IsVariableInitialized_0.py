@@ -8,67 +8,74 @@ import tensorflow as tf
 import numpy as np
 import copy
 
-def tf_raw_ops_IsVariableInitialized_inputs():
+def tf_raw_ops_is_variable_initialized_inputs():
     list_of_inputs = []
 
-    def create_variable(initial_value, dtype, name):
-        var = tf.Variable(initial_value=initial_value, dtype=dtype, name=name)
-        return var
-    # Input 1: Basic Variable
-    v1 = create_variable(0, tf.int32, "basic_var")
-    input_dict = {"ref": v1.ref(), "name": None}
+    # Input 1: Basic case with a uninitialized variable
+    v1 = tf.Variable(np.zeros((2, 2), dtype=np.float32), validate_shape=False)
+    input_dict = {"ref": v1.handle, "name": "is_initialized_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Float Variable
-    v2 = create_variable(0.0, tf.float32, "float_var")
-    input_dict = {"ref": v2.ref(), "name": "float_var"}
+    # Input 2: Variable initialized with ones.
+    v2 = tf.Variable(np.ones((3, 3), dtype=np.int32))
+    input_dict = {"ref": v2.handle, "name": "is_initialized_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Bool Variable
-    v3 = create_variable(False, tf.bool, "bool_var")
-    input_dict = {"ref": v3.ref(), "name": "bool_var"}
+    # Input 3: Uninitialized variable with a different shape
+    v3 = tf.Variable(np.zeros((1, 5), dtype=np.bool_), validate_shape=False)
+    input_dict = {"ref": v3.handle, "name": "is_initialized_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: String Variable
-    v4 = create_variable("hello", tf.string, "string_var")
-    input_dict = {"ref": v4.ref(), "name": "string_var"}
+    # Input 4: Initialized variable with a different shape and dtype
+    v4 = tf.Variable(np.random.rand(4, 1, 2).astype(np.float64))
+    input_dict = {"ref": v4.handle, "name": "is_initialized_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Rank 2 Variable
-    v5 = create_variable(np.zeros((2, 3), dtype=np.int32), tf.int32, "rank2_var")
-    input_dict = {"ref": v5.ref(), "name": "rank2_var"}
+    # Input 5: Uninitialized variable with a different dtype
+    v5 = tf.Variable(np.zeros((2, 2), dtype=np.complex64), validate_shape=False)
+    input_dict = {"ref": v5.handle, "name": "is_initialized_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Rank 3 Variable
-    v6 = create_variable(np.ones((2, 3, 4), dtype=np.float32), tf.float32, "rank3_var")
-    input_dict = {"ref": v6.ref(), "name": "rank3_var"}
+    # Input 6: Initialized variable with a scalar value
+    v6 = tf.Variable(10)
+    input_dict = {"ref": v6.handle, "name": "is_initialized_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Empty name
-    v7 = create_variable(5, tf.int32, "empty_name_var")
-    input_dict = {"ref": v7.ref(), "name": ""}
+    # Input 7: Uninitialized variable, int64 type
+    v7 = tf.Variable(np.zeros((2, 2), dtype=np.int64), validate_shape=False)
+    input_dict = {"ref": v7.handle, "name": "is_initialized_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Unicode name
-    v8 = create_variable(10, tf.int32, "unicode_name_var")
-    input_dict = {"ref": v8.ref(), "name": "你好"}
+    # Input 8: Initialized variable, string type
+    v8 = tf.Variable(np.array(["hello", "world"]), dtype=tf.string)
+    input_dict = {"ref": v8.handle, "name": "is_initialized_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Very long name
-    v9 = create_variable(15, tf.int32, "long_name_var")
-    long_name = "a" * 200
-    input_dict = {"ref": v9.ref(), "name": long_name}
+    # Input 9: Uninitialized Variable with empty shape
+    v9 = tf.Variable(np.array([]), dtype=np.float32, validate_shape=False)
+    input_dict = {"ref": v9.handle, "name": "is_initialized_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Complex64 Variable
-    v10 = create_variable(np.complex64(1+1j), tf.complex64, "complex_var")
-    input_dict = {"ref": v10.ref(), "name": "complex_var"}
+    # Input 10: Initialized Variable with a large shape
+    v10 = tf.Variable(np.random.rand(100, 100).astype(np.float32))
+    input_dict = {"ref": v10.handle, "name": "is_initialized_10"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Initialized variable with int32 dtype and then assigned
+    v11 = tf.Variable(1, dtype=tf.int32)
+    v11.assign(10)
+    input_dict = {"ref": v11.handle, "name": "is_initialized_11"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: Uninitialized variable with int32 dtype
+    v12 = tf.Variable(1, dtype=tf.int32, validate_shape=False)
+    input_dict = {"ref": v12.handle, "name": "is_initialized_12"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["tf.raw_ops.IsVariableInitialized"] = tf_raw_ops_IsVariableInitialized_inputs()
+generated_inputs["tf.raw_ops.IsVariableInitialized"] = tf_raw_ops_is_variable_initialized_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

@@ -11,80 +11,73 @@ import copy
 def tf_strings_upper_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic ASCII string
-    input_tensor = tf.constant("hello world", dtype=tf.string)
+    # Input 1: Basic string
+    input_tensor = np.array("hello world")
     encoding = ""
     name = None
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: String with numbers and symbols
-    input_tensor = tf.constant("123 abc!@#", dtype=tf.string)
+    # Input 2: String with numbers and special characters
+    input_tensor = np.array("123 abc!@#")
     encoding = ""
-    name = "numbers_symbols"
+    name = "string_with_numbers"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Empty string
-    input_tensor = tf.constant("", dtype=tf.string)
+    input_tensor = np.array("")
     encoding = ""
-    name = None
+    name = "empty_string"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: String with uppercase already
-    input_tensor = tf.constant("ALREADY UPPER", dtype=tf.string)
-    encoding = ""
-    name = "already_upper"
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: String with mixed case
-    input_tensor = tf.constant("MiXeD CaSe", dtype=tf.string)
-    encoding = ""
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: UTF-8 string
-    input_tensor = tf.constant("你好世界", dtype=tf.string)
+    # Input 4: String with UTF-8 encoding
+    input_tensor = np.array("你好世界")
     encoding = "utf-8"
     name = "utf8_string"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: String with special characters
-    input_tensor = tf.constant("string with \t tab and \n newline", dtype=tf.string)
+    # Input 5: String with mixed case
+    input_tensor = np.array("MiXeD CaSe StRiNg")
     encoding = ""
-    name = None
+    name = "mixed_case"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Longer String
-    input_tensor = tf.constant("a very long string that should still work correctly with uppercase conversion", dtype=tf.string)
+    # Input 6: String with leading/trailing spaces
+    input_tensor = np.array("  leading and trailing spaces  ")
+    encoding = ""
+    name = "spaces"
+    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Multidimensional tensor (1D)
+    input_tensor = np.array(["hello", "world", "tensorflow"])
+    encoding = ""
+    name = "1d_tensor"
+    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Multidimensional tensor (2D)
+    input_tensor = np.array([["hello", "world"], ["tensorflow", "rocks"]])
+    encoding = ""
+    name = "2d_tensor"
+    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: String with a very long sequence of characters.
+    long_string = "a" * 200
+    input_tensor = np.array(long_string)
     encoding = ""
     name = "long_string"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: String with unicode characters and UTF-8 encoding
-    input_tensor = tf.constant("café", dtype=tf.string)
-    encoding = "utf-8"
-    name = None
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: String with emojis (UTF-8)
-    input_tensor = tf.constant("hello 😊 world", dtype=tf.string)
-    encoding = "utf-8"
-    name = "emoji_string"
-    input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 11: 2D Tensor
-    input_tensor = tf.constant([["hello", "world"], ["foo", "bar"]], dtype=tf.string)
+    input_tensor = np.array(["a", "b"])
     encoding = ""
-    name = None
+    name = "short_string"
     input_dict = {"input": input_tensor, "encoding": encoding, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

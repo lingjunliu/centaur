@@ -16,8 +16,7 @@ def tf_raw_ops_SparseDenseCwiseAdd_inputs():
     sp_values = np.array([1.0, 2.0], dtype=np.float32)
     sp_shape = np.array([2, 3], dtype=np.int64)
     dense = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-    name = "add_1"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -25,92 +24,69 @@ def tf_raw_ops_SparseDenseCwiseAdd_inputs():
     sp_values = np.array([1, 2, 3], dtype=np.int32)
     sp_shape = np.array([2, 2], dtype=np.int64)
     dense = np.array([[4, 5], [6, 7]], dtype=np.int32)
-    name = "add_2"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     sp_indices = np.array([[0, 0, 0], [0, 1, 1], [1, 0, 1]], dtype=np.int64)
     sp_values = np.array([1.5, 2.5, 3.5], dtype=np.float64)
     sp_shape = np.array([2, 2, 2], dtype=np.int64)
-    dense = np.array([[[0.5, 1.5], [2.5, 3.5]], [[4.5, 5.5], [6.5, 7.5]]], dtype=np.float64)
-    name = "add_3"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
+    dense = np.ones((2, 2, 2), dtype=np.float64) * 0.5
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    sp_indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int64)
-    sp_values = np.array([-1, -2, -3], dtype=np.int32)
-    sp_shape = np.array([3, 3], dtype=np.int64)
-    dense = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
-    name = "add_4"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
+    sp_indices = np.array([[0], [1], [2]], dtype=np.int64)
+    sp_values = np.array([1, 2, 3], dtype=np.int64)
+    sp_shape = np.array([4], dtype=np.int64)
+    dense = np.array([4, 5, 6, 7], dtype=np.int64)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    sp_indices = np.array([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=np.int64)
-    sp_values = np.array([0.1, 0.2, 0.3, 0.4], dtype=np.float32)
-    sp_shape = np.array([2, 2], dtype=np.int64)
-    dense = np.array([[0.5, 0.6], [0.7, 0.8]], dtype=np.float32)
-    name = "add_5"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 6
-    sp_indices = np.array([[0]], dtype=np.int64)
-    sp_values = np.array([1], dtype=np.int32)
-    sp_shape = np.array([1], dtype=np.int64)
-    dense = np.array([2], dtype=np.int32)
-    name = "add_6"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 7
-    sp_indices = np.array([[0, 0, 0, 0]], dtype=np.int64)
-    sp_values = np.array([1.0], dtype=np.float32)
-    sp_shape = np.array([1,1,1,1], dtype=np.int64)
-    dense = np.array([[[[2.0]]]], dtype=np.float32)
-    name = "add_7"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 8
     sp_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
-    sp_values = np.array([1, 2], dtype=np.int64)
+    sp_values = np.array([1, 2], dtype=np.int8)
     sp_shape = np.array([2, 2], dtype=np.int64)
-    dense = np.array([[3, 4], [5, 6]], dtype=np.int64)
-    name = "add_8"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
+    dense = np.array([[3, 4], [5, 6]], dtype=np.int8)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 9
-    sp_indices = np.array([[0, 0, 0]], dtype=np.int64)
-    sp_values = np.array([1], dtype=np.int64)
-    sp_shape = np.array([1, 1, 1], dtype=np.int64)
-    dense = np.array([[[2]]], dtype=np.int64)
-    name = "add_9"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
+    # Input 7
+    sp_indices = np.array([[0, 0], [1, 1]], dtype=np.int64)
+    sp_values = np.array([1.0, 2.0], dtype=np.float32)
+    sp_shape = np.array([2, 2], dtype=np.int64)
+    dense = np.array([1.0], dtype=np.float32)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    sp_indices = np.array([[0, 0, 0], [1, 1, 1]], dtype=np.int64)
-    sp_values = np.array([1.0, 2.0], dtype=np.float64)
-    sp_shape = np.array([2, 2, 2], dtype=np.int64)
-    dense = np.array([[[3.0, 4.0], [5.0, 6.0]], [[7.0, 8.0], [9.0, 10.0]]], dtype=np.float64)
-    name = "add_10"
-    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": name}
+    # Input 8 (empty sparse tensor)
+    sp_indices = np.empty((0, 2), dtype=np.int64)
+    sp_values = np.array([], dtype=np.float32)
+    sp_shape = np.array([2, 2], dtype=np.int64)
+    dense = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add8"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9, different shape for broadcasting
+    sp_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
+    sp_values = np.array([1.0, 2.0], dtype=np.float32)
+    sp_shape = np.array([1, 2], dtype=np.int64)
+    dense = np.array([1.0, 2.0], dtype=np.float32)
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add9"}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10, larger dimensions
+    sp_indices = np.array([[0, 0, 0, 0], [1, 1, 1, 1]], dtype=np.int64)
+    sp_values = np.array([1.0, 2.0], dtype=np.float32)
+    sp_shape = np.array([2, 2, 2, 2], dtype=np.int64)
+    dense = np.ones((2, 2, 2, 2), dtype=np.float32) * 0.5
+    input_dict = {"sp_indices": sp_indices, "sp_values": sp_values, "sp_shape": sp_shape, "dense": dense, "name": "add10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_SparseDenseCwiseAdd_inputs()
-generated_inputs["tf.raw_ops.SparseDenseCwiseAdd"] = []
-for input_dict in inputs:
-    kwargs = {}
-    for key, value in input_dict.items():
-        kwargs[key] = value
-    generated_inputs["tf.raw_ops.SparseDenseCwiseAdd"].append({"kwargs": kwargs})
+generated_inputs["tf.raw_ops.SparseDenseCwiseAdd"] = tf_raw_ops_SparseDenseCwiseAdd_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

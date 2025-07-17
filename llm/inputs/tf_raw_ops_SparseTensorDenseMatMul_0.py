@@ -18,107 +18,197 @@ def tf_raw_ops_SparseTensorDenseMatMul_inputs():
     b = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
     adjoint_a = False
     adjoint_b = False
-    name = "matmul_1"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    name = "test_matmul_1"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     a_indices = np.array([[0, 1], [1, 0]], dtype=np.int32)
-    a_values = np.array([3.0, 4.0], dtype=np.float64)
+    a_values = np.array([3, 4], dtype=np.int32)
     a_shape = np.array([2, 2], dtype=np.int64)
-    b = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64)
+    b = np.array([[5, 6], [7, 8]], dtype=np.int32)
     adjoint_a = True
-    adjoint_b = True
-    name = "matmul_2"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    adjoint_b = False
+    name = "test_matmul_2"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    a_indices = np.array([[0, 0], [0, 1], [1, 1], [1, 2]], dtype=np.int64)
-    a_values = np.array([1, 2, 3, 4], dtype=np.int32)
-    a_shape = np.array([2, 3], dtype=np.int64)
-    b = np.array([[5, 6], [7, 8], [9, 10]], dtype=np.int32)
+    a_indices = np.array([[0, 0], [0, 1], [1, 1]], dtype=np.int64)
+    a_values = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    a_shape = np.array([2, 2], dtype=np.int64)
+    b = np.array([[4.0, 5.0], [6.0, 7.0]], dtype=np.float64)
     adjoint_a = False
     adjoint_b = True
-    name = "matmul_3"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    name = "test_matmul_3"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     a_indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
-    a_values = np.array([-1.0, -2.0], dtype=np.float32)
-    a_shape = np.array([3, 3], dtype=np.int64)
-    b = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
+    a_values = np.array([1+1j, 2+2j], dtype=np.complex64)
+    a_shape = np.array([2, 2], dtype=np.int64)
+    b = np.array([[3+3j, 4+4j], [5+5j, 6+6j]], dtype=np.complex64)
     adjoint_a = True
-    adjoint_b = False
-    name = "matmul_4"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    adjoint_b = True
+    name = "test_matmul_4"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    a_indices = np.array([[0, 2], [2, 0]], dtype=np.int64)
-    a_values = np.array([1.5, 2.5], dtype=np.float64)
-    a_shape = np.array([3, 3], dtype=np.int64)
-    b = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float64)
+    a_indices = np.array([[0, 0], [2, 1]], dtype=np.int64)
+    a_values = np.array([1, 2], dtype=np.int32)
+    a_shape = np.array([3, 2], dtype=np.int64)
+    b = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
     adjoint_a = False
     adjoint_b = False
-    name = "matmul_5"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    name = "test_matmul_5"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    a_indices = np.array([[0, 0]], dtype=np.int32)
-    a_values = np.array([10], dtype=np.int32)
-    a_shape = np.array([1, 1], dtype=np.int64)
-    b = np.array([[20]], dtype=np.int32)
+   # Input 6
+    a_indices = np.array([[0, 0], [1, 2]], dtype=np.int64)
+    a_values = np.array([1.0, -2.0], dtype=np.float32)
+    a_shape = np.array([2, 3], dtype=np.int64)
+    b = np.array([[-1.0, 2.0], [3.0, -4.0], [5.0, 6.0]], dtype=np.float32)
     adjoint_a = False
     adjoint_b = False
-    name = "matmul_6"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    name = "test_matmul_6"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    a_indices = np.array([[0, 1], [1, 0]], dtype=np.int64)
-    a_values = np.array([1, 2], dtype=np.int32)
+    a_indices = np.array([[0, 1], [1, 0]], dtype=np.int32)
+    a_values = np.array([-3, 4], dtype=np.int32)
     a_shape = np.array([2, 2], dtype=np.int64)
-    b = np.array([[3, 4], [5, 6]], dtype=np.int32)
+    b = np.array([[5, -6], [-7, 8]], dtype=np.int32)
     adjoint_a = True
-    adjoint_b = True
-    name = "matmul_7"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    adjoint_b = False
+    name = "test_matmul_7"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8
-    a_indices = np.array([[0, 0], [1, 1], [2, 2]], dtype=np.int32)
-    a_values = np.array([1, 2, 3], dtype=np.int32)
-    a_shape = np.array([3, 3], dtype=np.int64)
-    b = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.int32)
+    # Input 8
+    a_indices = np.array([[0, 0], [0, 1], [1, 1]], dtype=np.int64)
+    a_values = np.array([1.0, -2.0, 3.0], dtype=np.float64)
+    a_shape = np.array([2, 2], dtype=np.int64)
+    b = np.array([[-4.0, 5.0], [6.0, -7.0]], dtype=np.float64)
     adjoint_a = False
-    adjoint_b = False
-    name = "matmul_8"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    adjoint_b = True
+    name = "test_matmul_8"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    a_indices = np.array([[0, 0], [0, 1]], dtype=np.int64)
-    a_values = np.array([1.0, 2.0], dtype=np.float32)
-    a_shape = np.array([1, 2], dtype=np.int64)
-    b = np.array([[1.0], [2.0]], dtype=np.float32)
-    adjoint_a = False
-    adjoint_b = False
-    name = "matmul_9"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    a_indices = np.array([[0, 0], [1, 1]], dtype=np.int32)
+    a_values = np.array([-1-1j, 2+2j], dtype=np.complex64)
+    a_shape = np.array([2, 2], dtype=np.int64)
+    b = np.array([[3+3j, -4-4j], [-5-5j, 6+6j]], dtype=np.complex64)
+    adjoint_a = True
+    adjoint_b = True
+    name = "test_matmul_9"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    a_indices = np.array([[0, 0], [1, 0]], dtype=np.int32)
-    a_values = np.array([1, 2], dtype=np.int32)
-    a_shape = np.array([2, 1], dtype=np.int64)
-    b = np.array([[3, 4]], dtype=np.int32)
+    a_indices = np.array([[0, 0], [2, 1]], dtype=np.int64)
+    a_values = np.array([1, -2], dtype=np.int32)
+    a_shape = np.array([3, 2], dtype=np.int64)
+    b = np.array([[-1, 2, 3], [4, -5, 6]], dtype=np.int32)
     adjoint_a = False
     adjoint_b = False
-    name = "matmul_10"
-    input_dict = {"a_indices": a_indices, "a_values": a_values, "a_shape": a_shape, "b": b, "adjoint_a": adjoint_a, "adjoint_b": adjoint_b, "name": name}
+    name = "test_matmul_10"
+
+    input_dict = {
+        "a_indices": a_indices,
+        "a_values": a_values,
+        "a_shape": a_shape,
+        "b": b,
+        "adjoint_a": adjoint_a,
+        "adjoint_b": adjoint_b,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

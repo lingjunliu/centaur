@@ -11,90 +11,65 @@ import copy
 def tf_raw_ops_zeta_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32
+    # Input 1: Basic case with float32
     x = np.array([2.0], dtype=np.float32)
     q = np.array([1.0], dtype=np.float32)
-    name = "zeta_basic_float32"
-    input_dict = {"x": x, "q": q, "name": name}
+    input_dict = {"x": x, "q": q, "name": "zeta_example_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic float64
+    # Input 2: Basic case with float64
     x = np.array([2.0], dtype=np.float64)
     q = np.array([1.0], dtype=np.float64)
-    name = "zeta_basic_float64"
-    input_dict = {"x": x, "q": q, "name": name}
+    input_dict = {"x": x, "q": q, "name": "zeta_example_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Multi-element float32
+    # Input 3: Array inputs with float32
     x = np.array([2.0, 3.0, 4.0], dtype=np.float32)
     q = np.array([1.0, 1.5, 2.0], dtype=np.float32)
-    name = "zeta_multi_float32"
-    input_dict = {"x": x, "q": q, "name": name}
+    input_dict = {"x": x, "q": q, "name": "zeta_example_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multi-element float64
+    # Input 4: Array inputs with float64
     x = np.array([2.0, 3.0, 4.0], dtype=np.float64)
     q = np.array([1.0, 1.5, 2.0], dtype=np.float64)
-    name = "zeta_multi_float64"
-    input_dict = {"x": x, "q": q, "name": name}
+    input_dict = {"x": x, "q": q, "name": "zeta_example_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: q < 0
-    x = np.array([2.0], dtype=np.float32)
-    q = np.array([-0.5], dtype=np.float32)
-    name = "zeta_negative_float32"
-    input_dict = {"x": x, "q": q, "name": name}
+    # Input 5: Different values for x and q (float32)
+    x = np.array([0.5, 1.5, 2.5], dtype=np.float32)
+    q = np.array([0.2, 1.2, 2.2], dtype=np.float32)
+    input_dict = {"x": x, "q": q, "name": "zeta_example_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: q < 0
-    x = np.array([2.0], dtype=np.float64)
-    q = np.array([-0.5], dtype=np.float64)
-    name = "zeta_negative_float64"
-    input_dict = {"x": x, "q": q, "name": name}
+    # Input 6: Different values for x and q (float64)
+    x = np.array([0.5, 1.5, 2.5], dtype=np.float64)
+    q = np.array([0.2, 1.2, 2.2], dtype=np.float64)
+    input_dict = {"x": x, "q": q, "name": "zeta_example_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: q close to 0
-    x = np.array([2.0], dtype=np.float32)
-    q = np.array([0.001], dtype=np.float32)
-    name = "zeta_zero_float32"
-    input_dict = {"x": x, "q": q, "name": name}
+    # Input 7: Multi-dimensional arrays (float32)
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    q = np.array([[0.5, 1.5], [2.5, 3.5]], dtype=np.float32)
+    input_dict = {"x": x, "q": q, "name": "zeta_example_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: q close to 0
-    x = np.array([2.0], dtype=np.float64)
-    q = np.array([0.001], dtype=np.float64)
-    name = "zeta_zero_float64"
-    input_dict = {"x": x, "q": q, "name": name}
+    # Input 8: Multi-dimensional arrays (float64)
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    q = np.array([[0.5, 1.5], [2.5, 3.5]], dtype=np.float64)
+    input_dict = {"x": x, "q": q, "name": "zeta_example_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: 2D array float32
-    x = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float32)
-    q = np.array([[1.0, 1.5], [2.0, 2.5]], dtype=np.float32)
-    name = "zeta_2d_float32"
-    input_dict = {"x": x, "q": q, "name": name}
+    # Input 9: x values between 0 and 1 (float32)
+    x = np.array([0.1, 0.5, 0.9], dtype=np.float32)
+    q = np.array([1.0, 1.5, 2.0], dtype=np.float32)
+    input_dict = {"x": x, "q": q, "name": "zeta_example_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: 2D array float64
-    x = np.array([[2.0, 3.0], [4.0, 5.0]], dtype=np.float64)
-    q = np.array([[1.0, 1.5], [2.0, 2.5]], dtype=np.float64)
-    name = "zeta_2d_float64"
-    input_dict = {"x": x, "q": q, "name": name}
+    # Input 10: x values between 0 and 1 (float64)
+    x = np.array([0.1, 0.5, 0.9], dtype=np.float64)
+    q = np.array([1.0, 1.5, 2.0], dtype=np.float64)
+    input_dict = {"x": x, "q": q, "name": "zeta_example_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: large x and q
-    x = np.array([100.0], dtype=np.float32)
-    q = np.array([50.0], dtype=np.float32)
-    name = "zeta_large_float32"
-    input_dict = {"x": x, "q": q, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12: large x and q
-    x = np.array([100.0], dtype=np.float64)
-    q = np.array([50.0], dtype=np.float64)
-    name = "zeta_large_float64"
-    input_dict = {"x": x, "q": q, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
 
     return list_of_inputs
 

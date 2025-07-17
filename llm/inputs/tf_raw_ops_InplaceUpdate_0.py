@@ -11,34 +11,76 @@ import copy
 def tf_raw_ops_inplace_update_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D update
-    x = np.array([1, 2, 3, 4, 5], dtype=np.int32)
-    i = np.array([0, 2], dtype=np.int32)
-    v = np.array([10, 30], dtype=np.int32)
+    # Input 1
+    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    i = np.array([0], dtype=np.int32)
+    v = np.array([[7, 8, 9]], dtype=np.int32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Basic 2D update
-    x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
-    i = np.array([0, 2], dtype=np.int32)
-    v = np.array([[10, 20], [50, 60]], dtype=np.int32)
-    input_dict = {"x": x, "i": i, "v": v, "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Different data type (float32)
-    x = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float32)
+    # Input 2
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     i = np.array([1], dtype=np.int32)
-    v = np.array([[30.0, 40.0]], dtype=np.float32)
+    v = np.array([[5.0, 6.0]], dtype=np.float32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: More updates
-    x = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.int32)
-    i = np.array([0, 1, 2, 3], dtype=np.int32)
-    v = np.array([[10, 20], [30, 40], [50, 60], [70, 80]], dtype=np.int32)
+    # Input 3
+    x = np.array([[-1, -2], [-3, -4]], dtype=np.int32)
+    i = np.array([0, 1], dtype=np.int32)
+    v = np.array([[5, 6], [7, 8]], dtype=np.int32)
     input_dict = {"x": x, "i": i, "v": v, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 4
+    x = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.int32)
+    i = np.array([0, 2], dtype=np.int32)
+    v = np.array([[10, 11, 12], [13, 14, 15]], dtype=np.int32)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    x = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int32)
+    i = np.array([1, 0, 2], dtype=np.int32)
+    v = np.array([[7, 8], [9, 10], [11, 12]], dtype=np.int32)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    x = np.array([[1.5, 2.5], [3.5, 4.5]], dtype=np.float64)
+    i = np.array([0], dtype=np.int32)
+    v = np.array([[5.5, 6.5]], dtype=np.float64)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    x = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    i = np.array([1], dtype=np.int32)
+    v = np.array([[5, 6]], dtype=np.int64)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    x = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int32)
+    i = np.array([1, 0], dtype=np.int32)
+    v = np.array([[7, 8, 9], [10, 11, 12]], dtype=np.int32)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    x = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    i = np.array([0], dtype=np.int32)
+    v = np.array([[7, 8]], dtype=np.int32)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    x = np.array([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=np.int32)
+    i = np.array([0, 1], dtype=np.int32)
+    v = np.array([[9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.int32)
+    input_dict = {"x": x, "i": i, "v": v, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

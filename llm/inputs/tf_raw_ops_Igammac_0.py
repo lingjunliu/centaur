@@ -11,74 +11,64 @@ import copy
 def tf_raw_ops_igammac_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: float32, basic case
     a = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    x = np.array([0.5, 1.0, 1.5], dtype=np.float32)
-    name = "igammac_1"
-    input_dict = {"a": a, "x": x, "name": name}
+    x = np.array([0.5, 1.5, 2.5], dtype=np.float32)
+    input_dict = {"a": a, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    x = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float64)
-    name = "igammac_2"
-    input_dict = {"a": a, "x": x, "name": name}
+    # Input 2: float64, different values
+    a = np.array([0.1, 0.5, 1.0], dtype=np.float64)
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    input_dict = {"a": a, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    a = np.array([0.1, 0.2, 0.3], dtype=np.float16)
-    x = np.array([0.05, 0.1, 0.15], dtype=np.float16)
-    name = "igammac_3"
-    input_dict = {"a": a, "x": x, "name": name}
+    # Input 3: float32, multi-dimensional
+    a = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    x = np.array([[0.5, 1.5], [2.5, 3.5]], dtype=np.float32)
+    input_dict = {"a": a, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    a = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
-    x = np.array([[0.5, 1.0], [1.5, 2.0]], dtype=np.float32)
-    name = "igammac_4"
-    input_dict = {"a": a, "x": x, "name": name}
+    # Input 4: float64, negative values for a (allowed)
+    a = np.array([-0.5, -1.0, -1.5], dtype=np.float64)
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    input_dict = {"a": a, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    a = np.array([10.0], dtype=np.float64)
-    x = np.array([5.0], dtype=np.float64)
-    name = "igammac_5"
-    input_dict = {"a": a, "x": x, "name": name}
+    
+    # Input 5: float32, different shape
+    a = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32).reshape((2,2))
+    x = np.array([0.5, 1.5, 2.5, 3.5], dtype=np.float32).reshape((2,2))
+    input_dict = {"a": a, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    a = np.array([0.5], dtype=np.float32)
-    x = np.array([1.0], dtype=np.float32)
-    name = "igammac_6"
-    input_dict = {"a": a, "x": x, "name": name}
+    
+    # Input 6: float64, zero value
+    a = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    x = np.array([0.0, 0.0, 0.0], dtype=np.float64)
+    input_dict = {"a": a, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    a = np.array([1.5, 2.5, 3.5], dtype=np.float32)
-    x = np.array([0.75, 1.25, 1.75], dtype=np.float32)
-    name = "igammac_7"
-    input_dict = {"a": a, "x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    a = np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float32)
-    x = np.array([[2.5, 3.0], [3.5, 4.0]], dtype=np.float32)
-    name = "igammac_8"
-    input_dict = {"a": a, "x": x, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
+    
+    # Input 7: float32, more dimensions
     a = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    x = np.array([[[0.5, 1.0], [1.5, 2.0]], [[2.5, 3.0], [3.5, 4.0]]], dtype=np.float32)
-    name = "igammac_9"
-    input_dict = {"a": a, "x": x, "name": name}
+    x = np.array([[[0.5, 1.5], [2.5, 3.5]], [[4.5, 5.5], [6.5, 7.5]]], dtype=np.float32)
+    input_dict = {"a": a, "x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: float64, large a and x
+    a = np.array([1000.0, 2000.0, 3000.0], dtype=np.float64)
+    x = np.array([500.0, 1000.0, 1500.0], dtype=np.float64)
+    input_dict = {"a": a, "x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: float16, similar a and x
+    a = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    input_dict = {"a": a, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
-    a = np.array([0.01, 0.02], dtype=np.float64)
-    x = np.array([0.005, 0.01], dtype=np.float64)
-    name = "igammac_10"
-    input_dict = {"a": a, "x": x, "name": name}
+    # Input 10: float32, zero a
+    a = np.array([0.0, 0.0, 0.0], dtype=np.float32)
+    x = np.array([0.5, 1.5, 2.5], dtype=np.float32)
+    input_dict = {"a": a, "x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

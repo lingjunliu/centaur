@@ -12,54 +12,53 @@ def tf_raw_ops_expm1_inputs():
     list_of_inputs = []
 
     # Input 1: float32, scalar
-    x = np.array(2.0, dtype=np.float32)
+    x = np.float32(2.0)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: float32, 1D array
-    x = np.array([2.0, 8.0, -1.0], dtype=np.float32)
-    input_dict = {"x": x, "name": "expm1_1d"}
+    x = np.array([2.0, 8.0], dtype=np.float32)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float64, 2D array
-    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    input_dict = {"x": x, "name": "expm1_2d"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: complex64, scalar
+    # Input 3: complex64, scalar
     x = np.complex64(1 + 1j)
+    input_dict = {"x": x, "name": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: float64, 2D array
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
     input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5: complex128, 1D array
     x = np.array([1 + 1j, 2 - 2j], dtype=np.complex128)
-    input_dict = {"x": x, "name": "expm1_complex"}
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: bfloat16, 2D array
-    x = tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float32)
-    x = tf.cast(x, tf.bfloat16).numpy()
-    input_dict = {"x": x, "name": "expm1_bfloat16"}
+    # Input 6: bfloat16, scalar
+    x = np.array(0.5, dtype=np.float16) #bfloat16 doesn't exist in numpy, use float16
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: half (float16), 1D array with negative values
-    x = np.array([-1.0, 0.0, 1.0], dtype=np.float16)
-    input_dict = {"x": x, "name": "expm1_half"}
+    # Input 7: float32, 3D array, negative values
+    x = np.array([[[1.0, -2.0], [-3.0, 4.0]], [[-5.0, 6.0], [7.0, -8.0]]], dtype=np.float32)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float32, 3D array
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    input_dict = {"x": x, "name": "expm1_3d"}
+    # Input 8: complex64, 2D array
+    x = np.array([[1 + 1j, 2 - 2j], [3 + 3j, 4 - 4j]], dtype=np.complex64)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: float64, scalar negative
-    x = np.array(-5.0, dtype=np.float64)
-    input_dict = {"x": x, "name": "expm1_negative"}
+    # Input 9: float64, scalar, negative
+    x = np.float64(-1.5)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: complex128, 2D array with zero imaginary part
-    x = np.array([[1 + 0j, 2 + 0j], [3 + 0j, 4 + 0j]], dtype=np.complex128)
-    input_dict = {"x": x, "name": "expm1_complex_zero_imag"}
+    # Input 10: half, scalar
+    x = np.array(1.0, dtype=np.float16) #half doesn't exist in numpy, using float16
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

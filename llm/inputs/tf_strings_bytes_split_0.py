@@ -12,63 +12,53 @@ def tf_strings_bytes_split_inputs():
     list_of_inputs = []
 
     # Input 1: Simple string tensor
-    input_tensor = tf.constant("hello", dtype=tf.string)
-    name = None
-    input_dict = {"input": input_tensor, "name": name}
+    input_tensor = tf.constant("hello", dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_1"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: List of strings
-    input_tensor = tf.constant(["hello", "world"], dtype=tf.string)
-    name = "split_strings"
-    input_dict = {"input": input_tensor, "name": name}
+    input_tensor = tf.constant(["hello", "world"], dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_2"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3: Empty string
-    input_tensor = tf.constant("", dtype=tf.string)
-    name = None
-    input_dict = {"input": input_tensor, "name": name}
+    input_tensor = tf.constant("", dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_3"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Tensor with a single empty string
-    input_tensor = tf.constant([""], dtype=tf.string)
-    name = None
-    input_dict = {"input": input_tensor, "name": name}
+    # Input 4: String with numbers and symbols
+    input_tensor = tf.constant("123abc!@#", dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_4"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: String with numbers and special characters
-    input_tensor = tf.constant("123!@#", dtype=tf.string)
-    name = "special_chars"
-    input_dict = {"input": input_tensor, "name": name}
+    # Input 5: String with spaces
+    input_tensor = tf.constant("hello world", dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_5"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Tensor of strings with varying lengths
-    input_tensor = tf.constant(["a", "bb", "ccc"], dtype=tf.string)
-    name = None
-    input_dict = {"input": input_tensor, "name": name}
+    # Input 6: Multidimensional tensor of strings
+    input_tensor = tf.constant([["hello", "world"], ["foo", "bar"]], dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_6"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Tensor of strings with unicode characters
-    input_tensor = tf.constant(["你好", "世界"], dtype=tf.string)
-    name = "unicode"
-    input_dict = {"input": input_tensor, "name": name}
+    # Input 7: Tensor with empty string
+    input_tensor = tf.constant(["hello", ""], dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_7"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Multidimensional tensor
-    input_tensor = tf.constant([["hello", "world"], ["foo", "bar"]], dtype=tf.string)
-    name = "multi_dim"
-    input_dict = {"input": input_tensor, "name": name}
+    # Input 8: Tensor with unicode characters (should split into bytes)
+    input_tensor = tf.constant("你好世界", dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_8"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Tensor containing both empty and non-empty strings
-    input_tensor = tf.constant(["hello", "", "world"], dtype=tf.string)
-    name = None
-    input_dict = {"input": input_tensor, "name": name}
+    # Input 9: Tensor with mixed characters
+    input_tensor = tf.constant("hello你好", dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_9"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Simple byte string
-    input_tensor = tf.constant(b"bytes")
-    name = None
-    input_dict = {"input": input_tensor, "name": name}
+    # Input 10: String with special byte sequences
+    input_tensor = tf.constant(b'\x00\x01\xff'.decode('latin-1'), dtype=tf.string).numpy()
+    input_dict = {"input": input_tensor, "name": "split_string_10"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

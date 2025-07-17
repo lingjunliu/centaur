@@ -11,214 +11,171 @@ import copy
 def tf_raw_ops_non_max_suppression_v2_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic valid case
     boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
     scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
-    name = None
 
     input_dict = {
         "boxes": boxes,
         "scores": scores,
         "max_output_size": max_output_size,
         "iou_threshold": iou_threshold,
-        "name": name
+        "name": "basic_case"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
-    max_output_size = np.array(4, dtype=np.int32)
-    iou_threshold = np.array(0.1, dtype=np.float32)
-    name = None
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75], dtype=np.float32)
-    max_output_size = np.array(1, dtype=np.int32)
-    iou_threshold = np.array(0.5, dtype=np.float32)
-    name = None
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6, 0.95], dtype=np.float32)
-    max_output_size = np.array(10, dtype=np.int32)
-    iou_threshold = np.array(0.9, dtype=np.float32)
-    name = None
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    boxes = np.array([[0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8], [0.3, 0.3, 0.7, 0.7]], dtype=np.float32)
-    scores = np.array([0.8, 0.9, 0.7], dtype=np.float32)
-    max_output_size = np.array(3, dtype=np.int32)
-    iou_threshold = np.array(0.6, dtype=np.float32)
-    name = None
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6, half type
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float16)
-    scores = np.array([0.9, 0.75], dtype=np.float16)
-    max_output_size = np.array(1, dtype=np.int32)
-    iou_threshold = np.array(0.5, dtype=np.float16)
-    name = None
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7, zero iou_threshold
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1]], dtype=np.float32)
-    scores = np.array([0.9, 0.75, 0.6], dtype=np.float32)
-    max_output_size = np.array(3, dtype=np.int32)
-    iou_threshold = np.array(0.0, dtype=np.float32)
-    name = None
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8, small boxes
-    boxes = np.array([[0.1, 0.1, 0.2, 0.2], [0.3, 0.3, 0.4, 0.4], [0.5, 0.5, 0.6, 0.6]], dtype=np.float32)
-    scores = np.array([0.9, 0.8, 0.7], dtype=np.float32)
-    max_output_size = np.array(3, dtype=np.int32)
-    iou_threshold = np.array(0.5, dtype=np.float32)
-    name = None
-
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9, large iou_threshold
-    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
-    scores = np.array([0.9, 0.75], dtype=np.float32)
+    # Input 2: No overlap
+    boxes = np.array([[0, 0, 1, 1], [2, 2, 3, 3]], dtype=np.float32)
+    scores = np.array([0.9, 0.8], dtype=np.float32)
     max_output_size = np.array(2, dtype=np.int32)
-    iou_threshold = np.array(1.0, dtype=np.float32)
-    name = None
+    iou_threshold = np.array(0.5, dtype=np.float32)
 
     input_dict = {
         "boxes": boxes,
         "scores": scores,
         "max_output_size": max_output_size,
         "iou_threshold": iou_threshold,
-        "name": name
+        "name": "no_overlap"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10, different box sizes
-    boxes = np.array([[0, 0, 0.5, 0.5], [0, 0, 1, 1], [0.5, 0.5, 1, 1]], dtype=np.float32)
+    # Input 3: All boxes overlap
+    boxes = np.array([[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 1, 1]], dtype=np.float32)
     scores = np.array([0.9, 0.8, 0.7], dtype=np.float32)
-    max_output_size = np.array(3, dtype=np.int32)
+    max_output_size = np.array(1, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
-    name = None
 
     input_dict = {
         "boxes": boxes,
         "scores": scores,
         "max_output_size": max_output_size,
         "iou_threshold": iou_threshold,
-        "name": name
+        "name": "all_overlap"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11, Empty boxes array
-    boxes = np.array([], dtype=np.float32).reshape(0,4)
-    scores = np.array([], dtype=np.float32)
-    max_output_size = np.array(3, dtype=np.int32)
-    iou_threshold = np.array(0.5, dtype=np.float32)
-    name = None
-    
-    input_dict = {
-        "boxes": boxes,
-        "scores": scores,
-        "max_output_size": max_output_size,
-        "iou_threshold": iou_threshold,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12, Zero max_output_size
+
+    # Input 4: max_output_size = 0
     boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
     scores = np.array([0.9, 0.75], dtype=np.float32)
     max_output_size = np.array(0, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
-    name = None
 
     input_dict = {
         "boxes": boxes,
         "scores": scores,
         "max_output_size": max_output_size,
         "iou_threshold": iou_threshold,
-        "name": name
+        "name": "max_output_size_0"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 13, Single box
+    # Input 5: Higher iou_threshold
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float32)
+    scores = np.array([0.9, 0.75], dtype=np.float32)
+    max_output_size = np.array(2, dtype=np.int32)
+    iou_threshold = np.array(0.9, dtype=np.float32)
+
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": "higher_iou_threshold"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+     # Input 6: Half type
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5]], dtype=np.float16)
+    scores = np.array([0.9, 0.75], dtype=np.float16)
+    max_output_size = np.array(2, dtype=np.int32)
+    iou_threshold = np.array(0.5, dtype=np.float16)
+
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": "half_type"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Normalized coordinates
+    boxes = np.array([[0.1, 0.1, 0.2, 0.2], [0.15, 0.15, 0.25, 0.25]], dtype=np.float32)
+    scores = np.array([0.9, 0.8], dtype=np.float32)
+    max_output_size = np.array(2, dtype=np.int32)
+    iou_threshold = np.array(0.5, dtype=np.float32)
+
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": "normalized_coordinates"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Different box order (y2 < y1, x2 < x1)
+    boxes = np.array([[1, 1, 0, 0], [1, 1.5, 0, 0.5]], dtype=np.float32)
+    scores = np.array([0.9, 0.75], dtype=np.float32)
+    max_output_size = np.array(2, dtype=np.int32)
+    iou_threshold = np.array(0.5, dtype=np.float32)
+
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": "different_box_order"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Single box
     boxes = np.array([[0, 0, 1, 1]], dtype=np.float32)
     scores = np.array([0.9], dtype=np.float32)
     max_output_size = np.array(1, dtype=np.int32)
     iou_threshold = np.array(0.5, dtype=np.float32)
-    name = None
 
     input_dict = {
         "boxes": boxes,
         "scores": scores,
         "max_output_size": max_output_size,
         "iou_threshold": iou_threshold,
-        "name": name
+        "name": "single_box"
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 10: Several boxes, high threshold to keep all
+    boxes = np.array([[0, 0, 1, 1], [2, 2, 3, 3], [4, 4, 5, 5]], dtype=np.float32)
+    scores = np.array([0.9, 0.8, 0.7], dtype=np.float32)
+    max_output_size = np.array(3, dtype=np.int32)
+    iou_threshold = np.array(1.0, dtype=np.float32)
+
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": "high_iou_threshold_keep_all"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Larger number of boxes, max_output_size smaller
+    boxes = np.array([[0, 0, 1, 1], [0, 0.5, 1, 1.5], [0.5, 0, 1.5, 1], [0.5, 0.5, 1.5, 1.5], [1, 1, 2, 2]], dtype=np.float32)
+    scores = np.array([0.9, 0.75, 0.6, 0.95, 0.8], dtype=np.float32)
+    max_output_size = np.array(3, dtype=np.int32)
+    iou_threshold = np.array(0.5, dtype=np.float32)
+
+    input_dict = {
+        "boxes": boxes,
+        "scores": scores,
+        "max_output_size": max_output_size,
+        "iou_threshold": iou_threshold,
+        "name": "larger_boxes_smaller_max_output_size"
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

@@ -11,82 +11,70 @@ import copy
 def tf_raw_ops_logical_or_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case, two bool tensors
-    x = np.array([True, False, True]).astype(np.bool_)
-    y = np.array([False, True, True]).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 1: Basic case with two single boolean values
+    x = np.array(True, dtype=np.bool_)
+    y = np.array(False, dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "basic_case"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Broadcasting with a scalar
-    x = np.array([True, False, True]).astype(np.bool_)
-    y = np.array(True).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 2: Two boolean tensors of the same shape
+    x = np.array([True, False, True], dtype=np.bool_)
+    y = np.array([False, True, False], dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "same_shape"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Two dimensional arrays
-    x = np.array([[True, False], [False, True]]).astype(np.bool_)
-    y = np.array([[False, True], [True, False]]).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 3: One boolean tensor and one single boolean value
+    x = np.array([False, True, False, True], dtype=np.bool_)
+    y = np.array(True, dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "tensor_and_scalar"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Broadcasting with different shapes
-    x = np.array([[True, False]]).astype(np.bool_)
-    y = np.array([[True], [False]]).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 4: Two boolean tensors with broadcast-compatible shapes
+    x = np.array([[True, False]], dtype=np.bool_)
+    y = np.array([[False], [True]], dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "broadcasting"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Three dimensional array
-    x = np.array([[[True, False], [False, True]], [[False, True], [True, False]]]).astype(np.bool_)
-    y = np.array([[[False, True], [True, False]], [[True, False], [False, True]]]).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 5: Multi-dimensional tensors
+    x = np.array([[[True, False], [False, True]], [[False, False], [True, True]]], dtype=np.bool_)
+    y = np.array([[[False, True], [True, False]], [[True, True], [False, False]]], dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "multi_dimensional"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Name provided
-    x = np.array([True, False]).astype(np.bool_)
-    y = np.array([False, True]).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": "logical_or_op"}
+    # Input 6: Different shapes that are broadcastable
+    x = np.array([True, False, True], dtype=np.bool_)
+    y = np.array([[False], [True], [False]], dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "broadcastable_different_shapes"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: All True values
-    x = np.array([True, True, True]).astype(np.bool_)
-    y = np.array([True, True, True]).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 7: More broadcasting with different dimensions
+    x = np.array([[[True], [False]]], dtype=np.bool_)
+    y = np.array([[[False, True]]], dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "more_broadcasting"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8: All False values
-    x = np.array([False, False, False]).astype(np.bool_)
-    y = np.array([False, False, False]).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    x = np.array([False, False, False], dtype=np.bool_)
+    y = np.array([False, False, False], dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "all_false"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Different sizes, but broadcastable
-    x = np.array([True]).astype(np.bool_)
-    y = np.array([False, True, False]).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 9: All True values
+    x = np.array([True, True, True], dtype=np.bool_)
+    y = np.array([True, True, True], dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "all_true"}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Complex shape
-    x = np.array([[[True, False], [True, True]], [[False, False], [True, False]]]).astype(np.bool_)
-    y = np.array(True).astype(np.bool_)
-    input_dict = {"x": x, "y": y, "name": None}
+    # Input 10: Different shapes
+    x = np.array([[True, False], [False, True]], dtype=np.bool_)
+    y = np.array([True, False], dtype=np.bool_)
+    input_dict = {"x": x, "y": y, "name": "diff_shape"}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
 
     return list_of_inputs
 
 generated_inputs = {}
-inputs = tf_raw_ops_logical_or_inputs()
-generated_inputs["tf.raw_ops.LogicalOr"] = []
-for input_dict in inputs:
-    x_np = input_dict["x"]
-    y_np = input_dict["y"]
-    x_tensor = tf.convert_to_tensor(x_np)
-    y_tensor = tf.convert_to_tensor(y_np)
-    generated_inputs["tf.raw_ops.LogicalOr"].append({
-        "x": x_tensor,
-        "y": y_tensor,
-        "name": input_dict["name"]
-    })
+generated_inputs["tf.raw_ops.LogicalOr"] = tf_raw_ops_logical_or_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

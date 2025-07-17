@@ -11,83 +11,83 @@ import copy
 def tf_switch_case_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with default
-    branch_index = tf.constant(0, dtype=tf.int32)
-    branch_fns = [lambda: tf.constant(10), lambda: tf.constant(20)]
-    default = [lambda: tf.constant(30)]
-    name = "switch_case_1"
+    # Input 1
+    branch_index = tf.constant(0)
+    branch_fns = [lambda: tf.constant(1).numpy(), lambda: tf.constant(2).numpy()]
+    default = [lambda: tf.constant(-1).numpy()]
+    name = "case1"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: No default, index out of range
-    branch_index = tf.constant(2, dtype=tf.int32)
-    branch_fns = [lambda: tf.constant(10), lambda: tf.constant(20)]
-    default = []
-    name = "switch_case_2"
+    # Input 2
+    branch_index = tf.constant(1)
+    branch_fns = [lambda: tf.constant([1, 2]).numpy(), lambda: tf.constant([3, 4]).numpy()]
+    default = [lambda: tf.constant([-1, -2]).numpy()]
+    name = "case2"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Nested structure, with default
-    branch_index = tf.constant(1, dtype=tf.int32)
-    branch_fns = [lambda: (tf.constant(1), tf.constant(2)), lambda: (tf.constant(3), tf.constant(4))]
-    default = [lambda: (tf.constant(5), tf.constant(6))]
-    name = "switch_case_3"
+    # Input 3
+    branch_index = tf.constant(2)
+    branch_fns = [lambda: tf.constant(1).numpy(), lambda: tf.constant(2).numpy(), lambda: tf.constant(3).numpy()]
+    default = [lambda: tf.constant(-1).numpy()]
+    name = "case3"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: List of callables, no default
-    branch_index = tf.constant(0, dtype=tf.int32)
-    branch_fns = [lambda: tf.constant([1, 2]), lambda: tf.constant([3, 4])]
-    default = []
-    name = "switch_case_4"
+    # Input 4
+    branch_index = tf.constant(0)
+    branch_fns = [lambda: tf.constant([[1, 2], [3, 4]]).numpy(), lambda: tf.constant([[5, 6], [7, 8]]).numpy()]
+    default = [lambda: tf.constant([[-1, -2], [-3, -4]]).numpy()]
+    name = "case4"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Empty branch_fns, with default
-    branch_index = tf.constant(0, dtype=tf.int32)
-    branch_fns = []
-    default = [lambda: tf.constant(100)]
-    name = "switch_case_5"
+    # Input 5
+    branch_index = tf.constant(1)
+    branch_fns = [lambda: tf.constant(1.0).numpy(), lambda: tf.constant(2.0).numpy()]
+    default = [lambda: tf.constant(-1.0).numpy()]
+    name = "case5"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Branch index is a scalar tensor
-    branch_index = tf.constant(1, dtype=tf.int32)
-    branch_fns = [lambda: tf.constant(10), lambda: tf.constant(20)]
-    default = [lambda: tf.constant(30)]
-    name = "switch_case_6"
+    # Input 6
+    branch_index = tf.constant(0)
+    branch_fns = [lambda: tf.constant([1, 2, 3]).numpy(), lambda: tf.constant([4, 5, 6]).numpy()]
+    default = [lambda: tf.constant([-1, -2, -3]).numpy()]
+    name = "case6"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Default is None
-    branch_index = tf.constant(0, dtype=tf.int32)
-    branch_fns = [lambda: tf.constant(1), lambda: tf.constant(2)]
-    default = []
-    name = "switch_case_7"
+    # Input 7
+    branch_index = tf.constant(2)
+    branch_fns = [lambda: tf.constant(1).numpy(), lambda: tf.constant(2).numpy(), lambda: tf.constant(3).numpy()]
+    default = [lambda: tf.constant(-1).numpy()]
+    name = "case7"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Same return type for all branches
-    branch_index = tf.constant(1, dtype=tf.int32)
-    branch_fns = [lambda: tf.constant([1, 2]), lambda: tf.constant([3, 4])]
-    default = [lambda: tf.constant([5, 6])]
-    name = "switch_case_8"
+    # Input 8
+    branch_index = tf.constant(0)
+    branch_fns = [lambda: tf.constant(1).numpy(), lambda: tf.constant(2).numpy(), lambda: tf.constant(3).numpy()]
+    default = [lambda: tf.constant(-1).numpy()]
+    name = "case8"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Default is a numpy array converted to tensor
-    branch_index = tf.constant(0, dtype=tf.int32)
-    branch_fns = [lambda: tf.constant(1), lambda: tf.constant(2)]
-    default = [lambda: tf.convert_to_tensor(np.array([3, 4]), dtype=tf.int32)]
-    name = "switch_case_9"
+    # Input 9
+    branch_index = tf.constant(2)
+    branch_fns = [lambda: tf.constant([1, 2, 3]).numpy(), lambda: tf.constant([4, 5, 6]).numpy(), lambda: tf.constant([7, 8, 9]).numpy()]
+    default = [lambda: tf.constant([-1, -2, -3]).numpy()]
+    name = "case9"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Name with special characters
-    branch_index = tf.constant(0, dtype=tf.int32)
-    branch_fns = [lambda: tf.constant(1), lambda: tf.constant(2)]
-    default = [lambda: tf.convert_to_tensor(np.array([3, 4]), dtype=tf.int32)]
-    name = "switch_case-10_test"
+    # Input 10
+    branch_index = tf.constant(1)
+    branch_fns = [lambda: tf.constant([[1, 2], [3, 4]]).numpy(), lambda: tf.constant([[5, 6], [7, 8]]).numpy()]
+    default = [lambda: tf.constant([[-1, -2], [-3, -4]]).numpy()]
+    name = "case10"
     input_dict = {"branch_index": branch_index, "branch_fns": branch_fns, "default": default, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

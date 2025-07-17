@@ -7,86 +7,205 @@ generated_inputs = dict()
 import tensorflow as tf
 import copy
 import os
+import shutil
 
 def tf_saved_model_load_inputs():
     list_of_inputs = []
 
-    # Helper function to create a dummy SavedModel directory
-    def create_dummy_saved_model(export_dir, tags=None):
-        if not os.path.exists(export_dir):
-            os.makedirs(export_dir)
-        signatures = {'serving_default': tf.function(lambda x: x, input_signature=[tf.TensorSpec(shape=None, dtype=tf.float32)])}
-        tf.saved_model.save(tf.train.Checkpoint(), export_dir, signatures=signatures)
+    # Input 1: Minimal valid input.  Assume 'test_model_1' exists
+    export_dir = "test_model_1"
+    tags = None
+    options = None
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, signatures={})
 
-    # Input 1: Basic case with empty options
-    export_dir = "dummy_saved_model_1"
-    create_dummy_saved_model(export_dir)
-    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+
+
+    # Input 2: With tags, assuming 'test_model_2' exists
+    export_dir = "test_model_2"
+    tags = ["serve"]
+    options = None
+
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        @tf.function(input_signature=[tf.TensorSpec(shape=(None, 10), dtype=tf.float32)])
+        def serve(x):
+            return model(x)
+        tf.saved_model.save(model, export_dir, signatures={"serving_default": serve})
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+
+    # Input 3: With empty tags list, assuming 'test_model_3' exists
+    export_dir = "test_model_3"
+    tags = []
+    options = None
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, signatures={})
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+
+    # Input 4: Using LoadOptions (string), assuming 'test_model_4' exists.  Note: LoadOptions must be specified
+    # as a string due to the signature.
+
+    export_dir = "test_model_4"
+    tags = None
+    options = ""  # Represents default options since signature specifies string type
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, signatures={})
+
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+
+    # Input 5:  Multiple tags, assuming 'test_model_5' exists
+
+    export_dir = "test_model_5"
+    tags = ["serve", "train"]
+    options = None
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, tags=set(tags), signatures={})
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: With tags
-    export_dir = "dummy_saved_model_2"
-    create_dummy_saved_model(export_dir, tags=["serve", "train"])
-    input_dict = {"export_dir": export_dir, "tags": ["serve"], "options": ""}
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+
+
+    # Input 6: Another set of tags, assuming 'test_model_6' exists
+    export_dir = "test_model_6"
+    tags = ["gpu"]
+    options = None
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, signatures={})
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: With options (empty string as LoadOptions object can't be created without TF)
-    export_dir = "dummy_saved_model_3"
-    create_dummy_saved_model(export_dir)
-    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+
+
+    # Input 7: Multiple tags, assuming 'test_model_7' exists, empty string for options
+    export_dir = "test_model_7"
+    tags = ["serve", "validation"]
+    options = ""
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, signatures={})
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+
+
+    # Input 8:  Another tag, assuming 'test_model_8' exists, default options
+    export_dir = "test_model_8"
+    tags = ["inference"]
+    options = None
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, signatures={})
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different tags
-    export_dir = "dummy_saved_model_4"
-    create_dummy_saved_model(export_dir, tags=["tag1", "tag2"])
-    input_dict = {"export_dir": export_dir, "tags": ["tag2"], "options": ""}
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
+
+    # Input 9: Empty tag list with non-empty options string
+    export_dir = "test_model_9"
+    tags = []
+    options = ""
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, signatures={})
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
 
-    # Input 5: Multiple tags
-    export_dir = "dummy_saved_model_5"
-    create_dummy_saved_model(export_dir, tags=["tag1", "tag2", "tag3"])
-    input_dict = {"export_dir": export_dir, "tags": ["tag1", "tag3"], "options": ""}
+     # Input 10: None tag list with non-empty options string
+    export_dir = "test_model_10"
+    tags = None
+    options = ""
+    if not os.path.exists(export_dir):
+        os.makedirs(export_dir)
+        model = tf.keras.Sequential([tf.keras.layers.Input(shape=(10,)), tf.keras.layers.Dense(10, activation='relu')])
+        tf.saved_model.save(model, export_dir, signatures={})
+
+    input_dict = {
+        "export_dir": export_dir,
+        "tags": tags,
+        "options": options
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 6: No tags specified when multiple exist
-    export_dir = "dummy_saved_model_6"
-    create_dummy_saved_model(export_dir, tags=["tag1", "tag2"])
-    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 7: Export Dir with Sub directory.
-    export_dir = "dummy_saved_model_7/sub_dir"
-    create_dummy_saved_model(export_dir)
-    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Empty Tags list
-    export_dir = "dummy_saved_model_8"
-    create_dummy_saved_model(export_dir)
-    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Another set of tags
-    export_dir = "dummy_saved_model_9"
-    create_dummy_saved_model(export_dir, tags=["gpu", "cpu"])
-    input_dict = {"export_dir": export_dir, "tags": ["cpu"], "options": ""}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Different Export Directory Name.
-    export_dir = "my_saved_model"
-    create_dummy_saved_model(export_dir)
-    input_dict = {"export_dir": export_dir, "tags": [], "options": ""}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    for i in range(1, 11):
-        export_dir = f"dummy_saved_model_{i}"
-        if os.path.exists(export_dir):
-            import shutil
-            shutil.rmtree(export_dir, ignore_errors=True)
-
-    if os.path.exists("my_saved_model"):
-        import shutil
-        shutil.rmtree("my_saved_model", ignore_errors=True)
+    if os.path.exists(export_dir):
+        shutil.rmtree(export_dir)
 
     return list_of_inputs
 

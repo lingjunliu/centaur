@@ -16,89 +16,149 @@ def tf_raw_ops_TensorSummary_inputs():
     description = ""
     labels = []
     display_name = ""
-    name = ""
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    name = "summary_1"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    description = "A 2x2 float matrix"
-    labels = ["row1", "row2"]
+    description = "A 2x2 matrix"
+    labels = []
     display_name = "Matrix A"
-    name = "matrix_a_summary"
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    name = "summary_2"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     tensor = np.array([True, False, True], dtype=np.bool_)
     description = "Boolean array"
     labels = []
-    display_name = ""
-    name = ""
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    display_name = "Boolean Values"
+    name = "summary_3"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    tensor = np.array(["hello", "world"], dtype=np.string_)
+    tensor = np.array(["a", "b", "c"], dtype=np.unicode_)
     description = "String array"
     labels = []
-    display_name = ""
-    name = ""
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    display_name = "String Data"
+    name = "summary_4"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    tensor = np.array([1, 2, 3], dtype=np.int64)
-    description = ""
+    tensor = np.array([-1, -2, -3], dtype=np.int64)
+    description = "Negative integers"
     labels = []
-    display_name = ""
-    name = ""
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    display_name = "Negative Ints"
+    name = "summary_5"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    tensor = np.array(-1, dtype=np.int32)
-    description = "Negative scalar"
+    tensor = np.array(1.2345, dtype=np.float64)
+    description = "Single float"
     labels = []
-    display_name = ""
-    name = ""
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    display_name = "Single Float"
+    name = "summary_6"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    tensor = np.array([1.5, 2.5, 3.5], dtype=np.float64)
-    description = "Float array"
+    tensor = np.array([1, 2, 3], dtype=np.uint8)
+    description = "Unsigned int8"
     labels = []
-    display_name = ""
-    name = ""
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    display_name = "Unsigned Int8"
+    name = "summary_7"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
-    description = "3D int array"
+    tensor = np.array([1, 2, 3], dtype=np.int16)
+    description = "Int16"
     labels = []
-    display_name = ""
-    name = ""
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    display_name = "Int16"
+    name = "summary_8"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    tensor = np.array([], dtype=np.int32)
-    description = "Empty array"
+    tensor = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32)
+    description = "3D tensor"
     labels = []
-    display_name = ""
-    name = ""
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    display_name = "3D Tensor"
+    name = "summary_9"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    tensor = np.array(1, dtype=np.int32)
-    description = "Scalar Value"
+    tensor = np.array([], dtype=np.float32)
+    description = "Empty tensor"
     labels = []
-    display_name = "Scalar"
-    name = "scalar_summary"
-    input_dict = {"tensor": tensor, "description": description, "labels": labels, "display_name": display_name, "name": name}
+    display_name = "Empty Tensor"
+    name = "summary_10"
+    input_dict = {
+        "tensor": tensor,
+        "description": description,
+        "labels": labels,
+        "display_name": display_name,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

@@ -11,56 +11,56 @@ import copy
 def tf_raw_ops_rint_inputs():
     list_of_inputs = []
 
-    # Input 1: float32, 1D array
-    x = np.array([-1.7, -1.5, -0.2, 0.2, 1.5, 1.7, 2.0], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 1: float32 scalar
+    x = np.float32(1.5)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64, 2D array
-    x = np.array([[-1.5, 2.5], [3.5, -4.5]], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": "rint_op_2"}
+    # Input 2: float32 scalar, negative
+    x = np.float32(-2.5)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: bfloat16, scalar
-    x = np.array(-1.5, dtype=np.float16)
-    input_dict = {"x": tf.constant(x, dtype=tf.bfloat16), "name": None}
+    # Input 3: float32 array
+    x = np.array([1.2, 2.7, -3.1, -4.9], dtype=np.float32)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: half, 1D array
-    x = np.array([0.5, -0.5, 1.5, -1.5], dtype=np.float16)
-    input_dict = {"x": tf.constant(x, dtype=tf.float16), "name": "rint_op_4"}
+    # Input 4: float32 array, multi-dimensional
+    x = np.array([[0.5, 1.5], [-1.5, -0.5]], dtype=np.float32)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: float32, 3D array
-    x = np.array([[[1.2, 2.8], [3.5, 4.1]], [[5.7, 6.3], [7.9, 8.6]]], dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 5: float64 scalar
+    x = np.float64(3.5)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: float64, scalar positive
-    x = np.array(5.0, dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 6: float64 array
+    x = np.array([0.1, 1.9, -2.3, -3.7], dtype=np.float64)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: float32, scalar negative
-    x = np.array(-7.0, dtype=np.float32)
-    input_dict = {"x": tf.constant(x), "name": None}
+    # Input 7: half scalar
+    x = np.float16(2.5)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: bfloat16, array
-    x = np.array([1.1, -2.2, 3.3, -4.4], dtype=np.float16)
-    input_dict = {"x": tf.constant(x, dtype=tf.bfloat16), "name": None}
+    # Input 8: half array
+    x = np.array([0.6, 1.4, -2.6, -3.4], dtype=np.float16)
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: half, 2D array with zero
-    x = np.array([[0.0, 1.6], [-2.3, 4.0]], dtype=np.float16)
-    input_dict = {"x": tf.constant(x, dtype=tf.float16), "name": None}
+    # Input 9: bfloat16 scalar
+    x = np.float32(4.5) # bfloat16 doesn't exist in numpy, using float32 and hope it will be casted to bfloat16 in tf
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: float64, 1D array with large values
-    x = np.array([1000.5, -2000.5, 3000.1, -4000.9], dtype=np.float64)
-    input_dict = {"x": tf.constant(x), "name": "rint_op_10"}
+    # Input 10: bfloat16 array
+    x = np.array([0.7, 1.3, -2.7, -3.3], dtype=np.float32) # bfloat16 doesn't exist in numpy, using float32 and hope it will be casted to bfloat16 in tf
+    input_dict = {"x": x, "name": None}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

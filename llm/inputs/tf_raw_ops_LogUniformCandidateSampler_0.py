@@ -12,123 +12,135 @@ def tf_raw_ops_LogUniformCandidateSampler_inputs():
     list_of_inputs = []
 
     # Input 1
-    true_classes = np.array([[1, 2]], dtype=np.int64)
-    num_true = 1
-    num_sampled = 2
-    unique = True
-    range_max = 5
-    seed = 0
-    seed2 = 0
-    name = "test1"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    true_classes = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.int64)
+    true_classes = np.array([[1, 2], [3, 4]], dtype=np.int64)
     num_true = 2
-    num_sampled = 3
-    unique = False
+    num_sampled = 4
+    unique = True
     range_max = 10
     seed = 123
     seed2 = 456
-    name = "test2"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    name = "sampler1"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    true_classes = np.array([[1], [2]], dtype=np.int64)
+    num_true = 1
+    num_sampled = 1
+    unique = False
+    range_max = 5
+    seed = 1
+    seed2 = 0
+    name = "sampler2"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
+    true_classes = np.array([[1, 2, 3]], dtype=np.int64)
+    num_true = 3
+    num_sampled = 5
+    unique = True
+    range_max = 20
+    seed = 789
+    seed2 = 101
+    name = "sampler3"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
     true_classes = np.array([[1]], dtype=np.int64)
+    num_true = 1
+    num_sampled = 2
+    unique = False
+    range_max = 3
+    seed = 1
+    seed2 = 1
+    name = "sampler4"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    true_classes = np.array([[1, 2, 3, 4], [5, 6, 7, 8]], dtype=np.int64)
+    num_true = 4
+    num_sampled = 10
+    unique = True
+    range_max = 100
+    seed = 1
+    seed2 = 2
+    name = "sampler5"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    true_classes = np.array([[0]], dtype=np.int64)
     num_true = 1
     num_sampled = 1
     unique = True
     range_max = 2
-    seed = 789
-    seed2 = 101
-    name = "test3"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    true_classes = np.array([[1, 2, 3, 4]], dtype=np.int64)
-    num_true = 3
-    num_sampled = 5
-    unique = False
-    range_max = 20
-    seed = 0
-    seed2 = 1
-    name = "test4"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    true_classes = np.array([[1000, 2000]], dtype=np.int64)
-    num_true = 1
-    num_sampled = 2
-    unique = True
-    range_max = 5000
-    seed = 2
-    seed2 = 3
-    name = "test5"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    true_classes = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int64)
-    num_true = 1
-    num_sampled = 2
-    unique = False
-    range_max = 10
-    seed = 4
-    seed2 = 5
-    name = "test6"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    seed = 42
+    seed2 = 24
+    name = "sampler6"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    true_classes = np.array([[1, 2, 3]], dtype=np.int64)
+    true_classes = np.array([[1000, 2000]], dtype=np.int64)
     num_true = 2
-    num_sampled = 4
-    unique = True
-    range_max = 15
-    seed = 6
-    seed2 = 7
-    name = "test7"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    num_sampled = 5
+    unique = False
+    range_max = 5000
+    seed = 100
+    seed2 = 200
+    name = "sampler7"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
     true_classes = np.array([[1, 2, 3, 4, 5]], dtype=np.int64)
-    num_true = 4
-    num_sampled = 6
-    unique = False
-    range_max = 25
-    seed = 8
-    seed2 = 9
-    name = "test8"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    num_true = 5
+    num_sampled = 7
+    unique = True
+    range_max = 30
+    seed = 15
+    seed2 = 25
+    name = "sampler8"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    true_classes = np.array([[1]], dtype=np.int64)
-    num_true = 1
-    num_sampled = 5
-    unique = True
-    range_max = 100
-    seed = 10
-    seed2 = 11
-    name = "test9"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    true_classes = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.int64)
+    num_true = 2
+    num_sampled = 3
+    unique = False
+    range_max = 8
+    seed = 88
+    seed2 = 99
+    name = "sampler9"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    true_classes = np.array([[1, 2]], dtype=np.int64)
+    true_classes = np.array([[100]], dtype=np.int64)
     num_true = 1
-    num_sampled = 3
-    unique = False
+    num_sampled = 5
+    unique = True
     range_max = 1000
-    seed = 12
-    seed2 = 13
-    name = "test10"
-    input_dict = {"true_classes": tf.convert_to_tensor(true_classes, dtype=tf.int64), "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    seed = 50
+    seed2 = 75
+    name = "sampler10"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    true_classes = np.array([[1, 2, 3, 4]], dtype=np.int64)
+    num_true = 4
+    num_sampled = 2
+    unique = False
+    range_max = 5
+    seed = 1
+    seed2 = 0
+    name = "sampler11"
+    input_dict = {"true_classes": true_classes, "num_true": num_true, "num_sampled": num_sampled, "unique": unique, "range_max": range_max, "seed": seed, "seed2": seed2, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
