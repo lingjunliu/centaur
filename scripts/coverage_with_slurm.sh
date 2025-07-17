@@ -14,10 +14,14 @@ export elements_file=${lib}_apis.txt
 # alias
 if [ "$lib" = "pytorch" ]; then
   lib=torch
-  lib_v=2.2.0
-  lib_ins="torch==${lib_v}"
 elif [ "$lib" = "tensorflow" ]; then
   lib=tf
+fi
+
+if [ "$lib" = "torch" ]; then
+  lib_v=2.2.0
+  lib_ins="torch==${lib_v}"
+elif [ "$lib" = "tf" ]; then
   lib_v=2.16.1
   lib_ins="tensorflow==${lib_v}"
 fi
