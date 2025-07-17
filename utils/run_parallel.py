@@ -3,7 +3,7 @@ from multiprocessing import Pool, cpu_count
 import subprocess
 import sys
 
-from utils.misc import get_tmp_dir, read_file_in_root
+from utils.misc import get_dir_in_root, read_file_in_root
 
 class ProcRunner:
     def __init__(self, cmd, args, job_name):
@@ -14,7 +14,8 @@ class ProcRunner:
     def run_proc(self, element):
         cmd = f"{self.cmd} {element} {self.args}"
         return_object = subprocess.run(cmd.split(), capture_output=True)
-        with open(os.path.join("logs", f"{element}_{self.job_name}.out"), "w") as f:
+        log_dir = get_dir_in_root("logs")
+        with open(os.path.join(log_dir, f"{element}_{self.job_name}.out"), "w") as f:
             f.write(return_object.stdout.decode())
             f.write(return_object.stderr.decode())
         
