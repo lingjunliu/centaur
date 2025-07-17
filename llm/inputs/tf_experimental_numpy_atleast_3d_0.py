@@ -26,38 +26,44 @@ def tf_experimental_numpy_atleast_3d_inputs():
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Array with negative values
+    # Input 4: 3D array (already 3D)
+    arys = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
+    input_dict = {"arys": arys}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Array with negative values
     arys = [np.array([[-1, -2], [-3, -4]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Array with float values
-    arys = [np.array([[1.5, 2.5], [3.5, 4.5]])]
+    # Input 6: Array with mixed positive and negative values
+    arys = [np.array([[-1, 2], [3, -4]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Empty array
-    arys = [np.array([])]
+    # Input 7: array with different dtype
+    arys = [np.array([1, 2, 3], dtype=np.int64)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Single element 2D array
-    arys = [np.array([[5]])]
+    # Input 8: Multiple arrays (scalar, 1D, 2D)
+    arys = [np.array(5), np.array([6, 7]), np.array([[8, 9], [10, 11]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: List containing zeros
-    arys = [np.array([0, 0, 0])]
+    # Input 9: array with different dtype, multiple inputs
+    arys = [np.array([1, 2, 3], dtype=np.float32), np.array([[4,5],[6,7]], dtype=np.int32)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9: Scalar
-    arys = [np.array(-1)]
+
+    # Input 10: Empty array with explicit shape and dtype
+    arys = [np.array([], dtype=np.float32).reshape(0,)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.experimental.numpy.atleast_3d"] = tf_experimental_numpy_atleast_3d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

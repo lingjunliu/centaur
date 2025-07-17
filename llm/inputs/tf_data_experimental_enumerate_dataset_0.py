@@ -11,54 +11,39 @@ import copy
 def tf_data_experimental_enumerate_dataset_inputs():
     list_of_inputs = []
 
-    # Input 1: start = 0
-    start = np.int64(0)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
+    # Input 1: Scalar start value
+    start = np.array(0, dtype=np.int64)
+    input_dict = {'start': tf.convert_to_tensor(start, dtype=tf.int64)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: start = 1
-    start = np.int64(1)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
+    # Input 2: Scalar start value, different starting point
+    start = np.array(10, dtype=np.int64)
+    input_dict = {'start': tf.convert_to_tensor(start, dtype=tf.int64)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: start = -1
-    start = np.int64(-1)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
+    # Input 3: Negative start value
+    start = np.array(-5, dtype=np.int64)
+    input_dict = {'start': tf.convert_to_tensor(start, dtype=tf.int64)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: start = 100
-    start = np.int64(100)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
+    # Input 4: Zero start value
+    start = np.array(0, dtype=np.int64)
+    input_dict = {'start': tf.convert_to_tensor(start, dtype=tf.int64)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: start = -100
-    start = np.int64(-100)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
+    # Input 5: Large positive start value
+    start = np.array(10000, dtype=np.int64)
+    input_dict = {'start': tf.convert_to_tensor(start, dtype=tf.int64)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: start = large positive number
-    start = np.int64(2**10)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
+    # Input 6: Shaped tensor
+    start = np.array([1, 2, 3], dtype=np.int64)
+    input_dict = {'start': tf.convert_to_tensor(start, dtype=tf.int64)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: start = large negative number
-    start = np.int64(-(2**10))
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: start = smaller positive
-    start = np.int64(10)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: start = smaller negative
-    start = np.int64(-10)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: start = a different starting point
-    start = np.int64(15)
-    input_dict = {"start": tf.convert_to_tensor(start, dtype=tf.int64)}
+    # Input 7: Multidimensional shaped tensor
+    start = np.array([[1, 2], [3, 4]], dtype=np.int64)
+    input_dict = {'start': tf.convert_to_tensor(start, dtype=tf.int64)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

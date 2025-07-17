@@ -11,205 +11,59 @@ import copy
 def tf_io_decode_csv_inputs():
     list_of_inputs = []
 
-    # Input 1
-    records = np.array(["1,2,3", "4,5,6"]).astype(np.string_)
+    def create_input_dict(records, record_defaults, field_delim=",", use_quote_delim=True, na_value="", select_cols=None, name=None):
+        return {"records": records, "record_defaults": record_defaults, "field_delim": field_delim, "use_quote_delim": use_quote_delim, "na_value": na_value, "select_cols": select_cols, "name": name}
+
+    # Input 1: Basic CSV parsing
+    records = tf.constant("1,2,3\n4,5,6")
     record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b""
-    select_cols = None
-    name = None
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
 
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Different delimiter
+    records = tf.constant("1;2;3\n4;5;6")
+    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults, field_delim=";")))
 
-    # Input 2
-    records = np.array(["1.1,2.2,3.3", "4.4,5.5,6.6"]).astype(np.string_)
+    # Input 3: Float type
+    records = tf.constant("1.1,2.2,3.3\n4.4,5.5,6.6")
     record_defaults = [tf.constant(0.0, dtype=tf.float32), tf.constant(0.0, dtype=tf.float32), tf.constant(0.0, dtype=tf.float32)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b""
-    select_cols = None
-    name = None
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
 
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    records = np.array(["a,b,c", "d,e,f"]).astype(np.string_)
-    record_defaults = [tf.constant(b"", dtype=tf.string), tf.constant(b"", dtype=tf.string), tf.constant(b"", dtype=tf.string)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b""
-    select_cols = None
-    name = None
-
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    records = np.array(["1,2,3", "4,5,6"]).astype(np.string_)
-    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b""
-    select_cols = [0, 1]
-    name = None
-
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    records = np.array(["1,2,3"]).astype(np.string_)
+    # Input 4: NA value
+    records = tf.constant("1,NA,2\n3,4,NA")
     record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b""
-    select_cols = None
-    name = "my_decode"
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults, na_value="NA")))
 
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 6
-    records = np.array(["1;2;3", "4;5;6"]).astype(np.string_)
+    # Input 5: Select columns
+    records = tf.constant("1,2,3\n4,5,6")
     record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    field_delim = b";"
-    use_quote_delim = True
-    na_value = b""
-    select_cols = None
-    name = None
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults, select_cols=[0, 2])))
 
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    records = np.array(["1,2,NA", "4,5,6"]).astype(np.string_)
+    # Input 6: No quote delimiter
+    records = tf.constant('"1","2","3"\n"4","5","6"')
     record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b"NA"
-    select_cols = None
-    name = None
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults, use_quote_delim=False)))
 
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Empty values with defaults
+    records = tf.constant(",,\n,1,")
+    record_defaults = [tf.constant(1, dtype=tf.int32), tf.constant(2, dtype=tf.int32), tf.constant(3, dtype=tf.int32)]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
 
-    # Input 8
-    records = np.array(['"hello","world"', '"foo","bar"']).astype(np.string_)
-    record_defaults = [tf.constant(b"", dtype=tf.string), tf.constant(b"", dtype=tf.string)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b""
-    select_cols = None
-    name = None
+    # Input 8: Int64 type
+    records = tf.constant("10000000000,20000000000,30000000000\n40000000000,50000000000,60000000000")
+    record_defaults = [tf.constant(0, dtype=tf.int64), tf.constant(0, dtype=tf.int64), tf.constant(0, dtype=tf.int64)]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
 
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    records = np.array(["1,2", "3,4"]).astype(np.string_)
-    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b""
-    select_cols = None
-    name = None
-
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    records = np.array(["1.0,2.0,3.0"]).astype(np.string_)
+    # Input 9: Float64 type
+    records = tf.constant("1.1,2.2,3.3\n4.4,5.5,6.6")
     record_defaults = [tf.constant(0.0, dtype=tf.float64), tf.constant(0.0, dtype=tf.float64), tf.constant(0.0, dtype=tf.float64)]
-    field_delim = b","
-    use_quote_delim = True
-    na_value = b""
-    select_cols = None
-    name = None
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
 
-    input_dict = {
-        "records": records,
-        "record_defaults": record_defaults,
-        "field_delim": field_delim,
-        "use_quote_delim": use_quote_delim,
-        "na_value": na_value,
-        "select_cols": select_cols,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 10: Empty records
+    records = tf.constant("")
+    record_defaults = [tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32), tf.constant(0, dtype=tf.int32)]
+    list_of_inputs.append(copy.deepcopy(create_input_dict(records, record_defaults)))
+
 
     return list_of_inputs
 

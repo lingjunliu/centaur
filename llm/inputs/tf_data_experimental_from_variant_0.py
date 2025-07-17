@@ -12,62 +12,62 @@ def tf_data_experimental_from_variant_inputs():
     list_of_inputs = []
 
     # Input 1
-    variant = np.array(1, dtype=np.int32)
-    structure = [tf.TensorSpec(shape=(), dtype=tf.float32)]
+    variant = tf.constant(np.array(1, dtype=np.int32))
+    structure = [tf.TensorSpec(shape=(), dtype=tf.int32)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    variant = np.array([1, 2, 3], dtype=np.int64)
+    variant = tf.constant(np.array([1, 2, 3], dtype=np.int32))
     structure = [tf.TensorSpec(shape=(3,), dtype=tf.int32)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    variant = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    structure = [tf.TensorSpec(shape=(2, 2), dtype=tf.float32)]
+    variant = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int32))
+    structure = [tf.TensorSpec(shape=(2, 2), dtype=tf.int32)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    variant = np.array([True, False, True], dtype=np.bool_)
-    structure = [tf.TensorSpec(shape=(3,), dtype=tf.bool)]
+    variant = tf.constant(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    structure = [tf.TensorSpec(shape=(3,), dtype=tf.float32)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    variant = np.array("hello", dtype=np.unicode_)
-    structure = [tf.TensorSpec(shape=(), dtype=tf.string)]
+    variant = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
+    structure = [tf.TensorSpec(shape=(2, 2), dtype=tf.float32)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    variant = np.array(["world", "!"], dtype=np.unicode_)
-    structure = [tf.TensorSpec(shape=(2,), dtype=tf.string)]
+    variant = tf.constant(np.array([True, False, True], dtype=np.bool_))
+    structure = [tf.TensorSpec(shape=(3,), dtype=tf.bool)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    variant = np.array(1.5, dtype=np.float64)
-    structure = [tf.TensorSpec(shape=(), dtype=tf.float64)]
+    variant = tf.constant(np.array([1,2], dtype=np.int64))
+    structure = [tf.TensorSpec(shape=(2,), dtype=tf.int64)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    variant = np.array([1,2,3,4,5], dtype=np.int32)
-    structure = [tf.TensorSpec(shape=(5,), dtype=tf.int32)]
+    variant = tf.constant(np.array(1, dtype=np.int64))
+    structure = [tf.TensorSpec(shape=(), dtype=tf.int64)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    variant = np.array([[1,2],[3,4]], dtype=np.int32)
+    variant = tf.constant(np.array([[-1, -2],[-3, -4]], dtype=np.int32))
     structure = [tf.TensorSpec(shape=(2, 2), dtype=tf.int32)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    variant = np.array([[[1,2],[3,4]],[[5,6],[7,8]]], dtype=np.int32)
-    structure = [tf.TensorSpec(shape=(2,2,2), dtype=tf.int32)]
+    variant = tf.constant(np.array([1.1, 2.2, 3.3], dtype=np.float64))
+    structure = [tf.TensorSpec(shape=(3,), dtype=tf.float64)]
     input_dict = {"variant": variant, "structure": structure}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

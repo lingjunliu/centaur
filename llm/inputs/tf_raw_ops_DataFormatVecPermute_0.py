@@ -11,54 +11,76 @@ import copy
 def tf_raw_ops_DataFormatVecPermute_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with NHWC to NCHW
+    # Input 1: Basic NHWC to NCHW, rank 1
     x = np.array([1, 2, 3, 4], dtype=np.int32)
-    input_dict = {"x": x, "src_format": "NHWC", "dst_format": "NCHW", "name": None}
+    src_format = "NHWC"
+    dst_format = "NCHW"
+    name = None
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Example with NDHWC to NCDHW and 2D tensor
+    # Input 2: NDHWC to NCDHW, rank 2
     x = np.array([[1, 6], [2, 7], [3, 8], [4, 9], [5, 10]], dtype=np.int64)
-    input_dict = {"x": x, "src_format": "NDHWC", "dst_format": "NCDHW", "name": None}
+    src_format = "NDHWC"
+    dst_format = "NCDHW"
+    name = "my_permute"
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Example with NHWC to NCHW and vector of size 2
+    # Input 3: NHWC to NCHW, rank 1, omitting non-spatial dimensions (size 2)
     x = np.array([1, 2], dtype=np.int32)
-    input_dict = {"x": x, "src_format": "NHWC", "dst_format": "NCHW", "name": None}
+    src_format = "NHWC"
+    dst_format = "NCHW"
+    name = None
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: NCHW to NHWC
+    # Input 4: NCHW to NHWC, rank 1
     x = np.array([1, 2, 3, 4], dtype=np.int64)
-    input_dict = {"x": x, "src_format": "NCHW", "dst_format": "NHWC", "name": None}
+    src_format = "NCHW"
+    dst_format = "NHWC"
+    name = None
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: NCDHW to NDHWC
-    x = np.array([[1, 6], [2, 7], [3, 8], [4, 9], [5, 10]], dtype=np.int32)
-    input_dict = {"x": x, "src_format": "NCDHW", "dst_format": "NDHWC", "name": None}
+    # Input 5: NCDHW to NDHWC, rank 2
+    x = np.array([[1, 6], [5, 10], [2, 7], [3, 8], [4, 9]], dtype=np.int32)
+    src_format = "NCDHW"
+    dst_format = "NDHWC"
+    name = "another_permute"
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: NDHWC to NCDHW with int32
-    x = np.array([[1, 6], [2, 7], [3, 8]], dtype=np.int32)
-    input_dict = {"x": x, "src_format": "NDHWC", "dst_format": "NCDHW", "name": None}
+    # Input 6: NHWC to NCHW, rank 2 (n, 2)
+    x = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=np.int64)
+    src_format = "NHWC"
+    dst_format = "NCHW"
+    name = None
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: NHWC to NCHW with name
+    # Input 7: NCHW to NHWC, rank 2 (n, 2)
+    x = np.array([[1, 2], [4, 3], [2, 1], [3, 4]], dtype=np.int32)
+    src_format = "NCHW"
+    dst_format = "NHWC"
+    name = None
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Rank 1, Custom format permutation
     x = np.array([1, 2, 3, 4], dtype=np.int64)
-    input_dict = {"x": x, "src_format": "NHWC", "dst_format": "NCHW", "name": "permute_op"}
+    src_format = "ABCD"
+    dst_format = "BADC"
+    name = None
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: NDHWC to NCDHW (omitting N and C, 3x2)
-    x = np.array([[2, 7], [3, 8], [4, 9]], dtype=np.int32)
-    input_dict = {"x": x, "src_format": "NDHWC", "dst_format": "NCDHW", "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Vector input, src and dst format same
-    x = np.array([1, 2, 3, 4], dtype=np.int32)
-    input_dict = {"x": x, "src_format": "NHWC", "dst_format": "NHWC", "name": None}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: NC to CN
-    x = np.array([1, 2], dtype=np.int64)
-    input_dict = {"x": x, "src_format": "NC", "dst_format": "CN", "name": None}
+     # Input 9: Rank 2, Custom format permutation
+    x = np.array([[1, 6], [2, 7], [3, 8], [4, 9]], dtype=np.int32)
+    src_format = "ABCD"
+    dst_format = "CADB"
+    name = "custom_permute"
+    input_dict = {"x": x, "src_format": src_format, "dst_format": dst_format, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

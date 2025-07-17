@@ -6,57 +6,61 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import copy
+import numpy as np
 
 def tf_data_experimental_to_variant_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple dataset
-    dataset = tf.data.Dataset.from_tensor_slices([1, 2, 3, 4, 5])
+    # Input 1
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4, 5]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 2: Dataset with different data types (string)
-    dataset = tf.data.Dataset.from_tensor_slices(["a", "b", "c"])
+    # Input 2
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4], [5, 6]]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 3: Dataset with a range of numbers
-    dataset = tf.data.Dataset.range(10)
+    # Input 3
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 4: Empty dataset
-    dataset = tf.data.Dataset.from_tensor_slices([])
+    # Input 4
+    dataset = tf.data.Dataset.from_tensor_slices(np.array(['a', 'b', 'c']))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 5: Dataset of tensors
-    a = tf.constant([[1, 1], [2, 2]])
-    dataset = tf.data.Dataset.from_tensor_slices([a])
+    # Input 5
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([True, False, True]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 6: Dataset of boolean values
-    dataset = tf.data.Dataset.from_tensor_slices([True, False, True])
+    # Input 6
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([b"hello", b"world"]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 7: Dataset with numpy arrays
-    import numpy as np
-    a = np.array([[1, 2], [3, 4]])
-    dataset = tf.data.Dataset.from_tensor_slices([a])
+    # Input 7
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1.0, 2.0, 3.0]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 9: Dataset of bytes
-    dataset = tf.data.Dataset.from_tensor_slices([b'test1', b'test2'])
+    # Input 8
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+    
+    # Input 9
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
+    input_dict = {"dataset": dataset}
+    list_of_inputs.append(input_dict)
+    
+    # Input 10
+    dataset = tf.data.Dataset.from_tensor_slices(np.array([[1, 2], [3, 4]]))
     input_dict = {"dataset": dataset}
     list_of_inputs.append(input_dict)
 
-    # Input 10: Dataset with only one element
-    dataset = tf.data.Dataset.from_tensor_slices([100])
-    input_dict = {"dataset": dataset}
-    list_of_inputs.append(input_dict)
 
     return list_of_inputs
 

@@ -24,7 +24,7 @@ def tf_data_experimental_group_by_reducer_inputs():
         reduce_func=lambda x, y: x + tf.cast(y, tf.int64),
         finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
@@ -34,89 +34,108 @@ def tf_data_experimental_group_by_reducer_inputs():
         reduce_func=lambda x, y: tf.strings.join([x, y], separator=","),
         finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    key_func = [lambda x: tf.cast(tf.shape(x)[0], tf.int64)]
+    key_func = [lambda x: tf.cast(tf.shape(x)[0], tf.int64) if tf.rank(x) > 0 else tf.constant(0, dtype=tf.int64)]
     reducer = [DummyReducer(
-        init_func=lambda: tf.constant(0, dtype=tf.float32),
-        reduce_func=lambda x, y: x + tf.reduce_sum(tf.cast(y, dtype=tf.float32)),
+        init_func=lambda: tf.constant([], dtype=tf.float32),
+        reduce_func=lambda x, y: tf.concat([x, tf.reshape(tf.cast(y, tf.float32), [-1])], axis=0) if tf.rank(y) > 0 else x,
         finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    key_func = [lambda x: tf.cast(tf.reduce_sum(x), tf.int64)]
+    key_func = [lambda x: tf.cast(tf.reduce_sum(x), tf.int64) if tf.rank(x) > 0 else tf.constant(0, dtype=tf.int64)]
     reducer = [DummyReducer(
-        init_func=lambda: tf.constant([], dtype=tf.int32),
-        reduce_func=lambda x, y: tf.concat([x, tf.reshape(y, [-1])], axis=0),
+        init_func=lambda: tf.constant(0.0, dtype=tf.float32),
+        reduce_func=lambda x, y: x + tf.cast(tf.reduce_sum(y), tf.float32) if tf.rank(y) > 0 else x,
         finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    key_func = [lambda x: tf.cast(tf.cond(tf.reduce_all(x > 0), lambda: 1, lambda: 0), tf.int64)]
+    key_func = [lambda x: tf.cast(tf.reduce_prod(x), tf.int64) if tf.rank(x) > 0 else tf.constant(1, dtype=tf.int64)]
     reducer = [DummyReducer(
-        init_func=lambda: tf.constant(True, dtype=tf.bool),
-        reduce_func=lambda x, y: tf.logical_and(x, tf.reduce_all(y > 0)),
+        init_func=lambda: tf.constant(1, dtype=tf.int64),
+        reduce_func=lambda x, y: x * tf.cast(tf.reduce_prod(y), tf.int64) if tf.rank(y) > 0 else x,
         finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    key_func = [lambda x: tf.cast(tf.random.uniform(shape=[], minval=0, maxval=2, dtype=tf.int32), tf.int64)]
+    key_func = [lambda x: tf.cast(tf.math.count_nonzero(x), tf.int64) if tf.rank(x) > 0 else tf.constant(0, dtype=tf.int64)]
     reducer = [DummyReducer(
-        init_func=lambda: tf.constant(0, dtype=tf.int32),
-        reduce_func=lambda x, y: x + 1,
-        finalize_func=lambda x: tf.cast(x, tf.float32)
+        init_func=lambda: tf.constant(0, dtype=tf.int64),
+        reduce_func=lambda x, y: x + tf.cast(tf.math.count_nonzero(y), tf.int64) if tf.rank(y) > 0 else x,
+        finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    key_func = [lambda x: tf.cast(tf.size(x), tf.int64)]
+    key_func = [lambda x: tf.cast(x[0], tf.int64) if tf.rank(x) > 0 and tf.size(x) > 0 else tf.constant(0, dtype=tf.int64)]
     reducer = [DummyReducer(
         init_func=lambda: tf.constant(0, dtype=tf.int64),
-        reduce_func=lambda x, y: x + tf.cast(tf.size(y), tf.int64),
+        reduce_func=lambda x, y: x + tf.cast(y[1], tf.int64) if tf.rank(y) > 0 and tf.size(y) > 1 else x,
         finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    key_func = [lambda x: tf.cast(tf.math.floormod(tf.cast(x, tf.float32), 5.0), tf.int64)]
-    reducer = [DummyReducer(
-        init_func=lambda: tf.constant(0.0, dtype=tf.float32),
-        reduce_func=lambda x, y: x + tf.cast(y, tf.float32),
-        finalize_func=lambda x: x
-    )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 9
-    key_func = [lambda x: tf.cast(x[0], tf.int64)] #Simplified lambda
+    key_func = [lambda x: tf.cast(tf.size(x), tf.int64) if tf.rank(x) > 0 else tf.constant(0, dtype=tf.int64)]
     reducer = [DummyReducer(
         init_func=lambda: tf.constant(0, dtype=tf.int64),
-        reduce_func=lambda x, y: x + tf.cast(y[1], tf.int64),
+        reduce_func=lambda x, y: x + tf.cast(tf.size(y), tf.int64) if tf.rank(y) > 0 else x,
         finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    key_func = [lambda x: tf.cast(tf.cond(tf.reduce_sum(x) > 0, lambda: 1, lambda: 0), tf.int64) if tf.rank(x) > 0 else tf.constant(0, dtype=tf.int64)]
+    reducer = [DummyReducer(
+        init_func=lambda: tf.constant(0, dtype=tf.int64),
+        reduce_func=lambda x, y: x + tf.cast(tf.size(y), tf.int64) if tf.rank(y) > 0 else x,
+        finalize_func=lambda x: x
+    )]
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    key_func = [lambda x: tf.cast(tf.size(x)%3, tf.int64)]
+    key_func = [lambda x: tf.cast(tf.math.floormod(tf.cast(tf.strings.length(x), tf.int64), 3), tf.int64) if isinstance(x, str) else tf.constant(0, dtype=tf.int64)]
     reducer = [DummyReducer(
-        init_func=lambda: tf.constant(0, dtype=tf.int64),
-        reduce_func=lambda x, y: x + tf.cast(tf.size(y), tf.int64),
+        init_func=lambda: tf.constant("", dtype=tf.string),
+        reduce_func=lambda x, y: tf.strings.join([x, y], separator="") if isinstance(y, str) else x,
         finalize_func=lambda x: x
     )]
-    input_dict = {'key_func': key_func, 'reducer': reducer}
+    input_dict = {"key_func": key_func, "reducer": reducer}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11
+    key_func = [lambda x: tf.cast(x % 5, tf.int64)]
+    reducer = [DummyReducer(
+        init_func=lambda: tf.constant(0, dtype=tf.int64),
+        reduce_func=lambda x, y: x + tf.cast(y, tf.int64),
+        finalize_func=lambda x: x
+    )]
+    input_dict = {"key_func": key_func, "reducer": reducer}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 12
+    key_func = [lambda x: tf.cast(tf.math.floormod(x, 3), tf.int64)]
+    reducer = [DummyReducer(
+        init_func=lambda: tf.constant(0, dtype=tf.int64),
+        reduce_func=lambda x, y: x + tf.cast(y, tf.int64),
+        finalize_func=lambda x: x
+    )]
+    input_dict = {"key_func": key_func, "reducer": reducer}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

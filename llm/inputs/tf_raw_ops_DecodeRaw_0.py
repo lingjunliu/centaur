@@ -6,89 +6,150 @@ generated_inputs = dict()
 
 import tensorflow as tf
 import numpy as np
+import copy
 
 def tf_raw_ops_decode_raw_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple string, uint8
-    bytes_val = np.array([b'hello'], dtype=np.object_)
-    out_type_val = tf.uint8
-    little_endian_val = True
-    name_val = "decode_uint8"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
-
-    # Input 2: String with multiple characters, int16, little endian
-    bytes_val = np.array([b'\x01\x00\x02\x00'], dtype=np.object_)
-    out_type_val = tf.int16
-    little_endian_val = True
-    name_val = "decode_int16_little"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
-
-    # Input 3: String with multiple characters, int16, big endian
-    bytes_val = np.array([b'\x00\x01\x00\x02'], dtype=np.object_)
-    out_type_val = tf.int16
-    little_endian_val = False
-    name_val = "decode_int16_big"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
-
-    # Input 4: String with multiple characters, float32, little endian
-    bytes_val = np.array([b'\x00\x00\x80?'], dtype=np.object_)
+    # Input 1
+    bytes_val = np.array([b'\x00\x00\x80?'], dtype=np.dtype('S4'))
     out_type_val = tf.float32
     little_endian_val = True
-    name_val = "decode_float32"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
+    name_val = None
 
-    # Input 5: String with multiple characters, float64, little endian
-    bytes_val = np.array([b'\x00\x00\x00\x00\x00\x00\xf0?'], dtype=np.object_)
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    bytes_val = np.array([b'\x00\x00\x00\x00\x00\x00\xf0?'], dtype=np.dtype('S8'))
     out_type_val = tf.float64
     little_endian_val = True
-    name_val = "decode_float64"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
+    name_val = "test_decode_raw"
 
-    # Input 6: String with multiple elements, uint8
-    bytes_val = np.array([b'ab', b'cd'], dtype=np.object_)
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    bytes_val = np.array([b'\x01\x02\x03\x04'], dtype=np.dtype('S4'))
+    out_type_val = tf.int32
+    little_endian_val = False
+    name_val = None
+
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    bytes_val = np.array([b'\x01\x02'], dtype=np.dtype('S2'))
+    out_type_val = tf.int16
+    little_endian_val = True
+    name_val = None
+
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    bytes_val = np.array([b'\xff'], dtype=np.dtype('S1'))
+    out_type_val = tf.int8
+    little_endian_val = True
+    name_val = None
+
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    bytes_val = np.array([b'\x01\x00'], dtype=np.dtype('S2'))
+    out_type_val = tf.uint16
+    little_endian_val = True
+    name_val = None
+
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    bytes_val = np.array([b'\x01'], dtype=np.dtype('S1'))
     out_type_val = tf.uint8
     little_endian_val = True
-    name_val = "decode_uint8_multi"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
+    name_val = None
 
-    # Input 7: Empty string, int32
-    bytes_val = np.array([b''], dtype=np.object_)
-    out_type_val = tf.int32
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    bytes_val = np.array([b'\x00\x00\x00\x00\x00\x00\x00\x00'], dtype=np.dtype('S8'))
+    out_type_val = tf.int64
     little_endian_val = True
-    name_val = "decode_int32_empty"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
+    name_val = None
 
-    # Input 8: Longer string, int32
-    bytes_val = np.array([b'\x01\x00\x00\x00\x02\x00\x00\x00'], dtype=np.object_)
-    out_type_val = tf.int32
-    little_endian_val = True
-    name_val = "decode_int32_long"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: String with mixed characters, complex64, little endian
-    bytes_val = np.array([b'\x00\x00\x80?\x00\x00\x80?'], dtype=np.object_)
+    # Input 9
+    bytes_val = np.array([b'\x00\x00\x80\x3f\x00\x00\x80\xbf'], dtype=np.dtype('S8'))
     out_type_val = tf.complex64
     little_endian_val = True
-    name_val = "decode_complex64"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
+    name_val = None
 
-    # Input 10: String with mixed characters, complex128, big endian
-    bytes_val = np.array([b'\x00\x00\x00\x00\x00\x00\xf0?\x00\x00\x00\x00\x00\x00\xf0?'], dtype=np.object_)
-    out_type_val = tf.complex128
-    little_endian_val = False
-    name_val = "decode_complex128"
-    input_dict = {"bytes": bytes_val, "out_type": out_type_val, "little_endian": little_endian_val, "name": name_val}
-    list_of_inputs.append(input_dict)
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    bytes_val = np.array([b'\x01'], dtype=np.dtype('S1'))
+    out_type_val = tf.bool
+    little_endian_val = True
+    name_val = None
+
+    input_dict = {
+        "bytes": bytes_val,
+        "out_type": out_type_val,
+        "little_endian": little_endian_val,
+        "name": name_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

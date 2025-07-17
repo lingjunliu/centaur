@@ -11,142 +11,102 @@ import copy
 def tf_hessians_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with single input and output
-    x = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    y = tf.square(x)
-    input_dict = {
-        "ys": [tf.reduce_sum(y)],
-        "xs": [x],
-        "gate_gradients": False,
-        "aggregation_method": None,
-        "name": "hessians_1"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1
+    y1 = tf.constant([[1.0, 2.0], [3.0, 4.0]])
+    x1 = tf.constant([[5.0, 6.0], [7.0, 8.0]])
+    gate_gradients1 = False
+    aggregation_method1 = None
+    name1 = "hessian_test1"
+    input_dict1 = {"ys": [y1], "xs": [x1], "gate_gradients": gate_gradients1, "aggregation_method": aggregation_method1, "name": name1}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2: Multiple inputs and outputs
-    x1 = tf.constant(np.array([[1.0, 2.0]], dtype=np.float32))
-    x2 = tf.constant(np.array([[3.0], [4.0]], dtype=np.float32))
-    y1 = tf.square(x1)
-    y2 = tf.multiply(x1, x2)
-    input_dict = {
-        "ys": [tf.reduce_sum(y1), tf.reduce_sum(y2)],
-        "xs": [x1, x2],
-        "gate_gradients": True,
-        "aggregation_method": "sum",
-        "name": "hessians_2"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2
+    y2 = tf.constant([1.0, 2.0, 3.0])
+    x2 = tf.constant([4.0, 5.0, 6.0])
+    gate_gradients2 = True
+    aggregation_method2 = None
+    name2 = "hessian_test2"
+    input_dict2 = {"ys": [y2], "xs": [x2], "gate_gradients": gate_gradients2, "aggregation_method": aggregation_method2, "name": name2}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3: ys as a single tensor
-    x = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    y = tf.square(x) + tf.constant(1.0)
-    input_dict = {
-        "ys": [tf.reduce_sum(y)],
-        "xs": [x],
-        "gate_gradients": False,
-        "aggregation_method": "mean",
-        "name": "hessians_3"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3
+    y3 = tf.constant([[1.0]])
+    x3 = tf.constant([[2.0]])
+    gate_gradients3 = False
+    aggregation_method3 = None
+    name3 = "hessian_test3"
+    input_dict3 = {"ys": [y3], "xs": [x3], "gate_gradients": gate_gradients3, "aggregation_method": aggregation_method3, "name": name3}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
+    
+    # Input 4
+    y4 = tf.constant([1.0, 2.0, 3.0], dtype=tf.float32)
+    x4 = tf.constant([4.0, 5.0, 6.0], dtype=tf.float32)
+    gate_gradients4 = True
+    aggregation_method4 = None
+    name4 = "hessian_test4"
+    input_dict4 = {"ys": [y4], "xs": [x4], "gate_gradients": gate_gradients4, "aggregation_method": aggregation_method4, "name": name4}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 4: Higher dimension tensor
-    x = tf.constant(np.random.rand(2, 3, 4).astype(np.float32))
-    y = tf.reduce_sum(tf.square(x))
-    input_dict = {
-        "ys": [y],
-        "xs": [x],
-        "gate_gradients": True,
-        "aggregation_method": "experimental_accumulate_n",
-        "name": "hessians_4"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5
+    y5 = tf.constant([[-1.0, 2.0], [3.0, -4.0]], dtype=tf.float32)
+    x5 = tf.constant([[5.0, -6.0], [-7.0, 8.0]], dtype=tf.float32)
+    gate_gradients5 = False
+    aggregation_method5 = None
+    name5 = "hessian_test5"
+    input_dict5 = {"ys": [y5], "xs": [x5], "gate_gradients": gate_gradients5, "aggregation_method": aggregation_method5, "name": name5}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-   # Input 5: xs as a single tensor
-    x = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    y = tf.square(x)
-    input_dict = {
-        "ys": [tf.reduce_sum(y)],
-        "xs": [x],
-        "gate_gradients": False,
-        "aggregation_method": None,
-        "name": "hessians_5"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6
+    y6 = tf.constant([1.0, 2.0], dtype=tf.float64)
+    x6 = tf.constant([3.0, 4.0], dtype=tf.float64)
+    gate_gradients6 = True
+    aggregation_method6 = None
+    name6 = "hessian_test6"
+    input_dict6 = {"ys": [y6], "xs": [x6], "gate_gradients": gate_gradients6, "aggregation_method": aggregation_method6, "name": name6}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    # Input 6: Different aggregation method
-    x = tf.constant(np.array([[1.0, 2.0]], dtype=np.float32))
-    y = tf.square(x)
-    input_dict = {
-        "ys": [tf.reduce_sum(y)],
-        "xs": [x],
-        "gate_gradients": False,
-        "aggregation_method": "tree",
-        "name": "hessians_6"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: Multiple ys
+    y7_1 = tf.constant([1.0, 2.0], dtype=tf.float32)
+    y7_2 = tf.constant([3.0, 4.0], dtype=tf.float32)
+    x7 = tf.constant([5.0, 6.0], dtype=tf.float32)
+    gate_gradients7 = False
+    aggregation_method7 = None
+    name7 = "hessian_test7"
+    input_dict7 = {"ys": [y7_1, y7_2], "xs": [x7], "gate_gradients": gate_gradients7, "aggregation_method": aggregation_method7, "name": name7}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
-    # Input 7: More complex expression
-    x = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    y = tf.sin(x) * x
-    input_dict = {
-        "ys": [tf.reduce_sum(y)],
-        "xs": [x],
-        "gate_gradients": True,
-        "aggregation_method": None,
-        "name": "hessians_7"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: Multiple xs
+    y8 = tf.constant([1.0, 2.0], dtype=tf.float32)
+    x8_1 = tf.constant([3.0, 4.0], dtype=tf.float32)
+    x8_2 = tf.constant([5.0, 6.0], dtype=tf.float32)
+    gate_gradients8 = True
+    aggregation_method8 = None
+    name8 = "hessian_test8"
+    input_dict8 = {"ys": [y8], "xs": [x8_1, x8_2], "gate_gradients": gate_gradients8, "aggregation_method": aggregation_method8, "name": name8}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
 
-    # Input 8: List of xs tensors
-    x1 = tf.constant(np.array([[1.0, 2.0]], dtype=np.float32))
-    x2 = tf.constant(np.array([[3.0, 4.0]], dtype=np.float32))
-    y = tf.square(x1) + tf.square(x2)
-    input_dict = {
-        "ys": [tf.reduce_sum(y)],
-        "xs": [x1, x2],
-        "gate_gradients": False,
-        "aggregation_method": "sum",
-        "name": "hessians_8"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: ys and xs both lists
+    y9_1 = tf.constant([1.0, 2.0], dtype=tf.float32)
+    y9_2 = tf.constant([3.0, 4.0], dtype=tf.float32)
+    x9_1 = tf.constant([5.0, 6.0], dtype=tf.float32)
+    x9_2 = tf.constant([7.0, 8.0], dtype=tf.float32)
+    gate_gradients9 = False
+    aggregation_method9 = None
+    name9 = "hessian_test9"
+    input_dict9 = {"ys": [y9_1, y9_2], "xs": [x9_1, x9_2], "gate_gradients": gate_gradients9, "aggregation_method": aggregation_method9, "name": name9}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+    
+    # Input 10: ys and xs both lists, different shapes
+    y10_1 = tf.constant([[1.0, 2.0], [3.0, 4.0]], dtype=tf.float32)
+    y10_2 = tf.constant([5.0, 6.0], dtype=tf.float32)
+    x10_1 = tf.constant([7.0, 8.0], dtype=tf.float32)
+    x10_2 = tf.constant([[9.0, 10.0], [11.0, 12.0]], dtype=tf.float32)
+    gate_gradients10 = True
+    aggregation_method10 = None
+    name10 = "hessian_test10"
+    input_dict10 = {"ys": [y10_1, y10_2], "xs": [x10_1, x10_2], "gate_gradients": gate_gradients10, "aggregation_method": aggregation_method10, "name": name10}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
 
-    # Input 9: More complex ys
-    x = tf.constant(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    y1 = tf.square(x)
-    y2 = tf.exp(x)
-    input_dict = {
-        "ys": [tf.reduce_sum(y1), tf.reduce_sum(y2)],
-        "xs": [x],
-        "gate_gradients": True,
-        "aggregation_method": "mean",
-        "name": "hessians_9"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: With negative values
-    x = tf.constant(np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float32))
-    y = tf.square(x)
-    input_dict = {
-        "ys": [tf.reduce_sum(y)],
-        "xs": [x],
-        "gate_gradients": False,
-        "aggregation_method": None,
-        "name": "hessians_10"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11: scalar value for ys
-    x = tf.constant(np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float32))
-    y = tf.constant(5.0, dtype=np.float32)
-
-    input_dict = {
-        "ys": [y],
-        "xs": [x],
-        "gate_gradients": False,
-        "aggregation_method": None,
-        "name": "hessians_11"
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
     return list_of_inputs
 
 generated_inputs = {}

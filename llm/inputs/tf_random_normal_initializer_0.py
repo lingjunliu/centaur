@@ -11,75 +11,38 @@ import numpy as np
 def tf_random_normal_initializer_inputs():
     list_of_inputs = []
 
+    def create_input(mean, stddev, seed):
+      return {"mean": mean, "stddev": stddev, "seed": seed}
+
     # Input 1
-    mean = 0.0
-    stddev = 0.05
-    seed = None
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(0.0), float(0.05), None))
 
     # Input 2
-    mean = 1.0
-    stddev = 0.1
-    seed = 123
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(1.0), float(0.1), 123))
 
     # Input 3
-    mean = -1.0
-    stddev = 0.2
-    seed = 42
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(-1.0), float(0.01), 456))
 
     # Input 4
-    mean = 0.5
-    stddev = 0.01
-    seed = 1
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(0.5), float(0.2), 789))
 
     # Input 5
-    mean = -0.5
-    stddev = 0.02
-    seed = 2
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(-0.5), float(0.02), 101))
 
     # Input 6
-    mean = 2.0
-    stddev = 0.5
-    seed = 100
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(2.0), float(0.5), 202))
 
     # Input 7
-    mean = -2.0
-    stddev = 1.0
-    seed = 200
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(-2.0), float(0.005), 303))
 
     # Input 8
-    mean = 0.0
-    stddev = 1e-6
-    seed = 300
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(0.1), float(1.0), 404))
 
-   # Input 9
-    mean = 10.0
-    stddev = 5.0
-    seed = 400
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    # Input 9
+    list_of_inputs.append(create_input(float(-0.1), float(2.0), 505))
 
     # Input 10
-    mean = -10.0
-    stddev = 2.5
-    seed = 500
-    input_dict = {"mean": float(mean), "stddev": float(stddev), "seed": seed}
-    list_of_inputs.append(input_dict)
+    list_of_inputs.append(create_input(float(10.0), float(5.0), 606))
 
     return list_of_inputs
 

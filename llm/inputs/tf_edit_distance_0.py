@@ -12,132 +12,114 @@ def tf_edit_distance_inputs():
     list_of_inputs = []
 
     # Input 1
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
+    hypothesis_indices = np.array([[0, 0, 0], [1, 0, 0]], dtype=np.int64)
+    hypothesis_values = np.array([b"a", b"b"], dtype=np.object_)
+    hypothesis_shape = np.array([2, 1, 1], dtype=np.int64)
+    hypothesis = tf.SparseTensor(hypothesis_indices, hypothesis_values, hypothesis_shape)
+
+    truth_indices = np.array([[0, 1, 0], [1, 0, 0], [1, 0, 1], [1, 1, 0]], dtype=np.int64)
+    truth_values = np.array([b"a", b"b", b"c", b"a"], dtype=np.object_)
+    truth_shape = np.array([2, 2, 2], dtype=np.int64)
+    truth = tf.SparseTensor(truth_indices, truth_values, truth_shape)
+
     normalize = True
-    name = 'edit_distance_1'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
+    name = "edit_distance_1"
+
+    input_dict = {
+        "hypothesis": hypothesis,
+        "truth": truth,
+        "normalize": normalize,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'b'], dense_shape=[1, 1, 1])
+    hypothesis_indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
+    hypothesis_values = np.array([b"a", b"b"], dtype=np.object_)
+    hypothesis_shape = np.array([1, 1, 2], dtype=np.int64)
+    hypothesis = tf.SparseTensor(hypothesis_indices, hypothesis_values, hypothesis_shape)
+
+    truth_indices = np.array([[0, 0, 0], [0, 0, 1], [0, 0, 2]], dtype=np.int64)
+    truth_values = np.array([b"a", b"b", b"c"], dtype=np.object_)
+    truth_shape = np.array([1, 1, 3], dtype=np.int64)
+    truth = tf.SparseTensor(truth_indices, truth_values, truth_shape)
+
     normalize = False
-    name = 'edit_distance_2'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
+    name = "edit_distance_2"
+
+    input_dict = {
+        "hypothesis": hypothesis,
+        "truth": truth,
+        "normalize": normalize,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [0, 0, 1]], values=[b'a', b'b'], dense_shape=[1, 1, 2])
-    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
+    hypothesis_indices = np.array([[0, 0, 0]], dtype=np.int64)
+    hypothesis_values = np.array([b"a"], dtype=np.object_)
+    hypothesis_shape = np.array([1, 1, 1], dtype=np.int64)
+    hypothesis = tf.SparseTensor(hypothesis_indices, hypothesis_values, hypothesis_shape)
+
+    truth_indices = np.array([[0, 0, 0], [0, 0, 1]], dtype=np.int64)
+    truth_values = np.array([b"a", b"b"], dtype=np.object_)
+    truth_shape = np.array([1, 1, 2], dtype=np.int64)
+    truth = tf.SparseTensor(truth_indices, truth_values, truth_shape)
+
     normalize = True
-    name = 'edit_distance_3'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
+    name = "edit_distance_3"
+
+    input_dict = {
+        "hypothesis": hypothesis,
+        "truth": truth,
+        "normalize": normalize,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0], [0, 0, 1]], values=[b'a', b'b'], dense_shape=[1, 1, 2])
+    hypothesis_indices = np.array([[0, 0, 0], [0, 1, 0]], dtype=np.int64)
+    hypothesis_values = np.array([b"a", b"b"], dtype=np.object_)
+    hypothesis_shape = np.array([1, 2, 1], dtype=np.int64)
+    hypothesis = tf.SparseTensor(hypothesis_indices, hypothesis_values, hypothesis_shape)
+
+    truth_indices = np.array([[0, 0, 0], [0, 1, 0]], dtype=np.int64)
+    truth_values = np.array([b"c", b"d"], dtype=np.object_)
+    truth_shape = np.array([1, 2, 1], dtype=np.int64)
+    truth = tf.SparseTensor(truth_indices, truth_values, truth_shape)
+
     normalize = False
-    name = 'edit_distance_4'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
+    name = "edit_distance_4"
+
+    input_dict = {
+        "hypothesis": hypothesis,
+        "truth": truth,
+        "normalize": normalize,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[b'a', b'b'], dense_shape=[2, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[b'a', b'b'], dense_shape=[2, 1, 1])
+    hypothesis_indices = np.array([[0, 0, 0]], dtype=np.int64)
+    hypothesis_values = np.array([b"a"], dtype=np.object_)
+    hypothesis_shape = np.array([1, 1, 1], dtype=np.int64)
+    hypothesis = tf.SparseTensor(hypothesis_indices, hypothesis_values, hypothesis_shape)
+
+    truth_indices = np.array([[0, 0, 0]], dtype=np.int64)
+    truth_values = np.array([b"a"], dtype=np.object_)
+    truth_shape = np.array([1, 1, 1], dtype=np.int64)
+    truth = tf.SparseTensor(truth_indices, truth_values, truth_shape)
+
     normalize = True
-    name = 'edit_distance_5'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    name = "edit_distance_5"
 
-    # Input 6
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[b'a', b'b'], dense_shape=[2, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[b'c', b'd'], dense_shape=[2, 1, 1])
-    normalize = False
-    name = 'edit_distance_6'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
+    input_dict = {
+        "hypothesis": hypothesis,
+        "truth": truth,
+        "normalize": normalize,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0], [0, 1, 0]], values=[b'a', b'b'], dense_shape=[1, 2, 1])
-    normalize = True
-    name = 'edit_distance_7'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    hypothesis = tf.SparseTensor(indices=[[0, 1, 0]], values=[b'b'], dense_shape=[1, 2, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
-    normalize = False
-    name = 'edit_distance_8'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[b'a', b'b'], dense_shape=[2, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 1, 0], [1, 0, 0], [1, 0, 1], [1, 1, 0]], values=[b'a', b'b', b'c', b'a'], dense_shape=[2, 2, 2])
-    normalize = True
-    name = 'edit_distance_9'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0], [1, 0, 0]], values=[b'a', b'b'], dense_shape=[2, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 1, 0], [1, 0, 0], [1, 0, 1], [1, 1, 0]], values=[b'a', b'b', b'c', b'a'], dense_shape=[2, 2, 2])
-    normalize = False
-    name = 'edit_distance_10'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11
-    hypothesis = tf.SparseTensor(
-        indices=[[0, 0, 0],[1, 0, 0]],
-        values=[b"a", b"b"],
-        dense_shape=[2, 1, 1])
-
-    truth = tf.SparseTensor(
-        indices=[[0, 1, 0],[1, 0, 0],[1, 0, 1],[1, 1, 0]],
-        values=[b"a", b"b", b"c", b"a"],
-        dense_shape=[2, 2, 2])
-    normalize = True
-    name = 'edit_distance_11'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[b''], dense_shape=[1, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
-    normalize = True
-    name = 'edit_distance_12'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'hello'], dense_shape=[1, 1, 1])
-    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'world'], dense_shape=[1, 1, 1])
-    normalize = False
-    name = 'edit_distance_13'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 14: empty hypothesis
-    hypothesis = tf.SparseTensor(indices=[], values=[], dense_shape=[1, 0, 0])
-    truth = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
-    normalize = True
-    name = 'edit_distance_14'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 15: empty truth
-    hypothesis = tf.SparseTensor(indices=[[0, 0, 0]], values=[b'a'], dense_shape=[1, 1, 1])
-    truth = tf.SparseTensor(indices=[], values=[], dense_shape=[1, 0, 0])
-    normalize = False
-    name = 'edit_distance_15'
-    input_dict = {'hypothesis': hypothesis, 'truth': truth, 'normalize': normalize, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
 
     return list_of_inputs
 

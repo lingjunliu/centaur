@@ -12,71 +12,77 @@ def tf_ragged_cross_inputs():
     list_of_inputs = []
 
     # Input 1: Basic example with RaggedTensors
-    inputs = [tf.ragged.constant([['a'], ['b', 'c']]),
-              tf.ragged.constant([['d'], ['e']]),
-              tf.ragged.constant([['f'], ['g']])]
+    inputs = [np.array([['a'], ['b', 'c']], dtype=np.str_),
+              np.array([['d'], ['e']], dtype=np.str_),
+              np.array([['f'], ['g']], dtype=np.str_)]
     name = None
-    input_dict = {'inputs': inputs, 'name': name}
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2: Using Tensors instead of RaggedTensors
-    inputs = [tf.constant([['a'], ['b']]),
-              tf.constant([['c'], ['d']])]
+    inputs = [np.array([['a'], ['b']], dtype=np.str_),
+              np.array([['c'], ['d']], dtype=np.str_)]
     name = "cross_product"
-    input_dict = {'inputs': inputs, 'name': name}
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Using SparseTensors
-    inputs = [tf.sparse.from_dense(tf.constant([['a'], ['b']])),
-              tf.sparse.from_dense(tf.constant([['c'], ['d']]))]
+    # Input 3: Mixing Tensors and RaggedTensors
+    inputs = [np.array([['a'], ['b', 'c']], dtype=np.str_),
+              np.array([['d'], ['e']], dtype=np.str_)]
     name = None
-    input_dict = {'inputs': inputs, 'name': name}
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Empty RaggedTensor
-    inputs = [tf.ragged.constant([[]]),
-              tf.ragged.constant([[]])]
+    # Input 4: With different string lengths
+    inputs = [np.array([['long_string'], ['short']], dtype=np.str_),
+              np.array([['another'], ['yet_another']], dtype=np.str_)]
     name = None
-    input_dict = {'inputs': inputs, 'name': name}
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Mixed types (Ragged and Dense)
-    inputs = [tf.ragged.constant([['a'], ['b', 'c']]),
-              tf.constant([['d'], ['e']])]
+    # Input 5: Using SparseTensors
+    inputs = [np.array([['a'], ['b']], dtype=np.str_),
+              np.array([['c'], ['d']], dtype=np.str_)]
     name = None
-    input_dict = {'inputs': inputs, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: Combination of tensors with bytes.
-    inputs = [tf.constant([[b'a'], [b'b']]), tf.constant([[b'c'], [b'd']])]
-    name = None
-    input_dict = {'inputs': inputs, 'name': name}
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: More complex combination of RaggedTensor and Tensor.
-    inputs = [tf.ragged.constant([[b'a', b'b'], [b'c']]), tf.constant([[b'd'], [b'e']])]
-    name = None
-    input_dict = {'inputs': inputs, 'name': name}
+    # Input 6: More SparseTensors combined with RaggedTensor
+    inputs = [np.array([['a'], ['b']], dtype=np.str_),
+              np.array([['c'], ['d', 'e']], dtype=np.str_)]
+    name = "sparse_cross"
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8 : simple case
-    inputs = [tf.ragged.constant([['a']]), tf.ragged.constant([['b']])]
+    # Input 7: Three inputs with varying row lengths
+    inputs = [np.array([['a'], ['b', 'c']], dtype=np.str_),
+              np.array([['d'], ['e']], dtype=np.str_),
+              np.array([['f'], ['g']], dtype=np.str_)]
     name = None
-    input_dict = {'inputs': inputs, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9 : another simple case with different name
-    inputs = [tf.constant([['a']]), tf.constant([['b']])]
-    name = 'simple_cross'
-    input_dict = {'inputs': inputs, 'name': name}
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Ragged and Sparse
-    inputs = [tf.ragged.constant([['a'], ['b']]), tf.sparse.from_dense(tf.constant([['c'], ['d']]))]
+    # Input 8: Empty strings
+    inputs = [np.array([[''], ['b']], dtype=np.str_),
+              np.array([['c'], ['']], dtype=np.str_)]
     name = None
-    input_dict = {'inputs': inputs, 'name': name}
+    input_dict = {"inputs": inputs, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 9: Mixed empty strings and valid strings
+    inputs = [np.array([['a'], ['']], dtype=np.str_),
+              np.array([[''], ['b']], dtype=np.str_)]
+    name = None
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Larger ragged tensor
+    inputs = [np.array([['a', 'b'], ['c', 'd', 'e']], dtype=np.str_),
+              np.array([['f'], ['g']], dtype=np.str_)]
+    name = None
+    input_dict = {"inputs": inputs, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

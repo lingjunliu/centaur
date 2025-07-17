@@ -11,60 +11,61 @@ import copy
 def tf_experimental_numpy_meshgrid_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 1D arrays
-    x = np.array([1, 2, 3])
-    y = np.array([4, 5, 6])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y)]}
+    # Input 1: Two 1D tensors
+    xi = [tf.constant(np.array([1, 2, 3])), tf.constant(np.array([4, 5, 6]))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 1D arrays with different lengths
-    x = np.array([1, 2])
-    y = np.array([3, 4, 5])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y)]}
+    # Input 2: Three 1D tensors
+    xi = [tf.constant(np.array([1, 2])), tf.constant(np.array([3, 4])), tf.constant(np.array([5, 6]))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D arrays with negative values
-    x = np.array([-1, 0, 1])
-    y = np.array([-2, 2])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y)]}
+    # Input 3: Two 1D tensors with different dtypes
+    xi = [tf.constant(np.array([1, 2, 3], dtype=np.int32)), tf.constant(np.array([4, 5, 6], dtype=np.float32))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 1D arrays with float values
-    x = np.array([1.0, 2.5, 3.0])
-    y = np.array([4.2, 5.0])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y)]}
+    # Input 4: Two 1D tensors with negative values
+    xi = [tf.constant(np.array([-1, -2, -3])), tf.constant(np.array([-4, -5, -6]))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Three 1D arrays
-    x = np.array([1, 2])
-    y = np.array([3, 4])
-    z = np.array([5, 6])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y), tf.constant(z)]}
+
+    # Input 5: One 1D tensor
+    xi = [tf.constant(np.array([1, 2, 3]))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Another simple valid case
-    x = np.array([4, 5])
-    y = np.array([6, 7])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y)]}
+
+    # Input 6: Two 1D tensors with boolean dtype
+    xi = [tf.constant(np.array([True, False, True])), tf.constant(np.array([False, True, False]))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Only one element
-    x = np.array([1])
-    y = np.array([2])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y)]}
+    # Input 7: Three 1D tensors with zero values.
+    xi = [tf.constant(np.array([0, 1])), tf.constant(np.array([2, 0])), tf.constant(np.array([0, 3]))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: float and int arrays
-    x = np.array([1.0, 2.0])
-    y = np.array([3, 4])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y)]}
+    # Input 8: Tensors of different sizes
+
+    xi = [tf.constant(np.array([1])), tf.constant(np.array([2,3]))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: More values
-    x = np.array([1, 2, 3, 4])
-    y = np.array([5, 6, 7, 8])
-    input_dict = {"xi": [tf.constant(x), tf.constant(y)]}
+    # Input 9: Tensors of different dtypes and sizes
+
+    xi = [tf.constant(np.array([1,2], dtype = np.int32)), tf.constant(np.array([2.0], dtype=np.float32))]
+    input_dict = {"xi": xi}
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Three 2D tensors
+
+    xi = [tf.constant(np.array([[1,2],[3,4]])), tf.constant(np.array([[5,6],[7,8]])), tf.constant(np.array([[9,10],[11,12]]))]
+    input_dict = {"xi": xi}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

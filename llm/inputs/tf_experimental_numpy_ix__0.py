@@ -11,83 +11,68 @@ import copy
 def tf_experimental_numpy_ix_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic case with two 1D arrays
+    # Input 1: Basic case with 1D arrays
     a = np.array([1, 2, 3])
-    b = np.array([4, 5])
+    b = np.array([4, 5, 6])
     input_dict = {"args": [a, b]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Three 1D arrays
-    a = np.array([1, 2])
-    b = np.array([3, 4, 5])
-    c = np.array([6])
+    # Input 2: Two 1D arrays
+    a = np.array([0, 1])
+    b = np.array([0, 1, 2])
+    input_dict = {"args": [a, b]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Three 1D arrays
+    a = np.array([0, 1])
+    b = np.array([0, 1, 2])
+    c = np.array([0, 1])
     input_dict = {"args": [a, b, c]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: One empty array
-    a = np.array([])
-    b = np.array([1, 2])
-    input_dict = {"args": [a, b]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-
-    # Input 5: One array
-    a = np.array([1, 2, 3])
+    # Input 4: One array
+    a = np.array([0, 1, 2])
     input_dict = {"args": [a]}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6: Arrays with different dtypes (int, float) - Changed to same dtype
-    a = np.array([1, 2, 3])
-    b = np.array([4, 5])
+
+    # Input 5: Empty arrays
+    a = np.array([])
+    input_dict = {"args": [a]}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty and non empty array.
+    a = np.array([])
+    b = np.array([1,2,3])
     input_dict = {"args": [a, b]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Arrays with larger dimensions
-    a = np.array([[1, 2], [3, 4]])
-    b = np.array([0, 1])
+    # Input 7: Two empty arrays
+    a = np.array([])
+    b = np.array([])
     input_dict = {"args": [a, b]}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8: Three arrays, different sizes and shapes
-    a = np.array([1, 2])
-    b = np.array([[3, 4], [5, 6]])
-    c = np.array([7])
+
+    # Input 8: Three empty arrays
+    a = np.array([])
+    b = np.array([])
+    c = np.array([])
     input_dict = {"args": [a, b, c]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9:  Negative values
-    a = np.array([-1, 2])
-    b = np.array([3, -4, 5])
+    # Input 9: Non-empty arrays with different datatypes.
+    a = np.array([1, 2, 3], dtype=np.int32)
+    b = np.array([4, 5, 6], dtype=np.float64)
     input_dict = {"args": [a, b]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: One array with a single element
-    a = np.array([5])
-    b = np.array([1, 2, 3])
+    # Input 10: Arrays with negative numbers
+    a = np.array([-1, 0, 1])
+    b = np.array([-2, -1, 0])
     input_dict = {"args": [a, b]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: all empty arrays. Removed because this makes ix_ return an error.
-    # a = np.array([])
-    # b = np.array([])
-    # input_dict = {"args": [a,b]}
-    # list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12: 3D array
-    a = np.array([[[1,2],[3,4]],[[5,6],[7,8]]])
-    b = np.array([0,1])
-    input_dict = {"args": [a, b]}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13: boolean array
-    a = np.array([True, False, True])
-    b = np.array([False, True])
-    input_dict = {"args": [a,b]}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["tf.experimental.numpy.ix_"] = tf_experimental_numpy_ix_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

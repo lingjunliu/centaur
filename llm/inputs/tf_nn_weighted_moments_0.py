@@ -13,109 +13,91 @@ def tf_nn_weighted_moments_inputs():
 
     # Input 1
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    axes = np.array([0], dtype=np.int32)
+    axes = [0]
     frequency_weights = np.array([1.0, 1.0, 1.0], dtype=np.float32)
     keepdims = False
-    name = "test1"
+    name = "moments1"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    axes = np.array([0], dtype=np.int32)
-    frequency_weights = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    axes = [0]
+    frequency_weights = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
     keepdims = True
-    name = "test2"
+    name = "moments2"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    axes = np.array([0, 1], dtype=np.int32)
-    frequency_weights = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    axes = [1]
+    frequency_weights = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
     keepdims = False
-    name = "test3"
+    name = "moments3"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    axes = np.array([0, 1], dtype=np.int32)
-    frequency_weights = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    keepdims = True
-    name = "test4"
+    axes = [0, 1]
+    frequency_weights = np.array([[[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]]], dtype=np.float32)
+    keepdims = False
+    name = "moments4"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
     x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    axes = np.array([0], dtype=np.int32)
+    axes = [0]
     frequency_weights = np.array([2.0, 1.0, 0.5], dtype=np.float32)
     keepdims = False
-    name = "test5"
+    name = "moments5"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    x = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
-    axes = np.array([0], dtype=np.int32)
-    frequency_weights = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+     # Input 6
+    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    axes = [0]
+    frequency_weights = np.array([0.0, 0.0, 0.0], dtype=np.float32)
     keepdims = False
-    name = "test6"
+    name = "moments6"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    x = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float32)
-    axes = np.array([0], dtype=np.int32)
-    frequency_weights = np.array([[1.0, 1.0], [1.0, 1.0]], dtype=np.float32)
-    keepdims = True
-    name = "test7"
+    x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    axes = [0,1]
+    frequency_weights = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    keepdims = False
+    name = "moments7"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    axes = np.array([0], dtype=np.int32)
-    frequency_weights = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    keepdims = False
-    name = "test8"
-    input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 9
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    axes = np.array([1], dtype=np.int32)
+    axes = [0]
     frequency_weights = np.array([[0.5, 0.5], [0.5, 0.5]], dtype=np.float32)
     keepdims = False
-    name = "test9"
+    name = "moments8"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 10
-    x = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    axes = np.array([0], dtype=np.int32)
-    frequency_weights = np.array([[[1.0, 1.0], [1.0, 1.0]], [[1.0, 1.0], [1.0, 1.0]]], dtype=np.float32)
-    keepdims = False
-    name = "test10"
-    input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11
-    x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    axes = np.array([0], dtype=np.int32)
-    frequency_weights = np.array([1.0, 1.0, 1.0], dtype=np.float32)
+    # Input 9
+    x = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
+    axes = [0]
+    frequency_weights = np.array([1.0, 2.0, 1.5, 0.5], dtype=np.float32)
     keepdims = True
-    name = "test11"
+    name = "moments9"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 12
+    # Input 10
     x = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    axes = np.array([0, 1], dtype=np.int32)
+    axes = [0]
     frequency_weights = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    keepdims = True
-    name = "test12"
+    keepdims = False
+    name = "moments10"
     input_dict = {"x": x, "axes": axes, "frequency_weights": frequency_weights, "keepdims": keepdims, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

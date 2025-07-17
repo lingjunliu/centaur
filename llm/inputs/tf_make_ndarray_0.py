@@ -11,18 +11,57 @@ import copy
 def tf_make_ndarray_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple 1D tensor
-    tensor1 = tf.make_tensor_proto(np.array([1, 2, 3, 4, 5]))
-    input_dict1 = {"tensor": tensor1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: Simple 1D array
+    a = tf.constant([1, 2, 3, 4, 5])
+    proto_tensor = tf.make_tensor_proto(a)
+    input_dict = {"tensor": proto_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Simple 2D tensor
-    tensor2 = tf.make_tensor_proto(np.array([[1, 2, 3], [4, 5, 6]]))
-    input_dict2 = {"tensor": tensor2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2: 2D array with different data type
+    a = tf.constant([[1.0, 2.0], [3.0, 4.0]])
+    proto_tensor = tf.make_tensor_proto(a)
+    input_dict = {"tensor": proto_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: 3D array
+    a = tf.constant([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    proto_tensor = tf.make_tensor_proto(a)
+    input_dict = {"tensor": proto_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: array of booleans
+    a = tf.constant([True, False, True])
+    proto_tensor = tf.make_tensor_proto(a)
+    input_dict = {"tensor": proto_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: array of int64
+    a = tf.constant([1, 2, 3], dtype=tf.int64)
+    proto_tensor = tf.make_tensor_proto(a)
+    input_dict = {"tensor": proto_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: array of float64
+    a = tf.constant([1.0, 2.0, 3.0], dtype=tf.float64)
+    proto_tensor = tf.make_tensor_proto(a)
+    input_dict = {"tensor": proto_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 11: Negative values
+    a = tf.constant([-1, -2, -3], dtype=tf.int32)
+    proto_tensor = tf.make_tensor_proto(a)
+    input_dict = {"tensor": proto_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12: 2D negative values
+    a = tf.constant([[-1, 2], [-3, 4]], dtype=tf.int32)
+    proto_tensor = tf.make_tensor_proto(a)
+    input_dict = {"tensor": proto_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.make_ndarray"] = tf_make_ndarray_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

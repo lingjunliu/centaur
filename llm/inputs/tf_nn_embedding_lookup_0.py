@@ -11,9 +11,9 @@ import copy
 def tf_nn_embedding_lookup_inputs():
     list_of_inputs = []
 
-    # Input 1: Single tensor, simple case
-    params = np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]], dtype=np.float32)
-    ids = np.array([0, 3, 4], dtype=np.int32)
+    # Input 1: Single params tensor, simple ids
+    params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    ids = np.array([0, 1, 2], dtype=np.int32)
     max_norm = None
     name = "embedding_lookup_1"
 
@@ -25,25 +25,25 @@ def tf_nn_embedding_lookup_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: List of tensors, basic case
-    params_list = [np.array([[1, 2], [3, 4]], dtype=np.float32),
-                   np.array([[5, 6], [7, 8]], dtype=np.float32),
-                   np.array([[9, 10]], dtype=np.float32)]
-    ids = np.array([0, 3, 4], dtype=np.int32)
+    # Input 2: List of params tensors, more complex ids
+    params1 = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    params2 = np.array([[5, 6], [7, 8]], dtype=np.float32)
+    params3 = np.array([[9, 10]], dtype=np.float32)
+    ids = np.array([0, 1, 2], dtype=np.int32)
     max_norm = None
     name = "embedding_lookup_2"
 
     input_dict = {
-        "params": params_list,
+        "params": [params1, params2, params3],
         "ids": ids,
         "max_norm": max_norm,
         "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different ids
+    # Input 3: ids with multiple dimensions
     params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    ids = np.array([2, 1, 0], dtype=np.int32)
+    ids = np.array([[0, 1], [2, 0]], dtype=np.int32)
     max_norm = None
     name = "embedding_lookup_3"
 
@@ -55,7 +55,7 @@ def tf_nn_embedding_lookup_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: With max_norm
+    # Input 4: max_norm specified
     params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
     ids = np.array([0, 1, 2], dtype=np.int32)
     max_norm = 3.0
@@ -69,9 +69,9 @@ def tf_nn_embedding_lookup_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Higher dimension params
-    params = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.float32)
-    ids = np.array([0, 1], dtype=np.int32)
+   # Input 5: Larger params tensor
+    params = np.random.rand(100, 50).astype(np.float32)
+    ids = np.array([10, 50, 99, 1], dtype=np.int32)
     max_norm = None
     name = "embedding_lookup_5"
 
@@ -83,9 +83,9 @@ def tf_nn_embedding_lookup_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: int64 ids
-    params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    ids = np.array([0, 1, 2], dtype=np.int64)
+    # Input 6: float64 params
+    params = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]], dtype=np.float64)
+    ids = np.array([0, 1, 2], dtype=np.int32)
     max_norm = None
     name = "embedding_lookup_6"
 
@@ -97,29 +97,11 @@ def tf_nn_embedding_lookup_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: List of tensors, more partitions
-    params_list = [np.array([[1, 2]], dtype=np.float32),
-                   np.array([[3, 4]], dtype=np.float32),
-                   np.array([[5, 6]], dtype=np.float32),
-                   np.array([[7, 8]], dtype=np.float32),
-                   np.array([[9, 10]], dtype=np.float32)]
-    ids = np.array([0, 1, 2, 3, 4], dtype=np.int32)
+    # Input 7: int64 ids
+    params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    ids = np.array([0, 1, 2], dtype=np.int64)
     max_norm = None
     name = "embedding_lookup_7"
-
-    input_dict = {
-        "params": params_list,
-        "ids": ids,
-        "max_norm": max_norm,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Empty ids array
-    params = np.array([[1, 2], [3, 4]], dtype=np.float32)
-    ids = np.array([], dtype=np.int32)
-    max_norm = None
-    name = "embedding_lookup_8"
 
     input_dict = {
         "params": [params],
@@ -129,9 +111,24 @@ def tf_nn_embedding_lookup_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Single tensor, float64 params
-    params = np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]], dtype=np.float64)
-    ids = np.array([0, 3, 4], dtype=np.int32)
+    # Input 8: List of params tensors, different shapes but compatible
+    params1 = np.array([[1, 2], [3, 4]], dtype=np.float32)
+    params2 = np.array([[5, 6]], dtype=np.float32)
+    ids = np.array([0, 1], dtype=np.int32)
+    max_norm = None
+    name = "embedding_lookup_8"
+
+    input_dict = {
+        "params": [params1, params2],
+        "ids": ids,
+        "max_norm": max_norm,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 9: Large number of ids
+    params = np.random.rand(100, 50).astype(np.float32)
+    ids = np.arange(0, 10, dtype=np.int32)
     max_norm = None
     name = "embedding_lookup_9"
 
@@ -143,28 +140,15 @@ def tf_nn_embedding_lookup_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: max_norm is a number
-    params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    ids = np.array([0, 1, 2], dtype=np.int32)
-    max_norm = 1.0
+    # Input 10: More complex sharding
+    params1 = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
+    params2 = np.array([[7, 8], [9, 10]], dtype=np.float32)
+    ids = np.array([0, 1, 2, 3, 4], dtype=np.int32)
+    max_norm = None
     name = "embedding_lookup_10"
 
     input_dict = {
-        "params": [params],
-        "ids": ids,
-        "max_norm": max_norm,
-        "name": name
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11: more complex max_norm
-    params = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
-    ids = np.array([0, 1, 2], dtype=np.int32)
-    max_norm = 5.0
-    name = "embedding_lookup_11"
-
-    input_dict = {
-        "params": [params],
+        "params": [params1, params2],
         "ids": ids,
         "max_norm": max_norm,
         "name": name
@@ -174,8 +158,7 @@ def tf_nn_embedding_lookup_inputs():
     return list_of_inputs
 
 generated_inputs = {}
-my_inputs = tf_nn_embedding_lookup_inputs()
-generated_inputs["tf.nn.embedding_lookup"] = my_inputs
+generated_inputs["tf.nn.embedding_lookup"] = tf_nn_embedding_lookup_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

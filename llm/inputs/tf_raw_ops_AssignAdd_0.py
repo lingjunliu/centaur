@@ -11,84 +11,108 @@ import copy
 def tf_raw_ops_assign_add_inputs():
     list_of_inputs = []
 
-    # Input 1: Simple float32 addition
-    ref = tf.Variable(np.array(1.0, dtype=np.float32))
-    value = tf.constant(np.array(2.0, dtype=np.float32))
+    # Input 1: float32, use_locking=False
+    ref = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+    value = tf.constant(np.array([0.5, 1.0, 1.5], dtype=np.float32))
     use_locking = False
-    name = "float_add_1"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    name = "assign_add_float32_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: int32 addition with locking
-    ref = tf.Variable(np.array(5, dtype=np.int32))
-    value = tf.constant(np.array(3, dtype=np.int32))
+    # Input 2: int32, use_locking=True
+    ref = tf.Variable(np.array([4, 5, 6], dtype=np.int32))
+    value = tf.constant(np.array([-1, 0, 1], dtype=np.int32))
     use_locking = True
-    name = "int_add_1"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    name = "assign_add_int32_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: float64 addition with multi-dimensional array
-    ref = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64))
-    value = tf.constant(np.array([[5.0, 6.0], [7.0, 8.0]], dtype=np.float64))
+    # Input 3: int64, use_locking=False, different shape
+    ref = tf.Variable(np.array([[10, 20], [30, 40]], dtype=np.int64))
+    value = tf.constant(np.array([[1, 2], [3, 4]], dtype=np.int64))
     use_locking = False
-    name = "float_add_2"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    name = "assign_add_int64_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: int64 addition with negative value
-    ref = tf.Variable(np.array(10, dtype=np.int64))
-    value = tf.constant(np.array(-5, dtype=np.int64))
-    use_locking = False
-    name = "int_add_neg"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    # Input 4: float64, use_locking=True, scalar value
+    ref = tf.Variable(np.array(5.0, dtype=np.float64))
+    value = tf.constant(np.array(2.5, dtype=np.float64))
+    use_locking = True
+    name = "assign_add_float64_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: complex64 addition
-    ref = tf.Variable(np.array(1 + 2j, dtype=np.complex64))
-    value = tf.constant(np.array(3 + 4j, dtype=np.complex64))
+    # Input 5: complex64
+    ref = tf.Variable(np.array([1+1j, 2+2j], dtype=np.complex64))
+    value = tf.constant(np.array([0.5+0.5j, 1+1j], dtype=np.complex64))
     use_locking = False
-    name = "complex_add"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    name = "assign_add_complex64_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: uint8 addition
-    ref = tf.Variable(np.array(200, dtype=np.uint8))
-    value = tf.constant(np.array(50, dtype=np.uint8))
-    use_locking = False
-    name = "uint8_add"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    # Input 6: uint8
+    ref = tf.Variable(np.array([10, 20, 30], dtype=np.uint8))
+    value = tf.constant(np.array([5, 10, 15], dtype=np.uint8))
+    use_locking = True
+    name = "assign_add_uint8_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: bfloat16 addition
-    ref = tf.Variable(np.array(1.0, dtype=np.bfloat16))
-    value = tf.constant(np.array(2.0, dtype=np.bfloat16))
+    # Input 7: qint32
+    ref = tf.Variable(np.array([10, 20, 30], dtype=np.int32))
+    value = tf.constant(np.array([5, 10, 15], dtype=np.int32))
     use_locking = False
-    name = "bfloat16_add"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    name = "assign_add_qint32_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Multiple dimensions for int32
-    ref = tf.Variable(np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int32))
-    value = tf.constant(np.array([[[1, 1], [1, 1]], [[1, 1], [1, 1]]], dtype=np.int32))
-    use_locking = False
-    name = "int_add_multi"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    # Input 8: bfloat16
+    ref = tf.Variable(np.array([1.0, 2.0], dtype=np.float16))
+    value = tf.constant(np.array([0.5, 1.0], dtype=np.float16))
+    use_locking = True
+    name = "assign_add_bfloat16_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9:  uint16 addition
-    ref = tf.Variable(np.array(60000, dtype=np.uint16))
-    value = tf.constant(np.array(5000, dtype=np.uint16))
+    # Input 9: uint16, 2D array
+    ref = tf.Variable(np.array([[10, 20], [30, 40]], dtype=np.uint16))
+    value = tf.constant(np.array([[5, 10], [15, 20]], dtype=np.uint16))
     use_locking = False
-    name = "uint16_add"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    name = "assign_add_uint16_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Half type
-    ref = tf.Variable(np.array(1.0, dtype=np.float16))
-    value = tf.constant(np.array(2.0, dtype=np.float16))
+    # Input 10: complex128
+    ref = tf.Variable(np.array([1+1j, 2+2j], dtype=np.complex128))
+    value = tf.constant(np.array([0.5+0.5j, 1+1j], dtype=np.complex128))
+    use_locking = True
+    name = "assign_add_complex128_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: half
+    ref = tf.Variable(np.array([1.0, 2.0], dtype=np.float16))
+    value = tf.constant(np.array([0.5, 1.0], dtype=np.float16))
     use_locking = False
-    name = "half_add"
-    input_dict = {"ref": ref, "value": value, "use_locking": use_locking, "name": name}
+    name = "assign_add_half_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: uint32
+    ref = tf.Variable(np.array([10, 20, 30], dtype=np.uint32))
+    value = tf.constant(np.array([5, 10, 15], dtype=np.uint32))
+    use_locking = True
+    name = "assign_add_uint32_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13: uint64
+    ref = tf.Variable(np.array([10, 20, 30], dtype=np.uint64))
+    value = tf.constant(np.array([5, 10, 15], dtype=np.uint64))
+    use_locking = False
+    name = "assign_add_uint64_1"
+    input_dict = {"use_locking": use_locking, "name": name, "ref": ref, "value": value}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

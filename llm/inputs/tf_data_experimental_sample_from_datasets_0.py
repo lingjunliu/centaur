@@ -12,84 +12,65 @@ def tf_data_experimental_sample_from_datasets_inputs():
     list_of_inputs = []
 
     # Input 1
-    dataset1 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
-    dataset2 = tf.data.Dataset.from_tensor_slices(np.array([4, 5, 6]))
+    dataset1 = np.array([1, 2, 3])
+    dataset2 = np.array([4, 5, 6])
     datasets = [dataset1, dataset2]
-    weights = np.array([0.5, 0.5], dtype=np.float32)
+    weights = [0.5, 0.5]
     seed = tf.constant(42, dtype=tf.int64)
     stop_on_empty_dataset = False
-
-    input_dict = {
-        "datasets": datasets,
-        "weights": weights.tolist(),
-        "seed": seed,
-        "stop_on_empty_dataset": stop_on_empty_dataset
-    }
+    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
     # Input 2
-    dataset1 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3]))
-    dataset2 = tf.data.Dataset.from_tensor_slices(np.array([4, 5, 6]))
-    dataset3 = tf.data.Dataset.from_tensor_slices(np.array([7, 8, 9]))
-    datasets = [dataset1, dataset2, dataset3]
-    weights = np.array([0.3, 0.3, 0.4], dtype=np.float32)
+    dataset1 = np.array([1, 2, 3])
+    dataset2 = np.array([4, 5, 6, 7])
+    datasets = [dataset1, dataset2]
+    weights = [0.2, 0.8]
     seed = tf.constant(123, dtype=tf.int64)
     stop_on_empty_dataset = True
-
-    input_dict = {
-        "datasets": datasets,
-        "weights": weights.tolist(),
-        "seed": seed,
-        "stop_on_empty_dataset": stop_on_empty_dataset
-    }
+    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
     # Input 3
-    dataset1 = tf.data.Dataset.from_tensor_slices(np.array([1, 2]))
-    dataset2 = tf.data.Dataset.from_tensor_slices(np.array([3, 4, 5, 6]))
+    dataset1 = np.array([1, 2, 3, 4, 5])
+    dataset2 = np.array([6, 7])
     datasets = [dataset1, dataset2]
-    weights = np.array([0.8, 0.2], dtype=np.float32)
-    seed = tf.constant(0, dtype=tf.int64)
+    weights = [0.9, 0.1]
+    seed = tf.constant(789, dtype=tf.int64)
     stop_on_empty_dataset = False
-
-    input_dict = {
-        "datasets": datasets,
-        "weights": weights.tolist(),
-        "seed": seed,
-        "stop_on_empty_dataset": stop_on_empty_dataset
-    }
+    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
     # Input 4
-    dataset1 = tf.data.Dataset.from_tensor_slices(np.array([1, 2, 3, 4]))
-    dataset2 = tf.data.Dataset.from_tensor_slices(np.array([5, 6]))
+    dataset1 = np.array([1])
+    dataset2 = np.array([2, 3, 4, 5, 6, 7, 8, 9])
     datasets = [dataset1, dataset2]
-    weights = np.array([0.1, 0.9], dtype=np.float32)
-    seed = tf.constant(-1, dtype=tf.int64)
+    weights = [0.01, 0.99]
+    seed = tf.constant(10, dtype=tf.int64)
     stop_on_empty_dataset = True
-
-    input_dict = {
-        "datasets": datasets,
-        "weights": weights.tolist(),
-        "seed": seed,
-        "stop_on_empty_dataset": stop_on_empty_dataset
-    }
+    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
-     # Input 5
-    dataset1 = tf.data.Dataset.from_tensor_slices(np.array([1, 2]))
-    dataset2 = tf.data.Dataset.from_tensor_slices(np.array([3, 4, 5, 6]))
-    datasets = [dataset1, dataset2]
-    weights = np.array([0.2, 0.8], dtype=np.float32)
-    seed = tf.constant(1000, dtype=tf.int64)
-    stop_on_empty_dataset = False
+    # Input 5
+    dataset1 = np.array([10, 20])
+    dataset2 = np.array([30, 40, 50])
+    dataset3 = np.array([60])
 
-    input_dict = {
-        "datasets": datasets,
-        "weights": weights.tolist(),
-        "seed": seed,
-        "stop_on_empty_dataset": stop_on_empty_dataset
-    }
+    datasets = [dataset1, dataset2, dataset3]
+    weights = [0.3, 0.3, 0.4]
+    seed = tf.constant(111, dtype=tf.int64)
+    stop_on_empty_dataset = False
+    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
+    list_of_inputs.append(input_dict)
+
+    # Input 6
+    dataset1 = np.array([1, 2])
+    dataset2 = np.array([3, 4, 5])
+    datasets = [dataset1, dataset2]
+    weights = [0.7, 0.3]
+    seed = tf.constant(222, dtype=tf.int64)
+    stop_on_empty_dataset = True
+    input_dict = {"datasets": datasets, "weights": weights.copy(), "seed": seed, "stop_on_empty_dataset": stop_on_empty_dataset}
     list_of_inputs.append(input_dict)
 
     return list_of_inputs

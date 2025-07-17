@@ -5,105 +5,121 @@ from generator.input_generators import get_abstract_input
 generated_inputs = dict()
 
 import tensorflow as tf
-import numpy as np
 import copy
 import os
 
 def tf_data_experimental_load_inputs():
     list_of_inputs = []
 
-    # Input 1, valid, no element_spec, no compression, no reader_func
+    # Create a dummy path
+    path = os.path.join(os.getcwd(), "temp_dataset")
+    try:
+        os.makedirs(path, exist_ok=True)
+    except OSError as e:
+        path = os.path.join("/tmp", "temp_dataset")
+        os.makedirs(path, exist_ok=True)
+
+    # Input 1: Minimal valid input (no compression, no reader_func, no element_spec)
     input_dict = {
-        "path": "/tmp/saved_dataset_1",
+        "path": path,
+        "element_spec": [],
+        "compression": None,
+        "reader_func": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2: With GZIP compression
+    input_dict = {
+        "path": path,
+        "element_spec": [],
+        "compression": "GZIP",
+        "reader_func": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: With NONE compression
+    input_dict = {
+        "path": path,
         "element_spec": [],
         "compression": "NONE",
         "reader_func": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2, valid, element_spec, compression, no reader_func
+    # Input 4: With element_spec (tf.int64)
     input_dict = {
-        "path": "/tmp/saved_dataset_2",
-        "element_spec": [tf.TensorSpec(shape=(None,), dtype=tf.int64, name=None)],
-        "compression": "GZIP",
-        "reader_func": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3, valid, element_spec, compression, reader_func
-    def custom_reader_func(datasets):
-        return datasets.interleave(lambda x: x, num_parallel_calls=tf.data.AUTOTUNE)
-
-    input_dict = {
-        "path": "/tmp/saved_dataset_3",
-        "element_spec": [tf.TensorSpec(shape=(), dtype=tf.float32, name=None)],
-        "compression": "NONE",
-        "reader_func": [custom_reader_func]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4, valid, different element_spec
-    input_dict = {
-        "path": "/tmp/saved_dataset_4",
-        "element_spec": [tf.TensorSpec(shape=(2, 2), dtype=tf.float64, name=None)],
-        "compression": "NONE",
-        "reader_func": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5, valid, different element_spec
-    input_dict = {
-        "path": "/tmp/saved_dataset_5",
-        "element_spec": [tf.RaggedTensorSpec(shape=(None, None), dtype=tf.int32, ragged_rank=1)],
-        "compression": "NONE",
-        "reader_func": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6, valid, nested element_spec
-    input_dict = {
-        "path": "/tmp/saved_dataset_6",
-        "element_spec": [[tf.TensorSpec(shape=(), dtype=tf.int32, name=None), tf.TensorSpec(shape=(), dtype=tf.string, name=None)]],
-        "compression": "NONE",
-        "reader_func": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7, valid, complex element_spec and reader_func
-    def another_reader_func(datasets):
-        return datasets.unbatch()
-
-    input_dict = {
-        "path": "/tmp/saved_dataset_7",
-        "element_spec": [tf.TensorSpec(shape=(None, 3), dtype=tf.float32, name=None)],
-        "compression": "GZIP",
-        "reader_func": [another_reader_func]
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8, valid, multiple levels of nesting in element spec.
-    input_dict = {
-        "path": "/tmp/saved_dataset_8",
-        "element_spec": [[[tf.TensorSpec(shape=(), dtype=tf.int64, name=None)]]],
-        "compression": "NONE",
-        "reader_func": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9, valid, different element_spec, no compression
-    def no_op(datasets):
-        return datasets
-
-    input_dict = {
-        "path": "/tmp/saved_dataset_9",
-        "element_spec": [tf.TensorSpec(shape=(10,), dtype=tf.int32)],
+        "path": path,
+        "element_spec": [tf.TensorSpec(shape=(), dtype=tf.int64, name=None)],
         "compression": None,
-        "reader_func": [no_op]
+        "reader_func": None
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 5: With element_spec (tf.float32)
+    input_dict = {
+        "path": path,
+        "element_spec": [tf.TensorSpec(shape=(2, 2), dtype=tf.float32, name=None)],
+        "compression": None,
+        "reader_func": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: With element_spec (nested structure)
+    element_spec = [
+        {
+            "a": tf.TensorSpec(shape=(), dtype=tf.int32, name=None),
+            "b": tf.TensorSpec(shape=(3,), dtype=tf.float64, name=None),
+        }
+    ]
+    input_dict = {
+        "path": path,
+        "element_spec": element_spec,
+        "compression": None,
+        "reader_func": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: With simple reader_func (identity)
+
+    input_dict = {
+        "path": path,
+        "element_spec": [],
+        "compression": None,
+        "reader_func": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: With GZIP compression and element_spec
+    input_dict = {
+        "path": path,
+        "element_spec": [tf.TensorSpec(shape=(), dtype=tf.string, name=None)],
+        "compression": "GZIP",
+        "reader_func": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: with element spec and reader func
+    input_dict = {
+        "path": path,
+        "element_spec": [tf.TensorSpec(shape=(), dtype=tf.int64, name=None)],
+        "compression": None,
+        "reader_func": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: No compression, with element_spec and reader_func
+
+    input_dict = {
+        "path": path,
+        "element_spec": [tf.TensorSpec(shape=(None,), dtype=tf.float32, name=None)],
+        "compression": "NONE",
+        "reader_func": None
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.data.experimental.load"] = tf_data_experimental_load_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

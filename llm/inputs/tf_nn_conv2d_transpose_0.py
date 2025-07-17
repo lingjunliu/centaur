@@ -19,7 +19,7 @@ def tf_nn_conv2d_transpose_inputs():
     padding_string = "SAME"
     data_format_string = "NHWC"
     dilations_list = [1, 1, 1, 1]
-    name_string = "deconv1"
+    name_string = "transpose_conv1"
 
     input_dict = {
         "input": input_tensor,
@@ -32,8 +32,32 @@ def tf_nn_conv2d_transpose_inputs():
         "name": name_string
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.random.rand(2, 10, 10, 1).astype(np.float32)
+    filters_tensor = np.random.rand(5, 5, 1, 1).astype(np.float32)
+    output_shape_tensor = np.array([2, 14, 14, 1], dtype=np.int32)
+    strides_list = [1, 2, 2, 1]
+    padding_string = "VALID"
+    data_format_string = "NHWC"
+    dilations_list = [1, 1, 1, 1]
+    name_string = "transpose_conv2"
+
+    input_dict = {
+        "input": input_tensor,
+        "filters": filters_tensor,
+        "output_shape": output_shape_tensor,
+        "strides": strides_list,
+        "padding": padding_string,
+        "data_format": data_format_string,
+        "dilations": dilations_list,
+        "name": name_string
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.nn.conv2d_transpose"] = tf_nn_conv2d_transpose_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):

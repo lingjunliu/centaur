@@ -13,11 +13,11 @@ def tf_raw_ops_barrier_inputs():
 
     # Input 1
     component_types = [tf.float32.as_numpy_dtype]
-    shapes = []
-    capacity = -1
-    container = ""
-    shared_name = ""
-    name = "barrier_1"
+    shapes = [tf.TensorShape([1, 2])]
+    capacity = 10
+    container = "container1"
+    shared_name = "shared_barrier1"
+    name = "barrier_op1"
 
     input_dict = {
         "component_types": component_types,
@@ -25,17 +25,17 @@ def tf_raw_ops_barrier_inputs():
         "capacity": capacity,
         "container": container,
         "shared_name": shared_name,
-        "name": name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     component_types = [tf.int32.as_numpy_dtype, tf.float64.as_numpy_dtype]
-    shapes = [[1], [1]]
-    capacity = 10
-    container = "test_container"
-    shared_name = "test_shared_name"
-    name = "barrier_2"
+    shapes = [tf.TensorShape([1, 3]), tf.TensorShape([1, 4])]
+    capacity = -1
+    container = ""
+    shared_name = ""
+    name = None
 
     input_dict = {
         "component_types": component_types,
@@ -43,17 +43,17 @@ def tf_raw_ops_barrier_inputs():
         "capacity": capacity,
         "container": container,
         "shared_name": shared_name,
-        "name": name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     component_types = [tf.string.as_numpy_dtype]
-    shapes = []
-    capacity = 100
-    container = ""
-    shared_name = "barrier_shared"
-    name = None
+    shapes = [tf.TensorShape([1,])]
+    capacity = 5
+    container = "container2"
+    shared_name = "shared_barrier2"
+    name = "barrier_op2"
 
     input_dict = {
         "component_types": component_types,
@@ -61,17 +61,17 @@ def tf_raw_ops_barrier_inputs():
         "capacity": capacity,
         "container": container,
         "shared_name": shared_name,
-        "name": name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
     component_types = [tf.bool.as_numpy_dtype]
-    shapes = [[1]]
-    capacity = -1
-    container = "another_container"
-    shared_name = ""
-    name = "barrier_4"
+    shapes = [tf.TensorShape([1, 1])]
+    capacity = 100
+    container = "container3"
+    shared_name = "shared_barrier3"
+    name = "barrier_op3"
 
     input_dict = {
         "component_types": component_types,
@@ -79,34 +79,34 @@ def tf_raw_ops_barrier_inputs():
         "capacity": capacity,
         "container": container,
         "shared_name": shared_name,
-        "name": name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-     # Input 5
-    component_types = [tf.uint8.as_numpy_dtype, tf.int16.as_numpy_dtype]
-    shapes = [[1], [1]]
-    capacity = 5
-    container = ""
-    shared_name = ""
-    name = "barrier_5"
-
-    input_dict = {
-        "component_types": component_types,
-        "shapes": shapes,
-        "capacity": capacity,
-        "container": container,
-        "shared_name": shared_name,
-        "name": name,
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    component_types = [tf.int64.as_numpy_dtype]
+    # Input 5: Only 1 component type, no shape
+    component_types = [tf.int32.as_numpy_dtype]
     shapes = []
     capacity = 20
-    container = "container_six"
-    shared_name = "shared_six"
+    container = "container9"
+    shared_name = "shared_barrier9"
+    name = "barrier_op9"
+
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Empty shapes list
+    component_types = [tf.float32.as_numpy_dtype, tf.int64.as_numpy_dtype]
+    shapes = []
+    capacity = 30
+    container = ""
+    shared_name = ""
     name = None
 
     input_dict = {
@@ -115,10 +115,28 @@ def tf_raw_ops_barrier_inputs():
         "capacity": capacity,
         "container": container,
         "shared_name": shared_name,
-        "name": name,
+        "name": name
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 7: name is empty string
+    component_types = [tf.float32.as_numpy_dtype]
+    shapes = [tf.TensorShape([1, 2])]
+    capacity = 10
+    container = "container11"
+    shared_name = "shared_barrier11"
+    name = ""
+
+    input_dict = {
+        "component_types": component_types,
+        "shapes": shapes,
+        "capacity": capacity,
+        "container": container,
+        "shared_name": shared_name,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

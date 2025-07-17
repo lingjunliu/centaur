@@ -11,107 +11,99 @@ import copy
 def tf_linalg_normalize_inputs():
     list_of_inputs = []
 
-    # Input 1
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    # Input 1: Basic vector normalization
+    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     ord = 'euclidean'
-    axis = (0, 1)
-    name = 'normalize_matrix'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 2
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    ord = '1'
     axis = None
-    name = 'normalize_vector_1norm'
+    name = 'norm1'
     input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.complex64)
+    # Input 2: Matrix Frobenius norm normalization
+    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
     ord = 'fro'
-    axis = (0, 1)
-    name = 'normalize_complex_matrix'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    tensor = np.array([[-1.0, 2.0], [-3.0, 4.0]], dtype=np.float32)
-    ord = 'inf'
-    axis = (0, 1)
-    name = 'normalize_inf_matrix'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    ord = '2'
     axis = None
-    name = 'normalize_vector_2norm'
+    name = 'norm2'
     input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    ord = 'euclidean'
-    axis = (1,2)
-    name = 'normalize_batch_matrix'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    ord = 'euclidean'
-    axis = None
-    name = 'normalize_vector_default'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8
-    tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    ord = '1'
-    axis = (0, 1)
-    name = 'normalize_matrix_1norm'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    ord = np.inf
-    axis = None
-    name = 'normalize_inf_vector'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
-    ord = '2'
-    axis = (-2, -1)
-    name = 'normalize_batch_matrix_2norm'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11
-    tensor = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float32)
-    ord = 'euclidean'
-    axis = None
-    name = 'normalize_vector_default'
-    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 12
+    # Input 3: Batch of vectors, normalize along axis 1
     tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
     ord = 'euclidean'
     axis = (1,)
-    name = 'normalize_matrix_axis1'
+    name = 'norm3'
     input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 13
+
+    # Input 4: Batch of matrices, normalize along axes (0, 1) using 1-norm
     tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    ord = '1'
+    axis = (0, 1)
+    name = 'norm4'
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Negative axis for vector normalization
+    tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
     ord = 'euclidean'
-    axis = (2,)
-    name = 'normalize_batch_matrix_axis2'
+    axis = (-1,)
+    name = 'norm5'
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: np.inf norm
+    tensor = np.array([1.0, -2.0, 3.0], dtype=np.float32)
+    ord = np.inf
+    axis = None
+    name = 'norm6'
+    input_dict = {'tensor': tensor, 'ord': str(ord), 'axis': axis, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: p-norm with p = 1.5
+    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    ord = '1.5'
+    axis = None
+    name = 'norm7'
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Complex tensor, euclidean norm
+    tensor = np.array([1 + 1j, 2 - 2j, 3 + 0j], dtype=np.complex64)
+    ord = 'euclidean'
+    axis = None
+    name = 'norm8'
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Higher dimensional tensor, axis = (1,)
+    tensor = np.random.rand(2, 3, 4).astype(np.float32)
+    ord = 'euclidean'
+    axis = (1,)
+    name = 'norm9'
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Double type tensor
+    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float64)
+    ord = 'euclidean'
+    axis = None
+    name = 'norm11'
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 14: Different order
+    tensor = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    ord = '1'
+    axis = None
+    name = 'norm14'
+    input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 15: Axis as tuple with one element.
+    tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    ord = 'euclidean'
+    axis = (0,)
+    name = 'norm15'
     input_dict = {'tensor': tensor, 'ord': ord, 'axis': axis, 'name': name}
     list_of_inputs.append(copy.deepcopy(input_dict))
     

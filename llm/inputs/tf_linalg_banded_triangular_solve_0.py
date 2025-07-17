@@ -11,48 +11,93 @@ import copy
 def tf_linalg_banded_triangular_solve_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1: Basic lower triangular solve
     bands = np.array([[2., 0., 0.], [1., 2., 0.]], dtype=np.float32)
     rhs = np.array([[1.], [1.], [1.]], dtype=np.float32)
     lower = True
     adjoint = False
-    name = "test1"
+    name = "basic_lower"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    bands = np.array([[2., 3., 0., 0.], [0., 2., 3., 0.]], dtype=np.float32)
+    # Input 2: Basic upper triangular solve
+    bands = np.array([[1., 2., 3.], [0., 1., 2.]], dtype=np.float32)
+    rhs = np.array([[1.], [1.], [1.]], dtype=np.float32)
+    lower = False
+    adjoint = False
+    name = "basic_upper"
+    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Adjoint solve, lower
+    bands = np.array([[2., 0., 0.], [1., 2., 0.]], dtype=np.float32)
+    rhs = np.array([[1.], [1.], [1.]], dtype=np.float32)
+    lower = True
+    adjoint = True
+    name = "adjoint_lower"
+    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Adjoint solve, upper
+    bands = np.array([[1., 2., 3.], [0., 1., 2.]], dtype=np.float32)
+    rhs = np.array([[1.], [1.], [1.]], dtype=np.float32)
+    lower = False
+    adjoint = True
+    name = "adjoint_upper"
+    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Multiple right-hand sides
+    bands = np.array([[2., 0., 0.], [1., 2., 0.]], dtype=np.float32)
+    rhs = np.array([[1., 2.], [1., 2.], [1., 2.]], dtype=np.float32)
+    lower = True
+    adjoint = False
+    name = "multiple_rhs"
+    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Different data type
+    bands = np.array([[2., 0., 0.], [1., 2., 0.]], dtype=np.float64)
+    rhs = np.array([[1.], [1.], [1.]], dtype=np.float64)
+    lower = True
+    adjoint = False
+    name = "different_dtype"
+    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Batch dimension
+    bands = np.array([[[2., 0., 0.], [1., 2., 0.]], [[3., 0., 0.], [2., 3., 0.]]], dtype=np.float32)
+    rhs = np.array([[[1.], [1.], [1.]], [[1.], [1.], [1.]]], dtype=np.float32)
+    lower = True
+    adjoint = False
+    name = "batch_dimension"
+    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: More bands
+    bands = np.array([[4., 0., 0., 0.], [3., 4., 0., 0.], [2., 3., 4., 0.]], dtype=np.float32)
+    rhs = np.array([[1.], [1.], [1.], [1.]], dtype=np.float32)
+    lower = True
+    adjoint = False
+    name = "more_bands"
+    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Upper triangular with more bands
+    bands = np.array([[1., 2., 3., 4.], [0., 1., 2., 3.], [0., 0., 1., 2.]], dtype=np.float32)
     rhs = np.array([[1.], [1.], [1.], [1.]], dtype=np.float32)
     lower = False
     adjoint = False
-    name = "test2"
+    name = "upper_more_bands"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    bands = np.array([[-1., 0., 0.], [0., -2., 0.]], dtype=np.float32)
-    rhs = np.array([[1., 2.], [3., 4.], [5., 6.]], dtype=np.float32)
-    lower = False
-    adjoint = True
-    name = "test3"
-    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    bands = np.array([[1., 0.], [3., 4.]], dtype=np.float32)
-    rhs = np.array([[5.], [6.]], dtype=np.float32)
-    lower = True
-    adjoint = True
-    name = "test4"
-    input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    bands = np.array([[2., 3., 4.], [0.1, 2., 3.]], dtype=np.float32)
-    rhs = np.array([7., 8., 9.], dtype=np.float32)
+    # Input 10: Complex data type
+    bands = np.array([[2. + 1j, 0., 0.], [1., 2. - 1j, 0.]], dtype=np.complex64)
+    rhs = np.array([[1. + 0j], [1. - 1j], [1. + 1j]], dtype=np.complex64)
     lower = True
     adjoint = False
-    name = "test5"
+    name = "complex_dtype"
     input_dict = {"bands": bands, "rhs": rhs, "lower": lower, "adjoint": adjoint, "name": name}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

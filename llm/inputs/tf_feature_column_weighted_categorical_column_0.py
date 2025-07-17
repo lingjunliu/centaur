@@ -11,93 +11,138 @@ import copy
 def tf_feature_column_weighted_categorical_column_inputs():
     list_of_inputs = []
 
-    # Input 1
+    # Input 1, valid
     categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
         key='terms1', hash_bucket_size=100)]
     weight_feature_key = 'frequencies1'
-    dtype = tf.float32
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
+    dtype = np.float32
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
-        key='terms2', hash_bucket_size=500)]
+    # Input 2, valid
+    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_list(
+        key='terms2', vocabulary_list=['a', 'b', 'c'])]
     weight_feature_key = 'frequencies2'
-    dtype = tf.float64
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
+    dtype = np.float64
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
-        key='terms3', hash_bucket_size=2000)]
+    # Input 3, valid
+    categorical_column = [tf.feature_column.categorical_column_with_identity(
+        key='terms3', num_buckets=5)]
     weight_feature_key = 'frequencies3'
-    dtype = tf.int32
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
+    dtype = np.float16
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4
-    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_list(
-        key='terms4', vocabulary_list=['a', 'b', 'c'])]
+    # Input 4, valid
+    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
+        key='terms4', hash_bucket_size=2000)]
     weight_feature_key = 'frequencies4'
-    dtype = tf.float32
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
+    dtype = np.int32
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5
-    categorical_column = [tf.feature_column.categorical_column_with_identity(
-        key='terms5', num_buckets=10)]
+    # Input 5, valid
+    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_file(
+        key='terms5', vocabulary_file='my_vocab_file.txt', vocabulary_size=10)]
     weight_feature_key = 'frequencies5'
-    dtype = tf.float64
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
+    dtype = np.int64
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
+    # Input 6, valid
     categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
-        key='terms6', hash_bucket_size=10000)]
+        key='terms6', hash_bucket_size=500)]
     weight_feature_key = 'frequencies6'
-    dtype = tf.int32 # was int64, changed to int32 as it is a supported dtype
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
+    dtype = np.float32
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7 - Removed vocabulary file due to complexity and external dependency
-    # Input 8
-    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
-        key='terms8', hash_bucket_size=50)]
-    weight_feature_key = 'frequencies8'
-    dtype = tf.float32  # Changed to supported dtype
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
-        key='terms9', hash_bucket_size=100000)]
-    weight_feature_key = 'frequencies9'
-    dtype = tf.int32 # Changed to supported dtype
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    categorical_column = [tf.feature_column.categorical_column_with_identity(
-        key='terms10', num_buckets=100)]
-    weight_feature_key = 'frequencies10'
-    dtype = tf.int32 # Changed to supported dtype
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 11 - Categorical column with vocabulary list, int dtype
+    # Input 7, valid
     categorical_column = [tf.feature_column.categorical_column_with_vocabulary_list(
-        key='terms11', vocabulary_list=[1, 2, 3])]
-    weight_feature_key = 'frequencies11'
-    dtype = tf.int32
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
+        key='terms7', vocabulary_list=['x', 'y', 'z', 'w'])]
+    weight_feature_key = 'frequencies7'
+    dtype = np.float64
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 12 - Categorical column with identity, int dtype, smaller num_buckets
-    categorical_column = [tf.feature_column.categorical_column_with_identity(
-        key='terms12', num_buckets=5)]
-    weight_feature_key = 'frequencies12'
-    dtype = tf.int32
-    input_dict = {'categorical_column': categorical_column, 'weight_feature_key': weight_feature_key, 'dtype': dtype}
+
+   # Input 8, valid, multiple categorical columns
+    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
+        key='terms8_1', hash_bucket_size=100),
+        tf.feature_column.categorical_column_with_hash_bucket(
+        key='terms8_2', hash_bucket_size=200)]
+    weight_feature_key = 'frequencies8'
+    dtype = np.float32
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9, valid, multiple categorical columns
+    categorical_column = [tf.feature_column.categorical_column_with_vocabulary_list(
+        key='terms9_1', vocabulary_list=['a', 'b', 'c']),
+        tf.feature_column.categorical_column_with_identity(
+        key='terms9_2', num_buckets=10)]
+    weight_feature_key = 'frequencies9'
+    dtype = np.float64
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10, valid, numpy dtype
+    categorical_column = [tf.feature_column.categorical_column_with_hash_bucket(
+        key='terms10', hash_bucket_size=300)]
+    weight_feature_key = 'frequencies10'
+    dtype = np.int32
+
+    input_dict = {
+        "categorical_column": categorical_column,
+        "weight_feature_key": weight_feature_key,
+        "dtype": dtype
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

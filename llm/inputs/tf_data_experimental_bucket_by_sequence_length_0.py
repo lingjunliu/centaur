@@ -12,148 +12,125 @@ def tf_data_experimental_bucket_by_sequence_length_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [5, 10, 15],
-        "bucket_batch_sizes": [2, 3, 4, 5],
-        "padded_shapes": (tf.TensorShape([None]),),
-        "padding_values": np.int64(0),
-        "pad_to_bucket_boundary": False,
-        "no_padding": False,
-        "drop_remainder": False
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [3, 5]
+    bucket_batch_sizes = [2, 2, 2]
+    padded_shapes = ()
+    padding_values = np.int64(0)
+    pad_to_bucket_boundary = False
+    no_padding = False
+    drop_remainder = False
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [3, 7],
-        "bucket_batch_sizes": [4, 2, 3],
-        "padded_shapes": (tf.TensorShape([None]),),
-        "padding_values": np.int32(-1),
-        "pad_to_bucket_boundary": True,
-        "no_padding": False,
-        "drop_remainder": True
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [4, 7]
+    bucket_batch_sizes = [2, 2, 2]
+    padded_shapes = ()
+    padding_values = np.int32(-1)
+    pad_to_bucket_boundary = True
+    no_padding = False
+    drop_remainder = True
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [2, 4, 6, 8],
-        "bucket_batch_sizes": [1, 2, 3, 4, 5],
-        "padded_shapes": (tf.TensorShape([None]),),
-        "padding_values": np.float32(100),
-        "pad_to_bucket_boundary": False,
-        "no_padding": False,
-        "drop_remainder": False
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [2, 4, 6]
+    bucket_batch_sizes = [1, 1, 1, 1]
+    padded_shapes = ()
+    padding_values = np.float32(100)
+    pad_to_bucket_boundary = False
+    no_padding = False
+    drop_remainder = False
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [10],
-        "bucket_batch_sizes": [5, 6],
-        "padded_shapes": (tf.TensorShape([None, None]),),
-        "padding_values": np.int32(0),
-        "pad_to_bucket_boundary": True,
-        "no_padding": False,
-        "drop_remainder": True
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [10]
+    bucket_batch_sizes = [4, 4]
+    padded_shapes = ()
+    padding_values = np.int64(1)
+    pad_to_bucket_boundary = True
+    no_padding = False
+    drop_remainder = True
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 5
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [5, 10],
-        "bucket_batch_sizes": [2, 3, 4],
-        "padded_shapes": (tf.TensorShape([None]), tf.TensorShape([None])),
-        "padding_values": np.array([0, 0], dtype=np.int64),
-        "pad_to_bucket_boundary": False,
-        "no_padding": False,
-        "drop_remainder": False
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [5, 8, 10]
+    bucket_batch_sizes = [3, 3, 3, 3]
+    padded_shapes = ()
+    padding_values = np.float64(0.0)
+    pad_to_bucket_boundary = False
+    no_padding = False
+    drop_remainder = False
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [1, 2, 3],
-        "bucket_batch_sizes": [4, 5, 6, 7],
-        "padded_shapes": (tf.TensorShape([None]),),
-        "padding_values": np.int32(0),
-        "pad_to_bucket_boundary": True,
-        "no_padding": False,
-        "drop_remainder": True
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [1, 2, 3, 4, 5]
+    bucket_batch_sizes = [1, 1, 1, 1, 1, 1]
+    padded_shapes = ()
+    padding_values = np.int32(-99)
+    pad_to_bucket_boundary = True
+    no_padding = False
+    drop_remainder = True
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [4],
-        "bucket_batch_sizes": [3, 2],
-        "padded_shapes": (tf.TensorShape([None]),),
-        "padding_values": np.float64(-1),
-        "pad_to_bucket_boundary": False,
-        "no_padding": False,
-        "drop_remainder": False
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [7, 9]
+    bucket_batch_sizes = [5, 5, 5]
+    padded_shapes = ()
+    padding_values = np.int8(1)
+    pad_to_bucket_boundary = False
+    no_padding = True
+    drop_remainder = False
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 8
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [6, 12],
-        "bucket_batch_sizes": [1, 2, 3],
-        "padded_shapes": (tf.TensorShape([None, None, None]),),
-        "padding_values": np.int32(0),
-        "pad_to_bucket_boundary": True,
-        "no_padding": False,
-        "drop_remainder": True
-    }
+    # Input 8
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [20, 30, 40]
+    bucket_batch_sizes = [10, 10, 10, 10]
+    padded_shapes = ()
+    padding_values = np.uint8(255)
+    pad_to_bucket_boundary = True
+    no_padding = True
+    drop_remainder = True
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [7, 14, 21],
-        "bucket_batch_sizes": [4, 5, 6, 7],
-        "padded_shapes": (tf.TensorShape([None]), tf.TensorShape([None]), tf.TensorShape([None])),
-        "padding_values": np.array([0, 0, 0], dtype=np.int64),
-        "pad_to_bucket_boundary": False,
-        "no_padding": False,
-        "drop_remainder": False
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [15]
+    bucket_batch_sizes = [7, 7]
+    padded_shapes = ()
+    padding_values = np.int16(0)
+    pad_to_bucket_boundary = False
+    no_padding = False
+    drop_remainder = True
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [8, 16],
-        "bucket_batch_sizes": [1, 2, 3],
-        "padded_shapes": (tf.TensorShape([None]),),
-        "padding_values": np.int32(1),
-        "pad_to_bucket_boundary": True,
-        "no_padding": False,
-        "drop_remainder": True
-    }
+    element_length_func = lambda elem: tf.shape(elem)[0]
+    bucket_boundaries = [6, 12, 18, 24]
+    bucket_batch_sizes = [4, 4, 4, 4, 4]
+    padded_shapes = ()
+    padding_values = np.int64(-1000)
+    pad_to_bucket_boundary = True
+    no_padding = False
+    drop_remainder = False
+    input_dict = {'element_length_func': element_length_func, 'bucket_boundaries': bucket_boundaries, 'bucket_batch_sizes': bucket_batch_sizes, 'padded_shapes': padded_shapes, 'padding_values': padding_values, 'pad_to_bucket_boundary': pad_to_bucket_boundary, 'no_padding': no_padding, 'drop_remainder': drop_remainder}
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 11
-    input_dict = {
-        "element_length_func": [lambda elem: elem.shape[0]],
-        "bucket_boundaries": [20, 30, 40],
-        "bucket_batch_sizes": [2, 3, 4, 5],
-        "padded_shapes": (tf.TensorShape([None, None]),),
-        "padding_values": np.int64(-1),
-        "pad_to_bucket_boundary": False,
-        "no_padding": False,
-        "drop_remainder": False
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

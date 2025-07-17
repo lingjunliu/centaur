@@ -11,94 +11,254 @@ import copy
 def tf_raw_ops_apply_momentum_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic float32
-    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    accum = tf.Variable(np.array([0.0, 0.0, 0.0], dtype=np.float32))
+    # Input 1
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    accum = np.array([0.0, 0.0, 0.0], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
     grad = np.array([0.1, 0.2, 0.3], dtype=np.float32)
     momentum = np.array(0.9, dtype=np.float32)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": False, "use_nesterov": False, "name": "momentum_1"}
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_1"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: float64 with Nesterov
-    var = tf.Variable(np.array([1.0, 2.0], dtype=np.float64))
-    accum = tf.Variable(np.array([0.5, 0.5], dtype=np.float64))
+    # Input 2
+    var = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    accum = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
     lr = np.array(0.001, dtype=np.float64)
-    grad = np.array([0.05, 0.1], dtype=np.float64)
-    momentum = np.array(0.95, dtype=np.float64)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": True, "use_nesterov": True, "name": "momentum_2"}
+    grad = np.array([[0.01, 0.02], [0.03, 0.04]], dtype=np.float64)
+    momentum = np.array(0.99, dtype=np.float64)
+    use_locking = True
+    use_nesterov = True
+    name = "momentum_update_2"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: int32
-    var = tf.Variable(np.array([1, 2, 3], dtype=np.int32))
-    accum = tf.Variable(np.array([0, 0, 0], dtype=np.int32))
+    # Input 3
+    var = np.array([1, 2, 3], dtype=np.int32)
+    accum = np.array([0, 0, 0], dtype=np.int32)
     lr = np.array(1, dtype=np.int32)
     grad = np.array([1, 2, 3], dtype=np.int32)
-    momentum = np.array(0, dtype=np.int32)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": False, "use_nesterov": False, "name": "momentum_3"}
+    momentum = np.array(1, dtype=np.int32)
+    use_locking = False
+    use_nesterov = True
+    name = "momentum_update_3"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: complex64
-    var = tf.Variable(np.array([1+1j, 2+2j], dtype=np.complex64))
-    accum = tf.Variable(np.array([0+0j, 0+0j], dtype=np.complex64))
-    lr = np.array(0.1+0j, dtype=np.complex64)
-    grad = np.array([0.1+0.1j, 0.2+0.2j], dtype=np.complex64)
-    momentum = np.array(0.9+0j, dtype=np.complex64)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": False, "use_nesterov": False, "name": "momentum_4"}
+    # Input 4
+    var = np.array([1, 2, 3], dtype=np.int64)
+    accum = np.array([0, 0, 0], dtype=np.int64)
+    lr = np.array(1, dtype=np.int64)
+    grad = np.array([1, 2, 3], dtype=np.int64)
+    momentum = np.array(1, dtype=np.int64)
+    use_locking = True
+    use_nesterov = False
+    name = "momentum_update_4"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Negative values
-    var = tf.Variable(np.array([-1.0, -2.0], dtype=np.float32))
-    accum = tf.Variable(np.array([0.0, 0.0], dtype=np.float32))
+    # Input 5
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    accum = np.array([0.0, 0.0, 0.0], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([-0.1, -0.2], dtype=np.float32)
+    grad = np.array([0.1, 0.2, 0.3], dtype=np.float32)
     momentum = np.array(0.9, dtype=np.float32)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": False, "use_nesterov": False, "name": "momentum_5"}
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_5"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Multi-dimensional array
-    var = tf.Variable(np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32))
-    accum = tf.Variable(np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32))
+   # Input 6
+    var = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    accum = np.array([[[0.0, 0.0], [0.0, 0.0]], [[0.0, 0.0], [0.0, 0.0]]], dtype=np.float32)
     lr = np.array(0.01, dtype=np.float32)
-    grad = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
+    grad = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float32)
     momentum = np.array(0.9, dtype=np.float32)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": False, "use_nesterov": False, "name": "momentum_6"}
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_6"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: half
-    var = tf.Variable(np.array([1.0, 2.0, 3.0], dtype=np.float16))
-    accum = tf.Variable(np.array([0.0, 0.0, 0.0], dtype=np.float16))
+    # Input 7
+    var = np.array([1.0], dtype=np.float32)
+    accum = np.array([0.0], dtype=np.float32)
+    lr = np.array(0.01, dtype=np.float32)
+    grad = np.array([0.1], dtype=np.float32)
+    momentum = np.array(0.9, dtype=np.float32)
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_7"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: bfloat16
+    var = np.array([1.0, 2.0, 3.0], dtype=np.float16)
+    accum = np.array([0.0, 0.0, 0.0], dtype=np.float16)
     lr = np.array(0.01, dtype=np.float16)
     grad = np.array([0.1, 0.2, 0.3], dtype=np.float16)
     momentum = np.array(0.9, dtype=np.float16)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": False, "use_nesterov": False, "name": "momentum_7"}
+    use_locking = False
+    use_nesterov = False
+    name = "momentum_update_8"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: uint32
-    var = tf.Variable(np.array([1, 2, 3], dtype=np.uint32))
-    accum = tf.Variable(np.array([0, 0, 0], dtype=np.uint32))
-    lr = np.array(1, dtype=np.uint32)
-    grad = np.array([1, 2, 3], dtype=np.uint32)
-    momentum = np.array(0, dtype=np.uint32)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": False, "use_nesterov": False, "name": "momentum_8"}
+    # Input 9
+    var = np.array([1, 2, 3], dtype=np.uint8)
+    accum = np.array([0, 0, 0], dtype=np.uint8)
+    lr = np.array(1, dtype=np.uint8)
+    grad = np.array([1, 2, 3], dtype=np.uint8)
+    momentum = np.array(1, dtype=np.uint8)
+    use_locking = True
+    use_nesterov = False
+    name = "momentum_update_9"
+
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: uint64, use_locking=True, use_nesterov=True
-    var = tf.Variable(np.array([1, 2], dtype=np.uint64))
-    accum = tf.Variable(np.array([0, 0], dtype=np.uint64))
+    # Input 10
+    var = np.array([1, 2, 3], dtype=np.uint64)
+    accum = np.array([0, 0, 0], dtype=np.uint64)
     lr = np.array(1, dtype=np.uint64)
-    grad = np.array([1, 2], dtype=np.uint64)
-    momentum = np.array(0, dtype=np.uint64)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": True, "use_nesterov": True, "name": "momentum_9"}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    grad = np.array([1, 2, 3], dtype=np.uint64)
+    momentum = np.array(1, dtype=np.uint64)
+    use_locking = True
+    use_nesterov = False
+    name = "momentum_update_10"
 
-    # Input 10: int64, use_locking=True, use_nesterov=True
-    var = tf.Variable(np.array([1, 2], dtype=np.int64))
-    accum = tf.Variable(np.array([0, 0], dtype=np.int64))
-    lr = np.array(1, dtype=np.int64)
-    grad = np.array([1, 2], dtype=np.int64)
-    momentum = np.array(0, dtype=np.int64)
-    input_dict = {"var": var, "accum": accum, "lr": lr, "grad": grad, "momentum": momentum, "use_locking": True, "use_nesterov": True, "name": "momentum_10"}
+    var_tensor = tf.Variable(var)
+    accum_tensor = tf.Variable(accum)
+
+    input_dict = {
+        "var": var_tensor,
+        "accum": accum_tensor,
+        "lr": tf.convert_to_tensor(lr),
+        "grad": grad,
+        "momentum": tf.convert_to_tensor(momentum),
+        "use_locking": use_locking,
+        "use_nesterov": use_nesterov,
+        "name": name
+    }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

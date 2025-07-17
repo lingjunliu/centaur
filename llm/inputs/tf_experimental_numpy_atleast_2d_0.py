@@ -21,48 +21,49 @@ def tf_experimental_numpy_atleast_2d_inputs():
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Single 2D array (already 2D)
+    # Input 3: Single 2D array
     arys = [np.array([[1, 2], [3, 4]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Multiple 0D arrays
-    arys = [np.array([1]), np.array([2])]
+    # Input 4: Multiple arrays (1D, 1D)
+    arys = [np.array([1, 2]), np.array([3,4])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Multiple 1D arrays
-    arys = [np.array([1, 2]), np.array([3, 4])]
-    input_dict = {"arys": arys}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Mixed 0D and 1D arrays
-    arys = [np.array([1]), np.array([2, 3])]
-    input_dict = {"arys": arys}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Mixed 1D and 2D arrays
-    arys = [np.array([1, 2]), np.array([[3, 4], [5, 6]])]
-    input_dict = {"arys": arys}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Single 3D array
+    # Input 5: Single 3D array
     arys = [np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Multiple arrays with different shapes and dtypes (int and float)
-    arys = [np.array([1.0]), np.array([2, 3])]
+    # Input 6: Single 0D float array
+    arys = [np.array(1.5)]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: Empty array
+    # Input 7: Single 1D float array
+    arys = [np.array([1.1, 2.2, 3.3])]
+    input_dict = {"arys": arys}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Multiple arrays with mixed types (int, float)
+    arys = [np.array([1]), np.array([1.5, 2.5])]
+    input_dict = {"arys": arys}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Single 1D array with negative values
+    arys = [np.array([-1, 2, -3])]
+    input_dict = {"arys": arys}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+   # Input 10: Empty array
     arys = [np.array([])]
     input_dict = {"arys": arys}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["tf.experimental.numpy.atleast_2d"] = tf_experimental_numpy_atleast_2d_inputs()
 
 def check_valid(api, list_of_inputs, lib="tf", suffix=0):
