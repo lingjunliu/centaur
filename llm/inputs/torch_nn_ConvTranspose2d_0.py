@@ -12,192 +12,98 @@ def convtranspose2d_inputs():
     list_of_inputs = []
 
     # Input 1
-    input = np.random.randn(1, 3, 10, 10).astype(np.float32)
+    in_channels = np.int32(3)
+    out_channels = np.int32(16)
+    kernel_size = np.int32(3)
+    stride = np.int32(1)
+    padding = np.int32(1)
+    output_padding = np.int32(0)
+    groups = np.int32(1)
+    bias = np.bool_(True)
+    dilation = np.int32(1)
+    padding_mode = "zeros"
+    dtype = np.float32
+    input = torch.randn(1, 3, 10, 10).numpy()
+    output_size = None
+
     input_dict = {
-        "in_channels": 3,
-        "out_channels": 5,
-        "kernel_size": 3,
-        "stride": 1,
-        "padding": 0,
-        "output_padding": 0,
-        "groups": 1,
-        "bias": True,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float32,
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
         "input": input,
-        "output_size": None
+        "output_size": output_size
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 2
-    input = np.random.randn(2, 4, 8, 8).astype(np.float64)
+    in_channels = np.int32(16)
+    out_channels = np.int32(32)
+    kernel_size = (np.int32(5), np.int32(3))
+    stride = (np.int32(2), np.int32(1))
+    padding = (np.int32(2), np.int32(1))
+    output_padding = (np.int32(1), np.int32(0))
+    groups = np.int32(1)
+    bias = np.bool_(False)
+    dilation = (np.int32(1), np.int32(1))
+    padding_mode = "zeros"
+    dtype = np.float64
+    input = torch.randn(4, 16, 20, 30).numpy()
+    output_size = None
+
     input_dict = {
-        "in_channels": 4,
-        "out_channels": 8,
-        "kernel_size": 5,
-        "stride": 2,
-        "padding": 1,
-        "output_padding": 1,
-        "groups": 2,
-        "bias": False,
-        "dilation": 2,
-        "padding_mode": "zeros",
-        "dtype": np.float64,
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
         "input": input,
-        "output_size": None
+        "output_size": output_size
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input = np.random.randn(1, 16, 12, 12).astype(np.float32)
-    input_dict = {
-        "in_channels": 16,
-        "out_channels": 16,
-        "kernel_size": 3,
-        "stride": 2,
-        "padding": 1,
-        "output_padding": 0,
-        "groups": 1,
-        "bias": True,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float32,
-        "input": input,
-        "output_size": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    in_channels = np.int32(1)
+    out_channels = np.int32(1)
+    kernel_size = np.int32(7)
+    stride = np.int32(3)
+    padding = np.int32(3)
+    output_padding = np.int32(2)
+    groups = np.int32(1)
+    bias = np.bool_(True)
+    dilation = np.int32(1)
+    padding_mode = "zeros"
+    dtype = np.float32
+    input = torch.randn(1, 1, 50, 50).numpy()
+    output_size = None
 
-    # Input 4
-    input = np.random.randn(4, 3, 16, 16).astype(np.float32)
     input_dict = {
-        "in_channels": 3,
-        "out_channels": 7,
-        "kernel_size": 4,
-        "stride": 3,
-        "padding": 1,
-        "output_padding": 0,
-        "groups": 1,
-        "bias": True,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float32,
+        "in_channels": in_channels,
+        "out_channels": out_channels,
+        "kernel_size": kernel_size,
+        "stride": stride,
+        "padding": padding,
+        "output_padding": output_padding,
+        "groups": groups,
+        "bias": bias,
+        "dilation": dilation,
+        "padding_mode": padding_mode,
+        "dtype": dtype,
         "input": input,
-        "output_size": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input = np.random.randn(1, 2, 5, 5).astype(np.float32)
-    input_dict = {
-        "in_channels": 2,
-        "out_channels": 4,
-        "kernel_size": 2,
-        "stride": 1,
-        "padding": 0,
-        "output_padding": 0,
-        "groups": 1,
-        "bias": True,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float32,
-        "input": input,
-        "output_size": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 6
-    input = np.random.randn(1, 3, 10, 10).astype(np.float32)
-    input_dict = {
-        "in_channels": 3,
-        "out_channels": 3,
-        "kernel_size": 3,
-        "stride": 1,
-        "padding": 1,
-        "output_padding": 0,
-        "groups": 3,
-        "bias": False,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float32,
-        "input": input,
-        "output_size": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input = np.random.randn(2, 4, 8, 8).astype(np.float64)
-    input_dict = {
-        "in_channels": 4,
-        "out_channels": 4,
-        "kernel_size": 2,
-        "stride": 2,
-        "padding": 0,
-        "output_padding": 0,
-        "groups": 4,
-        "bias": True,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float64,
-        "input": input,
-        "output_size": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    input = np.random.randn(1, 8, 6, 6).astype(np.float32)
-    input_dict = {
-        "in_channels": 8,
-        "out_channels": 4,
-        "kernel_size": 4,
-        "stride": 2,
-        "padding": 1,
-        "output_padding": 0,
-        "groups": 1,
-        "bias": True,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float32,
-        "input": input,
-        "output_size": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input = np.random.randn(4, 2, 7, 7).astype(np.float32)
-    input_dict = {
-        "in_channels": 2,
-        "out_channels": 4,
-        "kernel_size": 3,
-        "stride": 1,
-        "padding": 1,
-        "output_padding": 0,
-        "groups": 1,
-        "bias": False,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float32,
-        "input": input,
-        "output_size": None
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input = np.random.randn(1, 3, 10, 10).astype(np.float32)
-    input_dict = {
-        "in_channels": 3,
-        "out_channels": 5,
-        "kernel_size": 2,
-        "stride": 2,
-        "padding": 0,
-        "output_padding": 1,
-        "groups": 1,
-        "bias": True,
-        "dilation": 1,
-        "padding_mode": "zeros",
-        "dtype": np.float32,
-        "input": input,
-        "output_size": None
+        "output_size": output_size
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

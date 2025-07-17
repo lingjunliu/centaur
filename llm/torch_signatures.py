@@ -6537,11 +6537,12 @@ signatures["torch.addmv_"] = {
     "args": {
         "input": "tensor",
         "mat": "tensor",
-        "vec": "tensor",
+        "vec": "tensor"
+    },
+    "kwargs": {
         "beta": "float",
         "alpha": "float"
     },
-    "kwargs": {},
     "inner": {},
 }
 signatures["torch.get_default_dtype"] = {

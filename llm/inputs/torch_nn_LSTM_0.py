@@ -4,9 +4,8 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def lstm_inputs():
     list_of_inputs = []
@@ -14,16 +13,16 @@ def lstm_inputs():
     # Input 1
     input_size = 10
     hidden_size = 20
-    num_layers = 1
+    num_layers = 2
     bias = True
     batch_first = False
     dropout = 0.0
     bidirectional = False
     proj_size = 0
-    dtype = torch.float32
-    input_tensor = torch.randn(5, 3, input_size)
-    h_0_tensor = torch.randn(num_layers, 3, hidden_size)
-    c_0_tensor = torch.randn(num_layers, 3, hidden_size)
+    dtype = np.float32
+    input_val = np.random.randn(5, 3, input_size).astype(dtype)
+    h_0_val = np.random.randn(num_layers, 3, hidden_size).astype(dtype)
+    c_0_val = np.random.randn(num_layers, 3, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -34,33 +33,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float32),
+        "input": torch.tensor(input_val, dtype=torch.float32),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float32),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float32)
     }
-
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
     input_size = 5
     hidden_size = 10
-    num_layers = 2
+    num_layers = 1
     bias = False
     batch_first = True
     dropout = 0.5
     bidirectional = True
     proj_size = 0
-    dtype = torch.float64
-    input_tensor = torch.randn(2, 4, input_size)
-    h_0_tensor = torch.randn(2 * num_layers, 4, hidden_size)
-    c_0_tensor = torch.randn(2 * num_layers, 4, hidden_size)
+    dtype = np.float64
+    input_val = np.random.randn(2, 4, input_size).astype(dtype)
+    h_0_val = np.random.randn(2 * num_layers, 4, hidden_size).astype(dtype)
+    c_0_val = np.random.randn(2 * num_layers, 4, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -71,31 +63,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float64),
+        "input": torch.tensor(input_val, dtype=torch.float64),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float64),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float64)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
     input_size = 7
-    hidden_size = 15
+    hidden_size = 12
     num_layers = 3
     bias = True
     batch_first = False
     dropout = 0.2
     bidirectional = False
-    proj_size = 8
-    dtype = torch.float32
-    input_tensor = torch.randn(10, 1, input_size)
-    h_0_tensor = torch.randn(num_layers, 1, proj_size)
-    c_0_tensor = torch.randn(num_layers, 1, hidden_size)
+    proj_size = 5
+    dtype = np.float32
+    input_val = np.random.randn(8, 1, input_size).astype(dtype)
+    h_0_val = np.random.randn(num_layers, 1, proj_size).astype(dtype)
+    c_0_val = np.random.randn(num_layers, 1, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -106,31 +93,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float32),
+        "input": torch.tensor(input_val, dtype=torch.float32),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float32),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float32)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 4
-    input_size = 3
-    hidden_size = 6
+    input_size = 15
+    hidden_size = 25
     num_layers = 1
-    bias = False
+    bias = True
     batch_first = True
     dropout = 0.0
     bidirectional = True
-    proj_size = 0
-    dtype = torch.float64
-    input_tensor = torch.randn(1, 5, input_size)
-    h_0_tensor = torch.randn(2 * num_layers, 5, hidden_size)
-    c_0_tensor = torch.randn(2 * num_layers, 5, hidden_size)
+    proj_size = 10
+    dtype = np.float64
+    input_val = np.random.randn(1, 6, input_size).astype(dtype)
+    h_0_val = np.random.randn(2 * num_layers, 6, proj_size).astype(dtype)
+    c_0_val = np.random.randn(2 * num_layers, 6, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -141,31 +123,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float64),
+        "input": torch.tensor(input_val, dtype=torch.float64),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float64),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float64)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 5
-    input_size = 12
-    hidden_size = 8
+    input_size = 3
+    hidden_size = 6
     num_layers = 2
-    bias = True
+    bias = False
     batch_first = False
     dropout = 0.8
     bidirectional = False
     proj_size = 0
-    dtype = torch.float32
-    input_tensor = torch.randn(3, 2, input_size)
-    h_0_tensor = torch.randn(num_layers, 2, hidden_size)
-    c_0_tensor = torch.randn(num_layers, 2, hidden_size)
+    dtype = np.float32
+    input_val = np.random.randn(4, 5, input_size).astype(dtype)
+    h_0_val = np.random.randn(num_layers, 5, hidden_size).astype(dtype)
+    c_0_val = np.random.randn(num_layers, 5, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -176,31 +153,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float32),
+        "input": torch.tensor(input_val, dtype=torch.float32),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float32),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float32)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
     # Input 6
-    input_size = 4
-    hidden_size = 7
+    input_size = 8
+    hidden_size = 16
     num_layers = 1
-    bias = False
+    bias = True
     batch_first = True
-    dropout = 0.1
+    dropout = 0.3
     bidirectional = True
-    proj_size = 3
-    dtype = torch.float64
-    input_tensor = torch.randn(5, 4, input_size)
-    h_0_tensor = torch.randn(2 * num_layers, 4, proj_size)
-    c_0_tensor = torch.randn(2 * num_layers, 4, hidden_size)
+    proj_size = 8
+    dtype = np.float64
+    input_val = np.random.randn(3, 2, input_size).astype(dtype)
+    h_0_val = np.random.randn(2 * num_layers, 2, proj_size).astype(dtype)
+    c_0_val = np.random.randn(2 * num_layers, 2, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -211,31 +183,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float64),
+        "input": torch.tensor(input_val, dtype=torch.float64),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float64),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float64)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7
-    input_size = 9
-    hidden_size = 11
-    num_layers = 3
-    bias = True
+
+     # Input 7
+    input_size = 4
+    hidden_size = 8
+    num_layers = 2
+    bias = False
     batch_first = False
-    dropout = 0.3
+    dropout = 0.1
     bidirectional = False
     proj_size = 0
-    dtype = torch.float32
-    input_tensor = torch.randn(6, 3, input_size)
-    h_0_tensor = torch.randn(num_layers, 3, hidden_size)
-    c_0_tensor = torch.randn(num_layers, 3, hidden_size)
+    dtype = np.float32
+    input_val = np.random.randn(6, 7, input_size).astype(dtype)
+    h_0_val = np.random.randn(num_layers, 7, hidden_size).astype(dtype)
+    c_0_val = np.random.randn(num_layers, 7, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -246,31 +213,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float32),
+        "input": torch.tensor(input_val, dtype=torch.float32),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float32),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float32)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_size = 6
-    hidden_size = 9
-    num_layers = 2
-    bias = False
+    input_size = 9
+    hidden_size = 18
+    num_layers = 3
+    bias = True
     batch_first = True
     dropout = 0.6
     bidirectional = True
-    proj_size = 4
-    dtype = torch.float64
-    input_tensor = torch.randn(7, 2, input_size)
-    h_0_tensor = torch.randn(2 * num_layers, 2, proj_size)
-    c_0_tensor = torch.randn(2 * num_layers, 2, hidden_size)
+    proj_size = 9
+    dtype = np.float64
+    input_val = np.random.randn(5, 3, input_size).astype(dtype)
+    h_0_val = np.random.randn(2 * num_layers, 3, proj_size).astype(dtype)
+    c_0_val = np.random.randn(2 * num_layers, 3, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -281,31 +243,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float64),
+        "input": torch.tensor(input_val, dtype=torch.float64),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float64),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float64)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
-
-   # Input 9
-    input_size = 11
-    hidden_size = 13
-    num_layers = 4
-    bias = True
+    
+    # Input 9
+    input_size = 6
+    hidden_size = 9
+    num_layers = 1
+    bias = False
     batch_first = False
     dropout = 0.4
     bidirectional = False
     proj_size = 0
-    dtype = torch.float32
-    input_tensor = torch.randn(8, 5, input_size)
-    h_0_tensor = torch.randn(num_layers, 5, hidden_size)
-    c_0_tensor = torch.randn(num_layers, 5, hidden_size)
+    dtype = np.float32
+    input_val = np.random.randn(7, 4, input_size).astype(dtype)
+    h_0_val = np.random.randn(num_layers, 4, hidden_size).astype(dtype)
+    c_0_val = np.random.randn(num_layers, 4, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -316,31 +273,26 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float32),
+        "input": torch.tensor(input_val, dtype=torch.float32),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float32),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float32)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 10
-    input_size = 8
-    hidden_size = 12
-    num_layers = 3
-    bias = False
+    input_size = 11
+    hidden_size = 22
+    num_layers = 2
+    bias = True
     batch_first = True
     dropout = 0.7
     bidirectional = True
-    proj_size = 5
-    dtype = torch.float64
-    input_tensor = torch.randn(9, 3, input_size)
-    h_0_tensor = torch.randn(2 * num_layers, 3, proj_size)
-    c_0_tensor = torch.randn(2 * num_layers, 3, hidden_size)
+    proj_size = 11
+    dtype = np.float64
+    input_val = np.random.randn(4, 5, input_size).astype(dtype)
+    h_0_val = np.random.randn(2 * num_layers, 5, proj_size).astype(dtype)
+    c_0_val = np.random.randn(2 * num_layers, 5, hidden_size).astype(dtype)
 
     input_dict = {
         "input_size": input_size,
@@ -351,16 +303,11 @@ def lstm_inputs():
         "dropout": dropout,
         "bidirectional": bidirectional,
         "proj_size": proj_size,
-        "dtype": dtype,
-        "input": input_tensor.numpy(),
-        "h_0": h_0_tensor.numpy(),
-        "c_0": c_0_tensor.numpy()
+        "dtype": np.dtype(np.float64),
+        "input": torch.tensor(input_val, dtype=torch.float64),
+        "h_0": torch.tensor(h_0_val, dtype=torch.float64),
+        "c_0": torch.tensor(c_0_val, dtype=torch.float64)
     }
-    inner_dict = {
-        "args": [input_tensor, (h_0_tensor, c_0_tensor)],
-        "kwargs": {}
-    }
-    input_dict["inner"] = inner_dict
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

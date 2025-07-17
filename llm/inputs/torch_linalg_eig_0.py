@@ -8,94 +8,82 @@ import torch
 import numpy as np
 import copy
 
-def torch_linalg_eig_inputs():
+def linalg_eig_inputs():
     list_of_inputs = []
 
     # Input 1: Simple 2x2 real matrix
     A = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    eigenvalues = np.zeros(2, dtype=np.complex128)
-    eigenvectors = np.zeros((2, 2), dtype=np.complex128)
-    out = (eigenvalues, eigenvectors)
+    out = None
     input_dict = {"A": A, "out": out}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Batch of 2x2 real matrices
-    A = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float64)
-    eigenvalues = np.zeros((2, ), dtype=np.complex128)
-    eigenvectors = np.zeros((2, 2, 2), dtype=np.complex128)
-
-    out = (eigenvalues, eigenvectors)
+    # Input 2: Simple 2x2 complex matrix
+    A = np.array([[1.0+1j, 2.0], [3.0, 4.0-1j]], dtype=np.complex128)
+    out = None
     input_dict = {"A": A, "out": out}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 3x3 real matrix
-    A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float64)
-    eigenvalues = np.zeros(3, dtype=np.complex128)
-    eigenvectors = np.zeros((3, 3), dtype=np.complex128)
-    out = (eigenvalues, eigenvectors)
-    input_dict = {"A": A, "out": out}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Complex 2x2 matrix
-    A = np.array([[1.0 + 1j, 2.0], [3.0, 4.0 - 1j]], dtype=np.complex128)
-    eigenvalues = np.zeros(2, dtype=np.complex128)
-    eigenvectors = np.zeros((2, 2), dtype=np.complex128)
-    out = (eigenvalues, eigenvectors)
-    input_dict = {"A": A, "out": out}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Batch of Complex 2x2 matrices
-    A = np.array([[[1.0 + 1j, 2.0], [3.0, 4.0 - 1j]], [[5.0, 6.0 + 2j], [7.0 - 1j, 8.0]]], dtype=np.complex128)
-    eigenvalues = np.zeros((2,), dtype=np.complex128)
-    eigenvectors = np.zeros((2, 2, 2), dtype=np.complex128)
-    out = (eigenvalues, eigenvectors)
-    input_dict = {"A": A, "out": out}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Float32 2x2
-    A = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    eigenvalues = np.zeros(2, dtype=np.complex64)
-    eigenvectors = np.zeros((2, 2), dtype=np.complex64)
-    out = (eigenvalues, eigenvectors)
+    # Input 3: Batch of 2 2x2 real matrices
+    A = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    out = None
     input_dict = {"A": A, "out": out}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7: Complex Float32 2x2
-    A = np.array([[1.0 + 1j, 2.0], [3.0, 4.0 - 1j]], dtype=np.complex64)
-    eigenvalues = np.zeros(2, dtype=np.complex64)
-    eigenvectors = np.zeros((2, 2), dtype=np.complex64)
-    out = (eigenvalues, eigenvectors)
-    input_dict = {"A": A, "out": out}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: 4x4 real matrix
-    A = np.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0], [13.0, 14.0, 15.0, 16.0]], dtype=np.float64)
-    eigenvalues = np.zeros(4, dtype=np.complex128)
-    eigenvectors = np.zeros((4, 4), dtype=np.complex128)
-    out = (eigenvalues, eigenvectors)
-    input_dict = {"A": A, "out": out}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Diagonal matrix
-    A = np.diag([1.0, 2.0, 3.0])
-    eigenvalues = np.zeros(3, dtype=np.complex128)
-    eigenvectors = np.zeros((3, 3), dtype=np.complex128)
-    out = (eigenvalues, eigenvectors)
+    # Input 4: 3x3 matrix with float32
+    A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
+    out = None
     input_dict = {"A": A, "out": out}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 10: Complex matrix with zero imaginary parts
-    A = np.array([[1.0 + 0j, 2.0 + 0j], [3.0 + 0j, 4.0 + 0j]], dtype=np.complex128)
-    eigenvalues = np.zeros(2, dtype=np.complex128)
-    eigenvectors = np.zeros((2, 2), dtype=np.complex128)
-    out = (eigenvalues, eigenvectors)
+    # Input 5: 3x3 matrix with complex64
+    A = np.array([[1.0+1j, 2.0, 3.0], [4.0, 5.0-1j, 6.0], [7.0, 8.0, 9.0+2j]], dtype=np.complex64)
+    out = None
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Batch of 2 3x3 real matrices
+    A = np.array([[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], [[9.0, 8.0, 7.0], [6.0, 5.0, 4.0], [3.0, 2.0, 1.0]]], dtype=np.float64)
+    out = None
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Negative values
+    A = np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float64)
+    out = None
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8: Zero matrix
+    A = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float64)
+    out = None
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Identity matrix
+    A = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float64)
+    out = None
+    input_dict = {"A": A, "out": out}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Larger matrix (4x4)
+    A = np.random.rand(4, 4).astype(np.float64)
+    out = None
+    input_dict = {"A": A, "out": None}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Example with 'out' specified as a tuple of numpy arrays
+    # Initialize out with correct shape and dtype
+    A = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    eigenvalues_out = np.zeros(A.shape[0], dtype=np.complex128)
+    eigenvectors_out = np.eye(A.shape[0], dtype=np.complex128) #Initialize with identity matrix
+    out = (eigenvalues_out, eigenvectors_out)
     input_dict = {"A": A, "out": out}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
 generated_inputs = {}
-generated_inputs["torch.linalg.eig"] = torch_linalg_eig_inputs()
+generated_inputs["torch.linalg.eig"] = linalg_eig_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):
     for idx, input_dict in enumerate(list_of_inputs):

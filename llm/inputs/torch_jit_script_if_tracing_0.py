@@ -7,7 +7,6 @@ generated_inputs = dict()
 import torch
 import numpy as np
 import copy
-from typing import List, Callable
 
 def script_if_tracing_inputs():
     list_of_inputs = []
@@ -18,7 +17,51 @@ def script_if_tracing_inputs():
         "alternative_fn": []
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-    
+
+    # Input 2: Simple functions
+    def fn1():
+        return 1
+    def fn2():
+        return 2
+    input_dict = {
+        "fn": [fn1],
+        "alternative_fn": [fn2]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: Multiple functions
+    def fn3():
+        return 3
+    def fn4():
+        return 4
+    input_dict = {
+        "fn": [fn3, fn4],
+        "alternative_fn": []
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Functions with arguments
+    def fn7(x):
+        return x + 7
+    def fn8(x):
+        return x + 8
+    input_dict = {
+        "fn": [fn7],
+        "alternative_fn": [fn8]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Mixed functions
+    def fn9():
+        return 9
+    def fn10(x):
+        return x + 10
+    input_dict = {
+        "fn": [fn9],
+        "alternative_fn": [fn10]
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
     return list_of_inputs
 
 generated_inputs = {}

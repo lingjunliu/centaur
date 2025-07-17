@@ -10,45 +10,11 @@ import numpy as np
 def optimized_execution_inputs():
     list_of_inputs = []
 
-    # Input 1: Enabled is True
-    input_dict = {"enabled": np.bool_(True).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: enabled = True
+    list_of_inputs.append({"enabled": True})
 
-    # Input 2: Enabled is False
-    input_dict = {"enabled": np.bool_(False).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3: Enabled is True (alternative)
-    input_dict = {"enabled": np.True_.item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4: Enabled is False (alternative)
-    input_dict = {"enabled": np.False_.item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: Enabled is True (casted from int)
-    input_dict = {"enabled": np.array(1, dtype=bool).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: Enabled is False (casted from int)
-    input_dict = {"enabled": np.array(0, dtype=bool).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: Enabled is True (explicit numpy boolean)
-    input_dict = {"enabled": np.bool8(True).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: Enabled is False (explicit numpy boolean)
-    input_dict = {"enabled": np.bool8(False).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9: Enabled is True (numpy boolean array)
-    input_dict = {"enabled": np.array([True], dtype=bool).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10: Enabled is False (numpy boolean array)
-    input_dict = {"enabled": np.array([False], dtype=bool).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: enabled = False
+    list_of_inputs.append({"enabled": False})
 
     return list_of_inputs
 

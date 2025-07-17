@@ -9,58 +9,47 @@ import numpy as np
 
 def is_inference_inputs():
     list_of_inputs = []
-    
-    # Input 1
-    input_arr = np.array([1.0])
-    input_dict = {"input": torch.tensor(input_arr)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 2
-    input_arr = np.array([1, 2, 3])
-    input_dict = {"input": torch.tensor(input_arr)}
+
+    # Input 1: float type
+    input_dict = {"input": np.array(1.0)}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3
-    input_arr = np.array([[1.0, 2.0], [3.0, 4.0]])
-    input_dict = {"input": torch.tensor(input_arr)}
+    # Input 2: int type
+    input_dict = {"input": np.array(5)}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4
-    input_arr = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
-    input_dict = {"input": torch.tensor(input_arr)}
+    # Input 3: bool type
+    input_dict = {"input": np.array(True)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: 1D float array
+    input_dict = {"input": np.array([1.0, 2.0, 3.0])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: 2D int array
+    input_dict = {"input": np.array([[1, 2], [3, 4]])}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 5
-    input_arr = np.array([1])
-    input_dict = {"input": torch.tensor(input_arr)}
+    # Input 6: 3D bool array
+    input_dict = {"input": np.array([[[True, False], [False, True]], [[True, True], [False, False]]])}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6
-    input_arr = np.array([1, 2, 3], dtype=np.int32)
-    input_dict = {"input": torch.tensor(input_arr)}
+    # Input 7: empty array
+    input_dict = {"input": np.array([])}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7
-    input_arr = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    input_dict = {"input": torch.tensor(input_arr)}
+    # Input 8: large array
+    input_dict = {"input": np.random.rand(100, 100)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: array with negative values
+    input_dict = {"input": np.array([-1, -2, -3])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: array with zeros
+    input_dict = {"input": np.array([0, 0, 0])}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8
-    input_arr = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.int64)
-    input_dict = {"input": torch.tensor(input_arr)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    input_arr = np.array([-1, -2, -3])
-    input_dict = {"input": torch.tensor(input_arr)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input_arr = np.array([0.0])
-    input_dict = {"input":  torch.tensor(input_arr)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-
     return list_of_inputs
 
 generated_inputs = {}

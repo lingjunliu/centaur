@@ -4,132 +4,100 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
-import copy
 
 def rsub_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input_tensor = torch.tensor([1.0, 2.0, 3.0])
-    other_tensor = torch.tensor([4.0, 5.0, 6.0])
-    alpha_val = 1.0
+    # Input 1: Basic case
+    input1 = torch.tensor([1.0, 2.0, 3.0])
+    other1 = torch.tensor([4.0, 5.0, 6.0])
+    alpha1 = 1.0
+    out1 = torch.tensor([0.0, 0.0, 0.0])
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict1 = {"input": input1.numpy(), "other": other1.numpy(), "alpha": alpha1, "out": out1.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2
-    input_tensor = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
-    other_tensor = torch.tensor([[5.0, 6.0], [7.0, 8.0]])
-    alpha_val = 0.5
+    # Input 2: Different alpha
+    input2 = torch.tensor([1.0, 2.0, 3.0])
+    other2 = torch.tensor([4.0, 5.0, 6.0])
+    alpha2 = 0.5
+    out2 = torch.tensor([0.0, 0.0, 0.0])
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict2 = {"input": input2.numpy(), "other": other2.numpy(), "alpha": alpha2, "out": out2.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3
-    input_tensor = torch.tensor([1, 2, 3], dtype=torch.int32)
-    other_tensor = torch.tensor([4, 5, 6], dtype=torch.int32)
-    alpha_val = 2.0
+    # Input 3: Negative values
+    input3 = torch.tensor([-1.0, -2.0, -3.0])
+    other3 = torch.tensor([-4.0, -5.0, -6.0])
+    alpha3 = 1.0
+    out3 = torch.tensor([0.0, 0.0, 0.0])
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_dict3 = {"input": input3.numpy(), "other": other3.numpy(), "alpha": alpha3, "out": out3.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4
-    input_tensor = torch.tensor([1.0])
-    other_tensor = torch.tensor([5.0])
-    alpha_val = 1.0
+    # Input 4: 2D arrays
+    input4 = torch.tensor([[1.0, 2.0], [3.0, 4.0]])
+    other4 = torch.tensor([[5.0, 6.0], [7.0, 8.0]])
+    alpha4 = 1.0
+    out4 = torch.tensor([[0.0, 0.0], [0.0, 0.0]])
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 5
-    input_tensor = torch.tensor([[-1.0, -2.0], [-3.0, -4.0]])
-    other_tensor = torch.tensor([[5.0, 6.0], [7.0, 8.0]])
-    alpha_val = 1.0
+    input_dict4 = {"input": input4.numpy(), "other": other4.numpy(), "alpha": alpha4, "out": out4.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: Different dtype
+    input5 = torch.tensor([1, 2, 3], dtype=torch.int32)
+    other5 = torch.tensor([4, 5, 6], dtype=torch.int32)
+    alpha5 = 1.0
+    out5 = torch.tensor([0, 0, 0], dtype=torch.int32)
 
-    # Input 6
-    input_tensor = torch.tensor([1.5, 2.5, 3.5])
-    other_tensor = torch.tensor([4.5, 5.5, 6.5])
-    alpha_val = 0.0
+    input_dict5 = {"input": input5.numpy(), "other": other5.numpy(), "alpha": alpha5, "out": out5.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: 3D array
+    input6 = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    other6 = torch.tensor([[[9, 10], [11, 12]], [[13, 14], [15, 16]]])
+    alpha6 = 1.0
+    out6 = torch.tensor([[[0, 0], [0, 0]], [[0, 0], [0, 0]]])
 
-    # Input 7
-    input_tensor = torch.tensor([1, 2, 3], dtype=torch.int64)
-    other_tensor = torch.tensor([4, 5, 6], dtype=torch.int64)
-    alpha_val = 1.5
+    input_dict6 = {"input": input6.numpy(), "other": other6.numpy(), "alpha": alpha6, "out": out6.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 7: alpha = 0
+    input7 = torch.tensor([1.0, 2.0, 3.0])
+    other7 = torch.tensor([4.0, 5.0, 6.0])
+    alpha7 = 0.0
+    out7 = torch.tensor([0.0, 0.0, 0.0])
 
-    # Input 8
-    input_tensor = torch.tensor([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=torch.int32)
-    other_tensor = torch.tensor([[[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=torch.int32)
-    alpha_val = 1.0
-    
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 9
-    input_tensor = torch.tensor([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    other_tensor = torch.tensor([[[9.0, 10.0], [11.0, 12.0]], [[13.0, 14.0], [15.0, 16.0]]])
-    alpha_val = 0.5
+    input_dict7 = {"input": input7.numpy(), "other": other7.numpy(), "alpha": alpha7, "out": out7.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 8: larger alpha value
+    input8 = torch.tensor([1.0, 2.0, 3.0])
+    other8 = torch.tensor([4.0, 5.0, 6.0])
+    alpha8 = 2.0
+    out8 = torch.tensor([0.0, 0.0, 0.0])
 
-    # Input 10
-    input_tensor = torch.tensor([1, 2], dtype=torch.int32)
-    other_tensor = torch.tensor([[1, 2], [3, 4]], dtype=torch.int32)
-    alpha_val = 1
+    input_dict8 = {"input": input8.numpy(), "other": other8.numpy(), "alpha": alpha8, "out": out8.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
 
-    input_dict = {
-        "input": input_tensor.numpy(),
-        "other": other_tensor.numpy(),
-        "alpha": alpha_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 9: different shape
+    input9 = torch.tensor([[1.0, 2.0, 3.0]])
+    other9 = torch.tensor([[4.0, 5.0, 6.0]])
+    alpha9 = 1.0
+    out9 = torch.tensor([[0.0, 0.0, 0.0]])
+    input_dict9 = {"input": input9.numpy(), "other": other9.numpy(), "alpha": alpha9, "out": out9.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: float64
+    input10 = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float64)
+    other10 = torch.tensor([4.0, 5.0, 6.0], dtype=torch.float64)
+    alpha10 = 1.0
+    out10 = torch.tensor([0.0, 0.0, 0.0], dtype=torch.float64)
+
+    input_dict10 = {"input": input10.numpy(), "other": other10.numpy(), "alpha": alpha10, "out": out10.numpy()}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
 
     return list_of_inputs
 

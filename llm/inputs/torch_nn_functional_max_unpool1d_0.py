@@ -11,8 +11,112 @@ def max_unpool1d_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.array([[1.0, 2.0]])
-    indices_tensor = np.array([[0, 1]])
+    input_tensor = np.array([[1.0, 2.0, 3.0]])
+    indices_tensor = np.array([[0, 1, 2]])
+    kernel_size_val = 2
+    stride_val = 1
+    padding_val = 0
+    output_size_val = (1, 6)
+
+    input_dict = {
+        "input": input_tensor,
+        "indices": indices_tensor,
+        "kernel_size": kernel_size_val,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_size": output_size_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 2
+    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]]])
+    indices_tensor = np.array([[[0, 1], [2, 3]]])
+    kernel_size_val = 2
+    stride_val = 2
+    padding_val = 0
+    output_size_val = (1, 4)
+    input_dict = {
+        "input": input_tensor,
+        "indices": indices_tensor,
+        "kernel_size": kernel_size_val,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_size": output_size_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    input_tensor = np.array([[[ -1.0, -2.0, -3.0]]])
+    indices_tensor = np.array([[[0, 2, 4]]])
+    kernel_size_val = 3
+    stride_val = 2
+    padding_val = 1
+    output_size_val = (1, 7)
+
+    input_dict = {
+        "input": input_tensor,
+        "indices": indices_tensor,
+        "kernel_size": kernel_size_val,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_size": output_size_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input_tensor = np.array([[[1.0, 2.0]]])
+    indices_tensor = np.array([[[0, 1]]])
+    kernel_size_val = 1
+    stride_val = 1
+    padding_val = 0
+    output_size_val = (1, 2)
+    input_dict = {
+        "input": input_tensor,
+        "indices": indices_tensor,
+        "kernel_size": kernel_size_val,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_size": output_size_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input_tensor = np.array([[[1.0]]])
+    indices_tensor = np.array([[[0]]])
+    kernel_size_val = 3
+    stride_val = 1
+    padding_val = 1
+    output_size_val = (1, 3)
+    input_dict = {
+        "input": input_tensor,
+        "indices": indices_tensor,
+        "kernel_size": kernel_size_val,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_size": output_size_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0]]])
+    indices_tensor = np.array([[[0, 1, 2, 3]]])
+    kernel_size_val = 4
+    stride_val = 1
+    padding_val = 0
+    output_size_val = (1, 7)
+    input_dict = {
+        "input": input_tensor,
+        "indices": indices_tensor,
+        "kernel_size": kernel_size_val,
+        "stride": stride_val,
+        "padding": padding_val,
+        "output_size": output_size_val
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    input_tensor = np.array([[[1.0]]])
+    indices_tensor = np.array([[[1]]])
     kernel_size_val = 2
     stride_val = 2
     padding_val = 0
@@ -28,121 +132,13 @@ def max_unpool1d_inputs():
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2
-    input_tensor = np.array([[[1.0, 2.0, 3.0]]])
-    indices_tensor = np.array([[[0, 2, 1]]])
-    kernel_size_val = 1
-    stride_val = 1
-    padding_val = 0
-    output_size_val = (1, 1, 3)
-
-    input_dict = {
-        "input": input_tensor,
-        "indices": indices_tensor,
-        "kernel_size": kernel_size_val,
-        "stride": stride_val,
-        "padding": padding_val,
-        "output_size": output_size_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 3
-    input_tensor = np.array([[[1.0, 2.0]]])
-    indices_tensor = np.array([[[0, 1]]])
-    kernel_size_val = 2
-    stride_val = 1
-    padding_val = 0
-    output_size_val = (1, 1, 3)
-
-    input_dict = {
-        "input": input_tensor,
-        "indices": indices_tensor,
-        "kernel_size": kernel_size_val,
-        "stride": stride_val,
-        "padding": padding_val,
-        "output_size": output_size_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_tensor = np.array([[[1.0]]])
-    indices_tensor = np.array([[[0]]])
-    kernel_size_val = 3
-    stride_val = 2
-    padding_val = 1
-    output_size_val = (1, 1, 3)
-
-    input_dict = {
-        "input": input_tensor,
-        "indices": indices_tensor,
-        "kernel_size": kernel_size_val,
-        "stride": stride_val,
-        "padding": padding_val,
-        "output_size": output_size_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]]])
-    indices_tensor = np.array([[[0, 1], [0, 1]]])
-    kernel_size_val = 2
-    stride_val = 2
-    padding_val = 0
-    output_size_val = (1, 2, 4)
-
-    input_dict = {
-        "input": input_tensor,
-        "indices": indices_tensor,
-        "kernel_size": kernel_size_val,
-        "stride": stride_val,
-        "padding": padding_val,
-        "output_size": output_size_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input_tensor = np.array([[[-1.0, 2.0]]])
-    indices_tensor = np.array([[[0, 1]]])
-    kernel_size_val = 2
-    stride_val = 2
-    padding_val = 0
-    output_size_val = (1, 1, 4)
-
-    input_dict = {
-        "input": input_tensor,
-        "indices": indices_tensor,
-        "kernel_size": kernel_size_val,
-        "stride": stride_val,
-        "padding": padding_val,
-        "output_size": output_size_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0]]])
-    indices_tensor = np.array([[[0, 2, 1, 3]]])
-    kernel_size_val = 2
-    stride_val = 1
-    padding_val = 0
-    output_size_val = (1, 1, 6)
-
-    input_dict = {
-        "input": input_tensor,
-        "indices": indices_tensor,
-        "kernel_size": kernel_size_val,
-        "stride": stride_val,
-        "padding": padding_val,
-        "output_size": output_size_val
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
     # Input 8
     input_tensor = np.array([[[1.0, 2.0]]])
-    indices_tensor = np.array([[[1, 0]]])
+    indices_tensor = np.array([[[0, 2]]])
     kernel_size_val = 3
     stride_val = 1
-    padding_val = 1
-    output_size_val = (1, 1, 5)
+    padding_val = 0
+    output_size_val = (1, 5)
 
     input_dict = {
         "input": input_tensor,
@@ -155,12 +151,12 @@ def max_unpool1d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = np.array([[[1.0]]])
-    indices_tensor = np.array([[[0]]])
-    kernel_size_val = 1
+    input_tensor = np.array([[[1.0, 2.0]]])
+    indices_tensor = np.array([[[2, 3]]])
+    kernel_size_val = 3
     stride_val = 1
     padding_val = 0
-    output_size_val = (1, 1, 1)
+    output_size_val = (1, 5)
 
     input_dict = {
         "input": input_tensor,
@@ -173,12 +169,13 @@ def max_unpool1d_inputs():
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 10
-    input_tensor = np.array([[[1.0, 2.0]]])
-    indices_tensor = np.array([[[0, 1]]])
-    kernel_size_val = 1
+    input_tensor = np.array([[[1.0]]])
+    indices_tensor = np.array([[[2]]])
+    kernel_size_val = 2
     stride_val = 1
     padding_val = 0
-    output_size_val = (1, 1, 2)
+    output_size_val = (1, 3)
+
     input_dict = {
         "input": input_tensor,
         "indices": indices_tensor,
@@ -188,7 +185,7 @@ def max_unpool1d_inputs():
         "output_size": output_size_val
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     return list_of_inputs
 
 generated_inputs = {}

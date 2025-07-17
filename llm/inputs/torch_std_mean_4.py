@@ -4,141 +4,91 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def std_mean_inputs():
     list_of_inputs = []
 
     # Input 1
-    input_tensor = np.array([1.0, 2.0, 3.0])
+    input = np.array([1.0, 2.0, 3.0])
     dim = (0,)
     unbiased = True
     keepdim = False
-
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    input = np.array([[1.0, 2.0], [3.0, 4.0]])
     dim = (0,)
     unbiased = False
     keepdim = True
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
-    dim = (0, 1)
-    unbiased = True
-    keepdim = False
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 4
-    input_tensor = np.array([-1.0, -2.0, -3.0])
-    dim = (0,)
-    unbiased = False
-    keepdim = True
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    input = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
     dim = (1,)
     unbiased = True
     keepdim = False
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    dim = (0, 1)
+    unbiased = False
+    keepdim = True
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    input = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+    dim = (0,)
+    unbiased = True
+    keepdim = True
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
-    input_tensor = np.array([1.0])
-    dim = None
+    input = np.array([[-1.0, -2.0], [-3.0, -4.0]])
+    dim = (0,)
     unbiased = False
     keepdim = False
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
-    input_tensor = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
-    dim = (0, 1)
+    input = np.array([1, 2, 3], dtype=np.int64)
+    dim = (0,)
     unbiased = True
-    keepdim = True
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
+    keepdim = False
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
-    input_tensor = np.array([1.0, 2.0, 3.0, 4.0], dtype=np.float64)
-    dim = (0,)
+    input = np.array([[1, 2], [3, 4]], dtype=np.int32)
+    dim = (1,)
     unbiased = False
-    keepdim = False
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
+    keepdim = True
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
-    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    dim = (0,)
+    input = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32)
+    dim = (0, 2)
     unbiased = True
-    keepdim = True
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    input_tensor = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float16)
-    dim = (2,)
-    unbiased = False
     keepdim = False
-    input_dict = {
-        "input": input_tensor,
-        "dim": dim,
-        "unbiased": unbiased,
-        "keepdim": keepdim
-    }
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input = np.array([1.0, 2.0, 3.0])
+    dim = (0,)
+    unbiased = False
+    keepdim = True
+    input_dict = {"input": input, "dim": dim, "unbiased": unbiased, "keepdim": keepdim}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

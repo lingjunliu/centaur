@@ -4,99 +4,149 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch, copy
+import torch
 import numpy as np
+import copy
 
 def uninitializedbuffer_inputs():
     list_of_inputs = []
 
     # Input 1
+    size = (2, 3)
+    dtype = np.dtype('float32')
+    requires_grad = False
+    pin_memory = False
+
     input_dict = {
-        "size": (2, 3),
-        "dtype": np.float32,
-        "requires_grad": False,
-        "pin_memory": False
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
+    size = (5,)
+    dtype = np.dtype('int64')
+    requires_grad = True
+    pin_memory = True
+
     input_dict = {
-        "size": (5,),
-        "dtype": np.int64,
-        "requires_grad": True,
-        "pin_memory": True
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
+    size = (1, 4, 2)
+    dtype = np.dtype('float16')
+    requires_grad = False
+    pin_memory = False
+
     input_dict = {
-        "size": (1, 4, 2),
-        "dtype": np.float64,
-        "requires_grad": False,
-        "pin_memory": False
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 4
+    size = (2, 2, 2, 2)
+    dtype = np.dtype('uint8')
+    requires_grad = True
+    pin_memory = True
+
     input_dict = {
-        "size": (10, 10),
-        "dtype": np.uint8,
-        "requires_grad": True,
-        "pin_memory": True
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 5
+    size = (10,)
+    dtype = np.dtype('bool')
+    requires_grad = False
+    pin_memory = False
+
     input_dict = {
-        "size": (3, 3, 3),
-        "dtype": np.int32,
-        "requires_grad": False,
-        "pin_memory": False
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 6
+    size = (3, 5, 7)
+    dtype = np.dtype('complex64')
+    requires_grad = True
+    pin_memory = True
+
     input_dict = {
-        "size": (2, 2, 2, 2),
-        "dtype": np.float16,
-        "requires_grad": True,
-        "pin_memory": True
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 7
+    size = (1,)
+    dtype = np.dtype('float64')
+    requires_grad = False
+    pin_memory = False
     input_dict = {
-        "size": (7,),
-        "dtype": np.bool_,
-        "requires_grad": False,
-        "pin_memory": False
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 8
+    size = (8, 2)
+    dtype = np.dtype('int32')
+    requires_grad = True
+    pin_memory = True
+
     input_dict = {
-        "size": (1, 5, 1),
-        "dtype": np.int8,
-        "requires_grad": True,
-        "pin_memory": True
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 9
+    size = (1, 1, 1, 1, 1)
+    dtype = np.dtype('int8')
+    requires_grad = False
+    pin_memory = False
+
     input_dict = {
-        "size": (4, 1, 4, 1),
-        "dtype": np.complex64,
-        "requires_grad": False,
-        "pin_memory": False
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10
+   # Input 10
+    size = (4, 4)
+    dtype = np.dtype('complex128')
+    requires_grad = True
+    pin_memory = True
+
     input_dict = {
-        "size": (2,),
-        "dtype": np.complex128,
-        "requires_grad": True,
-        "pin_memory": True
+        "size": size,
+        "dtype": dtype,
+        "requires_grad": requires_grad,
+        "pin_memory": pin_memory,
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -12,178 +12,95 @@ def nll_loss_inputs():
     list_of_inputs = []
 
     # Input 1
-    input = np.array([[-0.5, -0.2, -0.3], [-0.1, -0.8, -0.1]], dtype=np.float32)
-    target = np.array([0, 2], dtype=np.int64)
-    log_target = np.array([[-0.5, -0.2, -0.3], [-0.1, -0.8, -0.1]], dtype=np.float32)
-    weight = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    ignore_index = -100
-    reduction = 'mean'
+    input_tensor = np.array([[-0.5, -1.0, -1.5], [-2.0, -2.5, -3.0]], dtype=np.float32)
+    target_tensor = np.array([0, 2], dtype=np.int64)
+    log_target_tensor = np.array([], dtype=np.int64)
+    weight_tensor = np.array([0.2, 0.3, 0.5], dtype=np.float32)
+    size_average_bool = True
+    ignore_index_int = -100
+    reduce_bool = True
+    reduction_str = 'mean'
+
     input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
+        "input": input_tensor,
+        "target": target_tensor,
+        "log_target": log_target_tensor,
+        "weight": weight_tensor,
+        "size_average": size_average_bool,
+        "ignore_index": ignore_index_int,
+        "reduce": reduce_bool,
+        "reduction": reduction_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 2
-    input = np.array([[-0.5, -0.2, -0.3], [-0.1, -0.8, -0.1]], dtype=np.float32)
-    target = np.array([0, 2], dtype=np.int64)
-    log_target = np.array([[-0.5, -0.2, -0.3], [-0.1, -0.8, -0.1]], dtype=np.float32)
-    weight = np.array([0.2, 0.8, 0.5], dtype=np.float32)
-    ignore_index = -1
-    reduction = 'none'
+    input_tensor = np.array([[-0.5, -1.0, -1.5]], dtype=np.float32)
+    target_tensor = np.array([0], dtype=np.int64)
+    log_target_tensor = np.array([], dtype=np.int64)
+    weight_tensor = None
+    size_average_bool = False
+    ignore_index_int = -100
+    reduce_bool = False
+    reduction_str = 'none'
+
     input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
+        "input": input_tensor,
+        "target": target_tensor,
+        "log_target": log_target_tensor,
+        "weight": weight_tensor,
+        "size_average": size_average_bool,
+        "ignore_index": ignore_index_int,
+        "reduce": reduce_bool,
+        "reduction": reduction_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     # Input 3
-    input = np.array([[-0.5, -0.2, -0.3]], dtype=np.float32)
-    target = np.array([0], dtype=np.int64)
-    log_target = np.array([[-0.5, -0.2, -0.3]], dtype=np.float32)
-    weight = np.array([1.0, 1.0, 1.0], dtype=np.float32)
-    ignore_index = 0
-    reduction = 'sum'
+    input_tensor = np.array([[-0.5, -1.0, -1.5], [-2.0, -2.5, -3.0]], dtype=np.float32)
+    target_tensor = np.array([0, 2], dtype=np.int64)
+    log_target_tensor = np.array([], dtype=np.int64)
+    weight_tensor = np.array(1.0, dtype=np.float32)
+    size_average_bool = True
+    ignore_index_int = 0
+    reduce_bool = True
+    reduction_str = 'sum'
+
     input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
+        "input": input_tensor,
+        "target": target_tensor,
+        "log_target": log_target_tensor,
+        "weight": weight_tensor,
+        "size_average": size_average_bool,
+        "ignore_index": ignore_index_int,
+        "reduce": reduce_bool,
+        "reduction": reduction_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
-
+    
     # Input 4
-    input = np.array([[-1.0, -2.0, -3.0], [-4.0, -5.0, -6.0]], dtype=np.float32)
-    target = np.array([1, 0], dtype=np.int64)
-    log_target = np.array([[-1.0, -2.0, -3.0], [-4.0, -5.0, -6.0]], dtype=np.float32)
-    weight = None
-    ignore_index = -100
-    reduction = 'mean'
-    input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    input_tensor = np.array([[-0.5, -1.0, -1.5]], dtype=np.float32)
+    target_tensor = np.array([0], dtype=np.int64)
+    log_target_tensor = np.array([], dtype=np.int64)
+    weight_tensor = None
+    size_average_bool = False
+    ignore_index_int = 0
+    reduce_bool = True
+    reduction_str = 'mean'
 
-    # Input 5
-    input = np.array([[-0.1, -0.2], [-0.3, -0.4], [-0.5, -0.6]], dtype=np.float32)
-    target = np.array([0, 1, 0], dtype=np.int64)
-    log_target = np.array([[-0.1, -0.2], [-0.3, -0.4], [-0.5, -0.6]], dtype=np.float32)
-    weight = np.array([0.5, 0.5], dtype=np.float32)
-    ignore_index = -100
-    reduction = 'sum'
     input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6
-    input = np.array([[-0.7, -0.3]], dtype=np.float32)
-    target = np.array([1], dtype=np.int64)
-    log_target = np.array([[-0.7, -0.3]], dtype=np.float32)
-    weight = None
-    ignore_index = -100
-    reduction = 'mean'
-    input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7
-    input = np.array([[-0.2, -0.8, -0.0]], dtype=np.float32)
-    target = np.array([2], dtype=np.int64)
-    log_target = np.array([[-0.2, -0.8, -0.0]], dtype=np.float32)
-    weight = np.array([0.1, 0.2, 0.3], dtype=np.float32)
-    ignore_index = 2
-    reduction = 'mean'
-    input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-     # Input 8
-    input = np.array([[-1.5, -0.5, -0.1], [-0.2, -1.0, -0.8]], dtype=np.float32)
-    target = np.array([1, 2], dtype=np.int64)
-    log_target = np.array([[-1.5, -0.5, -0.1], [-0.2, -1.0, -0.8]], dtype=np.float32)
-    weight = np.array([0.3, 0.5, 0.2], dtype=np.float32)
-    ignore_index = 1
-    reduction = 'sum'
-    input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 9
-    input = np.array([[-2.0, -1.0], [-0.5, -0.5]], dtype=np.float32)
-    target = np.array([0, 1], dtype=np.int64)
-    log_target = np.array([[-2.0, -1.0], [-0.5, -0.5]], dtype=np.float32)
-    weight = np.array([0.7, 0.3], dtype=np.float32)
-    ignore_index = -100
-    reduction = 'none'
-    input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 10
-    input = np.array([[-0.9, -0.1, -0.0], [-0.4, -0.3, -0.3]], dtype=np.float32)
-    target = np.array([0, 2], dtype=np.int64)
-    log_target = np.array([[-0.9, -0.1, -0.0], [-0.4, -0.3, -0.3]], dtype=np.float32)
-    weight = None
-    ignore_index = 1
-    reduction = 'mean'
-    input_dict = {
-        'input': input,
-        'target': target,
-        'log_target': log_target,
-        'weight': weight,
-        'ignore_index': ignore_index,
-        'reduction': reduction
+        "input": input_tensor,
+        "target": target_tensor,
+        "log_target": log_target_tensor,
+        "weight": weight_tensor,
+        "size_average": size_average_bool,
+        "ignore_index": ignore_index_int,
+        "reduce": reduce_bool,
+        "reduction": reduction_str
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 
-generated_inputs = {}
 generated_inputs["torch.nn.functional.nll_loss_2"] = nll_loss_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):

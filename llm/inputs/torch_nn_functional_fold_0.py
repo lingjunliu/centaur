@@ -11,145 +11,125 @@ import copy
 def fold_inputs():
     list_of_inputs = []
 
-    # Input 1: Minimal valid input
-    input1 = torch.randn(1, 3 * 5 * 5, 676).numpy()
-    output_size1 = (30, 30)
-    kernel_size1 = (5, 5)
-    input_dict1 = {
-        "input": input1,
-        "output_size": output_size1,
-        "kernel_size": kernel_size1,
-        "dilation": 1,
-        "padding": 0,
-        "stride": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0]]])
+    output_size = (2, 2)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Different output size
-    input2 = torch.randn(1, 3 * 3 * 3, 324).numpy()
-    output_size2 = (20, 20)
-    kernel_size2 = (3, 3)
-    input_dict2 = {
-        "input": input2,
-        "output_size": output_size2,
-        "kernel_size": kernel_size2,
-        "dilation": 1,
-        "padding": 0,
-        "stride": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]]])
+    output_size = (3, 3)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Different kernel size
-    input3 = torch.randn(1, 1 * 7 * 7, 1156).numpy()
-    output_size3 = (40, 40)
-    kernel_size3 = (7, 7)
-    input_dict3 = {
-        "input": input3,
-        "output_size": output_size3,
-        "kernel_size": kernel_size3,
-        "dilation": 1,
-        "padding": 0,
-        "stride": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]]])
+    output_size = (3, 3)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Different dilation
-    input4 = torch.randn(1, 1 * 3 * 3, 2116).numpy()
-    output_size4 = (50, 50)
-    kernel_size4 = (3, 3)
-    input_dict4 = {
-        "input": input4,
-        "output_size": output_size4,
-        "kernel_size": kernel_size4,
-        "dilation": 2,
-        "padding": 0,
-        "stride": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 4
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]]])
+    output_size = (2, 3)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Different padding
-    input5 = torch.randn(1, 1 * 5 * 5, 3600).numpy()
-    output_size5 = (60, 60)
-    kernel_size5 = (5, 5)
-    input_dict5 = {
-        "input": input5,
-        "output_size": output_size5,
-        "kernel_size": kernel_size5,
-        "dilation": 1,
-        "padding": 2,
-        "stride": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 5
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0]]])
+    output_size = (4, 4)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different stride
-    input6 = torch.randn(1, 1 * 3 * 3, 1156).numpy()
-    output_size6 = (70, 70)
-    kernel_size6 = (3, 3)
-    input_dict6 = {
-        "input": input6,
-        "output_size": output_size6,
-        "kernel_size": kernel_size6,
-        "dilation": 1,
-        "padding": 0,
-        "stride": 2
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    # Input 6
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0]]])
+    output_size = (3, 4)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Batched input
-    input7 = torch.randn(2, 1 * 5 * 5, 676).numpy()
-    output_size7 = (30, 30)
-    kernel_size7 = (5, 5)
-    input_dict7 = {
-        "input": input7,
-        "output_size": output_size7,
-        "kernel_size": kernel_size7,
-        "dilation": 1,
-        "padding": 0,
-        "stride": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    # Input 7
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0]]])
+    output_size = (2, 2)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 8: Different kernel_size (non-square)
-    input8 = torch.randn(1, 1 * 3 * 5, 728).numpy()
-    output_size8 = (30, 30)
-    kernel_size8 = (3, 5)
-    input_dict8 = {
-        "input": input8,
-        "output_size": output_size8,
-        "kernel_size": kernel_size8,
-        "dilation": 1,
-        "padding": 0,
-        "stride": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict8))
+    # Input 8
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]]])
+    output_size = (3, 3)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: Different output_size (non-square)
-    input9 = torch.randn(1, 1 * 3 * 3, 1600).numpy()
-    output_size9 = (40, 50)
-    kernel_size9 = (3, 3)
-    input_dict9 = {
-        "input": input9,
-        "output_size": output_size9,
-        "kernel_size": kernel_size9,
-        "dilation": 1,
-        "padding": 0,
-        "stride": 1
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict9))
+    # Input 9
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]]])
+    output_size = (2, 3)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-   # Input 10: Larger values for parameters
-    input10 = torch.randn(1, 3 * 7 * 7, 49).numpy()
-    output_size10 = (10, 10)
-    kernel_size10 = (7, 7)
-    input_dict10 = {
-        "input": input10,
-        "output_size": output_size10,
-        "kernel_size": kernel_size10,
-        "dilation": 3,
-        "padding": 5,
-        "stride": 4
-    }
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    # Input 10
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0]]])
+    output_size = (4, 4)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]]])
+    output_size = (2, 3)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 1
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 12
+    input_tensor = np.array([[[1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0]]])
+    output_size = (4, 4)
+    kernel_size = (1, 1)
+    dilation = 1
+    padding = 0
+    stride = 2
+    input_dict = {"input": input_tensor, "output_size": output_size, "kernel_size": kernel_size, "dilation": dilation, "padding": padding, "stride": stride}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

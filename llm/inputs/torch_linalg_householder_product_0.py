@@ -11,65 +11,95 @@ import copy
 def householder_product_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic 2D input and h
-    input1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
-    h1 = np.array([0.5, 0.5], dtype=np.float64)
-    input_dict1 = {"input": input1, "h": h1}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1
+    input_tensor = np.array([[1.0, 2.0], [4.0, 5.0]])
+    h_tensor = np.array([0.1, 0.2])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Negative values
-    input2 = np.array([[-1.0, 2.0], [3.0, -4.0]], dtype=np.float32)
-    h2 = np.array([0.5, 0.5], dtype=np.float32)
-    input_dict2 = {"input": input2, "h": h2}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2
+    input_tensor = np.array([[1.0, 0.0], [0.0, 1.0]])
+    h_tensor = np.array([1.0, 0.0])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Zeros
-    input3 = np.array([[0.0, 0.0], [0.0, 0.0]], dtype=np.float32)
-    h3 = np.array([0.5, 0.5], dtype=np.float32)
-    input_dict3 = {"input": input3, "h": h3}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-    
-    # Input 4: h with zero values
-    input4 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    h4 = np.array([0.0, 0.0], dtype=np.float32)
-    input_dict4 = {"input": input4, "h": h4}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 3
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    h_tensor = np.array([-1.0, 1.0])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Large values
-    input5 = np.array([[1e9, 2e9], [3e9, 4e9]], dtype=np.float32)
-    h5 = np.array([0.5, 0.5], dtype=np.float32)
-    input_dict5 = {"input": input5, "h": h5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 4
+    input_tensor = np.array([[[1.0, 2.0, 3.0], [3.0, 4.0, 5.0], [5.0, 6.0, 7.0]], [[7.0, 8.0, 9.0], [9.0, 10.0, 11.0], [11.0, 12.0, 13.0]]])
+    h_tensor = np.array([[0.5, 0.5, 0.5], [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5
+    input_tensor = np.array([[1.0, 2.0]])
+    h_tensor = np.array([0.1, 0.1])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different shape with same leading dim
-    input6 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
-    h6 = np.array([0.5, 0.5], dtype=np.float32)
-    input_dict6 = {"input": input6, "h": h6}
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    # Input 6
+    input_tensor = np.array([1.0, 2.0, 3.0, 4.0])
+    h_tensor = np.array([0.2, 0.4, 0.6, 0.8])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 7: Complex input
-    input7 = np.array([[1.0+1j, 2.0-2j], [3.0+3j, 4.0-4j]], dtype=np.complex64)
-    h7 = np.array([0.5+0.5j, 0.5-0.5j], dtype=np.complex64)
-    input_dict7 = {"input": input7, "h": h7}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
+    # Input 7
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    h_tensor = np.array([0.1, 0.1])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 8
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    h_tensor = np.array([0.0, 0.0])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9
+    input_tensor = np.array([1.0, 2.0, 3.0])
+    h_tensor = np.array([1.0, 1.0, 1.0])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10
+    input_tensor = np.array([[1.0, 2.0], [3.0, 4.0]])
+    h_tensor = np.array([-1.0, -1.0])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Ensure shape[-2] >= shape[-1] for 3D tensor, and correct h shape
+    input_tensor = np.random.rand(2, 3, 2)
+    h_tensor = np.random.rand(2, 2)
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: Ensure shape[-2] >= shape[-1] for 4D tensor and correct h shape
+    input_tensor = np.random.rand(2, 2, 3, 3)
+    h_tensor = np.random.rand(2, 2, 3)
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 13: Test with complex numbers
+    input_tensor = np.array([[1.0 + 1j, 2.0 - 2j], [3.0 + 0j, 4.0 - 1j]])
+    h_tensor = np.array([0.1 + 0j, 0.2 + 0j])
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 8: Rectangular input, input.shape[-2] >= input.shape[-1]
-    input8 = np.array([[1.0, 2.0], [4.0, 5.0], [7.0, 8.0]], dtype=np.float32)
-    h8 = np.array([0.5, 0.5, 0.5], dtype=np.float32)
-    input_dict8 = {"input": input8, "h": h8}
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-    
-    # Input 9: Identity Matrix
-    input9 = np.array([[1.0, 0.0], [0.0, 1.0], [0.0, 0.0]], dtype=np.float32)
-    h9 = np.array([0.5, 0.5, 0.5], dtype=np.float32)
-    input_dict9 = {"input": input9, "h": h9}
-    list_of_inputs.append(copy.deepcopy(input_dict9))
-    
-    # Input 10: Rectangular input, input.shape[-2] >= input.shape[-1]
-    input10 = np.array([[1.0, 2.0, 3.0, 4.0], [5.0, 6.0, 7.0, 8.0], [9.0, 10.0, 11.0, 12.0]], dtype=np.float32)
-    h10 = np.array([0.5, 0.5, 0.5], dtype=np.float32)
-    input_dict10 = {"input": input10, "h": h10}
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    # Input 14: Different shape where last two dims are equal
+    input_tensor = np.random.rand(2, 2, 2)
+    h_tensor = np.random.rand(2, 2)
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 15: 5D tensor, making sure the last two dimensions comply with the rule and the h tensor is correct
+    input_tensor = np.random.rand(1, 2, 2, 3, 3)
+    h_tensor = np.random.rand(1, 2, 2, 3)
+    input_dict = {"input": input_tensor, "h": h_tensor}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

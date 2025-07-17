@@ -11,55 +11,75 @@ import copy
 def celu_inputs():
     list_of_inputs = []
 
-    # Input 1: 1D tensor with positive values, alpha=1.0
-    input1 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict1 = {"input": input1, "alpha": 1.0}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1: Simple 1D array
+    input_dict = {
+        "input": np.array([-1.0, -0.5, 0.0, 0.5, 1.0], dtype=np.float32),
+        "alpha": 1.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: 1D tensor with negative values, alpha=1.0
-    input2 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    input_dict2 = {"input": input2, "alpha": 1.0}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    # Input 2: 2D array
+    input_dict = {
+        "input": np.array([[-1.0, 0.0], [0.5, 1.0]], dtype=np.float64),
+        "alpha": 0.5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: 1D tensor with mixed values, alpha=1.0
-    input3 = np.array([-1.0, 0.0, 1.0], dtype=np.float32)
-    input_dict3 = {"input": input3, "alpha": 1.0}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
+    # Input 3: Different alpha
+    input_dict = {
+        "input": np.array([-2.0, -1.0, 0.0, 1.0, 2.0], dtype=np.float32),
+        "alpha": 2.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: 2D tensor with positive values, alpha=0.5
-    input4 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
-    input_dict4 = {"input": input4, "alpha": 0.5}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    # Input 4: All negative values
+    input_dict = {
+        "input": np.array([-3.0, -2.0, -1.0], dtype=np.float64),
+        "alpha": 1.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: 2D tensor with negative values, alpha=0.5
-    input5 = np.array([[-1.0, -2.0], [-3.0, -4.0]], dtype=np.float32)
-    input_dict5 = {"input": input5, "alpha": 0.5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 5: All positive values
+    input_dict = {
+        "input": np.array([1.0, 2.0, 3.0], dtype=np.float32),
+        "alpha": 1.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: Zero alpha
+    input_dict = {
+        "input": np.array([-1.0, 0.0, 1.0], dtype=np.float64),
+        "alpha": 0.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: 3D array
+    input_dict = {
+        "input": np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]], dtype=np.float32),
+        "alpha": 1.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: 2D tensor with mixed values, alpha=0.5
-    input6 = np.array([[-1.0, 0.0], [1.0, -2.0]], dtype=np.float32)
-    input_dict6 = {"input": input6, "alpha": 0.5}
-    list_of_inputs.append(copy.deepcopy(input_dict6))
-
-    # Input 7: 1D tensor with positive values, alpha=2.0
-    input7 = np.array([1.0, 2.0, 3.0], dtype=np.float32)
-    input_dict7 = {"input": input7, "alpha": 2.0}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
-
-    # Input 8: 1D tensor with negative values, alpha=2.0
-    input8 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    input_dict8 = {"input": input8, "alpha": 2.0}
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-
-    # Input 9: 3D tensor with mixed values, alpha=1.5
-    input9 = np.array([[[1.0, -1.0], [0.0, 2.0]], [[-2.0, 1.0], [3.0, 0.0]]], dtype=np.float32)
-    input_dict9 = {"input": input9, "alpha": 1.5}
-    list_of_inputs.append(copy.deepcopy(input_dict9))
-
-    # Input 10: 1D tensor with a different dtype
-    input10 = np.array([1.0, 2.0, 3.0], dtype=np.float64)
-    input_dict10 = {"input": input10, "alpha": 1.0}
-    list_of_inputs.append(copy.deepcopy(input_dict10))
+    # Input 8: Large negative values
+    input_dict = {
+        "input": np.array([-100.0, -50.0, -10.0], dtype=np.float64),
+        "alpha": 5.0
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Mixed types, float32 and float64
+    input_dict = {
+        "input": np.array([-1.0, 0.0, 1.0], dtype=np.float32),
+        "alpha": 0.5
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Edge case with small alpha
+    input_dict = {
+        "input": np.array([-0.1, 0.0, 0.1], dtype=np.float64),
+        "alpha": 0.001
+    }
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

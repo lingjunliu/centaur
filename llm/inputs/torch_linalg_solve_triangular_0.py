@@ -11,51 +11,69 @@ import copy
 def solve_triangular_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with upper triangular matrix
-    a = np.array([[2, 1], [0, 3]], dtype=np.float64)
-    b = np.array([8, 5], dtype=np.float64)
+    # Input 1: Basic upper triangular
+    a = np.array([[1, 2, 3], [0, 4, 5], [0, 0, 6]], dtype=np.float32)
+    b = np.array([1, 2, 3], dtype=np.float32)
     input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Lower triangular matrix
-    a = np.array([[2, 0], [1, 3]], dtype=np.float64)
-    b = np.array([8, 5], dtype=np.float64)
+    # Input 2: Basic lower triangular
+    a = np.array([[1, 0, 0], [2, 4, 0], [3, 5, 6]], dtype=np.float32)
+    b = np.array([1, 2, 3], dtype=np.float32)
     input_dict = {"a": a, "b": b, "upper": False, "unitriangular": False, "left": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Unitriangular matrix
-    a = np.array([[1, 1], [0, 1]], dtype=np.float64)
-    b = np.array([8, 5], dtype=np.float64)
+    # Input 3: Unitriangular
+    a = np.array([[1, 2, 3], [0, 1, 5], [0, 0, 1]], dtype=np.float32)
+    b = np.array([1, 2, 3], dtype=np.float32)
     input_dict = {"a": a, "b": b, "upper": True, "unitriangular": True, "left": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Multiple right-hand sides
-    a = np.array([[2, 1], [0, 3]], dtype=np.float64)
-    b = np.array([[8, 5], [10, 7]], dtype=np.float64)
+    # Input 4: Right-hand side matrix
+    a = np.array([[1, 2, 3], [0, 4, 5], [0, 0, 6]], dtype=np.float32)
+    b = np.array([[1, 2], [3, 4], [5, 6]], dtype=np.float32)
     input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Different dtype
-    a = np.array([[2, 1], [0, 3]], dtype=np.complex128)
-    b = np.array([8, 5], dtype=np.complex128)
+    # Input 5: Different dtype
+    a = np.array([[1, 2], [0, 4]], dtype=np.float64)
+    b = np.array([1, 2], dtype=np.float64)
     input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: a is a batch of matrices
-    a = np.array([[[2, 1], [0, 3]], [[1, 2], [0, 4]]], dtype=np.float64)
-    b = np.array([[8, 5], [10, 7]], dtype=np.float64)
-    input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: right is false
-    a = np.array([[2, 1], [0, 3]], dtype=np.float64)
-    b = np.array([[8, 5], [10, 7]], dtype=np.float64)
+    # Input 6: Left=False
+    a = np.array([[1, 2, 3], [0, 4, 5], [0, 0, 6]], dtype=np.float32)
+    b = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)
     input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: Complex dtype
+    a = np.array([[1+1j, 2], [0, 4+2j]], dtype=np.complex64)
+    b = np.array([1+1j, 2+2j], dtype=np.complex64)
+    input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 9: negative values
-    a = np.array([[2, -1], [0, 3]], dtype=np.float64)
-    b = np.array([8, 5], dtype=np.float64)
+    # Input 8: a and b as tensors (already numpy arrays)
+    a = np.array([[1, 2], [0, 4]], dtype=np.float32)
+    b = np.array([1, 2], dtype=np.float32)
+    input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: b is matrix
+    a = np.array([[1, 2], [0, 4]], dtype=np.float32)
+    b = np.array([[1, 2], [3,4]], dtype=np.float32)
+    input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: a and b are single element arrays
+    a = np.array([[5]], dtype=np.float32)
+    b = np.array([10], dtype=np.float32)
+    input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 11: Non-contiguous array
+    a = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=np.float32)[:, :2]
+    b = np.array([1, 2, 3], dtype=np.float32)[:2]
     input_dict = {"a": a, "b": b, "upper": True, "unitriangular": False, "left": True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 

@@ -4,52 +4,51 @@ from generator.input_generators import get_abstract_input
 
 generated_inputs = dict()
 
-import torch
+import torch, copy
 import numpy as np
 
 def sym_fresh_size_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with a scalar
-    input_dict = {"expr": "a"}
-    list_of_inputs.append(input_dict)
+    # Input 1: Simple case, symbolic expression
+    input_dict = {"expr": torch.Size([torch.SymInt(1), torch.SymInt(2)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Another basic example
-    input_dict = {"expr": "b"}
-    list_of_inputs.append(input_dict)
-
-    # Input 3: Yet another basic example
-    input_dict = {"expr": "c"}
-    list_of_inputs.append(input_dict)
+    # Input 2: Symbolic expression with 1 dimension
+    input_dict = {"expr": torch.Size([torch.SymInt(5)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 4: Still another basic example
-    input_dict = {"expr": "d"}
-    list_of_inputs.append(input_dict)
+    # Input 3: Symbolic expression with multiple dimensions
+    input_dict = {"expr": torch.Size([torch.SymInt(3), torch.SymInt(4), torch.SymInt(5)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: One more basic example
-    input_dict = {"expr": "e"}
-    list_of_inputs.append(input_dict)
-
-    # Input 6: Another example
-    input_dict = {"expr": "f"}
-    list_of_inputs.append(input_dict)
-
-    # Input 7: Just another one
-    input_dict = {"expr": "g"}
-    list_of_inputs.append(input_dict)
-
-    # Input 8: One more
-    input_dict = {"expr": "h"}
-    list_of_inputs.append(input_dict)
-
-    # Input 9: A ninth one
-    input_dict = {"expr": "i"}
-    list_of_inputs.append(input_dict)
-
-    # Input 10: A tenth one
-    input_dict = {"expr": "j"}
-    list_of_inputs.append(input_dict)
+    # Input 4: Symbolic expression with zero dimension
+    input_dict = {"expr": torch.Size([torch.SymInt(0)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
     
+    # Input 5: Symbolic expression with mixed SymInt
+    input_dict = {"expr": torch.Size([torch.SymInt(2), torch.SymInt(3)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Symbolic expression with a large size
+    input_dict = {"expr": torch.Size([torch.SymInt(1000)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: Symbolic expression with different sizes
+    input_dict = {"expr": torch.Size([torch.SymInt(1), torch.SymInt(10), torch.SymInt(100)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: Symbolic expression with dimension 1
+    input_dict = {"expr": torch.Size([torch.SymInt(1)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 9: Symbolic expression with dimension 2
+    input_dict = {"expr": torch.Size([torch.SymInt(2)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 10: Symbolic expression with dimension 3
+    input_dict = {"expr": torch.Size([torch.SymInt(3)])}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs
 

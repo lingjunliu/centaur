@@ -35,42 +35,6 @@ def log_softmax_inputs():
     input_dict4 = {"input": input4, "dim": dim4}
     list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5: 3D tensor, dim=1
-    input5 = np.random.rand(2, 3, 4).astype(np.float32)
-    dim5 = 1
-    input_dict5 = {"input": input5, "dim": dim5}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
-
-    # Input 6: 3D tensor, dim=2
-    input6 = np.random.rand(2, 3, 4).astype(np.float32)
-    dim6 = 2
-    input_dict6 = {"input": input6, "dim": dim6}
-    list_of_inputs.append(copy.deepcopy(input_dict6))
-
-    # Input 7: Negative values
-    input7 = np.array([-1.0, -2.0, -3.0], dtype=np.float32)
-    dim7 = 0
-    input_dict7 = {"input": input7, "dim": dim7}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
-
-    # Input 8: Mixed positive and negative values
-    input8 = np.array([-1.0, 2.0, -3.0], dtype=np.float32)
-    dim8 = 0
-    input_dict8 = {"input": input8, "dim": dim8}
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-
-    # Input 9: Large values
-    input9 = np.array([1000.0, 2000.0, 3000.0], dtype=np.float32)
-    dim9 = 0
-    input_dict9 = {"input": input9, "dim": dim9}
-    list_of_inputs.append(copy.deepcopy(input_dict9))
-    
-    # Input 10: 4D tensor
-    input10 = np.random.rand(2, 3, 4, 5).astype(np.float32)
-    dim10 = 1
-    input_dict10 = {"input": input10, "dim": dim10}
-    list_of_inputs.append(copy.deepcopy(input_dict10))
-
     return list_of_inputs
 
 generated_inputs = {}

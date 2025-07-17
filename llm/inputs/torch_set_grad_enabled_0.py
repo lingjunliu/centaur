@@ -18,36 +18,44 @@ def set_grad_enabled_inputs():
     input_dict = {"mode": False}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: numpy boolean True
-    input_dict = {"mode": np.array(True, dtype=bool).item()}
+    # Input 3: np.bool_(True)
+    input_dict = {"mode": np.bool_(True).item()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: numpy boolean False
-    input_dict = {"mode": np.array(False, dtype=bool).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 5: numpy array of boolean True
-    input_dict = {"mode": np.bool_(True)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 6: numpy array of boolean False
-    input_dict = {"mode": np.bool_(False)}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 7: numpy bool with type
-    input_dict = {"mode": np.array(True, dtype=bool).item()}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-
-    # Input 8: numpy bool with type
-    input_dict = {"mode": np.array(False, dtype=bool).item()}
+    # Input 4: np.bool_(False)
+    input_dict = {"mode": np.bool_(False).item()}
     list_of_inputs.append(copy.deepcopy(input_dict))
     
-    # Input 9: different numpy boolean format
-    input_dict = {"mode": np.array([True], dtype=bool)[0].item()}
+    # Input 5: bool(1)
+    input_dict = {"mode": bool(1)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 6: bool(0)
+    input_dict = {"mode": bool(0)}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 7: not False
+    input_dict = {"mode": not False}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: not True
+    input_dict = {"mode": not True}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 10: another different numpy boolean format
-    input_dict = {"mode": np.array([False], dtype=bool)[0].item()}
+    # Input 9: np.array(True).item()
+    input_dict = {"mode": bool(np.array(True).item())}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: np.array(False).item()
+    input_dict = {"mode": bool(np.array(False).item())}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: True using np.array and astype
+    input_dict = {"mode": np.array([1]).astype(bool)[0].item()}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 12: False using np.array and astype
+    input_dict = {"mode": np.array([0]).astype(bool)[0].item()}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
     return list_of_inputs

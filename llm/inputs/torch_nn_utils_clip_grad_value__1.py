@@ -10,70 +10,88 @@ import numpy as np
 def clip_grad_value__inputs():
     list_of_inputs = []
 
-    # Input 1: Basic test with a single parameter
-    p1 = torch.tensor([1.0, 2.0, -3.0], requires_grad=True)
-    clip_value = 2.0
-    input_dict1 = {"parameters": [p1.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict1))
+    # Input 1
+    p1 = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    p1.grad = torch.tensor([10.0, -20.0, 30.0])
+    parameters = [p1.detach().numpy()]
+    clip_value = 15.0
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Multiple parameters
-    p21 = torch.tensor([0.5, -1.5, 2.5], requires_grad=True)
-    p22 = torch.tensor([[1.0, 2.0], [3.0, -4.0]], requires_grad=True)
+    # Input 2
+    p1 = torch.tensor([[1.0, 2.0], [3.0, 4.0]], requires_grad=True)
+    p1.grad = torch.tensor([[10.0, -20.0], [30.0, -40.0]])
+    parameters = [p1.detach().numpy()]
+    clip_value = 25.0
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3
+    p1 = torch.tensor([1.0], requires_grad=True)
+    p1.grad = torch.tensor([100.0])
+    parameters = [p1.detach().numpy()]
+    clip_value = 50.0
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4
+    p1 = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    p1.grad = torch.tensor([-10.0, -20.0, -30.0])
+    parameters = [p1.detach().numpy()]
+    clip_value = 25.0
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5
+    p1 = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    p1.grad = torch.tensor([10.0, 20.0, 30.0])
+    parameters = [p1.detach().numpy()]
+    clip_value = 35.0
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6
+    p1 = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    p1.grad = torch.tensor([10.0, -20.0, 30.0])
+    p2 = torch.tensor([4.0, 5.0, 6.0], requires_grad=True)
+    p2.grad = torch.tensor([-40.0, 50.0, -60.0])
+    parameters = [p1.detach().numpy(), p2.detach().numpy()]
+    clip_value = 45.0
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7
+    p1 = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    p1.grad = torch.tensor([10.0, -20.0, 30.0])
+    parameters = [p1.detach().numpy()]
     clip_value = 1.0
-    input_dict2 = {"parameters": [p21.detach().numpy(), p22.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict2))
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: No gradients
-    p31 = torch.tensor([1.0, 2.0, 3.0])
+    # Input 8
+    p1 = torch.randn((2, 3, 4), requires_grad=True)
+    p1.grad = torch.randn((2, 3, 4))
+    parameters = [p1.detach().numpy()]
     clip_value = 0.5
-    input_dict3 = {"parameters": [p31.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict3))
-    
-    # Input 4: Large clip value
-    p41 = torch.tensor([-5.0, 10.0, -15.0], requires_grad=True)
-    clip_value = 20.0
-    input_dict4 = {"parameters": [p41.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict4))
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Negative clip value (should be invalid but testing it)
-    p51 = torch.tensor([1.0, -2.0, 3.0], requires_grad=True)
-    clip_value = -1.0
-    input_dict5 = {"parameters": [p51.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict5))
+    # Input 9
+    p1 = torch.zeros((2, 2), requires_grad=True)
+    p1.grad = torch.ones((2, 2)) * 100
+    parameters = [p1.detach().numpy()]
+    clip_value = 5.0
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 6: Zero clip value
-    p61 = torch.tensor([-1.0, 0.5, 2.0], requires_grad=True)
-    clip_value = 0.0
-    input_dict6 = {"parameters": [p61.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict6))
+    # Input 10
+    p1 = torch.ones((1, 5), requires_grad=True)
+    p1.grad = torch.linspace(-100, 100, 5).reshape((1, 5))
+    parameters = [p1.detach().numpy()]
+    clip_value = 75.0
+    input_dict = {"parameters": parameters, "clip_value": clip_value}
+    list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 7: Multi-dimensional tensor, different values
-    p71 = torch.tensor([[1.5, -2.5], [3.5, -4.5]], requires_grad=True)
-    clip_value = 3.0
-    input_dict7 = {"parameters": [p71.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict7))
-
-    # Input 8: Different data types
-    p81 = torch.tensor([1.0, -2.0, 3.0], dtype=torch.float64, requires_grad=True)
-    clip_value = 2.0
-    input_dict8 = {"parameters": [p81.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict8))
-
-    # Input 9: Empty tensor
-    p91 = torch.tensor([], requires_grad=True)
-    clip_value = 1.0
-    input_dict9 = {"parameters": [p91.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict9))
-
-    # Input 10: Three Parameters with different shapes
-    p101 = torch.tensor([1.0, 2.0], requires_grad=True)
-    p102 = torch.tensor([[0.5, -1.5], [2.5, -3.5]], requires_grad=True)
-    p103 = torch.tensor([[[1.0, -1.0], [2.0, -2.0]], [[3.0, -3.0], [4.0, -4.0]]], requires_grad=True)
-
-    clip_value = 2.5
-    input_dict10 = {"parameters": [p101.detach().numpy(), p102.detach().numpy(), p103.detach().numpy()], "clip_value": clip_value}
-    list_of_inputs.append(copy.deepcopy(input_dict10))
-    
     return list_of_inputs
 
 generated_inputs = {}

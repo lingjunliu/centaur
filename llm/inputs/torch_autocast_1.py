@@ -10,14 +10,17 @@ import numpy as np
 def autocast_inputs():
     list_of_inputs = []
 
+    # Input 1: CPU, enabled
     input_dict = {
-        'device_type': 'cuda',
-        'enabled': True
+        "device_type": "cpu",
+        "enabled": True
     }
     list_of_inputs.append(copy.deepcopy(input_dict))
+    
 
     return list_of_inputs
 
+generated_inputs = {}
 generated_inputs["torch.autocast_1"] = autocast_inputs()
 
 def check_valid(api, list_of_inputs, lib="torch", suffix=0):

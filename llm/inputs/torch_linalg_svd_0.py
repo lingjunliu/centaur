@@ -11,30 +11,105 @@ import copy
 def linalg_svd_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic square matrix
-    A = np.random.rand(3, 3).astype(np.float32)
-    input_dict = {"A": A, "full_matrices": True, "driver": None, "out": None}
+    # Input 1: Basic example with a small matrix
+    A = np.array([[1.0, 2.0], [3.0, 4.0]])
+    full_matrices = True
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 2: Rectangular matrix (m > n)
-    A = np.random.rand(5, 3).astype(np.float32)
-    input_dict = {"A": A, "full_matrices": False, "driver": None, "out": None}
+    # Input 2: full_matrices = False
+    A = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    full_matrices = False
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 3: Rectangular matrix (m < n)
-    A = np.random.rand(3, 5).astype(np.float32)
-    input_dict = {"A": A, "full_matrices": True, "driver": None, "out": None}
+    # Input 3: A rectangular matrix (m < n)
+    A = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    full_matrices = True
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 4: Batch of matrices
-    A = np.random.rand(2, 4, 4).astype(np.float32)
-    input_dict = {"A": A, "full_matrices": False, "driver": None, "out": None}
+    # Input 4: A batch of matrices
+    A = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]]])
+    full_matrices = True
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 5: Different shaped batch
+    A = np.random.rand(2,3,4)
+    full_matrices = False
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
     list_of_inputs.append(copy.deepcopy(input_dict))
 
-    # Input 5: Complex matrix
-    A = (np.random.rand(3, 3) + 1j * np.random.rand(3, 3)).astype(np.complex64)
-    input_dict = {"A": A, "full_matrices": True, "driver": None, "out": None}
+    # Input 6: A with driver specified (if CUDA available)
+    A = np.array([[1.0, 2.0], [3.0, 4.0]])
+    full_matrices = True
+    driver = 'gesvdj' if torch.cuda.is_available() else None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
     list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 7: A larger matrix
+    A = np.random.rand(10, 5)
+    full_matrices = False
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 8: A complex matrix
+    A = np.array([[1.0 + 1j, 2.0 - 1j], [3.0 + 0j, 4.0 - 2j]], dtype=np.complex128)
+    full_matrices = True
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 9: Another batch example
+    A = np.random.rand(4, 2, 2)
+    full_matrices = False
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 10: Double type
+    A = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float64)
+    full_matrices = True
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
+    # Input 11: Negative Values
+    A = np.array([[-1.0, 2.0], [3.0, -4.0]])
+    full_matrices = True
+    driver = None
+    out = None
+    input_dict = {"A": A, "full_matrices": full_matrices, "driver": driver, "out": out}
+    input_dict["out"] = None
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
 
     return list_of_inputs
 

@@ -11,11 +11,36 @@ import copy
 def block_diag_inputs():
     list_of_inputs = []
 
-    # Input 1: Basic example with 2D tensors
-    tensors = [np.array([[1, 2], [3, 4]])]
+    # Input 1: Basic test with two matrices
+    tensors = [np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])]
     input_dict = {"tensors": tensors}
     list_of_inputs.append(copy.deepcopy(input_dict))
 
+    # Input 2: Three matrices of different sizes
+    tensors = [np.array([[1]]), np.array([[2, 3], [4, 5]]), np.array([[6, 7, 8]])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 3: One matrix
+    tensors = [np.array([[1, 2, 3], [4, 5, 6]])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 4: Matrices with different data types (float)
+    tensors = [np.array([[1.1, 2.2], [3.3, 4.4]]), np.array([[5.5, 6.6], [7.7, 8.8]])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 5: Matrices with different shapes and types (int and float)
+    tensors = [np.array([[1, 2], [3, 4]]), np.array([[5.5]])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+
+    # Input 6: Matrices with negative values
+    tensors = [np.array([[-1, -2], [-3, -4]]), np.array([[-5, -6], [-7, -8]])]
+    input_dict = {"tensors": tensors}
+    list_of_inputs.append(copy.deepcopy(input_dict))
+    
     return list_of_inputs
 
 generated_inputs = {}

@@ -11,86 +11,66 @@ import copy
 def matrix_rank_inputs():
     list_of_inputs = []
 
-    # Input 1
-    input = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.float32)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).float(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 1: Simple 2x2 matrix with full rank
+    input1 = np.array([[1.0, 2.0], [3.0, 4.0]], dtype=np.float32)
+    input_dict1 = {"input": torch.tensor(input1), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict1))
 
-    # Input 2
-    input = np.array([[1.0, 0.0], [0.0, 0.0]], dtype=np.float32)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).float(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 2: Singular 2x2 matrix
+    input2 = np.array([[1.0, 2.0], [2.0, 4.0]], dtype=np.float32)
+    input_dict2 = {"input": torch.tensor(input2), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict2))
 
-    # Input 3
-    input = np.array([[1.0, 2.0], [2.0, 4.0]], dtype=np.float32)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).float(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 3: 3x3 matrix with rank 2
+    input3 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
+    input_dict3 = {"input": torch.tensor(input3), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict3))
 
-    # Input 4
-    input = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], dtype=np.float32)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).float(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 4: 1x1 matrix with zero value
+    input4 = np.array([[0.0]], dtype=np.float32)
+    input_dict4 = {"input": torch.tensor(input4), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict4))
 
-    # Input 5
-    input = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]], dtype=np.float32)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).float(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 5: 1x1 matrix with non-zero value
+    input5 = np.array([[5.0]], dtype=np.float32)
+    input_dict5 = {"input": torch.tensor(input5), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict5))
 
-    # Input 6
-    input = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]], dtype=np.float32)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).float(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 7
-    input = np.array([[1.0, 0.0], [0.0, 1.0]], dtype=np.complex64)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = True
-    input_dict = {"input": torch.from_numpy(input).cfloat(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 8
-    input = np.array([[1.0, 2.0], [2.0, 1.0]], dtype=np.complex64)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).cfloat(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
+    # Input 6: Rectangular matrix (2x3) with full row rank
+    input6 = np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32)
+    input_dict6 = {"input": torch.tensor(input6), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict6))
 
-    # Input 9
-    input = np.zeros((5, 5), dtype=np.float32)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).float(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
-    # Input 10
-    input = np.eye(4, dtype=np.float32)
-    tol = 1e-08
-    rtol = 1e-05
-    hermitian = False
-    input_dict = {"input": torch.from_numpy(input).float(), "tol": float(tol), "rtol": float(rtol), "hermitian": hermitian}
-    list_of_inputs.append(copy.deepcopy(input_dict))
-    
+    # Input 7: Rectangular matrix (3x2) with full column rank
+    input7 = np.array([[1.0, 4.0], [2.0, 5.0], [3.0, 6.0]], dtype=np.float32)
+    input_dict7 = {"input": torch.tensor(input7), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict7))
+
+    # Input 8: Matrix with very small values
+    input8 = np.array([[1e-9, 0.0], [0.0, 1e-9]], dtype=np.float32)
+    input_dict8 = {"input": torch.tensor(input8), "tol": 1e-7, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict8))
+
+    # Input 9: Higher dimensional tensor (3x2x2) - treat as a stack of matrices
+    input9 = np.array([[[1.0, 2.0], [3.0, 4.0]], [[5.0, 6.0], [7.0, 8.0]], [[9.0, 10.0], [11.0, 12.0]]], dtype=np.float32)
+    input_dict9 = {"input": torch.tensor(input9), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict9))
+
+    # Input 10: Hermitian matrix
+    input10 = np.array([[1.0, 2.0 + 1j], [2.0 - 1j, 3.0]], dtype=np.complex64)
+    input_dict10 = {"input": torch.tensor(input10), "tol": 1e-8, "rtol": 0.0, "hermitian": True}
+    list_of_inputs.append(copy.deepcopy(input_dict10))
+
+    # Input 11: Matrix with complex values but not hermitian
+    input11 = np.array([[1.0, 2.0 + 1j], [2.0 + 1j, 3.0]], dtype=np.complex64)
+    input_dict11 = {"input": torch.tensor(input11), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict11))
+
+    # Input 12: Zero matrix of size 3x3
+    input12 = np.zeros((3, 3), dtype=np.float32)
+    input_dict12 = {"input": torch.tensor(input12), "tol": 1e-8, "rtol": 0.0, "hermitian": False}
+    list_of_inputs.append(copy.deepcopy(input_dict12))
+
     return list_of_inputs
 
 generated_inputs = {}
