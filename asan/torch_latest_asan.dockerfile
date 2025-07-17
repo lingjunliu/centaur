@@ -94,7 +94,7 @@ RUN sed -i 's/-Werror/-Wno-error/g' /workspace/pytorch/third_party/fbgemm/CMakeL
     USE_NCCL=0 \
     USE_ASAN=1 \
     BUILD_CAFFE2_OPS=0 \
-    USE_DISTRIBUTED=0 \
+    USE_DISTRIBUTED=1 \
     python setup.py install
 
 # --- Set the working directory to the location of the repo ---
