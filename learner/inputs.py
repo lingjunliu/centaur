@@ -370,6 +370,9 @@ def get_inputs(api, lib="torch", time_budget=30, min_val_inp=100, seed=42, suffi
             valid += 1
             list_of_inputs.append(input_dict)
             abstract_inputs.append((abs_inp, seed, suffix))
+        else:
+            if print_details:
+                print(f"{bcolors.FAIL}Input threw exception: {exception_message}{bcolors.ENDC}")
         
         seed += 1
     

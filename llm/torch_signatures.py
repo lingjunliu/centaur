@@ -5420,9 +5420,7 @@ signatures["torch.threshold"] = {
         "threshold": "float",
         "value": "float"
     },
-    "kwargs": {
-        "inplace": "boolean"
-    },
+    "kwargs": {},
     "inner": {},
 }
 signatures["torch.fft.fft"] = {
