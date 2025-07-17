@@ -72,7 +72,7 @@ ENV CC=clang \
 WORKDIR /workspace
 # --- Copy the repository into the Docker image ---
 COPY . /workspace/repo
-RUN pip install -r /workspace/repo/asan/requirements.txt
+RUN pip install -r /workspace/repo/asan/requirements.txt --break-system-packages
 
 # --- PyTorch Source Checkout ---
 WORKDIR /workspace
