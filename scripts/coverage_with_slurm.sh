@@ -1,7 +1,6 @@
 #!/bin/bash
 
 export slurm_time="2:00:00" # Time limit is 2 hours
-export max_parallel=690     # Fix number of slurm jobs to 690
 
 n_inputs=${1:-0}      # Pass 0 to run for all inputs, otherwise, mention value
 lib=${2:-torch}        # Lib: torch or tf
@@ -60,7 +59,7 @@ bash $slurm_sh "python -m eval.patching" ${job_name} ${n_inputs} ${lib}
 
 if [ "$lib" = "torch" ]; then
     # Install instrumented pytorch
-    if [ ! -f ${PROJECT_DIR}/instrumented_pytorch/torch-${lib_v}* ]; then  # Download only if not already downloaded
+    if [ ! -f ${PROJECT_DIR}/instrumented_torch/torch-${lib_v}* ]; then  # Download only if not already downloaded
         pip install gdown
         # Update link
         # gdown --fuzzy https://drive.google.com/file/d/1GqydzvLO7XTlFXnSum_zhEulJpC2JRwU/view?usp=sharing -O $PROJECT_DIR/instrumented_pytorch/

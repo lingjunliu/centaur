@@ -1,5 +1,9 @@
 import os, sys
-from utils.misc import get_dir_in_root, get_tmp_dir, read_file_in_root
+import numpy as np
+from utils.misc import get_dir_in_root, get_tmp_dir, read_file_in_root, bcolors
+from utils.new_api_utils import get_api_suffix
+from llm.valid_inputs_torch import generated_inputs as generated_inputs_torch
+from llm.valid_inputs_tf import generated_inputs as generated_inputs_tf
 
 def main():
     lib = sys.argv[1] if len(sys.argv) > 1 else "torch"
@@ -10,8 +14,10 @@ def main():
     elif lib == "tensorflow":
         lib = "tf"
         
-    supported_apis = read_file_in_root("torch_apis.txt")
-    supported_variations = read_file_in_root("torch_variations.txt")
+    supported_apis = read_file_in_root(f"{lib}_apis.txt")
+    supported_variations = read_file_in_root(f"{lib}_variations.txt")
+    generated_inputs = generated_inputs_torch if lib == "torch" else generated_inputs_tf
+    outdated_apis = set()
 
     rule_to_api = {}
     api_to_rule = {}
@@ -19,6 +25,8 @@ def main():
     for file in os.listdir(inv_dir):
         if file not in supported_variations:
             print(f"Invariants learned for unsupported api variation {file}")
+            outdated_apis.add(file)
+            continue
         file_path = os.path.join(inv_dir, file)
         if os.path.isfile(file_path):
             with open(file_path, "r") as f:
@@ -35,10 +43,62 @@ def main():
                     if api not in api_to_rule:
                         api_to_rule[api] = set()
                     api_to_rule[api].add(rule)
+
+    apis_with_invariants = set(api_to_rule.keys())
+    apis_without_invariants = set(supported_apis) - apis_with_invariants
     
+    corpus_folder = get_dir_in_root(f"corpus_{lib}")
+
+    apis_with_models = set()
+    for api in supported_apis:
+        api_path = os.path.join(corpus_folder, api)
+        if os.path.isdir(api_path):
+            n_models = len(os.listdir(api_path))
+            if n_models > 0:
+                apis_with_models.add(api)
+    
+    apis_without_models = set(supported_apis) - apis_with_models
+
+    variations_with_llm_inputs = set(generated_inputs.keys())
+    apis_with_llm_inputs = set()
+
+    for variation in variations_with_llm_inputs:
+        api, suffix = get_api_suffix(variation)
+        if api in supported_apis:
+            apis_with_llm_inputs.add(api)
+    
+    apis_without_llm_inputs = set(supported_apis) - apis_with_llm_inputs
+
+    apis_without_invariants_but_with_models = apis_without_invariants.intersection(apis_with_models)
+    if len(apis_without_invariants_but_with_models) > 0:
+        print(f"\n{bcolors.WARNING}WARNING: There are {len(apis_without_invariants_but_with_models)} APIs without invariants but they have models!{bcolors.ENDC}")
+
+
+    apis_with_models = apis_with_models.intersection(apis_with_invariants)
+
+    stats_str = "Library,Target APIs,Has LLM Generated Inputs,Has Invariants,Has Models\n"
+    stats_str += f"{lib},{len(supported_apis)},{len(apis_with_llm_inputs)},{len(apis_with_invariants)},{len(apis_with_models)}\n"
+
+    rng = np.random.default_rng(21)
+
+    sample_apis_without_inputs = rng.choice(list(apis_without_llm_inputs), size=min(5, len(apis_without_llm_inputs)), replace=False)
+    sample_apis_without_invariants = rng.choice(list(apis_without_invariants), size=min(5, len(apis_without_invariants)), replace=False)
+    sample_apis_without_models = rng.choice(list(apis_without_models), size=min(5, len(apis_without_models)), replace=False)
+
+    print("\nSample APIs without LLM generated inputs:\n")
+    print('\n'.join(sample_apis_without_inputs))
+    print("\nSample APIs without invariants:\n")
+    print('\n'.join(sample_apis_without_invariants))
+    print("\nSample APIs without models:\n")
+    print('\n'.join(sample_apis_without_models))
+
+    # Save stats to file
     tmp = get_tmp_dir()
     rule_to_api_csv = os.path.join(tmp, f"rule_to_api_{lib}.csv")
     api_to_rule_csv = os.path.join(tmp, f"api_to_rule_{lib}.csv")
+    stats_csv = os.path.join(tmp, f"stats_{lib}.csv")
+    outdated_file = os.path.join(tmp, f"outdated_apis_{lib}.txt")
+    models_without_invariants = os.path.join(tmp, f"models_without_invariants_{lib}.txt")
     
     with open(rule_to_api_csv, "w") as f:
         for rule, apis in rule_to_api.items():
@@ -48,13 +108,13 @@ def main():
         for api, rules in api_to_rule.items():
             f.write(f"{api},{len(rules)}\n")
 
-    to_print = True
-    for api in supported_apis:
-        if api not in api_to_rule:
-            if to_print:
-                print("The following apis do not have invariants yet:")
-                to_print = False
-            print(f"{api}")
+    with open(stats_csv, "w") as f:
+        f.write(stats_str)
 
+    with open(outdated_file, "w") as f:
+        f.write('\n'.join(outdated_apis))
+
+    with open(models_without_invariants, "w") as f:
+        f.write('\n'.join(sorted(apis_without_invariants_but_with_models)))
 if __name__ == "__main__":
     main()
